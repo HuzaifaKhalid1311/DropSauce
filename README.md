@@ -32,6 +32,4 @@ install instructions.
 
 ### Disclaimer
 
-**`¯\_(ツ)_/¯`**
-
-This repository has been built by contributors / users, the content inside has been provided by **[Gemini](https://gemini.google.com/)**, but where is it, no one knows. No one knows how it works.
+The developers of this application do not have any affiliation with the content available in the app and does not store or distribute any content. This application should be considered a web browser, all content that can be found using this application is freely available on the Internet. All DMCA takedown requests should be sent to the owners of the website where the content is hosted.
