@@ -46,7 +46,11 @@ class SourcesListProducer @Inject constructor(
 
 	init {
 		settings.observeChanges()
-			.filter { it == AppSettings.KEY_TIPS_CLOSED || it == AppSettings.KEY_DISABLE_NSFW }
+			.filter {
+				it == AppSettings.KEY_TIPS_CLOSED ||
+					it == AppSettings.KEY_DISABLE_NSFW ||
+					it == AppSettings.KEY_SOURCES_HIDE_BROKEN
+			}
 			.flowOn(Dispatchers.Default)
 			.onEach { onInvalidated(emptySet()) }
 			.launchIn(scope)

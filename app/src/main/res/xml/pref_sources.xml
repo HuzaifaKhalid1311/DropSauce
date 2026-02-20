@@ -38,6 +38,12 @@
         android:summary="@string/disable_nsfw_summary"
         android:title="@string/disable_nsfw" />
 
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="sources_hide_broken"
+        android:summary="@string/hide_broken_sources_summary"
+        android:title="@string/hide_broken_sources" />
+
     <ListPreference
         android:entries="@array/incognito_nsfw_options"
         android:key="incognito_nsfw"
