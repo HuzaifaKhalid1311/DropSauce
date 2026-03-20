@@ -23,12 +23,15 @@ import org.koitharu.kotatsu.core.db.dao.MangaSourcesDao
 import org.koitharu.kotatsu.core.db.entity.MangaSourceEntity
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.isBroken
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
 import org.koitharu.kotatsu.core.util.ext.flattenLatest
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -46,6 +49,7 @@ class MangaSourcesRepository @Inject constructor(
 	@LocalizedAppContext private val context: Context,
 	private val db: MangaDatabase,
 	private val settings: AppSettings,
+	private val mihonExtensionManager: MihonExtensionManager? = null,
 ) {
 
 	private val isNewSourcesAssimilated = AtomicBoolean(false)
@@ -66,8 +70,10 @@ class MangaSourcesRepository @Inject constructor(
 		)
 			.let { enabled ->
 				val external = getExternalSources()
-				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size)
+				val mihon = getMihonSources()
+				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size + mihon.size)
 				external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
+				mihon.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
 				list.addAll(enabled)
 				list
 			}
@@ -202,8 +208,12 @@ class MangaSourcesRepository @Inject constructor(
 	}.flattenLatest()
 		.onStart { assimilateNewSources() }
 		.combine(observeExternalSources()) { enabled, external ->
-			val list = ArrayList<MangaSourceInfo>(enabled.size + external.size)
+			enabled to external
+		}
+		.combine(observeMihonSources()) { (enabled, external), mihon ->
+			val list = ArrayList<MangaSourceInfo>(enabled.size + external.size + mihon.size)
 			external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
+			mihon.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
 			list.addAll(enabled)
 			list
 		}
@@ -212,7 +222,7 @@ class MangaSourcesRepository @Inject constructor(
 		val result = ArrayList<Pair<MangaSource, Boolean>>(entities.size)
 		for (entity in entities) {
 			val source = entity.source.toMangaSourceOrNull() ?: continue
-			if (source in allMangaSources) {
+			if (source is MangaParserSource && source in allMangaSources) {
 				result.add(source to entity.isEnabled)
 			}
 		}
@@ -393,6 +403,23 @@ class MangaSourcesRepository @Inject constructor(
 		)
 	}
 
+	private fun getMihonSources(): List<MihonMangaSource> {
+		val manager = mihonExtensionManager ?: return emptyList()
+		manager.initialize()
+		return manager.getMihonMangaSources()
+	}
+
+	private fun observeMihonSources(): Flow<List<MihonMangaSource>> {
+		val manager = mihonExtensionManager ?: return kotlinx.coroutines.flow.flowOf(emptyList())
+		manager.initialize()
+		return combine(
+			manager.installedExtensions,
+			manager.isLoading,
+		) { _, _ ->
+			getMihonSources()
+		}.distinctUntilChanged()
+	}
+
 	private fun List<MangaSourceEntity>.toSources(
 		skipNsfwSources: Boolean,
 		sortOrder: SourcesSortOrder?,
@@ -408,7 +435,7 @@ class MangaSourcesRepository @Inject constructor(
 			if (hideBrokenSources && source.isBroken) {
 				continue
 			}
-			if (source in allMangaSources) {
+			if (source is MangaParserSource && source in allMangaSources) {
 				result.add(
 					MangaSourceInfo(
 						mangaSource = source,
@@ -440,5 +467,8 @@ class MangaSourcesRepository @Inject constructor(
 		isAllSourcesEnabled
 	}
 
-	private fun String.toMangaSourceOrNull(): MangaParserSource? = MangaParserSource.entries.find { it.name == this }
+	private fun String.toMangaSourceOrNull(): MangaSource? = when {
+		startsWith("MIHON_") -> MihonExtensionManager.getByName(this)
+		else -> MangaParserSource.entries.find { it.name == this }
+	}
 }

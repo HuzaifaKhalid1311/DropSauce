@@ -23,6 +23,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.lifecycleScope
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.settings.sources.model.SourceConfigItem
@@ -70,7 +71,7 @@ class SourcesListProducer @Inject constructor(
 	}
 
 	private suspend fun buildList(): List<SourceConfigItem> {
-		val enabledSources = repository.getEnabledSources().filter { it.unwrap() is MangaParserSource }
+		val enabledSources = repository.getEnabledSources()
 		val pinned = repository.getPinnedSources().mapToSet { it.name }
 		val isNsfwDisabled = settings.isNsfwContentDisabled
 		val isReorderAvailable = settings.sourcesSortOrder == SourcesSortOrder.MANUAL
@@ -88,7 +89,8 @@ class SourcesListProducer @Inject constructor(
 					isDraggable = false,
 					isAvailable = !isNsfwDisabled || !it.isNsfw(),
 					isPinned = it.name in pinned,
-					isDisableAvailable = isDisableAvailable,
+					isDisableAvailable = isDisableAvailable && it.unwrap() is MangaParserSource,
+					isMenuAvailable = it.unwrap() !is MihonMangaSource,
 				)
 			}.ifEmpty {
 				listOf(SourceConfigItem.EmptySearchResult)
@@ -104,13 +106,15 @@ class SourcesListProducer @Inject constructor(
 				)
 			}
 			enabledSources.mapTo(result) {
+				val isParserSource = it.unwrap() is MangaParserSource
 				SourceConfigItem.SourceItem(
 					source = it,
 					isEnabled = true,
-					isDraggable = isReorderAvailable,
+					isDraggable = isReorderAvailable && isParserSource,
 					isAvailable = false,
 					isPinned = it.name in pinned,
-					isDisableAvailable = isDisableAvailable,
+					isDisableAvailable = isDisableAvailable && isParserSource,
+					isMenuAvailable = it.unwrap() !is MihonMangaSource,
 				)
 			}
 		}

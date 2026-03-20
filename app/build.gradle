@@ -177,6 +177,8 @@ dependencies {
 	implementation libs.okhttp.tls
 	implementation libs.okhttp.dnsoverhttps
 	implementation libs.okio
+	implementation libs.rxjava
+	implementation libs.injekt.core
 	implementation libs.kotlinx.serialization.json
 
 	implementation libs.adapterdelegates

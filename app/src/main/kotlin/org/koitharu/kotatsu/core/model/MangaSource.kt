@@ -14,6 +14,8 @@ import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
 import org.koitharu.kotatsu.core.util.ext.getDisplayName
 import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.core.util.ext.toLocaleOrNull
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -42,6 +44,9 @@ fun MangaSource(name: String?): MangaSource {
 		val parts = name.substringAfter(':').splitTwoParts('/') ?: return UnknownMangaSource
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
 	}
+	if (name.startsWith("MIHON_")) {
+		return MihonExtensionManager.getByName(name) ?: UnknownMangaSource
+	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
 	}
@@ -53,8 +58,19 @@ fun Collection<String>.toMangaSources() = map(::MangaSource)
 fun MangaSource.isNsfw(): Boolean = when (this) {
 	is MangaSourceInfo -> mangaSource.isNsfw()
 	is MangaParserSource -> contentType == ContentType.HENTAI
+	is MihonMangaSource -> isNsfw
 	else -> false
 }
+
+val MangaSource.isBroken: Boolean
+	get() = when (val source = unwrap()) {
+		is MangaParserSource -> source.isBroken
+		UnknownMangaSource -> true
+		else -> false
+	}
+
+val MangaSource.isLocal: Boolean
+	get() = unwrap() == LocalMangaSource
 
 @get:StringRes
 val ContentType.titleResId
@@ -89,6 +105,7 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 	}
 
 	is ExternalMangaSource -> context.getString(R.string.external_source)
+	is MihonMangaSource -> context.getString(R.string.external_source)
 
 	else -> null
 }
@@ -98,6 +115,7 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
+	is MihonMangaSource -> source.displayName
 	else -> context.getString(R.string.unknown)
 }
 
