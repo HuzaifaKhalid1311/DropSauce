@@ -35,7 +35,7 @@ material = "1.14.0-alpha05"
 moshi = "1.15.2"
 okhttp = "5.2.1"
 okio = "3.16.1"
-parsers = "1.0"
+parsers = "cd569b7278"
 preference = "1.2.1"
 recyclerview = "1.4.0"
 room = "2.7.2"
@@ -113,6 +113,7 @@ markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-brotli = { module = "com.squareup.okhttp3:okhttp-brotli", version.ref = "okhttp" }
 okhttp-dnsoverhttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps", version.ref = "okhttp" }
 okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

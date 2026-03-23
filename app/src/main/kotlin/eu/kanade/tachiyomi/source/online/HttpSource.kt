@@ -15,6 +15,8 @@ import okhttp3.Request
 import okhttp3.Response
 import rx.Observable
 import uy.kohesive.injekt.injectLazy
+import java.net.URI
+import java.net.URISyntaxException
 import java.security.MessageDigest
 
 abstract class HttpSource : CatalogueSource {
@@ -109,6 +111,37 @@ abstract class HttpSource : CatalogueSource {
 	open fun imageUrlRequest(page: Page): Request = GET(baseUrl + page.url, headers)
 
 	open fun getPageHeaders(page: Page): Headers = headers
-	open fun getMangaUrl(manga: SManga): String = baseUrl + manga.url
-	open fun getChapterUrl(chapter: SChapter): String = baseUrl + chapter.url
+
+	fun SChapter.setUrlWithoutDomain(url: String) {
+		this.url = getUrlWithoutDomain(url)
+	}
+
+	fun SManga.setUrlWithoutDomain(url: String) {
+		this.url = getUrlWithoutDomain(url)
+	}
+
+	private fun getUrlWithoutDomain(orig: String): String {
+		return try {
+			val uri = URI(orig.replace(" ", "%20"))
+			buildString {
+				append(uri.path)
+				uri.query?.let {
+					append('?')
+					append(it)
+				}
+				uri.fragment?.let {
+					append('#')
+					append(it)
+				}
+			}
+		} catch (_: URISyntaxException) {
+			orig
+		}
+	}
+
+	open fun getMangaUrl(manga: SManga): String = mangaDetailsRequest(manga).url.toString()
+	open fun getChapterUrl(chapter: SChapter): String = pageListRequest(chapter).url.toString()
+	open fun prepareNewChapter(chapter: SChapter, manga: SManga) = Unit
+
+	override fun getFilterList(): FilterList = FilterList()
 }

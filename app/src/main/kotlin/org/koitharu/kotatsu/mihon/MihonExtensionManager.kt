@@ -57,6 +57,7 @@ class MihonExtensionManager @Inject constructor(
 		sourceNamePrefix = "MIHON_",
 		errorPackageName = { it.pkgName },
 		errorMessage = { it.message },
+		errorThrowable = { it.exception },
 	)
 
 	val installedExtensions: StateFlow<List<MihonLoadResult.Success>> = facade.installedExtensions

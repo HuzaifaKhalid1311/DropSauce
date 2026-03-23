@@ -4,19 +4,22 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.util.Log
+import android.os.Bundle
 import android.os.Build
 import androidx.core.content.pm.PackageInfoCompat
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceFactory
+import eu.kanade.tachiyomi.util.system.ChildFirstPathClassLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.mihon.compat.KotoInjektBridge
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
-import org.koitharu.kotatsu.mihon.util.ChildFirstPathClassLoader
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,12 +30,55 @@ class MihonExtensionLoader @Inject constructor(
 ) {
 
 	companion object {
+		private const val TAG = "MihonExtensionLoader"
 		private const val EXTENSION_FEATURE = "tachiyomi.extension"
 		private const val METADATA_SOURCE_CLASS = "tachiyomi.extension.class"
 		private const val METADATA_SOURCE_FACTORY = "tachiyomi.extension.factory"
 		private const val METADATA_NSFW = "tachiyomi.extension.nsfw"
-		const val LIB_VERSION_MIN = 1.2
-		const val LIB_VERSION_MAX = 1.9
+		const val LIB_VERSION_MIN = 1.4
+		const val LIB_VERSION_MAX = 1.5
+
+		internal fun normalizeSourceClassNames(pkgName: String, sourceClassNames: String): List<String> {
+			return sourceClassNames
+				.split(';', ':', ',')
+				.map { it.trim() }
+				.filter { it.isNotEmpty() }
+				.map { className ->
+					if (className.startsWith('.')) {
+						pkgName + className
+					} else {
+						className
+					}
+				}
+		}
+
+		internal fun readNsfwFlag(metaData: Bundle): Boolean {
+			if (!metaData.containsKey(METADATA_NSFW)) {
+				return false
+			}
+			return runCatching {
+				parseNsfwFlag(metaData.getInt(METADATA_NSFW))
+			}.getOrElse {
+				runCatching {
+					parseNsfwFlag(metaData.getBoolean(METADATA_NSFW))
+				}.getOrElse {
+					parseNsfwFlag(metaData.getString(METADATA_NSFW))
+				}
+			}
+		}
+
+		internal fun parseNsfwFlag(value: Any?): Boolean {
+			return when (value) {
+				is Boolean -> value
+				is Int -> value != 0
+				is String -> value == "1" || value.equals("true", ignoreCase = true)
+				else -> false
+			}
+		}
+
+		internal fun isSupportedLibVersion(libVersion: Double): Boolean {
+			return libVersion in LIB_VERSION_MIN..LIB_VERSION_MAX
+		}
 	}
 
 	suspend fun loadExtensions(context: Context): List<MihonLoadResult> = withContext(Dispatchers.IO) {
@@ -45,39 +91,42 @@ class MihonExtensionLoader @Inject constructor(
 
 	private fun loadExtension(context: Context, pkgInfo: PackageInfo): MihonLoadResult {
 		val appInfo = pkgInfo.applicationInfo
-			?: return MihonLoadResult.Error(pkgInfo.packageName, "No ApplicationInfo")
+			?: return buildLoggedError(pkgInfo.packageName, "No ApplicationInfo")
 		val metaData = appInfo.metaData
-			?: return MihonLoadResult.Error(pkgInfo.packageName, "No manifest metadata")
+			?: return buildLoggedError(pkgInfo.packageName, "No manifest metadata")
 		val versionName = pkgInfo.versionName
-			?: return MihonLoadResult.Error(pkgInfo.packageName, "No version name")
+			?: return buildLoggedError(pkgInfo.packageName, "No version name")
 		val libVersion = parseLibVersion(versionName)
-			?: return MihonLoadResult.Error(pkgInfo.packageName, "Invalid lib version: $versionName")
-		if (libVersion < LIB_VERSION_MIN || libVersion > LIB_VERSION_MAX) {
-			return MihonLoadResult.Error(
+			?: return buildLoggedError(pkgInfo.packageName, "Invalid lib version: $versionName")
+		if (!isSupportedLibVersion(libVersion)) {
+			return buildLoggedError(
 				pkgName = pkgInfo.packageName,
 				message = "Incompatible lib version: $libVersion",
 			)
 		}
 		val sourceClassNames = metaData.getString(METADATA_SOURCE_CLASS)
 			?: metaData.getString(METADATA_SOURCE_FACTORY)
-			?: return MihonLoadResult.Error(pkgInfo.packageName, "No source class metadata")
+			?: return buildLoggedError(pkgInfo.packageName, "No source class metadata")
 		val classLoader = runCatching {
 			ChildFirstPathClassLoader(
 				appInfo.sourceDir,
-				appInfo.nativeLibraryDir,
+				null,
 				context.classLoader,
 			)
 		}.getOrElse {
-			return MihonLoadResult.Error(pkgInfo.packageName, "Failed to create class loader", it)
+			Log.e(TAG, "Failed to create class loader for ${pkgInfo.packageName}", it)
+			return buildLoggedError(pkgInfo.packageName, "Failed to create class loader", it)
 		}
 		val sources = runCatching {
-			loadSources(sourceClassNames, classLoader)
+			loadSources(pkgInfo.packageName, sourceClassNames, classLoader)
 		}.getOrElse {
-			return MihonLoadResult.Error(pkgInfo.packageName, "Failed to load sources", it)
+			Log.e(TAG, "Failed to load sources for ${pkgInfo.packageName}", it)
+			return buildLoggedError(pkgInfo.packageName, "Failed to load sources", it)
 		}
 		if (sources.isEmpty()) {
-			return MihonLoadResult.Error(pkgInfo.packageName, "No sources loaded")
+			return buildLoggedError(pkgInfo.packageName, "No sources loaded")
 		}
+		logLoadedSources(pkgInfo.packageName, sources)
 		return MihonLoadResult.Success(
 			pkgName = pkgInfo.packageName,
 			appName = appInfo.loadLabel(context.packageManager).toString(),
@@ -85,16 +134,13 @@ class MihonExtensionLoader @Inject constructor(
 			versionName = versionName,
 			libVersion = libVersion,
 			lang = extractLanguage(pkgInfo.packageName),
-			isNsfw = metaData.getBoolean(METADATA_NSFW, false),
+			isNsfw = readNsfwFlag(metaData),
 			sources = sources,
 		)
 	}
 
-	private fun loadSources(sourceClassNames: String, classLoader: ClassLoader): List<Source> {
-		return sourceClassNames
-			.split(';', ':', ',')
-			.map { it.trim() }
-			.filter { it.isNotEmpty() }
+	private fun loadSources(pkgName: String, sourceClassNames: String, classLoader: ClassLoader): List<Source> {
+		return normalizeSourceClassNames(pkgName, sourceClassNames)
 			.flatMap { className ->
 				val instance = classLoader.loadClass(className).getDeclaredConstructor().newInstance()
 				when (instance) {
@@ -103,6 +149,29 @@ class MihonExtensionLoader @Inject constructor(
 					else -> emptyList()
 				}
 			}
+	}
+
+	private fun buildLoggedError(
+		pkgName: String,
+		message: String,
+		exception: Throwable? = null,
+	): MihonLoadResult.Error {
+		if (exception == null) {
+			Log.w(TAG, "$pkgName: $message")
+		} else {
+			Log.e(TAG, "$pkgName: $message", exception)
+		}
+		return MihonLoadResult.Error(pkgName, message, exception)
+	}
+
+	private fun logLoadedSources(pkgName: String, sources: List<Source>) {
+		val summary = sources.joinToString(separator = " | ") { source ->
+			when (source) {
+				is CatalogueSource -> "id=${source.id},name=${source.name},lang=${source.lang},class=${source.javaClass.name}"
+				else -> "id=${source.id},class=${source.javaClass.name}"
+			}
+		}
+		Log.i(TAG, "Loaded extension $pkgName with ${sources.size} source(s): $summary")
 	}
 
 	private fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {

@@ -161,6 +161,27 @@ class MangaSourcesRepository @Inject constructor(
 		return sources
 	}
 
+	suspend fun queryMihonSources(
+		query: String?,
+		locale: String?,
+	): List<MihonMangaSource> {
+		val sources = getMihonSources().toMutableList()
+		if (settings.isNsfwContentDisabled) {
+			sources.removeAll { it.isNsfw }
+		}
+		if (locale != null) {
+			sources.retainAll { it.language == locale }
+		}
+		if (!query.isNullOrEmpty()) {
+			sources.retainAll {
+				it.displayName.contains(query, ignoreCase = true) ||
+					it.pkgName.contains(query, ignoreCase = true)
+			}
+		}
+		sources.sortBy { it.displayName.lowercase() }
+		return sources
+	}
+
 	fun observeIsEnabled(source: MangaSource): Flow<Boolean> {
 		return dao.observeIsEnabled(source.name).onStart { assimilateNewSources() }
 	}
@@ -409,7 +430,7 @@ class MangaSourcesRepository @Inject constructor(
 		return manager.getMihonMangaSources()
 	}
 
-	private fun observeMihonSources(): Flow<List<MihonMangaSource>> {
+	fun observeMihonSources(): Flow<List<MihonMangaSource>> {
 		val manager = mihonExtensionManager ?: return kotlinx.coroutines.flow.flowOf(emptyList())
 		manager.initialize()
 		return combine(

@@ -28,7 +28,6 @@ dependencyResolutionManagement {
 	}
 }
 
-includeBuild('../kotatsu-parsers')
 
 include ':app'
 rootProject.name = "Yukimi"

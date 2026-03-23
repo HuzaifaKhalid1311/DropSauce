@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
@@ -56,14 +58,35 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			adapter = sourcesAdapter
 		}
 		viewBinding.chipsFilter.onChipClickListener = this
+		viewBinding.spinnerSourceMode.adapter = ArrayAdapter(
+			this,
+			android.R.layout.simple_spinner_item,
+			SourcesCatalogMode.entries.map { getString(it.titleResId) },
+		).also {
+			it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+		}
+		viewBinding.spinnerSourceMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+			override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+				viewModel.setMode(SourcesCatalogMode.entries[position])
+			}
+
+			override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+		}
 		FadingAppbarMediator(viewBinding.appbar, viewBinding.toolbar).bind()
 		viewModel.content.observe(this, sourcesAdapter)
 		viewModel.onActionDone.observeEvent(
 			this,
 			ReversibleActionObserver(viewBinding.recyclerView),
 		)
-		combine(viewModel.appliedFilter, viewModel.hasNewSources, viewModel.contentTypes, ::Triple).observe(this) {
-			updateFilers(it.first, it.second, it.third)
+		combine(
+			viewModel.appliedFilter,
+			viewModel.hasNewSources,
+			viewModel.contentTypes,
+			viewModel.locales,
+		) { filter, hasNewSources, contentTypes, locales ->
+			CatalogUiState(filter, hasNewSources, contentTypes, locales)
+		}.observe(this) {
+			updateFilers(it.filter, it.hasNewSources, it.contentTypes, it.locales)
 		}
 		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this))
 	}
@@ -117,14 +140,20 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		appliedFilter: SourcesCatalogFilter,
 		hasNewSources: Boolean,
 		contentTypes: List<ContentType>,
+		locales: Set<String?>,
 	) {
+		if (viewBinding.spinnerSourceMode.selectedItemPosition != appliedFilter.mode.ordinal) {
+			viewBinding.spinnerSourceMode.setSelection(appliedFilter.mode.ordinal)
+		}
 		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
-		chips += ChipModel(
-			title = appliedFilter.locale?.toLocale().getDisplayName(this),
-			icon = R.drawable.ic_language,
-			isDropdown = true,
-		)
-		if (hasNewSources) {
+		if (locales.size > 1) {
+			chips += ChipModel(
+				title = appliedFilter.locale?.toLocale().getDisplayName(this),
+				icon = R.drawable.ic_language,
+				isDropdown = true,
+			)
+		}
+		if (hasNewSources && appliedFilter.mode == SourcesCatalogMode.BUILTIN) {
 			chips += ChipModel(
 				title = getString(R.string._new),
 				icon = R.drawable.ic_updated,
@@ -143,7 +172,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun showLocalesMenu(anchor: View) {
-		val locales = viewModel.locales.mapTo(ArrayList(viewModel.locales.size)) {
+		val locales = viewModel.locales.value.mapTo(ArrayList(viewModel.locales.value.size)) {
 			it to it?.toLocale()
 		}
 		locales.sortWith(compareBy(nullsFirst(LocaleComparator())) { it.second })
@@ -157,4 +186,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 		menu.show()
 	}
+
+	private data class CatalogUiState(
+		val filter: SourcesCatalogFilter,
+		val hasNewSources: Boolean,
+		val contentTypes: List<ContentType>,
+		val locales: Set<String?>,
+	)
 }

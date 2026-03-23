@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.kanade.tachiyomi.network.NetworkHelper
+import kotlinx.serialization.SerialFormat
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.json.Json
 import okhttp3.CookieJar
@@ -23,7 +24,30 @@ class KotoNetworkHelper(
 	baseClient: OkHttpClient,
 	private val cookieJar: CookieJar,
 ) : NetworkHelper() {
-	override val client: OkHttpClient = baseClient.newBuilder().build()
+	override val client: OkHttpClient = OkHttpClient.Builder().apply {
+		connectTimeout(baseClient.connectTimeoutMillis.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
+		readTimeout(baseClient.readTimeoutMillis.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
+		writeTimeout(baseClient.writeTimeoutMillis.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
+		cookieJar(baseClient.cookieJar)
+		dns(baseClient.dns)
+		cache(baseClient.cache)
+		dispatcher(baseClient.dispatcher)
+		connectionPool(baseClient.connectionPool)
+		followRedirects(baseClient.followRedirects)
+		followSslRedirects(baseClient.followSslRedirects)
+		retryOnConnectionFailure(baseClient.retryOnConnectionFailure)
+		proxy(baseClient.proxy)
+		proxySelector(baseClient.proxySelector)
+		proxyAuthenticator(baseClient.proxyAuthenticator)
+		socketFactory(baseClient.socketFactory)
+		hostnameVerifier(baseClient.hostnameVerifier)
+		baseClient.interceptors.forEach { interceptor ->
+			if (interceptor.javaClass.simpleName != "GZipInterceptor") {
+				addInterceptor(interceptor)
+			}
+		}
+		baseClient.networkInterceptors.forEach(::addNetworkInterceptor)
+	}.build()
 
 	@Deprecated("The regular client handles Cloudflare by default")
 	override val cloudflareClient: OkHttpClient
@@ -59,6 +83,7 @@ class KotoInjektBridge @Inject constructor(
 				addSingletonFactory<CookieJar> { cookieJar }
 				addSingletonFactory<Json> { json }
 				addSingletonFactory<StringFormat> { json }
+				addSingletonFactory<SerialFormat> { json }
 			}
 		})
 		initialized = true

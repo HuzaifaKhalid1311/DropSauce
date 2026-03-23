@@ -24,9 +24,12 @@ import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.EnumSet
+import java.util.LinkedHashSet
 import java.util.Locale
 import javax.inject.Inject
 
@@ -38,36 +41,64 @@ class SourcesCatalogViewModel @Inject constructor(
 ) : BaseViewModel() {
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
-	val locales: Set<String?> = repository.allMangaSources.mapTo(HashSet<String?>()) { it.locale }.also {
+	private val builtInLocales: Set<String?> = repository.allMangaSources.mapTo(LinkedHashSet<String?>()) { it.locale }.also {
 		it.add(null)
 	}
+	private val builtInContentTypes = MutableStateFlow<List<ContentType>>(emptyList())
+	private val mihonSources = repository.observeMihonSources()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
+			mode = SourcesCatalogMode.BUILTIN,
 			types = emptySet(),
-			locale = Locale.getDefault().language.takeIf { it in locales },
+			locale = Locale.getDefault().language.takeIf { it in builtInLocales },
 			isNewOnly = false,
 		),
 	)
 
-	val hasNewSources = repository.observeHasNewSources()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+	val hasNewSources = combine(
+		appliedFilter,
+		repository.observeHasNewSources(),
+	) { filter, hasNewSources ->
+		filter.mode == SourcesCatalogMode.BUILTIN && hasNewSources
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
 
-	val contentTypes = MutableStateFlow<List<ContentType>>(emptyList())
+	val locales: StateFlow<Set<String?>> = combine(
+		appliedFilter,
+		mihonSources,
+	) { filter, sources ->
+		when (filter.mode) {
+			SourcesCatalogMode.BUILTIN -> builtInLocales
+			SourcesCatalogMode.MIHON -> sources.toLocaleSet()
+		}
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, builtInLocales)
+
+	val contentTypes: StateFlow<List<ContentType>> = combine(
+		appliedFilter,
+		builtInContentTypes,
+	) { filter, types ->
+		if (filter.mode == SourcesCatalogMode.BUILTIN) {
+			types
+		} else {
+			emptyList()
+		}
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
 
 	val content: StateFlow<List<ListModel>> = combine(
 		searchQuery,
 		appliedFilter,
 		db.invalidationTrackerFlow(TABLE_SOURCES),
-	) { q, f, _ ->
+		mihonSources,
+	) { q, f, _, _ ->
 		buildSourcesList(f, q)
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
 		repository.clearNewSourcesBadge()
 		launchJob(Dispatchers.Default) {
-			contentTypes.value = getContentTypes(settings.isNsfwContentDisabled)
+			builtInContentTypes.value = getContentTypes(settings.isNsfwContentDisabled)
 		}
 	}
 
@@ -75,11 +106,31 @@ class SourcesCatalogViewModel @Inject constructor(
 		searchQuery.value = query?.trim()
 	}
 
+	fun setMode(value: SourcesCatalogMode) {
+		val filter = appliedFilter.value
+		if (filter.mode == value) {
+			return
+		}
+		val locales = when (value) {
+			SourcesCatalogMode.BUILTIN -> builtInLocales
+			SourcesCatalogMode.MIHON -> mihonSources.value.toLocaleSet()
+		}
+		appliedFilter.value = filter.copy(
+			mode = value,
+			types = emptySet(),
+			locale = filter.locale?.takeIf { it in locales },
+			isNewOnly = if (value == SourcesCatalogMode.BUILTIN) filter.isNewOnly else false,
+		)
+	}
+
 	fun setLocale(value: String?) {
 		appliedFilter.value = appliedFilter.value.copy(locale = value)
 	}
 
 	fun addSource(source: MangaSource) {
+		if (source !is MangaParserSource) {
+			return
+		}
 		launchJob(Dispatchers.Default) {
 			val rollback = repository.setSourcesEnabled(setOf(source), true)
 			onActionDone.call(ReversibleAction(R.string.source_enabled, rollback))
@@ -103,15 +154,21 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	private suspend fun buildSourcesList(filter: SourcesCatalogFilter, query: String?): List<SourceCatalogItem> {
-		val sources = repository.queryParserSources(
-			isDisabledOnly = true,
-			isNewOnly = filter.isNewOnly,
-			excludeBroken = false,
-			types = filter.types,
-			query = query,
-			locale = filter.locale,
-			sortOrder = SourcesSortOrder.ALPHABETIC,
-		)
+		val sources = when (filter.mode) {
+			SourcesCatalogMode.BUILTIN -> repository.queryParserSources(
+				isDisabledOnly = true,
+				isNewOnly = filter.isNewOnly,
+				excludeBroken = false,
+				types = filter.types,
+				query = query,
+				locale = filter.locale,
+				sortOrder = SourcesSortOrder.ALPHABETIC,
+			)
+			SourcesCatalogMode.MIHON -> repository.queryMihonSources(
+				query = query,
+				locale = filter.locale,
+			)
+		}
 		return if (sources.isEmpty()) {
 			listOf(
 				if (query == null) {
@@ -130,7 +187,10 @@ class SourcesCatalogViewModel @Inject constructor(
 			)
 		} else {
 			sources.map {
-				SourceCatalogItem.Source(source = it)
+				SourceCatalogItem.Source(
+					source = it,
+					isAddAvailable = filter.mode == SourcesCatalogMode.BUILTIN,
+				)
 			}
 		}
 	}
@@ -143,5 +203,9 @@ class SourcesCatalogViewModel @Inject constructor(
 		} else {
 			result
 		}
+	}
+
+	private fun List<MihonMangaSource>.toLocaleSet(): Set<String?> = mapTo(LinkedHashSet<String?>()) { it.language }.also {
+		it.add(null)
 	}
 }

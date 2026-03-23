@@ -488,6 +488,9 @@
     <string name="content_type_manga">日漫</string>
     <string name="source_summary_pattern">%1$s，%2$s</string>
     <string name="sources_catalog">图源目录</string>
+    <string name="source_mode_builtin">内置</string>
+    <string name="source_mode_mihon">Mihon</string>
+    <string name="source_mode_prompt">图源类型</string>
     <string name="source_enabled">图源已启用</string>
     <string name="content_type_hentai">成人</string>
     <string name="no_manga_sources_found">未搜索到可用图源</string>

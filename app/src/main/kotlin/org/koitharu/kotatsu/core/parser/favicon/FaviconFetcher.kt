@@ -39,6 +39,7 @@ import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
 import org.koitharu.kotatsu.local.data.FaviconCache
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.local.data.LocalStorageCache
+import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
@@ -58,6 +59,7 @@ class FaviconFetcher(
 		return when (val repo = mangaRepositoryFactory.create(mangaSource)) {
 			is ParserMangaRepository -> fetchParserFavicon(repo)
 			is ExternalMangaRepository -> fetchPluginIcon(repo)
+			is MihonMangaRepository -> fetchMihonIcon(repo)
 			is EmptyMangaRepository -> ImageFetchResult(
 				image = ColorImage(Color.WHITE),
 				isSampled = false,
@@ -117,6 +119,17 @@ class FaviconFetcher(
 		val icon = runInterruptible {
 			val provider = pm.resolveContentProvider(source.authority, 0)
 			provider?.loadIcon(pm) ?: pm.getApplicationIcon(source.packageName)
+		}
+		return ImageFetchResult(
+			image = icon.nonAdaptive().asImage(),
+			isSampled = false,
+			dataSource = DataSource.DISK,
+		)
+	}
+
+	private suspend fun fetchMihonIcon(repository: MihonMangaRepository): FetchResult {
+		val icon = runInterruptible {
+			options.context.packageManager.getApplicationIcon(repository.source.pkgName)
 		}
 		return ImageFetchResult(
 			image = icon.nonAdaptive().asImage(),

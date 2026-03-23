@@ -7,6 +7,7 @@ import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.isBroken
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.drawableStart
@@ -35,11 +36,14 @@ fun sourceCatalogItemSourceAD(
 		appcompatR.attr.listPreferredItemPaddingEnd,
 		binding.root.paddingStart,
 	)
-	binding.root.updatePaddingRelative(
-		end = (basePadding - context.resources.getDimensionPixelOffset(R.dimen.margin_small)).coerceAtLeast(0),
-	)
+	val compactEndPadding = (basePadding - context.resources.getDimensionPixelOffset(R.dimen.margin_small)).coerceAtLeast(0)
 
 	bind {
+		binding.imageViewAdd.isVisible = item.isAddAvailable
+		binding.viewAddDivider.isVisible = item.isAddAvailable
+		binding.root.updatePaddingRelative(
+			end = if (item.isAddAvailable) compactEndPadding else basePadding,
+		)
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewDescription.text = item.source.getSummary(context)
 		binding.textViewDescription.drawableStart = if (item.source.isBroken) {

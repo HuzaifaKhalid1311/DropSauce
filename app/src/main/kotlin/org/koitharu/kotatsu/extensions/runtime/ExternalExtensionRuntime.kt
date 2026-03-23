@@ -132,8 +132,13 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 	private val wrappedSourceCache = mutableMapOf<Long, WrappedSourceT>()
 	@Volatile
 	private var isPackageObserverRegistered = false
+	@Volatile
+	private var isInitialized = false
 
+	@Synchronized
 	fun initialize(loadAction: suspend () -> Unit) {
+		if (isInitialized) return
+		isInitialized = true
 		registerPackageObserver(loadAction)
 		scope.launch { loadAction() }
 	}
@@ -189,6 +194,7 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 	private val sourceNamePrefix: String,
 	private val errorPackageName: (ErrorT) -> String,
 	private val errorMessage: (ErrorT) -> String,
+	private val errorThrowable: (ErrorT) -> Throwable? = { null },
 ) {
 	private val runtime = ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, WrappedSourceT>(context, scope)
 
@@ -214,7 +220,14 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 				asCatalogueSource = asCatalogueSource,
 				catalogueSourceName = catalogueSourceName,
 				buildWrappedSource = buildWrappedSource,
-				onError = { error -> android.util.Log.e("ExternalExtensionManager", "${errorPackageName(error)}: ${errorMessage(error)}") },
+				onError = { error ->
+					val throwable = errorThrowable(error)
+					if (throwable == null) {
+						android.util.Log.e("ExternalExtensionManager", "${errorPackageName(error)}: ${errorMessage(error)}")
+					} else {
+						android.util.Log.e("ExternalExtensionManager", "${errorPackageName(error)}: ${errorMessage(error)}", throwable)
+					}
+				},
 			)
 		}
 	}
