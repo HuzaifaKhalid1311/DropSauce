@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class MihonExtensionManager @Inject constructor(
-	@ApplicationContext context: Context,
+	@ApplicationContext private val context: Context,
 	private val loader: MihonExtensionLoader,
 ) {
 
@@ -76,7 +76,21 @@ class MihonExtensionManager @Inject constructor(
 		facade.loadExtensions()
 	}
 
+	fun getCatalogueSources(): List<CatalogueSource> = facade.getCatalogueSources()
+
 	fun getMihonMangaSources(): List<MihonMangaSource> = facade.getWrappedSources()
 
+	fun getSourceById(sourceId: Long): Source? = facade.getSourceById(sourceId)
+
+	fun getCatalogueSourceById(sourceId: Long): CatalogueSource? = facade.getCatalogueSourceById(sourceId)
+
+	fun getMihonMangaSourceById(sourceId: Long): MihonMangaSource? = facade.getWrappedSourceById(sourceId)
+
 	fun getMihonMangaSourceByName(name: String): MihonMangaSource? = facade.getWrappedSourceByName(name)
+
+	fun getSourcesByLanguage(): Map<String, List<CatalogueSource>> = facade.getSourcesByLanguage()
+
+	fun getSourceCount(): Int = facade.getSourceCount()
+
+	fun hasExtensions(): Boolean = facade.hasExtensions()
 }

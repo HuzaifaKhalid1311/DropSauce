@@ -35,10 +35,12 @@ class MihonExtensionLoaderTest {
 	}
 
 	@Test
-	fun `isSupportedLibVersion matches official mihon range`() {
-		assertFalse(MihonExtensionLoader.isSupportedLibVersion(1.3))
+	fun `isSupportedLibVersion matches widened range`() {
+		assertFalse(MihonExtensionLoader.isSupportedLibVersion(1.1))
+		assertTrue(MihonExtensionLoader.isSupportedLibVersion(1.2))
 		assertTrue(MihonExtensionLoader.isSupportedLibVersion(1.4))
 		assertTrue(MihonExtensionLoader.isSupportedLibVersion(1.5))
-		assertFalse(MihonExtensionLoader.isSupportedLibVersion(1.6))
+		assertTrue(MihonExtensionLoader.isSupportedLibVersion(1.9))
+		assertFalse(MihonExtensionLoader.isSupportedLibVersion(2.0))
 	}
 }

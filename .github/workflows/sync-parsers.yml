@@ -1,0 +1,32 @@
+name: Sync Parser Commits
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # Daily at 02:00 UTC
+  workflow_dispatch:       # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update parser commit hashes
+        id: update_parsers
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/sync_parsers.py
+
+      - name: Commit changes
+        if: steps.update_parsers.outputs.updated == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: ${{ steps.update_parsers.outputs.commit_message }}
+          file_pattern: |
+            gradle/libs.versions.toml

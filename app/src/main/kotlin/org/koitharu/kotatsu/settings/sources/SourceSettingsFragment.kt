@@ -9,6 +9,7 @@ import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import androidx.preference.Preference
 import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
+import eu.kanade.tachiyomi.source.ConfigurableSource
 import kotlinx.coroutines.flow.filterNotNull
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
@@ -24,6 +25,7 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.withArgs
+import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.io.File
 
@@ -41,7 +43,12 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 	}
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-		preferenceManager.sharedPreferencesName = viewModel.source.name.replace(File.separatorChar, '$')
+		val repo = viewModel.repository
+		if (repo is MihonMangaRepository) {
+			preferenceManager.sharedPreferencesName = "source_${repo.mihonSource.id}"
+		} else {
+			preferenceManager.sharedPreferencesName = viewModel.source.name.replace(File.separatorChar, '$')
+		}
 		addPreferencesFromResource(R.xml.pref_source)
 		addPreferencesFromRepository(viewModel.repository)
 		val isValidSource = viewModel.repository !is EmptyMangaRepository
@@ -59,6 +66,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
+		tryAddMihonPreferences()
 		viewModel.isAuthorized.filterNotNull().observe(viewLifecycleOwner) { isAuthorized ->
 			findPreference<Preference>(KEY_AUTH)?.isEnabled = !isAuthorized
 		}
@@ -160,6 +168,21 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 			fun newInstance(key: String) = DomainDialogFragment().withArgs(1) {
 				putString(ARG_KEY, key)
 			}
+		}
+	}
+
+	/**
+	 * If the source is a Mihon extension implementing ConfigurableSource,
+	 * inject its preferences into the current preference screen.
+	 */
+	private fun tryAddMihonPreferences() {
+		val repo = viewModel.repository as? MihonMangaRepository ?: return
+		val mihonSource = repo.mihonSource as? ConfigurableSource ?: return
+		val screen = preferenceScreen ?: return
+		try {
+			mihonSource.setupPreferenceScreen(screen)
+		} catch (e: Throwable) {
+			android.util.Log.e("SourceSettingsFragment", "Failed to setup Mihon preferences", e)
 		}
 	}
 

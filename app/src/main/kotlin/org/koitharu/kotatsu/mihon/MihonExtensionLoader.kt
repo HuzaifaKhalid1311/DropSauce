@@ -19,6 +19,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.mihon.compat.KotoInjektBridge
+import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,8 +36,8 @@ class MihonExtensionLoader @Inject constructor(
 		private const val METADATA_SOURCE_CLASS = "tachiyomi.extension.class"
 		private const val METADATA_SOURCE_FACTORY = "tachiyomi.extension.factory"
 		private const val METADATA_NSFW = "tachiyomi.extension.nsfw"
-		const val LIB_VERSION_MIN = 1.4
-		const val LIB_VERSION_MAX = 1.5
+		const val LIB_VERSION_MIN = 1.2
+		const val LIB_VERSION_MAX = 1.9
 
 		internal fun normalizeSourceClassNames(pkgName: String, sourceClassNames: String): List<String> {
 			return sourceClassNames
@@ -89,6 +90,65 @@ class MihonExtensionLoader @Inject constructor(
 			.awaitAll()
 	}
 
+	/**
+	 * Load a single Mihon extension by package name.
+	 */
+	suspend fun loadExtension(context: Context, packageName: String): MihonLoadResult? = withContext(Dispatchers.IO) {
+		injektBridge.get().initialize()
+		val pkgManager = context.packageManager
+		val pkgInfo = try {
+			@Suppress("DEPRECATION")
+			pkgManager.getPackageInfo(
+				packageName,
+				PackageManager.GET_META_DATA or PackageManager.GET_CONFIGURATIONS,
+			)
+		} catch (e: PackageManager.NameNotFoundException) {
+			null
+		} ?: return@withContext null
+
+		if (!isPackageAnExtension(pkgInfo)) {
+			return@withContext null
+		}
+		loadExtension(context, pkgInfo)
+	}
+
+	/**
+	 * Get list of installed Mihon extensions (metadata only, without loading).
+	 */
+	fun getInstalledExtensions(context: Context): List<MihonExtensionInfo> {
+		val pkgManager = context.packageManager
+		return getInstalledPackages(pkgManager)
+			.filter(::isPackageAnExtension)
+			.mapNotNull { pkgInfo -> extractExtensionInfo(pkgInfo, pkgManager) }
+	}
+
+	private fun extractExtensionInfo(pkgInfo: PackageInfo, pkgManager: PackageManager): MihonExtensionInfo? {
+		val appInfo = pkgInfo.applicationInfo ?: return null
+		val metaData = appInfo.metaData ?: return null
+		val versionName = pkgInfo.versionName ?: return null
+		val libVersion = parseLibVersion(versionName) ?: return null
+		val sourceClassName = metaData.getString(METADATA_SOURCE_CLASS)
+			?: metaData.getString(METADATA_SOURCE_FACTORY)
+			?: return null
+		val lang = extractLanguage(pkgInfo.packageName)
+		val appName = try {
+			appInfo.loadLabel(pkgManager).toString()
+		} catch (e: Exception) {
+			pkgInfo.packageName.substringAfterLast('.')
+		}
+		return MihonExtensionInfo(
+			pkgName = pkgInfo.packageName,
+			appName = appName,
+			versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo),
+			versionName = versionName,
+			libVersion = libVersion,
+			lang = lang,
+			isNsfw = readNsfwFlag(metaData),
+			sourceClassName = sourceClassName,
+			apkPath = appInfo.sourceDir ?: return null,
+		)
+	}
+
 	private fun loadExtension(context: Context, pkgInfo: PackageInfo): MihonLoadResult {
 		val appInfo = pkgInfo.applicationInfo
 			?: return buildLoggedError(pkgInfo.packageName, "No ApplicationInfo")
@@ -110,7 +170,7 @@ class MihonExtensionLoader @Inject constructor(
 		val classLoader = runCatching {
 			ChildFirstPathClassLoader(
 				appInfo.sourceDir,
-				null,
+				appInfo.nativeLibraryDir,
 				context.classLoader,
 			)
 		}.getOrElse {

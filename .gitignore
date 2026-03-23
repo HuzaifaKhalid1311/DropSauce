@@ -28,3 +28,9 @@
 /.idea/deviceManager.xml
 /.kotlin/
 /.idea/AndroidProjectSystem.xml
+/.kotlin/
+
+# Signing keystores
+*.jks
+*.keystore
+*.b64

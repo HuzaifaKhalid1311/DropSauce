@@ -40,13 +40,14 @@ android {
 		resValue 'string', 'tg_backup_bot_token', localProperties.getProperty('tg_backup_bot_token', '')
 	}
 	signingConfigs {
-//		Yukimi {
-//			storeFile file("")
-//			storePassword ""
-//			keyAlias ""
-//			keyPassword ""
-//			storeType "PKCS12"
-//		}
+		if (project.hasProperty('RELEASE_STORE_FILE')) {
+			release {
+				storeFile file(project.property('RELEASE_STORE_FILE'))
+				storePassword project.property('RELEASE_STORE_PASSWORD')
+				keyAlias project.property('RELEASE_KEY_ALIAS')
+				keyPassword project.property('RELEASE_KEY_PASSWORD')
+			}
+		}
 	}
 	buildTypes {
 		debug {
@@ -56,12 +57,16 @@ android {
 			minifyEnabled true
 			shrinkResources true
 			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-//			signingConfig signingConfigs.Yukimi
+			if (signingConfigs.findByName('release')) {
+				signingConfig signingConfigs.release
+			}
 		}
 		nightly {
 			initWith release
 			applicationIdSuffix = '.nightly'
-//			signingConfig signingConfigs.Yukimi
+			if (signingConfigs.findByName('release')) {
+				signingConfig signingConfigs.release
+			}
 		}
 	}
 	buildFeatures {

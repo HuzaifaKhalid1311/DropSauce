@@ -28,4 +28,21 @@ data class MihonMangaSource(
 
 	val supportsLatest: Boolean
 		get() = catalogueSource.supportsLatest
+
+	override fun equals(other: Any?): Boolean {
+		if (this === other) return true
+		if (other !is MangaSource) return false
+		// Compare by name to support comparison with anonymous MangaSource objects
+		// that are created when loading from the database
+		return name == other.name
+	}
+
+	override fun hashCode(): Int {
+		// Use name for hashCode to be consistent with equals
+		return name.hashCode()
+	}
+
+	override fun toString(): String {
+		return "MihonMangaSource(id=${catalogueSource.id}, name=${catalogueSource.name}, lang=$language)"
+	}
 }

@@ -1,0 +1,129 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: "30 16 * * *"   # Daily at 16:30 UTC (00:30 +8)
+  workflow_dispatch:        # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check for recent commits
+      id: check
+      run: |
+        COMMIT_COUNT=$(git log --since="24 hours ago" --oneline --no-merges | wc -l)
+        echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+        if [ "$COMMIT_COUNT" -eq 0 ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+          echo "No commits in the last 24 hours, skipping build"
+          echo "should_build=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Found $COMMIT_COUNT commits, proceeding with build"
+          echo "should_build=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Set up JDK
+      if: steps.check.outputs.should_build == 'true'
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+
+    - name: Grant execute permission for gradlew
+      if: steps.check.outputs.should_build == 'true'
+      run: chmod +x gradlew
+
+    - name: Decode keystore
+      if: steps.check.outputs.should_build == 'true'
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        if [ -n "$KEYSTORE_BASE64" ]; then
+          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+        else
+          keytool -genkey -v -keystore release.keystore -alias release \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass password -keypass password \
+            -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
+        fi
+
+    - name: Build Nightly APK
+      if: steps.check.outputs.should_build == 'true'
+      run: |
+        ./gradlew assembleNightly --no-daemon --stacktrace \
+          -PRELEASE_STORE_FILE=../release.keystore \
+          -PRELEASE_STORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}" \
+          -PRELEASE_KEY_ALIAS="${{ secrets.KEY_ALIAS || 'release' }}" \
+          -PRELEASE_KEY_PASSWORD="${{ secrets.KEY_PASSWORD || 'password' }}"
+
+    - name: Prepare nightly release
+      if: steps.check.outputs.should_build == 'true'
+      id: nightly
+      run: |
+        DATE=$(date -u +%Y%m%d)
+        TAG="nightly-${DATE}"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        echo "date=$DATE" >> "$GITHUB_OUTPUT"
+
+        mkdir -p release
+        shopt -s nullglob
+        APK_FILES=(app/build/outputs/apk/nightly/*.apk)
+        if [ ${#APK_FILES[@]} -eq 0 ]; then
+          echo "Error: No nightly APK found"
+          exit 1
+        fi
+        for apk in "${APK_FILES[@]}"; do
+          cp "$apk" "release/Yumemi-N${DATE}.apk"
+        done
+
+    - name: Generate changelog
+      if: steps.check.outputs.should_build == 'true'
+      id: changelog
+      run: |
+        # Get commits from the last 24 hours
+        CHANGELOG=$(git log --since="24 hours ago" --pretty=format:"- %s (%h)" --no-merges)
+        if [ -z "$CHANGELOG" ]; then
+          CHANGELOG="- No new commits in the last 24 hours"
+        fi
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Delete old nightly release
+      if: steps.check.outputs.should_build == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Delete previous nightly tag/release to keep only latest
+        gh release delete "nightly" --yes --cleanup-tag 2>/dev/null || true
+
+    - name: Create nightly release
+      if: steps.check.outputs.should_build == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: nightly
+        name: "Nightly Build N${{ steps.nightly.outputs.date }}"
+        files: |
+          release/*.apk
+        body: |
+          ## 🌙 Yumemi Nightly N${{ steps.nightly.outputs.date }}
+
+          > [!WARNING]
+          > Nightly 版本为自动构建，可能包含未完成的功能和 bug。
+
+          ### 最近 24 小时更新
+          ${{ steps.changelog.outputs.changelog }}
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
