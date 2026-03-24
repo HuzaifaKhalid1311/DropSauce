@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.core.util.ext.toList
 import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.filter.ui.model.FilterProperty
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
 	private val repository: MangaSourcesRepository,
+	private val settings: AppSettings,
 	@LocalizedAppContext context: Context,
 ) : BaseViewModel() {
 
@@ -113,5 +115,6 @@ class WelcomeViewModel @Inject constructor(
 			x.contentType in types && x.locale in languages
 		}
 		repository.setSourcesEnabledExclusive(enabledSources)
+		settings.preferredSourceLanguages = languages
 	}
 }

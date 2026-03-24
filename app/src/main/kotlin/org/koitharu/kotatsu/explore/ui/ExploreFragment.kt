@@ -120,6 +120,10 @@ class ExploreFragment :
 		}
 	}
 
+	override fun onListHeaderFilterModeChanged(item: ListHeader, mode: org.koitharu.kotatsu.explore.ui.SourceFilterMode) {
+		viewModel.setSourceFilter(mode)
+	}
+
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.button_local -> router.openList(LocalMangaSource, null, null)

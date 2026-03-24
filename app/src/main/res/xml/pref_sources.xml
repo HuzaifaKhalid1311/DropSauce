@@ -32,6 +32,13 @@
         android:persistent="false"
         android:title="@string/sources_catalog" />
 
+    <Preference
+        android:key="sources_preferred_languages"
+        android:persistent="false"
+        android:title="@string/pref_sources_languages"
+        android:summary="@string/pref_sources_languages_summary"
+        app:icon="@drawable/ic_language" />
+
     <SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="no_nsfw"

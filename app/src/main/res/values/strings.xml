@@ -46,6 +46,9 @@
     <string name="by_rating">Rating</string>
     <string name="sort_order">Sorting order</string>
     <string name="filter">Filter</string>
+    <string name="filter_sources_all">All sources</string>
+    <string name="filter_sources_built_in">Built-in sources</string>
+    <string name="filter_sources_mihon">Mihon extensions</string>
     <string name="saved_filters">Saved filters</string>
     <string name="theme">Theme</string>
     <string name="light">Light</string>
@@ -352,6 +355,8 @@
     <string name="prefetch_content">Content preloading</string>
     <string name="mark_as_current">Mark as current</string>
     <string name="language">Language</string>
+    <string name="pref_sources_languages">Preferred source languages</string>
+    <string name="pref_sources_languages_summary">Select which languages you want to read manga. Filters multi-language Mihon plugins.</string>
     <string name="share_logs">Share logs</string>
     <string name="enable_logging">Enable logging</string>
     <string name="enable_logging_summary">Record some actions for debug purposes. Don\'t turn it on if you\'re not sure what you\'re doing</string>

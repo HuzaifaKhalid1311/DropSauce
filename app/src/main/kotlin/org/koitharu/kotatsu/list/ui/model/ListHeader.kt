@@ -11,6 +11,7 @@ data class ListHeader private constructor(
 	@StringRes val buttonTextRes: Int,
 	val payload: Any?,
 	val badge: String?,
+	val filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
 ) : ListModel {
 
 	constructor(
@@ -18,28 +19,32 @@ data class ListHeader private constructor(
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = text, buttonTextRes, payload, badge)
+		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+	) : this(textRaw = text, buttonTextRes, payload, badge, filterMode)
 
 	constructor(
 		@StringRes textRes: Int,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = textRes, buttonTextRes, payload, badge)
+		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+	) : this(textRaw = textRes, buttonTextRes, payload, badge, filterMode)
 
 	constructor(
 		chapter: MangaChapter,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = chapter, buttonTextRes, payload, badge)
+		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+	) : this(textRaw = chapter, buttonTextRes, payload, badge, filterMode)
 
 	constructor(
 		dateTimeAgo: DateTimeAgo,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = dateTimeAgo, buttonTextRes, payload, badge)
+		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+	) : this(textRaw = dateTimeAgo, buttonTextRes, payload, badge, filterMode)
 
 	fun getText(context: Context): CharSequence? = when (textRaw) {
 		is CharSequence -> textRaw

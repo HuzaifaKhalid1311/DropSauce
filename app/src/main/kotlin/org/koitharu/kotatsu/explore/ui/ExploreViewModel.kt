@@ -33,11 +33,19 @@ import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
+
+enum class SourceFilterMode {
+	ALL, BUILT_IN, MIHON;
+
+	fun next(): SourceFilterMode = entries[(ordinal + 1) % entries.size]
+}
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
@@ -69,6 +77,7 @@ class ExploreViewModel @Inject constructor(
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val onShowSuggestionsTip = MutableEventFlow<Unit>()
 	private val isRandomLoading = MutableStateFlow(false)
+	val sourceFilterMode = MutableStateFlow(SourceFilterMode.ALL)
 
 	val content: StateFlow<List<ListModel>> = isLoading.flatMapLatest { loading ->
 		if (loading) {
@@ -84,6 +93,10 @@ class ExploreViewModel @Inject constructor(
 				onShowSuggestionsTip.call(Unit)
 			}
 		}
+	}
+
+	fun setSourceFilter(mode: SourceFilterMode) {
+		sourceFilterMode.value = mode
 	}
 
 	fun openRandom() {
@@ -145,8 +158,9 @@ class ExploreViewModel @Inject constructor(
 		isRandomLoading,
 		isAllSourcesEnabled,
 		sourcesRepository.observeHasNewSourcesForBadge(),
-	) { content, suggestions, grid, randomLoading, allSourcesEnabled, newSources ->
-		buildList(content, suggestions, grid, randomLoading, allSourcesEnabled, newSources)
+		sourceFilterMode,
+	) { content, suggestions, grid, randomLoading, allSourcesEnabled, newSources, filterMode ->
+		buildList(content, suggestions, grid, randomLoading, allSourcesEnabled, newSources, filterMode)
 	}.withErrorHandling()
 
 	private fun buildList(
@@ -156,6 +170,7 @@ class ExploreViewModel @Inject constructor(
 		randomLoading: Boolean,
 		allSourcesEnabled: Boolean,
 		hasNewSources: Boolean,
+		filterMode: SourceFilterMode,
 	): List<ListModel> {
 		val result = ArrayList<ListModel>(sources.size + 3)
 		result += ExploreButtons(randomLoading)
@@ -163,14 +178,28 @@ class ExploreViewModel @Inject constructor(
 			result += ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions)
 			result += RecommendationsItem(recommendation.toRecommendationList())
 		}
-		if (sources.isNotEmpty()) {
+		
+		val filteredSources = when (filterMode) {
+			SourceFilterMode.ALL -> sources
+			SourceFilterMode.BUILT_IN -> sources.filter { it.mangaSource is MangaParserSource }
+			SourceFilterMode.MIHON -> sources.filter { it.mangaSource is MihonMangaSource || it.mangaSource is org.koitharu.kotatsu.core.parser.external.ExternalMangaSource }
+		}
+
+		if (filteredSources.isNotEmpty()) {
 			result += ListHeader(
 				textRes = R.string.remote_sources,
 				buttonTextRes = if (allSourcesEnabled) R.string.manage else R.string.catalog,
 				badge = if (!allSourcesEnabled && hasNewSources) "" else null,
+				filterMode = filterMode,
 			)
-			sources.mapTo(result) { MangaSourceItem(it, isGrid) }
+			filteredSources.mapTo(result) { MangaSourceItem(it, isGrid) }
 		} else {
+			result += ListHeader(
+				textRes = R.string.remote_sources,
+				buttonTextRes = if (allSourcesEnabled) R.string.manage else R.string.catalog,
+				badge = if (!allSourcesEnabled && hasNewSources) "" else null,
+				filterMode = filterMode,
+			)
 			result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
 				textPrimary = R.string.no_manga_sources,

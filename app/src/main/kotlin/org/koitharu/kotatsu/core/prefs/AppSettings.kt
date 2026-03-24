@@ -340,6 +340,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
 
+	var preferredSourceLanguages: Set<String>
+		get() = prefs.getStringSet(KEY_SOURCES_PREFERRED_LANGUAGES, emptySet()).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_SOURCES_PREFERRED_LANGUAGES, value) }
+
 	var isBrokenSourcesHidden: Boolean
 		get() = prefs.getBoolean(KEY_SOURCES_HIDE_BROKEN, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_HIDE_BROKEN, value) }
@@ -798,6 +802,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_MAIN_FAB = "main_fab"
 		const val KEY_32BIT_COLOR = "enhanced_colors"
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
+		const val KEY_SOURCES_PREFERRED_LANGUAGES = "sources_preferred_languages"
 		const val KEY_SOURCES_CATALOG = "sources_catalog"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
 		const val KEY_CF_CONTRAST = "cf_contrast"

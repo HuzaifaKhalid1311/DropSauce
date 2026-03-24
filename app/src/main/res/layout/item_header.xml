@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
@@ -17,6 +18,49 @@
 		android:singleLine="true"
 		android:textAppearance="?textAppearanceTitleSmall"
 		tools:text="@tools:sample/lorem[2]" />
+
+	<com.google.android.material.button.MaterialButtonToggleGroup
+		android:id="@+id/toggleGroup_filter"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginEnd="8dp"
+		android:layout_gravity="center_vertical"
+		android:visibility="gone"
+		app:singleSelection="true"
+		app:selectionRequired="true"
+		tools:visibility="visible">
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_filter_all"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/filter_sources_all"
+			android:insetTop="0dp"
+			android:insetBottom="0dp"
+			android:minHeight="40dp" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_filter_builtin"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/filter_sources_built_in"
+			android:insetTop="0dp"
+			android:insetBottom="0dp"
+			android:minHeight="40dp" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_filter_mihon"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/filter_sources_mihon"
+			android:insetTop="0dp"
+			android:insetBottom="0dp"
+			android:minHeight="40dp" />
+
+	</com.google.android.material.button.MaterialButtonToggleGroup>
 
 	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_more"

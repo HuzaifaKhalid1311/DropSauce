@@ -71,6 +71,9 @@
     <string name="updated">更新</string>
     <string name="sort_order">排序方式</string>
     <string name="filter">筛选</string>
+    <string name="filter_sources_all">全部图源</string>
+    <string name="filter_sources_built_in">内置图源</string>
+    <string name="filter_sources_mihon">Mihon 扩展</string>
     <string name="theme">颜色模式</string>
     <string name="dark">深色</string>
     <string name="light">浅色</string>
@@ -335,6 +338,8 @@
     <string name="prefetch_content">内容预加载</string>
     <string name="mark_as_current">标为当前进度</string>
     <string name="language">语言</string>
+    <string name="pref_sources_languages">首选图源语言</string>
+    <string name="pref_sources_languages_summary">配置首选语言，用于过滤浏览页面的多语言 Mihon 插件</string>
     <string name="enable_logging">启用日志记录</string>
     <string name="share_logs">分享日志</string>
     <string name="enable_logging_summary">出于调试目的记录一些操作，若不知道有何用处请不要自行开启</string>
