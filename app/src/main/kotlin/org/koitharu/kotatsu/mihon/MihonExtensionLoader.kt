@@ -241,11 +241,7 @@ class MihonExtensionLoader @Inject constructor(
 		val hasFeature = pkgInfo.reqFeatures?.any { it.name == EXTENSION_FEATURE } == true
 		val hasSource = metaData?.containsKey(METADATA_SOURCE_CLASS) == true ||
 			metaData?.containsKey(METADATA_SOURCE_FACTORY) == true
-		val hasPackageName = pkgName.contains(".extension") ||
-			pkgName.startsWith("eu.kanade.tachiyomi.") ||
-			pkgName.startsWith("org.keiyoushi.") ||
-			pkgName.startsWith("app.mihon.")
-		return hasFeature || (hasPackageName && hasSource)
+		return hasFeature || hasSource
 	}
 
 	private fun parseLibVersion(versionName: String): Double? {
