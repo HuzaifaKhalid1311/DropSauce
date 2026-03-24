@@ -3,7 +3,7 @@
 	<string name="account_type_sync" translatable="false">org.kotatsu.nightly.sync</string>
 	<string name="sync_authority_history" translatable="false">org.koitharu.kotatsu.nightly.history</string>
 	<string name="sync_authority_favourites" translatable="false">org.koitharu.kotatsu.nightly.favourites</string>
-	<string name="github_updates_repo" translatable="false">YakaTeam/artifacts</string>
+	<string name="github_updates_repo" translatable="false">Skepsun/Yumemi</string>
 	<string name="url_github_trans" translatable="false">https://github.com/YakaTeam/translate</string>
 	<string name="discord_app_id" translatable="false">1444242650067894303</string>
 	<string name="app_icon_url" translatable="false">https://raw.githubusercontent.com/YakaTeam/artifacts/refs/heads/main/.github/assets/icon.png</string>
