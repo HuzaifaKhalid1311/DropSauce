@@ -10,27 +10,10 @@
 	tools:ignore="ViewBindingType"
 	tools:viewBindingType="android.view.ViewGroup">
 
-	<com.google.android.material.appbar.AppBarLayout
-		android:id="@+id/appbar"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:elevation="0dp"
-		android:fitsSystemWindows="true"
-		app:elevation="0dp"
-		app:liftOnScroll="false">
-
-		<com.google.android.material.appbar.MaterialToolbar
-			android:id="@id/toolbar"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" />
-
-	</com.google.android.material.appbar.AppBarLayout>
-
 	<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 		android:id="@+id/swipeRefreshLayout"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+		android:layout_height="match_parent">
 
 		<androidx.core.widget.NestedScrollView
 			android:id="@+id/scrollView"
@@ -43,7 +26,60 @@
 			<androidx.constraintlayout.widget.ConstraintLayout
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
+				android:background="?android:attr/colorBackground"
 				android:paddingBottom="@dimen/margin_normal">
+
+				<androidx.constraintlayout.widget.Guideline
+					android:id="@+id/guideline_status_bar"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal"
+					app:layout_constraintGuide_begin="0dp" />
+
+				<ImageView
+					android:id="@+id/imageView_panorama"
+					android:layout_width="0dp"
+					android:layout_height="0dp"
+					android:scaleType="centerCrop"
+					android:visibility="gone"
+					android:alpha="0.45"
+					app:layout_constraintBottom_toBottomOf="@id/barrier_header"
+					android:layout_marginBottom="-120dp"
+					app:layout_constraintEnd_toEndOf="parent"
+					app:layout_constraintStart_toStartOf="parent"
+					app:layout_constraintTop_toTopOf="parent"
+					tools:ignore="ContentDescription" />
+
+				<View
+					android:id="@+id/view_panorama_scrim"
+					android:layout_width="0dp"
+					android:layout_height="0dp"
+					android:background="@drawable/bg_panorama_scrim"
+					android:visibility="gone"
+					app:layout_constraintBottom_toBottomOf="@id/barrier_header"
+					app:layout_constraintEnd_toEndOf="parent"
+					app:layout_constraintStart_toStartOf="parent"
+					app:layout_constraintTop_toTopOf="parent" />
+
+				<View
+					android:id="@+id/view_panorama_bottom_gradient"
+					android:layout_width="0dp"
+					android:layout_height="120dp"
+					android:background="@drawable/bg_panorama_bottom_gradient"
+					android:visibility="gone"
+					app:layout_constraintBottom_toBottomOf="@id/barrier_header"
+					app:layout_constraintEnd_toEndOf="parent"
+					app:layout_constraintStart_toStartOf="parent" />
+
+				<View
+					android:id="@+id/view_content_background"
+					android:layout_width="0dp"
+					android:layout_height="0dp"
+					android:background="?android:attr/colorBackground"
+					app:layout_constraintTop_toTopOf="@id/barrier_header"
+					app:layout_constraintBottom_toBottomOf="parent"
+					app:layout_constraintEnd_toEndOf="parent"
+					app:layout_constraintStart_toStartOf="parent" />
 
 				<org.koitharu.kotatsu.image.ui.CoverImageView
 					android:id="@+id/imageView_cover"
@@ -62,7 +98,7 @@
 					app:layout_constraintEnd_toEndOf="parent"
 					app:layout_constraintHorizontal_bias="0"
 					app:layout_constraintStart_toStartOf="parent"
-					app:layout_constraintTop_toTopOf="parent"
+					app:layout_constraintTop_toBottomOf="@id/guideline_status_bar"
 					app:layout_constraintWidth_percent="0.3"
 					app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Cover"
 					app:useExistingDrawable="true"
@@ -107,7 +143,7 @@
 					android:textIsSelectable="true"
 					app:layout_constraintEnd_toEndOf="parent"
 					app:layout_constraintStart_toEndOf="@id/imageView_cover"
-					app:layout_constraintTop_toTopOf="parent"
+					app:layout_constraintTop_toBottomOf="@id/guideline_status_bar"
 					tools:text="@tools:sample/lorem" />
 
 				<org.koitharu.kotatsu.core.ui.widgets.SelectableTextView
@@ -338,5 +374,22 @@
 		android:background="?colorSurfaceContainerLow"
 		android:elevation="9dp"
 		tools:layout_height="10dp" />
+
+	<com.google.android.material.appbar.AppBarLayout
+		android:id="@+id/appbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:elevation="10dp"
+		app:elevation="0dp"
+		app:liftOnScroll="false">
+
+		<com.google.android.material.appbar.MaterialToolbar
+			android:id="@id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="@android:color/transparent" />
+
+	</com.google.android.material.appbar.AppBarLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

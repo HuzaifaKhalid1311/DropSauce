@@ -18,9 +18,16 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import android.os.Build
+import android.graphics.Color
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.updatePaddingRelative
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.transition.TransitionManager
+import coil3.asDrawable
+import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelSize
+import org.koitharu.kotatsu.core.util.ext.getThemeColor
+import androidx.constraintlayout.widget.Guideline
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowRgb565
@@ -144,6 +151,21 @@ class DetailsActivity :
 		infoBinding = LayoutDetailsTableBinding.bind(viewBinding.root)
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		supportActionBar?.setDisplayShowTitleEnabled(false)
+
+		// Make toolbar and appbar immersive/transparent
+		val surfaceColor = getThemeColor(com.google.android.material.R.attr.colorSurface)
+		viewBinding.appbar.setBackgroundColor(Color.TRANSPARENT)
+		viewBinding.appbar.outlineProvider = null
+		val toolbar = viewBinding.root.findViewById<View>(R.id.toolbar)
+		toolbar?.setBackgroundColor(Color.TRANSPARENT)
+		
+		val titleCoordinator = TitleScrollCoordinator(viewBinding.textViewTitle)
+		viewBinding.scrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+			titleCoordinator.onScrollChange(v as androidx.core.widget.NestedScrollView, scrollX, scrollY, oldScrollX, oldScrollY)
+			val alpha = (scrollY.toFloat() / 200f).coerceIn(0f, 1f)
+			viewBinding.appbar.setBackgroundColor(ColorUtils.setAlphaComponent(surfaceColor, (alpha * 255).toInt()))
+		}
+
 		viewBinding.chipFavorite.setOnClickListener(this)
 		infoBinding.textViewLocal.setOnClickListener(this)
 		infoBinding.textViewSource.setOnClickListener(this)
@@ -158,7 +180,6 @@ class DetailsActivity :
 		infoBinding.textViewAuthor.movementMethod = LinkMovementMethodCompat.getInstance()
 		viewBinding.textViewDescription.movementMethod = LinkMovementMethodCompat.getInstance()
 		viewBinding.chipsTags.onChipClickListener = this
-		TitleScrollCoordinator(viewBinding.textViewTitle).attach(viewBinding.scrollView)
 		if (settings.isDescriptionExpanded) {
 			viewBinding.textViewDescription.maxLines = Int.MAX_VALUE - 1
 		}
@@ -342,8 +363,17 @@ class DetailsActivity :
 			viewBinding.appbar.updatePaddingRelative(
 				start = barsInsets.start(v),
 			)
+			viewBinding.appbar.updatePadding(top = barsInsets.top)
+			val extraSpace = (30 * v.resources.displayMetrics.density).toInt()
+			val totalTopOffset = barsInsets.top + v.context.getThemeDimensionPixelSize(androidx.appcompat.R.attr.actionBarSize) + extraSpace
+			viewBinding.scrollView.findViewById<Guideline>(R.id.guideline_status_bar)?.setGuidelineBegin(totalTopOffset)
 			return insets.consume(v, typeMask, bottom = true, end = true)
 		} else {
+			// portrait: immersive toolbar
+			viewBinding.appbar.updatePadding(top = barsInsets.top)
+			val extraSpace = (30 * v.resources.displayMetrics.density).toInt()
+			val totalTopOffset = barsInsets.top + v.context.getThemeDimensionPixelSize(androidx.appcompat.R.attr.actionBarSize) + extraSpace
+			viewBinding.scrollView.findViewById<Guideline>(R.id.guideline_status_bar)?.setGuidelineBegin(totalTopOffset)
 			viewBinding.navbarDim?.updateLayoutParams {
 				height = barsInsets.bottom
 			}
@@ -521,6 +551,58 @@ class DetailsActivity :
 
 	private fun loadCover(imageUrl: String?) {
 		viewBinding.imageViewCover.setImageAsync(imageUrl, viewModel.getMangaOrNull())
+		loadPanoramaCover(imageUrl)
+	}
+
+	private fun loadPanoramaCover(imageUrl: String?) {
+		val panoramaView = viewBinding.root.findViewById<android.widget.ImageView>(R.id.imageView_panorama)
+			?: return
+		val scrimView = viewBinding.root.findViewById<View>(R.id.view_panorama_scrim)
+		val bottomGradientView = viewBinding.root.findViewById<View>(R.id.view_panorama_bottom_gradient)
+
+		if (imageUrl.isNullOrEmpty()) {
+			panoramaView.isVisible = false
+			scrimView?.isVisible = false
+			bottomGradientView?.isVisible = false
+			return
+		}
+
+		panoramaView.isVisible = true
+		scrimView?.isVisible = true
+		bottomGradientView?.isVisible = true
+
+		val request = ImageRequest.Builder(this)
+			.data(imageUrl)
+			.lifecycle(this)
+			.crossfade(true)
+			.allowRgb565(true)
+			.mangaSourceExtra(viewModel.getMangaOrNull()?.source)
+			.target(
+				onSuccess = { result ->
+					panoramaView.setImageDrawable(result.asDrawable(resources))
+					applyBlurEffect(panoramaView)
+				},
+				onError = {
+					panoramaView.isVisible = false
+					scrimView?.isVisible = false
+					bottomGradientView?.isVisible = false
+				},
+			)
+			.build()
+		coil.enqueue(request)
+	}
+
+	private fun applyBlurEffect(imageView: android.widget.ImageView) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			imageView.setRenderEffect(
+				android.graphics.RenderEffect.createBlurEffect(
+					25f, 25f,
+					android.graphics.Shader.TileMode.MIRROR,
+				),
+			)
+		} else {
+			imageView.alpha = 0.3f
+		}
 	}
 
 	private fun String.withEstimatedTime(time: ReadingTime?): String {
