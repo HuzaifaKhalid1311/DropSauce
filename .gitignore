@@ -29,6 +29,8 @@
 /.kotlin/
 /.idea/AndroidProjectSystem.xml
 /.kotlin/
+*.txt
+*.log
 
 # Signing keystores
 *.jks
