@@ -17,8 +17,8 @@
 	<string name="kitsu_clientSecret" translatable="false">54d7307928f63414defd96399fc31ba847961ceaecef3a5fd93144e960c0e151</string>
 	<string name="acra_login" translatable="false">zPALLBPdpn5mnCB4</string>
 	<string name="acra_password" translatable="false">kgpuhoNJpSsQDCwu</string>
-	<string name="sync_authority_history" translatable="false">org.koitharu.kotatsu.history</string>
-	<string name="sync_authority_favourites" translatable="false">org.koitharu.kotatsu.favourites</string>
+	<string name="sync_authority_history" translatable="false">org.koitharu.kotatsu.new.history</string>
+	<string name="sync_authority_favourites" translatable="false">org.koitharu.kotatsu.new.favourites</string>
 	<string name="tg_backup_bot_name" translatable="false">kotatsu_backup_bot</string>
 	<string name="discord_app_id" translatable="false">1444242650067894303</string>
 	<string name="app_icon_url" translatable="false">https://raw.githubusercontent.com/YakaTeam/artifacts/refs/heads/main/.github/assets/icon.png</string>
