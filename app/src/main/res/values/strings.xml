@@ -46,9 +46,9 @@
     <string name="by_rating">Rating</string>
     <string name="sort_order">Sorting order</string>
     <string name="filter">Filter</string>
-    <string name="filter_sources_all">All sources</string>
-    <string name="filter_sources_built_in">Built-in sources</string>
-    <string name="filter_sources_mihon">Mihon extensions</string>
+    <string name="filter_sources_all">All</string>
+    <string name="filter_sources_built_in">Built-in</string>
+    <string name="filter_sources_mihon">Mihon</string>
     <string name="saved_filters">Saved filters</string>
     <string name="theme">Theme</string>
     <string name="light">Light</string>

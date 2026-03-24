@@ -73,8 +73,11 @@ class MangaSourcesRepository @Inject constructor(
 				val mihon = getMihonSources()
 				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size + mihon.size)
 				external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
-				mihon.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
 				list.addAll(enabled)
+				mihon.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
+				if (order == SourcesSortOrder.ALPHABETIC) {
+					list.sortWith(compareBy<MangaSourceInfo> { !it.isPinned }.thenBy { it.getTitle(context) })
+				}
 				list
 			}
 	}
@@ -234,8 +237,11 @@ class MangaSourcesRepository @Inject constructor(
 		.combine(observeMihonSources()) { (enabled, external), mihon ->
 			val list = ArrayList<MangaSourceInfo>(enabled.size + external.size + mihon.size)
 			external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
-			mihon.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
 			list.addAll(enabled)
+			mihon.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
+			if (settings.sourcesSortOrder == SourcesSortOrder.ALPHABETIC) {
+				list.sortWith(compareBy<MangaSourceInfo> { !it.isPinned }.thenBy { it.getTitle(context) })
+			}
 			list
 		}
 
@@ -427,7 +433,13 @@ class MangaSourcesRepository @Inject constructor(
 	private fun getMihonSources(): List<MihonMangaSource> {
 		val manager = mihonExtensionManager ?: return emptyList()
 		manager.initialize()
-		return manager.getMihonMangaSources()
+		val sources = manager.getMihonMangaSources()
+		val preferredLangs = settings.mihonPreferredLanguages
+		return if (preferredLangs.isEmpty()) {
+			sources
+		} else {
+			sources.filter { it.language in preferredLangs }
+		}
 	}
 
 	fun observeMihonSources(): Flow<List<MihonMangaSource>> {
@@ -436,7 +448,8 @@ class MangaSourcesRepository @Inject constructor(
 		return combine(
 			manager.installedExtensions,
 			manager.isLoading,
-		) { _, _ ->
+			settings.observeAsFlow(AppSettings.KEY_MIHON_PREFERRED_LANGUAGES) { mihonPreferredLanguages }
+		) { _, _, _ ->
 			getMihonSources()
 		}.distinctUntilChanged()
 	}

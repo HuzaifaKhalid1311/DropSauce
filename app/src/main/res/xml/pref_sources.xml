@@ -32,12 +32,17 @@
         android:persistent="false"
         android:title="@string/sources_catalog" />
 
-    <Preference
+    <!-- <Preference
         android:key="sources_preferred_languages"
         android:persistent="false"
         android:title="@string/pref_sources_languages"
-        android:summary="@string/pref_sources_languages_summary"
-        app:icon="@drawable/ic_language" />
+        android:summary="@string/pref_sources_languages_summary" /> -->
+
+    <MultiSelectListPreference
+        android:key="mihon_preferred_languages"
+        android:persistent="true"
+        android:title="Mihon extensions"
+        android:summary="@string/pref_sources_languages_summary" />
 
     <SwitchPreferenceCompat
         android:defaultValue="false"

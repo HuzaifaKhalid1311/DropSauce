@@ -19,14 +19,29 @@ import org.koitharu.kotatsu.core.util.ext.setDefaultValueCompat
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.parsers.util.names
 
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
+import androidx.preference.MultiSelectListPreference
+import javax.inject.Inject
+
 @AndroidEntryPoint
 class SourcesSettingsFragment : BasePreferenceFragment(R.string.remote_sources),
 	SharedPreferences.OnSharedPreferenceChangeListener {
+
+	@Inject
+	lateinit var mihonExtensionLoader: MihonExtensionLoader
 
 	private val viewModel by viewModels<SourcesSettingsViewModel>()
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 		addPreferencesFromResource(R.xml.pref_sources)
+		findPreference<MultiSelectListPreference>(AppSettings.KEY_MIHON_PREFERRED_LANGUAGES)?.run {
+			val langs = mihonExtensionLoader.getInstalledExtensions(requireContext())
+				.map { it.lang }
+				.distinct()
+				.sorted()
+			entryValues = langs.toTypedArray()
+			entries = langs.map { java.util.Locale(it).displayLanguage.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase(java.util.Locale.getDefault()) else char.toString() } }.toTypedArray()
+		}
 		findPreference<ListPreference>(AppSettings.KEY_SOURCES_ORDER)?.run {
 			entryValues = SourcesSortOrder.entries.names()
 			entries = SourcesSortOrder.entries.map { context.getString(it.titleResId) }.toTypedArray()

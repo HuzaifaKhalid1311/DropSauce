@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
@@ -172,7 +173,7 @@ class MangaListActivity :
 			val filterBadge = ViewBadge(chipSort, this)
 			filterBadge.setMaxCharacterCount(0)
 			filter.observe().observe(this) { snapshot ->
-				chipSort.setTextAndVisible(snapshot.sortOrder.titleRes)
+				chipSort.isVisible = true
 				filterBadge.counter = if (snapshot.listFilter.hasNonSearchOptions()) 1 else 0
 			}
 		} else {

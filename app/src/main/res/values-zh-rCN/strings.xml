@@ -71,9 +71,9 @@
     <string name="updated">更新</string>
     <string name="sort_order">排序方式</string>
     <string name="filter">筛选</string>
-    <string name="filter_sources_all">全部图源</string>
-    <string name="filter_sources_built_in">内置图源</string>
-    <string name="filter_sources_mihon">Mihon 扩展</string>
+    <string name="filter_sources_all">全部</string>
+    <string name="filter_sources_built_in">内置</string>
+    <string name="filter_sources_mihon">Mihon</string>
     <string name="theme">颜色模式</string>
     <string name="dark">深色</string>
     <string name="light">浅色</string>

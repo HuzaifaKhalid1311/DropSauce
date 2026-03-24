@@ -38,7 +38,11 @@
 			android:text="@string/filter_sources_all"
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
-			android:minHeight="40dp" />
+			android:minHeight="24dp"
+			android:minWidth="0dp"
+			android:paddingHorizontal="8dp"
+			android:paddingVertical="0dp"
+			android:textSize="12sp" />
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_builtin"
@@ -48,7 +52,11 @@
 			android:text="@string/filter_sources_built_in"
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
-			android:minHeight="40dp" />
+			android:minHeight="24dp"
+			android:minWidth="0dp"
+			android:paddingHorizontal="8dp"
+			android:paddingVertical="0dp"
+			android:textSize="12sp" />
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_mihon"
@@ -58,7 +66,11 @@
 			android:text="@string/filter_sources_mihon"
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
-			android:minHeight="40dp" />
+			android:minHeight="24dp"
+			android:minWidth="0dp"
+			android:paddingHorizontal="8dp"
+			android:paddingVertical="0dp"
+			android:textSize="12sp" />
 
 	</com.google.android.material.button.MaterialButtonToggleGroup>
 
