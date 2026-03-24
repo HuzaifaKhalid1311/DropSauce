@@ -6,7 +6,7 @@
 	<string name="url_weblate" translatable="false">https://hosted.weblate.org/engage/kotatsu</string>
 	<string name="url_user_manual" translatable="false">https://kotatsu.app/manuals/guides/getting-started/</string>
 	<string name="url_error_report" translatable="false">https://bugs.kotatsu.app/report</string>
-	<string name="account_type_sync" translatable="false">org.kotatsu.sync</string>
+	<string name="account_type_sync" translatable="false">org.skepsun.yumemi.sync</string>
 	<string name="github_updates_repo" translatable="false">skepsun/Yumemi</string>
 	<string name="shikimori_clientId" translatable="false">Mw6F0tPEOgyV7F9U9Twg50Q8SndMY7hzIOfXg0AX_XU</string>
 	<string name="shikimori_clientSecret" translatable="false">euBMt1GGRSDpVIFQVPxZrO7Kh6X4gWyv0dABuj4B-M8</string>
@@ -17,8 +17,8 @@
 	<string name="kitsu_clientSecret" translatable="false">54d7307928f63414defd96399fc31ba847961ceaecef3a5fd93144e960c0e151</string>
 	<string name="acra_login" translatable="false">zPALLBPdpn5mnCB4</string>
 	<string name="acra_password" translatable="false">kgpuhoNJpSsQDCwu</string>
-	<string name="sync_authority_history" translatable="false">org.koitharu.kotatsu.new.history</string>
-	<string name="sync_authority_favourites" translatable="false">org.koitharu.kotatsu.new.favourites</string>
+	<string name="sync_authority_history" translatable="false">org.skepsun.yumemi.history</string>
+	<string name="sync_authority_favourites" translatable="false">org.skepsun.yumemi.favourites</string>
 	<string name="tg_backup_bot_name" translatable="false">kotatsu_backup_bot</string>
 	<string name="discord_app_id" translatable="false">1444242650067894303</string>
 	<string name="app_icon_url" translatable="false">https://raw.githubusercontent.com/YakaTeam/artifacts/refs/heads/main/.github/assets/icon.png</string>
