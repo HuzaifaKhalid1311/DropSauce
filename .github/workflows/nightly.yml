@@ -119,9 +119,9 @@ jobs:
           ## 🌙 Yumemi Nightly N${{ steps.nightly.outputs.date }}
 
           > [!WARNING]
-          > Nightly 版本为自动构建，可能包含未完成的功能和 bug。
+          > Nightly builds are automatically generated and may contain incomplete features and bugs.
 
-          ### 最近 24 小时更新
+          ### Commits in the last 24 hours
           ${{ steps.changelog.outputs.changelog }}
         draft: false
         prerelease: true

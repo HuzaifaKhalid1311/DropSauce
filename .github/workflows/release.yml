@@ -104,13 +104,13 @@ jobs:
         body: |
           ## Yumemi ${{ env.TAG_NAME }}
 
-          ### 下载
+          ### Download
           ${{ steps.assets.outputs.download_notes }}
 
-          ### 安装说明
-          1. 下载 APK 文件
-          2. 在 Android 设备上安装
-          3. 如果是首次安装，需要允许安装未知来源应用
+          ### Installation Instructions
+          1. Download the APK file
+          2. Install it on your Android device
+          3. If this is your first time installing, you may need to allow installation of apps from unknown sources
 
           ### Changelog
           ${{ steps.changelog.outputs.changelog }}
