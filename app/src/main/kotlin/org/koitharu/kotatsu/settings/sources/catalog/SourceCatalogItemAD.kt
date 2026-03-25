@@ -18,6 +18,10 @@ import org.koitharu.kotatsu.databinding.ItemSourceCatalogBinding
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import androidx.appcompat.R as appcompatR
 
+interface ExtensionActionListener {
+	fun onExtensionActionClick(item: SourceCatalogItem.Extension)
+}
+
 fun sourceCatalogItemSourceAD(
 	listener: OnListItemClickListener<SourceCatalogItem.Source>
 ) = adapterDelegateViewBinding<SourceCatalogItem.Source, ListModel, ItemSourceCatalogBinding>(
@@ -53,6 +57,37 @@ fun sourceCatalogItemSourceAD(
 		}
 		FaviconDrawable(context, R.style.FaviconDrawable_Small, item.source.name)
 		binding.imageViewIcon.setImageAsync(item.source)
+	}
+}
+
+fun sourceCatalogItemExtensionAD(
+	listener: ExtensionActionListener,
+) = adapterDelegateViewBinding<SourceCatalogItem.Extension, ListModel, ItemSourceCatalogBinding>(
+	{ layoutInflater, parent ->
+		ItemSourceCatalogBinding.inflate(layoutInflater, parent, false)
+	},
+) {
+
+	binding.imageViewAdd.setOnClickListener {
+		listener.onExtensionActionClick(item)
+	}
+	val basePadding = context.getThemeDimensionPixelOffset(
+		appcompatR.attr.listPreferredItemPaddingEnd,
+		binding.root.paddingStart,
+	)
+	val compactEndPadding = (basePadding - context.resources.getDimensionPixelOffset(R.dimen.margin_small)).coerceAtLeast(0)
+
+	bind {
+		binding.imageViewAdd.isVisible = true
+		binding.viewAddDivider.isVisible = true
+		binding.root.updatePaddingRelative(end = compactEndPadding)
+		binding.imageViewAdd.setImageResource(item.action.iconRes)
+		binding.imageViewAdd.contentDescription = context.getString(item.action.titleRes)
+		binding.imageViewAdd.tooltipText = context.getString(item.action.titleRes)
+		binding.textViewTitle.text = item.title
+		binding.textViewDescription.text = item.subtitle
+		binding.textViewDescription.drawableStart = null
+		binding.imageViewIcon.setImageDrawable(FaviconDrawable(context, R.style.FaviconDrawable_Small, item.packageName))
 	}
 }
 

@@ -348,6 +348,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getStringSet(KEY_MIHON_PREFERRED_LANGUAGES, emptySet()).orEmpty()
 		set(value) = prefs.edit { putStringSet(KEY_MIHON_PREFERRED_LANGUAGES, value) }
 
+	var externalExtensionsRepoUrl: String?
+		get() = prefs.getString(KEY_EXTERNAL_EXTENSIONS_REPO_URL, null)?.takeIf { it.isNotBlank() }
+		set(value) = prefs.edit {
+			if (value.isNullOrBlank()) {
+				remove(KEY_EXTERNAL_EXTENSIONS_REPO_URL)
+			} else {
+				putString(KEY_EXTERNAL_EXTENSIONS_REPO_URL, value.trim())
+			}
+		}
+
 	var isBrokenSourcesHidden: Boolean
 		get() = prefs.getBoolean(KEY_SOURCES_HIDE_BROKEN, false)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_HIDE_BROKEN, value) }
@@ -808,6 +818,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_SOURCES_PREFERRED_LANGUAGES = "sources_preferred_languages"
 		const val KEY_MIHON_PREFERRED_LANGUAGES = "mihon_preferred_languages"
+		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_SOURCES_CATALOG = "sources_catalog"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
 		const val KEY_CF_CONTRAST = "cf_contrast"

@@ -6,12 +6,19 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.view.inputmethod.EditorInfo
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +37,7 @@ import org.koitharu.kotatsu.core.util.ext.getDisplayName
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.toLocale
+import org.koitharu.kotatsu.core.ui.dialog.setEditText
 import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
@@ -38,6 +46,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 @AndroidEntryPoint
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	OnListItemClickListener<SourceCatalogItem.Source>,
+	ExtensionActionListener,
 	AppBarOwner,
 	MenuItem.OnActionExpandListener,
 	ChipsView.OnChipClickListener {
@@ -51,7 +60,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		super.onCreate(savedInstanceState)
 		setContentView(ActivitySourcesCatalogBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
-		val sourcesAdapter = SourcesCatalogAdapter(this)
+		val sourcesAdapter = SourcesCatalogAdapter(this, this)
 		with(viewBinding.recyclerView) {
 			setHasFixedSize(true)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
@@ -78,6 +87,22 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			this,
 			ReversibleActionObserver(viewBinding.recyclerView),
 		)
+		viewModel.onOpenPackageInstaller.observeEvent(this) { url ->
+			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+		}
+		viewModel.onOpenUninstall.observeEvent(this) { pkg ->
+			val uri = Uri.fromParts("package", pkg, null)
+			val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				Intent.ACTION_DELETE
+			} else {
+				@Suppress("DEPRECATION")
+				Intent.ACTION_UNINSTALL_PACKAGE
+			}
+			startActivity(Intent(action, uri))
+		}
+		viewModel.onShowMessage.observeEvent(this) { msg ->
+			Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+		}
 		combine(
 			viewModel.appliedFilter,
 			viewModel.hasNewSources,
@@ -123,6 +148,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	override fun onItemLongClick(item: SourceCatalogItem.Source, view: View): Boolean {
 		viewModel.addSource(item.source)
 		return false
+	}
+
+	override fun onExtensionActionClick(item: SourceCatalogItem.Extension) {
+		viewModel.onInstallEntryClick(item)
 	}
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
@@ -185,6 +214,37 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			true
 		}
 		menu.show()
+	}
+
+	fun onManageRepoRequested() {
+		val hasRepo = viewModel.hasExternalRepoConfigured()
+		val dialogBuilder = MaterialAlertDialogBuilder(this)
+			.setTitle(if (hasRepo) R.string.change_repo else R.string.add_repo)
+			.setNegativeButton(android.R.string.cancel, null)
+		val editor = dialogBuilder.setEditText(
+			inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_VARIATION_URI,
+			singleLine = true,
+		)
+		editor.setText(viewModel.getExternalRepoUrl().orEmpty())
+		editor.hint = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.min.json"
+		dialogBuilder.setPositiveButton(android.R.string.ok, null)
+		val dialog = dialogBuilder.create()
+		dialog.setOnShowListener {
+			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+				val value = editor.text?.toString()?.trim().orEmpty()
+				if (!value.startsWith("http://") && !value.startsWith("https://")) {
+					editor.error = getString(R.string.invalid_url)
+					return@setOnClickListener
+				}
+				viewModel.setExternalRepoUrl(value)
+				dialog.dismiss()
+			}
+		}
+		dialog.show()
+	}
+
+	fun onRemoveRepoRequested() {
+		viewModel.setExternalRepoUrl(null)
 	}
 
 	private data class CatalogUiState(

@@ -47,8 +47,8 @@
     <string name="sort_order">Sorting order</string>
     <string name="filter">Filter</string>
     <string name="filter_sources_all">All</string>
-    <string name="filter_sources_built_in">Built-in</string>
-    <string name="filter_sources_mihon">Mihon</string>
+    <string name="filter_sources_built_in">Local</string>
+    <string name="filter_sources_mihon">External</string>
     <string name="saved_filters">Saved filters</string>
     <string name="theme">Theme</string>
     <string name="light">Light</string>
@@ -126,6 +126,8 @@
     <string name="updates_feed_cleared">Cleared</string>
     <string name="rotate_screen">Rotate screen</string>
     <string name="update">Update</string>
+    <string name="install">Install</string>
+    <string name="uninstall">Uninstall</string>
     <string name="feed_will_update_soon">Feed update will start soon</string>
     <string name="track_sources">Look for updates</string>
     <string name="dont_check">Don\'t check</string>
@@ -291,11 +293,16 @@
     <string name="show_all">Show all</string>
     <string name="invalid_domain_message">Invalid domain</string>
     <string name="invalid_server_address_message">Invalid server address</string>
+    <string name="invalid_url">Invalid URL</string>
     <string name="select_range">Select range</string>
     <string name="clear_all_history">Clear all history</string>
     <string name="last_2_hours">Last 2 hours</string>
     <string name="history_cleared">History cleared</string>
     <string name="manage">Manage</string>
+    <string name="manage_repo">Manage repo</string>
+    <string name="add_repo">Add repo</string>
+    <string name="change_repo">Change repo</string>
+    <string name="remove_repo">Remove repo</string>
     <string name="no_bookmarks_yet">No bookmarks yet</string>
     <string name="no_bookmarks_summary">You can create bookmark while reading manga</string>
     <string name="bookmarks_removed">Bookmarks removed</string>
@@ -522,11 +529,15 @@
     <string name="content_type_other">Other</string>
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
-    <string name="source_mode_builtin">Built-in</string>
-    <string name="source_mode_mihon">Mihon</string>
+    <string name="source_mode_builtin">Local</string>
+    <string name="source_mode_mihon">External</string>
     <string name="source_mode_prompt">Source type</string>
     <string name="source_enabled">Source enabled</string>
     <string name="no_manga_sources_catalog_text">There are no sources available in this section, or all of it might have been already added.\nStay tuned</string>
+    <string name="extensions_repo_required">Repo required</string>
+    <string name="extensions_repo_required_text">Add an extensions repo URL in Manage to load external extensions.</string>
+    <string name="extensions_repo_load_error">Failed to load extensions repo. Check URL and try again.</string>
+    <string name="available_to_install">Available to install</string>
     <string name="no_manga_sources_found">No available manga sources found by your query</string>
     <string name="catalog">Catalog</string>
     <string name="manage_sources">Manage sources</string>

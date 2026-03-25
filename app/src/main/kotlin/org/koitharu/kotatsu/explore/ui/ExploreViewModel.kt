@@ -42,7 +42,7 @@ import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
 
 enum class SourceFilterMode {
-	ALL, BUILT_IN, MIHON;
+	LOCAL, EXTERNAL;
 
 	fun next(): SourceFilterMode = entries[(ordinal + 1) % entries.size]
 }
@@ -77,7 +77,7 @@ class ExploreViewModel @Inject constructor(
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val onShowSuggestionsTip = MutableEventFlow<Unit>()
 	private val isRandomLoading = MutableStateFlow(false)
-	val sourceFilterMode = MutableStateFlow(SourceFilterMode.ALL)
+	val sourceFilterMode = MutableStateFlow(SourceFilterMode.LOCAL)
 
 	val content: StateFlow<List<ListModel>> = isLoading.flatMapLatest { loading ->
 		if (loading) {
@@ -180,15 +180,21 @@ class ExploreViewModel @Inject constructor(
 		}
 		
 		val filteredSources = when (filterMode) {
-			SourceFilterMode.ALL -> sources
-			SourceFilterMode.BUILT_IN -> sources.filter { it.mangaSource is MangaParserSource }
-			SourceFilterMode.MIHON -> sources.filter { it.mangaSource is MihonMangaSource || it.mangaSource is org.koitharu.kotatsu.core.parser.external.ExternalMangaSource }
+			SourceFilterMode.LOCAL -> sources.filter { it.mangaSource is MangaParserSource }
+			SourceFilterMode.EXTERNAL -> sources.filter {
+				it.mangaSource is MihonMangaSource || it.mangaSource is org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
+			}
+		}
+
+		val headerButtonRes = when (filterMode) {
+			SourceFilterMode.LOCAL -> R.string.catalog
+			SourceFilterMode.EXTERNAL -> R.string.manage
 		}
 
 		if (filteredSources.isNotEmpty()) {
 			result += ListHeader(
 				textRes = R.string.remote_sources,
-				buttonTextRes = if (allSourcesEnabled) R.string.manage else R.string.catalog,
+				buttonTextRes = headerButtonRes,
 				badge = if (!allSourcesEnabled && hasNewSources) "" else null,
 				filterMode = filterMode,
 			)
@@ -196,7 +202,7 @@ class ExploreViewModel @Inject constructor(
 		} else {
 			result += ListHeader(
 				textRes = R.string.remote_sources,
-				buttonTextRes = if (allSourcesEnabled) R.string.manage else R.string.catalog,
+				buttonTextRes = headerButtonRes,
 				badge = if (!allSourcesEnabled && hasNewSources) "" else null,
 				filterMode = filterMode,
 			)

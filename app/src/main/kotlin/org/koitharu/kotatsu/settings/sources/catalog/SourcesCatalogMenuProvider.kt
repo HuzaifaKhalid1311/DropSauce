@@ -27,7 +27,50 @@ class SourcesCatalogMenuProvider(
 		searchView.queryHint = searchMenuItem.title
 	}
 
-	override fun onMenuItemSelected(menuItem: MenuItem): Boolean = false
+	override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
+		R.id.action_repo -> {
+			(activity as? SourcesCatalogActivity)?.onManageRepoRequested()
+			true
+		}
+		R.id.action_repo_remove -> {
+			(activity as? SourcesCatalogActivity)?.onRemoveRepoRequested()
+			true
+		}
+		R.id.action_filter_extensions_all -> {
+			viewModel.setExtensionsSectionFilter(SourcesCatalogViewModel.ExtensionsSectionFilter.ALL)
+			true
+		}
+		R.id.action_filter_extensions_updates -> {
+			viewModel.setExtensionsSectionFilter(SourcesCatalogViewModel.ExtensionsSectionFilter.UPDATES)
+			true
+		}
+		R.id.action_filter_extensions_installed -> {
+			viewModel.setExtensionsSectionFilter(SourcesCatalogViewModel.ExtensionsSectionFilter.INSTALLED)
+			true
+		}
+		R.id.action_filter_extensions_available -> {
+			viewModel.setExtensionsSectionFilter(SourcesCatalogViewModel.ExtensionsSectionFilter.AVAILABLE)
+			true
+		}
+		else -> false
+	}
+
+	override fun onPrepareMenu(menu: Menu) {
+		val isExternalMode = viewModel.appliedFilter.value.mode == SourcesCatalogMode.MIHON
+		menu.findItem(R.id.action_repo).isVisible = isExternalMode
+		menu.findItem(R.id.action_filter_extensions).isVisible = isExternalMode
+		menu.findItem(R.id.action_repo_remove).isVisible = isExternalMode && viewModel.hasExternalRepoConfigured()
+		when (viewModel.extensionsSectionFilter.value) {
+			SourcesCatalogViewModel.ExtensionsSectionFilter.ALL ->
+				menu.findItem(R.id.action_filter_extensions_all).isChecked = true
+			SourcesCatalogViewModel.ExtensionsSectionFilter.UPDATES ->
+				menu.findItem(R.id.action_filter_extensions_updates).isChecked = true
+			SourcesCatalogViewModel.ExtensionsSectionFilter.INSTALLED ->
+				menu.findItem(R.id.action_filter_extensions_installed).isChecked = true
+			SourcesCatalogViewModel.ExtensionsSectionFilter.AVAILABLE ->
+				menu.findItem(R.id.action_filter_extensions_available).isChecked = true
+		}
+	}
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
 		(activity as? AppBarOwner)?.appBar?.setExpanded(true, true)
