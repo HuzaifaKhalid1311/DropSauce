@@ -205,7 +205,18 @@ class AppRouter private constructor(
         startActivity(suggestionsIntent(contextOrNull() ?: return))
     }
 
-    fun openSourcesCatalog() = startActivity(SourcesCatalogActivity::class.java)
+    fun openSourcesCatalog(
+        mode: org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogMode? = null,
+        isExternalOnly: Boolean = false,
+    ) {
+        val context = contextOrNull() ?: return
+        startActivity(
+            Intent(context, SourcesCatalogActivity::class.java).apply {
+                mode?.let { putExtra(KEY_SOURCE_CATALOG_MODE, it.name) }
+                putExtra(KEY_SOURCE_CATALOG_EXTERNAL_ONLY, isExternalOnly)
+            },
+        )
+    }
 
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 
@@ -828,6 +839,8 @@ class AppRouter private constructor(
         const val KEY_QUERY = "query"
         const val KEY_READER_MODE = "reader_mode"
         const val KEY_SORT_ORDER = "sort_order"
+        const val KEY_SOURCE_CATALOG_EXTERNAL_ONLY = "source_catalog_external_only"
+        const val KEY_SOURCE_CATALOG_MODE = "source_catalog_mode"
         const val KEY_SOURCE = "source"
         const val KEY_TAB = "tab"
         const val KEY_TITLE = "title"
