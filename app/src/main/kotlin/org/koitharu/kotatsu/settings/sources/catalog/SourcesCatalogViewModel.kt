@@ -189,7 +189,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			when (item.action) {
 				SourceCatalogItem.Extension.Action.INSTALL,
 				SourceCatalogItem.Extension.Action.UPDATE -> {
-					val repoUrl = settings.externalExtensionsRepoUrl
+					val repoUrl = externalRepoUrl.value
 					if (repoUrl.isNullOrBlank()) {
 						onShowMessage.call(R.string.extensions_repo_required)
 						return@launchJob
@@ -325,20 +325,20 @@ class SourcesCatalogViewModel @Inject constructor(
 		return buildList {
 			if (pending.isNotEmpty()) {
 				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.UPDATES) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
-				addAll(pending)
+					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
+					addAll(pending)
 				}
 			}
 			if (installedItems.isNotEmpty()) {
 				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.INSTALLED) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
-				addAll(installedItems)
+					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
+					addAll(installedItems)
 				}
 			}
 			if (availableItems.isNotEmpty()) {
 				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.AVAILABLE) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
-				addAll(availableItems)
+					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
+					addAll(availableItems)
 				}
 			}
 			if (isEmpty()) {
