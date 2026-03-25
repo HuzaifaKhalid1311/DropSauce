@@ -13,6 +13,7 @@ class SourcesCatalogMenuProvider(
 	private val activity: Activity,
 	private val viewModel: SourcesCatalogViewModel,
 	private val expandListener: MenuItem.OnActionExpandListener,
+	private val isExternalOnly: Boolean,
 ) : MenuProvider,
 	MenuItem.OnActionExpandListener,
 	SearchView.OnQueryTextListener {
@@ -56,7 +57,7 @@ class SourcesCatalogMenuProvider(
 	}
 
 	override fun onPrepareMenu(menu: Menu) {
-		val isExternalMode = viewModel.appliedFilter.value.mode == SourcesCatalogMode.MIHON
+		val isExternalMode = isExternalOnly || viewModel.appliedFilter.value.mode == SourcesCatalogMode.MIHON
 		menu.findItem(R.id.action_repo).isVisible = isExternalMode
 		menu.findItem(R.id.action_filter_extensions).isVisible = isExternalMode
 		menu.findItem(R.id.action_repo_remove).isVisible = isExternalMode && viewModel.hasExternalRepoConfigured()

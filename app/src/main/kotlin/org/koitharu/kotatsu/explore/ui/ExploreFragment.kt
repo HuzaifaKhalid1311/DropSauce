@@ -44,6 +44,7 @@ import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogMode
 
 @AndroidEntryPoint
 class ExploreFragment :
@@ -115,7 +116,10 @@ class ExploreFragment :
 			router.openSuggestions()
 		} else {
 			when (item.filterMode) {
-				SourceFilterMode.EXTERNAL -> router.openManageSources()
+				SourceFilterMode.EXTERNAL -> router.openSourcesCatalog(
+					mode = SourcesCatalogMode.MIHON,
+					isExternalOnly = true,
+				)
 				else -> router.openSourcesCatalog()
 			}
 		}
@@ -154,7 +158,10 @@ class ExploreFragment :
 
 	override fun onEmptyActionClick() {
 		when (viewModel.sourceFilterMode.value) {
-			SourceFilterMode.EXTERNAL -> router.openManageSources()
+			SourceFilterMode.EXTERNAL -> router.openSourcesCatalog(
+				mode = SourcesCatalogMode.MIHON,
+				isExternalOnly = true,
+			)
 			SourceFilterMode.LOCAL -> router.openSourcesCatalog()
 		}
 	}

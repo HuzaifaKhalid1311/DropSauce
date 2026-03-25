@@ -25,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.titleResId
+import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -55,6 +56,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		get() = viewBinding.appbar
 
 	private val viewModel by viewModels<SourcesCatalogViewModel>()
+	private val isExternalOnly by lazy(LazyThreadSafetyMode.NONE) {
+		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, false) == true
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -74,12 +78,29 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		).also {
 			it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 		}
+		if (isExternalOnly) {
+			viewBinding.spinnerSourceMode.visibility = View.GONE
+		}
 		viewBinding.spinnerSourceMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 			override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-				viewModel.setMode(SourcesCatalogMode.entries[position])
+				if (isExternalOnly) {
+					viewModel.setMode(SourcesCatalogMode.MIHON)
+				} else {
+					viewModel.setMode(SourcesCatalogMode.entries[position])
+				}
 			}
 
 			override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+		}
+		if (isExternalOnly) {
+			viewModel.setMode(SourcesCatalogMode.MIHON)
+		} else {
+			intent?.getStringExtra(AppRouter.KEY_SOURCE_CATALOG_MODE)?.let { modeName ->
+				SourcesCatalogMode.entries.firstOrNull { it.name == modeName }?.let { mode ->
+					viewModel.setMode(mode)
+					viewBinding.spinnerSourceMode.setSelection(mode.ordinal)
+				}
+			}
 		}
 		FadingAppbarMediator(viewBinding.appbar, viewBinding.toolbar).bind()
 		viewModel.content.observe(this, sourcesAdapter)
@@ -113,7 +134,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}.observe(this) {
 			updateFilers(it.filter, it.hasNewSources, it.contentTypes, it.locales)
 		}
-		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this))
+		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
