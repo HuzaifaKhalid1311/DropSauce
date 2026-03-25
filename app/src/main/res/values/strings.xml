@@ -293,7 +293,7 @@
     <string name="show_all">Show all</string>
     <string name="invalid_domain_message">Invalid domain</string>
     <string name="invalid_server_address_message">Invalid server address</string>
-    <string name="invalid_url">Invalid URL</string>
+    <string name="invalid_url">Only HTTPS URLs are allowed</string>
     <string name="select_range">Select range</string>
     <string name="clear_all_history">Clear all history</string>
     <string name="last_2_hours">Last 2 hours</string>

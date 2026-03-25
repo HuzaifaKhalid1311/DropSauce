@@ -232,7 +232,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		dialog.setOnShowListener {
 			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 				val value = editor.text?.toString()?.trim().orEmpty()
-				if (!value.startsWith("http://") && !value.startsWith("https://")) {
+				if (!value.startsWith("https://")) {
 					editor.error = getString(R.string.invalid_url)
 					return@setOnClickListener
 				}

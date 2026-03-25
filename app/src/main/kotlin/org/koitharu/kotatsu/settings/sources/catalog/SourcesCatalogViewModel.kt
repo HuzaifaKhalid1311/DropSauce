@@ -110,7 +110,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		externalRepoUrl,
 		extensionsSectionFilter,
 	) { q, f, _, _, _, _ ->
-		buildSourcesList(f, q)
+		buildMixedCatalogList(f, q)
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
@@ -205,7 +205,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun buildSourcesList(filter: SourcesCatalogFilter, query: String?): List<ListModel> {
+	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?): List<ListModel> {
 		val sources = when (filter.mode) {
 			SourcesCatalogMode.BUILTIN -> repository.queryParserSources(
 				isDisabledOnly = true,
