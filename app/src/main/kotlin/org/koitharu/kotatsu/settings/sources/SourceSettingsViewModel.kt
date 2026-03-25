@@ -14,12 +14,16 @@ import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.parser.ParserMangaRepository
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.mihon.MihonMangaRepository
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import javax.inject.Inject
@@ -30,6 +34,8 @@ class SourceSettingsViewModel @Inject constructor(
 	mangaRepositoryFactory: MangaRepository.Factory,
 	private val cookieJar: MutableCookieJar,
 	private val mangaSourcesRepository: MangaSourcesRepository,
+	private val settings: AppSettings,
+	private val mihonExtensionManager: MihonExtensionManager?,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
 
 	val source = MangaSource(savedStateHandle.get<String>(AppRouter.KEY_SOURCE))
@@ -97,6 +103,24 @@ class SourceSettingsViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			mangaSourcesRepository.setSourcesEnabled(setOf(source), value)
 		}
+	}
+
+	/**
+	 * Returns all [MihonMangaSource] instances belonging to the same extension package
+	 * as the current source. Returns empty list if the source is not a Mihon source.
+	 */
+	fun getSiblingMihonSources(): List<MihonMangaSource> {
+		val manager = mihonExtensionManager ?: return emptyList()
+		val repo = repository as? MihonMangaRepository ?: return emptyList()
+		val pkgName = repo.mihonSource.pkgName
+		return manager.getMihonMangaSources().filter { it.pkgName == pkgName }
+	}
+
+	fun isMihonSourceLangEnabled(pkgName: String, lang: String): Boolean =
+		settings.isMihonSourceLangEnabled(pkgName, lang)
+
+	fun setMihonSourceLangEnabled(pkgName: String, lang: String, enabled: Boolean) {
+		settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
 	}
 
 	private fun loadUsername(authProvider: MangaParserAuthProvider?) {

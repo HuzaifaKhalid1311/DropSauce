@@ -87,7 +87,11 @@ fun sourceCatalogItemExtensionAD(
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
-		binding.imageViewIcon.setImageDrawable(FaviconDrawable(context, R.style.FaviconDrawable_Small, item.packageName))
+		if (item.iconUrl != null) {
+			binding.imageViewIcon.setImageFromUrlAsync(item.iconUrl, item.packageName)
+		} else {
+			binding.imageViewIcon.setImageDrawable(FaviconDrawable(context, R.style.FaviconDrawable_Small, item.packageName))
+		}
 	}
 }
 

@@ -61,4 +61,23 @@ class FaviconView @JvmOverloads constructor(
 				.build(),
 		)
 	}
+
+	fun setImageFromUrlAsync(url: String, fallbackName: String): Disposable {
+		val fallbackFactory: (ImageRequest) -> Image? = {
+			FaviconDrawable(context, iconStyle, fallbackName).asImage()
+		}
+		val placeholderFactory: (ImageRequest) -> Image? = if (context.isAnimationsEnabled) {
+			{ AnimatedFaviconDrawable(context, iconStyle, fallbackName).asImage() }
+		} else {
+			fallbackFactory
+		}
+		return enqueueRequest(
+			newRequestBuilder()
+				.data(url)
+				.error(fallbackFactory)
+				.fallback(fallbackFactory)
+				.placeholder(placeholderFactory)
+				.build(),
+		)
+	}
 }

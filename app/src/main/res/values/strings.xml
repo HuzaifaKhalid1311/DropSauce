@@ -529,6 +529,7 @@
     <string name="content_type_other">Other</string>
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
+    <string name="extension_management">Extension management</string>
     <string name="source_mode_builtin">Local</string>
     <string name="source_mode_mihon">External</string>
     <string name="source_mode_prompt">Source type</string>

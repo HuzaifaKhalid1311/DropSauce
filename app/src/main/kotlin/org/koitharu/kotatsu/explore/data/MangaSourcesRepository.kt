@@ -435,10 +435,11 @@ class MangaSourcesRepository @Inject constructor(
 		manager.initialize()
 		val sources = manager.getMihonMangaSources()
 		val preferredLangs = settings.mihonPreferredLanguages
-		return if (preferredLangs.isEmpty()) {
-			sources
-		} else {
-			sources.filter { it.language in preferredLangs }
+		val disabledLangs = settings.mihonPerExtDisabledLangs
+		return sources.filter { source ->
+			val isPreferredLang = preferredLangs.isEmpty() || source.language in preferredLangs
+			val isEnabled = "${source.pkgName}:${source.language}" !in disabledLangs
+			isPreferredLang && isEnabled
 		}
 	}
 
@@ -448,8 +449,9 @@ class MangaSourcesRepository @Inject constructor(
 		return combine(
 			manager.installedExtensions,
 			manager.isLoading,
-			settings.observeAsFlow(AppSettings.KEY_MIHON_PREFERRED_LANGUAGES) { mihonPreferredLanguages }
-		) { _, _, _ ->
+			settings.observeAsFlow(AppSettings.KEY_MIHON_PREFERRED_LANGUAGES) { mihonPreferredLanguages },
+			settings.observeAsFlow(AppSettings.KEY_MIHON_PER_EXT_DISABLED_LANGS) { mihonPerExtDisabledLangs },
+		) { _, _, _, _ ->
 			getMihonSources()
 		}.distinctUntilChanged()
 	}
