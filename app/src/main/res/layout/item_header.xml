@@ -31,20 +31,6 @@
 		tools:visibility="visible">
 
 		<com.google.android.material.button.MaterialButton
-			android:id="@+id/button_filter_all"
-			style="?attr/materialButtonOutlinedStyle"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:text="@string/filter_sources_all"
-			android:insetTop="0dp"
-			android:insetBottom="0dp"
-			android:minHeight="24dp"
-			android:minWidth="0dp"
-			android:paddingHorizontal="8dp"
-			android:paddingVertical="0dp"
-			android:textSize="12sp" />
-
-		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_builtin"
 			style="?attr/materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"

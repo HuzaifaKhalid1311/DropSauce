@@ -113,10 +113,11 @@ class ExploreFragment :
 	override fun onListHeaderClick(item: ListHeader, view: View) {
 		if (item.payload == R.id.nav_suggestions) {
 			router.openSuggestions()
-		} else if (viewModel.isAllSourcesEnabled.value) {
-			router.openManageSources()
 		} else {
-			router.openSourcesCatalog()
+			when (item.filterMode) {
+				SourceFilterMode.EXTERNAL -> router.openManageSources()
+				else -> router.openSourcesCatalog()
+			}
 		}
 	}
 
@@ -151,7 +152,12 @@ class ExploreFragment :
 
 	override fun onRetryClick(error: Throwable) = Unit
 
-	override fun onEmptyActionClick() = router.openSourcesCatalog()
+	override fun onEmptyActionClick() {
+		when (viewModel.sourceFilterMode.value) {
+			SourceFilterMode.EXTERNAL -> router.openManageSources()
+			SourceFilterMode.LOCAL -> router.openSourcesCatalog()
+		}
+	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
 		viewBinding?.recyclerView?.invalidateItemDecorations()

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.db.TABLE_SOURCES
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -20,14 +21,17 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.mapSortedByCount
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import java.util.Comparator
 import java.util.EnumSet
 import java.util.LinkedHashSet
 import java.util.Locale
@@ -35,10 +39,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SourcesCatalogViewModel @Inject constructor(
+	@LocalizedAppContext private val context: android.content.Context,
 	private val repository: MangaSourcesRepository,
+	private val externalRepoRepository: ExternalExtensionRepoRepository,
+	private val mihonExtensionLoader: MihonExtensionLoader,
 	db: MangaDatabase,
-	settings: AppSettings,
+	private val settings: AppSettings,
 ) : BaseViewModel() {
+
+	enum class ExtensionsSectionFilter {
+		ALL, UPDATES, INSTALLED, AVAILABLE
+	}
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	private val builtInLocales: Set<String?> = repository.allMangaSources.mapTo(LinkedHashSet<String?>()) { it.locale }.also {
@@ -49,6 +60,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
 
 	private val searchQuery = MutableStateFlow<String?>(null)
+	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
+	val extensionsSectionFilter = MutableStateFlow(ExtensionsSectionFilter.ALL)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			mode = SourcesCatalogMode.BUILTIN,
@@ -57,6 +70,9 @@ class SourcesCatalogViewModel @Inject constructor(
 			isNewOnly = false,
 		),
 	)
+	val onOpenPackageInstaller = MutableEventFlow<String>()
+	val onOpenUninstall = MutableEventFlow<String>()
+	val onShowMessage = MutableEventFlow<Int>()
 
 	val hasNewSources = combine(
 		appliedFilter,
@@ -91,8 +107,10 @@ class SourcesCatalogViewModel @Inject constructor(
 		appliedFilter,
 		db.invalidationTrackerFlow(TABLE_SOURCES),
 		mihonSources,
-	) { q, f, _, _ ->
-		buildSourcesList(f, q)
+		externalRepoUrl,
+		extensionsSectionFilter,
+	) { q, f, _, _, _, _ ->
+		buildMixedCatalogList(f, q)
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
@@ -153,7 +171,41 @@ class SourcesCatalogViewModel @Inject constructor(
 		appliedFilter.value = appliedFilter.value.copy(isNewOnly = value)
 	}
 
-	private suspend fun buildSourcesList(filter: SourcesCatalogFilter, query: String?): List<SourceCatalogItem> {
+	fun hasExternalRepoConfigured(): Boolean = !externalRepoUrl.value.isNullOrBlank()
+
+	fun getExternalRepoUrl(): String? = externalRepoUrl.value
+
+	fun setExternalRepoUrl(url: String?) {
+		settings.externalExtensionsRepoUrl = url
+		externalRepoUrl.value = settings.externalExtensionsRepoUrl
+	}
+
+	fun setExtensionsSectionFilter(value: ExtensionsSectionFilter) {
+		extensionsSectionFilter.value = value
+	}
+
+	fun onInstallEntryClick(item: SourceCatalogItem.Extension) {
+		launchJob(Dispatchers.Default) {
+			when (item.action) {
+				SourceCatalogItem.Extension.Action.INSTALL,
+				SourceCatalogItem.Extension.Action.UPDATE -> {
+					val repoUrl = externalRepoUrl.value
+					if (repoUrl.isNullOrBlank()) {
+						onShowMessage.call(R.string.extensions_repo_required)
+						return@launchJob
+					}
+					val entry = getAvailableEntries(repoUrl).firstOrNull { it.packageName == item.packageName } ?: run {
+						onShowMessage.call(R.string.nothing_found)
+						return@launchJob
+					}
+					onOpenPackageInstaller.call(externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName))
+				}
+				SourceCatalogItem.Extension.Action.UNINSTALL -> onOpenUninstall.call(item.packageName)
+			}
+		}
+	}
+
+	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?): List<ListModel> {
 		val sources = when (filter.mode) {
 			SourcesCatalogMode.BUILTIN -> repository.queryParserSources(
 				isDisabledOnly = true,
@@ -164,12 +216,11 @@ class SourcesCatalogViewModel @Inject constructor(
 				locale = filter.locale,
 				sortOrder = SourcesSortOrder.ALPHABETIC,
 			)
-			SourcesCatalogMode.MIHON -> repository.queryMihonSources(
-				query = query,
-				locale = filter.locale,
-			)
+			SourcesCatalogMode.MIHON -> emptyList()
 		}
-		return if (sources.isEmpty()) {
+		return if (filter.mode == SourcesCatalogMode.MIHON) {
+			buildExtensionsList(filter, query)
+		} else if (sources.isEmpty()) {
 			listOf(
 				if (query == null) {
 					SourceCatalogItem.Hint(
@@ -193,6 +244,117 @@ class SourcesCatalogViewModel @Inject constructor(
 				)
 			}
 		}
+	}
+
+	private suspend fun buildExtensionsList(
+		filter: SourcesCatalogFilter,
+		query: String?,
+	): List<ListModel> {
+		val repoUrl = externalRepoUrl.value
+		if (repoUrl.isNullOrBlank()) {
+			return listOf(
+				SourceCatalogItem.Hint(
+					icon = R.drawable.ic_empty_feed,
+					title = R.string.extensions_repo_required,
+					text = R.string.extensions_repo_required_text,
+				),
+			)
+		}
+		val available = runCatching {
+			getAvailableEntries(repoUrl)
+		}.getOrElse {
+			return listOf(
+				SourceCatalogItem.Hint(
+					icon = R.drawable.ic_error_large,
+					title = R.string.error,
+					text = R.string.extensions_repo_load_error,
+				),
+			)
+		}
+		val installed = mihonExtensionLoader.getInstalledExtensions(context)
+			.associateBy { it.pkgName }
+
+		val pending = ArrayList<SourceCatalogItem.Extension>()
+		val installedItems = ArrayList<SourceCatalogItem.Extension>()
+		val availableItems = ArrayList<SourceCatalogItem.Extension>()
+		val locale = filter.locale
+		val q = query?.takeIf { it.isNotBlank() }
+
+		for (entry in available) {
+			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
+			if (locale != null && entry.lang != locale) continue
+			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
+
+			val local = installed[entry.packageName]
+			val subtitle = buildString {
+				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
+				append(" • ")
+				append(entry.versionName)
+				if (entry.isNsfw != 0) {
+					append(" • 18+")
+				}
+			}
+			when {
+				local == null -> availableItems += SourceCatalogItem.Extension(
+					packageName = entry.packageName,
+					title = entry.name.removePrefix("Tachiyomi: ").trim(),
+					subtitle = subtitle,
+					action = SourceCatalogItem.Extension.Action.INSTALL,
+				)
+				entry.versionCode > local.versionCode -> pending += SourceCatalogItem.Extension(
+					packageName = entry.packageName,
+					title = entry.name.removePrefix("Tachiyomi: ").trim(),
+					subtitle = subtitle,
+					action = SourceCatalogItem.Extension.Action.UPDATE,
+				)
+				else -> installedItems += SourceCatalogItem.Extension(
+					packageName = entry.packageName,
+					title = entry.name.removePrefix("Tachiyomi: ").trim(),
+					subtitle = subtitle,
+					action = SourceCatalogItem.Extension.Action.UNINSTALL,
+				)
+			}
+		}
+
+		val titleComparator = Comparator<SourceCatalogItem.Extension> { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
+		pending.sortWith(titleComparator)
+		installedItems.sortWith(titleComparator)
+		availableItems.sortWith(titleComparator)
+
+		val sectionFilter = extensionsSectionFilter.value
+		return buildList {
+			if (pending.isNotEmpty()) {
+				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.UPDATES) {
+					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
+					addAll(pending)
+				}
+			}
+			if (installedItems.isNotEmpty()) {
+				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.INSTALLED) {
+					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
+					addAll(installedItems)
+				}
+			}
+			if (availableItems.isNotEmpty()) {
+				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.AVAILABLE) {
+					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
+					addAll(availableItems)
+				}
+			}
+			if (isEmpty()) {
+				add(
+					SourceCatalogItem.Hint(
+						icon = R.drawable.ic_empty_feed,
+						title = R.string.nothing_found,
+						text = R.string.no_manga_sources_found,
+					),
+				)
+			}
+		}
+	}
+
+	private suspend fun getAvailableEntries(repoUrl: String): List<ExternalExtensionRepoEntry> {
+		return externalRepoRepository.getExtensions(repoUrl)
 	}
 
 	@WorkerThread

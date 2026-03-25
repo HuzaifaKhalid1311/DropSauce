@@ -11,10 +11,12 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 
 class SourcesCatalogAdapter(
 	listener: OnListItemClickListener<SourceCatalogItem.Source>,
+	extensionActionListener: ExtensionActionListener,
 ) : BaseListAdapter<ListModel>(), FastScroller.SectionIndexer {
 
 	init {
 		addDelegate(ListItemType.CHAPTER_LIST, sourceCatalogItemSourceAD(listener))
+		addDelegate(ListItemType.NAV_ITEM, sourceCatalogItemExtensionAD(extensionActionListener))
 		addDelegate(ListItemType.HINT_EMPTY, sourceCatalogItemHintAD())
 		addDelegate(ListItemType.STATE_LOADING, loadingStateAD())
 	}
