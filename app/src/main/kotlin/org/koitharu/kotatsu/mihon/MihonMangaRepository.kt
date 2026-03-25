@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
+import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.model.toManga
@@ -91,7 +92,8 @@ class MihonMangaRepository(
 		val details = try {
 			mihonSource.getMangaDetails(sManga)
 		} catch (e: Exception) {
-			if (e is IOException || e.cause is IOException) {
+			if ((e is IOException || e.cause is IOException)
+				&& e !is CloudFlareException) {
 				delay(500)
 				mihonSource.getMangaDetails(sManga)
 			} else {
@@ -102,7 +104,8 @@ class MihonMangaRepository(
 		val rawChapters = try {
 			mihonSource.getChapterList(sManga)
 		} catch (e: Exception) {
-			if (e is IOException || e.cause is IOException) {
+			if ((e is IOException || e.cause is IOException)
+				&& e !is CloudFlareException) {
 				delay(500)
 				mihonSource.getChapterList(sManga)
 			} else {
