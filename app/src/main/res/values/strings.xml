@@ -537,6 +537,8 @@
     <string name="extensions_repo_required">Repo required</string>
     <string name="extensions_repo_required_text">Add an extensions repo URL in Manage to load external extensions.</string>
     <string name="extensions_repo_load_error">Failed to load extensions repo. Check URL and try again.</string>
+    <string name="updates_pending">Updates pending</string>
+    <string name="installed">Installed</string>
     <string name="available_to_install">Available to install</string>
     <string name="no_manga_sources_found">No available manga sources found by your query</string>
     <string name="catalog">Catalog</string>
