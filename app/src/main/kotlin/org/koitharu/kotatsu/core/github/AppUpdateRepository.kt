@@ -76,7 +76,9 @@ class AppUpdateRepository @Inject constructor(
 			val currentVersion = VersionId(BuildConfig.VERSION_NAME)
 			val available = getAvailableVersions().asArrayList()
 			available.sortBy { it.versionId }
-			if (currentVersion.isStable && !settings.isUnstableUpdatesAllowed) {
+			if (BuildConfig.BUILD_TYPE == "nightly") {
+				available.retainAll { !it.versionId.isStable }
+			} else if (currentVersion.isStable && !settings.isUnstableUpdatesAllowed) {
 				available.retainAll { it.versionId.isStable }
 			}
 			available.maxByOrNull { it.versionId }
