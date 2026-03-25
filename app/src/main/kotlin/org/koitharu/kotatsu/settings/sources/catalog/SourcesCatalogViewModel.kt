@@ -109,7 +109,9 @@ class SourcesCatalogViewModel @Inject constructor(
 		mihonSources,
 		externalRepoUrl,
 		extensionsSectionFilter,
-	) { q, f, _, _, _, _ ->
+	) { args ->
+		val q = args[0] as String?
+		val f = args[1] as SourcesCatalogFilter
 		buildMixedCatalogList(f, q)
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
