@@ -29,7 +29,6 @@ fun listHeaderAD(
 		if (item.buttonTextRes == 0) {
 			binding.buttonMore.isGone = true
 			binding.buttonMore.text = null
-			binding.buttonMore.icon = null
 			binding.buttonMore.clearBadge(badge)
 		} else {
 			if (item.filterMode != null) {
@@ -39,7 +38,7 @@ fun listHeaderAD(
 			} else {
 				binding.buttonMore.icon = null
 				binding.buttonMore.setText(item.buttonTextRes)
-				binding.buttonMore.contentDescription = null
+				binding.buttonMore.contentDescription = context.getString(item.buttonTextRes)
 			}
 			binding.buttonMore.isVisible = true
 			badge = itemView.bindBadge(badge, item.badge)
