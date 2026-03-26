@@ -193,7 +193,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 	}
 
 	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: androidx.preference.PreferenceScreen) {
-		val pkgName = repo.mihonSource.pkgName
+		val pkgName = repo.source.pkgName
 		val siblings = viewModel.getSiblingMihonSources()
 		if (siblings.size <= 1) return
 

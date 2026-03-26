@@ -111,7 +111,7 @@ class SourceSettingsViewModel @Inject constructor(
 	 */
 	fun getSiblingMihonSources(): List<MihonMangaSource> {
 		val repo = repository as? MihonMangaRepository ?: return emptyList()
-		val pkgName = repo.mihonSource.pkgName
+		val pkgName = repo.source.pkgName
 		return mihonExtensionManager.getMihonMangaSources().filter { it.pkgName == pkgName }
 	}
 
