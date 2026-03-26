@@ -30,4 +30,4 @@ dependencyResolutionManagement {
 
 
 include ':app'
-rootProject.name = "Yukimi"
+rootProject.name = "DropSauce"
