@@ -73,7 +73,7 @@ android {
 		viewBinding true
 		buildConfig true
 	}
-	packagingOptions {
+	packaging {
 		resources {
 			excludes += [
 				'META-INF/README.md',
@@ -121,13 +121,14 @@ android {
 			freeCompilerArgs += ['-opt-in=org.koitharu.kotatsu.parsers.InternalParsersApi']
 		}
 	}
-	applicationVariants.configureEach { variant ->
-		if (variant.name == 'nightly') {
-			variant.outputs.each { output ->
-				def now = LocalDateTime.now()
-				output.versionCodeOverride = now.format("yyyyMMdd").toInteger()
-				output.versionNameOverride = 'N' + now.format("yyyyMMdd")
-			}
+}
+
+androidComponents {
+	onVariants(selector().withName("nightly")) { variant ->
+		variant.outputs.each { output ->
+			def now = LocalDateTime.now()
+			output.versionCode.set(now.format("yyyyMMdd").toInteger())
+			output.versionName.set('N' + now.format("yyyyMMdd"))
 		}
 	}
 }
