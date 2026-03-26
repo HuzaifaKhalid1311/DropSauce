@@ -47,10 +47,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val settings: AppSettings,
 ) : BaseViewModel() {
 
-	enum class ExtensionsSectionFilter {
-		ALL, UPDATES, INSTALLED, AVAILABLE
-	}
-
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	private val builtInLocales: Set<String?> = repository.allMangaSources.mapTo(LinkedHashSet<String?>()) { it.locale }.also {
 		it.add(null)
@@ -62,7 +58,6 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
-	val extensionsSectionFilter = MutableStateFlow(ExtensionsSectionFilter.ALL)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			mode = SourcesCatalogMode.BUILTIN,
@@ -117,7 +112,6 @@ class SourcesCatalogViewModel @Inject constructor(
 		db.invalidationTrackerFlow(TABLE_SOURCES),
 		mihonSources,
 		externalRepoUrl,
-		extensionsSectionFilter,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
@@ -194,10 +188,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	fun setExternalRepoUrl(url: String?) {
 		settings.externalExtensionsRepoUrl = url
 		externalRepoUrl.value = settings.externalExtensionsRepoUrl
-	}
-
-	fun setExtensionsSectionFilter(value: ExtensionsSectionFilter) {
-		extensionsSectionFilter.value = value
 	}
 
 	fun onInstallEntryClick(item: SourceCatalogItem.Extension) {
@@ -343,25 +333,18 @@ class SourcesCatalogViewModel @Inject constructor(
 		installedItems.sortWith(titleComparator)
 		availableItems.sortWith(titleComparator)
 
-		val sectionFilter = extensionsSectionFilter.value
 		return buildList {
 			if (pending.isNotEmpty()) {
-				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.UPDATES) {
-					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
-					addAll(pending)
-				}
+				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
+				addAll(pending)
 			}
 			if (installedItems.isNotEmpty()) {
-				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.INSTALLED) {
-					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
-					addAll(installedItems)
-				}
+				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
+				addAll(installedItems)
 			}
 			if (availableItems.isNotEmpty()) {
-				if (sectionFilter == ExtensionsSectionFilter.ALL || sectionFilter == ExtensionsSectionFilter.AVAILABLE) {
-					add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
-					addAll(availableItems)
-				}
+				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
+				addAll(availableItems)
 			}
 			if (isEmpty()) {
 				add(

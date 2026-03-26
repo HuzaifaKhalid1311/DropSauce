@@ -104,6 +104,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isDescriptionExpanded: Boolean
 		get() = !prefs.getBoolean(KEY_COLLAPSE_DESCRIPTION, true)
 
+	val isDetailsPanoramaBlurEnabled: Boolean
+		get() = prefs.getBoolean(KEY_DETAILS_PANORAMA_BLUR, false)
+
 	var historyListMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE_HISTORY, listMode)
 		set(value) = prefs.edit { putEnumValue(KEY_LIST_MODE_HISTORY, value) }
@@ -848,6 +851,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PAGES_TAB = "pages_tab"
 		const val KEY_DETAILS_TAB = "details_tab"
 		const val KEY_DETAILS_LAST_TAB = "details_last_tab"
+		const val KEY_DETAILS_PANORAMA_BLUR = "details_panorama_blur"
 		const val KEY_READING_TIME = "reading_time"
 		const val KEY_PAGES_SAVE_DIR = "pages_dir"
 		const val KEY_PAGES_SAVE_ASK = "pages_dir_ask"

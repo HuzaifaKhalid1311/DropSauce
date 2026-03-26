@@ -19,19 +19,7 @@
 			android:id="@id/toolbar"
 			android:layout_width="match_parent"
 			android:layout_height="?attr/actionBarSize"
-			app:layout_scrollFlags="scroll|enterAlways|snap">
-
-			<androidx.appcompat.widget.AppCompatSpinner
-				android:id="@+id/spinner_source_mode"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="center"
-				android:contentDescription="@string/source_mode_prompt"
-				android:dropDownWidth="wrap_content"
-				android:minWidth="120dp"
-				android:spinnerMode="dropdown" />
-
-		</com.google.android.material.appbar.MaterialToolbar>
+			app:layout_scrollFlags="scroll|enterAlways|snap" />
 
 		<HorizontalScrollView
 			android:id="@+id/scrollView_chips"

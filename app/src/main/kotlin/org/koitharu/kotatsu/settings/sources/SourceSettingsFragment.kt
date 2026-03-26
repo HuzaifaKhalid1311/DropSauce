@@ -32,7 +32,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.io.File
 
 @AndroidEntryPoint
-class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenceChangeListener {
+class SourceSettingsFragment : BasePreferenceFragment(0) {
 
 	private val viewModel: SourceSettingsViewModel by viewModels()
 
@@ -55,10 +55,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 		addPreferencesFromRepository(viewModel.repository)
 		val isValidSource = viewModel.repository !is EmptyMangaRepository
 
-		findPreference<SwitchPreferenceCompat>(KEY_ENABLE)?.run {
-			isVisible = isValidSource && !settings.isAllSourcesEnabled
-			onPreferenceChangeListener = this@SourceSettingsFragment
-		}
 		findPreference<Preference>(KEY_AUTH)?.run {
 			val authProvider = (viewModel.repository as? ParserMangaRepository)?.getAuthProvider()
 			isVisible = authProvider != null
@@ -87,9 +83,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 		)
 		viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
 			findPreference<Preference>(KEY_AUTH)?.isEnabled = !isLoading
-		}
-		viewModel.isEnabled.observe(viewLifecycleOwner) { enabled ->
-			findPreference<SwitchPreferenceCompat>(KEY_ENABLE)?.isChecked = enabled
 		}
 		viewModel.browserUrl.observe(viewLifecycleOwner) {
 			findPreference<Preference>(AppSettings.KEY_OPEN_BROWSER)?.run {
@@ -137,14 +130,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 			return
 		}
 		super.onDisplayPreferenceDialog(preference)
-	}
-
-	override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
-		when (preference.key) {
-			KEY_ENABLE -> viewModel.setEnabled(newValue == true)
-			else -> return false
-		}
-		return true
 	}
 
 	class DomainDialogFragment : EditTextPreferenceDialogFragmentCompat() {
@@ -200,6 +185,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 		val category = PreferenceCategory(requireContext()).apply {
 			title = getString(R.string.languages)
 			isIconSpaceReserved = false
+			order = Int.MAX_VALUE
 		}
 		screen.addPreference(category)
 
@@ -212,6 +198,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 				isPersistent = false
 				isChecked = viewModel.isMihonSourceLangEnabled(pkgName, lang)
 				isIconSpaceReserved = false
+				order = Int.MAX_VALUE
 				onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
 					viewModel.setMihonSourceLangEnabled(pkgName, lang, newValue as Boolean)
 					true
@@ -223,7 +210,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 	companion object {
 
 		private const val KEY_AUTH = "auth"
-		private const val KEY_ENABLE = "enable"
 
 		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {
 			putString(AppRouter.KEY_SOURCE, source.name)

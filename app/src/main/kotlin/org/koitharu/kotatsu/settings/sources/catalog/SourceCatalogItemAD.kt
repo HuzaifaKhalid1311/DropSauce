@@ -20,6 +20,7 @@ import androidx.appcompat.R as appcompatR
 
 interface ExtensionActionListener {
 	fun onExtensionActionClick(item: SourceCatalogItem.Extension)
+	fun onExtensionSettingsClick(item: SourceCatalogItem.Extension)
 }
 
 fun sourceCatalogItemSourceAD(
@@ -71,6 +72,9 @@ fun sourceCatalogItemExtensionAD(
 	binding.imageViewAdd.setOnClickListener {
 		listener.onExtensionActionClick(item)
 	}
+	binding.imageViewSettings.setOnClickListener {
+		listener.onExtensionSettingsClick(item)
+	}
 	val basePadding = context.getThemeDimensionPixelOffset(
 		appcompatR.attr.listPreferredItemPaddingEnd,
 		binding.root.paddingStart,
@@ -79,6 +83,7 @@ fun sourceCatalogItemExtensionAD(
 
 	bind {
 		binding.imageViewAdd.isVisible = true
+		binding.imageViewSettings.isVisible = item.action == SourceCatalogItem.Extension.Action.UNINSTALL
 		binding.viewAddDivider.isVisible = true
 		binding.root.updatePaddingRelative(end = compactEndPadding)
 		binding.imageViewAdd.setImageResource(item.action.iconRes)

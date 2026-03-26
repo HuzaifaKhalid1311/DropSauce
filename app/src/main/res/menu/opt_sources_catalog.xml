@@ -11,29 +11,6 @@
 		app:showAsAction="ifRoom|collapseActionView" />
 
 	<item
-		android:id="@+id/action_filter_extensions"
-		android:icon="@drawable/ic_filter_menu"
-		android:title="@string/filter"
-		app:showAsAction="ifRoom">
-		<menu>
-			<group android:checkableBehavior="single">
-				<item
-					android:id="@+id/action_filter_extensions_all"
-					android:title="@string/filter_sources_all" />
-				<item
-					android:id="@+id/action_filter_extensions_updates"
-					android:title="@string/updates_pending" />
-				<item
-					android:id="@+id/action_filter_extensions_installed"
-					android:title="@string/installed" />
-				<item
-					android:id="@+id/action_filter_extensions_available"
-					android:title="@string/available_to_install" />
-			</group>
-		</menu>
-	</item>
-
-	<item
 		android:id="@+id/action_repo"
 		android:icon="@drawable/ic_edit"
 		android:title="@string/manage_repo"
