@@ -1,4 +1,4 @@
 <resources>
-	<string name="app_name" translatable="false">Yumemi for Developer</string>
+	<string name="app_name" translatable="false">DropSauce for Developer</string>
 	<string name="strict_mode">Strict mode</string>
 </resources>

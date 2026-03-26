@@ -83,7 +83,7 @@ jobs:
           exit 1
         fi
         for apk in "${APK_FILES[@]}"; do
-          cp "$apk" "release/Yumemi-N${DATE}.apk"
+          cp "$apk" "release/DropSauce-N${DATE}.apk"
         done
 
     - name: Generate changelog
@@ -116,7 +116,7 @@ jobs:
         files: |
           release/*.apk
         body: |
-          ## 🌙 Yumemi Nightly N${{ steps.nightly.outputs.date }}
+          ## 🌙 DropSauce Nightly N${{ steps.nightly.outputs.date }}
 
           > [!WARNING]
           > Nightly builds are automatically generated and may contain incomplete features and bugs.
