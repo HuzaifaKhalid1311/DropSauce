@@ -23,8 +23,8 @@
 		android:id="@+id/toggleGroup_filter"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginStart="@dimen/grid_spacing"
-		android:layout_marginEnd="@dimen/grid_spacing"
+		android:layout_marginStart="0dp"
+		android:layout_marginEnd="@dimen/list_spacing_large"
 		android:layout_marginBottom="@dimen/grid_spacing"
 		android:visibility="gone"
 		app:layout_constraintBottom_toBottomOf="parent"
@@ -44,11 +44,11 @@
 			android:gravity="center"
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
-			android:minHeight="48dp"
-			android:minWidth="112dp"
+			android:minHeight="56dp"
+			android:minWidth="124dp"
 			android:paddingHorizontal="12dp"
 			android:paddingVertical="0dp"
-			android:textSize="12sp" />
+			android:textSize="14sp" />
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_mihon"
@@ -59,11 +59,11 @@
 			android:gravity="center"
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
-			android:minHeight="48dp"
-			android:minWidth="112dp"
+			android:minHeight="56dp"
+			android:minWidth="124dp"
 			android:paddingHorizontal="12dp"
 			android:paddingVertical="0dp"
-			android:textSize="12sp" />
+			android:textSize="14sp" />
 
 	</com.google.android.material.button.MaterialButtonToggleGroup>
 

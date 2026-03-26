@@ -8,6 +8,7 @@ import androidx.preference.EditTextPreference
 import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import eu.kanade.tachiyomi.source.ConfigurableSource
@@ -166,7 +167,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 	private fun tryAddMihonPreferences() {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return
 		val screen = preferenceScreen ?: return
-		screen.removePreferenceRecursively("mihon_language_toggles")
+		screen.removePreferenceRecursively(KEY_MIHON_LANGUAGE_TOGGLES)
 		val mihonSource = repo.mihonSource as? ConfigurableSource
 		if (mihonSource != null) {
 			try {
@@ -176,6 +177,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 			}
 		}
 		addMihonLanguageToggles(repo, screen)
+		moveMihonLanguageTogglesToBottom(screen)
 	}
 
 	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: androidx.preference.PreferenceScreen) {
@@ -184,14 +186,13 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		if (siblings.size <= 1) return
 
 		val category = PreferenceCategory(requireContext()).apply {
-			key = "mihon_language_toggles"
+			key = KEY_MIHON_LANGUAGE_TOGGLES
 			title = getString(R.string.languages)
 			isIconSpaceReserved = false
-			order = Int.MAX_VALUE
 		}
 		screen.addPreference(category)
 
-		for (source in siblings.sortedBy { it.language }) {
+		for ((index, source) in siblings.sortedBy { it.language }.withIndex()) {
 			val lang = source.language
 			val langDisplayName = getExternalExtensionLanguageDisplayName(lang)
 			SwitchPreferenceCompat(requireContext()).apply {
@@ -200,7 +201,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 				isPersistent = false
 				isChecked = viewModel.isMihonSourceLangEnabled(pkgName, lang)
 				isIconSpaceReserved = false
-				order = Int.MAX_VALUE
+				order = index
 				onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
 					viewModel.setMihonSourceLangEnabled(pkgName, lang, newValue as Boolean)
 					true
@@ -209,9 +210,21 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 	}
 
+	private fun moveMihonLanguageTogglesToBottom(screen: PreferenceScreen) {
+		val category = screen.findPreference<PreferenceCategory>(KEY_MIHON_LANGUAGE_TOGGLES) ?: return
+		val maxOrder = (0 until screen.preferenceCount)
+			.map { screen.getPreference(it) }
+			.filterNot { it.key == KEY_MIHON_LANGUAGE_TOGGLES }
+			.maxOfOrNull { it.order } ?: 0
+		category.order = maxOrder + 1
+		screen.removePreference(category)
+		screen.addPreference(category)
+	}
+
 	companion object {
 
 		private const val KEY_AUTH = "auth"
+		private const val KEY_MIHON_LANGUAGE_TOGGLES = "mihon_language_toggles"
 
 		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {
 			putString(AppRouter.KEY_SOURCE, source.name)

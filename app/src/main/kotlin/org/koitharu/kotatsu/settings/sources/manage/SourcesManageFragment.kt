@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +34,7 @@ import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
+import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelSize
 import org.koitharu.kotatsu.databinding.FragmentSettingsSourcesBinding
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.settings.SettingsActivity
@@ -89,11 +91,12 @@ class SourcesManageFragment :
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val barsInsets = insets.systemBarsInsets
-		val isTablet = !resources.getBoolean(R.bool.is_tablet)
+		val isTablet = resources.getBoolean(R.bool.is_tablet)
 		val isMaster = container?.id == R.id.container_master
-		v.setPaddingRelative(
+		val toolbarHeight = v.context.getThemeDimensionPixelSize(androidx.appcompat.R.attr.actionBarSize)
+		v.updatePaddingRelative(
 			if (isTablet && !isMaster) 0 else barsInsets.start(v),
-			0,
+			toolbarHeight,
 			if (isTablet && isMaster) 0 else barsInsets.end(v),
 			barsInsets.bottom,
 		)
