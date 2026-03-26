@@ -223,7 +223,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val hasRepo = viewModel.hasExternalRepoConfigured()
 		val dialogBuilder = MaterialAlertDialogBuilder(this)
 			.setTitle(if (hasRepo) R.string.change_repo else R.string.add_repo)
-			.setNegativeButton(android.R.string.cancel, null)
 		val editor = dialogBuilder.setEditText(
 			inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_VARIATION_URI,
 			singleLine = true,
@@ -231,9 +230,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		editor.setText(viewModel.getExternalRepoUrl().orEmpty())
 		editor.hint = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.min.json"
 		if (hasRepo) {
-			dialogBuilder.setNeutralButton(R.string.remove_repo) { _, _ ->
+			dialogBuilder.setNegativeButton(R.string.remove_repo) { _, _ ->
 				onRemoveRepoRequested()
 			}
+			dialogBuilder.setNeutralButton(android.R.string.cancel, null)
+		} else {
+			dialogBuilder.setNegativeButton(android.R.string.cancel, null)
 		}
 		dialogBuilder.setPositiveButton(android.R.string.ok, null)
 		val dialog = dialogBuilder.create()

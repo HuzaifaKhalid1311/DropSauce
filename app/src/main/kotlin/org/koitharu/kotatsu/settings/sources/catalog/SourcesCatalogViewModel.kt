@@ -275,13 +275,13 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 		availableRepoEntries.value = available
 
-		val installed = mihonExtensionLoader.getInstalledExtensions(context).sortedBy { it.appName.lowercase(Locale.ROOT) }
-			.associateBy { it.pkgName }
+		val installed = mihonExtensionLoader.getInstalledExtensions(context).associateBy { it.pkgName }
 		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
 
 		val pending = ArrayList<SourceCatalogItem.Extension>()
 		val installedItems = linkedMapOf<String, SourceCatalogItem.Extension>()
 		val availableItems = ArrayList<SourceCatalogItem.Extension>()
+		val packagesWithUpdates = HashSet<String>()
 		val locale = filter.locale
 		val q = query?.takeIf { it.isNotBlank() }
 
@@ -290,9 +290,8 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (locale != null && local.lang != locale) continue
 			if (q != null && !local.appName.contains(q, ignoreCase = true) && !local.pkgName.contains(q, ignoreCase = true)) continue
 
-			val source = installedSourcesByPkg[local.pkgName]
-				?.firstOrNull { it.language == local.lang }
-				?: installedSourcesByPkg[local.pkgName]?.firstOrNull()
+			val pkgSources = installedSourcesByPkg[local.pkgName]
+			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(local.lang))
 				append(" • ")
@@ -317,9 +316,8 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
 
 			val local = installed[entry.packageName]
-			val source = installedSourcesByPkg[entry.packageName]
-				?.firstOrNull { it.language == entry.lang }
-				?: installedSourcesByPkg[entry.packageName]?.firstOrNull()
+			val pkgSources = installedSourcesByPkg[entry.packageName]
+			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 				append(" • ")
@@ -344,17 +342,18 @@ class SourcesCatalogViewModel @Inject constructor(
 					action = SourceCatalogItem.Extension.Action.UPDATE,
 					iconUrl = iconUrl,
 					sourceName = source?.name,
-				)
+				).also {
+					packagesWithUpdates += entry.packageName
+				}
 				else -> Unit
-			}
-			if (local != null && entry.versionCode > local.versionCode) {
-				installedItems.remove(entry.packageName)
 			}
 		}
 
 		val titleComparator = Comparator<SourceCatalogItem.Extension> { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
 		pending.sortWith(titleComparator)
-		val installedSorted = installedItems.values.sortedWith(titleComparator)
+		val installedSorted = installedItems.values
+			.filterNot { it.packageName in packagesWithUpdates }
+			.sortedWith(titleComparator)
 		availableItems.sortWith(titleComparator)
 
 		return buildList {
