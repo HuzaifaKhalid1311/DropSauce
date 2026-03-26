@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isBroken
+import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.drawableStart
@@ -16,7 +17,6 @@ import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.databinding.ItemEmptyHintBinding
 import org.koitharu.kotatsu.databinding.ItemSourceCatalogBinding
 import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.MangaSource
 import androidx.appcompat.R as appcompatR
 
 interface ExtensionActionListener {
@@ -100,14 +100,14 @@ fun sourceCatalogItemExtensionAD(
 		} else if (iconUrl != null) {
 			binding.imageViewIcon.setImageFromUrlAsync(
 				url = iconUrl,
-				fallbackName = item.title,
+				fallbackName = item.packageName,
 			)
 		} else {
 			binding.imageViewIcon.setImageDrawable(
 				FaviconDrawable(
 					context = context,
 					styleResId = R.style.FaviconDrawable_Small,
-					name = item.title,
+					name = item.packageName,
 				),
 			)
 		}
