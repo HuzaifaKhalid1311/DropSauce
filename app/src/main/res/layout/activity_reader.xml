@@ -82,12 +82,12 @@
 		android:layout_gravity="bottom|center_horizontal"
 		android:layout_marginHorizontal="@dimen/screen_padding"
 		android:layout_marginBottom="@dimen/screen_padding"
-		android:background="@drawable/bg_reader_indicator"
+		android:background="@drawable/bg_reader_toolbar"
 		android:fitsSystemWindows="false"
 		android:outlineProvider="background"
 		android:clipToOutline="true"
 		android:paddingHorizontal="@dimen/margin_small"
-		app:cardBackgroundColor="?colorSurfaceContainer"
+		android:paddingVertical="@dimen/reader_docked_toolbar_padding_vertical"
 		app:layout_insetEdge="bottom">
 
 		<org.koitharu.kotatsu.reader.ui.ReaderActionsView

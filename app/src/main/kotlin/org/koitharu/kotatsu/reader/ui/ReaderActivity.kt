@@ -406,12 +406,15 @@ class ReaderActivity :
             rightMargin = systemBars.right
             leftMargin = systemBars.left
         }
-        if (viewBinding.toolbarDocked != null) {
-            viewBinding.actionsView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom
-                rightMargin = systemBars.right
-                leftMargin = systemBars.left
-            }
+        viewBinding.toolbarDocked?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            val dockedMargin = resources.getDimensionPixelSize(R.dimen.screen_padding)
+            bottomMargin = systemBars.bottom + dockedMargin
+            rightMargin = systemBars.right + dockedMargin
+            leftMargin = systemBars.left + dockedMargin
+        } ?: viewBinding.actionsView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            bottomMargin = systemBars.bottom
+            rightMargin = systemBars.right
+            leftMargin = systemBars.left
         }
         viewBinding.infoBar.updatePadding(
             top = systemBars.top,

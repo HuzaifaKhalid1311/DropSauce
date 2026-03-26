@@ -42,7 +42,6 @@ import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelSize
 
 @AndroidEntryPoint
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
@@ -120,10 +119,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-		val toolbarHeight = getThemeDimensionPixelSize(androidx.appcompat.R.attr.actionBarSize)
 		viewBinding.recyclerView.updatePadding(
 			left = bars.left,
-			top = toolbarHeight,
+			top = 0,
 			right = bars.right,
 			bottom = bars.bottom,
 		)
