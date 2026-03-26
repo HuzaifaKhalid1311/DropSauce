@@ -91,7 +91,7 @@ class SourcesManageFragment :
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val barsInsets = insets.systemBarsInsets
-		val isTablet = resources.getBoolean(R.bool.is_tablet)
+		val isTablet = !resources.getBoolean(R.bool.is_tablet)
 		val isMaster = container?.id == R.id.container_master
 		val toolbarHeight = v.context.getThemeDimensionPixelSize(androidx.appcompat.R.attr.actionBarSize)
 		v.updatePaddingRelative(
