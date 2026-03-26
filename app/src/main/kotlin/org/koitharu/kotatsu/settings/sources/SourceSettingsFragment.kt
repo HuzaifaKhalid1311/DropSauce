@@ -7,6 +7,7 @@ import androidx.fragment.app.viewModels
 import androidx.preference.EditTextPreference
 import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import eu.kanade.tachiyomi.source.ConfigurableSource
@@ -25,6 +26,7 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.withArgs
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.io.File
@@ -174,15 +176,47 @@ class SourceSettingsFragment : BasePreferenceFragment(0), Preference.OnPreferenc
 	/**
 	 * If the source is a Mihon extension implementing ConfigurableSource,
 	 * inject its preferences into the current preference screen.
+	 * Also adds language enable/disable toggles for multi-language extensions.
 	 */
 	private fun tryAddMihonPreferences() {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return
-		val mihonSource = repo.mihonSource as? ConfigurableSource ?: return
 		val screen = preferenceScreen ?: return
-		try {
-			mihonSource.setupPreferenceScreen(screen)
-		} catch (e: Throwable) {
-			android.util.Log.e("SourceSettingsFragment", "Failed to setup Mihon preferences", e)
+		val mihonSource = repo.mihonSource as? ConfigurableSource
+		if (mihonSource != null) {
+			try {
+				mihonSource.setupPreferenceScreen(screen)
+			} catch (e: Throwable) {
+				android.util.Log.e("SourceSettingsFragment", "Failed to setup Mihon preferences", e)
+			}
+		}
+		addMihonLanguageToggles(repo, screen)
+	}
+
+	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: androidx.preference.PreferenceScreen) {
+		val pkgName = repo.mihonSource.pkgName
+		val siblings = viewModel.getSiblingMihonSources()
+		if (siblings.size <= 1) return
+
+		val category = PreferenceCategory(requireContext()).apply {
+			title = getString(R.string.languages)
+			isIconSpaceReserved = false
+		}
+		screen.addPreference(category)
+
+		for (source in siblings.sortedBy { it.language }) {
+			val lang = source.language
+			val langDisplayName = getExternalExtensionLanguageDisplayName(lang)
+			SwitchPreferenceCompat(requireContext()).apply {
+				key = "lang_toggle_${pkgName}_$lang"
+				title = langDisplayName
+				isPersistent = false
+				isChecked = viewModel.isMihonSourceLangEnabled(pkgName, lang)
+				isIconSpaceReserved = false
+				onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+					viewModel.setMihonSourceLangEnabled(pkgName, lang, newValue as Boolean)
+					true
+				}
+			}.also { category.addPreference(it) }
 		}
 	}
 

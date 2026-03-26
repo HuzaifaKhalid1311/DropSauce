@@ -16,22 +16,20 @@
 		android:title="@string/filter"
 		app:showAsAction="ifRoom">
 		<menu>
-			<item
-				android:id="@+id/action_filter_extensions_all"
-				android:checkable="true"
-				android:title="@string/filter_sources_all" />
-			<item
-				android:id="@+id/action_filter_extensions_updates"
-				android:checkable="true"
-				android:title="@string/updates_pending" />
-			<item
-				android:id="@+id/action_filter_extensions_installed"
-				android:checkable="true"
-				android:title="@string/installed" />
-			<item
-				android:id="@+id/action_filter_extensions_available"
-				android:checkable="true"
-				android:title="@string/available_to_install" />
+			<group android:checkableBehavior="single">
+				<item
+					android:id="@+id/action_filter_extensions_all"
+					android:title="@string/filter_sources_all" />
+				<item
+					android:id="@+id/action_filter_extensions_updates"
+					android:title="@string/updates_pending" />
+				<item
+					android:id="@+id/action_filter_extensions_installed"
+					android:title="@string/installed" />
+				<item
+					android:id="@+id/action_filter_extensions_available"
+					android:title="@string/available_to_install" />
+			</group>
 		</menu>
 	</item>
 

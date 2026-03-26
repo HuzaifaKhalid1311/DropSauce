@@ -1,31 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
-	android:baselineAligned="true"
-	android:orientation="horizontal">
+	android:layout_height="wrap_content">
 
 	<TextView
 		android:id="@+id/textView_title"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_weight="1"
 		android:gravity="center_vertical|start"
 		android:padding="@dimen/grid_spacing"
 		android:singleLine="true"
 		android:textAppearance="?textAppearanceTitleSmall"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toStartOf="@id/toggleGroup_filter"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
 		tools:text="@tools:sample/lorem[2]" />
 
 	<com.google.android.material.button.MaterialButtonToggleGroup
 		android:id="@+id/toggleGroup_filter"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginEnd="8dp"
-		android:layout_gravity="center_vertical"
 		android:visibility="gone"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
 		app:singleSelection="true"
 		app:selectionRequired="true"
 		tools:visibility="visible">
@@ -66,7 +69,10 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:visibility="invisible"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
 		tools:text="@string/manage"
 		tools:visibility="visible" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

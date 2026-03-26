@@ -58,6 +58,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val builtInContentTypes = MutableStateFlow<List<ContentType>>(emptyList())
 	private val mihonSources = repository.observeMihonSources()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+	private val availableRepoEntries = MutableStateFlow<List<ExternalExtensionRepoEntry>>(emptyList())
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
@@ -84,10 +85,18 @@ class SourcesCatalogViewModel @Inject constructor(
 	val locales: StateFlow<Set<String?>> = combine(
 		appliedFilter,
 		mihonSources,
-	) { filter, sources ->
+		availableRepoEntries,
+	) { filter, sources, repoEntries ->
 		when (filter.mode) {
 			SourcesCatalogMode.BUILTIN -> builtInLocales
-			SourcesCatalogMode.MIHON -> sources.toLocaleSet()
+			SourcesCatalogMode.MIHON -> {
+				// Include locales from both installed sources and available repo entries
+				val localeSet = LinkedHashSet<String?>()
+				sources.mapTo(localeSet) { it.language }
+				repoEntries.mapTo(localeSet) { it.lang }
+				localeSet.add(null)
+				localeSet
+			}
 		}
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, builtInLocales)
 
@@ -273,6 +282,8 @@ class SourcesCatalogViewModel @Inject constructor(
 				),
 			)
 		}
+		availableRepoEntries.value = available
+
 		val installed = mihonExtensionLoader.getInstalledExtensions(context)
 			.associateBy { it.pkgName }
 
@@ -296,24 +307,28 @@ class SourcesCatalogViewModel @Inject constructor(
 					append(" • 18+")
 				}
 			}
+			val iconUrl = externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			when {
 				local == null -> availableItems += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.INSTALL,
+					iconUrl = iconUrl,
 				)
 				entry.versionCode > local.versionCode -> pending += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.UPDATE,
+					iconUrl = iconUrl,
 				)
 				else -> installedItems += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.UNINSTALL,
+					iconUrl = iconUrl,
 				)
 			}
 		}
@@ -367,9 +382,5 @@ class SourcesCatalogViewModel @Inject constructor(
 		} else {
 			result
 		}
-	}
-
-	private fun List<MihonMangaSource>.toLocaleSet(): Set<String?> = mapTo(LinkedHashSet<String?>()) { it.language }.also {
-		it.add(null)
 	}
 }

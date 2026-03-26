@@ -64,6 +64,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		super.onCreate(savedInstanceState)
 		setContentView(ActivitySourcesCatalogBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
+		if (isExternalOnly) {
+			title = getString(R.string.extension_management)
+		}
 		val sourcesAdapter = SourcesCatalogAdapter(this, this)
 		with(viewBinding.recyclerView) {
 			setHasFixedSize(true)

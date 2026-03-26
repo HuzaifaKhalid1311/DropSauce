@@ -348,6 +348,25 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getStringSet(KEY_MIHON_PREFERRED_LANGUAGES, emptySet()).orEmpty()
 		set(value) = prefs.edit { putStringSet(KEY_MIHON_PREFERRED_LANGUAGES, value) }
 
+	/**
+	 * Stores "pkgName:lang" pairs for disabled language-source combinations.
+	 * When a language is disabled for a specific extension package, its "pkgName:lang" entry
+	 * is present in this set.
+	 */
+	var mihonPerExtDisabledLangs: Set<String>
+		get() = prefs.getStringSet(KEY_MIHON_PER_EXT_DISABLED_LANGS, emptySet()).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_MIHON_PER_EXT_DISABLED_LANGS, value) }
+
+	fun isMihonSourceLangEnabled(pkgName: String, lang: String): Boolean =
+		"$pkgName:$lang" !in mihonPerExtDisabledLangs
+
+	fun setMihonSourceLangEnabled(pkgName: String, lang: String, enabled: Boolean) {
+		val current = mihonPerExtDisabledLangs.toMutableSet()
+		val key = "$pkgName:$lang"
+		if (enabled) current.remove(key) else current.add(key)
+		mihonPerExtDisabledLangs = current
+	}
+
 	var externalExtensionsRepoUrl: String?
 		get() = prefs.getString(KEY_EXTERNAL_EXTENSIONS_REPO_URL, null)?.takeIf { it.isNotBlank() }
 		set(value) = prefs.edit {
@@ -818,6 +837,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_SOURCES_PREFERRED_LANGUAGES = "sources_preferred_languages"
 		const val KEY_MIHON_PREFERRED_LANGUAGES = "mihon_preferred_languages"
+		const val KEY_MIHON_PER_EXT_DISABLED_LANGS = "mihon_per_ext_disabled_langs"
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_SOURCES_CATALOG = "sources_catalog"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
