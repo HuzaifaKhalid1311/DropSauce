@@ -8,7 +8,6 @@ import android.view.inputmethod.EditorInfo
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.viewModels
@@ -23,6 +22,7 @@ import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.titleResId
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
@@ -156,10 +156,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	override fun onExtensionSettingsClick(item: SourceCatalogItem.Extension) {
-		startActivity(
-			Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-				.setData(Uri.fromParts("package", item.packageName, null)),
-		)
+		val sourceName = item.sourceName ?: return
+		router.openSourceSettings(MangaSource(sourceName))
 	}
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
@@ -232,6 +230,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		)
 		editor.setText(viewModel.getExternalRepoUrl().orEmpty())
 		editor.hint = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.min.json"
+		if (hasRepo) {
+			dialogBuilder.setNeutralButton(R.string.remove_repo) { _, _ ->
+				onRemoveRepoRequested()
+			}
+		}
 		dialogBuilder.setPositiveButton(android.R.string.ok, null)
 		val dialog = dialogBuilder.create()
 		dialog.setOnShowListener {

@@ -14,8 +14,7 @@
 		android:padding="@dimen/grid_spacing"
 		android:singleLine="true"
 		android:textAppearance="?textAppearanceTitleSmall"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toStartOf="@id/toggleGroup_filter"
+		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toTopOf="parent"
 		tools:text="@tools:sample/lorem[2]" />
@@ -24,11 +23,12 @@
 		android:id="@+id/toggleGroup_filter"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:layout_marginStart="@dimen/grid_spacing"
+		android:layout_marginBottom="@dimen/grid_spacing"
 		android:visibility="gone"
 		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintTop_toBottomOf="@id/textView_title"
 		app:singleSelection="true"
 		app:selectionRequired="true"
 		tools:visibility="visible">
@@ -70,10 +70,11 @@
 		style="@style/Widget.Kotatsu.Button.More.Small"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:layout_marginEnd="@dimen/grid_spacing"
 		android:visibility="invisible"
-		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintBottom_toBottomOf="@id/toggleGroup_filter"
 		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintTop_toTopOf="@id/toggleGroup_filter"
 		tools:text="@string/manage"
 		tools:visibility="visible" />
 

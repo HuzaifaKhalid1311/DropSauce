@@ -6,6 +6,7 @@
 	tools:layout_height="wrap_content"
 	tools:layout_width="match_parent"
 	tools:orientation="horizontal"
+	android:gravity="center_vertical"
 	tools:parentTag="android.widget.LinearLayout"
 	tools:style="?dockedToolbarStyle">
 

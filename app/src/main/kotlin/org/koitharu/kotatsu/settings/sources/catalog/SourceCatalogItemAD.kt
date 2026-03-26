@@ -83,7 +83,7 @@ fun sourceCatalogItemExtensionAD(
 
 	bind {
 		binding.imageViewAdd.isVisible = true
-		binding.imageViewSettings.isVisible = item.action == SourceCatalogItem.Extension.Action.UNINSTALL
+		binding.imageViewSettings.isVisible = item.action != SourceCatalogItem.Extension.Action.INSTALL && item.sourceName != null
 		binding.viewAddDivider.isVisible = true
 		binding.root.updatePaddingRelative(end = compactEndPadding)
 		binding.imageViewAdd.setImageResource(item.action.iconRes)
