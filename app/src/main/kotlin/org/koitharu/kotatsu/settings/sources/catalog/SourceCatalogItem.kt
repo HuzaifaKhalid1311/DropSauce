@@ -24,6 +24,7 @@ sealed interface SourceCatalogItem : ListModel {
 		val subtitle: String,
 		val action: Action,
 		val iconUrl: String? = null,
+		val sourceName: String? = null,
 	) : SourceCatalogItem {
 
 		enum class Action(

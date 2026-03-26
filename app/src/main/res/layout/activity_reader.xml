@@ -77,15 +77,16 @@
 
 	<com.google.android.material.dockedtoolbar.DockedToolbarLayout
 		android:id="@+id/toolbar_docked"
-		android:layout_width="match_parent"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_gravity="bottom"
+		android:layout_gravity="bottom|center_horizontal"
 		android:layout_marginHorizontal="@dimen/screen_padding"
 		android:layout_marginBottom="@dimen/screen_padding"
-		android:background="@drawable/bg_card"
+		android:background="@drawable/bg_reader_indicator"
 		android:fitsSystemWindows="false"
 		android:outlineProvider="background"
 		android:clipToOutline="true"
+		android:paddingHorizontal="@dimen/margin_small"
 		app:cardBackgroundColor="?colorSurfaceContainer"
 		app:layout_insetEdge="bottom">
 

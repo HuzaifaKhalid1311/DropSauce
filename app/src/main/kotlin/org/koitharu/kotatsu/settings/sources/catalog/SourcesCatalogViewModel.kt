@@ -257,36 +257,58 @@ class SourcesCatalogViewModel @Inject constructor(
 		query: String?,
 	): List<ListModel> {
 		val repoUrl = externalRepoUrl.value
-		if (repoUrl.isNullOrBlank()) {
-			return listOf(
-				SourceCatalogItem.Hint(
-					icon = R.drawable.ic_empty_feed,
-					title = R.string.extensions_repo_required,
-					text = R.string.extensions_repo_required_text,
-				),
-			)
-		}
-		val available = runCatching {
-			getAvailableEntries(repoUrl)
-		}.getOrElse {
-			return listOf(
-				SourceCatalogItem.Hint(
-					icon = R.drawable.ic_error_large,
-					title = R.string.error,
-					text = R.string.extensions_repo_load_error,
-				),
-			)
+		val available = if (repoUrl.isNullOrBlank()) {
+			availableRepoEntries.value = emptyList()
+			emptyList()
+		} else {
+			runCatching {
+				getAvailableEntries(repoUrl)
+			}.getOrElse {
+				return listOf(
+					SourceCatalogItem.Hint(
+						icon = R.drawable.ic_error_large,
+						title = R.string.error,
+						text = R.string.extensions_repo_load_error,
+					),
+				)
+			}
 		}
 		availableRepoEntries.value = available
 
-		val installed = mihonExtensionLoader.getInstalledExtensions(context)
-			.associateBy { it.pkgName }
+		val installed = mihonExtensionLoader.getInstalledExtensions(context).associateBy { it.pkgName }
+		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
 
 		val pending = ArrayList<SourceCatalogItem.Extension>()
-		val installedItems = ArrayList<SourceCatalogItem.Extension>()
+		val installedItems = linkedMapOf<String, SourceCatalogItem.Extension>()
 		val availableItems = ArrayList<SourceCatalogItem.Extension>()
+		val packagesWithUpdates = HashSet<String>()
 		val locale = filter.locale
 		val q = query?.takeIf { it.isNotBlank() }
+
+		for (local in installed.values) {
+			if (settings.isNsfwContentDisabled && local.isNsfw) continue
+			if (locale != null && local.lang != locale) continue
+			if (q != null && !local.appName.contains(q, ignoreCase = true) && !local.pkgName.contains(q, ignoreCase = true)) continue
+
+			val pkgSources = installedSourcesByPkg[local.pkgName]
+			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
+			val subtitle = buildString {
+				append(getExternalExtensionLanguageDisplayName(local.lang))
+				append(" • ")
+				append(local.versionName)
+				if (local.isNsfw) {
+					append(" • 18+")
+				}
+			}
+			installedItems[local.pkgName] = SourceCatalogItem.Extension(
+				packageName = local.pkgName,
+				title = local.appName.removePrefix("Tachiyomi: ").trim(),
+				subtitle = subtitle,
+				action = SourceCatalogItem.Extension.Action.UNINSTALL,
+				iconUrl = null,
+				sourceName = source?.name,
+			)
+		}
 
 		for (entry in available) {
 			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
@@ -294,6 +316,8 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
 
 			val local = installed[entry.packageName]
+			val pkgSources = installedSourcesByPkg[entry.packageName]
+			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 				append(" • ")
@@ -317,20 +341,19 @@ class SourcesCatalogViewModel @Inject constructor(
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.UPDATE,
 					iconUrl = iconUrl,
-				)
-				else -> installedItems += SourceCatalogItem.Extension(
-					packageName = entry.packageName,
-					title = entry.name.removePrefix("Tachiyomi: ").trim(),
-					subtitle = subtitle,
-					action = SourceCatalogItem.Extension.Action.UNINSTALL,
-					iconUrl = iconUrl,
-				)
+					sourceName = source?.name,
+				).also {
+					packagesWithUpdates += entry.packageName
+				}
+				else -> Unit
 			}
 		}
 
 		val titleComparator = Comparator<SourceCatalogItem.Extension> { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
 		pending.sortWith(titleComparator)
-		installedItems.sortWith(titleComparator)
+		val installedSorted = installedItems.values
+			.filterNot { it.packageName in packagesWithUpdates }
+			.sortedWith(titleComparator)
 		availableItems.sortWith(titleComparator)
 
 		return buildList {
@@ -338,9 +361,9 @@ class SourcesCatalogViewModel @Inject constructor(
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
 				addAll(pending)
 			}
-			if (installedItems.isNotEmpty()) {
+			if (installedSorted.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
-				addAll(installedItems)
+				addAll(installedSorted)
 			}
 			if (availableItems.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
