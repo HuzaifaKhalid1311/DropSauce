@@ -593,6 +593,13 @@ class DetailsActivity :
 	}
 
 	private fun applyBlurEffect(imageView: android.widget.ImageView) {
+		if (!settings.isDetailsPanoramaBlurEnabled) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				imageView.setRenderEffect(null)
+			}
+			imageView.alpha = 1f
+			return
+		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			imageView.setRenderEffect(
 				android.graphics.RenderEffect.createBlurEffect(

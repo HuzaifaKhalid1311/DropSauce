@@ -80,7 +80,12 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_gravity="bottom"
+		android:layout_marginHorizontal="@dimen/screen_padding"
+		android:layout_marginBottom="@dimen/screen_padding"
+		android:background="@drawable/bg_card"
 		android:fitsSystemWindows="false"
+		android:outlineProvider="background"
+		android:clipToOutline="true"
 		app:cardBackgroundColor="?colorSurfaceContainer"
 		app:layout_insetEdge="bottom">
 

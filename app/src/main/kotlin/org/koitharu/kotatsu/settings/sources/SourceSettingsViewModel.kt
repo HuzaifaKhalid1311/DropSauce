@@ -20,7 +20,6 @@ import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
@@ -33,7 +32,6 @@ class SourceSettingsViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
 	mangaRepositoryFactory: MangaRepository.Factory,
 	private val cookieJar: MutableCookieJar,
-	private val mangaSourcesRepository: MangaSourcesRepository,
 	private val settings: AppSettings,
 	private val mihonExtensionManager: MihonExtensionManager,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -45,7 +43,6 @@ class SourceSettingsViewModel @Inject constructor(
 	val username = MutableStateFlow<String?>(null)
 	val isAuthorized = MutableStateFlow<Boolean?>(null)
 	val browserUrl = MutableStateFlow<String?>(null)
-	val isEnabled = mangaSourcesRepository.observeIsEnabled(source)
 	private var usernameLoadJob: Job? = null
 
 	init {
@@ -96,12 +93,6 @@ class SourceSettingsViewModel @Inject constructor(
 			cookieJar.removeCookies(url, null)
 			onActionDone.call(ReversibleAction(R.string.cookies_cleared, null))
 			loadUsername(repository.getAuthProvider())
-		}
-	}
-
-	fun setEnabled(value: Boolean) {
-		launchJob(Dispatchers.Default) {
-			mangaSourcesRepository.setSourcesEnabled(setOf(source), value)
 		}
 	}
 

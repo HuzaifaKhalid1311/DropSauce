@@ -4,12 +4,11 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.view.inputmethod.EditorInfo
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.viewModels
@@ -74,34 +73,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			adapter = sourcesAdapter
 		}
 		viewBinding.chipsFilter.onChipClickListener = this
-		viewBinding.spinnerSourceMode.adapter = ArrayAdapter(
-			this,
-			android.R.layout.simple_spinner_item,
-			SourcesCatalogMode.entries.map { getString(it.titleResId) },
-		).also {
-			it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-		}
-		if (isExternalOnly) {
-			viewBinding.spinnerSourceMode.visibility = View.GONE
-		}
-		viewBinding.spinnerSourceMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-			override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-				if (isExternalOnly) {
-					viewModel.setMode(SourcesCatalogMode.MIHON)
-				} else {
-					viewModel.setMode(SourcesCatalogMode.entries[position])
-				}
-			}
-
-			override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-		}
 		if (isExternalOnly) {
 			viewModel.setMode(SourcesCatalogMode.MIHON)
 		} else {
 			intent?.getStringExtra(AppRouter.KEY_SOURCE_CATALOG_MODE)?.let { modeName ->
 				SourcesCatalogMode.entries.firstOrNull { it.name == modeName }?.let { mode ->
 					viewModel.setMode(mode)
-					viewBinding.spinnerSourceMode.setSelection(mode.ordinal)
 				}
 			}
 		}
@@ -178,6 +155,13 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		viewModel.onInstallEntryClick(item)
 	}
 
+	override fun onExtensionSettingsClick(item: SourceCatalogItem.Extension) {
+		startActivity(
+			Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+				.setData(Uri.fromParts("package", item.packageName, null)),
+		)
+	}
+
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
 		val sq = (item.actionView as? SearchView)?.query?.trim()?.toString().orEmpty()
 		viewModel.performSearch(sq)
@@ -195,9 +179,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		contentTypes: List<ContentType>,
 		locales: Set<String?>,
 	) {
-		if (viewBinding.spinnerSourceMode.selectedItemPosition != appliedFilter.mode.ordinal) {
-			viewBinding.spinnerSourceMode.setSelection(appliedFilter.mode.ordinal)
-		}
 		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
 		if (locales.size > 1) {
 			chips += ChipModel(

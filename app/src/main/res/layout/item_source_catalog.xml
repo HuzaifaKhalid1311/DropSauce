@@ -63,6 +63,18 @@
 		android:background="?colorOutline" />
 
 	<ImageButton
+		android:id="@+id/imageView_settings"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:background="?selectableItemBackgroundBorderless"
+		android:contentDescription="@string/settings"
+		android:padding="@dimen/margin_normal"
+		android:scaleType="center"
+		android:src="@drawable/ic_settings"
+		android:tooltipText="@string/settings"
+		android:visibility="gone" />
+
+	<ImageButton
 		android:id="@+id/imageView_add"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"

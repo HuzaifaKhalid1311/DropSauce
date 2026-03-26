@@ -529,7 +529,7 @@
     <string name="content_type_other">Other</string>
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
-    <string name="extension_management">Extension management</string>
+    <string name="extension_management">Extensions</string>
     <string name="source_mode_builtin">Local</string>
     <string name="source_mode_mihon">External</string>
     <string name="source_mode_prompt">Source type</string>
@@ -886,6 +886,7 @@
     <string name="adblock">Block ads in browser</string>
     <string name="adblock_summary">Block advertisement in the built-in browser (beta)</string>
     <string name="collapse_long_description">Collapse long description</string>
+    <string name="blur_panorama_cover">Blur panorama cover</string>
     <string name="creating_backup">Creating backup</string>
     <string name="share_backup">Share backup</string>
     <string name="reader_multitask">Open reader in a separate task</string>

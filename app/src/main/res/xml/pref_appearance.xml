@@ -71,6 +71,11 @@
             android:title="@string/collapse_long_description" />
 
         <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="details_panorama_blur"
+            android:title="@string/blur_panorama_cover" />
+
+        <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="pages_tab"
             android:summary="@string/show_pages_thumbs_summary"
