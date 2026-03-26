@@ -29,9 +29,18 @@ fun listHeaderAD(
 		if (item.buttonTextRes == 0) {
 			binding.buttonMore.isGone = true
 			binding.buttonMore.text = null
+			binding.buttonMore.icon = null
 			binding.buttonMore.clearBadge(badge)
 		} else {
-			binding.buttonMore.setText(item.buttonTextRes)
+			if (item.filterMode != null) {
+				binding.buttonMore.text = null
+				binding.buttonMore.setIconResource(R.drawable.ic_settings)
+				binding.buttonMore.contentDescription = context.getString(R.string.settings)
+			} else {
+				binding.buttonMore.icon = null
+				binding.buttonMore.setText(item.buttonTextRes)
+				binding.buttonMore.contentDescription = null
+			}
 			binding.buttonMore.isVisible = true
 			badge = itemView.bindBadge(badge, item.badge)
 		}
