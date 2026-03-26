@@ -142,7 +142,12 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 		val locales = when (value) {
 			SourcesCatalogMode.BUILTIN -> builtInLocales
-			SourcesCatalogMode.MIHON -> mihonSources.value.toLocaleSet()
+			SourcesCatalogMode.MIHON -> {
+				val localeSet = LinkedHashSet<String?>()
+				mihonSources.value.mapTo(localeSet) { it.language }
+				localeSet.add(null)
+				localeSet
+			}
 		}
 		appliedFilter.value = filter.copy(
 			mode = value,
