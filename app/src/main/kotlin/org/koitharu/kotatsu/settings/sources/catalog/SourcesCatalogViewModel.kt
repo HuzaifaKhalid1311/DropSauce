@@ -306,6 +306,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.UNINSTALL,
 				iconUrl = null,
+				sourceIconName = source?.name,
 				sourceName = source?.name,
 			)
 		}
@@ -334,6 +335,7 @@ class SourcesCatalogViewModel @Inject constructor(
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.INSTALL,
 					iconUrl = iconUrl,
+					sourceIconName = source?.name,
 				)
 				entry.versionCode > local.versionCode -> pending += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
@@ -341,6 +343,7 @@ class SourcesCatalogViewModel @Inject constructor(
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.UPDATE,
 					iconUrl = iconUrl,
+					sourceIconName = source?.name,
 					sourceName = source?.name,
 				).also {
 					packagesWithUpdates += entry.packageName

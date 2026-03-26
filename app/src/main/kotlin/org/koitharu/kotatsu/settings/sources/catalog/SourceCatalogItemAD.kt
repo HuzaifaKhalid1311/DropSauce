@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isBroken
+import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.drawableStart
@@ -92,11 +93,23 @@ fun sourceCatalogItemExtensionAD(
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
+		val sourceIconName = item.sourceIconName
 		val iconUrl = item.iconUrl
-		if (iconUrl != null) {
-			binding.imageViewIcon.setImageFromUrlAsync(iconUrl, item.packageName)
+		if (sourceIconName != null) {
+			binding.imageViewIcon.setImageAsync(MangaSource(sourceIconName))
+		} else if (iconUrl != null) {
+			binding.imageViewIcon.setImageFromUrlAsync(
+				url = iconUrl,
+				fallbackName = item.packageName,
+			)
 		} else {
-			binding.imageViewIcon.setImageDrawable(FaviconDrawable(context, R.style.FaviconDrawable_Small, item.packageName))
+			binding.imageViewIcon.setImageDrawable(
+				FaviconDrawable(
+					context = context,
+					styleResId = R.style.FaviconDrawable_Small,
+					name = item.packageName,
+				),
+			)
 		}
 	}
 }

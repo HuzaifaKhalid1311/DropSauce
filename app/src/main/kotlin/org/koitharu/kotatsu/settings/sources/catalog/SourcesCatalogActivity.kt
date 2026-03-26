@@ -230,10 +230,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		editor.setText(viewModel.getExternalRepoUrl().orEmpty())
 		editor.hint = "https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.min.json"
 		if (hasRepo) {
-			dialogBuilder.setNegativeButton(R.string.remove_repo) { _, _ ->
+			dialogBuilder.setNeutralButton(R.string.remove_repo) { _, _ ->
 				onRemoveRepoRequested()
 			}
-			dialogBuilder.setNeutralButton(android.R.string.cancel, null)
+			dialogBuilder.setNegativeButton(android.R.string.cancel, null)
 		} else {
 			dialogBuilder.setNegativeButton(android.R.string.cancel, null)
 		}
