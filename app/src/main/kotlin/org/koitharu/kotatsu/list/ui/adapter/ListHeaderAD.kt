@@ -31,7 +31,15 @@ fun listHeaderAD(
 			binding.buttonMore.text = null
 			binding.buttonMore.clearBadge(badge)
 		} else {
-			binding.buttonMore.setText(item.buttonTextRes)
+			if (item.filterMode != null) {
+				binding.buttonMore.text = null
+				binding.buttonMore.setIconResource(R.drawable.ic_settings)
+				binding.buttonMore.contentDescription = context.getString(R.string.settings)
+			} else {
+				binding.buttonMore.icon = null
+				binding.buttonMore.setText(item.buttonTextRes)
+				binding.buttonMore.contentDescription = context.getString(item.buttonTextRes)
+			}
 			binding.buttonMore.isVisible = true
 			badge = itemView.bindBadge(badge, item.badge)
 		}
