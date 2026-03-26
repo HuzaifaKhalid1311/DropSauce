@@ -326,7 +326,7 @@ class SourcesCatalogViewModel @Inject constructor(
 					append(" • 18+")
 				}
 			}
-			val iconUrl = externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
+			val iconUrl = repoUrl?.let { externalRepoRepository.resolveIconUrl(it, entry.packageName) }
 			when {
 				local == null -> availableItems += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
