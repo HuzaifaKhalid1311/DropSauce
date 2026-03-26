@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.list.ui.adapter
 
 import androidx.appcompat.widget.TooltipCompat
-import androidx.core.view.isInvisible
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.google.android.material.badge.BadgeDrawable
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
@@ -27,7 +27,7 @@ fun listHeaderAD(
 	bind {
 		binding.textViewTitle.text = item.getText(context)
 		if (item.buttonTextRes == 0) {
-			binding.buttonMore.isInvisible = true
+			binding.buttonMore.isGone = true
 			binding.buttonMore.text = null
 			binding.buttonMore.clearBadge(badge)
 		} else {

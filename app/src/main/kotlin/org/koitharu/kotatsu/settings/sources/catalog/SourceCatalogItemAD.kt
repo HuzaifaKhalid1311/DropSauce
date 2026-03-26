@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.databinding.ItemEmptyHintBinding
 import org.koitharu.kotatsu.databinding.ItemSourceCatalogBinding
 import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import androidx.appcompat.R as appcompatR
 
 interface ExtensionActionListener {
@@ -92,11 +93,23 @@ fun sourceCatalogItemExtensionAD(
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
+		val sourceIconName = item.sourceIconName
 		val iconUrl = item.iconUrl
-		if (iconUrl != null) {
-			binding.imageViewIcon.setImageFromUrlAsync(iconUrl, item.packageName)
+		if (sourceIconName != null) {
+			binding.imageViewIcon.setImageAsync(MangaSource(sourceIconName))
+		} else if (iconUrl != null) {
+			binding.imageViewIcon.setImageFromUrlAsync(
+				url = iconUrl,
+				fallbackName = item.title,
+			)
 		} else {
-			binding.imageViewIcon.setImageDrawable(FaviconDrawable(context, R.style.FaviconDrawable_Small, item.packageName))
+			binding.imageViewIcon.setImageDrawable(
+				FaviconDrawable(
+					context = context,
+					styleResId = R.style.FaviconDrawable_Small,
+					name = item.title,
+				),
+			)
 		}
 	}
 }

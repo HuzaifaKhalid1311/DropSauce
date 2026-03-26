@@ -166,6 +166,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 	private fun tryAddMihonPreferences() {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return
 		val screen = preferenceScreen ?: return
+		screen.removePreferenceRecursively("mihon_language_toggles")
 		val mihonSource = repo.mihonSource as? ConfigurableSource
 		if (mihonSource != null) {
 			try {
@@ -183,6 +184,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		if (siblings.size <= 1) return
 
 		val category = PreferenceCategory(requireContext()).apply {
+			key = "mihon_language_toggles"
 			title = getString(R.string.languages)
 			isIconSpaceReserved = false
 			order = Int.MAX_VALUE
