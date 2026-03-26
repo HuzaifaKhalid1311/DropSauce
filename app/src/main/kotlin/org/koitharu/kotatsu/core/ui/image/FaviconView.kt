@@ -62,6 +62,14 @@ class FaviconView @JvmOverloads constructor(
 		)
 	}
 
+	/**
+	 * Loads an image from [url] asynchronously. Falls back to a [FaviconDrawable] generated from
+	 * [fallbackName] if the URL cannot be loaded.
+	 *
+	 * @param url the direct image URL to load
+	 * @param fallbackName the name used to generate the fallback favicon drawable
+	 * @return a [Disposable] that can be used to cancel the in-flight request
+	 */
 	fun setImageFromUrlAsync(url: String, fallbackName: String): Disposable {
 		val fallbackFactory: (ImageRequest) -> Image? = {
 			FaviconDrawable(context, iconStyle, fallbackName).asImage()

@@ -35,7 +35,7 @@ class SourceSettingsViewModel @Inject constructor(
 	private val cookieJar: MutableCookieJar,
 	private val mangaSourcesRepository: MangaSourcesRepository,
 	private val settings: AppSettings,
-	private val mihonExtensionManager: MihonExtensionManager?,
+	private val mihonExtensionManager: MihonExtensionManager,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
 
 	val source = MangaSource(savedStateHandle.get<String>(AppRouter.KEY_SOURCE))
@@ -110,10 +110,9 @@ class SourceSettingsViewModel @Inject constructor(
 	 * as the current source. Returns empty list if the source is not a Mihon source.
 	 */
 	fun getSiblingMihonSources(): List<MihonMangaSource> {
-		val manager = mihonExtensionManager ?: return emptyList()
 		val repo = repository as? MihonMangaRepository ?: return emptyList()
 		val pkgName = repo.mihonSource.pkgName
-		return manager.getMihonMangaSources().filter { it.pkgName == pkgName }
+		return mihonExtensionManager.getMihonMangaSources().filter { it.pkgName == pkgName }
 	}
 
 	fun isMihonSourceLangEnabled(pkgName: String, lang: String): Boolean =

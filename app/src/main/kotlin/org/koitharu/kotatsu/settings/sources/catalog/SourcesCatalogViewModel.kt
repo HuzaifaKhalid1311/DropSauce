@@ -282,7 +282,6 @@ class SourcesCatalogViewModel @Inject constructor(
 				),
 			)
 		}
-		// Cache repo entries so the locales flow can use them
 		availableRepoEntries.value = available
 
 		val installed = mihonExtensionLoader.getInstalledExtensions(context)
