@@ -87,8 +87,7 @@
 		android:outlineProvider="background"
 		android:clipToOutline="true"
 		android:paddingHorizontal="@dimen/margin_small"
-		android:paddingVertical="2dp"
-		app:cardBackgroundColor="?colorSurfaceContainer"
+		android:paddingVertical="@dimen/reader_docked_toolbar_padding_vertical"
 		app:layout_insetEdge="bottom">
 
 		<org.koitharu.kotatsu.reader.ui.ReaderActionsView
