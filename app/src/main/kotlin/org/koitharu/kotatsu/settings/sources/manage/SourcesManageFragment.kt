@@ -34,7 +34,6 @@ import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
-import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelSize
 import org.koitharu.kotatsu.databinding.FragmentSettingsSourcesBinding
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.settings.SettingsActivity
@@ -93,10 +92,9 @@ class SourcesManageFragment :
 		val barsInsets = insets.systemBarsInsets
 		val isTablet = !resources.getBoolean(R.bool.is_tablet)
 		val isMaster = container?.id == R.id.container_master
-		val toolbarHeight = v.context.getThemeDimensionPixelSize(androidx.appcompat.R.attr.actionBarSize)
 		v.updatePaddingRelative(
 			if (isTablet && !isMaster) 0 else barsInsets.start(v),
-			toolbarHeight,
+			0,
 			if (isTablet && isMaster) 0 else barsInsets.end(v),
 			barsInsets.bottom,
 		)
