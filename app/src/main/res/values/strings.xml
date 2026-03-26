@@ -872,6 +872,10 @@
     <string name="adblock">Block ads in browser</string>
     <string name="adblock_summary">Block advertisement in the built-in browser (beta)</string>
     <string name="collapse_long_description">Collapse long description</string>
+    <string name="panorama_cover">Panorama cover</string>
+    <string name="panorama_cover_summary">Show cover as background in details page</string>
+    <string name="panorama_blur">Cover blur intensity</string>
+    <string name="panorama_extra_height">Extra cover height (dp)</string>
     <string name="creating_backup">Creating backup</string>
     <string name="share_backup">Share backup</string>
     <string name="reader_multitask">Open reader in a separate task</string>

@@ -93,6 +93,15 @@ class AppearanceSettingsFragment :
             pref.values = settings.searchSuggestionTypes.mapToSet { it.name }
         }
         bindNavSummary()
+        findPreference<SliderPreference>(AppSettings.KEY_PANORAMA_BLUR)?.summaryProvider =
+            Preference.SummaryProvider<SliderPreference> { pref ->
+                val value = pref.value.toInt()
+                if (value <= 0) getString(R.string.disabled) else "$value%"
+            }
+        findPreference<SliderPreference>(AppSettings.KEY_PANORAMA_EXTRA_HEIGHT)?.summaryProvider =
+            Preference.SummaryProvider<SliderPreference> { pref ->
+                "${pref.value.toInt()} dp"
+            }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

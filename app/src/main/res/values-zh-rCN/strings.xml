@@ -830,6 +830,10 @@
     <string name="adblock_summary">屏蔽内置浏览器内显示的广告 (实验性)</string>
     <string name="theme_name_expressive">印象 (实验性)</string>
     <string name="collapse_long_description">折叠过长简介</string>
+    <string name="panorama_cover">全景封面</string>
+    <string name="panorama_cover_summary">详情页面使用封面作为背景</string>
+    <string name="panorama_blur">封面虚化程度</string>
+    <string name="panorama_extra_height">封面额外高度 (dp)</string>
     <string name="changelog_summary">最近已发布版本的更新日志</string>
     <string name="changelog">更新日志</string>
     <string name="share_backup">分享备份</string>
