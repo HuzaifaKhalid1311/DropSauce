@@ -886,7 +886,6 @@
     <string name="adblock">Block ads in browser</string>
     <string name="adblock_summary">Block advertisement in the built-in browser (beta)</string>
     <string name="collapse_long_description">Collapse long description</string>
-    <string name="blur_panorama_cover">Blur panorama cover</string>
     <string name="panorama_cover">Panorama cover</string>
     <string name="panorama_cover_summary">Use cover as background on the details page</string>
     <string name="panorama_blur">Cover blur amount</string>

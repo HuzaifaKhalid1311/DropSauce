@@ -559,14 +559,20 @@ class DetailsActivity :
 			?: return
 		val scrimView = viewBinding.root.findViewById<View>(R.id.view_panorama_scrim)
 		val bottomGradientView = viewBinding.root.findViewById<View>(R.id.view_panorama_bottom_gradient)
-
-		if (imageUrl.isNullOrEmpty()) {
+		if (!settings.isPanoramaCoverEnabled || imageUrl.isNullOrEmpty()) {
 			panoramaView.isVisible = false
 			scrimView?.isVisible = false
 			bottomGradientView?.isVisible = false
 			return
 		}
 
+		val extraHeightPx = (settings.panoramaCoverExtraHeight * resources.displayMetrics.density).roundToInt()
+		panoramaView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+			bottomMargin = -extraHeightPx
+		}
+		bottomGradientView?.updateLayoutParams<ViewGroup.LayoutParams> {
+			height = extraHeightPx.coerceAtLeast(0)
+		}
 		panoramaView.isVisible = true
 		scrimView?.isVisible = true
 		bottomGradientView?.isVisible = true
@@ -593,7 +599,8 @@ class DetailsActivity :
 	}
 
 	private fun applyBlurEffect(imageView: android.widget.ImageView) {
-		if (!settings.isDetailsPanoramaBlurEnabled) {
+		val blurValue = settings.panoramaCoverBlur.coerceIn(0, 100)
+		if (blurValue <= 0) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 				imageView.setRenderEffect(null)
 			}
@@ -601,14 +608,15 @@ class DetailsActivity :
 			return
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			val radius = (blurValue / 100f) * 25f
 			imageView.setRenderEffect(
 				android.graphics.RenderEffect.createBlurEffect(
-					25f, 25f,
+					radius, radius,
 					android.graphics.Shader.TileMode.MIRROR,
 				),
 			)
 		} else {
-			imageView.alpha = 0.3f
+			imageView.alpha = (1f - (blurValue / 100f) * 0.7f).coerceIn(0.3f, 1f)
 		}
 	}
 
