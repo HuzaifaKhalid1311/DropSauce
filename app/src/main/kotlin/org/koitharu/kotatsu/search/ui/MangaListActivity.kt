@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
@@ -15,7 +14,6 @@ import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import org.koitharu.kotatsu.R
@@ -173,21 +171,17 @@ class MangaListActivity :
 			val filterBadge = ViewBadge(chipSort, this)
 			filterBadge.setMaxCharacterCount(0)
 			filter.observe().observe(this) { snapshot ->
-				chipSort.isVisible = true
+				chipSort.setTextAndVisible(snapshot.sortOrder.titleRes)
 				filterBadge.counter = if (snapshot.listFilter.hasNonSearchOptions()) 1 else 0
 			}
+		} else {
+			filter.observe().map {
+				it.listFilter.getSummary()
+			}.flowOn(Dispatchers.Default)
+				.observe(this) {
+					supportActionBar?.subtitle = it
+				}
 		}
-		observeFilterSubtitle(filter).observe(this) {
-			supportActionBar?.subtitle = it
-		}
-	}
-
-	private fun observeFilterSubtitle(filter: FilterCoordinator): Flow<CharSequence?> {
-		return combine(filter.observe(), filter.savedFilters) { snapshot, savedFilters ->
-			val savedFilterName = savedFilters.selectedItems.firstOrNull()?.name
-			(savedFilterName?.takeIf { it.isNotBlank() } ?: snapshot.listFilter.getSummary())
-				.takeIf { it.isNotBlank() }
-		}.flowOn(Dispatchers.Default)
 	}
 
 	private fun findFilterOwner(): FilterCoordinator.Owner? {
