@@ -15,9 +15,9 @@ import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.MangaSource
@@ -176,14 +176,18 @@ class MangaListActivity :
 				chipSort.isVisible = true
 				filterBadge.counter = if (snapshot.listFilter.hasNonSearchOptions()) 1 else 0
 			}
-		} else {
-			filter.observe().map {
-				it.listFilter.getSummary()
-			}.flowOn(Dispatchers.Default)
-				.observe(this) {
-					supportActionBar?.subtitle = it
-				}
 		}
+		observeFilterSubtitle(filter).observe(this) {
+			supportActionBar?.subtitle = it
+		}
+	}
+
+	private fun observeFilterSubtitle(filter: FilterCoordinator): Flow<CharSequence?> {
+		return combine(filter.observe(), filter.savedFilters) { snapshot, savedFilters ->
+			val savedFilterName = savedFilters.selectedItems.firstOrNull()?.name
+			(savedFilterName?.takeIf { it.isNotBlank() } ?: snapshot.listFilter.getSummary())
+				.takeIf { it.isNotBlank() }
+		}.flowOn(Dispatchers.Default)
 	}
 
 	private fun findFilterOwner(): FilterCoordinator.Owner? {

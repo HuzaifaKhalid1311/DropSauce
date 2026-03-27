@@ -21,9 +21,9 @@
 
 	<com.google.android.material.button.MaterialButtonToggleGroup
 		android:id="@+id/toggleGroup_filter"
-		android:layout_width="wrap_content"
+		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginStart="0dp"
+		android:layout_marginStart="@dimen/grid_spacing"
 		android:layout_marginTop="@dimen/grid_spacing"
 		android:layout_marginEnd="@dimen/grid_spacing"
 		android:layout_marginBottom="@dimen/grid_spacing"
@@ -40,8 +40,9 @@
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_builtin"
 			style="?attr/materialButtonOutlinedStyle"
-			android:layout_width="wrap_content"
+			android:layout_width="0dp"
 			android:layout_height="wrap_content"
+			android:layout_weight="1"
 			android:text="@string/filter_sources_built_in"
 			android:gravity="center"
 			android:insetLeft="0dp"
@@ -49,7 +50,7 @@
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
 			android:minHeight="56dp"
-			android:minWidth="104dp"
+			android:minWidth="0dp"
 			android:paddingHorizontal="10dp"
 			android:paddingVertical="0dp"
 			android:textSize="14sp" />
@@ -57,8 +58,9 @@
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_mihon"
 			style="?attr/materialButtonOutlinedStyle"
-			android:layout_width="wrap_content"
+			android:layout_width="0dp"
 			android:layout_height="wrap_content"
+			android:layout_weight="1"
 			android:text="@string/filter_sources_mihon"
 			android:gravity="center"
 			android:insetLeft="0dp"
@@ -66,7 +68,7 @@
 			android:insetTop="0dp"
 			android:insetBottom="0dp"
 			android:minHeight="56dp"
-			android:minWidth="104dp"
+			android:minWidth="0dp"
 			android:paddingHorizontal="10dp"
 			android:paddingVertical="0dp"
 			android:textSize="14sp" />
@@ -75,11 +77,14 @@
 
 	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_more"
-		style="@style/Widget.Kotatsu.Button.More.Small"
+		style="@style/Widget.Kotatsu.Button.More"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginEnd="@dimen/grid_spacing"
+		android:minHeight="56dp"
+		android:minWidth="56dp"
 		android:visibility="invisible"
+		app:iconSize="24dp"
 		app:layout_constraintBottom_toBottomOf="@id/toggleGroup_filter"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintTop_toTopOf="@id/toggleGroup_filter"
