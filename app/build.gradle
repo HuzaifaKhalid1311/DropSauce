@@ -18,7 +18,7 @@ android {
 	namespace = 'org.koitharu.kotatsu'
 
 	defaultConfig {
-		applicationId 'org.skepsun.yumemi'
+		applicationId 'org.skepsun.dropsauce'
 		minSdk = 23
 		targetSdk = 36
 		versionCode = 1033

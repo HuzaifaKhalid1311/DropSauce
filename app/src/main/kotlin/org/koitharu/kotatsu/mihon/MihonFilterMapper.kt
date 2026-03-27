@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 
 /**
- * Maps between Mihon FilterList and Yumemi's MangaListFilter/MangaTag system.
+ * Maps between Mihon FilterList and DropSauce's MangaListFilter/MangaTag system.
  *
  * Each Mihon filter is converted to a MangaTag with a structured key that encodes
  * the filter path, allowing round-trip conversion back to Mihon filter state.
@@ -20,7 +20,7 @@ object MihonFilterMapper {
 	private const val PREFIX_TEXT = "text:"
 
 	/**
-	 * Convert a Mihon FilterList into Yumemi's MangaListFilterOptions.
+	 * Convert a Mihon FilterList into DropSauce's MangaListFilterOptions.
 	 */
 	fun mapOptions(mihonFilters: FilterList, source: MangaSource): MangaListFilterOptions {
 		val allTags = mutableSetOf<MangaTag>()

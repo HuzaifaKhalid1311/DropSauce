@@ -18,6 +18,8 @@ import uy.kohesive.injekt.injectLazy
 import java.net.URI
 import java.net.URISyntaxException
 import java.security.MessageDigest
+import org.koitharu.kotatsu.core.model.MangaSource
+import org.koitharu.kotatsu.core.model.MangaSource
 
 abstract class HttpSource : CatalogueSource {
 	protected val network: NetworkHelper by injectLazy()
@@ -47,7 +49,7 @@ abstract class HttpSource : CatalogueSource {
 
 	@Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPopularManga"))
 	override fun fetchPopularManga(page: Int): Observable<MangasPage> {
-		return client.newCall(popularMangaRequest(page)).asObservableSuccess().map(::popularMangaParse)
+		return client.newCall(tagRequest(popularMangaRequest(page))).asObservableSuccess().map(::popularMangaParse)
 	}
 
 	protected abstract fun popularMangaRequest(page: Int): Request
@@ -65,7 +67,7 @@ abstract class HttpSource : CatalogueSource {
 	override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> {
 		return Observable.defer {
 			try {
-				client.newCall(searchMangaRequest(page, query, filters)).asObservableSuccess()
+				client.newCall(tagRequest(searchMangaRequest(page, query, filters))).asObservableSuccess()
 			} catch (e: NoClassDefFoundError) {
 				throw RuntimeException(e)
 			}
@@ -74,12 +76,12 @@ abstract class HttpSource : CatalogueSource {
 
 	@Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getLatestUpdates"))
 	override fun fetchLatestUpdates(page: Int): Observable<MangasPage> {
-		return client.newCall(latestUpdatesRequest(page)).asObservableSuccess().map(::latestUpdatesParse)
+		return client.newCall(tagRequest(latestUpdatesRequest(page))).asObservableSuccess().map(::latestUpdatesParse)
 	}
 
 	@Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getMangaDetails"))
 	override fun fetchMangaDetails(manga: SManga): Observable<SManga> {
-		return client.newCall(mangaDetailsRequest(manga)).asObservableSuccess().map {
+		return client.newCall(tagRequest(mangaDetailsRequest(manga))).asObservableSuccess().map {
 			mangaDetailsParse(it).apply { initialized = true }
 		}
 	}
@@ -88,14 +90,14 @@ abstract class HttpSource : CatalogueSource {
 
 	@Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getChapterList"))
 	override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> {
-		return client.newCall(chapterListRequest(manga)).asObservableSuccess().map(::chapterListParse)
+		return client.newCall(tagRequest(chapterListRequest(manga))).asObservableSuccess().map(::chapterListParse)
 	}
 
 	open fun chapterListRequest(manga: SManga): Request = GET(baseUrl + manga.url, headers)
 
 	@Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPageList"))
 	override fun fetchPageList(chapter: SChapter): Observable<List<Page>> {
-		return client.newCall(pageListRequest(chapter)).asObservableSuccess().map(::pageListParse)
+		return client.newCall(tagRequest(pageListRequest(chapter))).asObservableSuccess().map(::pageListParse)
 	}
 
 	open fun pageListRequest(chapter: SChapter): Request = GET(baseUrl + chapter.url, headers)
@@ -105,10 +107,22 @@ abstract class HttpSource : CatalogueSource {
 	open fun getImageUrl(page: Page): String {
 		val imageUrl = page.imageUrl
 		if (imageUrl != null) return imageUrl
-		return client.newCall(imageUrlRequest(page)).execute().use(::imageUrlParse)
+		return client.newCall(tagRequest(imageUrlRequest(page))).execute().use(::imageUrlParse)
 	}
 
 	open fun imageUrlRequest(page: Page): Request = GET(baseUrl + page.url, headers)
+
+	private fun tagRequest(request: Request): Request {
+		if (request.tag(org.koitharu.kotatsu.parsers.model.MangaSource::class.java) != null) {
+			return request
+		}
+		return request.newBuilder()
+			.tag(
+				org.koitharu.kotatsu.parsers.model.MangaSource::class.java,
+				MangaSource("MIHON_$id")
+			)
+			.build()
+	}
 
 	open fun getPageHeaders(page: Page): Headers = headers
 

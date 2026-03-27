@@ -50,7 +50,7 @@ class ExceptionResolver private constructor(
     private val continuations = MutableScatterMap<String, Continuation<Boolean>>(1)
 
     private val browserActionContract = host.registerForActivityResult(BrowserActivity.Contract()) {
-        handleActivityResult(BrowserActivity.TAG, true)
+        handleActivityResult(BrowserActivity.TAG, it)
     }
     private val sourceAuthContract = host.registerForActivityResult(SourceAuthActivity.Contract()) {
         handleActivityResult(SourceAuthActivity.TAG, it)

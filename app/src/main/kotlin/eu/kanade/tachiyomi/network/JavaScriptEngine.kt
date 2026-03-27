@@ -20,5 +20,5 @@ class JavaScriptEngine(context: Context) {
 	 */
 	@Suppress("UNCHECKED_CAST")
 	suspend fun <T> evaluate(script: String): T =
-		throw UnsupportedOperationException("JavaScriptEngine is not supported in Yumemi")
+		throw UnsupportedOperationException("JavaScriptEngine is not supported in DropSauce")
 }

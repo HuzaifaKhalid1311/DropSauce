@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Auto-detect kotatsu-parsers version updates and sync to libs.versions.toml.
-Adapted from Kototoro's sync_parsers.py for Yumemi.
+Adapted from Kototoro's sync_parsers.py for DropSauce.
 """
 import pathlib
 import re

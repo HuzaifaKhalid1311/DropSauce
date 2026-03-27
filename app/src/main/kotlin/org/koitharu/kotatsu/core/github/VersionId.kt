@@ -45,7 +45,8 @@ val VersionId.isStable: Boolean
 
 fun VersionId(versionName: String): VersionId {
 	if (versionName.contains("nightly", ignoreCase = true) ||
-		versionName.contains("daily", ignoreCase = true)) {
+		versionName.contains("daily", ignoreCase = true) ||
+		(versionName.startsWith("n", ignoreCase = true) && versionName.length > 1 && versionName.substring(1).all { it.isDigit() })) {
 		// Nightly build
 		return VersionId(
 			major = 0,

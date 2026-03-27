@@ -301,6 +301,15 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
 
+	val isPanoramaCoverEnabled: Boolean
+		get() = prefs.getBoolean(KEY_PANORAMA_ENABLED, true)
+
+	val panoramaCoverBlur: Int
+		get() = prefs.getInt(KEY_PANORAMA_BLUR, 0)
+
+	val panoramaCoverExtraHeight: Int
+		get() = prefs.getInt(KEY_PANORAMA_EXTRA_HEIGHT, 40)
+
 	val defaultDetailsTab: Int
 		get() = if (isPagesTabEnabled) {
 			val raw = prefs.getString(KEY_DETAILS_TAB, null)?.toIntOrNull() ?: -1
@@ -863,6 +872,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_HIDE_BROKEN = "sources_hide_broken"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
+		const val KEY_PANORAMA_ENABLED = "panorama_enabled"
+		const val KEY_PANORAMA_BLUR = "panorama_blur"
+		const val KEY_PANORAMA_EXTRA_HEIGHT = "panorama_extra_height"
 		const val KEY_BACKUP_TG_ENABLED = "backup_periodic_tg_enabled"
 		const val KEY_BACKUP_TG_CHAT = "backup_periodic_tg_chat_id"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"

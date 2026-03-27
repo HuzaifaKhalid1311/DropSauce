@@ -19,10 +19,22 @@ import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
+import android.webkit.CookieManager
+
 @AndroidEntryPoint
 class BrowserActivity : BaseBrowserActivity() {
 
+	private var successCookieUrl: String? = null
+	private var successCookieName: String? = null
+	private var initialCookieValue: String? = null
+
 	override fun onCreate2(savedInstanceState: Bundle?, source: MangaSource, repository: ParserMangaRepository?) {
+		successCookieUrl = intent?.getStringExtra(AppRouter.KEY_SUCCESS_COOKIE_URL)
+		successCookieName = intent?.getStringExtra(AppRouter.KEY_SUCCESS_COOKIE_NAME)
+		if (successCookieUrl != null && successCookieName != null) {
+			initialCookieValue = getCookieValue(successCookieUrl!!, successCookieName!!)
+		}
+
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = true)
 		viewBinding.webView.webViewClient = BrowserClient(this, adBlock)
 		lifecycleScope.launch {
@@ -70,7 +82,29 @@ class BrowserActivity : BaseBrowserActivity() {
 		else -> super.onOptionsItemSelected(item)
 	}
 
-	class Contract : ActivityResultContract<InteractiveActionRequiredException, Unit>() {
+	override fun finish() {
+		if (successCookieUrl != null && successCookieName != null) {
+			val currentValue = getCookieValue(successCookieUrl!!, successCookieName!!)
+			if (currentValue != initialCookieValue && !currentValue.isNullOrBlank()) {
+				setResult(RESULT_OK)
+			} else {
+				setResult(RESULT_CANCELED)
+			}
+		} else {
+            setResult(RESULT_OK)
+        }
+		super.finish()
+	}
+
+	private fun getCookieValue(url: String, cookieName: String): String? {
+		val cookies = CookieManager.getInstance().getCookie(url) ?: return null
+		return cookies.split(";")
+			.map { it.trim() }
+			.firstOrNull { it.startsWith("$cookieName=") }
+			?.substringAfter("=")
+	}
+
+	class Contract : ActivityResultContract<InteractiveActionRequiredException, Boolean>() {
 		override fun createIntent(
 			context: Context,
 			input: InteractiveActionRequiredException
@@ -79,9 +113,17 @@ class BrowserActivity : BaseBrowserActivity() {
 			url = input.url,
 			source = input.source,
 			title = null,
-		)
+		).apply {
+			putExtra(AppRouter.KEY_SUCCESS_COOKIE_URL, input.successCookieUrl)
+			putExtra(AppRouter.KEY_SUCCESS_COOKIE_NAME, input.successCookieName)
+			if (input.userAgent != null) {
+				putExtra(AppRouter.KEY_USER_AGENT, input.userAgent)
+			}
+		}
 
-		override fun parseResult(resultCode: Int, intent: Intent?): Unit = Unit
+		override fun parseResult(resultCode: Int, intent: Intent?): Boolean {
+			return resultCode == android.app.Activity.RESULT_OK
+		}
 	}
 
 	companion object {

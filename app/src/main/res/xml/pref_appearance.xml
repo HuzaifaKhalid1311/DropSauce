@@ -90,6 +90,30 @@
             android:title="@string/default_tab"
             app:useSimpleSummaryProvider="true" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="panorama_enabled"
+            android:title="@string/panorama_cover"
+            android:summary="@string/panorama_cover_summary" />
+
+        <org.koitharu.kotatsu.settings.utils.SliderPreference
+            android:key="panorama_blur"
+            android:dependency="panorama_enabled"
+            android:stepSize="5"
+            android:title="@string/panorama_blur"
+            android:valueFrom="0"
+            android:valueTo="100"
+            app:defaultValue="0" />
+
+        <org.koitharu.kotatsu.settings.utils.SliderPreference
+            android:key="panorama_extra_height"
+            android:dependency="panorama_enabled"
+            android:stepSize="5"
+            android:title="@string/panorama_extra_height"
+            android:valueFrom="0"
+            android:valueTo="100"
+            app:defaultValue="40" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/main_screen">

@@ -86,7 +86,7 @@ jobs:
         DOWNLOAD_NOTES=""
         for apk in "${APK_FILES[@]}"; do
           filename=$(basename "$apk")
-          target="release/Yumemi-${{ env.TAG_NAME }}-release.apk"
+          target="release/DropSauce-${{ env.TAG_NAME }}-release.apk"
           cp "$apk" "$target"
           DOWNLOAD_NOTES="- \`$(basename "$target")\`"
         done
@@ -102,7 +102,7 @@ jobs:
         files: |
           release/*.apk
         body: |
-          ## Yumemi ${{ env.TAG_NAME }}
+          ## DropSauce ${{ env.TAG_NAME }}
 
           ### Download
           ${{ steps.assets.outputs.download_notes }}
