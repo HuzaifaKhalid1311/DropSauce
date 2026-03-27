@@ -57,6 +57,24 @@ jobs:
             -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
         fi
 
+    - name: Pre-warm JitPack dependencies
+      if: steps.check.outputs.should_build == 'true'
+      run: |
+        PARSERS_VERSION=$(grep 'parsers = ' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+        echo "Pre-warming JitPack for kotatsu-parsers:${PARSERS_VERSION}"
+        POM_URL="https://jitpack.io/com/github/YakaTeam/kotatsu-parsers/${PARSERS_VERSION}/kotatsu-parsers-${PARSERS_VERSION}.pom"
+        for i in $(seq 1 10); do
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$POM_URL")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "JitPack artifact is ready (HTTP 200)"
+            exit 0
+          fi
+          echo "Attempt $i: JitPack returned HTTP ${HTTP_STATUS}, waiting 30s..."
+          sleep 30
+        done
+        echo "::error::JitPack artifact for kotatsu-parsers:${PARSERS_VERSION} not available after 10 attempts"
+        exit 1
+
     - name: Build Nightly APK
       if: steps.check.outputs.should_build == 'true'
       run: |
