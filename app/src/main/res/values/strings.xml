@@ -308,6 +308,10 @@
     <string name="bookmarks_removed">Bookmarks removed</string>
     <string name="no_manga_sources">No manga sources</string>
     <string name="no_manga_sources_text">Enable manga sources to read manga online</string>
+    <string name="no_external_source_installed">No external source installed</string>
+    <string name="manage_manga_extensions_from_settings_icon">Manage manga extensions from the settings icon</string>
+    <string name="no_manga_source_enabled">No manga source enabled</string>
+    <string name="enable_manga_sources_from_settings_icon">Enable manga sources from the settings icon to read manga</string>
     <string name="random">Random</string>
     <string name="categories_delete_confirm">Are you sure you want to delete the selected favorite categories?\nAll manga in it will be lost and this cannot be undone.</string>
     <string name="reorder">Reorder</string>
@@ -537,6 +541,8 @@
     <string name="no_manga_sources_catalog_text">There are no sources available in this section, or all of it might have been already added.\nStay tuned</string>
     <string name="extensions_repo_required">Repo required</string>
     <string name="extensions_repo_required_text">Add an extensions repo URL in Manage to load external extensions.</string>
+    <string name="no_repo_detected">No repo detected</string>
+    <string name="click_edit_icon_add_extension_repo">Click on the edit icon to add an extension repository</string>
     <string name="extensions_repo_load_error">Failed to load extensions repo. Check URL and try again.</string>
     <string name="updates_pending">Updates pending</string>
     <string name="installed">Installed</string>

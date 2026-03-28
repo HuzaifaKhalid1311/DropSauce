@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.databinding.ItemEmptyHintBinding
+import org.koitharu.kotatsu.databinding.ItemEmptyCardBinding
 import org.koitharu.kotatsu.databinding.ItemSourceCatalogBinding
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import androidx.appcompat.R as appcompatR
@@ -114,8 +114,8 @@ fun sourceCatalogItemExtensionAD(
 	}
 }
 
-fun sourceCatalogItemHintAD() = adapterDelegateViewBinding<SourceCatalogItem.Hint, ListModel, ItemEmptyHintBinding>(
-	{ inflater, parent -> ItemEmptyHintBinding.inflate(inflater, parent, false) },
+fun sourceCatalogItemHintAD() = adapterDelegateViewBinding<SourceCatalogItem.Hint, ListModel, ItemEmptyCardBinding>(
+	{ inflater, parent -> ItemEmptyCardBinding.inflate(inflater, parent, false) },
 ) {
 
 	binding.buttonRetry.isVisible = false

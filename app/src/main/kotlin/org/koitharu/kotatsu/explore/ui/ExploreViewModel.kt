@@ -208,9 +208,17 @@ class ExploreViewModel @Inject constructor(
 			)
 			result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
-				textPrimary = R.string.no_manga_sources,
-				textSecondary = R.string.no_manga_sources_text,
-				actionStringRes = R.string.catalog,
+				textPrimary = if (filterMode == SourceFilterMode.EXTERNAL) {
+					R.string.no_external_source_installed
+				} else {
+					R.string.no_manga_source_enabled
+				},
+				textSecondary = if (filterMode == SourceFilterMode.EXTERNAL) {
+					R.string.manage_manga_extensions_from_settings_icon
+				} else {
+					R.string.enable_manga_sources_from_settings_icon
+				},
+				actionStringRes = NO_ACTION_STRING_RES,
 			)
 		}
 		return result
@@ -244,5 +252,6 @@ class ExploreViewModel @Inject constructor(
 
 		private const val TIP_SUGGESTIONS = "suggestions"
 		private const val SUGGESTIONS_COUNT = 8
+		private const val NO_ACTION_STRING_RES = 0
 	}
 }
