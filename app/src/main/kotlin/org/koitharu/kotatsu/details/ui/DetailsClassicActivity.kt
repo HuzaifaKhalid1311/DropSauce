@@ -423,17 +423,39 @@ class DetailsClassicActivity :
 		val tv = android.util.TypedValue()
 		theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)
 		val actionBarSize = android.util.TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
-		viewBinding.navbarDim?.updateLayoutParams { height = barsInsets.bottom }
-		viewBinding.scrollView.updatePadding(
-			top = actionBarSize + barsInsets.top,
-			bottom = barsInsets.bottom + resources.getDimensionPixelOffset(R.dimen.details_bs_peek_height),
-		)
-		if (!settings.isBackdropEnabled) {
-			viewBinding.contentContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-				topMargin = resources.getDimensionPixelOffset(R.dimen.margin_normal)
+		if (viewBinding.cardChapters != null) {
+			viewBinding.cardChapters?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+				topMargin = barsInsets.top + resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer)
+				marginEnd = barsInsets.right + resources.getDimensionPixelOffset(R.dimen.side_card_offset)
+				bottomMargin = barsInsets.bottom + resources.getDimensionPixelOffset(R.dimen.side_card_offset)
 			}
+			viewBinding.scrollView.updatePaddingRelative(
+				top = actionBarSize + barsInsets.top,
+				bottom = barsInsets.bottom,
+				start = barsInsets.left,
+			)
+			viewBinding.appbar.updatePaddingRelative(
+				start = barsInsets.left,
+			)
+			if (!settings.isBackdropEnabled) {
+				viewBinding.contentContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+					topMargin = resources.getDimensionPixelOffset(R.dimen.margin_normal)
+				}
+			}
+			return insets.consume(v, typeMask, bottom = true, end = true)
+		} else {
+			viewBinding.navbarDim?.updateLayoutParams { height = barsInsets.bottom }
+			viewBinding.scrollView.updatePadding(
+				top = actionBarSize + barsInsets.top,
+				bottom = barsInsets.bottom + resources.getDimensionPixelOffset(R.dimen.details_bs_peek_height),
+			)
+			if (!settings.isBackdropEnabled) {
+				viewBinding.contentContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+					topMargin = resources.getDimensionPixelOffset(R.dimen.margin_normal)
+				}
+			}
+			return insets
 		}
-		return insets
 	}
 
 	private fun getSurfaceColor(): Int {
@@ -454,8 +476,9 @@ class DetailsClassicActivity :
 			backdropController.load(imageUrl)
 		} else {
 			viewBinding.backdropContainer.isGone = true
+			val isTablet = viewBinding.cardChapters != null
 			viewBinding.contentContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-				topMargin = statusBarInset
+				topMargin = if (isTablet) resources.getDimensionPixelOffset(R.dimen.margin_normal) else statusBarInset
 			}
 			viewBinding.appbar.setBackgroundColor(getSurfaceColor())
 		}
