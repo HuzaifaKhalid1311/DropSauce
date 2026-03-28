@@ -75,14 +75,14 @@ jobs:
         echo "::error::JitPack artifact for kotatsu-parsers:${PARSERS_VERSION} not available after 10 attempts"
         exit 1
 
-    - name: Build Nightly APK
+      - name: Build Nightly APK
       if: steps.check.outputs.should_build == 'true'
       run: |
         ./gradlew assembleNightly --no-daemon --stacktrace \
           -PRELEASE_STORE_FILE=../release.keystore \
-          -PRELEASE_STORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}" \
-          -PRELEASE_KEY_ALIAS="${{ secrets.KEY_ALIAS || 'release' }}" \
-          -PRELEASE_KEY_PASSWORD="${{ secrets.KEY_PASSWORD || 'password' }}"
+          -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
+          -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
+          -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
 
     - name: Prepare nightly release
       if: steps.check.outputs.should_build == 'true'
