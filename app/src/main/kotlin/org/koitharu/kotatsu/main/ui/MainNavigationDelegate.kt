@@ -62,6 +62,8 @@ class MainNavigationDelegate(
 		NavigationRailFabBinding.bind(it)
 	}
 
+	var onExploreReselected: (() -> Unit)? = null
+
 	val primaryFragment: Fragment?
 		get() = fragmentManager.findFragmentByTag(TAG_PRIMARY)
 
@@ -91,6 +93,9 @@ class MainNavigationDelegate(
 	}
 
 	override fun onNavigationItemReselected(item: MenuItem) {
+		if (item.itemId == R.id.nav_explore) {
+			onExploreReselected?.invoke()
+		}
 		onNavigationItemReselected()
 	}
 
