@@ -218,7 +218,7 @@ class ExploreViewModel @Inject constructor(
 				} else {
 					R.string.enable_manga_sources_from_settings_icon
 				},
-				actionStringRes = 0,
+				actionStringRes = NO_ACTION_STRING_RES,
 			)
 		}
 		return result
@@ -252,5 +252,6 @@ class ExploreViewModel @Inject constructor(
 
 		private const val TIP_SUGGESTIONS = "suggestions"
 		private const val SUGGESTIONS_COUNT = 8
+		private const val NO_ACTION_STRING_RES = 0
 	}
 }
