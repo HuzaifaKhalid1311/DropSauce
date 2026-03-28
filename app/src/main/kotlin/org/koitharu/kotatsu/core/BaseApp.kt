@@ -104,28 +104,11 @@ open class BaseApp : Application(), Configuration.Provider {
 		initAcra {
 			buildConfigClass = BuildConfig::class.java
 			reportFormat = StringFormat.JSON
-			httpSender {
-				uri = getString(R.string.url_error_report)
-				basicAuthLogin = getString(R.string.acra_login)
-				basicAuthPassword = getString(R.string.acra_password)
-				httpMethod = HttpSender.Method.POST
-			}
-			reportContent = listOf(
-				ReportField.PACKAGE_NAME,
-				ReportField.INSTALLATION_ID,
-				ReportField.APP_VERSION_CODE,
-				ReportField.APP_VERSION_NAME,
-				ReportField.ANDROID_VERSION,
-				ReportField.PHONE_MODEL,
-				ReportField.STACK_TRACE,
-				ReportField.CRASH_CONFIGURATION,
-				ReportField.CUSTOM_DATA,
-			)
-
+			
 			dialog {
 				text = getString(R.string.crash_text)
 				title = getString(R.string.error_occurred)
-				positiveButtonText = getString(R.string.send)
+				positiveButtonText = getString(R.string.close)
 				resIcon = R.drawable.ic_alert_outline
 				resTheme = android.R.style.Theme_Material_Light_Dialog_Alert
 			}
