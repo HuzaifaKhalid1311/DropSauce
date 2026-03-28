@@ -80,3 +80,9 @@ val TextView.isTextTruncated: Boolean
 		val layoutLines = l.lineCount
 		return layoutLines > 0 && l.getEllipsisCount(layoutLines - 1) > 0
 	}
+
+fun TextView.setTextSafely(text: CharSequence?) {
+	if (this.text != text) {
+		this.text = text
+	}
+}
