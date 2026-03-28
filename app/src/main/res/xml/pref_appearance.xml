@@ -71,11 +71,6 @@
             android:title="@string/collapse_long_description" />
 
         <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="details_panorama_blur"
-            android:title="@string/blur_panorama_cover" />
-
-        <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="pages_tab"
             android:summary="@string/show_pages_thumbs_summary"
@@ -90,29 +85,11 @@
             android:title="@string/default_tab"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="panorama_enabled"
-            android:title="@string/panorama_cover"
-            android:summary="@string/panorama_cover_summary" />
-
-        <org.koitharu.kotatsu.settings.utils.SliderPreference
-            android:key="panorama_blur"
-            android:dependency="panorama_enabled"
-            android:stepSize="5"
-            android:title="@string/panorama_blur"
-            android:valueFrom="0"
-            android:valueTo="100"
-            app:defaultValue="0" />
-
-        <org.koitharu.kotatsu.settings.utils.SliderPreference
-            android:key="panorama_extra_height"
-            android:dependency="panorama_enabled"
-            android:stepSize="5"
-            android:title="@string/panorama_extra_height"
-            android:valueFrom="0"
-            android:valueTo="100"
-            app:defaultValue="40" />
+        <PreferenceScreen
+            android:fragment="org.koitharu.kotatsu.settings.appearance.PreviewSettingsFragment"
+            android:key="details_appearance_nav"
+            android:summary="@string/details_appearance_summary"
+            android:title="@string/details_appearance" />
 
     </PreferenceCategory>
 

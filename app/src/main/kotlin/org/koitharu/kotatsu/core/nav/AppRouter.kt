@@ -44,6 +44,7 @@ import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaPage
 import org.koitharu.kotatsu.core.network.CommonHeaders
 import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.DetailsUiMode
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.prefs.TriStateOption
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
@@ -57,6 +58,7 @@ import org.koitharu.kotatsu.core.util.ext.toFileOrNull
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import org.koitharu.kotatsu.core.util.ext.withArgs
 import org.koitharu.kotatsu.details.ui.DetailsActivity
+import org.koitharu.kotatsu.details.ui.DetailsClassicActivity
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet
 import org.koitharu.kotatsu.details.ui.related.RelatedMangaActivity
 import org.koitharu.kotatsu.details.ui.scrobbling.ScrobblingInfoSheet
@@ -150,8 +152,9 @@ class AppRouter private constructor(
     }
 
     fun openDetails(link: Uri) {
+        val context = contextOrNull() ?: return
         startActivity(
-            Intent(contextOrNull() ?: return, DetailsActivity::class.java)
+            Intent(context, detailsActivityClassInstance())
                 .setData(link),
         )
     }
@@ -696,6 +699,11 @@ class AppRouter private constructor(
         }
     }
 
+	private fun detailsActivityClassInstance() = when (settings.detailsUiMode) {
+		DetailsUiMode.CLASSIC -> DetailsClassicActivity::class.java
+		DetailsUiMode.MODERN -> DetailsActivity::class.java
+	}
+
     companion object {
 
         fun from(view: View): AppRouter? = runCatching {
@@ -704,11 +712,19 @@ class AppRouter private constructor(
             (view.context.findActivity() as? FragmentActivity)?.let(::AppRouter)
         }
 
-        fun detailsIntent(context: Context, manga: Manga) = Intent(context, DetailsActivity::class.java)
+		private fun resolveSettings(context: Context) =
+			EntryPointAccessors.fromApplication<AppRouterEntryPoint>(context.applicationContext).settings
+
+		private fun detailsActivityClass(context: Context) = when (resolveSettings(context).detailsUiMode) {
+			DetailsUiMode.CLASSIC -> DetailsClassicActivity::class.java
+			DetailsUiMode.MODERN -> DetailsActivity::class.java
+		}
+
+        fun detailsIntent(context: Context, manga: Manga) = Intent(context, detailsActivityClass(context))
             .putExtra(KEY_MANGA, ParcelableManga(manga))
             .setData(shortMangaUrl(manga.id))
 
-        fun detailsIntent(context: Context, mangaId: Long) = Intent(context, DetailsActivity::class.java)
+        fun detailsIntent(context: Context, mangaId: Long) = Intent(context, detailsActivityClass(context))
             .putExtra(KEY_ID, mangaId)
             .setData(shortMangaUrl(mangaId))
 

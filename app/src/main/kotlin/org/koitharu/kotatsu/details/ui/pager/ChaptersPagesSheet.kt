@@ -4,16 +4,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.R as AppCompatR
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.DetailsUiMode
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_COLLAPSED
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_DRAGGING
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_EXPANDED
@@ -57,19 +61,37 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		disableFitToContents()
 
 		val args = arguments ?: Bundle.EMPTY
+		val isClassicUi = settings.detailsUiMode == DetailsUiMode.CLASSIC
 		var defaultTab = args.getInt(AppRouter.KEY_TAB, settings.defaultDetailsTab)
-		val adapter = ChaptersPagesAdapter(this, settings.isPagesTabEnabled)
+		val adapter = ChaptersPagesAdapter(this, settings.isPagesTabEnabled, isClassicUi)
 		if (!adapter.isPagesTabEnabled) {
 			defaultTab = (defaultTab - 1).coerceAtLeast(TAB_CHAPTERS)
 		}
 		(viewModel as? DetailsViewModel)?.let { dvm ->
-			ReadButtonDelegate(binding.splitButtonRead, dvm, router).attach(viewLifecycleOwner)
+			if (isClassicUi) {
+				binding.splitButtonRead.isVisible = false
+			} else {
+				ReadButtonDelegate(binding.splitButtonRead, dvm, router).attach(viewLifecycleOwner)
+			}
 		}
 		binding.pager.offscreenPageLimit = adapter.itemCount
 		binding.pager.recyclerView?.isNestedScrollingEnabled = false
 		binding.pager.adapter = adapter
 		binding.pager.doOnPageChanged(::onPageChanged)
 		TabLayoutMediator(binding.tabs, binding.pager, adapter).attach()
+		if (isClassicUi) {
+			binding.tabs.setSelectedTabIndicator(R.drawable.tab_indicator_line)
+			binding.tabs.setSelectedTabIndicatorColor(
+				MaterialColors.getColor(
+					binding.tabs,
+                    AppCompatR.attr.colorPrimary,
+					MaterialColors.getColor(binding.tabs, android.R.attr.textColorPrimary),
+				),
+			)
+			binding.tabs.setTabIndicatorFullWidth(false)
+			binding.tabs.setSelectedTabIndicatorGravity(TabLayout.INDICATOR_GRAVITY_BOTTOM)
+			binding.tabs.setTabIndicatorAnimationMode(TabLayout.INDICATOR_ANIMATION_MODE_ELASTIC)
+		}
 		binding.tabs.addOnTabSelectedListener(this)
 		binding.pager.setCurrentItem(defaultTab, false)
 		binding.tabs.isVisible = adapter.itemCount > 1
@@ -106,8 +128,12 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
         }
 		val isActionModeStarted = actionModeDelegate?.isActionModeStarted == true
 		binding.toolbar.menuView?.isVisible = newState == STATE_EXPANDED && !isActionModeStarted
-		binding.splitButtonRead.isVisible = newState != STATE_EXPANDED && !isActionModeStarted
-			&& viewModel is DetailsViewModel
+		if (settings.detailsUiMode == DetailsUiMode.CLASSIC) {
+			binding.splitButtonRead.isVisible = false
+		} else {
+			binding.splitButtonRead.isVisible = newState != STATE_EXPANDED && !isActionModeStarted
+				&& viewModel is DetailsViewModel
+		}
 	}
 
 	override fun onActionModeStarted(mode: ActionMode) {
