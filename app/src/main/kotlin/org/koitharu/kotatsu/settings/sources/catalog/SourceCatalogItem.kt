@@ -38,7 +38,9 @@ sealed interface SourceCatalogItem : ListModel {
 		}
 
 		override fun areItemsTheSame(other: ListModel): Boolean {
-			return other is Extension && other.packageName == packageName
+			return other is Extension &&
+				other.packageName == packageName &&
+				other.action == action
 		}
 	}
 

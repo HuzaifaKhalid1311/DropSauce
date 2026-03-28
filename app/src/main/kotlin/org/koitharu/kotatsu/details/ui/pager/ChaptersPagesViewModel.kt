@@ -34,6 +34,7 @@ import org.koitharu.kotatsu.core.util.ext.sortedWithSafe
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.details.domain.DetailsInteractor
 import org.koitharu.kotatsu.details.ui.DetailsActivity
+import org.koitharu.kotatsu.details.ui.DetailsClassicActivity
 import org.koitharu.kotatsu.details.ui.DetailsViewModel
 import org.koitharu.kotatsu.details.ui.mapChapters
 import org.koitharu.kotatsu.details.ui.model.ChapterListItem
@@ -281,6 +282,7 @@ abstract class ChaptersPagesViewModel(
 		private fun getViewModelClass(activity: Activity) = when (activity) {
 			is ReaderActivity -> ReaderViewModel::class.java
 			is DetailsActivity -> DetailsViewModel::class.java
+			is DetailsClassicActivity -> DetailsViewModel::class.java
 			else -> error("Wrong activity ${activity.javaClass.simpleName} for ${ChaptersPagesViewModel::class.java.simpleName}")
 		}
 	}
