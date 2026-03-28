@@ -41,36 +41,20 @@
 			android:id="@+id/button_filter_builtin"
 			style="?attr/materialButtonOutlinedStyle"
 			android:layout_width="0dp"
-			android:layout_height="40dp"
+			android:layout_height="wrap_content"
 			android:layout_weight="1"
 			android:text="@string/filter_sources_built_in"
 			android:gravity="center"
-			android:insetLeft="0dp"
-			android:insetRight="0dp"
-			android:insetTop="0dp"
-			android:insetBottom="0dp"
-			android:minHeight="40dp"
-			android:minWidth="0dp"
-			android:paddingHorizontal="10dp"
-			android:paddingVertical="0dp"
 			android:textSize="14sp" />
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_mihon"
 			style="?attr/materialButtonOutlinedStyle"
 			android:layout_width="0dp"
-			android:layout_height="40dp"
+			android:layout_height="wrap_content"
 			android:layout_weight="1"
 			android:text="@string/filter_sources_mihon"
 			android:gravity="center"
-			android:insetLeft="0dp"
-			android:insetRight="0dp"
-			android:insetTop="0dp"
-			android:insetBottom="0dp"
-			android:minHeight="40dp"
-			android:minWidth="0dp"
-			android:paddingHorizontal="10dp"
-			android:paddingVertical="0dp"
 			android:textSize="14sp" />
 
 	</com.google.android.material.button.MaterialButtonToggleGroup>
