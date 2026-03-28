@@ -257,6 +257,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		query: String?,
 	): List<ListModel> {
 		val repoUrl = externalRepoUrl.value
+		val hasRepo = !repoUrl.isNullOrBlank()
 		val available = if (repoUrl.isNullOrBlank()) {
 			availableRepoEntries.value = emptyList()
 			emptyList()
@@ -360,6 +361,16 @@ class SourcesCatalogViewModel @Inject constructor(
 		availableItems.sortWith(titleComparator)
 
 		return buildList {
+			if (!hasRepo) {
+				add(
+					SourceCatalogItem.Hint(
+						icon = R.drawable.ic_empty_feed,
+						title = R.string.no_repo_detected,
+						text = R.string.no_repo_detected_text,
+						hasCardBackground = true,
+					),
+				)
+			}
 			if (pending.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
 				addAll(pending)

@@ -200,6 +200,10 @@ class ExploreViewModel @Inject constructor(
 			)
 			filteredSources.mapTo(result) { MangaSourceItem(it, isGrid) }
 		} else {
+			val (emptyTitleRes, emptyTextRes) = when (filterMode) {
+				SourceFilterMode.EXTERNAL -> R.string.no_external_sources to R.string.no_external_sources_text
+				SourceFilterMode.LOCAL -> R.string.no_manga_source_enabled to R.string.no_manga_source_enabled_text
+			}
 			result += ListHeader(
 				textRes = R.string.remote_sources,
 				buttonTextRes = headerButtonRes,
@@ -208,9 +212,9 @@ class ExploreViewModel @Inject constructor(
 			)
 			result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
-				textPrimary = R.string.no_manga_sources,
-				textSecondary = R.string.no_manga_sources_text,
-				actionStringRes = R.string.catalog,
+				textPrimary = emptyTitleRes,
+				textSecondary = emptyTextRes,
+				actionStringRes = 0,
 			)
 		}
 		return result

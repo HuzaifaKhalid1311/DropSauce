@@ -448,10 +448,9 @@ class MangaSourcesRepository @Inject constructor(
 		manager.initialize()
 		return combine(
 			manager.installedExtensions,
-			manager.isLoading,
 			settings.observeAsFlow(AppSettings.KEY_MIHON_PREFERRED_LANGUAGES) { mihonPreferredLanguages },
 			settings.observeAsFlow(AppSettings.KEY_MIHON_PER_EXT_DISABLED_LANGS) { mihonPerExtDisabledLangs },
-		) { _, _, _, _ ->
+		) { _, _, _ ->
 			getMihonSources()
 		}.distinctUntilChanged()
 	}

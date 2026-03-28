@@ -7,6 +7,17 @@
 	android:layout_height="wrap_content"
 	android:padding="@dimen/margin_normal">
 
+	<com.google.android.material.card.MaterialCardView
+		android:id="@+id/cardContainer"
+		android:layout_width="0dp"
+		android:layout_height="0dp"
+		android:visibility="gone"
+		app:contentPadding="@dimen/margin_normal"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent" />
+
 	<org.koitharu.kotatsu.core.image.CoilImageView
 		android:id="@+id/icon"
 		android:layout_width="120dp"

@@ -124,5 +124,6 @@ fun sourceCatalogItemHintAD() = adapterDelegateViewBinding<SourceCatalogItem.Hin
 		binding.icon.setImageAsync(item.icon)
 		binding.textPrimary.setText(item.title)
 		binding.textSecondary.setTextAndVisible(item.text)
+		binding.cardContainer.isVisible = item.hasCardBackground
 	}
 }

@@ -46,6 +46,7 @@ sealed interface SourceCatalogItem : ListModel {
 		@DrawableRes val icon: Int,
 		@StringRes val title: Int,
 		@StringRes val text: Int,
+		val hasCardBackground: Boolean = false,
 	) : SourceCatalogItem {
 
 		override fun areItemsTheSame(other: ListModel): Boolean {
