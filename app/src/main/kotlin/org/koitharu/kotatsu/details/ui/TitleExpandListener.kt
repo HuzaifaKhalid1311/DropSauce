@@ -43,4 +43,3 @@ class TitleExpandListener(
 		textView.setOnTouchListener(this)
 	}
 }
-

@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.R as appcompatR
+import androidx.appcompat.R as AppCompatR
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -84,7 +84,7 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 			binding.tabs.setSelectedTabIndicatorColor(
 				MaterialColors.getColor(
 					binding.tabs,
-                    appcompatR.attr.colorPrimary,
+                    AppCompatR.attr.colorPrimary,
 					MaterialColors.getColor(binding.tabs, android.R.attr.textColorPrimary),
 				),
 			)

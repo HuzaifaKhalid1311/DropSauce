@@ -710,4 +710,3 @@ class DetailsClassicActivity :
 		private const val SCRIM_SCROLL_THRESHOLD_DP = 160f
 	}
 }
-
