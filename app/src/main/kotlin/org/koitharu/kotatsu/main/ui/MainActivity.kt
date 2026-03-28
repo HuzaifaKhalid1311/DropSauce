@@ -121,7 +121,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			navBar = checkNotNull(bottomNav ?: viewBinding.navRail),
 			fragmentManager = supportFragmentManager,
 			settings = settings,
-		)
+		).apply {
+			onExploreReselected = {
+				viewBinding.searchView.show()
+			}
+		}
 		navigationDelegate.addOnFragmentChangedListener(this)
 		navigationDelegate.onCreate(this, savedInstanceState)
 		viewBinding.textViewTitle?.let { tv ->
