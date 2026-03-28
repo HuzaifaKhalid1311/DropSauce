@@ -73,7 +73,11 @@ abstract class ChaptersPagesViewModel(
 		.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
 
-	val coverUrl = mangaDetails.map { x -> x?.coverUrl }
+	val coverUrl = mangaDetails.map { x -> x?.coverUrl(preferLarge = !settings.isBackdropEnabled) }
+		.withErrorHandling()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+
+	val backdropUrl = mangaDetails.map { x -> x?.backdropUrl }
 		.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
 

@@ -46,7 +46,13 @@ data class MangaDetails(
 
     val coverUrl: String?
         get() = override?.coverUrl
-            .ifNullOrEmpty { manga.largeCoverUrl }
+            .ifNullOrEmpty { manga.coverUrl }
+            .ifNullOrEmpty { localManga?.manga?.coverUrl }
+            ?.nullIfEmpty()
+
+    val backdropUrl: String?
+        get() = manga.largeCoverUrl
+            .ifNullOrEmpty { override?.coverUrl }
             .ifNullOrEmpty { manga.coverUrl }
             .ifNullOrEmpty { localManga?.manga?.coverUrl }
             ?.nullIfEmpty()
@@ -70,6 +76,13 @@ data class MangaDetails(
     }
 
     fun toManga() = mergedManga
+
+	fun coverUrl(preferLarge: Boolean = false): String? =
+		override?.coverUrl
+			.ifNullOrEmpty { if (preferLarge) manga.largeCoverUrl else null }
+			.ifNullOrEmpty { manga.coverUrl }
+			.ifNullOrEmpty { localManga?.manga?.coverUrl }
+			?.nullIfEmpty()
 
     fun getLocale(): Locale? {
         findAppropriateLocale(chapters.keys.singleOrNull())?.let {
