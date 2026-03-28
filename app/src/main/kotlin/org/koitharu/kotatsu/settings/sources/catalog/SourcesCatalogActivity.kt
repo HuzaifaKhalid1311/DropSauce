@@ -179,7 +179,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		locales: Set<String?>,
 	) {
 		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
-		if (locales.size > 1) {
+		if (locales.size > 1 || appliedFilter.mode == SourcesCatalogMode.MIHON) {
 			chips += ChipModel(
 				title = appliedFilter.locale?.toLocale().getDisplayName(this),
 				icon = R.drawable.ic_language,

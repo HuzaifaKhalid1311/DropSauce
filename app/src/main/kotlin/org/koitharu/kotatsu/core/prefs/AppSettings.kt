@@ -390,7 +390,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 
 	var isBrokenSourcesHidden: Boolean
-		get() = prefs.getBoolean(KEY_SOURCES_HIDE_BROKEN, false)
+		get() = prefs.getBoolean(KEY_SOURCES_HIDE_BROKEN, true)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_HIDE_BROKEN, value) }
 
 	val isPagesNumbersEnabled: Boolean
