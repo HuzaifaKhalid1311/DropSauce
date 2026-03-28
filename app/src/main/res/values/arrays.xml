@@ -88,6 +88,10 @@
 		<item>@string/pages</item>
 		<item>@string/bookmarks</item>
 	</string-array>
+	<string-array name="details_ui" translatable="false">
+		<item>@string/details_ui_modern</item>
+		<item>@string/details_ui_classic</item>
+	</string-array>
 	<string-array name="download_formats" translatable="false">
 		<item>@string/automatic</item>
 		<item>@string/single_cbz_file</item>

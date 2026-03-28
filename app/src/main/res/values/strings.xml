@@ -891,6 +891,15 @@
     <string name="panorama_cover_summary">Use cover as background on the details page</string>
     <string name="panorama_blur">Cover blur amount</string>
     <string name="panorama_extra_height">Cover extra height (dp)</string>
+    <string name="details_ui">Details screen style</string>
+    <string name="details_ui_modern">Modern (New)</string>
+    <string name="details_ui_classic">Classic (Old)</string>
+    <string name="details_backdrop">Set large cover as backdrop</string>
+    <string name="details_backdrop_summary">Show a large cover image at the top as a backdrop image (like Tachiyomi)</string>
+    <string name="details_backdrop_blur">Backdrop blur intensity</string>
+    <string name="details_appearance">Details screen appearance</string>
+    <string name="details_appearance_summary">Screen style, backdrop image and blur effect</string>
+    <string name="preview">Preview</string>
     <string name="creating_backup">Creating backup</string>
     <string name="share_backup">Share backup</string>
     <string name="reader_multitask">Open reader in a separate task</string>

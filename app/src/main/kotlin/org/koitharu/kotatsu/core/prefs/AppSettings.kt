@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.onStart
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.ZoomMode
 import org.koitharu.kotatsu.core.network.DoHProvider
+import org.koitharu.kotatsu.core.prefs.DetailsUiMode.MODERN
 import org.koitharu.kotatsu.core.util.ext.connectivityManager
 import org.koitharu.kotatsu.core.util.ext.getEnumValue
 import org.koitharu.kotatsu.core.util.ext.observeChanges
@@ -104,8 +105,12 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isDescriptionExpanded: Boolean
 		get() = !prefs.getBoolean(KEY_COLLAPSE_DESCRIPTION, true)
 
-	val isDetailsPanoramaBlurEnabled: Boolean
-		get() = prefs.getBoolean(KEY_DETAILS_PANORAMA_BLUR, false)
+	val isBackdropEnabled: Boolean
+		get() = prefs.getBoolean(KEY_DETAILS_BACKDROP, true)
+
+	var backdropBlurAmount: Int
+		get() = prefs.getInt(KEY_DETAILS_BACKDROP_BLUR_AMOUNT, 60)
+		set(value) = prefs.edit { putInt(KEY_DETAILS_BACKDROP_BLUR_AMOUNT, value.coerceIn(0, 100)) }
 
 	var historyListMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE_HISTORY, listMode)
@@ -240,6 +245,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val progressIndicatorMode: ProgressIndicatorMode
 		get() = prefs.getEnumValue(KEY_PROGRESS_INDICATORS, ProgressIndicatorMode.PERCENT_READ)
 
+	var detailsUiMode: DetailsUiMode
+		get() = prefs.getEnumValue(KEY_DETAILS_UI, MODERN)
+		set(value) = prefs.edit { putEnumValue(KEY_DETAILS_UI, value) }
+
 	var incognitoModeForNsfw: TriStateOption
 		get() = prefs.getEnumValue(KEY_INCOGNITO_NSFW, TriStateOption.ASK)
 		set(value) = prefs.edit { putEnumValue(KEY_INCOGNITO_NSFW, value) }
@@ -300,15 +309,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
-
-	val isPanoramaCoverEnabled: Boolean
-		get() = prefs.getBoolean(KEY_PANORAMA_ENABLED, true)
-
-	val panoramaCoverBlur: Int
-		get() = prefs.getInt(KEY_PANORAMA_BLUR, 0)
-
-	val panoramaCoverExtraHeight: Int
-		get() = prefs.getInt(KEY_PANORAMA_EXTRA_HEIGHT, 40)
 
 	val defaultDetailsTab: Int
 		get() = if (isPagesTabEnabled) {
@@ -711,6 +711,20 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 	}
 
+	private fun migrateBackdropBlur() {
+		val oldKey = "details_backdrop_blur"
+		if (!prefs.contains(oldKey)) return
+		prefs.edit {
+			if (!prefs.contains(KEY_DETAILS_BACKDROP_BLUR_AMOUNT))
+				putInt(KEY_DETAILS_BACKDROP_BLUR_AMOUNT, if (prefs.getBoolean(oldKey, true)) 60 else 0)
+			remove(oldKey)
+		}
+	}
+
+	init {
+		migrateBackdropBlur()
+	}
+
 	companion object {
 
 		const val TRACK_HISTORY = "history"
@@ -781,6 +795,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_HISTORY_GROUPING = "history_grouping"
 		const val KEY_UPDATED_GROUPING = "updated_grouping"
 		const val KEY_PROGRESS_INDICATORS = "progress_indicators"
+		const val KEY_DETAILS_UI = "details_ui"
 		const val KEY_REVERSE_CHAPTERS = "reverse_chapters"
 		const val KEY_GRID_VIEW_CHAPTERS = "grid_view_chapters"
 		const val KEY_INCOGNITO_NSFW = "incognito_nsfw"
@@ -860,7 +875,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PAGES_TAB = "pages_tab"
 		const val KEY_DETAILS_TAB = "details_tab"
 		const val KEY_DETAILS_LAST_TAB = "details_last_tab"
-		const val KEY_DETAILS_PANORAMA_BLUR = "details_panorama_blur"
+		const val KEY_DETAILS_BACKDROP = "details_backdrop"
+		const val KEY_DETAILS_BACKDROP_BLUR_AMOUNT = "details_backdrop_blur_amount"
 		const val KEY_READING_TIME = "reading_time"
 		const val KEY_PAGES_SAVE_DIR = "pages_dir"
 		const val KEY_PAGES_SAVE_ASK = "pages_dir_ask"
@@ -872,9 +888,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_HIDE_BROKEN = "sources_hide_broken"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
-		const val KEY_PANORAMA_ENABLED = "panorama_enabled"
-		const val KEY_PANORAMA_BLUR = "panorama_blur"
-		const val KEY_PANORAMA_EXTRA_HEIGHT = "panorama_extra_height"
 		const val KEY_BACKUP_TG_ENABLED = "backup_periodic_tg_enabled"
 		const val KEY_BACKUP_TG_CHAT = "backup_periodic_tg_chat_id"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"

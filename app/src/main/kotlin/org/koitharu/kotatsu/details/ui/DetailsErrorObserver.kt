@@ -12,11 +12,13 @@ import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
 class DetailsErrorObserver(
-	override val activity: DetailsActivity,
+	override val activity: androidx.fragment.app.FragmentActivity,
+	private val snackbarHost: android.view.View,
+	private val bottomSheet: android.view.View?,
 	private val viewModel: DetailsViewModel,
 	resolver: ExceptionResolver?,
 ) : ErrorObserver(
-	activity.viewBinding.scrollView, null, resolver,
+	snackbarHost, null, resolver,
 	{ isResolved ->
 		if (isResolved) {
 			viewModel.reload()
@@ -26,7 +28,7 @@ class DetailsErrorObserver(
 
 	override suspend fun emit(value: Throwable) {
 		val snackbar = Snackbar.make(host, value.getDisplayMessage(host.context.resources), Snackbar.LENGTH_SHORT)
-		snackbar.setAnchorView(activity.viewBinding.containerBottomSheet)
+		snackbar.setAnchorView(bottomSheet)
 		if (value is NotFoundException || value is UnsupportedSourceException) {
 			snackbar.duration = Snackbar.LENGTH_INDEFINITE
 		}
