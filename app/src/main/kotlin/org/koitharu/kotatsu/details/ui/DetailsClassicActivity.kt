@@ -47,7 +47,6 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.iconResId
@@ -569,7 +568,7 @@ class DetailsClassicActivity :
 			chipAuthor.isVisible = !chipAuthor.text.isNullOrEmpty()
 			chipTime.textAndVisible = null
 			chipTime.isVisible = false
-			if (manga.source == LocalMangaSource || manga.source == UnknownMangaSource) {
+			if (manga.source == LocalMangaSource) {
 				chipSource.isVisible = false
 			} else {
 				chipSource.text = manga.source.getTitle(this@DetailsClassicActivity)

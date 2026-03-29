@@ -66,6 +66,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private val isExternalOnly by lazy(LazyThreadSafetyMode.NONE) {
 		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, false) == true
 	}
+	private var isScrollToTopShown = false
 	private val downloadManager by lazy(LazyThreadSafetyMode.NONE) {
 		getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 	}
@@ -212,6 +213,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		router.openSourceSettings(MangaSource(sourceName))
 	}
 
+	override fun onExtensionItemClick(item: SourceCatalogItem.Extension) {
+		val sourceName = item.sourceName ?: return
+		router.openList(MangaSource(sourceName), null, null)
+	}
+
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
 		val sq = (item.actionView as? SearchView)?.query?.trim()?.toString().orEmpty()
 		viewModel.performSearch(sq)
@@ -319,7 +325,27 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private fun updateScrollToTopVisibility() {
 		val layoutManager = viewBinding.recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
 		val shouldShow = layoutManager.findFirstVisibleItemPosition() >= 6
-		viewBinding.buttonScrollToTop.visibility = if (shouldShow) View.VISIBLE else View.GONE
+		if (shouldShow == isScrollToTopShown) {
+			return
+		}
+		isScrollToTopShown = shouldShow
+		viewBinding.buttonScrollToTop.animate().cancel()
+		if (shouldShow) {
+			viewBinding.buttonScrollToTop.alpha = 0f
+			viewBinding.buttonScrollToTop.visibility = View.VISIBLE
+			viewBinding.buttonScrollToTop.animate()
+				.alpha(1f)
+				.setDuration(160L)
+				.start()
+		} else {
+			viewBinding.buttonScrollToTop.animate()
+				.alpha(0f)
+				.setDuration(160L)
+				.withEndAction {
+					viewBinding.buttonScrollToTop.visibility = View.GONE
+				}
+				.start()
+		}
 	}
 
 	private fun onInstallExtensionRequested(url: String) {

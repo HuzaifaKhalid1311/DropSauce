@@ -8,6 +8,7 @@ import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -104,6 +105,11 @@ fun exploreSourceListItemAD(
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.textViewSubtitle.text = item.source.getSummary(context)
+		binding.imageViewIcon.scaleType = if (item.source.mangaSource.isExternalSource()) {
+			android.widget.ImageView.ScaleType.CENTER_CROP
+		} else {
+			android.widget.ImageView.ScaleType.FIT_CENTER
+		}
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }
@@ -137,6 +143,11 @@ fun exploreSourceGridItemAD(
 		)
 		binding.textViewTitle.text = title
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
+		binding.imageViewIcon.scaleType = if (item.source.mangaSource.isExternalSource()) {
+			android.widget.ImageView.ScaleType.CENTER_CROP
+		} else {
+			android.widget.ImageView.ScaleType.FIT_CENTER
+		}
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }

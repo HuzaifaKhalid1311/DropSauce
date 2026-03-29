@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.core.exceptions.UnsupportedFileException
 import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
 import org.koitharu.kotatsu.core.exceptions.WrapperIOException
 import org.koitharu.kotatsu.core.exceptions.WrongPasswordException
+import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.parsers.ErrorMessages.FILTER_BOTH_LOCALE_GENRES_NOT_SUPPORTED
 import org.koitharu.kotatsu.parsers.ErrorMessages.FILTER_BOTH_STATES_GENRES_NOT_SUPPORTED
@@ -134,7 +135,11 @@ private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? = w
 
     is WrongPasswordException -> resources.getString(R.string.wrong_password)
     is NotFoundException -> resources.getString(R.string.not_found_404)
-    is UnsupportedSourceException -> resources.getString(R.string.unsupported_source)
+    is UnsupportedSourceException -> if (manga?.source?.isExternalSource() == true) {
+        resources.getString(R.string.install_extension_mentioned_above_to_read)
+    } else {
+        resources.getString(R.string.unsupported_source)
+    }
 
     is HttpException -> getHttpDisplayMessage(response.code, resources)
     is HttpStatusException -> getHttpDisplayMessage(statusCode, resources)

@@ -34,6 +34,10 @@ data object TestMangaSource : MangaSource {
 	override val name = "TEST"
 }
 
+data class MissingMangaSource(
+	override val name: String,
+) : MangaSource
+
 fun MangaSource(name: String?): MangaSource {
 	when (name ?: return UnknownMangaSource) {
 		UnknownMangaSource.name -> return UnknownMangaSource
@@ -45,12 +49,12 @@ fun MangaSource(name: String?): MangaSource {
 		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
 	}
 	if (name.startsWith("MIHON_")) {
-		return MihonExtensionManager.getByName(name) ?: UnknownMangaSource
+		return MihonExtensionManager.getByName(name) ?: MissingMangaSource(name)
 	}
 	MangaParserSource.entries.forEach {
 		if (it.name == name) return it
 	}
-	return UnknownMangaSource
+	return MissingMangaSource(name)
 }
 
 fun Collection<String>.toMangaSources() = map(::MangaSource)
@@ -65,6 +69,7 @@ fun MangaSource.isNsfw(): Boolean = when (this) {
 val MangaSource.isBroken: Boolean
 	get() = when (val source = unwrap()) {
 		is MangaParserSource -> source.isBroken
+		is MissingMangaSource -> true
 		UnknownMangaSource -> true
 		else -> false
 	}
@@ -106,6 +111,13 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 
 	is ExternalMangaSource -> context.getString(R.string.external_source)
 	is MihonMangaSource -> context.getString(R.string.external_source)
+	is MissingMangaSource -> {
+		if (source.name.startsWith("MIHON_") || source.name.startsWith("content:")) {
+			context.getString(R.string.external_source)
+		} else {
+			null
+		}
+	}
 
 	else -> null
 }
@@ -116,7 +128,29 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	TestMangaSource -> context.getString(R.string.test_parser)
 	is ExternalMangaSource -> source.resolveName(context)
 	is MihonMangaSource -> source.displayName
+	is MissingMangaSource -> source.resolveDisplayName(context)
 	else -> context.getString(R.string.unknown)
+}
+
+fun MangaSource.isExternalSource(): Boolean = when (val source = unwrap()) {
+	is ExternalMangaSource,
+	is MihonMangaSource -> true
+	is MissingMangaSource -> source.name.startsWith("MIHON_") || source.name.startsWith("content:")
+	else -> false
+}
+
+private fun MissingMangaSource.resolveDisplayName(context: Context): String {
+	if (name.startsWith("content:")) {
+		val parts = name.substringAfter(':').splitTwoParts('/')
+		if (parts != null) {
+			return parts.second.ifBlank { parts.first }
+		}
+	}
+	if (name.startsWith("MIHON_")) {
+		val sourceId = name.removePrefix("MIHON_").ifBlank { "?" }
+		return context.getString(R.string.missing_extension_source_pattern, sourceId)
+	}
+	return name
 }
 
 fun SpannableStringBuilder.appendIcon(textView: TextView, @DrawableRes resId: Int): SpannableStringBuilder {
