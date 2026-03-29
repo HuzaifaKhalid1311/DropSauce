@@ -14,58 +14,10 @@
 		android:padding="@dimen/grid_spacing"
 		android:singleLine="true"
 		android:textAppearance="?textAppearanceTitleSmall"
-		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintEnd_toStartOf="@id/button_more"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toTopOf="parent"
 		tools:text="@tools:sample/lorem[2]" />
-
-	<!-- Guideline to split the width perfectly at 50% like the above Flow layout -->
-	<androidx.constraintlayout.widget.Guideline
-		android:id="@+id/guideline_center"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:orientation="vertical"
-		app:layout_constraintGuide_percent="0.5" />
-
-	<com.google.android.material.button.MaterialButtonToggleGroup
-		android:id="@+id/toggleGroup_filter"
-		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:layout_marginStart="0dp"
-		android:layout_marginTop="@dimen/grid_spacing"
-		android:layout_marginEnd="6dp"
-		android:layout_marginBottom="@dimen/grid_spacing"
-		android:visibility="gone"
-		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toStartOf="@id/guideline_center"
-		app:layout_constraintHorizontal_bias="0"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toBottomOf="@id/textView_title"
-		app:singleSelection="true"
-		app:selectionRequired="true"
-		tools:visibility="visible">
-
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/button_filter_builtin"
-			style="?attr/materialButtonOutlinedStyle"
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-			android:text="@string/filter_sources_built_in"
-			android:gravity="center"
-			android:textSize="14sp" />
-
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/button_filter_mihon"
-			style="?attr/materialButtonOutlinedStyle"
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-			android:text="@string/filter_sources_mihon"
-			android:gravity="center"
-			android:textSize="14sp" />
-
-	</com.google.android.material.button.MaterialButtonToggleGroup>
 
 	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_more"
@@ -76,11 +28,48 @@
 		android:minHeight="40dp"
 		android:minWidth="40dp"
 		android:visibility="invisible"
-		app:iconSize="31dp"
-		app:layout_constraintBottom_toBottomOf="@id/toggleGroup_filter"
+		app:iconSize="22dp"
+		app:layout_constraintBottom_toBottomOf="@id/textView_title"
 		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintTop_toTopOf="@id/toggleGroup_filter"
+		app:layout_constraintTop_toTopOf="@id/textView_title"
 		tools:text="@string/manage"
 		tools:visibility="visible" />
+
+	<com.google.android.material.button.MaterialButtonToggleGroup
+		android:id="@+id/toggleGroup_filter"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="@dimen/grid_spacing"
+		android:layout_marginBottom="@dimen/grid_spacing"
+		android:visibility="gone"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toBottomOf="@id/textView_title"
+		app:singleSelection="true"
+		app:selectionRequired="true"
+		tools:visibility="visible">
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_filter_builtin"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="0dp"
+			android:layout_height="56dp"
+			android:layout_weight="1"
+			android:text="@string/filter_sources_built_in"
+			android:gravity="center"
+			android:textSize="14sp" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_filter_mihon"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="0dp"
+			android:layout_height="56dp"
+			android:layout_weight="1"
+			android:text="@string/filter_sources_mihon"
+			android:gravity="center"
+			android:textSize="14sp" />
+
+	</com.google.android.material.button.MaterialButtonToggleGroup>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
