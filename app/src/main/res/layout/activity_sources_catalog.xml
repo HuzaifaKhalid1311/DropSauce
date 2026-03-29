@@ -55,4 +55,15 @@
 		app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
 		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
+	<com.google.android.material.floatingactionbutton.FloatingActionButton
+		android:id="@+id/fab_scroll_top"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|center_horizontal"
+		android:layout_marginBottom="32dp"
+		android:contentDescription="@string/to_top"
+		android:visibility="gone"
+		app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+		app:srcCompat="@drawable/ic_arrow_upward" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

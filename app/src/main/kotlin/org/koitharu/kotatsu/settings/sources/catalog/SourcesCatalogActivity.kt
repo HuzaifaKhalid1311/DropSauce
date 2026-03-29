@@ -114,6 +114,30 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}.observe(this) {
 			updateFilers(it.filter, it.hasNewSources, it.contentTypes, it.locales)
 		}
+
+		viewBinding.recyclerView.addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+			override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+				super.onScrolled(recyclerView, dx, dy)
+				if (dy > 0 && viewBinding.fabScrollTop.visibility != View.VISIBLE) {
+					viewBinding.fabScrollTop.show()
+				} else if (dy < 0 && viewBinding.fabScrollTop.visibility == View.VISIBLE) {
+					viewBinding.fabScrollTop.hide()
+				}
+			}
+			override fun onScrollStateChanged(recyclerView: androidx.recyclerview.widget.RecyclerView, newState: Int) {
+				super.onScrollStateChanged(recyclerView, newState)
+				if (!recyclerView.canScrollVertically(-1)) {
+					viewBinding.fabScrollTop.hide()
+				}
+			}
+		})
+		viewBinding.fabScrollTop.setOnClickListener {
+			viewBinding.recyclerView.post {
+				viewBinding.recyclerView.smoothScrollToPosition(0)
+				viewBinding.appbar.setExpanded(true)
+			}
+		}
+
 		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
 	}
 

@@ -52,19 +52,30 @@ class BackdropController(
 		val backdrop = backdropRef.get() ?: return
 		if (imageUrl.isNullOrBlank()) return
 		currentDisposable?.dispose()
+		val blurAmount = settings.backdropBlurAmount
 		val request = ImageRequest.Builder(backdrop.context)
 			.data(imageUrl)
 			.lifecycle(lifecycle)
 			.crossfade(true)
 			.allowHardware(false)
-			.allowRgb565(true)
-			.precision(Precision.INEXACT)
+			.apply {
+				if (blurAmount > 0) {
+					allowRgb565(true)
+					precision(Precision.INEXACT)
+				}
+			}
 			.target(
 				onSuccess = { image ->
 					val view = backdropRef.get() ?: return@target
-					view.scaleX = 1f
-					view.scaleY = 1.1f
-					view.translationY = -view.height * 0.08f
+					if (blurAmount > 0) {
+						view.scaleX = 1f
+						view.scaleY = 1.1f
+						view.translationY = -view.height * 0.08f
+					} else {
+						view.scaleX = 1f
+						view.scaleY = 1f
+						view.translationY = 0f
+					}
 					val drawable = image.asDrawable(view.context.resources)
 					view.animate().cancel()
 					view.alpha = 0f

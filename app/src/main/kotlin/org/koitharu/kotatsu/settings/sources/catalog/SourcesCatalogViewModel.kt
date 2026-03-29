@@ -45,6 +45,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val mihonExtensionLoader: MihonExtensionLoader,
 	db: MangaDatabase,
 	private val settings: AppSettings,
+	private val extensionInstaller: ExtensionInstaller,
 ) : BaseViewModel() {
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
@@ -204,7 +205,13 @@ class SourcesCatalogViewModel @Inject constructor(
 						onShowMessage.call(R.string.nothing_found)
 						return@launchJob
 					}
-					onOpenPackageInstaller.call(externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName))
+					try {
+						val downloadUrl = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName)
+						onShowMessage.call(R.string.download_started)
+						extensionInstaller.installExtension(downloadUrl, item.packageName)
+					} catch (e: Exception) {
+						onShowMessage.call(R.string.network_error)
+					}
 				}
 				SourceCatalogItem.Extension.Action.UNINSTALL -> onOpenUninstall.call(item.packageName)
 			}
