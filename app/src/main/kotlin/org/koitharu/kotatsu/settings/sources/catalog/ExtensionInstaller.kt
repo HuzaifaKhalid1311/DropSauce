@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.koitharu.kotatsu.core.network.BaseHttpClient
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,7 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class ExtensionInstaller @Inject constructor(
 	@ApplicationContext private val context: Context,
-	private val client: OkHttpClient,
+	@BaseHttpClient private val client: OkHttpClient,
 ) {
 	suspend fun installExtension(url: String, pkgName: String) {
 		withContext(Dispatchers.IO) {
