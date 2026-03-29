@@ -27,9 +27,11 @@
 			android:layout_height="wrap_content"
 			android:layout_marginStart="@dimen/margin_small"
 			android:textAppearance="?attr/textAppearanceTitleMedium"
+			app:layout_constraintBottom_toTopOf="@id/textSecondary"
 			app:layout_constraintEnd_toEndOf="parent"
 			app:layout_constraintStart_toEndOf="@id/icon"
-			app:layout_constraintTop_toTopOf="parent"
+			app:layout_constraintTop_toTopOf="@id/icon"
+			app:layout_constraintVertical_chainStyle="packed"
 			tools:text="@tools:sample/lorem[3]" />
 
 		<TextView
@@ -39,6 +41,7 @@
 			android:layout_marginStart="@dimen/margin_small"
 			android:layout_marginTop="@dimen/margin_small"
 			android:textAppearance="?attr/textAppearanceBodyMedium"
+			app:layout_constraintBottom_toBottomOf="@id/icon"
 			app:layout_constraintEnd_toEndOf="parent"
 			app:layout_constraintStart_toEndOf="@id/icon"
 			app:layout_constraintTop_toBottomOf="@id/textPrimary"

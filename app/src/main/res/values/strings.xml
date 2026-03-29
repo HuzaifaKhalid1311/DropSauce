@@ -89,6 +89,7 @@
     <string name="domain">Domain</string>
     <string name="app_update_available">A new version of the app is available</string>
     <string name="open_in_browser">Open in web browser</string>
+    <string name="back_to_top">Back to top</string>
     <string name="notifications">Notifications</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d of %2$d on</string>
     <string name="new_chapters">New chapters</string>

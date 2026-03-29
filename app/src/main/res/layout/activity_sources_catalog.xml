@@ -55,4 +55,21 @@
 		app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
 		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
+	<com.google.android.material.floatingactionbutton.FloatingActionButton
+		android:id="@+id/button_scroll_to_top"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|center_horizontal"
+		android:layout_marginBottom="@dimen/margin_normal"
+		android:contentDescription="@string/back_to_top"
+		android:visibility="gone"
+		app:backgroundTint="?attr/colorSurface"
+		app:borderWidth="0dp"
+		app:elevation="0dp"
+		app:fabCustomSize="40dp"
+		app:maxImageSize="18dp"
+		app:pressedTranslationZ="0dp"
+		app:srcCompat="@drawable/ic_arrow_up"
+		app:tint="?attr/colorOnSurfaceVariant" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

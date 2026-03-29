@@ -39,6 +39,8 @@
 		android:id="@+id/toggleGroup_filter"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
+		android:layout_marginStart="@dimen/grid_spacing"
+		android:layout_marginEnd="@dimen/grid_spacing"
 		android:layout_marginTop="@dimen/grid_spacing"
 		android:layout_marginBottom="@dimen/grid_spacing"
 		android:visibility="gone"

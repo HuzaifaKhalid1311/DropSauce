@@ -1,6 +1,10 @@
 package org.koitharu.kotatsu.settings.sources.catalog
 
 import android.os.Bundle
+import android.app.DownloadManager
+import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -8,13 +12,17 @@ import android.view.inputmethod.EditorInfo
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.Insets
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.AppBarLayout
@@ -58,6 +66,23 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private val isExternalOnly by lazy(LazyThreadSafetyMode.NONE) {
 		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, false) == true
 	}
+	private val downloadManager by lazy(LazyThreadSafetyMode.NONE) {
+		getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+	}
+	private val pendingInstallerDownloads = HashSet<Long>()
+	private var pendingInstallUrl: String? = null
+	private val extensionDownloadReceiver = ExtensionDownloadReceiver { downloadId ->
+		if (pendingInstallerDownloads.remove(downloadId)) {
+			installDownloadedApk(downloadId)
+		}
+	}
+	private val storagePermissionRequest = registerForActivityResult(
+		ActivityResultContracts.RequestPermission(),
+	) { granted ->
+		if (granted) {
+			pendingInstallUrl?.let(::downloadAndInstallExtension)
+		}
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -89,7 +114,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			ReversibleActionObserver(viewBinding.recyclerView),
 		)
 		viewModel.onOpenPackageInstaller.observeEvent(this) { url ->
-			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+			onInstallExtensionRequested(url)
 		}
 		viewModel.onOpenUninstall.observeEvent(this) { pkg ->
 			val uri = Uri.fromParts("package", pkg, null)
@@ -115,6 +140,27 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			updateFilers(it.filter, it.hasNewSources, it.contentTypes, it.locales)
 		}
 		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
+		ContextCompat.registerReceiver(
+			this,
+			extensionDownloadReceiver,
+			android.content.IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+			ContextCompat.RECEIVER_EXPORTED,
+		)
+		viewBinding.buttonScrollToTop.setOnClickListener {
+			viewBinding.recyclerView.smoothScrollToPosition(0)
+		}
+		viewBinding.recyclerView.addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+			override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+				super.onScrolled(recyclerView, dx, dy)
+				updateScrollToTopVisibility()
+			}
+		})
+		updateScrollToTopVisibility()
+	}
+
+	override fun onDestroy() {
+		unregisterReceiver(extensionDownloadReceiver)
+		super.onDestroy()
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -130,6 +176,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			right = bars.right,
 			top = bars.top,
 		)
+		viewBinding.buttonScrollToTop.updateLayoutParams<androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams> {
+			leftMargin = bars.left
+			rightMargin = bars.right
+			bottomMargin = bars.bottom + resources.getDimensionPixelOffset(R.dimen.margin_normal)
+		}
 		return WindowInsetsCompat.Builder(insets)
 			.setInsets(WindowInsetsCompat.Type.systemBars(), Insets.NONE)
 			.build()
@@ -264,4 +315,60 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val contentTypes: List<ContentType>,
 		val locales: Set<String?>,
 	)
+
+	private fun updateScrollToTopVisibility() {
+		val layoutManager = viewBinding.recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
+		val shouldShow = layoutManager.findFirstVisibleItemPosition() >= 6
+		viewBinding.buttonScrollToTop.visibility = if (shouldShow) View.VISIBLE else View.GONE
+	}
+
+	private fun onInstallExtensionRequested(url: String) {
+		pendingInstallUrl = url
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+			storagePermissionRequest.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+		} else {
+			downloadAndInstallExtension(url)
+		}
+	}
+
+	private fun downloadAndInstallExtension(url: String) {
+		val uri = Uri.parse(url)
+		val fileName = uri.lastPathSegment?.takeIf { it.isNotBlank() } ?: "extension.apk"
+		val request = DownloadManager.Request(uri)
+			.setTitle(fileName)
+			.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+			.setMimeType("application/vnd.android.package-archive")
+		val downloadId = downloadManager.enqueue(request)
+		pendingInstallerDownloads += downloadId
+		Toast.makeText(this, R.string.download_started, Toast.LENGTH_SHORT).show()
+	}
+
+	private fun installDownloadedApk(downloadId: Long) {
+		val apkUri = downloadManager.getUriForDownloadedFile(downloadId) ?: return
+		val mime = downloadManager.getMimeTypeForDownloadedFile(downloadId)
+			?: "application/vnd.android.package-archive"
+		val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE)
+			.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+			.setDataAndType(apkUri, mime)
+			.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+		try {
+			startActivity(installIntent)
+		} catch (_: ActivityNotFoundException) {
+			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
+		}
+	}
+
+	private class ExtensionDownloadReceiver(
+		private val onComplete: (Long) -> Unit,
+	) : BroadcastReceiver() {
+		override fun onReceive(context: Context, intent: Intent) {
+			if (intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
+				val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L)
+				if (downloadId != 0L) {
+					onComplete(downloadId)
+				}
+			}
+		}
+	}
 }
