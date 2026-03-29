@@ -4,12 +4,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.koitharu.kotatsu.core.util.ext.logger
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,8 +19,6 @@ class ExtensionInstaller @Inject constructor(
 	@ApplicationContext private val context: Context,
 	private val client: OkHttpClient,
 ) {
-	private val log = logger()
-
 	suspend fun installExtension(url: String, pkgName: String) {
 		withContext(Dispatchers.IO) {
 			try {
@@ -43,7 +41,7 @@ class ExtensionInstaller @Inject constructor(
 
 				installApk(apkFile, pkgName)
 			} catch (e: Exception) {
-				log.error("Installation failed", e)
+				Log.e(TAG, "Installation failed", e)
 				throw e
 			}
 		}
@@ -79,5 +77,9 @@ class ExtensionInstaller @Inject constructor(
 			)
 			s.commit(pendingIntent.intentSender)
 		}
+	}
+
+	private companion object {
+		const val TAG = "ExtensionInstaller"
 	}
 }
