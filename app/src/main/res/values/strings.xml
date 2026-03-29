@@ -822,7 +822,7 @@
     <string name="rating">Rating</string>
     <string name="source">Source</string>
     <string name="extension">Extension</string>
-    <string name="missing_extension_source_pattern">Missing extension (ID: %s)</string>
+    <string name="missing_extension_source_pattern">Missing extension (%s)</string>
     <string name="translation">Translation</string>
     <string name="chapters_time_pattern" translatable="false">%1$s (%2$s)</string>
     <string name="show_slider">Show slider</string>

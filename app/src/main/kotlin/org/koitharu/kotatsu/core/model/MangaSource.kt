@@ -147,8 +147,10 @@ private fun MissingMangaSource.resolveDisplayName(context: Context): String {
 		}
 	}
 	if (name.startsWith("MIHON_")) {
-		val sourceId = name.removePrefix("MIHON_").ifBlank { "?" }
-		return context.getString(R.string.missing_extension_source_pattern, sourceId)
+		val parts = name.removePrefix("MIHON_").split(':', limit = 2)
+		val sourceId = parts.getOrNull(0)?.ifBlank { "?" } ?: "?"
+		val cachedName = parts.getOrNull(1)?.ifBlank { null }
+		return context.getString(R.string.missing_extension_source_pattern, cachedName ?: "ID: $sourceId")
 	}
 	return name
 }

@@ -49,11 +49,7 @@ fun sourceCatalogItemSourceAD(
 	bind {
 		binding.imageViewAdd.isVisible = item.isAddAvailable
 		binding.viewAddDivider.isVisible = item.isAddAvailable
-		binding.imageViewIcon.scaleType = if (item.source.isExternalSource()) {
-			android.widget.ImageView.ScaleType.CENTER_CROP
-		} else {
-			android.widget.ImageView.ScaleType.FIT_CENTER
-		}
+		binding.imageViewIcon.applyExternalSourceStyle(item.source.isExternalSource())
 		binding.root.updatePaddingRelative(
 			end = if (item.isAddAvailable) compactEndPadding else basePadding,
 		)
@@ -103,7 +99,7 @@ fun sourceCatalogItemExtensionAD(
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
-		binding.imageViewIcon.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+		binding.imageViewIcon.applyExternalSourceStyle(true)
 		val sourceIconName = item.sourceIconName
 		val iconUrl = item.iconUrl
 		if (sourceIconName != null) {

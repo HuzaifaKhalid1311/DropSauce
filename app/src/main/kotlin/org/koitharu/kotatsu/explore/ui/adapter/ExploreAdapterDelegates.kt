@@ -105,11 +105,7 @@ fun exploreSourceListItemAD(
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.textViewSubtitle.text = item.source.getSummary(context)
-		binding.imageViewIcon.scaleType = if (item.source.mangaSource.isExternalSource()) {
-			android.widget.ImageView.ScaleType.CENTER_CROP
-		} else {
-			android.widget.ImageView.ScaleType.FIT_CENTER
-		}
+		binding.imageViewIcon.applyExternalSourceStyle(item.source.mangaSource.isExternalSource())
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }
@@ -143,11 +139,7 @@ fun exploreSourceGridItemAD(
 		)
 		binding.textViewTitle.text = title
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
-		binding.imageViewIcon.scaleType = if (item.source.mangaSource.isExternalSource()) {
-			android.widget.ImageView.ScaleType.CENTER_CROP
-		} else {
-			android.widget.ImageView.ScaleType.FIT_CENTER
-		}
+		binding.imageViewIcon.applyExternalSourceStyle(item.source.mangaSource.isExternalSource())
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }
