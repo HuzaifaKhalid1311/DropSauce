@@ -45,15 +45,22 @@
 
 	</com.google.android.material.appbar.AppBarLayout>
 
-	<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
-		android:id="@+id/recyclerView"
+	<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+		android:id="@+id/swipeRefreshLayout"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:clipToPadding="false"
-		app:hideScrollbar="false"
-		app:bubbleSize="normal"
-		app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
+		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+
+		<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
+			android:id="@+id/recyclerView"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:clipToPadding="false"
+			app:hideScrollbar="false"
+			app:bubbleSize="normal"
+			app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+	</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 	<com.google.android.material.floatingactionbutton.FloatingActionButton
 		android:id="@+id/button_scroll_to_top"
