@@ -87,6 +87,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		clearOldApks()
 		setContentView(ActivitySourcesCatalogBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		if (isExternalOnly) {
@@ -167,6 +168,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onDestroy() {
 		unregisterReceiver(extensionDownloadReceiver)
+		clearOldApks()
 		super.onDestroy()
 	}
 
@@ -388,6 +390,19 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			startActivity(installIntent)
 		} catch (_: ActivityNotFoundException) {
 			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
+		}
+	}
+
+	private fun clearOldApks() {
+		try {
+			val destDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+			destDir?.listFiles()?.forEach { file ->
+				if (file.name.endsWith(".apk")) {
+					file.delete()
+				}
+			}
+		} catch (e: Exception) {
+			// Ignore
 		}
 	}
 
