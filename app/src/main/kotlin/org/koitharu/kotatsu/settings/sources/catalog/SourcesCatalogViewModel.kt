@@ -58,6 +58,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
+	private val refreshTrigger = MutableStateFlow(0)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			mode = SourcesCatalogMode.BUILTIN,
@@ -112,6 +113,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		db.invalidationTrackerFlow(TABLE_SOURCES),
 		mihonSources,
 		externalRepoUrl,
+		refreshTrigger,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
@@ -127,6 +129,10 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	fun performSearch(query: String?) {
 		searchQuery.value = query?.trim()
+	}
+
+	fun refresh() {
+		refreshTrigger.value++
 	}
 
 	fun setMode(value: SourcesCatalogMode) {
@@ -258,22 +264,16 @@ class SourcesCatalogViewModel @Inject constructor(
 	): List<ListModel> {
 		val repoUrl = externalRepoUrl.value
 		val hasRepo = !repoUrl.isNullOrBlank()
-		val available = if (repoUrl.isNullOrBlank()) {
+		val availableResult = if (repoUrl.isNullOrBlank()) {
 			availableRepoEntries.value = emptyList()
-			emptyList()
+			Result.success(emptyList<ExternalExtensionRepoEntry>())
 		} else {
 			runCatching {
 				getAvailableEntries(repoUrl)
-			}.getOrElse {
-				return listOf(
-					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_error_large,
-						title = R.string.error,
-						text = R.string.extensions_repo_load_error,
-					),
-				)
 			}
 		}
+		
+		val available = availableResult.getOrDefault(emptyList())
 		availableRepoEntries.value = available
 
 		val installed = mihonExtensionLoader.getInstalledExtensions(context).associateBy { it.pkgName }
@@ -367,6 +367,14 @@ class SourcesCatalogViewModel @Inject constructor(
 						icon = R.drawable.ic_empty_common,
 						title = R.string.no_repo_detected,
 						text = R.string.click_edit_icon_add_extension_repo,
+					),
+				)
+			} else if (availableResult.isFailure) {
+				add(
+					SourceCatalogItem.Hint(
+						icon = R.drawable.ic_error_large,
+						title = R.string.error,
+						text = R.string.extensions_repo_load_error,
 					),
 				)
 			}
