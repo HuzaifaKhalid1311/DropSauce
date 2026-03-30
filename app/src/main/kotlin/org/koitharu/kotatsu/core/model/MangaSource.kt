@@ -139,6 +139,16 @@ fun MangaSource.isExternalSource(): Boolean = when (val source = unwrap()) {
 	else -> false
 }
 
+fun MangaSource.getStoredTitleOrNull(): String? = when (val source = unwrap()) {
+	is MangaParserSource -> source.title
+	is MihonMangaSource -> source.displayName
+	is ExternalMangaSource -> source.authority.ifBlank { source.packageName }
+	is MissingMangaSource -> source.cachedDisplayNameOrNull()
+	LocalMangaSource -> null
+	TestMangaSource -> null
+	else -> null
+}
+
 private fun MissingMangaSource.resolveDisplayName(context: Context): String {
 	if (name.startsWith("content:")) {
 		val parts = name.substringAfter(':').splitTwoParts('/')
@@ -147,12 +157,20 @@ private fun MissingMangaSource.resolveDisplayName(context: Context): String {
 		}
 	}
 	if (name.startsWith("MIHON_")) {
-		val parts = name.removePrefix("MIHON_").split(':', limit = 2)
-		val sourceId = parts.getOrNull(0)?.ifBlank { "?" } ?: "?"
-		val cachedName = parts.getOrNull(1)?.ifBlank { null }
-		return context.getString(R.string.missing_extension_source_pattern, cachedName ?: "ID: $sourceId")
+		val cachedName = cachedDisplayNameOrNull()
+		return if (cachedName != null) {
+			context.getString(R.string.missing_extension_source_pattern, cachedName)
+		} else {
+			context.getString(R.string.missing_extension_source_pattern, context.getString(R.string.unknown))
+		}
 	}
 	return name
+}
+
+private fun MissingMangaSource.cachedDisplayNameOrNull(): String? {
+	if (!name.startsWith("MIHON_")) return null
+	val parts = name.removePrefix("MIHON_").split(':', limit = 2)
+	return parts.getOrNull(1)?.ifBlank { null }
 }
 
 fun SpannableStringBuilder.appendIcon(textView: TextView, @DrawableRes resId: Int): SpannableStringBuilder {

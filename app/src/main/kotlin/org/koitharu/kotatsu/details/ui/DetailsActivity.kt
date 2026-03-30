@@ -206,6 +206,9 @@ class DetailsActivity :
 		}
 		val appRouter = router
 		viewModel.mangaDetails.filterNotNull().observe(this, ::onMangaUpdated)
+		viewModel.cachedSourceTitle.observe(this) {
+			viewModel.mangaDetails.value?.let(::onMangaUpdated)
+		}
 		viewModel.coverUrl.observe(this, ::loadCover)
 		viewModel.backdropUrl.observe(this, ::loadLargeCover)
 		viewModel.onMangaRemoved.observeEvent(this, ::onMangaRemoved)
@@ -484,7 +487,10 @@ class DetailsActivity :
 				textViewSource.isVisible = false
 				textViewSourceLabel.isVisible = false
 			} else {
-				textViewSource.textAndVisible = manga.source.getTitle(this@DetailsActivity)
+				val sourceTitle = viewModel.cachedSourceTitle.value
+					?.takeUnless { it.isBlank() }
+					?: manga.source.getTitle(this@DetailsActivity)
+				textViewSource.textAndVisible = sourceTitle
 				textViewSource.setTooltipCompat(manga.source.getSummary(this@DetailsActivity))
 				textViewSourceLabel.isVisible = textViewSource.isVisible == true
 			}

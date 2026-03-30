@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.core.ui.image
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
@@ -26,6 +27,7 @@ class FaviconView @JvmOverloads constructor(
 
 	@StyleRes
 	private var iconStyle: Int = R.style.FaviconDrawable
+	private val defaultBackground: Drawable? by lazy(LazyThreadSafetyMode.NONE) { background }
 
 	init {
 		context.withStyledAttributes(attrs, R.styleable.FaviconView, defStyleAttr) {
@@ -95,11 +97,13 @@ class FaviconView @JvmOverloads constructor(
 			scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
 			setPadding(0, 0, 0, 0)
 			strokeWidth = 0f
+			background = null
 		} else {
 			scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
 			val padding = context.resources.resolveDp(1)
 			setPadding(padding, padding, padding, padding)
 			strokeWidth = context.resources.resolveDp(1f).toFloat()
+			background = defaultBackground
 		}
 	}
 }

@@ -194,6 +194,9 @@ class DetailsClassicActivity :
 
 		val appRouter = router
 		viewModel.mangaDetails.filterNotNull().observe(this, ::onMangaUpdated)
+		viewModel.cachedSourceTitle.observe(this) {
+			viewModel.mangaDetails.value?.let(::onMangaUpdated)
+		}
 		viewModel.coverUrl.observe(this, ::loadCover)
 		viewModel.backdropUrl.observe(this, ::loadLargeCover)
 		viewModel.onMangaRemoved.observeEvent(this, ::onMangaRemoved)
@@ -571,7 +574,9 @@ class DetailsClassicActivity :
 			if (manga.source == LocalMangaSource) {
 				chipSource.isVisible = false
 			} else {
-				chipSource.text = manga.source.getTitle(this@DetailsClassicActivity)
+				chipSource.text = viewModel.cachedSourceTitle.value
+					?.takeUnless { it.isBlank() }
+					?: manga.source.getTitle(this@DetailsClassicActivity)
 				chipSource.isVisible = true
 				chipSource.setTooltipCompat(manga.source.getSummary(this@DetailsClassicActivity))
 				val faviconPlaceholderFactory = FaviconDrawable.Factory(R.style.FaviconDrawable_Chip)

@@ -135,7 +135,10 @@ private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? = w
 
     is WrongPasswordException -> resources.getString(R.string.wrong_password)
     is NotFoundException -> resources.getString(R.string.not_found_404)
-    is UnsupportedSourceException -> if (manga?.source?.isExternalSource() == true) {
+    is UnsupportedSourceException -> if (
+        manga?.source?.isExternalSource() == true ||
+        message?.contains("source is not supported", ignoreCase = true) == true
+    ) {
         resources.getString(R.string.install_extension_mentioned_above_to_read)
     } else {
         resources.getString(R.string.unsupported_source)
