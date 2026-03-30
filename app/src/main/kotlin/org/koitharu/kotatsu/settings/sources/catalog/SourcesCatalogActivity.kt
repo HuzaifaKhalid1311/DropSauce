@@ -110,6 +110,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 		FadingAppbarMediator(viewBinding.appbar, viewBinding.toolbar).bind()
 		viewModel.content.observe(this, sourcesAdapter)
+		viewModel.content.observe(this) {
+			viewBinding.swipeRefreshLayout.isRefreshing = false
+		}
+		viewBinding.swipeRefreshLayout.setOnRefreshListener {
+			viewModel.refresh()
+		}
 		viewModel.onActionDone.observeEvent(
 			this,
 			ReversibleActionObserver(viewBinding.recyclerView),
@@ -362,7 +368,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val fileName = uri.lastPathSegment?.takeIf { it.isNotBlank() } ?: "extension.apk"
 		val request = DownloadManager.Request(uri)
 			.setTitle(fileName)
-			.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+			.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName)
 			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 			.setMimeType("application/vnd.android.package-archive")
 		val downloadId = downloadManager.enqueue(request)
