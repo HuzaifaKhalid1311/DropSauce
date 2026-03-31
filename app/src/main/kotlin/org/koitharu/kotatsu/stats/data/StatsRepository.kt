@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.stats.domain.StatsRecord
 import java.util.NavigableMap
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToLong
 import javax.inject.Inject
 
 class StatsRepository @Inject constructor(
@@ -59,6 +60,17 @@ class StatsRepository @Inject constructor(
 			dao.getAverageTimePerPage()
 		}
 		time
+	}
+
+	suspend fun getAverageTimePerChapterMillis(): Long = db.withTransaction {
+		val dao = db.getStatsDao()
+		val totalDuration = dao.getTotalReadDuration()
+		val totalChapters = dao.getTotalReadChaptersEstimate()
+		if (totalDuration <= 0L || totalChapters <= 0f) {
+			0L
+		} else {
+			(totalDuration / totalChapters).roundToLong()
+		}
 	}
 
 	suspend fun getTotalPagesRead(mangaId: Long): Int {

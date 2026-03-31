@@ -42,9 +42,9 @@
 		android:title="@string/about_app_translation_summary" />
 
 	<Preference
-		android:key="about_telegram"
+		android:key="about_discord"
 		android:persistent="false"
-		android:summary="@string/url_telegram_web"
-		android:title="@string/telegram_group" />
+		android:summary="@string/url_discord_web"
+		android:title="@string/discord" />
 
 </PreferenceScreen>

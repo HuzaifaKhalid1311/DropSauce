@@ -22,33 +22,16 @@ import javax.inject.Inject
 @HiltViewModel
 class PeriodicalBackupSettingsViewModel @Inject constructor(
 	private val settings: AppSettings,
-	private val telegramUploader: TelegramBackupUploader,
 	private val backupStorage: ExternalBackupStorage,
 	@ApplicationContext private val appContext: Context,
 ) : BaseViewModel() {
 
-	val isTelegramAvailable
-		get() = telegramUploader.isAvailable
-
 	val lastBackupDate = MutableStateFlow<Date?>(null)
 	val backupsDirectory = MutableStateFlow<String?>("")
-	val isTelegramCheckLoading = MutableStateFlow(false)
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 
 	init {
 		updateSummaryData()
-	}
-
-	fun checkTelegram() {
-		launchJob(Dispatchers.Default) {
-			try {
-				isTelegramCheckLoading.value = true
-				telegramUploader.sendTestMessage()
-				onActionDone.call(ReversibleAction(R.string.connection_ok, null))
-			} finally {
-				isTelegramCheckLoading.value = false
-			}
-		}
 	}
 
 	fun updateSummaryData() {

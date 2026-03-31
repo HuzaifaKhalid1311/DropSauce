@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.settings
 
-import android.accounts.AccountManager
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
@@ -96,16 +95,7 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 			}
 
 			AppSettings.KEY_SYNC -> {
-				val am = AccountManager.get(requireContext())
-				val accountType = getString(R.string.account_type_sync)
-				val account = am.getAccountsByType(accountType).firstOrNull()
-				if (account == null) {
-					am.addAccount(accountType, accountType, null, null, requireActivity(), null, null)
-				} else {
-					if (!router.openSystemSyncSettings(account)) {
-						Snackbar.make(listView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
-					}
-				}
+				Snackbar.make(listView, R.string.sync_feature_not_working, Snackbar.LENGTH_LONG).show()
 				true
 			}
 

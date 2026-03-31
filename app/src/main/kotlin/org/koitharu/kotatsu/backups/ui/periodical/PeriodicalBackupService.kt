@@ -26,9 +26,6 @@ class PeriodicalBackupService : CoroutineIntentService() {
 	lateinit var externalBackupStorage: ExternalBackupStorage
 
 	@Inject
-	lateinit var telegramBackupUploader: TelegramBackupUploader
-
-	@Inject
 	lateinit var repository: BackupRepository
 
 	@Inject
@@ -49,9 +46,6 @@ class PeriodicalBackupService : CoroutineIntentService() {
 			}
 			externalBackupStorage.put(output)
 			externalBackupStorage.trim(settings.periodicalBackupMaxCount)
-			if (settings.isBackupTelegramUploadEnabled && telegramBackupUploader.isAvailable) {
-				telegramBackupUploader.uploadBackup(output)
-			}
 		} finally {
 			output.delete()
 		}

@@ -29,6 +29,12 @@ abstract class StatsDao {
 	@Query("SELECT IFNULL(SUM(duration)/SUM(pages), 0) FROM stats")
 	abstract suspend fun getAverageTimePerPage(): Long
 
+	@Query("SELECT IFNULL(SUM(duration), 0) FROM stats")
+	abstract suspend fun getTotalReadDuration(): Long
+
+	@Query("SELECT IFNULL(SUM(chapters * percent), 0) FROM history WHERE deleted_at = 0 AND percent > 0")
+	abstract suspend fun getTotalReadChaptersEstimate(): Float
+
 	@Query("DELETE FROM stats")
 	abstract suspend fun clear()
 

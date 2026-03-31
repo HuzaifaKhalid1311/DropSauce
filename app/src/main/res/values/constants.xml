@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="url_github" translatable="false">https://github.com/skepsun/DropSauce</string>
-	<string name="url_telegram_web" translatable="false">https://t.me/kotatsuapp</string>
-	<string name="url_telegram" translatable="false">tg://resolve?domain=kotatsuapp</string>
+	<string name="url_discord_web" translatable="false">https://discord.gg/PTd2bYgz9m</string>
 	<string name="url_weblate" translatable="false">https://hosted.weblate.org/engage/kotatsu</string>
 	<string name="url_user_manual" translatable="false">https://kotatsu.app/manuals/guides/getting-started/</string>
 	<string name="url_error_report" translatable="false">https://github.com/HuzaifaKhalid1311/DropSauce/issues/new</string>
@@ -43,7 +42,6 @@
 		<item>1</item>
 	</string-array>
 	<string-array name="sync_url_list" translatable="false">
-		<item>https://sync.kotatsu.app</item>
 		<item>https://moe.shirizu.org</item>
 		<item>http://54.254.71.100</item>
 		<item>http://86.57.183.214:8081</item>

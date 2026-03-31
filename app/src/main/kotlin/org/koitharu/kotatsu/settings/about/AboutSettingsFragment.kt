@@ -70,10 +70,8 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 				true
 			}
 
-			AppSettings.KEY_LINK_TELEGRAM -> {
-				if (!openLink(R.string.url_telegram, null)) {
-					openLink(R.string.url_telegram_web, preference.title)
-				}
+			"about_discord" -> {
+				openLink(R.string.url_discord_web, preference.title)
 				true
 			}
 
