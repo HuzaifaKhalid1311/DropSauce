@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'New version name (e.g., 1.0.2)'
+        description: 'New version name (current: unknown)'
         required: true
 
 permissions:
@@ -41,6 +41,8 @@ jobs:
 
           sed -i "s/versionCode = ${CURRENT_CODE}/versionCode = ${NEW_CODE}/" app/build.gradle
           sed -i "s/versionName = '.*'/versionName = '${VERSION}'/" app/build.gradle
+
+          sed -i "s/New version name (current: .*')/New version name (current: ${VERSION}')/" .github/workflows/release.yml
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
