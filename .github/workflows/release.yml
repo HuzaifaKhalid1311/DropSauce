@@ -5,15 +5,25 @@ on:
     tags:
       - 'v*'               # Triggered by v* tags (e.g., v1.0.0)
   workflow_dispatch:        # Manual trigger
-
-env:
-  TAG_NAME: ${{ github.ref_name }}
+    inputs:
+      version_tag:
+        description: 'Version tag for this release (e.g., v1.0.1)'
+        required: true
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Determine Tag Name
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "TAG_NAME=${{ inputs.version_tag }}" >> $GITHUB_ENV
+        else
+          echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+        fi
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -86,7 +96,6 @@ jobs:
         DOWNLOAD_NOTES=""
         for apk in "${APK_FILES[@]}"; do
           filename=$(basename "$apk")
-          # Updated file name format: DropSauce-release-v1.0.0.apk
           target="release/DropSauce-release-${{ env.TAG_NAME }}.apk"
           cp "$apk" "$target"
           DOWNLOAD_NOTES="- \`$(basename "$target")\`"
@@ -100,7 +109,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.TAG_NAME }}
-        name: Dropsauce ${{ env.TAG_NAME }}  # Updated Release Title
+        name: Dropsauce ${{ env.TAG_NAME }}
         files: |
           release/*.apk
         body: |
