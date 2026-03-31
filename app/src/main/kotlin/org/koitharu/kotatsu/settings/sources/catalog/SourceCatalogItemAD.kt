@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isBroken
+import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -22,6 +23,7 @@ import androidx.appcompat.R as appcompatR
 interface ExtensionActionListener {
 	fun onExtensionActionClick(item: SourceCatalogItem.Extension)
 	fun onExtensionSettingsClick(item: SourceCatalogItem.Extension)
+	fun onExtensionItemClick(item: SourceCatalogItem.Extension)
 }
 
 fun sourceCatalogItemSourceAD(
@@ -47,6 +49,7 @@ fun sourceCatalogItemSourceAD(
 	bind {
 		binding.imageViewAdd.isVisible = item.isAddAvailable
 		binding.viewAddDivider.isVisible = item.isAddAvailable
+		binding.imageViewIcon.applyExternalSourceStyle(item.source.isExternalSource())
 		binding.root.updatePaddingRelative(
 			end = if (item.isAddAvailable) compactEndPadding else basePadding,
 		)
@@ -76,6 +79,9 @@ fun sourceCatalogItemExtensionAD(
 	binding.imageViewSettings.setOnClickListener {
 		listener.onExtensionSettingsClick(item)
 	}
+	binding.root.setOnClickListener {
+		listener.onExtensionItemClick(item)
+	}
 	val basePadding = context.getThemeDimensionPixelOffset(
 		appcompatR.attr.listPreferredItemPaddingEnd,
 		binding.root.paddingStart,
@@ -93,6 +99,7 @@ fun sourceCatalogItemExtensionAD(
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
+		binding.imageViewIcon.applyExternalSourceStyle(true)
 		val sourceIconName = item.sourceIconName
 		val iconUrl = item.iconUrl
 		if (sourceIconName != null) {

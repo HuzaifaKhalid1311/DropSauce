@@ -336,6 +336,7 @@ class MangaSourcesRepository @Inject constructor(
 				lastUsedAt = 0,
 				isPinned = false,
 				cfState = CloudFlareHelper.PROTECTION_NOT_DETECTED,
+				title = x.getTitle(context),
 			)
 		}
 		dao.insertIfAbsent(entities)

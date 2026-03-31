@@ -239,7 +239,7 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 	fun getWrappedSourceById(sourceId: Long): WrappedSourceT? = runtime.getWrappedSourceById(sourceId)
 	fun getWrappedSourceByName(name: String): WrappedSourceT? {
 		if (!name.startsWith(sourceNamePrefix)) return null
-		val sourceId = name.substringAfter(sourceNamePrefix).toLongOrNull() ?: return null
+		val sourceId = name.substringAfter(sourceNamePrefix).substringBefore(':').toLongOrNull() ?: return null
 		return getWrappedSourceById(sourceId)
 	}
 	fun getSourcesByLanguage(): Map<String, List<CatalogueT>> = getCatalogueSources().groupBy(catalogueSourceLang)
