@@ -111,8 +111,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 		FadingAppbarMediator(viewBinding.appbar, viewBinding.toolbar).bind()
 		viewModel.content.observe(this, sourcesAdapter)
-		viewModel.content.observe(this) {
-			viewBinding.swipeRefreshLayout.isRefreshing = false
+		viewModel.isRefreshing.observe(this) {
+			viewBinding.swipeRefreshLayout.isRefreshing = it
 		}
 		viewBinding.swipeRefreshLayout.setOnRefreshListener {
 			viewModel.refresh()
