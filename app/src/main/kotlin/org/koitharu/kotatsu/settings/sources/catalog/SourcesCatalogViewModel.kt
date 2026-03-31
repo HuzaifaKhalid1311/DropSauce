@@ -216,7 +216,7 @@ class SourcesCatalogViewModel @Inject constructor(
 						onShowMessage.call(R.string.extensions_repo_required)
 						return@launchJob
 					}
-					val entry = getAvailableEntries(repoUrl).firstOrNull { it.packageName == item.packageName } ?: run {
+					val entry = getAvailableEntries(repoUrl, forceRefresh = false).firstOrNull { it.packageName == item.packageName } ?: run {
 						onShowMessage.call(R.string.nothing_found)
 						return@launchJob
 					}
