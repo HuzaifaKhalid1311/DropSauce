@@ -22,6 +22,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
 import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.core.nav.MangaIntent
+import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.prefs.TriStateOption
@@ -73,6 +74,7 @@ class DetailsViewModel @Inject constructor(
 	private val progressUpdateUseCase: ProgressUpdateUseCase,
 	private val readingTimeUseCase: ReadingTimeUseCase,
 	statsRepository: StatsRepository,
+	private val database: MangaDatabase,
 ) : ChaptersPagesViewModel(
 	settings = settings,
 	interactor = interactor,
@@ -135,6 +137,12 @@ class DetailsViewModel @Inject constructor(
 				0L
 			}
 		}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), 0L)
+
+	val cachedSourceTitle = mangaDetails
+		.mapLatest { details ->
+			if (details == null) null else database.getMangaDao().findSourceTitle(mangaId)
+		}
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
 
 	val isScrobblingAvailable: Boolean
 		get() = scrobblers.any { it.isEnabled }

@@ -58,6 +58,9 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
+	private val refreshTrigger = MutableStateFlow(0)
+	private var lastRefreshTrigger = 0
+	val isRefreshing = MutableStateFlow(false)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			mode = SourcesCatalogMode.BUILTIN,
@@ -112,10 +115,18 @@ class SourcesCatalogViewModel @Inject constructor(
 		db.invalidationTrackerFlow(TABLE_SOURCES),
 		mihonSources,
 		externalRepoUrl,
+		refreshTrigger,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
-		buildMixedCatalogList(f, q)
+		val currentTrigger = args[5] as Int
+		val forceRefresh = currentTrigger > lastRefreshTrigger
+		if (forceRefresh) {
+			lastRefreshTrigger = currentTrigger
+		}
+		val result = buildMixedCatalogList(f, q, forceRefresh)
+		isRefreshing.value = false
+		result
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
@@ -127,6 +138,11 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	fun performSearch(query: String?) {
 		searchQuery.value = query?.trim()
+	}
+
+	fun refresh() {
+		isRefreshing.value = true
+		refreshTrigger.value++
 	}
 
 	fun setMode(value: SourcesCatalogMode) {
@@ -200,7 +216,7 @@ class SourcesCatalogViewModel @Inject constructor(
 						onShowMessage.call(R.string.extensions_repo_required)
 						return@launchJob
 					}
-					val entry = getAvailableEntries(repoUrl).firstOrNull { it.packageName == item.packageName } ?: run {
+					val entry = getAvailableEntries(repoUrl, forceRefresh = false).firstOrNull { it.packageName == item.packageName } ?: run {
 						onShowMessage.call(R.string.nothing_found)
 						return@launchJob
 					}
@@ -211,7 +227,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?): List<ListModel> {
+	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
 		val sources = when (filter.mode) {
 			SourcesCatalogMode.BUILTIN -> repository.queryParserSources(
 				isDisabledOnly = true,
@@ -225,7 +241,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			SourcesCatalogMode.MIHON -> emptyList()
 		}
 		return if (filter.mode == SourcesCatalogMode.MIHON) {
-			buildExtensionsList(filter, query)
+			buildExtensionsList(filter, query, forceRefresh)
 		} else if (sources.isEmpty()) {
 			listOf(
 				if (query == null) {
@@ -255,25 +271,20 @@ class SourcesCatalogViewModel @Inject constructor(
 	private suspend fun buildExtensionsList(
 		filter: SourcesCatalogFilter,
 		query: String?,
+		forceRefresh: Boolean,
 	): List<ListModel> {
 		val repoUrl = externalRepoUrl.value
 		val hasRepo = !repoUrl.isNullOrBlank()
-		val available = if (repoUrl.isNullOrBlank()) {
+		val availableResult = if (repoUrl.isNullOrBlank()) {
 			availableRepoEntries.value = emptyList()
-			emptyList()
+			Result.success(emptyList<ExternalExtensionRepoEntry>())
 		} else {
 			runCatching {
-				getAvailableEntries(repoUrl)
-			}.getOrElse {
-				return listOf(
-					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_error_large,
-						title = R.string.error,
-						text = R.string.extensions_repo_load_error,
-					),
-				)
+				getAvailableEntries(repoUrl, forceRefresh)
 			}
 		}
+		
+		val available = availableResult.getOrDefault(emptyList())
 		availableRepoEntries.value = available
 
 		val installed = mihonExtensionLoader.getInstalledExtensions(context).associateBy { it.pkgName }
@@ -369,6 +380,14 @@ class SourcesCatalogViewModel @Inject constructor(
 						text = R.string.click_edit_icon_add_extension_repo,
 					),
 				)
+			} else if (availableResult.isFailure) {
+				add(
+					SourceCatalogItem.Hint(
+						icon = R.drawable.ic_error_large,
+						title = R.string.error,
+						text = R.string.extensions_repo_load_error,
+					),
+				)
 			}
 			if (pending.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
@@ -394,8 +413,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun getAvailableEntries(repoUrl: String): List<ExternalExtensionRepoEntry> {
-		return externalRepoRepository.getExtensions(repoUrl)
+	private suspend fun getAvailableEntries(repoUrl: String, forceRefresh: Boolean): List<ExternalExtensionRepoEntry> {
+		return externalRepoRepository.getExtensions(repoUrl, forceRefresh)
 	}
 
 	@WorkerThread

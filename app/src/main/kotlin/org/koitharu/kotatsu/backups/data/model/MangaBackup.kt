@@ -22,6 +22,7 @@ class MangaBackup(
 	@SerialName("state") val state: String? = null,
 	@SerialName("author") val authors: String? = null,
 	@SerialName("source") val source: String,
+	@SerialName("source_title") val sourceTitle: String? = null,
 	@SerialName("tags") val tags: Set<TagBackup> = emptySet(),
 ) {
 
@@ -39,6 +40,7 @@ class MangaBackup(
 		state = entity.manga.state,
 		authors = entity.manga.authors,
 		source = entity.manga.source,
+		sourceTitle = entity.manga.sourceTitle,
 		tags = entity.tags.mapToSet { TagBackup(it) },
 	)
 
@@ -56,5 +58,6 @@ class MangaBackup(
 		state = state,
 		authors = authors,
 		source = source,
+		sourceTitle = sourceTitle,
 	)
 }

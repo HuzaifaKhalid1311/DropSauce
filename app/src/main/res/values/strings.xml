@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" translatable="false">Yumemi</string>
+    <string name="app_name" translatable="false">DropSauce</string>
     <string name="local_storage">Local storage</string>
     <string name="favourites">Favorites</string>
     <string name="history">History</string>
@@ -89,6 +89,7 @@
     <string name="domain">Domain</string>
     <string name="app_update_available">A new version of the app is available</string>
     <string name="open_in_browser">Open in web browser</string>
+    <string name="back_to_top">Back to top</string>
     <string name="notifications">Notifications</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d of %2$d on</string>
     <string name="new_chapters">New chapters</string>
@@ -308,10 +309,10 @@
     <string name="bookmarks_removed">Bookmarks removed</string>
     <string name="no_manga_sources">No manga sources</string>
     <string name="no_manga_sources_text">Enable manga sources to read manga online</string>
-    <string name="no_external_source_installed">No external source installed</string>
-    <string name="manage_manga_extensions_from_settings_icon">Manage manga extensions from the settings icon</string>
+    <string name="no_external_source_installed">No external source found</string>
+    <string name="manage_manga_extensions_from_settings_icon">Manage manga extensions from the plus icon to start reading</string>
     <string name="no_manga_source_enabled">No manga source enabled</string>
-    <string name="enable_manga_sources_from_settings_icon">Enable manga sources from the settings icon to read manga</string>
+    <string name="enable_manga_sources_from_settings_icon">Enable manga sources from the plus icon to start reading</string>
     <string name="random">Random</string>
     <string name="categories_delete_confirm">Are you sure you want to delete the selected favorite categories?\nAll manga in it will be lost and this cannot be undone.</string>
     <string name="reorder">Reorder</string>
@@ -664,6 +665,7 @@
     <string name="unread">Unread</string>
     <string name="enable_source">Enable source</string>
     <string name="unsupported_source">This manga source is not supported</string>
+    <string name="install_extension_mentioned_above_to_read">Install the extension mentioned above to read</string>
     <string name="show_pages_thumbs">Show pages thumbnails</string>
     <string name="show_pages_thumbs_summary">Enable the \"Pages\" tab on the details screen</string>
     <string name="error_no_data_received">No data was received from server</string>
@@ -819,6 +821,8 @@
     <string name="author">Author</string>
     <string name="rating">Rating</string>
     <string name="source">Source</string>
+    <string name="extension">Extension</string>
+    <string name="missing_extension_source_pattern">Missing extension (%s)</string>
     <string name="translation">Translation</string>
     <string name="chapters_time_pattern" translatable="false">%1$s (%2$s)</string>
     <string name="show_slider">Show slider</string>

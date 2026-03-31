@@ -11,7 +11,7 @@ data class MihonMangaSource(
 	val hasLanguageSuffix: Boolean = false,
 ) : MangaSource {
 	override val name: String
-		get() = "MIHON_${catalogueSource.id}"
+		get() = "MIHON_${catalogueSource.id}:$displayName"
 
 	val displayName: String
 		get() = if (hasLanguageSuffix) {

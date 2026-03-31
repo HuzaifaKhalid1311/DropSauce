@@ -33,8 +33,8 @@ fun listHeaderAD(
 		} else {
 			if (item.filterMode != null) {
 				binding.buttonMore.text = null
-				binding.buttonMore.setIconResource(R.drawable.ic_settings)
-				binding.buttonMore.contentDescription = context.getString(R.string.settings)
+				binding.buttonMore.setIconResource(R.drawable.ic_add)
+				binding.buttonMore.contentDescription = context.getString(item.buttonTextRes)
 			} else {
 				binding.buttonMore.icon = null
 				binding.buttonMore.setText(item.buttonTextRes)

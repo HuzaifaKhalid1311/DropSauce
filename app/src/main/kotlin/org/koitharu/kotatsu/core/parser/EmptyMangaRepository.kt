@@ -36,6 +36,6 @@ open class EmptyMangaRepository(override val source: MangaSource) : MangaReposit
 	override suspend fun getRelated(seed: Manga): List<Manga> = stub(seed)
 
 	private fun stub(manga: Manga?): Nothing {
-		throw UnsupportedSourceException("This manga source is not supported", manga)
+		throw UnsupportedSourceException("Install the extension mentioned above to read", manga)
 	}
 }

@@ -54,7 +54,7 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
+import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.titleResId
@@ -206,6 +206,9 @@ class DetailsActivity :
 		}
 		val appRouter = router
 		viewModel.mangaDetails.filterNotNull().observe(this, ::onMangaUpdated)
+		viewModel.cachedSourceTitle.observe(this) {
+			viewModel.mangaDetails.value?.let(::onMangaUpdated)
+		}
 		viewModel.coverUrl.observe(this, ::loadCover)
 		viewModel.backdropUrl.observe(this, ::loadLargeCover)
 		viewModel.onMangaRemoved.observeEvent(this, ::onMangaRemoved)
@@ -479,11 +482,15 @@ class DetailsActivity :
 				textViewState.isVisible = false
 				textViewStateLabel.isVisible = false
 			}
-			if (manga.source == LocalMangaSource || manga.source == UnknownMangaSource) {
+			textViewSourceLabel.setText(if (manga.source.isExternalSource()) R.string.extension else R.string.source)
+			if (manga.source == LocalMangaSource) {
 				textViewSource.isVisible = false
 				textViewSourceLabel.isVisible = false
 			} else {
-				textViewSource.textAndVisible = manga.source.getTitle(this@DetailsActivity)
+				val sourceTitle = viewModel.cachedSourceTitle.value
+					?.takeUnless { it.isBlank() }
+					?: manga.source.getTitle(this@DetailsActivity)
+				textViewSource.textAndVisible = sourceTitle
 				textViewSource.setTooltipCompat(manga.source.getSummary(this@DetailsActivity))
 				textViewSourceLabel.isVisible = textViewSource.isVisible == true
 			}

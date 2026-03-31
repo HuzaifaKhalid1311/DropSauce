@@ -47,7 +47,6 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.iconResId
@@ -195,6 +194,9 @@ class DetailsClassicActivity :
 
 		val appRouter = router
 		viewModel.mangaDetails.filterNotNull().observe(this, ::onMangaUpdated)
+		viewModel.cachedSourceTitle.observe(this) {
+			viewModel.mangaDetails.value?.let(::onMangaUpdated)
+		}
 		viewModel.coverUrl.observe(this, ::loadCover)
 		viewModel.backdropUrl.observe(this, ::loadLargeCover)
 		viewModel.onMangaRemoved.observeEvent(this, ::onMangaRemoved)
@@ -569,10 +571,12 @@ class DetailsClassicActivity :
 			chipAuthor.isVisible = !chipAuthor.text.isNullOrEmpty()
 			chipTime.textAndVisible = null
 			chipTime.isVisible = false
-			if (manga.source == LocalMangaSource || manga.source == UnknownMangaSource) {
+			if (manga.source == LocalMangaSource) {
 				chipSource.isVisible = false
 			} else {
-				chipSource.text = manga.source.getTitle(this@DetailsClassicActivity)
+				chipSource.text = viewModel.cachedSourceTitle.value
+					?.takeUnless { it.isBlank() }
+					?: manga.source.getTitle(this@DetailsClassicActivity)
 				chipSource.isVisible = true
 				chipSource.setTooltipCompat(manga.source.getSummary(this@DetailsClassicActivity))
 				val faviconPlaceholderFactory = FaviconDrawable.Factory(R.style.FaviconDrawable_Chip)

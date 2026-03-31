@@ -51,8 +51,8 @@ data class MangaDetails(
             ?.nullIfEmpty()
 
     val backdropUrl: String?
-        get() = manga.largeCoverUrl
-            .ifNullOrEmpty { override?.coverUrl }
+        get() = override?.coverUrl
+            .ifNullOrEmpty { manga.largeCoverUrl }
             .ifNullOrEmpty { manga.coverUrl }
             .ifNullOrEmpty { localManga?.manga?.coverUrl }
             ?.nullIfEmpty()

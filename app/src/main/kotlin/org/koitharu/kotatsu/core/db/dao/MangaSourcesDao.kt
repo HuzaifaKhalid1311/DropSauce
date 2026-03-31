@@ -58,6 +58,12 @@ abstract class MangaSourcesDao {
 	@Query("UPDATE sources SET cf_state = :state WHERE source = :source")
 	abstract suspend fun setCfState(source: String, state: Int)
 
+	@Query("SELECT title FROM sources WHERE source = :source LIMIT 1")
+	abstract suspend fun findTitle(source: String): String?
+
+	@Query("UPDATE sources SET title = :title WHERE source = :source")
+	abstract suspend fun setTitle(source: String, title: String)
+
 	@Insert(onConflict = OnConflictStrategy.IGNORE)
 	@Transaction
 	abstract suspend fun insertIfAbsent(entries: Collection<MangaSourceEntity>)
@@ -88,6 +94,7 @@ abstract class MangaSourcesDao {
 				lastUsedAt = 0,
 				isPinned = false,
 				cfState = CloudFlareHelper.PROTECTION_NOT_DETECTED,
+				title = null,
 			)
 			upsert(entity)
 		}

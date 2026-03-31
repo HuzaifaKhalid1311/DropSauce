@@ -18,12 +18,17 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		ignoreUnknownKeys = true
 	}
 
-	suspend fun getExtensions(repoUrl: String): List<ExternalExtensionRepoEntry> = withContext(Dispatchers.IO) {
+	suspend fun getExtensions(repoUrl: String, forceRefresh: Boolean = false): List<ExternalExtensionRepoEntry> = withContext(Dispatchers.IO) {
 		val indexUrl = buildIndexUrl(repoUrl)
-		val request = Request.Builder()
+		val requestBuilder = Request.Builder()
 			.url(indexUrl)
 			.get()
-			.build()
+		
+		if (forceRefresh) {
+			requestBuilder.cacheControl(okhttp3.CacheControl.FORCE_NETWORK)
+		}
+		
+		val request = requestBuilder.build()
 		okHttpClient.newCall(request).execute().use { response ->
 			if (!response.isSuccessful) {
 				throw IllegalStateException("Unable to load repo: HTTP ${response.code}")
