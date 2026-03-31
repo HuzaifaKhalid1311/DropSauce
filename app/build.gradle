@@ -21,13 +21,11 @@ android {
 		applicationId 'org.haziffe.dropsauce'
 		minSdk = 23
 		targetSdk = 36
-		versionCode = 8
-		versionName = '1.1.4'
+		versionCode = 4
+		versionName = '1.0.3'
 		generatedDensities = []
 		testInstrumentationRunner 'org.haziffe.dropsauce.HiltTestRunner'
-		ksp {
-			arg('room.generateKotlin', 'true')
-		}
+
 		androidResources {
 			// https://issuetracker.google.com/issues/408030127
 			generateLocaleConfig false
