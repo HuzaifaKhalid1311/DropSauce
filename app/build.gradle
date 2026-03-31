@@ -21,8 +21,8 @@ android {
 		applicationId 'org.haziffe.dropsauce'
 		minSdk = 23
 		targetSdk = 36
-		versionCode = 5
-		versionName = '1.1.6'
+		versionCode = 6
+		versionName = '1.2.7'
 		generatedDensities = []
 		testInstrumentationRunner 'org.haziffe.dropsauce.HiltTestRunner'
 
