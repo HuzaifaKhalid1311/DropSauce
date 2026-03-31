@@ -1,125 +1,158 @@
 name: Build and Release
 
 on:
-  push:
-    tags:
-      - 'v*'               # Triggered by v* tags (e.g., v1.0.0)
-  workflow_dispatch:        # Manual trigger
+  workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v1.0.0)'
-        required: false
-        default: ''
+        description: 'New version name (e.g., 1.0.2)'
+        required: true
 
-env:
-  TAG_NAME: ${{ github.event.inputs.version || github.ref_name }}
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Generate Changelog
-      id: changelog
-      run: |
-        CURRENT_TAG="${{ env.TAG_NAME }}"
-        echo "Current Tag: $CURRENT_TAG"
+      - name: Prepare version, update Gradle, commit and tag
+        id: versioning
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          set -e
 
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 --exclude="$CURRENT_TAG" 2>/dev/null || echo "")
-        echo "Previous Tag: $PREVIOUS_TAG"
+          VERSION="$VERSION_INPUT"
+          TAG_NAME="v$VERSION"
 
-        if [ -z "$PREVIOUS_TAG" ]; then
-          echo "No previous tag found. Getting all logs."
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-        else
-          echo "Getting logs between $PREVIOUS_TAG and $CURRENT_TAG"
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..$CURRENT_TAG" --no-merges)
-        fi
+          echo "Using version: $VERSION"
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-        echo "changelog<<EOF" >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+          CURRENT_CODE=$(grep "versionCode" app/build.gradle | sed "s/[^0-9]*//g")
+          echo "Current versionCode: $CURRENT_CODE"
+          NEW_CODE=$((CURRENT_CODE + 1))
+          echo "New versionCode: $NEW_CODE"
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'gradle'
+          sed -i "s/versionCode = ${CURRENT_CODE}/versionCode = ${NEW_CODE}/" app/build.gradle
+          sed -i "s/versionName = '.*'/versionName = '${VERSION}'/" app/build.gradle
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Decode keystore
-      env:
-        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-      run: |
-        if [ -n "$KEYSTORE_BASE64" ]; then
-          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
-        else
-          echo "No keystore secret found, creating debug keystore"
-          keytool -genkey -v -keystore release.keystore -alias release \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass password -keypass password \
-            -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
-        fi
+          git status
+          git commit -am "Bump version to $TAG_NAME" || echo "No changes to commit"
 
-    - name: Build Release APK
-      run: |
-        ./gradlew assembleRelease --no-daemon --stacktrace \
-          -PRELEASE_STORE_FILE=../release.keystore \
-          -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
-          -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
-          -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
+          if git tag --list "$TAG_NAME" >/dev/null 2>&1 && [ -n "$(git tag --list "$TAG_NAME")" ]; then
+            echo "Tag $TAG_NAME already exists. Exiting to avoid overwriting an existing release."
+            exit 1
+          fi
 
-    - name: Collect Release APKs
-      id: assets
-      run: |
-        mkdir -p release
-        shopt -s nullglob
-        APK_FILES=(app/build/outputs/apk/release/*.apk)
-        if [ ${#APK_FILES[@]} -eq 0 ]; then
-          echo "Error: No APK file found"
-          exit 1
-        fi
+          git tag "$TAG_NAME"
+          git push origin HEAD
+          git push origin "$TAG_NAME"
 
-        DOWNLOAD_NOTES=""
-        for apk in "${APK_FILES[@]}"; do
-          filename=$(basename "$apk")
-          target="release/DropSauce-${{ env.TAG_NAME }}-release.apk"
-          cp "$apk" "$target"
-          DOWNLOAD_NOTES="- \`$(basename "$target")\`"
-        done
+      - name: Generate Changelog (since previous release tag)
+        id: changelog
+        run: |
+          set -e
 
-        echo "download_notes<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$DOWNLOAD_NOTES" >> "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+          TAG_NAME="${TAG_NAME:-${{ env.TAG_NAME }}}"
+          echo "Current tag: $TAG_NAME"
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ env.TAG_NAME }}
-        files: |
-          release/*.apk
-        body: |
-          ## DropSauce ${{ env.TAG_NAME }}
+          PREVIOUS_TAG=$(git tag --sort=-creatordate 'v*' | sed -n '2p' || echo "")
+          echo "Previous tag: $PREVIOUS_TAG"
 
-          ### Download
-          ${{ steps.assets.outputs.download_notes }}
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found. Using full history."
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            echo "Getting commits between $PREVIOUS_TAG and $TAG_NAME"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..$TAG_NAME" --no-merges)
+          fi
 
-          ### Installation Instructions
-          1. Download the APK file
-          2. Install it on your Android device
-          3. If this is your first time installing, you may need to allow installation of apps from unknown sources
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
-          ### Changelog
-          ${{ steps.changelog.outputs.changelog }}
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+          else
+            echo "No keystore secret found, creating debug keystore"
+            keytool -genkey -v -keystore release.keystore -alias release \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass password -keypass password \
+              -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
+          fi
+
+      - name: Build Release APK
+        run: |
+          ./gradlew assembleRelease --no-daemon --stacktrace \
+            -PRELEASE_STORE_FILE=../release.keystore \
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
+
+      - name: Collect Release APK
+        id: assets
+        run: |
+          set -e
+          mkdir -p release
+          shopt -s nullglob
+          APK_FILES=(app/build/outputs/apk/release/*.apk)
+          if [ ${#APK_FILES[@]} -eq 0 ]; then
+            echo "Error: No APK file found"
+            exit 1
+          fi
+
+          VERSION="${VERSION:-${{ env.VERSION }}}"
+          TARGET="release/DropSauce-release-v${VERSION}.apk"
+
+          echo "Using APK: ${APK_FILES[0]}"
+          echo "Target file: $TARGET"
+
+          cp "${APK_FILES[0]}" "$TARGET"
+
+          DOWNLOAD_NOTES="- \`$(basename "$TARGET")\`"
+
+          echo "download_notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$DOWNLOAD_NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          files: |
+            release/*.apk
+          body: |
+            ## DropSauce ${{ env.TAG_NAME }}
+
+            ### Download
+            ${{ steps.assets.outputs.download_notes }}
+
+            ### Changelog
+            ${{ steps.changelog.outputs.changelog }}
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
