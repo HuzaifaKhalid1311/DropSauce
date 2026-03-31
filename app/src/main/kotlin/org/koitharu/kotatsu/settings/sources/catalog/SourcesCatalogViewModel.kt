@@ -59,6 +59,8 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
 	private val refreshTrigger = MutableStateFlow(0)
+	private var lastRefreshTrigger = 0
+	val isRefreshing = MutableStateFlow(false)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			mode = SourcesCatalogMode.BUILTIN,
@@ -117,7 +119,14 @@ class SourcesCatalogViewModel @Inject constructor(
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
-		buildMixedCatalogList(f, q)
+		val currentTrigger = args[5] as Int
+		val forceRefresh = currentTrigger > lastRefreshTrigger
+		if (forceRefresh) {
+			lastRefreshTrigger = currentTrigger
+		}
+		val result = buildMixedCatalogList(f, q, forceRefresh)
+		isRefreshing.value = false
+		result
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
@@ -132,6 +141,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	fun refresh() {
+		isRefreshing.value = true
 		refreshTrigger.value++
 	}
 
@@ -217,7 +227,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?): List<ListModel> {
+	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
 		val sources = when (filter.mode) {
 			SourcesCatalogMode.BUILTIN -> repository.queryParserSources(
 				isDisabledOnly = true,
@@ -231,7 +241,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			SourcesCatalogMode.MIHON -> emptyList()
 		}
 		return if (filter.mode == SourcesCatalogMode.MIHON) {
-			buildExtensionsList(filter, query)
+			buildExtensionsList(filter, query, forceRefresh)
 		} else if (sources.isEmpty()) {
 			listOf(
 				if (query == null) {
@@ -261,6 +271,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	private suspend fun buildExtensionsList(
 		filter: SourcesCatalogFilter,
 		query: String?,
+		forceRefresh: Boolean,
 	): List<ListModel> {
 		val repoUrl = externalRepoUrl.value
 		val hasRepo = !repoUrl.isNullOrBlank()
@@ -269,7 +280,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			Result.success(emptyList<ExternalExtensionRepoEntry>())
 		} else {
 			runCatching {
-				getAvailableEntries(repoUrl)
+				getAvailableEntries(repoUrl, forceRefresh)
 			}
 		}
 		
@@ -402,8 +413,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun getAvailableEntries(repoUrl: String): List<ExternalExtensionRepoEntry> {
-		return externalRepoRepository.getExtensions(repoUrl)
+	private suspend fun getAvailableEntries(repoUrl: String, forceRefresh: Boolean): List<ExternalExtensionRepoEntry> {
+		return externalRepoRepository.getExtensions(repoUrl, forceRefresh)
 	}
 
 	@WorkerThread
