@@ -6,80 +6,23 @@ on:
       - 'v*'               # Triggered by v* tags (e.g., v1.0.0)
   workflow_dispatch:        # Manual trigger
     inputs:
-      version_tag:
-        description: 'Version tag for this release (e.g., v1.0.1)'
-        required: true
-        type: string
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: false
+        default: ''
+
+env:
+  TAG_NAME: ${{ github.event.inputs.version || github.ref_name }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Determine Tag Name
-      run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          INPUT_TAG="${{ inputs.version_tag }}"
-          
-          # Automatically add the 'v' prefix if missing
-          if [[ $INPUT_TAG != v* ]]; then
-            INPUT_TAG="v$INPUT_TAG"
-          fi
-          
-          echo "TAG_NAME=$INPUT_TAG" >> $GITHUB_ENV
-        else
-          echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-        fi
-
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
-    - name: Update build.gradle Version
-      id: update_version
-      run: |
-        # Adjust this path if your build.gradle is located elsewhere
-        GRADLE_FILE="app/build.gradle"
-        
-        # Strip the 'v' prefix for the Android versionName (e.g. v1.1.0 becomes 1.1.0)
-        VERSION_NAME="${TAG_NAME#v}"
-        
-        # Find current versionCode and increment by 1
-        CURRENT_CODE=$(grep -oP 'versionCode\s*=?\s*\K\d+' $GRADLE_FILE)
-        NEW_CODE=$((CURRENT_CODE + 1))
-        
-        # Replace values in build.gradle using sed
-        sed -i -E "s/(versionCode\s*=?\s*)[0-9]+/\1$NEW_CODE/" $GRADLE_FILE
-        sed -i -E "s/(versionName\s*=?\s*)[\"'][^\"']+[\"']/\1\"$VERSION_NAME\"/" $GRADLE_FILE
-        
-        echo "Updated $GRADLE_FILE: versionCode=$NEW_CODE, versionName=$VERSION_NAME"
-        
-        # Save to environment variables for the commit step
-        echo "NEW_VERSION_CODE=$NEW_CODE" >> $GITHUB_ENV
-        echo "NEW_VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-
-    - name: Commit and Push Version Bump
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add app/build.gradle
-        
-        # Only commit if changes were actually made
-        if ! git diff --staged --quiet; then
-          git commit -m "chore: bump version to ${{ env.NEW_VERSION_NAME }} (code ${{ env.NEW_VERSION_CODE }}) [skip ci]"
-          
-          # Push logic depends on how the workflow was triggered
-          if [ "${{ github.event_name }}" == "push" ] && [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            # If triggered by a tag push, push the commit to the default branch (e.g., main)
-            git push origin HEAD:${{ github.event.repository.default_branch }}
-          else
-            # If triggered manually via workflow_dispatch, push back to the branch you triggered it from
-            git push origin HEAD:${{ github.ref_name }}
-          fi
-        else
-          echo "No changes to commit."
-        fi
 
     - name: Generate Changelog
       id: changelog
@@ -90,19 +33,12 @@ jobs:
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 --exclude="$CURRENT_TAG" 2>/dev/null || echo "")
         echo "Previous Tag: $PREVIOUS_TAG"
 
-        # If the tag hasn't been created in Git yet (manual run), use HEAD for the log comparison
-        if ! git rev-parse "refs/tags/$CURRENT_TAG" >/dev/null 2>&1; then
-          TARGET_REV="HEAD"
-        else
-          TARGET_REV="refs/tags/$CURRENT_TAG"
-        fi
-
         if [ -z "$PREVIOUS_TAG" ]; then
-          echo "No previous tag found. Getting all logs up to current state."
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$TARGET_REV" --no-merges)
+          echo "No previous tag found. Getting all logs."
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
         else
-          echo "Getting logs between $PREVIOUS_TAG and $TARGET_REV"
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "refs/tags/$PREVIOUS_TAG..$TARGET_REV" --no-merges)
+          echo "Getting logs between $PREVIOUS_TAG and $CURRENT_TAG"
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..$CURRENT_TAG" --no-merges)
         fi
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
@@ -155,7 +91,7 @@ jobs:
         DOWNLOAD_NOTES=""
         for apk in "${APK_FILES[@]}"; do
           filename=$(basename "$apk")
-          target="release/DropSauce-release-${{ env.TAG_NAME }}.apk"
+          target="release/DropSauce-${{ env.TAG_NAME }}-release.apk"
           cp "$apk" "$target"
           DOWNLOAD_NOTES="- \`$(basename "$target")\`"
         done
@@ -168,7 +104,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.TAG_NAME }}
-        name: Dropsauce ${{ env.TAG_NAME }}
         files: |
           release/*.apk
         body: |
