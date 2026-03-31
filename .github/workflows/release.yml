@@ -48,14 +48,18 @@ jobs:
           git status
           git commit -am "Bump version to $TAG_NAME" || echo "No changes to commit"
 
-          if git tag --list "$TAG_NAME" >/dev/null 2>&1 && [ -n "$(git tag --list "$TAG_NAME")" ]; then
-            echo "Tag $TAG_NAME already exists. Exiting to avoid overwriting an existing release."
-            exit 1
+          TAG_CREATED="false"
+          if [ -n "$(git tag --list "$TAG_NAME")" ]; then
+            echo "Tag $TAG_NAME already exists. Skipping tag creation."
+          else
+            git tag "$TAG_NAME"
+            TAG_CREATED="true"
           fi
 
-          git tag "$TAG_NAME"
           git push origin HEAD
-          git push origin "$TAG_NAME"
+          if [ "$TAG_CREATED" = "true" ]; then
+            git push origin "$TAG_NAME"
+          fi
 
       - name: Generate Changelog (since previous release tag)
         id: changelog
@@ -65,7 +69,7 @@ jobs:
           TAG_NAME="${TAG_NAME:-${{ env.TAG_NAME }}}"
           echo "Current tag: $TAG_NAME"
 
-          PREVIOUS_TAG=$(git tag --sort=-creatordate 'v*' | sed -n '2p' || echo "")
+          PREVIOUS_TAG=$(git tag --sort=-creatordate 'v*' | grep -Fxv "$TAG_NAME" | head -n 1 || true)
           echo "Previous tag: $PREVIOUS_TAG"
 
           if [ -z "$PREVIOUS_TAG" ]; then
