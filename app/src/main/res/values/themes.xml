@@ -78,8 +78,6 @@
 
 	<!--== Default Theme ==-->
 	<style name="Theme.DropSauce" parent="Base.Theme.DropSauce" />
-	<!-- Identity rename: keep existing Theme.DropSauce for backward compatibility. -->
-	<style name="Theme.DropSauce" parent="Theme.DropSauce" />
 
 	<!-- Base ThemeOverlay -->
 	<style name="ThemeOverlay.DropSauce" parent="ThemeOverlay.Material3.Light" />
