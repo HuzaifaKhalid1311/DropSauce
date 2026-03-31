@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui
+package org.haziffe.dropsauce.core.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -10,8 +10,8 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import dagger.hilt.android.EntryPointAccessors
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.ui.util.ActionModeDelegate
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.ui.util.ActionModeDelegate
 
 abstract class BaseFragment<B : ViewBinding> :
 	OnApplyWindowInsetsListener,

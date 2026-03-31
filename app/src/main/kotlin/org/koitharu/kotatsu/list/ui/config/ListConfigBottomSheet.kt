@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.ui.config
+package org.haziffe.dropsauce.list.ui.config
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,13 +14,13 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.slider.Slider
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.ListMode
-import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
-import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.setValueRounded
-import org.koitharu.kotatsu.core.util.progress.IntPercentLabelFormatter
-import org.koitharu.kotatsu.databinding.SheetListModeBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.ListMode
+import org.haziffe.dropsauce.core.ui.sheet.BaseAdaptiveSheet
+import org.haziffe.dropsauce.core.util.ext.consume
+import org.haziffe.dropsauce.core.util.ext.setValueRounded
+import org.haziffe.dropsauce.core.util.progress.IntPercentLabelFormatter
+import org.haziffe.dropsauce.databinding.SheetListModeBinding
 
 @AndroidEntryPoint
 class ListConfigBottomSheet :

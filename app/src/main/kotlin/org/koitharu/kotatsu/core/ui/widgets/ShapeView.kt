@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,7 +13,7 @@ import android.view.ViewOutlineProvider
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.withClip
 import com.google.android.material.drawable.DrawableUtils
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 class ShapeView @JvmOverloads constructor(
 	context: Context,

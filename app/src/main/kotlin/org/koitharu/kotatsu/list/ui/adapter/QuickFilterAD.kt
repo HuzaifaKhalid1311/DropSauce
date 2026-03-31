@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.databinding.ItemQuickFilterBinding
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.QuickFilter
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.databinding.ItemQuickFilterBinding
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.QuickFilter
 
 fun quickFilterAD(
 	listener: QuickFilterClickListener,

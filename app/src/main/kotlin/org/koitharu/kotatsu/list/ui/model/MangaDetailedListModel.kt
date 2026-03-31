@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.list.ui.model
+package org.haziffe.dropsauce.list.ui.model
 
-import org.koitharu.kotatsu.core.ui.model.MangaOverride
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.list.domain.ReadingProgress
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback.Companion.PAYLOAD_ANYTHING_CHANGED
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback.Companion.PAYLOAD_PROGRESS_CHANGED
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.ui.model.MangaOverride
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.list.domain.ReadingProgress
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback.Companion.PAYLOAD_ANYTHING_CHANGED
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback.Companion.PAYLOAD_PROGRESS_CHANGED
+import org.haziffe.dropsauce.parsers.model.Manga
 
 data class MangaDetailedListModel(
 	override val manga: Manga,

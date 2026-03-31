@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -23,7 +23,7 @@ import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.request.lifecycle
 import coil3.size.Precision
-import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.AppSettings
 import java.lang.ref.WeakReference
 
 class BackdropController(

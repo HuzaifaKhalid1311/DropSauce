@@ -247,7 +247,7 @@
     <string name="importing_manga">Importuji mangu</string>
     <string name="import_will_start_soon">Importování brzy začne</string>
     <string name="feed">Fronta</string>
-    <string name="manga_error_description_pattern">Podrobnosti chyby:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Zkuste &lt;a href=%2$s&gt;otveřít mangu v prohlížeči&lt;/a&gt; abyste se ujistili že je dostupná na zdroji&lt;br&gt;2. Ujistěte se že používáte &lt;a href=kotatsu://about&gt;nejnovější verzi DropSauce&lt;/a&gt;&lt;br&gt;3. Pokud je dostupná, pošlete hlášení o chybě vývojářům.</string>
+    <string name="manga_error_description_pattern">Podrobnosti chyby:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Zkuste &lt;a href=%2$s&gt;otveřít mangu v prohlížeči&lt;/a&gt; abyste se ujistili že je dostupná na zdroji&lt;br&gt;2. Ujistěte se že používáte &lt;a href=dropsauce://about&gt;nejnovější verzi DropSauce&lt;/a&gt;&lt;br&gt;3. Pokud je dostupná, pošlete hlášení o chybě vývojářům.</string>
     <string name="history_shortcuts">Zobrazovat zkratky nedávných mang</string>
     <string name="history_shortcuts_summary">Udělejte nedávné mangy dostupné dlouhým kliknutím na ikonu aplikace</string>
     <string name="reader_control_ltr_summary">Neměňte směr přepínání stránek v režimu čtení; například stisknutí šipky vpravo vždy přepne na další stránku. Tato volba ovlivňuje pouze hardwarová vstupní zařízení</string>

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.scrobbling.common.ui.selector
+package org.haziffe.dropsauce.scrobbling.common.ui.selector
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -12,27 +12,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.require
-import org.koitharu.kotatsu.core.util.ext.requireValue
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.list.domain.ReadingProgress
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.LoadingFooter
-import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.parsers.util.ifZero
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
-import org.koitharu.kotatsu.scrobbling.common.ui.selector.model.ScrobblerHint
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.require
+import org.haziffe.dropsauce.core.util.ext.requireValue
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.list.domain.ReadingProgress
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.LoadingFooter
+import org.haziffe.dropsauce.list.ui.model.LoadingState
+import org.haziffe.dropsauce.parsers.util.ifZero
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.scrobbling.common.domain.Scrobbler
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerManga
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingStatus
+import org.haziffe.dropsauce.scrobbling.common.ui.selector.model.ScrobblerHint
 import javax.inject.Inject
 
 @HiltViewModel

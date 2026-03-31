@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.list.decor
+package org.haziffe.dropsauce.core.ui.list.decor
 
 import android.graphics.Rect
 import android.view.View

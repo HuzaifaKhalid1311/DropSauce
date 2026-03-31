@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.dialog
+package org.haziffe.dropsauce.core.ui.dialog
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,19 +7,19 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.github.AppUpdateRepository
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.AlertDialogFragment
-import org.koitharu.kotatsu.core.util.ext.copyToClipboard
-import org.koitharu.kotatsu.core.util.ext.getCauseUrl
-import org.koitharu.kotatsu.core.util.ext.isHttpUrl
-import org.koitharu.kotatsu.core.util.ext.isReportable
-import org.koitharu.kotatsu.core.util.ext.report
-import org.koitharu.kotatsu.core.util.ext.requireSerializable
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.databinding.DialogErrorDetailsBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.github.AppUpdateRepository
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.AlertDialogFragment
+import org.haziffe.dropsauce.core.util.ext.copyToClipboard
+import org.haziffe.dropsauce.core.util.ext.getCauseUrl
+import org.haziffe.dropsauce.core.util.ext.isHttpUrl
+import org.haziffe.dropsauce.core.util.ext.isReportable
+import org.haziffe.dropsauce.core.util.ext.report
+import org.haziffe.dropsauce.core.util.ext.requireSerializable
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.databinding.DialogErrorDetailsBinding
 import javax.inject.Inject
 
 @AndroidEntryPoint

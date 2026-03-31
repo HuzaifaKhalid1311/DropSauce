@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.image
+package org.haziffe.dropsauce.core.ui.image
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -14,8 +14,8 @@ import androidx.annotation.AttrRes
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.PaintCompat
 import com.google.android.material.resources.TextAppearance
-import org.koitharu.kotatsu.core.util.ext.getThemeResId
-import org.koitharu.kotatsu.core.util.ext.hasFocusStateSpecified
+import org.haziffe.dropsauce.core.util.ext.getThemeResId
+import org.haziffe.dropsauce.core.util.ext.hasFocusStateSpecified
 
 class TextDrawable(
 	val text: String,

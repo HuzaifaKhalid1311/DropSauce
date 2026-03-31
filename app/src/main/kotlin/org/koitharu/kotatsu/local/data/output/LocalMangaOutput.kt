@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.local.data.output
+package org.haziffe.dropsauce.local.data.output
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Closeable
-import org.koitharu.kotatsu.core.prefs.DownloadFormat
-import org.koitharu.kotatsu.core.util.ext.MimeType
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
-import org.koitharu.kotatsu.local.data.input.LocalMangaParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.prefs.DownloadFormat
+import org.haziffe.dropsauce.core.util.ext.MimeType
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.toFileNameSafe
+import org.haziffe.dropsauce.local.data.input.LocalMangaParser
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.io.File
 
 sealed class LocalMangaOutput(

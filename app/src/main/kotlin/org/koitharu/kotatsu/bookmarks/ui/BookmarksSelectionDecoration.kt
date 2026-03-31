@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.bookmarks.ui
+package org.haziffe.dropsauce.bookmarks.ui
 
 import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.core.util.ext.getItem
-import org.koitharu.kotatsu.list.ui.MangaSelectionDecoration
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.core.util.ext.getItem
+import org.haziffe.dropsauce.list.ui.MangaSelectionDecoration
 
 class BookmarksSelectionDecoration(context: Context) : MangaSelectionDecoration(context) {
 

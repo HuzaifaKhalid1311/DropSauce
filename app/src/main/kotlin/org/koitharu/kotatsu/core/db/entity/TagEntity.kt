@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.db.entity
+package org.haziffe.dropsauce.core.db.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import org.koitharu.kotatsu.core.db.TABLE_TAGS
+import org.haziffe.dropsauce.core.db.TABLE_TAGS
 
 @Entity(tableName = TABLE_TAGS)
 data class TagEntity(

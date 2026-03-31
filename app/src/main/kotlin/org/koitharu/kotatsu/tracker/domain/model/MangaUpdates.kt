@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.tracker.domain.model
+package org.haziffe.dropsauce.tracker.domain.model
 
-import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.util.ifZero
+import org.haziffe.dropsauce.parsers.exception.TooManyRequestExceptions
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.util.ifZero
 
 sealed interface MangaUpdates {
 

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.explore.ui
+package org.haziffe.dropsauce.explore.ui
 
 import androidx.collection.LongSet
 import androidx.lifecycle.viewModelScope
@@ -12,33 +12,33 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.MangaSourceInfo
-import org.koitharu.kotatsu.core.os.AppShortcutManager
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.combine
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.explore.domain.ExploreRepository
-import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
-import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
-import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
-import org.koitharu.kotatsu.list.ui.model.EmptyHint
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.MangaSourceInfo
+import org.haziffe.dropsauce.core.os.AppShortcutManager
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.core.prefs.observeAsStateFlow
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.util.ReversibleAction
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.combine
+import org.haziffe.dropsauce.explore.data.MangaSourcesRepository
+import org.haziffe.dropsauce.explore.domain.ExploreRepository
+import org.haziffe.dropsauce.explore.ui.model.ExploreButtons
+import org.haziffe.dropsauce.explore.ui.model.MangaSourceItem
+import org.haziffe.dropsauce.explore.ui.model.RecommendationsItem
+import org.haziffe.dropsauce.list.ui.model.EmptyHint
+import org.haziffe.dropsauce.list.ui.model.ListHeader
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.LoadingState
+import org.haziffe.dropsauce.list.ui.model.MangaCompactListModel
+import org.haziffe.dropsauce.mihon.model.MihonMangaSource
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
 
 enum class SourceFilterMode {
@@ -182,7 +182,7 @@ class ExploreViewModel @Inject constructor(
 		val filteredSources = when (filterMode) {
 			SourceFilterMode.LOCAL -> sources.filter { it.mangaSource is MangaParserSource }
 			SourceFilterMode.EXTERNAL -> sources.filter {
-				it.mangaSource is MihonMangaSource || it.mangaSource is org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
+				it.mangaSource is MihonMangaSource || it.mangaSource is org.haziffe.dropsauce.core.parser.external.ExternalMangaSource
 			}
 		}
 

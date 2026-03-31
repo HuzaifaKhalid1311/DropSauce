@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.core.exceptions.resolve
+package org.haziffe.dropsauce.core.exceptions.resolve
 
 import android.view.View
 import androidx.core.util.Consumer
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.isSerializable
-import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
-import org.koitharu.kotatsu.main.ui.owners.BottomSheetOwner
-import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.core.util.ext.isSerializable
+import org.haziffe.dropsauce.main.ui.owners.BottomNavOwner
+import org.haziffe.dropsauce.main.ui.owners.BottomSheetOwner
+import org.haziffe.dropsauce.parsers.exception.ParseException
 
 class SnackbarErrorObserver(
 	host: View,

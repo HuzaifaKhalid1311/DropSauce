@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.details.ui.model
+package org.haziffe.dropsauce.details.ui.model
 
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem.Companion.FLAG_BOOKMARKED
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem.Companion.FLAG_CURRENT
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem.Companion.FLAG_DOWNLOADED
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem.Companion.FLAG_GRID
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem.Companion.FLAG_NEW
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem.Companion.FLAG_UNREAD
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem.Companion.FLAG_BOOKMARKED
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem.Companion.FLAG_CURRENT
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem.Companion.FLAG_DOWNLOADED
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem.Companion.FLAG_GRID
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem.Companion.FLAG_NEW
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem.Companion.FLAG_UNREAD
+import org.haziffe.dropsauce.parsers.model.MangaChapter
 import kotlin.experimental.or
 
 fun MangaChapter.toListItem(

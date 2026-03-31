@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.scrobbling.anilist.data
+package org.haziffe.dropsauce.scrobbling.anilist.data
 
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import org.koitharu.kotatsu.core.network.CommonHeaders
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
+import org.haziffe.dropsauce.core.network.CommonHeaders
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerStorage
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerType
 import javax.inject.Inject
 import javax.inject.Provider
 

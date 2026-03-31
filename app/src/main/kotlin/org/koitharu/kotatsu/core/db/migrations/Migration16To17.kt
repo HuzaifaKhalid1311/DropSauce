@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.db.migrations
+package org.haziffe.dropsauce.core.db.migrations
 
 import android.content.Context
 import androidx.preference.PreferenceManager
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
 
 class Migration16To17(context: Context) : Migration(16, 17) {
 

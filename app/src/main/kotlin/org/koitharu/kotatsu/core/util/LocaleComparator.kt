@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.core.util
+package org.haziffe.dropsauce.core.util
 
 import androidx.core.os.LocaleListCompat
-import org.koitharu.kotatsu.core.util.ext.iterator
+import org.haziffe.dropsauce.core.util.ext.iterator
 import java.util.Locale
 
 class LocaleComparator : Comparator<Locale> {

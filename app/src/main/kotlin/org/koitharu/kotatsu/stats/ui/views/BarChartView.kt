@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.stats.ui.views
+package org.haziffe.dropsauce.stats.ui.views
 
 import android.content.Context
 import android.graphics.Canvas
@@ -8,10 +8,10 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.ColorInt
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.resolveDp
-import org.koitharu.kotatsu.parsers.util.replaceWith
-import org.koitharu.kotatsu.parsers.util.toIntUp
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.resolveDp
+import org.haziffe.dropsauce.parsers.util.replaceWith
+import org.haziffe.dropsauce.parsers.util.toIntUp
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import androidx.appcompat.R as appcompatR

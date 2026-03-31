@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.download.ui.list
+package org.haziffe.dropsauce.download.ui.list
 
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.FragmentActivity
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
 
 class DownloadsMenuProvider(
 	private val activity: FragmentActivity,

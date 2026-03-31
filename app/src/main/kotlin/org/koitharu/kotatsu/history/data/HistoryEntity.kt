@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.history.data
+package org.haziffe.dropsauce.history.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import org.koitharu.kotatsu.core.db.TABLE_HISTORY
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.TABLE_HISTORY
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
 
 @Entity(
 	tableName = TABLE_HISTORY,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.search.ui.suggestion
+package org.haziffe.dropsauce.search.ui.suggestion
 
 import android.content.Context
 import android.view.Menu
@@ -6,10 +6,10 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.MenuProvider
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.util.ext.resolve
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.util.ext.resolve
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
 
 class SearchSuggestionMenuProvider(
 	private val context: Context,

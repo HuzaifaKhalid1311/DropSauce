@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.ui
+package org.haziffe.dropsauce.local.ui
 
 import android.content.Context
 import android.content.Intent
@@ -21,12 +21,12 @@ import androidx.work.WorkerParameters
 import androidx.work.await
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.local.domain.DeleteReadChaptersUseCase
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.local.data.LocalMangaRepository
+import org.haziffe.dropsauce.local.domain.DeleteReadChaptersUseCase
 import java.util.concurrent.TimeUnit
 
 @HiltWorker

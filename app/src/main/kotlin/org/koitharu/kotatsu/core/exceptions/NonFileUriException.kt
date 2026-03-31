@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.exceptions
+package org.haziffe.dropsauce.core.exceptions
 
 import android.net.Uri
 

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.alternatives.domain
+package org.haziffe.dropsauce.alternatives.domain
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.koitharu.kotatsu.core.model.chaptersCount
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.util.ext.concat
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.model.chaptersCount
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.util.ext.concat
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException

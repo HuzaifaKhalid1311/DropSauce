@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui
+package org.haziffe.dropsauce.core.ui
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -16,19 +16,19 @@ import androidx.preference.get
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
-import org.koitharu.kotatsu.core.util.ext.container
-import org.koitharu.kotatsu.core.util.ext.end
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.getThemeDrawable
-import org.koitharu.kotatsu.core.util.ext.parentView
-import org.koitharu.kotatsu.core.util.ext.start
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
-import org.koitharu.kotatsu.settings.SettingsActivity
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.util.RecyclerViewOwner
+import org.haziffe.dropsauce.core.util.ext.consumeAllSystemBarsInsets
+import org.haziffe.dropsauce.core.util.ext.container
+import org.haziffe.dropsauce.core.util.ext.end
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.getThemeDrawable
+import org.haziffe.dropsauce.core.util.ext.parentView
+import org.haziffe.dropsauce.core.util.ext.start
+import org.haziffe.dropsauce.core.util.ext.systemBarsInsets
+import org.haziffe.dropsauce.settings.SettingsActivity
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

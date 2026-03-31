@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.ui.widgets.TipView
-import org.koitharu.kotatsu.databinding.ItemTip2Binding
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.TipModel
+import org.haziffe.dropsauce.core.ui.widgets.TipView
+import org.haziffe.dropsauce.databinding.ItemTip2Binding
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.TipModel
 
 fun tipAD(
 	listener: TipView.OnButtonClickListener,

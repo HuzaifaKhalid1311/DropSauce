@@ -18,8 +18,8 @@ import uy.kohesive.injekt.injectLazy
 import java.net.URI
 import java.net.URISyntaxException
 import java.security.MessageDigest
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.MangaSource
 
 abstract class HttpSource : CatalogueSource {
 	protected val network: NetworkHelper by injectLazy()
@@ -113,12 +113,12 @@ abstract class HttpSource : CatalogueSource {
 	open fun imageUrlRequest(page: Page): Request = GET(baseUrl + page.url, headers)
 
 	private fun tagRequest(request: Request): Request {
-		if (request.tag(org.koitharu.kotatsu.parsers.model.MangaSource::class.java) != null) {
+		if (request.tag(org.haziffe.dropsauce.parsers.model.MangaSource::class.java) != null) {
 			return request
 		}
 		return request.newBuilder()
 			.tag(
-				org.koitharu.kotatsu.parsers.model.MangaSource::class.java,
+				org.haziffe.dropsauce.parsers.model.MangaSource::class.java,
 				MangaSource("MIHON_$id")
 			)
 			.build()

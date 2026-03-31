@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.ui
+package org.haziffe.dropsauce.list.ui
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -12,20 +12,20 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ListMode
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.local.data.LocalStorageChanges
-import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ListMode
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.core.prefs.observeAsStateFlow
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.util.ReversibleAction
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.local.data.LocalStorageChanges
+import org.haziffe.dropsauce.local.domain.model.LocalManga
 
 abstract class MangaListViewModel(
 	private val settings: AppSettings,

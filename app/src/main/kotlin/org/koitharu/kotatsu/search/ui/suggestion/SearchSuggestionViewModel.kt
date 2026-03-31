@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.search.ui.suggestion
+package org.haziffe.dropsauce.search.ui.suggestion
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,20 +14,20 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.SearchSuggestionType
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.search.domain.MangaSearchRepository
-import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.SearchSuggestionType
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.core.prefs.observeAsStateFlow
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.explore.data.MangaSourcesRepository
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.util.mapToSet
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.search.domain.MangaSearchRepository
+import org.haziffe.dropsauce.search.ui.suggestion.model.SearchSuggestionItem
 import javax.inject.Inject
 
 private const val DEBOUNCE_TIMEOUT = 300L

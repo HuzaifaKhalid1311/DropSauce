@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.databinding.ItemButtonFooterBinding
-import org.koitharu.kotatsu.list.ui.model.ButtonFooter
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.databinding.ItemButtonFooterBinding
+import org.haziffe.dropsauce.list.ui.model.ButtonFooter
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 fun buttonFooterAD(
 	listener: ListStateHolderListener,

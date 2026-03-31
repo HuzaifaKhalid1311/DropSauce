@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.ui
+package org.haziffe.dropsauce.local.ui
 
 import android.Manifest
 import android.os.Build
@@ -14,21 +14,21 @@ import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.list.ListSelectionController
-import org.koitharu.kotatsu.core.ui.widgets.TipView
-import org.koitharu.kotatsu.core.util.ShareHelper
-import org.koitharu.kotatsu.core.util.ext.addMenuProvider
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
-import org.koitharu.kotatsu.databinding.FragmentListBinding
-import org.koitharu.kotatsu.filter.ui.FilterCoordinator
-import org.koitharu.kotatsu.list.ui.MangaListFragment
-import org.koitharu.kotatsu.remotelist.ui.MangaSearchMenuProvider
-import org.koitharu.kotatsu.remotelist.ui.RemoteListFragment
-import org.koitharu.kotatsu.settings.storage.RequestStorageManagerPermissionContract
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.LocalMangaSource
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.list.ListSelectionController
+import org.haziffe.dropsauce.core.ui.widgets.TipView
+import org.haziffe.dropsauce.core.util.ShareHelper
+import org.haziffe.dropsauce.core.util.ext.addMenuProvider
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.databinding.FragmentListBinding
+import org.haziffe.dropsauce.filter.ui.FilterCoordinator
+import org.haziffe.dropsauce.list.ui.MangaListFragment
+import org.haziffe.dropsauce.remotelist.ui.MangaSearchMenuProvider
+import org.haziffe.dropsauce.remotelist.ui.RemoteListFragment
+import org.haziffe.dropsauce.settings.storage.RequestStorageManagerPermissionContract
 
 class LocalListFragment : MangaListFragment(), FilterCoordinator.Owner {
 

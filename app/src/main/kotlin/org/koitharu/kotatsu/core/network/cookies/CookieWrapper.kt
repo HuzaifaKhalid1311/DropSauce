@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.network.cookies
+package org.haziffe.dropsauce.core.network.cookies
 
 import android.util.Base64
 import okhttp3.Cookie

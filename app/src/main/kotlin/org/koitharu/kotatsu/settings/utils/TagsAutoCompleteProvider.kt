@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import javax.inject.Inject
-import org.koitharu.kotatsu.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.MangaDatabase
 
 class TagsAutoCompleteProvider @Inject constructor(
 	private val db: MangaDatabase,

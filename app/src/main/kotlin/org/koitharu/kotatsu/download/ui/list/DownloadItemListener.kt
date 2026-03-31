@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.download.ui.list
+package org.haziffe.dropsauce.download.ui.list
 
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
 
 interface DownloadItemListener : OnListItemClickListener<DownloadItemModel> {
 

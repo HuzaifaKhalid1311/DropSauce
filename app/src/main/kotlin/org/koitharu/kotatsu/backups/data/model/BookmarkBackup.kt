@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.backups.data.model
+package org.haziffe.dropsauce.backups.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.bookmarks.data.BookmarkEntity
-import org.koitharu.kotatsu.core.db.entity.MangaWithTags
-import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.haziffe.dropsauce.bookmarks.data.BookmarkEntity
+import org.haziffe.dropsauce.core.db.entity.MangaWithTags
+import org.haziffe.dropsauce.parsers.util.mapToSet
 
 @Serializable
 class BookmarkBackup(

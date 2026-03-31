@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.history.ui
+package org.haziffe.dropsauce.history.ui
 
 import android.content.Context
-import org.koitharu.kotatsu.core.ui.list.fastscroll.FastScroller
-import org.koitharu.kotatsu.list.ui.adapter.MangaListAdapter
-import org.koitharu.kotatsu.list.ui.adapter.MangaListListener
-import org.koitharu.kotatsu.list.ui.size.ItemSizeResolver
+import org.haziffe.dropsauce.core.ui.list.fastscroll.FastScroller
+import org.haziffe.dropsauce.list.ui.adapter.MangaListAdapter
+import org.haziffe.dropsauce.list.ui.adapter.MangaListListener
+import org.haziffe.dropsauce.list.ui.size.ItemSizeResolver
 
 class HistoryListAdapter(
 	listener: MangaListListener,

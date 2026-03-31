@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.download.ui.list
+package org.haziffe.dropsauce.download.ui.list
 
 import androidx.lifecycle.LifecycleOwner
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.emptyStateListAD
-import org.koitharu.kotatsu.list.ui.adapter.listHeaderAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingStateAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.emptyStateListAD
+import org.haziffe.dropsauce.list.ui.adapter.listHeaderAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingStateAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 class DownloadsAdapter(
 	lifecycleOwner: LifecycleOwner,

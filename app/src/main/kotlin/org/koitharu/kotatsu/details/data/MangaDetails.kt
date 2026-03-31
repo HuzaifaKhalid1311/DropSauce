@@ -1,16 +1,16 @@
-package org.koitharu.kotatsu.details.data
+package org.haziffe.dropsauce.details.data
 
-import org.koitharu.kotatsu.core.model.getLocale
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.model.withOverride
-import org.koitharu.kotatsu.core.ui.model.MangaOverride
-import org.koitharu.kotatsu.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.parsers.util.nullIfEmpty
-import org.koitharu.kotatsu.reader.data.filterChapters
+import org.haziffe.dropsauce.core.model.getLocale
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.model.withOverride
+import org.haziffe.dropsauce.core.ui.model.MangaOverride
+import org.haziffe.dropsauce.local.domain.model.LocalManga
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.model.MangaState
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.parsers.util.nullIfEmpty
+import org.haziffe.dropsauce.reader.data.filterChapters
 import java.util.Locale
 
 data class MangaDetails(

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util
+package org.haziffe.dropsauce.core.util
 
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.sync.Mutex

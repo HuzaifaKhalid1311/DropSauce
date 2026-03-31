@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import android.view.View
-import org.koitharu.kotatsu.core.ui.widgets.TipView
+import org.haziffe.dropsauce.core.ui.widgets.TipView
 
 interface MangaListListener : MangaDetailsClickListener, ListStateHolderListener, ListHeaderClickListener,
 	TipView.OnButtonClickListener, QuickFilterClickListener {

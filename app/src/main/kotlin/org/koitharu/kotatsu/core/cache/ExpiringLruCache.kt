@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.cache
+package org.haziffe.dropsauce.core.cache
 
-import org.koitharu.kotatsu.core.util.SynchronizedSieveCache
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.core.util.SynchronizedSieveCache
+import org.haziffe.dropsauce.parsers.model.MangaSource
 import java.util.concurrent.TimeUnit
-import org.koitharu.kotatsu.core.cache.MemoryContentCache.Key as CacheKey
+import org.haziffe.dropsauce.core.cache.MemoryContentCache.Key as CacheKey
 
 class ExpiringLruCache<T>(
 	val maxSize: Int,

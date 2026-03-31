@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.core.cache
+package org.haziffe.dropsauce.core.cache
 
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
-import org.koitharu.kotatsu.core.util.ext.isLowRamDevice
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.core.util.ext.isLowRamDevice
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaPage
+import org.haziffe.dropsauce.parsers.model.MangaSource
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton

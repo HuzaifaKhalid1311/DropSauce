@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.databinding.ItemEmptyStateBinding
-import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.databinding.ItemEmptyStateBinding
+import org.haziffe.dropsauce.list.ui.model.EmptyState
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 fun emptyStateListAD(
 	listener: ListStateHolderListener?,

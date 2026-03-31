@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.prefs
+package org.haziffe.dropsauce.core.prefs
 
 enum class DetailsUiMode {
 	MODERN,

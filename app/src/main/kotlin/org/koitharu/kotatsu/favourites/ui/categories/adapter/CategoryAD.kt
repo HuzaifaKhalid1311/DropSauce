@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.ui.categories.adapter
+package org.haziffe.dropsauce.favourites.ui.categories.adapter
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent
@@ -9,13 +9,13 @@ import android.view.View.OnTouchListener
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
-import org.koitharu.kotatsu.core.util.ext.setTooltipCompat
-import org.koitharu.kotatsu.databinding.ItemCategoriesAllBinding
-import org.koitharu.kotatsu.databinding.ItemCategoryBinding
-import org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesListListener
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getQuantityStringSafe
+import org.haziffe.dropsauce.core.util.ext.setTooltipCompat
+import org.haziffe.dropsauce.databinding.ItemCategoriesAllBinding
+import org.haziffe.dropsauce.databinding.ItemCategoryBinding
+import org.haziffe.dropsauce.favourites.ui.categories.FavouriteCategoriesListListener
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 @SuppressLint("ClickableViewAccessibility")
 fun categoryAD(

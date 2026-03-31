@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.os.SystemClock
 import kotlinx.coroutines.channels.SendChannel
@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.suspendlazy.SuspendLazy
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.parsers.util.suspendlazy.SuspendLazy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 

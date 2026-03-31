@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.ui.categories.select
+package org.haziffe.dropsauce.favourites.ui.categories.select
 
 import android.content.DialogInterface
 import android.os.Bundle
@@ -10,17 +10,17 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.AlertDialogFragment
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.joinToStringWithLimit
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.databinding.DialogFavoriteBinding
-import org.koitharu.kotatsu.favourites.ui.categories.select.adapter.MangaCategoriesAdapter
-import org.koitharu.kotatsu.favourites.ui.categories.select.model.MangaCategoryItem
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.AlertDialogFragment
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.core.util.ext.joinToStringWithLimit
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.databinding.DialogFavoriteBinding
+import org.haziffe.dropsauce.favourites.ui.categories.select.adapter.MangaCategoriesAdapter
+import org.haziffe.dropsauce.favourites.ui.categories.select.model.MangaCategoryItem
 
 @AndroidEntryPoint
 class FavoriteDialog : AlertDialogFragment<DialogFavoriteBinding>(),

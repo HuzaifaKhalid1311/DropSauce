@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.favourites.domain
+package org.haziffe.dropsauce.favourites.domain
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.domain.MangaListQuickFilter
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.MangaListQuickFilter
 
 class FavoritesListQuickFilter @AssistedInject constructor(
 	@Assisted private val categoryId: Long,

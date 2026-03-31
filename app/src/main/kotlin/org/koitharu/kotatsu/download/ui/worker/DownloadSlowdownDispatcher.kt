@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.download.ui.worker
+package org.haziffe.dropsauce.download.ui.worker
 
 import android.os.SystemClock
 import androidx.collection.MutableObjectLongMap
 import kotlinx.coroutines.delay
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.parsers.model.MangaSource
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.mihon
+package org.haziffe.dropsauce.mihon
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -8,9 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
-import org.koitharu.kotatsu.extensions.runtime.ExternalExtensionManagerFacade
-import org.koitharu.kotatsu.mihon.model.MihonLoadResult
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+import org.haziffe.dropsauce.extensions.runtime.ExternalExtensionManagerFacade
+import org.haziffe.dropsauce.mihon.model.MihonLoadResult
+import org.haziffe.dropsauce.mihon.model.MihonMangaSource
 import javax.inject.Inject
 import javax.inject.Singleton
 

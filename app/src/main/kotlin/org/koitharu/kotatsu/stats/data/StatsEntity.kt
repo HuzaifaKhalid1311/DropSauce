@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.stats.data
+package org.haziffe.dropsauce.stats.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import org.koitharu.kotatsu.history.data.HistoryEntity
+import org.haziffe.dropsauce.history.data.HistoryEntity
 
 @Entity(
 	tableName = "stats",

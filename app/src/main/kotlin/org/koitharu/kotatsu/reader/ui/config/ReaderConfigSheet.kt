@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui.config
+package org.haziffe.dropsauce.reader.ui.config
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,23 +17,23 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ReaderMode
-import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
-import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.findParentCallback
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.setValueRounded
-import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
-import org.koitharu.kotatsu.core.util.progress.IntPercentLabelFormatter
-import org.koitharu.kotatsu.databinding.SheetReaderConfigBinding
-import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.ui.ReaderViewModel
-import org.koitharu.kotatsu.reader.ui.ScreenOrientationHelper
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ReaderMode
+import org.haziffe.dropsauce.core.ui.sheet.BaseAdaptiveSheet
+import org.haziffe.dropsauce.core.util.ext.consume
+import org.haziffe.dropsauce.core.util.ext.findParentCallback
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.setValueRounded
+import org.haziffe.dropsauce.core.util.ext.viewLifecycleScope
+import org.haziffe.dropsauce.core.util.progress.IntPercentLabelFormatter
+import org.haziffe.dropsauce.databinding.SheetReaderConfigBinding
+import org.haziffe.dropsauce.reader.domain.PageLoader
+import org.haziffe.dropsauce.reader.ui.ReaderViewModel
+import org.haziffe.dropsauce.reader.ui.ScreenOrientationHelper
 import javax.inject.Inject
 
 @AndroidEntryPoint

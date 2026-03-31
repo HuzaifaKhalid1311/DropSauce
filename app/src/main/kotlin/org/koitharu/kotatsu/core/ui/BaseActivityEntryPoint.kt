@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.ui
+package org.haziffe.dropsauce.core.ui
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.prefs.AppSettings
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)

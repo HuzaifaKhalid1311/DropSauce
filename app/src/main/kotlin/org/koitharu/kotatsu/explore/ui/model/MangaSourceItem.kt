@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.explore.ui.model
+package org.haziffe.dropsauce.explore.ui.model
 
-import org.koitharu.kotatsu.core.model.MangaSourceInfo
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.util.longHashCode
+import org.haziffe.dropsauce.core.model.MangaSourceInfo
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.util.longHashCode
 
 data class MangaSourceItem(
 	val source: MangaSourceInfo,

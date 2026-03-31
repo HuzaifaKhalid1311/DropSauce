@@ -1,27 +1,27 @@
-package org.koitharu.kotatsu.core.ui.model
+package org.haziffe.dropsauce.core.ui.model
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.SortDirection
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.model.SortOrder.ADDED
-import org.koitharu.kotatsu.parsers.model.SortOrder.ADDED_ASC
-import org.koitharu.kotatsu.parsers.model.SortOrder.ALPHABETICAL
-import org.koitharu.kotatsu.parsers.model.SortOrder.ALPHABETICAL_DESC
-import org.koitharu.kotatsu.parsers.model.SortOrder.NEWEST
-import org.koitharu.kotatsu.parsers.model.SortOrder.NEWEST_ASC
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_ASC
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_HOUR
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_MONTH
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_TODAY
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_WEEK
-import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_YEAR
-import org.koitharu.kotatsu.parsers.model.SortOrder.RATING
-import org.koitharu.kotatsu.parsers.model.SortOrder.RATING_ASC
-import org.koitharu.kotatsu.parsers.model.SortOrder.RELEVANCE
-import org.koitharu.kotatsu.parsers.model.SortOrder.UPDATED
-import org.koitharu.kotatsu.parsers.model.SortOrder.UPDATED_ASC
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.SortDirection
+import org.haziffe.dropsauce.parsers.model.SortOrder
+import org.haziffe.dropsauce.parsers.model.SortOrder.ADDED
+import org.haziffe.dropsauce.parsers.model.SortOrder.ADDED_ASC
+import org.haziffe.dropsauce.parsers.model.SortOrder.ALPHABETICAL
+import org.haziffe.dropsauce.parsers.model.SortOrder.ALPHABETICAL_DESC
+import org.haziffe.dropsauce.parsers.model.SortOrder.NEWEST
+import org.haziffe.dropsauce.parsers.model.SortOrder.NEWEST_ASC
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY_ASC
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY_HOUR
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY_MONTH
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY_TODAY
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY_WEEK
+import org.haziffe.dropsauce.parsers.model.SortOrder.POPULARITY_YEAR
+import org.haziffe.dropsauce.parsers.model.SortOrder.RATING
+import org.haziffe.dropsauce.parsers.model.SortOrder.RATING_ASC
+import org.haziffe.dropsauce.parsers.model.SortOrder.RELEVANCE
+import org.haziffe.dropsauce.parsers.model.SortOrder.UPDATED
+import org.haziffe.dropsauce.parsers.model.SortOrder.UPDATED_ASC
 
 @get:StringRes
 val SortOrder.titleRes: Int

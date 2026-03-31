@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.scrobbling.common.ui.selector.model
+package org.haziffe.dropsauce.scrobbling.common.ui.selector.model
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 data class ScrobblerHint(
 	@DrawableRes val icon: Int,

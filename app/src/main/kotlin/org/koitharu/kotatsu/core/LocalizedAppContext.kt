@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core
+package org.haziffe.dropsauce.core
 
 import javax.inject.Qualifier
 

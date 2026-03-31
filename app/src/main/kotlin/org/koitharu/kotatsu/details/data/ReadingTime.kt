@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.details.data
+package org.haziffe.dropsauce.details.data
 
 import android.content.res.Resources
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getQuantityStringSafe
 
 data class ReadingTime(
 	val minutes: Int,

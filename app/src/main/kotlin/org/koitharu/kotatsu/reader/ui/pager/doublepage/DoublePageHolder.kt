@@ -1,17 +1,17 @@
-package org.koitharu.kotatsu.reader.ui.pager.doublepage
+package org.haziffe.dropsauce.reader.ui.pager.doublepage
 
 import android.graphics.PointF
 import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleOwner
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.databinding.ItemPageBinding
-import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
-import org.koitharu.kotatsu.reader.ui.pager.standard.PageHolder
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.databinding.ItemPageBinding
+import org.haziffe.dropsauce.reader.domain.PageLoader
+import org.haziffe.dropsauce.reader.ui.config.ReaderSettings
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.reader.ui.pager.standard.PageHolder
 
 class DoublePageHolder(
 	owner: LifecycleOwner,

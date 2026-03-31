@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.scrobbling.common.data
+package org.haziffe.dropsauce.scrobbling.common.data
 
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerManga
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerUser
 
 interface ScrobblerRepository {
 

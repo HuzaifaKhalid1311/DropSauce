@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.model
+package org.haziffe.dropsauce.core.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.sync.data
+package org.haziffe.dropsauce.sync.data
 
 import android.accounts.Account
 import android.accounts.AccountManager
 import android.content.Context
 import okhttp3.Interceptor
 import okhttp3.Response
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.DATABASE_VERSION
-import org.koitharu.kotatsu.core.network.CommonHeaders
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.db.DATABASE_VERSION
+import org.haziffe.dropsauce.core.network.CommonHeaders
 
 class SyncInterceptor(
 	context: Context,

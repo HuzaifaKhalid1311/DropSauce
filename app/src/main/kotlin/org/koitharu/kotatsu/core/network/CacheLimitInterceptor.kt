@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import okhttp3.CacheControl
 import okhttp3.Interceptor

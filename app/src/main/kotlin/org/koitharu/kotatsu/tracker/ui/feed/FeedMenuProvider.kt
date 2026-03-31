@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.tracker.ui.feed
+package org.haziffe.dropsauce.tracker.ui.feed
 
 import android.content.Context
 import android.view.Menu
@@ -6,10 +6,10 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.core.view.MenuProvider
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.dialog.RememberCheckListener
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.dialog.setCheckbox
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.dialog.RememberCheckListener
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.ui.dialog.setCheckbox
 
 class FeedMenuProvider(
 	private val snackbarHost: View,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.backups.ui.periodical
+package org.haziffe.dropsauce.backups.ui.periodical
 
 import android.content.Context
 import android.net.Uri
@@ -7,15 +7,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.domain.BackupUtils
-import org.koitharu.kotatsu.backups.domain.ExternalBackupStorage
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.resolveFile
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.backups.domain.BackupUtils
+import org.haziffe.dropsauce.backups.domain.ExternalBackupStorage
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.util.ReversibleAction
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.resolveFile
 import java.util.Date
 import javax.inject.Inject
 

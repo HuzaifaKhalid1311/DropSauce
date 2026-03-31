@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.data
+package org.haziffe.dropsauce.reader.data
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -7,12 +7,12 @@ import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
-import org.koitharu.kotatsu.core.util.ext.getEnumValue
-import org.koitharu.kotatsu.core.util.ext.observeChanges
-import org.koitharu.kotatsu.core.util.ext.putAll
-import org.koitharu.kotatsu.core.util.ext.putEnumValue
-import org.koitharu.kotatsu.reader.domain.TapGridArea
-import org.koitharu.kotatsu.reader.ui.tapgrid.TapAction
+import org.haziffe.dropsauce.core.util.ext.getEnumValue
+import org.haziffe.dropsauce.core.util.ext.observeChanges
+import org.haziffe.dropsauce.core.util.ext.putAll
+import org.haziffe.dropsauce.core.util.ext.putEnumValue
+import org.haziffe.dropsauce.reader.domain.TapGridArea
+import org.haziffe.dropsauce.reader.ui.tapgrid.TapAction
 import javax.inject.Inject
 
 @Reusable

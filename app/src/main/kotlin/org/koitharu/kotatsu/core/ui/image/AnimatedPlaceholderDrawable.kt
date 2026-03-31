@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.image
+package org.haziffe.dropsauce.core.ui.image
 
 import android.animation.TimeAnimator
 import android.content.Context
@@ -10,9 +10,9 @@ import android.graphics.drawable.Drawable
 import androidx.core.graphics.ColorUtils
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.android.material.animation.ArgbEvaluatorCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getAnimationDuration
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
 import kotlin.math.abs
 import com.google.android.material.R as materialR
 

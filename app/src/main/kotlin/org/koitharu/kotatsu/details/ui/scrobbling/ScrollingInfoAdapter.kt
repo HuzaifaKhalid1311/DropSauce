@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.details.ui.scrobbling
+package org.haziffe.dropsauce.details.ui.scrobbling
 
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 class ScrollingInfoAdapter(
 	router: AppRouter,

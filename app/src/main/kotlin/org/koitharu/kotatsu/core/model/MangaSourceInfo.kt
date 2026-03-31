@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.core.model
+package org.haziffe.dropsauce.core.model
 
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 data class MangaSourceInfo(
 	val mangaSource: MangaSource,

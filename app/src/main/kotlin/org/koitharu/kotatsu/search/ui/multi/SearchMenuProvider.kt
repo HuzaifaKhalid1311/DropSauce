@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.search.ui.multi
+package org.haziffe.dropsauce.search.ui.multi
 
 import android.os.Build
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.search.domain.SearchKind
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.search.domain.SearchKind
 
 class SearchMenuProvider(
 	private val activity: SearchActivity,

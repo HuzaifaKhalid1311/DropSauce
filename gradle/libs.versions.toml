@@ -120,7 +120,7 @@ okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 rxjava = { module = "io.reactivex:rxjava", version.ref = "rxjava" }
 injekt-core = { module = "uy.kohesive.injekt:injekt-core", version.ref = "injekt" }
 ssiv = { module = "com.github.KotatsuApp:subsampling-scale-image-view", version.ref = "ssiv" }
-workinspector = { module = "com.github.Koitharu:WorkInspector", version.ref = "workinspector" }
+workinspector = { module = "com.github.haziffe:WorkInspector", version.ref = "workinspector" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 
 [plugins]

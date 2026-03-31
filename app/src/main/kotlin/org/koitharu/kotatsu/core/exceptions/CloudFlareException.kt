@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.core.exceptions
+package org.haziffe.dropsauce.core.exceptions
 
 import okio.IOException
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 abstract class CloudFlareException(
 	message: String,

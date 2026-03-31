@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.nav
+package org.haziffe.dropsauce.settings.nav
 
 import android.content.DialogInterface
 import android.os.Bundle
@@ -10,26 +10,26 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.NavItem
-import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.dialog.setRecyclerViewList
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
-import org.koitharu.kotatsu.core.util.ext.container
-import org.koitharu.kotatsu.core.util.ext.end
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.start
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
-import org.koitharu.kotatsu.databinding.FragmentSettingsSourcesBinding
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.settings.nav.adapter.navAddAD
-import org.koitharu.kotatsu.settings.nav.adapter.navAvailableAD
-import org.koitharu.kotatsu.settings.nav.adapter.navConfigAD
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.NavItem
+import org.haziffe.dropsauce.core.ui.BaseFragment
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.ui.dialog.setRecyclerViewList
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.util.RecyclerViewOwner
+import org.haziffe.dropsauce.core.util.ext.consumeAllSystemBarsInsets
+import org.haziffe.dropsauce.core.util.ext.container
+import org.haziffe.dropsauce.core.util.ext.end
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.start
+import org.haziffe.dropsauce.core.util.ext.systemBarsInsets
+import org.haziffe.dropsauce.databinding.FragmentSettingsSourcesBinding
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.settings.nav.adapter.navAddAD
+import org.haziffe.dropsauce.settings.nav.adapter.navAvailableAD
+import org.haziffe.dropsauce.settings.nav.adapter.navConfigAD
 
 @AndroidEntryPoint
 class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), RecyclerViewOwner,

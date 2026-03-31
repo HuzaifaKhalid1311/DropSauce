@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.settings.search
+package org.haziffe.dropsauce.settings.search
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ItemPreferenceBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.AdapterDelegateClickListenerAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ItemPreferenceBinding
 
 fun settingsItemAD(
 	listener: OnListItemClickListener<SettingsItem>,

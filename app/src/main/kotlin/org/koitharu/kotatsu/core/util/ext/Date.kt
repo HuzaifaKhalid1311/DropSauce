@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.res.Resources
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.model.DateTimeAgo
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.model.DateTimeAgo
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.backups.domain
+package org.haziffe.dropsauce.backups.domain
 
 import android.net.Uri
 import java.util.Date

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.filter.ui.model
+package org.haziffe.dropsauce.filter.ui.model
 
 data class FilterProperty<out T>(
 	val availableItems: List<T>,

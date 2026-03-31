@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.content.Context
 import android.graphics.Color
@@ -29,12 +29,12 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.chip.ChipGroup
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.image.ChipIconTarget
-import org.koitharu.kotatsu.core.util.ext.enqueueWith
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.setProgressIcon
-import org.koitharu.kotatsu.parsers.util.ifZero
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.image.ChipIconTarget
+import org.haziffe.dropsauce.core.util.ext.enqueueWith
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.setProgressIcon
+import org.haziffe.dropsauce.parsers.util.ifZero
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 

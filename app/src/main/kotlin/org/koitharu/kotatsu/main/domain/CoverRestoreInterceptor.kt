@@ -1,21 +1,21 @@
-package org.koitharu.kotatsu.main.domain
+package org.haziffe.dropsauce.main.domain
 
 import androidx.collection.ArraySet
 import coil3.intercept.Interceptor
 import coil3.request.ErrorResult
 import coil3.request.ImageResult
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.util.ext.bookmarkKey
-import org.koitharu.kotatsu.core.util.ext.mangaKey
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.findById
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.bookmarks.domain.BookmarksRepository
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.util.ext.bookmarkKey
+import org.haziffe.dropsauce.core.util.ext.mangaKey
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.findById
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.util.Collections
 import javax.inject.Inject
 

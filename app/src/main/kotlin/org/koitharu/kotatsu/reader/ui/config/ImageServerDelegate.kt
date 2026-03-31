@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.reader.ui.config
+package org.haziffe.dropsauce.reader.ui.config
 
 import android.content.Context
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.mapToArray
-import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
-import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.parsers.config.ConfigKey
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.util.mapToArray
+import org.haziffe.dropsauce.parsers.util.suspendlazy.getOrNull
+import org.haziffe.dropsauce.parsers.util.suspendlazy.suspendLazy
 import kotlin.coroutines.resume
 
 class ImageServerDelegate(

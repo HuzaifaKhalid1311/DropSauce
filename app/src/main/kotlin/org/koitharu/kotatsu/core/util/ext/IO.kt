@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.ContentResolver
 import android.net.Uri
@@ -16,8 +16,8 @@ import okio.IOException
 import okio.Path
 import okio.Source
 import okio.source
-import org.koitharu.kotatsu.core.util.CancellableSource
-import org.koitharu.kotatsu.core.util.progress.ProgressResponseBody
+import org.haziffe.dropsauce.core.util.CancellableSource
+import org.haziffe.dropsauce.core.util.progress.ProgressResponseBody
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.nio.ByteBuffer

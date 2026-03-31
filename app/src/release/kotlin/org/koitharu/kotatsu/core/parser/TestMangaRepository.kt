@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.core.parser
+package org.haziffe.dropsauce.core.parser
 
-import org.koitharu.kotatsu.core.cache.MemoryContentCache
-import org.koitharu.kotatsu.core.model.TestMangaSource
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.haziffe.dropsauce.core.cache.MemoryContentCache
+import org.haziffe.dropsauce.core.model.TestMangaSource
+import org.haziffe.dropsauce.parsers.MangaLoaderContext
 
 @Suppress("unused")
 class TestMangaRepository(

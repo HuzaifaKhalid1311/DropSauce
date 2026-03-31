@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.stats.data
+package org.haziffe.dropsauce.stats.data
 
 import androidx.room.Dao
 import androidx.room.MapColumn
@@ -11,7 +11,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
 import kotlin.collections.forEach
 
 @Dao

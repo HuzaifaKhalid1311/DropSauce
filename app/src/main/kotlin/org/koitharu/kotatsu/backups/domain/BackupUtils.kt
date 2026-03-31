@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.backups.domain
+package org.haziffe.dropsauce.backups.domain
 
 import android.content.Context
 import androidx.annotation.CheckResult
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
 import java.io.File
 import java.text.ParseException
 import java.text.SimpleDateFormat

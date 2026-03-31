@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -24,13 +24,13 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withScale
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getThemeColorStateList
-import org.koitharu.kotatsu.core.util.ext.isNightMode
-import org.koitharu.kotatsu.core.util.ext.measureDimension
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.util.format
-import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getThemeColorStateList
+import org.haziffe.dropsauce.core.util.ext.isNightMode
+import org.haziffe.dropsauce.core.util.ext.measureDimension
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.parsers.util.format
+import org.haziffe.dropsauce.reader.ui.pager.ReaderUiState
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle

@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.main.ui.protect
+package org.haziffe.dropsauce.main.ui.protect
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import org.koitharu.kotatsu.core.exceptions.WrongPasswordException
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.parsers.util.md5
+import org.haziffe.dropsauce.core.exceptions.WrongPasswordException
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.parsers.util.md5
 import javax.inject.Inject
 
 private const val PASSWORD_COMPARE_DELAY = 1_000L

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.sync.ui
+package org.haziffe.dropsauce.sync.ui
 
 import android.content.DialogInterface
 import android.os.Bundle
@@ -11,14 +11,14 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.AlertDialogFragment
-import org.koitharu.kotatsu.core.util.ext.isHttpUrl
-import org.koitharu.kotatsu.core.util.ext.withArgs
-import org.koitharu.kotatsu.databinding.PreferenceDialogAutocompletetextviewBinding
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.settings.utils.validation.UrlValidator
-import org.koitharu.kotatsu.sync.data.SyncSettings
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.AlertDialogFragment
+import org.haziffe.dropsauce.core.util.ext.isHttpUrl
+import org.haziffe.dropsauce.core.util.ext.withArgs
+import org.haziffe.dropsauce.databinding.PreferenceDialogAutocompletetextviewBinding
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.settings.utils.validation.UrlValidator
+import org.haziffe.dropsauce.sync.data.SyncSettings
 import javax.inject.Inject
 
 @AndroidEntryPoint

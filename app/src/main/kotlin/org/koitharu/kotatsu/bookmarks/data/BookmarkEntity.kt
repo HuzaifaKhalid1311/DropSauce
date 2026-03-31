@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.bookmarks.data
+package org.haziffe.dropsauce.bookmarks.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
 
 @Entity(
 	tableName = "bookmarks",

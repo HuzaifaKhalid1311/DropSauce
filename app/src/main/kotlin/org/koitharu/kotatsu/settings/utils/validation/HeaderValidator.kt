@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.settings.utils.validation
+package org.haziffe.dropsauce.settings.utils.validation
 
 import okhttp3.Headers
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.network.CommonHeaders
-import org.koitharu.kotatsu.core.util.EditTextValidator
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.network.CommonHeaders
+import org.haziffe.dropsauce.core.util.EditTextValidator
 
 class HeaderValidator : EditTextValidator() {
 

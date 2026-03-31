@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.main.ui.protect
+package org.haziffe.dropsauce.main.ui.protect
 
 import android.app.Activity
 import android.os.Bundle
@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ScreenshotsPolicy
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ScreenshotsPolicy
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.core.ui.DefaultActivityLifecycleCallbacks
 import javax.inject.Inject
 
 class ScreenshotPolicyHelper @Inject constructor(

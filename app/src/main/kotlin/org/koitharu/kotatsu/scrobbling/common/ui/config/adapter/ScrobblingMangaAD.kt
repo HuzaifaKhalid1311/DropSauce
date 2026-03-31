@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.scrobbling.common.ui.config.adapter
+package org.haziffe.dropsauce.scrobbling.common.ui.config.adapter
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.databinding.ItemScrobblingMangaBinding
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
+import org.haziffe.dropsauce.core.ui.list.AdapterDelegateClickListenerAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.databinding.ItemScrobblingMangaBinding
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingInfo
 
 fun scrobblingMangaAD(
 	clickListener: OnListItemClickListener<ScrobblingInfo>,

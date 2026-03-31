@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.reader.ui.pager.doublereversed
+package org.haziffe.dropsauce.reader.ui.pager.doublereversed
 
-import org.koitharu.kotatsu.reader.ui.ReaderState
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
-import org.koitharu.kotatsu.reader.ui.pager.doublepage.DoubleReaderFragment
+import org.haziffe.dropsauce.reader.ui.ReaderState
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.reader.ui.pager.doublepage.DoubleReaderFragment
 
 class ReversedDoubleReaderFragment : DoubleReaderFragment() {
 

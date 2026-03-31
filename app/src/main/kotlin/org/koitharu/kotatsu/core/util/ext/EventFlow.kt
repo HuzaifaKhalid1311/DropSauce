@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import androidx.annotation.AnyThread
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import org.koitharu.kotatsu.core.util.Event
+import org.haziffe.dropsauce.core.util.Event
 
 @Suppress("FunctionName")
 fun <T> MutableEventFlow() = MutableStateFlow<Event<T>?>(null)

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.content.Context
 import android.util.AttributeSet
@@ -17,14 +17,14 @@ import com.google.android.material.slider.Slider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ReaderMode
-import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.parentView
-import org.koitharu.kotatsu.databinding.ViewScrollTimerBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ReaderMode
+import org.haziffe.dropsauce.core.prefs.observeAsStateFlow
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.parentView
+import org.haziffe.dropsauce.databinding.ViewScrollTimerBinding
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs

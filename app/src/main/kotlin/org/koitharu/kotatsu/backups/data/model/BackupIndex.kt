@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.backups.data.model
+package org.haziffe.dropsauce.backups.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.BuildConfig
+import org.haziffe.dropsauce.BuildConfig
 
 @Serializable
 class BackupIndex(

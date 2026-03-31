@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 
 data class ReaderContent(
 	val pages: List<ReaderPage>,

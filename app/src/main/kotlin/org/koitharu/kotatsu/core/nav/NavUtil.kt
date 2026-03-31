@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.nav
+package org.haziffe.dropsauce.core.nav
 
 import android.app.ActivityOptions
 import android.os.Bundle
@@ -6,8 +6,8 @@ import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.isOnScreen
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.isOnScreen
 
 inline val FragmentActivity.router: AppRouter
 	get() = AppRouter(this)

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.stats.ui
+package org.haziffe.dropsauce.stats.ui
 
 import android.os.Bundle
 import android.view.Menu
@@ -19,28 +19,28 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.util.KotatsuColors
-import org.koitharu.kotatsu.core.util.ext.end
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.core.util.ext.showOrHide
-import org.koitharu.kotatsu.core.util.ext.start
-import org.koitharu.kotatsu.databinding.ActivityStatsBinding
-import org.koitharu.kotatsu.databinding.ItemEmptyStateBinding
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.stats.domain.StatsPeriod
-import org.koitharu.kotatsu.stats.domain.StatsRecord
-import org.koitharu.kotatsu.stats.ui.views.PieChartView
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.util.ReversibleActionObserver
+import org.haziffe.dropsauce.core.util.KotatsuColors
+import org.haziffe.dropsauce.core.util.ext.end
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.core.util.ext.showOrHide
+import org.haziffe.dropsauce.core.util.ext.start
+import org.haziffe.dropsauce.databinding.ActivityStatsBinding
+import org.haziffe.dropsauce.databinding.ItemEmptyStateBinding
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.stats.domain.StatsPeriod
+import org.haziffe.dropsauce.stats.domain.StatsRecord
+import org.haziffe.dropsauce.stats.ui.views.PieChartView
 
 @AndroidEntryPoint
 class StatsActivity : BaseActivity<ActivityStatsBinding>(),

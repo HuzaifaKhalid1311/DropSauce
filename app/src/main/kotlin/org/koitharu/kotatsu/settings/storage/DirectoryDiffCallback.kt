@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.storage
+package org.haziffe.dropsauce.settings.storage
 
 import androidx.recyclerview.widget.DiffUtil.ItemCallback
 

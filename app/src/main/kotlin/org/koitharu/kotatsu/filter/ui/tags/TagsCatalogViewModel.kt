@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.filter.ui.tags
+package org.haziffe.dropsauce.filter.ui.tags
 
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
@@ -14,17 +14,17 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.filter.ui.FilterCoordinator
-import org.koitharu.kotatsu.filter.ui.model.FilterProperty
-import org.koitharu.kotatsu.filter.ui.model.TagCatalogItem
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.list.ui.model.toErrorFooter
-import org.koitharu.kotatsu.list.ui.model.toErrorState
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.filter.ui.FilterCoordinator
+import org.haziffe.dropsauce.filter.ui.model.FilterProperty
+import org.haziffe.dropsauce.filter.ui.model.TagCatalogItem
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.LoadingState
+import org.haziffe.dropsauce.list.ui.model.toErrorFooter
+import org.haziffe.dropsauce.list.ui.model.toErrorState
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.parsers.model.MangaTag
 
 @HiltViewModel(assistedFactory = TagsCatalogViewModel.Factory::class)
 class TagsCatalogViewModel @AssistedInject constructor(

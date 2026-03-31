@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.settings
+package org.haziffe.dropsauce.settings
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.FragmentResultListener
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.sync.data.SyncSettings
-import org.koitharu.kotatsu.sync.ui.SyncHostDialogFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.sync.data.SyncSettings
+import org.haziffe.dropsauce.sync.ui.SyncHostDialogFragment
 import javax.inject.Inject
 
 @AndroidEntryPoint

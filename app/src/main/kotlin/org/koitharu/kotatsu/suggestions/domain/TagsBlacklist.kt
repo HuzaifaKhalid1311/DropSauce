@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.suggestions.domain
+package org.haziffe.dropsauce.suggestions.domain
 
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.util.almostEquals
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.util.almostEquals
 
 class TagsBlacklist(
 	private val tags: Set<String>,

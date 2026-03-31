@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.settings.nav.adapter
+package org.haziffe.dropsauce.settings.nav.adapter
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.View
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.NavItem
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.databinding.ItemNavAvailableBinding
-import org.koitharu.kotatsu.databinding.ItemNavConfigBinding
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.settings.nav.model.NavItemAddModel
-import org.koitharu.kotatsu.settings.nav.model.NavItemConfigModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.NavItem
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.databinding.ItemNavAvailableBinding
+import org.haziffe.dropsauce.databinding.ItemNavConfigBinding
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.settings.nav.model.NavItemAddModel
+import org.haziffe.dropsauce.settings.nav.model.NavItemConfigModel
 
 @SuppressLint("ClickableViewAccessibility")
 fun navConfigAD(

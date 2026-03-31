@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.backups.data.model
+package org.haziffe.dropsauce.backups.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblingEntity
 
 @Serializable
 class ScrobblingBackup(

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.view.View
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout

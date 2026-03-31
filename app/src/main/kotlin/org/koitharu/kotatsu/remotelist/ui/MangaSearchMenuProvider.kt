@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.remotelist.ui
+package org.haziffe.dropsauce.remotelist.ui
 
 import android.view.Menu
 import android.view.MenuInflater
@@ -6,12 +6,12 @@ import android.view.MenuItem
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.core.view.inputmethod.EditorInfoCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.filter.ui.FilterCoordinator
-import org.koitharu.kotatsu.list.ui.MangaListViewModel
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.util.ReversibleAction
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.filter.ui.FilterCoordinator
+import org.haziffe.dropsauce.list.ui.MangaListViewModel
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
 
 class MangaSearchMenuProvider(
 	private val filter: FilterCoordinator,

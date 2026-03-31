@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 
 interface ReaderNavigationCallback {
 

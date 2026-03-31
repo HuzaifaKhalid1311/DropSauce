@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.core.github
+package org.haziffe.dropsauce.core.github
 
-import org.koitharu.kotatsu.parsers.util.digits
+import org.haziffe.dropsauce.parsers.util.digits
 import java.util.Locale
 
 data class VersionId(

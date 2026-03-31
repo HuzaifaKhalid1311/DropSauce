@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.image
+package org.haziffe.dropsauce.core.ui.image
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -9,7 +9,7 @@ import coil3.executeBlocking
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.koitharu.kotatsu.core.util.ext.drawable
+import org.haziffe.dropsauce.core.util.ext.drawable
 import javax.inject.Inject
 
 class CoilImageGetter @Inject constructor(

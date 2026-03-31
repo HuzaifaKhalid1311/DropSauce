@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu.sync.ui.history
+package org.haziffe.dropsauce.sync.ui.history
 
-import org.koitharu.kotatsu.sync.ui.SyncProvider
+import org.haziffe.dropsauce.sync.ui.SyncProvider
 
 class HistorySyncProvider : SyncProvider()

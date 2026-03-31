@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.history.domain.model
+package org.haziffe.dropsauce.history.domain.model
 
-import org.koitharu.kotatsu.core.model.MangaHistory
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.model.MangaHistory
+import org.haziffe.dropsauce.parsers.model.Manga
 
 data class MangaWithHistory(
 	val manga: Manga,

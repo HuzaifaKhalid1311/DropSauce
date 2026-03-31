@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.settings.tracker.categories
+package org.haziffe.dropsauce.settings.tracker.categories
 
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
 
 class TrackerCategoriesConfigAdapter(
 	listener: OnListItemClickListener<FavouriteCategory>,

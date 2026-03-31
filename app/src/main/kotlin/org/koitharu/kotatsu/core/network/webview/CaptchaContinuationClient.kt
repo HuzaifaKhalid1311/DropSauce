@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.network.webview
+package org.haziffe.dropsauce.core.network.webview
 
 import android.graphics.Bitmap
 import android.webkit.WebView
-import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
-import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.haziffe.dropsauce.core.network.cookies.MutableCookieJar
+import org.haziffe.dropsauce.parsers.network.CloudFlareHelper
 import kotlin.coroutines.Continuation
 
 class CaptchaContinuationClient(

@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.details.ui.pager
+package org.haziffe.dropsauce.details.ui.pager
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 enum class EmptyMangaReason(
 	@StringRes val msgResId: Int,

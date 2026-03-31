@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.picker.ui
+package org.haziffe.dropsauce.picker.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,22 +13,22 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.commit
 import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.DialogErrorObserver
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.databinding.ActivityPickerBinding
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
-import org.koitharu.kotatsu.main.ui.owners.SnackbarOwner
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.picker.ui.manga.MangaPickerFragment
-import org.koitharu.kotatsu.picker.ui.page.PagePickerFragment
-import org.koitharu.kotatsu.reader.ui.PageSaveHelper
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.DialogErrorObserver
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.util.ext.consume
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.databinding.ActivityPickerBinding
+import org.haziffe.dropsauce.main.ui.owners.AppBarOwner
+import org.haziffe.dropsauce.main.ui.owners.SnackbarOwner
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.picker.ui.manga.MangaPickerFragment
+import org.haziffe.dropsauce.picker.ui.page.PagePickerFragment
+import org.haziffe.dropsauce.reader.ui.PageSaveHelper
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 import java.io.File
 import javax.inject.Inject
 

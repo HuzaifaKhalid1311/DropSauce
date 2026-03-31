@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.about.changelog
+package org.haziffe.dropsauce.settings.about.changelog
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,17 +12,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.DialogErrorObserver
-import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.util.ext.consumeAll
-import org.koitharu.kotatsu.core.util.ext.container
-import org.koitharu.kotatsu.core.util.ext.end
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.showOrHide
-import org.koitharu.kotatsu.core.util.ext.start
-import org.koitharu.kotatsu.databinding.FragmentChangelogBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.DialogErrorObserver
+import org.haziffe.dropsauce.core.ui.BaseFragment
+import org.haziffe.dropsauce.core.util.ext.consumeAll
+import org.haziffe.dropsauce.core.util.ext.container
+import org.haziffe.dropsauce.core.util.ext.end
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.showOrHide
+import org.haziffe.dropsauce.core.util.ext.start
+import org.haziffe.dropsauce.databinding.FragmentChangelogBinding
 
 @AndroidEntryPoint
 class ChangelogFragment : BaseFragment<FragmentChangelogBinding>() {

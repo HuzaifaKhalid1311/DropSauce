@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.sync.ui
+package org.haziffe.dropsauce.sync.ui
 
 import android.content.ContentProvider
 import android.content.ContentProviderOperation
@@ -13,7 +13,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import org.koitharu.kotatsu.core.db.*
+import org.haziffe.dropsauce.core.db.*
 import java.util.concurrent.Callable
 
 abstract class SyncProvider : ContentProvider() {

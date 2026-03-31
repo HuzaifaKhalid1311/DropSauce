@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings
+package org.haziffe.dropsauce.settings
 
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
@@ -8,21 +8,21 @@ import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.ZoomMode
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ReaderAnimation
-import org.koitharu.kotatsu.core.prefs.ReaderBackground
-import org.koitharu.kotatsu.core.prefs.ReaderControl
-import org.koitharu.kotatsu.core.prefs.ReaderMode
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.util.ext.setDefaultValueCompat
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.names
-import org.koitharu.kotatsu.settings.utils.MultiSummaryProvider
-import org.koitharu.kotatsu.settings.utils.PercentSummaryProvider
-import org.koitharu.kotatsu.settings.utils.SliderPreference
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.ZoomMode
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ReaderAnimation
+import org.haziffe.dropsauce.core.prefs.ReaderBackground
+import org.haziffe.dropsauce.core.prefs.ReaderControl
+import org.haziffe.dropsauce.core.prefs.ReaderMode
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.util.ext.setDefaultValueCompat
+import org.haziffe.dropsauce.parsers.util.mapToSet
+import org.haziffe.dropsauce.parsers.util.names
+import org.haziffe.dropsauce.settings.utils.MultiSummaryProvider
+import org.haziffe.dropsauce.settings.utils.PercentSummaryProvider
+import org.haziffe.dropsauce.settings.utils.SliderPreference
 
 @AndroidEntryPoint
 class ReaderSettingsFragment :

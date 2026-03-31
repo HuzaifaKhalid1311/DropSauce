@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.domain
+package org.haziffe.dropsauce.details.domain
 
 import android.text.Html
 import android.text.SpannableString
@@ -16,23 +16,23 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runInterruptible
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.nav.MangaIntent
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.parser.CachingMangaRepository
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.ui.model.MangaOverride
-import org.koitharu.kotatsu.core.util.ext.sanitize
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.explore.domain.RecoverMangaUseCase
-import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.exception.NotFoundException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.nullIfEmpty
-import org.koitharu.kotatsu.parsers.util.recoverNotNull
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.nav.MangaIntent
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.parser.CachingMangaRepository
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.ui.model.MangaOverride
+import org.haziffe.dropsauce.core.util.ext.sanitize
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.explore.domain.RecoverMangaUseCase
+import org.haziffe.dropsauce.local.data.LocalMangaRepository
+import org.haziffe.dropsauce.local.domain.model.LocalManga
+import org.haziffe.dropsauce.parsers.exception.NotFoundException
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.nullIfEmpty
+import org.haziffe.dropsauce.parsers.util.recoverNotNull
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 class DetailsLoadUseCase @Inject constructor(

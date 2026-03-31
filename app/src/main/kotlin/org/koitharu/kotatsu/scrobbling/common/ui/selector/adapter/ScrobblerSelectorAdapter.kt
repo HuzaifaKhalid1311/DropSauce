@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.scrobbling.common.ui.selector.adapter
+package org.haziffe.dropsauce.scrobbling.common.ui.selector.adapter
 
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.ListStateHolderListener
-import org.koitharu.kotatsu.list.ui.adapter.loadingFooterAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingStateAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.ListStateHolderListener
+import org.haziffe.dropsauce.list.ui.adapter.loadingFooterAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingStateAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerManga
 
 class ScrobblerSelectorAdapter(
 	clickListener: OnListItemClickListener<ScrobblerManga>,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.os
+package org.haziffe.dropsauce.core.os
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -6,7 +6,7 @@ import android.content.pm.PackageManager
 import androidx.core.content.pm.PackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.haziffe.dropsauce.parsers.util.suspendlazy.suspendLazy
 import javax.inject.Inject
 import javax.inject.Singleton
 

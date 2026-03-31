@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.scrobbling.common.domain
+package org.haziffe.dropsauce.scrobbling.common.domain
 
-import org.koitharu.kotatsu.scrobbling.anilist.data.AniListRepository
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerRepository
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuRepository
-import org.koitharu.kotatsu.scrobbling.mal.data.MALRepository
-import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriRepository
+import org.haziffe.dropsauce.scrobbling.anilist.data.AniListRepository
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerRepository
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.kitsu.data.KitsuRepository
+import org.haziffe.dropsauce.scrobbling.mal.data.MALRepository
+import org.haziffe.dropsauce.scrobbling.shikimori.data.ShikimoriRepository
 import javax.inject.Inject
 import javax.inject.Provider
 

@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.download.ui.list.chapters
+package org.haziffe.dropsauce.download.ui.list.chapters
 
 import androidx.core.content.ContextCompat
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.drawableEnd
-import org.koitharu.kotatsu.databinding.ItemChapterDownloadBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.drawableEnd
+import org.haziffe.dropsauce.databinding.ItemChapterDownloadBinding
 
 fun downloadChapterAD() = adapterDelegateViewBinding<DownloadChapter, DownloadChapter, ItemChapterDownloadBinding>(
 	{ layoutInflater, parent -> ItemChapterDownloadBinding.inflate(layoutInflater, parent, false) },

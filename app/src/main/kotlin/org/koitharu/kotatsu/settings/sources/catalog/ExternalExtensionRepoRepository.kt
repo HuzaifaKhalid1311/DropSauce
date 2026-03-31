@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.koitharu.kotatsu.core.network.BaseHttpClient
+import org.haziffe.dropsauce.core.network.BaseHttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
 

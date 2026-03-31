@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.settings.tracker
+package org.haziffe.dropsauce.settings.tracker
 
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import okio.Closeable
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.TABLE_FAVOURITE_CATEGORIES
-import org.koitharu.kotatsu.core.db.removeObserverAsync
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.tracker.domain.TrackingRepository
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.TABLE_FAVOURITE_CATEGORIES
+import org.haziffe.dropsauce.core.db.removeObserverAsync
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.tracker.domain.TrackingRepository
 import javax.inject.Inject
 
 @HiltViewModel

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.storage
+package org.haziffe.dropsauce.settings.storage
 
 import android.Manifest
 import android.content.Intent
@@ -13,15 +13,15 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.hannesdorfmann.adapterdelegates4.AsyncListDifferDelegationAdapter
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.ToastErrorObserver
-import org.koitharu.kotatsu.core.os.OpenDocumentTreeHelper
-import org.koitharu.kotatsu.core.ui.AlertDialogFragment
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
-import org.koitharu.kotatsu.databinding.DialogDirectorySelectBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.ToastErrorObserver
+import org.haziffe.dropsauce.core.os.OpenDocumentTreeHelper
+import org.haziffe.dropsauce.core.ui.AlertDialogFragment
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.databinding.DialogDirectorySelectBinding
 
 @AndroidEntryPoint
 class MangaDirectorySelectDialog : AlertDialogFragment<DialogDirectorySelectBinding>(),

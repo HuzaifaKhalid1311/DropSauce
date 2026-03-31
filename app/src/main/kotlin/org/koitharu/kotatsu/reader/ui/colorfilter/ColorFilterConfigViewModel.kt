@@ -1,19 +1,19 @@
-package org.koitharu.kotatsu.reader.ui.colorfilter
+package org.haziffe.dropsauce.reader.ui.colorfilter
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaPage
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.require
-import org.koitharu.kotatsu.reader.domain.ReaderColorFilter
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableMangaPage
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.require
+import org.haziffe.dropsauce.reader.domain.ReaderColorFilter
 import javax.inject.Inject
 
 @HiltViewModel

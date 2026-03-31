@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.bookmarks.domain
+package org.haziffe.dropsauce.bookmarks.domain
 
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.isImage
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.isImage
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaPage
 import java.time.Instant
 
 data class Bookmark(

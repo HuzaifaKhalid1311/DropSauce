@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.favourites.ui.categories.adapter
+package org.haziffe.dropsauce.favourites.ui.categories.adapter
 
-import org.koitharu.kotatsu.favourites.domain.model.Cover
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.favourites.domain.model.Cover
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 data class AllCategoriesListModel(
 	val mangaCount: Int,

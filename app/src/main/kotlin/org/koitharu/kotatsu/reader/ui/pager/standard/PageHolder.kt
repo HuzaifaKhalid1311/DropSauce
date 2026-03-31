@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui.pager.standard
+package org.haziffe.dropsauce.reader.ui.pager.standard
 
 import android.annotation.SuppressLint
 import android.graphics.PointF
@@ -18,16 +18,16 @@ import androidx.core.view.setMargins
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.LifecycleOwner
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.model.ZoomMode
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.ui.widgets.ZoomControl
-import org.koitharu.kotatsu.databinding.ItemPageBinding
-import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
-import org.koitharu.kotatsu.reader.ui.pager.BasePageHolder
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.model.ZoomMode
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.ui.widgets.ZoomControl
+import org.haziffe.dropsauce.databinding.ItemPageBinding
+import org.haziffe.dropsauce.reader.domain.PageLoader
+import org.haziffe.dropsauce.reader.ui.config.ReaderSettings
+import org.haziffe.dropsauce.reader.ui.pager.BasePageHolder
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 
 open class PageHolder(
 	owner: LifecycleOwner,

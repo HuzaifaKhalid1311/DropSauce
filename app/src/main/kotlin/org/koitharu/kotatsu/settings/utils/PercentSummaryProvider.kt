@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import androidx.preference.Preference
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 class PercentSummaryProvider : Preference.SummaryProvider<SliderPreference> {
 

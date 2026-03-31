@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.scrobbling.common.domain
+package org.haziffe.dropsauce.scrobbling.common.domain
 
 import okio.IOException
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
 
 class ScrobblerAuthRequiredException(
 	val scrobbler: ScrobblerService,

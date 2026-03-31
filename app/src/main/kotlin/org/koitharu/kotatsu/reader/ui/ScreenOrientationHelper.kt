@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
-import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.AppSettings
 import javax.inject.Inject
 
 @ActivityScoped

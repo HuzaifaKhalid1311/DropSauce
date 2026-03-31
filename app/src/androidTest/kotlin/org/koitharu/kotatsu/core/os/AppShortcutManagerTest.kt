@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.os
+package org.haziffe.dropsauce.core.os
 
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
@@ -15,10 +15,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koitharu.kotatsu.SampleData
-import org.koitharu.kotatsu.awaitForIdle
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.history.data.HistoryRepository
+import org.haziffe.dropsauce.SampleData
+import org.haziffe.dropsauce.awaitForIdle
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.history.data.HistoryRepository
 import javax.inject.Inject
 
 @HiltAndroidTest

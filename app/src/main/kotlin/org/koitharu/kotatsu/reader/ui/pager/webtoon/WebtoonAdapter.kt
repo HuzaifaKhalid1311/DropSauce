@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.reader.ui.pager.webtoon
+package org.haziffe.dropsauce.reader.ui.pager.webtoon
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.databinding.ItemPageWebtoonBinding
-import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
-import org.koitharu.kotatsu.reader.ui.pager.BaseReaderAdapter
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.databinding.ItemPageWebtoonBinding
+import org.haziffe.dropsauce.reader.domain.PageLoader
+import org.haziffe.dropsauce.reader.ui.config.ReaderSettings
+import org.haziffe.dropsauce.reader.ui.pager.BaseReaderAdapter
 
 class WebtoonAdapter(
 	private val lifecycleOwner: LifecycleOwner,

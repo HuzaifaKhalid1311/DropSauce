@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.alternatives.ui
+package org.haziffe.dropsauce.alternatives.ui
 
 import android.os.Bundle
 import android.view.View
@@ -8,28 +8,28 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
-import org.koitharu.kotatsu.databinding.ActivityAlternativesBinding
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.ListStateHolderListener
-import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
-import org.koitharu.kotatsu.list.ui.adapter.buttonFooterAD
-import org.koitharu.kotatsu.list.ui.adapter.emptyStateListAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingFooterAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingStateAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.consumeAllSystemBarsInsets
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.systemBarsInsets
+import org.haziffe.dropsauce.databinding.ActivityAlternativesBinding
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.ListStateHolderListener
+import org.haziffe.dropsauce.list.ui.adapter.TypedListSpacingDecoration
+import org.haziffe.dropsauce.list.ui.adapter.buttonFooterAD
+import org.haziffe.dropsauce.list.ui.adapter.emptyStateListAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingFooterAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingStateAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.Manga
 import javax.inject.Inject
 
 @AndroidEntryPoint

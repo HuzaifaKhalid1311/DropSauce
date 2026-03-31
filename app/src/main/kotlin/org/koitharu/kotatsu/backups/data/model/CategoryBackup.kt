@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.backups.data.model
+package org.haziffe.dropsauce.backups.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
-import org.koitharu.kotatsu.list.domain.ListSortOrder
+import org.haziffe.dropsauce.favourites.data.FavouriteCategoryEntity
+import org.haziffe.dropsauce.list.domain.ListSortOrder
 
 @Serializable
 class CategoryBackup(

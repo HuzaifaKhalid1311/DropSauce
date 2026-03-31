@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.tracker.ui.debug
+package org.haziffe.dropsauce.tracker.ui.debug
 
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.Manga
 import java.time.Instant
 
 data class TrackDebugItem(

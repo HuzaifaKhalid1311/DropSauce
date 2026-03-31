@@ -1,16 +1,16 @@
-package org.koitharu.kotatsu.search.ui.suggestion
+package org.haziffe.dropsauce.search.ui.suggestion
 
 import android.text.Editable
 import android.view.KeyEvent
 import android.widget.TextView
 import androidx.core.net.toUri
 import com.google.android.material.search.SearchView
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.parser.MangaLinkResolver
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.search.domain.SearchKind
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.parser.MangaLinkResolver
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.search.domain.SearchKind
 
 class SearchSuggestionListenerImpl(
 	private val router: AppRouter,

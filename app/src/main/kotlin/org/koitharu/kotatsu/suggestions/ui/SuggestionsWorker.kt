@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.suggestions.ui
+package org.haziffe.dropsauce.suggestions.ui
 
 import android.Manifest
 import android.app.PendingIntent
@@ -44,44 +44,44 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.CloudFlareException
-import org.koitharu.kotatsu.core.exceptions.resolve.CaptchaHandler
-import org.koitharu.kotatsu.core.model.distinctById
-import org.koitharu.kotatsu.core.model.getLocale
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.ReaderIntent
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.LocaleComparator
-import org.koitharu.kotatsu.core.util.ext.asArrayList
-import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
-import org.koitharu.kotatsu.core.util.ext.awaitWorkInfosByTag
-import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
-import org.koitharu.kotatsu.core.util.ext.flatten
-import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.sanitize
-import org.koitharu.kotatsu.core.util.ext.takeMostFrequent
-import org.koitharu.kotatsu.core.util.ext.toBitmapOrNull
-import org.koitharu.kotatsu.core.util.ext.trySetForeground
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.almostEquals
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.sizeOrZero
-import org.koitharu.kotatsu.settings.work.PeriodicWorkScheduler
-import org.koitharu.kotatsu.suggestions.domain.MangaSuggestion
-import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
-import org.koitharu.kotatsu.suggestions.domain.TagsBlacklist
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.CloudFlareException
+import org.haziffe.dropsauce.core.exceptions.resolve.CaptchaHandler
+import org.haziffe.dropsauce.core.model.distinctById
+import org.haziffe.dropsauce.core.model.getLocale
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.nav.ReaderIntent
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.LocaleComparator
+import org.haziffe.dropsauce.core.util.ext.asArrayList
+import org.haziffe.dropsauce.core.util.ext.awaitUniqueWorkInfoByName
+import org.haziffe.dropsauce.core.util.ext.awaitWorkInfosByTag
+import org.haziffe.dropsauce.core.util.ext.checkNotificationPermission
+import org.haziffe.dropsauce.core.util.ext.flatten
+import org.haziffe.dropsauce.core.util.ext.getQuantityStringSafe
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.sanitize
+import org.haziffe.dropsauce.core.util.ext.takeMostFrequent
+import org.haziffe.dropsauce.core.util.ext.toBitmapOrNull
+import org.haziffe.dropsauce.core.util.ext.trySetForeground
+import org.haziffe.dropsauce.explore.data.MangaSourcesRepository
+import org.haziffe.dropsauce.favourites.domain.FavouritesRepository
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.model.SortOrder
+import org.haziffe.dropsauce.parsers.util.almostEquals
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.parsers.util.sizeOrZero
+import org.haziffe.dropsauce.settings.work.PeriodicWorkScheduler
+import org.haziffe.dropsauce.suggestions.domain.MangaSuggestion
+import org.haziffe.dropsauce.suggestions.domain.SuggestionRepository
+import org.haziffe.dropsauce.suggestions.domain.TagsBlacklist
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.pow
@@ -460,7 +460,7 @@ class SuggestionsWorker @AssistedInject constructor(
 		const val DATA_COUNT = "count"
 		const val WORKER_CHANNEL_ID = "suggestion_worker"
 		const val MANGA_CHANNEL_ID = "suggestions"
-		const val GROUP_SUGGESTION = "org.koitharu.kotatsu.SUGGESTIONS"
+		const val GROUP_SUGGESTION = "org.haziffe.dropsauce.SUGGESTIONS"
 		const val WORKER_NOTIFICATION_ID = 36
 		const val MAX_RESULTS = 160
 		const val MAX_PARALLELISM = 3

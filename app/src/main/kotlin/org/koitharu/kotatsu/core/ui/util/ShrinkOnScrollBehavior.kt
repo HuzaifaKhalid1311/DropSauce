@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import android.content.Context
 import android.util.AttributeSet

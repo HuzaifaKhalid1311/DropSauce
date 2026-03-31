@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable

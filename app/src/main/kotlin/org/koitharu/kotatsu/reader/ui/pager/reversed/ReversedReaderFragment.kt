@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.reader.ui.pager.reversed
+package org.haziffe.dropsauce.reader.ui.pager.reversed
 
 import androidx.viewpager2.widget.ViewPager2
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.reader.ui.ReaderState
-import org.koitharu.kotatsu.reader.ui.pager.BasePagerReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.reader.ui.ReaderState
+import org.haziffe.dropsauce.reader.ui.pager.BasePagerReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 import javax.inject.Inject
 
 @AndroidEntryPoint

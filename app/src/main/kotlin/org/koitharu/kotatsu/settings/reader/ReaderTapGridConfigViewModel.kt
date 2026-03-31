@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.reader
+package org.haziffe.dropsauce.settings.reader
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.reader.data.TapGridSettings
-import org.koitharu.kotatsu.reader.domain.TapGridArea
-import org.koitharu.kotatsu.reader.ui.tapgrid.TapAction
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.reader.data.TapGridSettings
+import org.haziffe.dropsauce.reader.domain.TapGridArea
+import org.haziffe.dropsauce.reader.ui.tapgrid.TapAction
 import java.util.EnumMap
 import javax.inject.Inject
 

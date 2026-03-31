@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.github
+package org.haziffe.dropsauce.core.github
 
 import android.os.Parcelable
 import kotlinx.parcelize.IgnoredOnParcel

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.download.ui.list
+package org.haziffe.dropsauce.download.ui.list
 
 import android.view.View
 import androidx.core.view.isGone
@@ -11,18 +11,18 @@ import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
-import org.koitharu.kotatsu.core.util.ext.setContentDescriptionAndTooltip
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ItemDownloadBinding
-import org.koitharu.kotatsu.download.ui.list.chapters.DownloadChapter
-import org.koitharu.kotatsu.download.ui.list.chapters.downloadChapterAD
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.util.format
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.util.ext.getQuantityStringSafe
+import org.haziffe.dropsauce.core.util.ext.setContentDescriptionAndTooltip
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ItemDownloadBinding
+import org.haziffe.dropsauce.download.ui.list.chapters.DownloadChapter
+import org.haziffe.dropsauce.download.ui.list.chapters.downloadChapterAD
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.util.format
 
 fun downloadItemAD(
 	lifecycleOwner: LifecycleOwner,

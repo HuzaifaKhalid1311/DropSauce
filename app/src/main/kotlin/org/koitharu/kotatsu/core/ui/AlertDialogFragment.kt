@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui
+package org.haziffe.dropsauce.core.ui
 
 import android.app.Dialog
 import android.os.Bundle

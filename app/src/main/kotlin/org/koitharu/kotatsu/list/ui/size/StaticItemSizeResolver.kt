@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.list.ui.size
+package org.haziffe.dropsauce.list.ui.size
 
 import android.view.View
 import android.widget.TextView
 import androidx.core.view.updateLayoutParams
 import androidx.core.widget.TextViewCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.history.ui.util.ReadingProgressView
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.history.ui.util.ReadingProgressView
 
 class StaticItemSizeResolver(
 	override val cellWidth: Int,

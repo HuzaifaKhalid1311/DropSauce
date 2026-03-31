@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.res.ColorStateList
 import android.graphics.Bitmap

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources
+package org.haziffe.dropsauce.settings.sources
 
 import android.os.Bundle
 import android.view.View
@@ -13,23 +13,23 @@ import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import eu.kanade.tachiyomi.source.ConfigurableSource
 import kotlinx.coroutines.flow.filterNotNull
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.SourceSettings
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.withArgs
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
-import org.koitharu.kotatsu.mihon.MihonMangaRepository
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.parser.EmptyMangaRepository
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.SourceSettings
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.ui.util.ReversibleActionObserver
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.withArgs
+import org.haziffe.dropsauce.extensions.runtime.getExternalExtensionLanguageDisplayName
+import org.haziffe.dropsauce.mihon.MihonMangaRepository
+import org.haziffe.dropsauce.parsers.model.MangaSource
 import java.io.File
 
 @AndroidEntryPoint

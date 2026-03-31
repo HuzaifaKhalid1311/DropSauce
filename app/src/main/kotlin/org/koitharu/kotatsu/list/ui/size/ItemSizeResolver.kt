@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.list.ui.size
+package org.haziffe.dropsauce.list.ui.size
 
 import android.view.View
 import android.widget.TextView
-import org.koitharu.kotatsu.history.ui.util.ReadingProgressView
+import org.haziffe.dropsauce.history.ui.util.ReadingProgressView
 
 interface ItemSizeResolver {
 

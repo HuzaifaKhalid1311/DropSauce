@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.image.ui
+package org.haziffe.dropsauce.image.ui
 
 import android.content.Context
 import android.graphics.drawable.LayerDrawable
@@ -23,28 +23,28 @@ import coil3.size.ViewSizeResolver
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okio.FileNotFoundException
 import org.jsoup.HttpStatusException
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
-import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
-import org.koitharu.kotatsu.core.image.CoilImageView
-import org.koitharu.kotatsu.core.ui.image.AnimatedPlaceholderDrawable
-import org.koitharu.kotatsu.core.ui.image.TextDrawable
-import org.koitharu.kotatsu.core.ui.image.TrimTransformation
-import org.koitharu.kotatsu.core.util.ext.bookmarkExtra
-import org.koitharu.kotatsu.core.util.ext.decodeRegion
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.isNetworkError
-import org.koitharu.kotatsu.core.util.ext.mangaExtra
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.favourites.domain.model.Cover
-import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
-import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.core.exceptions.CloudFlareProtectedException
+import org.haziffe.dropsauce.core.exceptions.UnsupportedSourceException
+import org.haziffe.dropsauce.core.image.CoilImageView
+import org.haziffe.dropsauce.core.ui.image.AnimatedPlaceholderDrawable
+import org.haziffe.dropsauce.core.ui.image.TextDrawable
+import org.haziffe.dropsauce.core.ui.image.TrimTransformation
+import org.haziffe.dropsauce.core.util.ext.bookmarkExtra
+import org.haziffe.dropsauce.core.util.ext.decodeRegion
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.isNetworkError
+import org.haziffe.dropsauce.core.util.ext.mangaExtra
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.favourites.domain.model.Cover
+import org.haziffe.dropsauce.parsers.exception.ContentUnavailableException
+import org.haziffe.dropsauce.parsers.exception.ParseException
+import org.haziffe.dropsauce.parsers.exception.TooManyRequestExceptions
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaPage
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 import kotlin.coroutines.resume
 import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR

@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.details.ui.model
+package org.haziffe.dropsauce.details.ui.model
 
-import org.koitharu.kotatsu.core.model.MangaHistory
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.details.data.ReadingTime
+import org.haziffe.dropsauce.core.model.MangaHistory
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.details.data.ReadingTime
 
 data class HistoryInfo(
 	val totalChapters: Int,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.content.Context
 import android.graphics.Outline
@@ -16,13 +16,13 @@ import androidx.core.view.isVisible
 import androidx.core.view.setPadding
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.drawableStart
-import org.koitharu.kotatsu.core.util.ext.getDrawableCompat
-import org.koitharu.kotatsu.core.util.ext.getThemeColorStateList
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ViewTipBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.drawableStart
+import org.haziffe.dropsauce.core.util.ext.getDrawableCompat
+import org.haziffe.dropsauce.core.util.ext.getThemeColorStateList
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ViewTipBinding
 
 class TipView @JvmOverloads constructor(
 	context: Context,

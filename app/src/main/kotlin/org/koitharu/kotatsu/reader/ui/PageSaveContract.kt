@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.content.Context
 import android.content.Intent
@@ -7,8 +7,8 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.toUriOrNull
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.toUriOrNull
 import java.io.File
 
 class PageSaveContract : ActivityResultContracts.CreateDocument("image/*") {

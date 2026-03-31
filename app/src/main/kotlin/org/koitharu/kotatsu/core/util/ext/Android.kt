@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.Manifest
 import android.app.Activity
@@ -51,10 +51,10 @@ import okio.IOException
 import okio.use
 import org.json.JSONException
 import org.jsoup.internal.StringUtil.StringJoiner
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.main.ui.MainActivity
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.main.ui.MainActivity
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.File

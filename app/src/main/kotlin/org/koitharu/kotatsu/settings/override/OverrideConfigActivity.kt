@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.override
+package org.haziffe.dropsauce.settings.override
 
 import android.content.Intent
 import android.net.Uri
@@ -12,18 +12,18 @@ import androidx.core.view.isVisible
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filterNotNull
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.model.MangaOverride
-import org.koitharu.kotatsu.core.util.ext.consumeAll
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
-import org.koitharu.kotatsu.databinding.ActivityOverrideEditBinding
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.picker.ui.PageImagePickContract
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.ui.model.MangaOverride
+import org.haziffe.dropsauce.core.util.ext.consumeAll
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.databinding.ActivityOverrideEditBinding
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.picker.ui.PageImagePickContract
 import com.google.android.material.R as materialR
 
 @AndroidEntryPoint

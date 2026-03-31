@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.app.assist.AssistContent
 import android.content.Context
@@ -42,62 +42,62 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.model.getSummary
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.iconResId
-import org.koitharu.kotatsu.core.model.titleResId
-import org.koitharu.kotatsu.core.nav.ReaderIntent
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.os.AppShortcutManager
-import org.koitharu.kotatsu.core.parser.favicon.faviconUri
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.image.ChipIconTarget
-import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.sheet.BottomSheetCollapseCallback
-import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
-import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.core.util.FileSize
-import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.enqueueWith
-import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.isTextTruncated
-import org.koitharu.kotatsu.core.util.ext.setTextSafely
-import org.koitharu.kotatsu.core.util.ext.joinToStringWithLimit
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.parentView
-import org.koitharu.kotatsu.core.util.ext.setTooltipCompat
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.core.util.ext.toUriOrNull
-import org.koitharu.kotatsu.databinding.ActivityDetailsClassicBinding
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.details.service.MangaPrefetchService
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem
-import org.koitharu.kotatsu.details.ui.model.HistoryInfo
-import org.koitharu.kotatsu.details.ui.scrobbling.ScrobblingItemDecoration
-import org.koitharu.kotatsu.details.ui.scrobbling.ScrollingInfoAdapter
-import org.koitharu.kotatsu.download.ui.worker.DownloadStartedObserver
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.mangaGridItemAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.MangaListModel
-import org.koitharu.kotatsu.list.ui.size.StaticItemSizeResolver
-import org.koitharu.kotatsu.main.ui.owners.BottomSheetOwner
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.core.image.CoilMemoryCacheKey
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.model.LocalMangaSource
+import org.haziffe.dropsauce.core.model.getSummary
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.model.iconResId
+import org.haziffe.dropsauce.core.model.titleResId
+import org.haziffe.dropsauce.core.nav.ReaderIntent
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.os.AppShortcutManager
+import org.haziffe.dropsauce.core.parser.favicon.faviconUri
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.image.ChipIconTarget
+import org.haziffe.dropsauce.core.ui.image.FaviconDrawable
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.sheet.BottomSheetCollapseCallback
+import org.haziffe.dropsauce.core.ui.util.MenuInvalidator
+import org.haziffe.dropsauce.core.ui.util.ReversibleActionObserver
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.core.util.FileSize
+import org.haziffe.dropsauce.core.util.ext.consume
+import org.haziffe.dropsauce.core.util.ext.enqueueWith
+import org.haziffe.dropsauce.core.util.ext.getQuantityStringSafe
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.isTextTruncated
+import org.haziffe.dropsauce.core.util.ext.setTextSafely
+import org.haziffe.dropsauce.core.util.ext.joinToStringWithLimit
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.parentView
+import org.haziffe.dropsauce.core.util.ext.setTooltipCompat
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.core.util.ext.toUriOrNull
+import org.haziffe.dropsauce.databinding.ActivityDetailsClassicBinding
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.details.service.MangaPrefetchService
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem
+import org.haziffe.dropsauce.details.ui.model.HistoryInfo
+import org.haziffe.dropsauce.details.ui.scrobbling.ScrobblingItemDecoration
+import org.haziffe.dropsauce.details.ui.scrobbling.ScrollingInfoAdapter
+import org.haziffe.dropsauce.download.ui.worker.DownloadStartedObserver
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.mangaGridItemAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.MangaListModel
+import org.haziffe.dropsauce.list.ui.size.StaticItemSizeResolver
+import org.haziffe.dropsauce.main.ui.owners.BottomSheetOwner
+import org.haziffe.dropsauce.parsers.model.ContentRating
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 
@@ -532,7 +532,7 @@ class DetailsClassicActivity :
 		viewBinding.swipeRefreshLayout.isRefreshing = isLoading
 	}
 
-	private fun onScrobblingInfoChanged(scrobblings: List<org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo>) {
+	private fun onScrobblingInfoChanged(scrobblings: List<org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingInfo>) {
 		var adapter = viewBinding.recyclerViewScrobbling.adapter as? ScrollingInfoAdapter
 		viewBinding.groupScrobbling.isGone = scrobblings.isEmpty()
 		if (adapter != null) {

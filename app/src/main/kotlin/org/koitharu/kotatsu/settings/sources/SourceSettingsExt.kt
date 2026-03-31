@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources
+package org.haziffe.dropsauce.settings.sources
 
 import android.view.inputmethod.EditorInfo
 import androidx.preference.EditTextPreference
@@ -6,18 +6,18 @@ import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.network.UserAgents
-import org.koitharu.kotatsu.parsers.util.mapToArray
-import org.koitharu.kotatsu.settings.utils.AutoCompleteTextViewPreference
-import org.koitharu.kotatsu.settings.utils.EditTextBindListener
-import org.koitharu.kotatsu.settings.utils.EditTextDefaultSummaryProvider
-import org.koitharu.kotatsu.settings.utils.validation.DomainValidator
-import org.koitharu.kotatsu.settings.utils.validation.HeaderValidator
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.parser.EmptyMangaRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.parsers.config.ConfigKey
+import org.haziffe.dropsauce.parsers.network.UserAgents
+import org.haziffe.dropsauce.parsers.util.mapToArray
+import org.haziffe.dropsauce.settings.utils.AutoCompleteTextViewPreference
+import org.haziffe.dropsauce.settings.utils.EditTextBindListener
+import org.haziffe.dropsauce.settings.utils.EditTextDefaultSummaryProvider
+import org.haziffe.dropsauce.settings.utils.validation.DomainValidator
+import org.haziffe.dropsauce.settings.utils.validation.HeaderValidator
 
 fun PreferenceFragmentCompat.addPreferencesFromRepository(repository: MangaRepository) = when (repository) {
 	is ParserMangaRepository -> addPreferencesFromParserRepository(repository)

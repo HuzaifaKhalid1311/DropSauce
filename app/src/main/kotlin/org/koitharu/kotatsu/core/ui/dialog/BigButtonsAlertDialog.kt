@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.dialog
+package org.haziffe.dropsauce.core.ui.dialog
 
 import android.content.Context
 import android.content.DialogInterface
@@ -10,7 +10,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import org.koitharu.kotatsu.databinding.DialogTwoButtonsBinding
+import org.haziffe.dropsauce.databinding.DialogTwoButtonsBinding
 
 class BigButtonsAlertDialog private constructor(
 	private val delegate: AlertDialog

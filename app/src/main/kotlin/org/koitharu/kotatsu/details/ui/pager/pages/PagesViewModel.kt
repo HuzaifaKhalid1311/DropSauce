@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui.pager.pages
+package org.haziffe.dropsauce.details.ui.pager.pages
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
@@ -9,20 +9,20 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.firstNotNull
-import org.koitharu.kotatsu.core.util.ext.requireValue
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.reader.domain.ChaptersLoader
-import org.koitharu.kotatsu.reader.ui.PageSaveHelper
-import org.koitharu.kotatsu.reader.ui.ReaderState
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.observeAsStateFlow
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.firstNotNull
+import org.haziffe.dropsauce.core.util.ext.requireValue
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.list.ui.model.ListHeader
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.reader.domain.ChaptersLoader
+import org.haziffe.dropsauce.reader.ui.PageSaveHelper
+import org.haziffe.dropsauce.reader.ui.ReaderState
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 import javax.inject.Inject
 
 @HiltViewModel

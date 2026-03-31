@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.core.model
+package org.haziffe.dropsauce.core.model
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.parsers.model.SortOrder
 
 @Deprecated("")
 enum class GenericSortOrder(

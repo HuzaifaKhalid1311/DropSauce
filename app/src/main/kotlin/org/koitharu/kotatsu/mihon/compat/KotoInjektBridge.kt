@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.mihon.compat
+package org.haziffe.dropsauce.mihon.compat
 
 import android.app.Application
 import android.content.Context
@@ -13,15 +13,15 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.koitharu.kotatsu.core.exceptions.CloudFlareBlockedException
-import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
-import org.koitharu.kotatsu.core.exceptions.InteractiveActionRequiredException
-import org.koitharu.kotatsu.core.network.MangaHttpClient
-import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
-import org.koitharu.kotatsu.core.network.webview.WebViewExecutor
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
-import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.haziffe.dropsauce.core.exceptions.CloudFlareBlockedException
+import org.haziffe.dropsauce.core.exceptions.CloudFlareProtectedException
+import org.haziffe.dropsauce.core.exceptions.InteractiveActionRequiredException
+import org.haziffe.dropsauce.core.network.MangaHttpClient
+import org.haziffe.dropsauce.core.network.cookies.MutableCookieJar
+import org.haziffe.dropsauce.core.network.webview.WebViewExecutor
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.network.CloudFlareHelper
+import org.haziffe.dropsauce.parsers.network.UserAgents
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import android.content.Context
 import android.content.Intent
@@ -7,7 +7,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
+import org.haziffe.dropsauce.core.util.ext.getParcelableExtraCompat
 
 class RingtonePickContract(@StringRes private val titleResId: Int) : ActivityResultContract<Uri?, Uri?>() {
 

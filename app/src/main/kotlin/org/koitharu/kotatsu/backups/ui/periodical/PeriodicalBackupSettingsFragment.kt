@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.backups.ui.periodical
+package org.haziffe.dropsauce.backups.ui.periodical
 
 import android.content.Intent
 import android.net.Uri
@@ -12,16 +12,16 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.os.OpenDocumentTreeHelper
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
-import org.koitharu.kotatsu.settings.utils.EditTextFallbackSummaryProvider
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.os.OpenDocumentTreeHelper
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.settings.utils.EditTextFallbackSummaryProvider
 import java.util.Date
 import javax.inject.Inject
 

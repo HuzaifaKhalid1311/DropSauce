@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu.bookmarks.ui
+package org.haziffe.dropsauce.bookmarks.ui
 
-import org.koitharu.kotatsu.core.ui.FragmentContainerActivity
+import org.haziffe.dropsauce.core.ui.FragmentContainerActivity
 
 class AllBookmarksActivity : FragmentContainerActivity(AllBookmarksFragment::class.java)

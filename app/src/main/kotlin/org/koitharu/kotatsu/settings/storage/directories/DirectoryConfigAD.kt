@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.storage.directories
+package org.haziffe.dropsauce.settings.storage.directories
 
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -7,13 +7,13 @@ import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import androidx.core.view.isGone
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.FileSize
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.setTooltipCompat
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ItemStorageConfig2Binding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.FileSize
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.setTooltipCompat
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ItemStorageConfig2Binding
 
 fun directoryConfigAD(
     clickListener: OnListItemClickListener<DirectoryConfigModel>,

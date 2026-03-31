@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import android.view.View
 import androidx.annotation.Px
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.parsers.util.toIntUp
+import org.haziffe.dropsauce.parsers.util.toIntUp
 import kotlin.math.abs
 
 class SpanSizeResolver(

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.backups.domain
+package org.haziffe.dropsauce.backups.domain
 
 import android.app.backup.BackupAgent
 import android.app.backup.BackupDataInput
@@ -9,12 +9,12 @@ import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import com.google.common.io.ByteStreams
 import kotlinx.coroutines.runBlocking
-import org.koitharu.kotatsu.backups.data.BackupRepository
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.filter.data.SavedFiltersRepository
-import org.koitharu.kotatsu.reader.data.TapGridSettings
+import org.haziffe.dropsauce.backups.data.BackupRepository
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.explore.data.MangaSourcesRepository
+import org.haziffe.dropsauce.filter.data.SavedFiltersRepository
+import org.haziffe.dropsauce.reader.data.TapGridSettings
 import java.io.File
 import java.io.FileDescriptor
 import java.io.FileInputStream

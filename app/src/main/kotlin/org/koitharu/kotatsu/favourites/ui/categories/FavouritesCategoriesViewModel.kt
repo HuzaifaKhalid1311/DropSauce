@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.ui.categories
+package org.haziffe.dropsauce.favourites.ui.categories
 
 import androidx.collection.LongSet
 import androidx.lifecycle.viewModelScope
@@ -13,19 +13,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.requireValue
-import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
-import org.koitharu.kotatsu.favourites.domain.model.Cover
-import org.koitharu.kotatsu.favourites.ui.categories.adapter.AllCategoriesListModel
-import org.koitharu.kotatsu.favourites.ui.categories.adapter.CategoryListModel
-import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.requireValue
+import org.haziffe.dropsauce.favourites.domain.FavouritesRepository
+import org.haziffe.dropsauce.favourites.domain.model.Cover
+import org.haziffe.dropsauce.favourites.ui.categories.adapter.AllCategoriesListModel
+import org.haziffe.dropsauce.favourites.ui.categories.adapter.CategoryListModel
+import org.haziffe.dropsauce.list.ui.model.EmptyState
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.LoadingState
 import javax.inject.Inject
 
 @HiltViewModel

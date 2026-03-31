@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.explore.ui
+package org.haziffe.dropsauce.explore.ui
 
 import android.content.DialogInterface
 import android.content.Intent
@@ -18,33 +18,33 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
-import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
-import org.koitharu.kotatsu.core.ui.list.ListSelectionController
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
-import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.ui.util.SpanSizeResolver
-import org.koitharu.kotatsu.core.util.ext.addMenuProvider
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
-import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
-import org.koitharu.kotatsu.databinding.FragmentExploreBinding
-import org.koitharu.kotatsu.explore.ui.adapter.ExploreAdapter
-import org.koitharu.kotatsu.explore.ui.adapter.ExploreListEventListener
-import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
-import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogMode
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.model.LocalMangaSource
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.parser.external.ExternalMangaSource
+import org.haziffe.dropsauce.core.ui.BaseFragment
+import org.haziffe.dropsauce.core.ui.dialog.BigButtonsAlertDialog
+import org.haziffe.dropsauce.core.ui.list.ListSelectionController
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.util.RecyclerViewOwner
+import org.haziffe.dropsauce.core.ui.util.ReversibleActionObserver
+import org.haziffe.dropsauce.core.ui.util.SpanSizeResolver
+import org.haziffe.dropsauce.core.util.ext.addMenuProvider
+import org.haziffe.dropsauce.core.util.ext.consumeAllSystemBarsInsets
+import org.haziffe.dropsauce.core.util.ext.findAppCompatDelegate
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.systemBarsInsets
+import org.haziffe.dropsauce.databinding.FragmentExploreBinding
+import org.haziffe.dropsauce.explore.ui.adapter.ExploreAdapter
+import org.haziffe.dropsauce.explore.ui.adapter.ExploreListEventListener
+import org.haziffe.dropsauce.explore.ui.model.MangaSourceItem
+import org.haziffe.dropsauce.list.ui.adapter.TypedListSpacingDecoration
+import org.haziffe.dropsauce.list.ui.model.ListHeader
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.settings.sources.catalog.SourcesCatalogMode
 
 @AndroidEntryPoint
 class ExploreFragment :
@@ -125,7 +125,7 @@ class ExploreFragment :
 		}
 	}
 
-	override fun onListHeaderFilterModeChanged(item: ListHeader, mode: org.koitharu.kotatsu.explore.ui.SourceFilterMode) {
+	override fun onListHeaderFilterModeChanged(item: ListHeader, mode: org.haziffe.dropsauce.explore.ui.SourceFilterMode) {
 		viewModel.setSourceFilter(mode)
 	}
 

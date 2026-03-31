@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.filter.ui
+package org.haziffe.dropsauce.filter.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,20 +10,20 @@ import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.databinding.FragmentFilterHeaderBinding
-import org.koitharu.kotatsu.filter.data.PersistableFilter
-import org.koitharu.kotatsu.filter.ui.model.FilterHeaderModel
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Demographic
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.BaseFragment
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.databinding.FragmentFilterHeaderBinding
+import org.haziffe.dropsauce.filter.data.PersistableFilter
+import org.haziffe.dropsauce.filter.ui.model.FilterHeaderModel
+import org.haziffe.dropsauce.parsers.model.ContentRating
+import org.haziffe.dropsauce.parsers.model.ContentType
+import org.haziffe.dropsauce.parsers.model.Demographic
+import org.haziffe.dropsauce.parsers.model.MangaState
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.model.YEAR_UNKNOWN
 import java.util.Locale
 import javax.inject.Inject
 

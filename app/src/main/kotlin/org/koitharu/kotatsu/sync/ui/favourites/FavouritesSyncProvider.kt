@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu.sync.ui.favourites
+package org.haziffe.dropsauce.sync.ui.favourites
 
-import org.koitharu.kotatsu.sync.ui.SyncProvider
+import org.haziffe.dropsauce.sync.ui.SyncProvider
 
 class FavouritesSyncProvider : SyncProvider()

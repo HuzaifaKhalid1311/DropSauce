@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.main.domain
+package org.haziffe.dropsauce.main.domain
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.history.data.HistoryRepository
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.history.data.HistoryRepository
 import javax.inject.Inject
 
 class ReadingResumeEnabledUseCase @Inject constructor(

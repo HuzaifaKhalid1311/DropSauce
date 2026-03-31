@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import android.app.Activity
 import android.view.Menu
@@ -7,8 +7,8 @@ import android.view.MenuItem
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.main.ui.owners.AppBarOwner
 
 class SourcesCatalogMenuProvider(
 	private val activity: Activity,

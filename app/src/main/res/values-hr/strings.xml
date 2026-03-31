@@ -239,7 +239,7 @@
     <string name="import_completed_hint">Možete izbrisati izvornu datoteku iz pohrane radi uštede prostora</string>
     <string name="import_will_start_soon">Uvoz će uskoro početi</string>
     <string name="feed">Novosti</string>
-    <string name="manga_error_description_pattern">Detalji pogreške:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Pokušajte &lt;a href=%2$s&gt;otvoriti mangu u web-pregledniku&lt;/a&gt; kako biste bili sigurni da je dostupna na izvoru&lt;br&gt;2. Provjerite koristite li &lt;a href=kotatsu://about&gt;najnoviju verziju DropSauce&lt;/a&gt;&lt;br&gt;3. Ako je dostupno, pošaljite izvješće o pogrešci programerima.</string>
+    <string name="manga_error_description_pattern">Detalji pogreške:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Pokušajte &lt;a href=%2$s&gt;otvoriti mangu u web-pregledniku&lt;/a&gt; kako biste bili sigurni da je dostupna na izvoru&lt;br&gt;2. Provjerite koristite li &lt;a href=dropsauce://about&gt;najnoviju verziju DropSauce&lt;/a&gt;&lt;br&gt;3. Ako je dostupno, pošaljite izvješće o pogrešci programerima.</string>
     <string name="history_shortcuts">Prikaži nedavne manga prečice</string>
     <string name="history_shortcuts_summary">Učinite nedavnu mangu dostupnom dugim pritiskom na ikonu aplikacije</string>
     <string name="reader_control_ltr_summary">Ne prilagođavaj smjer listanja stranica u modus čitača, npr. pritiskom desne tipke uvijek prelazi na sljedeću stranicu. Ova opcija utječe samo na hardverske uređaje za unos</string>
@@ -757,7 +757,7 @@
     <string name="test_connection">Provjeri vezu</string>
     <string name="send_backups_telegram">Pošalji sigurnosne kopije u Telegram</string>
     <string name="telegram_chat_id_summary">Upiši ID chata na koji treba slati sigurnosne kopije</string>
-    <string name="open_telegram_bot_summary">Pritisni za otvaranje chata s Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Pritisni za otvaranje chata s DropSauce Backup Bot</string>
     <string name="translation">Prijevod</string>
     <string name="rating">Ocjena</string>
     <string name="source">Izvor</string>

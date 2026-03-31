@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.ui.model
+package org.haziffe.dropsauce.list.ui.model
 
 data class LoadingFooter @JvmOverloads constructor(
 	val key: Int = 0,

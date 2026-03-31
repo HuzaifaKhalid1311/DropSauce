@@ -1,16 +1,16 @@
-package org.koitharu.kotatsu.settings.appearance
+package org.haziffe.dropsauce.settings.appearance
 
 import android.os.Bundle
 import androidx.preference.ListPreference
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.DetailsUiMode
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.util.ext.setDefaultValueCompat
-import org.koitharu.kotatsu.parsers.util.names
-import org.koitharu.kotatsu.settings.utils.PercentSummaryProvider
-import org.koitharu.kotatsu.settings.utils.SliderPreference
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.DetailsUiMode
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.util.ext.setDefaultValueCompat
+import org.haziffe.dropsauce.parsers.util.names
+import org.haziffe.dropsauce.settings.utils.PercentSummaryProvider
+import org.haziffe.dropsauce.settings.utils.SliderPreference
 
 @AndroidEntryPoint
 class PreviewSettingsFragment :

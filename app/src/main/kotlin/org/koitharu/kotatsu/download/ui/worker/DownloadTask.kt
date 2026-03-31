@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.download.ui.worker
+package org.haziffe.dropsauce.download.ui.worker
 
 import android.os.Parcelable
 import androidx.work.Data
 import kotlinx.parcelize.Parcelize
-import org.koitharu.kotatsu.core.prefs.DownloadFormat
-import org.koitharu.kotatsu.parsers.util.find
+import org.haziffe.dropsauce.core.prefs.DownloadFormat
+import org.haziffe.dropsauce.parsers.util.find
 import java.io.File
 
 @Parcelize

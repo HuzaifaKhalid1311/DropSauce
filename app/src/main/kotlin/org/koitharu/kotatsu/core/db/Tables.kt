@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.db
+package org.haziffe.dropsauce.core.db
 
 const val TABLE_FAVOURITES = "favourites"
 const val TABLE_MANGA = "manga"

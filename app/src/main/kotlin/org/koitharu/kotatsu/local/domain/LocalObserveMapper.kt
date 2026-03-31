@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.domain
+package org.haziffe.dropsauce.local.domain
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -7,9 +7,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.local.data.index.LocalMangaIndex
+import org.haziffe.dropsauce.parsers.model.Manga
 
 abstract class LocalObserveMapper<E : Any, R : Any>(
 	private val localMangaIndex: LocalMangaIndex,

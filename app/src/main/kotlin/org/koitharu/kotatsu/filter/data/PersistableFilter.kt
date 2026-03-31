@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.filter.data
+package org.haziffe.dropsauce.filter.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
-import org.koitharu.kotatsu.core.model.MangaSourceSerializer
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.core.model.MangaSourceSerializer
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 @Serializable
 @JsonIgnoreUnknownKeys

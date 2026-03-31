@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.list.fastscroll
+package org.haziffe.dropsauce.core.ui.list.fastscroll
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewPropertyAnimator
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.animatorDurationScale
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.animatorDurationScale
 
 class ScrollbarAnimator(
 	private val scrollbar: View,

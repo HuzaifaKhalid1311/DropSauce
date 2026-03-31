@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.progress
+package org.haziffe.dropsauce.core.util.progress
 
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest

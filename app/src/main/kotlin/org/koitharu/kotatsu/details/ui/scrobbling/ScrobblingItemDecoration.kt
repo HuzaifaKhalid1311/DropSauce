@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.details.ui.scrobbling
+package org.haziffe.dropsauce.details.ui.scrobbling
 
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 class ScrobblingItemDecoration : RecyclerView.ItemDecoration() {
 

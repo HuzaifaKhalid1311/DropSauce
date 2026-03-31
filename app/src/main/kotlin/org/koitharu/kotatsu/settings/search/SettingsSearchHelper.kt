@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.search
+package org.haziffe.dropsauce.settings.search
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,22 +8,22 @@ import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
 import androidx.preference.get
 import dagger.Reusable
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupSettingsFragment
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.settings.AppearanceSettingsFragment
-import org.koitharu.kotatsu.settings.DownloadsSettingsFragment
-import org.koitharu.kotatsu.settings.ProxySettingsFragment
-import org.koitharu.kotatsu.settings.ReaderSettingsFragment
-import org.koitharu.kotatsu.settings.ServicesSettingsFragment
-import org.koitharu.kotatsu.settings.StorageAndNetworkSettingsFragment
-import org.koitharu.kotatsu.settings.SuggestionsSettingsFragment
-import org.koitharu.kotatsu.settings.about.AboutSettingsFragment
-import org.koitharu.kotatsu.settings.discord.DiscordSettingsFragment
-import org.koitharu.kotatsu.settings.sources.SourcesSettingsFragment
-import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
-import org.koitharu.kotatsu.settings.userdata.BackupsSettingsFragment
-import org.koitharu.kotatsu.settings.userdata.storage.DataCleanupSettingsFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.backups.ui.periodical.PeriodicalBackupSettingsFragment
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.settings.AppearanceSettingsFragment
+import org.haziffe.dropsauce.settings.DownloadsSettingsFragment
+import org.haziffe.dropsauce.settings.ProxySettingsFragment
+import org.haziffe.dropsauce.settings.ReaderSettingsFragment
+import org.haziffe.dropsauce.settings.ServicesSettingsFragment
+import org.haziffe.dropsauce.settings.StorageAndNetworkSettingsFragment
+import org.haziffe.dropsauce.settings.SuggestionsSettingsFragment
+import org.haziffe.dropsauce.settings.about.AboutSettingsFragment
+import org.haziffe.dropsauce.settings.discord.DiscordSettingsFragment
+import org.haziffe.dropsauce.settings.sources.SourcesSettingsFragment
+import org.haziffe.dropsauce.settings.tracker.TrackerSettingsFragment
+import org.haziffe.dropsauce.settings.userdata.BackupsSettingsFragment
+import org.haziffe.dropsauce.settings.userdata.storage.DataCleanupSettingsFragment
 import javax.inject.Inject
 
 @Reusable

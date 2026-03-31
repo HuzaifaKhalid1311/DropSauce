@@ -1,19 +1,19 @@
-package org.koitharu.kotatsu.core.parser.external
+package org.haziffe.dropsauce.core.parser.external
 
 import android.content.ContentResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
-import org.koitharu.kotatsu.core.cache.MemoryContentCache
-import org.koitharu.kotatsu.core.parser.CachingMangaRepository
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
-import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.haziffe.dropsauce.core.cache.MemoryContentCache
+import org.haziffe.dropsauce.core.parser.CachingMangaRepository
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.parsers.model.MangaListFilterCapabilities
+import org.haziffe.dropsauce.parsers.model.MangaListFilterOptions
+import org.haziffe.dropsauce.parsers.model.MangaPage
+import org.haziffe.dropsauce.parsers.model.SortOrder
+import org.haziffe.dropsauce.parsers.util.suspendlazy.suspendLazy
 import java.util.EnumSet
 
 class ExternalMangaRepository(

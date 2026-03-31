@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.settings.storage
+package org.haziffe.dropsauce.settings.storage
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ItemStorageBinding
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ItemStorageBinding
 
 fun directoryAD(
 	clickListener: OnListItemClickListener<DirectoryModel>,

@@ -267,7 +267,7 @@
     <string name="status_reading">Lesen</string>
     <string name="select_range">Bereich auswählen</string>
     <string name="not_found_404">Inhalt nicht gefunden oder entfernt</string>
-    <string name="manga_error_description_pattern">Fehlerdetails:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Versuche, &lt;a href=%2$s&gt;den Manga in einem Webbrowser zu öffnen&lt;/a&gt;, um sicherzustellen, dass er bei seiner Quelle verfügbar ist&lt;br&gt;2. Stelle sicher, dass du die &lt;a href=kotatsu://about&gt;neueste DropSauce-Version&lt;/a&gt;&lt;br&gt;3 benutzt. Wenn er verfügbar ist, sende einen Fehlerbericht an die Entwickler.</string>
+    <string name="manga_error_description_pattern">Fehlerdetails:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Versuche, &lt;a href=%2$s&gt;den Manga in einem Webbrowser zu öffnen&lt;/a&gt;, um sicherzustellen, dass er bei seiner Quelle verfügbar ist&lt;br&gt;2. Stelle sicher, dass du die &lt;a href=dropsauce://about&gt;neueste DropSauce-Version&lt;/a&gt;&lt;br&gt;3 benutzt. Wenn er verfügbar ist, sende einen Fehlerbericht an die Entwickler.</string>
     <string name="no_bookmarks_yet">Noch keine Lesezeichen</string>
     <string name="no_manga_sources">Keine Manga-Quellen</string>
     <string name="no_manga_sources_text">Manga-Quellen aktivieren, um Manga online zu lesen</string>

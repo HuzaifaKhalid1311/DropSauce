@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.explore.data
+package org.haziffe.dropsauce.explore.data
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 enum class SourcesSortOrder(
 	@StringRes val titleResId: Int,

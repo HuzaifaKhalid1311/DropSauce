@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.suggestions.domain
+package org.haziffe.dropsauce.suggestions.domain
 
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.domain.MangaListQuickFilter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.MangaListQuickFilter
 import javax.inject.Inject
 
 class SuggestionsListQuickFilter @Inject constructor(

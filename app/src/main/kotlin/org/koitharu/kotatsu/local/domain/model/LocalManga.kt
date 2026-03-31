@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.local.domain.model
+package org.haziffe.dropsauce.local.domain.model
 
 import android.net.Uri
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import org.koitharu.kotatsu.core.util.ext.contains
-import org.koitharu.kotatsu.core.util.ext.creationTime
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.haziffe.dropsauce.core.util.ext.contains
+import org.haziffe.dropsauce.core.util.ext.creationTime
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaTag
 import java.io.File
 
 data class LocalManga(

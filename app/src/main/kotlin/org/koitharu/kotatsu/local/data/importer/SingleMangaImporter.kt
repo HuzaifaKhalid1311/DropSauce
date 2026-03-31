@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.data.importer
+package org.haziffe.dropsauce.local.data.importer
 
 import android.content.Context
 import android.net.Uri
@@ -11,15 +11,15 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.sink
-import org.koitharu.kotatsu.core.exceptions.UnsupportedFileException
-import org.koitharu.kotatsu.core.util.ext.openSource
-import org.koitharu.kotatsu.core.util.ext.resolveName
-import org.koitharu.kotatsu.core.util.ext.writeAllCancellable
-import org.koitharu.kotatsu.local.data.LocalStorageChanges
-import org.koitharu.kotatsu.local.data.LocalStorageManager
-import org.koitharu.kotatsu.local.data.hasZipExtension
-import org.koitharu.kotatsu.local.data.input.LocalMangaParser
-import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.haziffe.dropsauce.core.exceptions.UnsupportedFileException
+import org.haziffe.dropsauce.core.util.ext.openSource
+import org.haziffe.dropsauce.core.util.ext.resolveName
+import org.haziffe.dropsauce.core.util.ext.writeAllCancellable
+import org.haziffe.dropsauce.local.data.LocalStorageChanges
+import org.haziffe.dropsauce.local.data.LocalStorageManager
+import org.haziffe.dropsauce.local.data.hasZipExtension
+import org.haziffe.dropsauce.local.data.input.LocalMangaParser
+import org.haziffe.dropsauce.local.domain.model.LocalManga
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject

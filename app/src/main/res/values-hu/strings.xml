@@ -375,7 +375,7 @@
     <string name="server_error">Szerver hiba (%1$d). Próbálkozz később</string>
     <string name="clear_new_chapters_counters">Valamint új fejezetekről szóló információk törlése</string>
     <string name="show_in_grid_view">Rács nézetben megjelenít</string>
-    <string name="manga_error_description_pattern">Hiba részletei:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Próbáld meg &lt;a href=%2$s&gt;megnyitni a mangát egy webböngészőben&lt;/a&gt;, hogy megbizonyosodj róla, hogy elérhető-e az eredeti forrásáról.&lt;br&gt;2. Győződj meg arról, hogy a &lt;a href=kotatsu://about&gt;DropSauce legfrissebb verzióját&lt;/a&gt; használod.&lt;br&gt;3. Ha elérhető, küldj egy hibajelentést a fejlesztőknek.</string>
+    <string name="manga_error_description_pattern">Hiba részletei:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Próbáld meg &lt;a href=%2$s&gt;megnyitni a mangát egy webböngészőben&lt;/a&gt;, hogy megbizonyosodj róla, hogy elérhető-e az eredeti forrásáról.&lt;br&gt;2. Győződj meg arról, hogy a &lt;a href=dropsauce://about&gt;DropSauce legfrissebb verzióját&lt;/a&gt; használod.&lt;br&gt;3. Ha elérhető, küldj egy hibajelentést a fejlesztőknek.</string>
     <string name="scrobbling_empty_hint">Az olvasási előrehaladás követéséhez válaszd a Menü → Követés lehetőséget a manga részletek képernyőn.</string>
     <string name="enable_logging_summary">Rögzít néhány műveletet hibakeresési célokra. Ne kapcsold be, ha nem vagy biztos benne, hogy mit csinálsz</string>
     <string name="services">Szolgáltatások</string>

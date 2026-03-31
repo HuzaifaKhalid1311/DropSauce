@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.favourites.ui.categories.select.model
+package org.haziffe.dropsauce.favourites.ui.categories.select.model
 
 import com.google.android.material.checkbox.MaterialCheckBox.CheckedState
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 data class MangaCategoryItem(
 	val category: FavouriteCategory,

@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.sync.ui
+package org.haziffe.dropsauce.sync.ui
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import org.koitharu.kotatsu.sync.domain.SyncHelper
+import org.haziffe.dropsauce.sync.domain.SyncHelper
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import android.graphics.Color
 import android.view.ViewGroup
@@ -13,7 +13,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
 import com.google.android.material.R as materialR
 
 class ActionModeDelegate : OnBackPressedCallback(false) {

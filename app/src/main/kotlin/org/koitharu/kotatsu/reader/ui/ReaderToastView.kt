@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -11,9 +11,9 @@ import androidx.annotation.StringRes
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.google.android.material.textview.MaterialTextView
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getAnimationDuration
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
 
 class ReaderToastView @JvmOverloads constructor(
 	context: Context,

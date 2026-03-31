@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.picker.ui.page
+package org.haziffe.dropsauce.picker.ui.page
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,26 +12,26 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.ui.list.BoundsScrollListener
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.util.PagerNestedScrollHelper
-import org.koitharu.kotatsu.core.util.ext.consumeAll
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.showOrHide
-import org.koitharu.kotatsu.databinding.FragmentPagesBinding
-import org.koitharu.kotatsu.details.ui.pager.pages.PageThumbnail
-import org.koitharu.kotatsu.details.ui.pager.pages.PageThumbnailAdapter
-import org.koitharu.kotatsu.list.ui.GridSpanResolver
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.picker.ui.PageImagePickActivity
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BaseFragment
+import org.haziffe.dropsauce.core.ui.list.BoundsScrollListener
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.util.PagerNestedScrollHelper
+import org.haziffe.dropsauce.core.util.ext.consumeAll
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.showOrHide
+import org.haziffe.dropsauce.databinding.FragmentPagesBinding
+import org.haziffe.dropsauce.details.ui.pager.pages.PageThumbnail
+import org.haziffe.dropsauce.details.ui.pager.pages.PageThumbnailAdapter
+import org.haziffe.dropsauce.list.ui.GridSpanResolver
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.TypedListSpacingDecoration
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.picker.ui.PageImagePickActivity
 import javax.inject.Inject
 
 @AndroidEntryPoint

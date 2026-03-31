@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.data.output
+package org.haziffe.dropsauce.local.data.output
 
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.Dispatchers
@@ -6,15 +6,15 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.internal.closeQuietly
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.MimeType
-import org.koitharu.kotatsu.core.util.ext.deleteAwait
-import org.koitharu.kotatsu.core.util.ext.readText
-import org.koitharu.kotatsu.core.zip.ZipOutput
-import org.koitharu.kotatsu.local.data.MangaIndex
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.MimeType
+import org.haziffe.dropsauce.core.util.ext.deleteAwait
+import org.haziffe.dropsauce.core.util.ext.readText
+import org.haziffe.dropsauce.core.zip.ZipOutput
+import org.haziffe.dropsauce.local.data.MangaIndex
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
 import java.io.File
 import java.util.zip.ZipFile
 

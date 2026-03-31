@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.search.ui.suggestion.adapter
+package org.haziffe.dropsauce.search.ui.suggestion.adapter
 
 import android.widget.TextView
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegate
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.search.ui.suggestion.model.SearchSuggestionItem
 
 fun searchSuggestionTextAD() = adapterDelegate<SearchSuggestionItem.Text, SearchSuggestionItem>(
 	R.layout.item_search_suggestion_text,

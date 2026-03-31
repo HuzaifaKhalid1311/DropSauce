@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.details.ui.scrobbling
+package org.haziffe.dropsauce.details.ui.scrobbling
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.databinding.ItemScrobblingInfoBinding
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.databinding.ItemScrobblingInfoBinding
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingInfo
 
 fun scrobblingInfoAD(
 	router: AppRouter,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.io
+package org.haziffe.dropsauce.core.io
 
 import java.io.OutputStream
 import java.util.Objects

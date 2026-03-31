@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.download.ui.worker
+package org.haziffe.dropsauce.download.ui.worker
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -21,22 +21,22 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ErrorReporterReceiver
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
-import org.koitharu.kotatsu.core.util.ext.getNotificationIconSize
-import org.koitharu.kotatsu.core.util.ext.isReportable
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.download.domain.DownloadState
-import org.koitharu.kotatsu.download.ui.list.DownloadsActivity
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.format
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ErrorReporterReceiver
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.core.model.LocalMangaSource
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.util.ext.getDrawableOrThrow
+import org.haziffe.dropsauce.core.util.ext.getNotificationIconSize
+import org.haziffe.dropsauce.core.util.ext.isReportable
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.download.domain.DownloadState
+import org.haziffe.dropsauce.download.ui.list.DownloadsActivity
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.format
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.util.UUID
 import androidx.appcompat.R as appcompatR
 

@@ -1,22 +1,22 @@
-package org.koitharu.kotatsu.bookmarks.domain
+package org.haziffe.dropsauce.bookmarks.domain
 
 import android.database.SQLException
 import androidx.room.withTransaction
 import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.koitharu.kotatsu.bookmarks.data.BookmarkEntity
-import org.koitharu.kotatsu.bookmarks.data.toBookmark
-import org.koitharu.kotatsu.bookmarks.data.toBookmarks
-import org.koitharu.kotatsu.bookmarks.data.toEntity
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.entity.toEntities
-import org.koitharu.kotatsu.core.db.entity.toEntity
-import org.koitharu.kotatsu.core.db.entity.toManga
-import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
-import org.koitharu.kotatsu.core.util.ext.mapItems
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.bookmarks.data.BookmarkEntity
+import org.haziffe.dropsauce.bookmarks.data.toBookmark
+import org.haziffe.dropsauce.bookmarks.data.toBookmarks
+import org.haziffe.dropsauce.bookmarks.data.toEntity
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.entity.toEntities
+import org.haziffe.dropsauce.core.db.entity.toEntity
+import org.haziffe.dropsauce.core.db.entity.toManga
+import org.haziffe.dropsauce.core.ui.util.ReversibleHandle
+import org.haziffe.dropsauce.core.util.ext.mapItems
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.parsers.model.Manga
 import javax.inject.Inject
 
 @Reusable

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.db.dao
+package org.haziffe.dropsauce.core.db.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -8,10 +8,10 @@ import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
-import org.koitharu.kotatsu.core.db.MangaQueryBuilder
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.tracker.data.TrackLogEntity
-import org.koitharu.kotatsu.tracker.data.TrackLogWithManga
+import org.haziffe.dropsauce.core.db.MangaQueryBuilder
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.tracker.data.TrackLogEntity
+import org.haziffe.dropsauce.tracker.data.TrackLogWithManga
 
 @Dao
 abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {

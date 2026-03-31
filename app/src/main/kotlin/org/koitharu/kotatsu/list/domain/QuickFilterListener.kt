@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.domain
+package org.haziffe.dropsauce.list.domain
 
 interface QuickFilterListener {
 

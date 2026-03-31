@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.main.ui.welcome
+package org.haziffe.dropsauce.main.ui.welcome
 
 import android.accounts.AccountManager
 import android.net.Uri
@@ -15,18 +15,18 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.titleResId
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.getDisplayName
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
-import org.koitharu.kotatsu.databinding.SheetWelcomeBinding
-import org.koitharu.kotatsu.filter.ui.model.FilterProperty
-import org.koitharu.kotatsu.parsers.model.ContentType
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.titleResId
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.sheet.BaseAdaptiveSheet
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.core.util.ext.consume
+import org.haziffe.dropsauce.core.util.ext.getDisplayName
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.databinding.SheetWelcomeBinding
+import org.haziffe.dropsauce.filter.ui.model.FilterProperty
+import org.haziffe.dropsauce.parsers.model.ContentType
 import java.util.Locale
 
 @AndroidEntryPoint

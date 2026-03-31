@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util
+package org.haziffe.dropsauce.core.util
 
 import android.app.Activity
 import android.content.Context
@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import org.acra.ACRA
-import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
+import org.haziffe.dropsauce.core.ui.DefaultActivityLifecycleCallbacks
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import java.util.WeakHashMap

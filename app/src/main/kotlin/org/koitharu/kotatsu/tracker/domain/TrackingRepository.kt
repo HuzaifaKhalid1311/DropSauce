@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.tracker.domain
+package org.haziffe.dropsauce.tracker.domain
 
 import androidx.annotation.VisibleForTesting
 import androidx.room.withTransaction
@@ -6,22 +6,22 @@ import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.entity.toManga
-import org.koitharu.kotatsu.core.db.entity.toMangaTags
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.mapItems
-import org.koitharu.kotatsu.core.util.ext.toInstantOrNull
-import org.koitharu.kotatsu.details.domain.ProgressUpdateUseCase
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.ifZero
-import org.koitharu.kotatsu.tracker.data.TrackEntity
-import org.koitharu.kotatsu.tracker.data.TrackLogEntity
-import org.koitharu.kotatsu.tracker.data.toTrackingLogItem
-import org.koitharu.kotatsu.tracker.domain.model.MangaTracking
-import org.koitharu.kotatsu.tracker.domain.model.MangaUpdates
-import org.koitharu.kotatsu.tracker.domain.model.TrackingLogItem
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.entity.toManga
+import org.haziffe.dropsauce.core.db.entity.toMangaTags
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.mapItems
+import org.haziffe.dropsauce.core.util.ext.toInstantOrNull
+import org.haziffe.dropsauce.details.domain.ProgressUpdateUseCase
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.ifZero
+import org.haziffe.dropsauce.tracker.data.TrackEntity
+import org.haziffe.dropsauce.tracker.data.TrackLogEntity
+import org.haziffe.dropsauce.tracker.data.toTrackingLogItem
+import org.haziffe.dropsauce.tracker.domain.model.MangaTracking
+import org.haziffe.dropsauce.tracker.domain.model.MangaUpdates
+import org.haziffe.dropsauce.tracker.domain.model.TrackingLogItem
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 

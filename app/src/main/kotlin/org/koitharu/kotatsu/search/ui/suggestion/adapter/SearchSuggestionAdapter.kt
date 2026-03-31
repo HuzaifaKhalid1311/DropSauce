@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.search.ui.suggestion.adapter
+package org.haziffe.dropsauce.search.ui.suggestion.adapter
 
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionListener
-import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.search.ui.suggestion.SearchSuggestionListener
+import org.haziffe.dropsauce.search.ui.suggestion.model.SearchSuggestionItem
 
 const val SEARCH_SUGGESTION_ITEM_TYPE_QUERY = 0
 

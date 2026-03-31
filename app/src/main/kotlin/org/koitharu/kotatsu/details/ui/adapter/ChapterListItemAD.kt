@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.details.ui.adapter
+package org.haziffe.dropsauce.details.ui.adapter
 
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.drawableStart
-import org.koitharu.kotatsu.core.util.ext.getThemeColorStateList
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ItemChapterBinding
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.AdapterDelegateClickListenerAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.drawableStart
+import org.haziffe.dropsauce.core.util.ext.getThemeColorStateList
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ItemChapterBinding
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem
+import org.haziffe.dropsauce.list.ui.model.ListModel
 import com.google.android.material.R as materialR
 
 fun chapterListItemAD(

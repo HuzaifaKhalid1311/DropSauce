@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.mihon
+package org.haziffe.dropsauce.mihon
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.BroadcastReceiver
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -10,10 +10,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.util.AcraCoroutineErrorHandler
-import org.koitharu.kotatsu.core.util.RetainedLifecycleCoroutineScope
-import org.koitharu.kotatsu.parsers.util.cancelAll
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.util.AcraCoroutineErrorHandler
+import org.haziffe.dropsauce.core.util.RetainedLifecycleCoroutineScope
+import org.haziffe.dropsauce.parsers.util.cancelAll
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException

@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.local.domain
+package org.haziffe.dropsauce.local.domain
 
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.local.data.LocalMangaRepository
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.io.IOException
 import javax.inject.Inject
 

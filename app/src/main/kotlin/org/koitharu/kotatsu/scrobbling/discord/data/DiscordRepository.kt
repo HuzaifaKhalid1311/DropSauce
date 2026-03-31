@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.scrobbling.discord.data
+package org.haziffe.dropsauce.scrobbling.discord.data
 
 import android.content.Context
 import dagger.Reusable
@@ -13,13 +13,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.closeQuietly
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.network.BaseHttpClient
-import org.koitharu.kotatsu.core.network.CommonHeaders
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.ensureSuccess
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.parseRaw
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.network.BaseHttpClient
+import org.haziffe.dropsauce.core.network.CommonHeaders
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.ensureSuccess
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.parsers.util.parseRaw
 import javax.inject.Inject
 
 private const val SCHEME_MP = "mp:"

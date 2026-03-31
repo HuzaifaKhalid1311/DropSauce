@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu
+package org.haziffe.dropsauce
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -7,9 +7,9 @@ import android.os.StrictMode
 import androidx.core.content.edit
 import androidx.fragment.app.strictmode.FragmentStrictMode
 import leakcanary.LeakCanary
-import org.koitharu.kotatsu.core.BaseApp
+import org.haziffe.dropsauce.core.BaseApp
 
-class KotatsuApp : BaseApp() {
+class DropSauceApp : BaseApp() {
 
 	var isLeakCanaryEnabled: Boolean
 		get() = getDebugPreferences(this).getBoolean(KEY_LEAK_CANARY, true)

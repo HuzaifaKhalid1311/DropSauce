@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.mihon.model
+package org.haziffe.dropsauce.mihon.model
 
 import eu.kanade.tachiyomi.source.CatalogueSource
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.extensions.runtime.getExternalExtensionLanguageDisplayName
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 data class MihonMangaSource(
 	val catalogueSource: CatalogueSource,

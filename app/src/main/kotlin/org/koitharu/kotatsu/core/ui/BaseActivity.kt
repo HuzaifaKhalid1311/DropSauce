@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui
+package org.haziffe.dropsauce.core.ui
 
 import android.content.Context
 import android.content.Intent
@@ -22,13 +22,13 @@ import androidx.viewbinding.ViewBinding
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.util.ActionModeDelegate
-import org.koitharu.kotatsu.core.util.ext.isWebViewUnavailable
-import org.koitharu.kotatsu.main.ui.protect.ScreenshotPolicyHelper
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.util.ActionModeDelegate
+import org.haziffe.dropsauce.core.util.ext.isWebViewUnavailable
+import org.haziffe.dropsauce.main.ui.protect.ScreenshotPolicyHelper
 import androidx.appcompat.R as appcompatR
 
 abstract class BaseActivity<B : ViewBinding> :

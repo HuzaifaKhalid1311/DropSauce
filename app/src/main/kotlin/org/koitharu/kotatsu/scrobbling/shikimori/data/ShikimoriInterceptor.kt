@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.scrobbling.shikimori.data
+package org.haziffe.dropsauce.scrobbling.shikimori.data
 
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
-import org.koitharu.kotatsu.core.network.CommonHeaders
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
-import org.koitharu.kotatsu.scrobbling.common.domain.ScrobblerAuthRequiredException
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.core.network.CommonHeaders
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerStorage
+import org.haziffe.dropsauce.scrobbling.common.domain.ScrobblerAuthRequiredException
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
 import java.net.HttpURLConnection
 
-private const val USER_AGENT_SHIKIMORI = "Kotatsu"
+private const val USER_AGENT_SHIKIMORI = "DropSauce"
 
 class ShikimoriInterceptor(private val storage: ScrobblerStorage) : Interceptor {
 

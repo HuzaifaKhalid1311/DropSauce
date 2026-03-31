@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.db.dao
+package org.haziffe.dropsauce.core.db.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -8,10 +8,10 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
-import org.koitharu.kotatsu.core.db.entity.MangaTagsEntity
-import org.koitharu.kotatsu.core.db.entity.MangaWithTags
-import org.koitharu.kotatsu.core.db.entity.TagEntity
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.entity.MangaTagsEntity
+import org.haziffe.dropsauce.core.db.entity.MangaWithTags
+import org.haziffe.dropsauce.core.db.entity.TagEntity
 
 @Dao
 abstract class MangaDao {

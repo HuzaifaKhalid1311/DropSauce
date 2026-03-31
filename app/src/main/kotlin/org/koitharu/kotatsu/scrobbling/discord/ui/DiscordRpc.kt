@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.scrobbling.discord.ui
+package org.haziffe.dropsauce.scrobbling.discord.ui
 
 import android.content.Context
 import android.os.SystemClock
@@ -19,18 +19,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import okio.utf8Size
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.model.appUrl
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.lifecycleScope
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
-import org.koitharu.kotatsu.scrobbling.discord.data.DiscordRepository
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.core.model.appUrl
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.lifecycleScope
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.reader.ui.pager.ReaderUiState
+import org.haziffe.dropsauce.scrobbling.discord.data.DiscordRepository
 import java.util.Collections
 import javax.inject.Inject
 

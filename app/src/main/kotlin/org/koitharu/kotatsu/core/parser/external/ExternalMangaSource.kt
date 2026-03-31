@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.core.parser.external
+package org.haziffe.dropsauce.core.parser.external
 
 import android.content.Context
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 data class ExternalMangaSource(
 	val packageName: String,

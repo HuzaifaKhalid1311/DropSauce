@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.core.prefs
+package org.haziffe.dropsauce.core.prefs
 
 import android.content.Context
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.core.content.edit
-import org.koitharu.kotatsu.core.util.ext.getEnumValue
-import org.koitharu.kotatsu.core.util.ext.putEnumValue
-import org.koitharu.kotatsu.core.util.ext.sanitizeHeaderValue
-import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.parsers.util.nullIfEmpty
-import org.koitharu.kotatsu.settings.utils.validation.DomainValidator
+import org.haziffe.dropsauce.core.util.ext.getEnumValue
+import org.haziffe.dropsauce.core.util.ext.putEnumValue
+import org.haziffe.dropsauce.core.util.ext.sanitizeHeaderValue
+import org.haziffe.dropsauce.parsers.config.ConfigKey
+import org.haziffe.dropsauce.parsers.config.MangaSourceConfig
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.SortOrder
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.parsers.util.nullIfEmpty
+import org.haziffe.dropsauce.settings.utils.validation.DomainValidator
 import java.io.File
 
 class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig {

@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.details.domain
+package org.haziffe.dropsauce.details.domain
 
-import org.koitharu.kotatsu.core.model.MangaHistory
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.details.data.ReadingTime
-import org.koitharu.kotatsu.parsers.util.findById
-import org.koitharu.kotatsu.stats.data.StatsRepository
+import org.haziffe.dropsauce.core.model.MangaHistory
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.details.data.ReadingTime
+import org.haziffe.dropsauce.parsers.util.findById
+import org.haziffe.dropsauce.stats.data.StatsRepository
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.roundToInt

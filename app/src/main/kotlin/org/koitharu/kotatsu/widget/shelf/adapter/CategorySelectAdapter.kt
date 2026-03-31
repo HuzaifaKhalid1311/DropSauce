@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.widget.shelf.adapter
+package org.haziffe.dropsauce.widget.shelf.adapter
 
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.widget.shelf.model.CategoryItem
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.widget.shelf.model.CategoryItem
 
 class CategorySelectAdapter(
 	clickListener: OnListItemClickListener<CategoryItem>

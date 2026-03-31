@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.explore.ui
+package org.haziffe.dropsauce.explore.ui
 
 import android.content.Context
 import android.graphics.Canvas
@@ -9,11 +9,11 @@ import android.view.View
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.decor.AbstractSelectionItemDecoration
-import org.koitharu.kotatsu.core.util.ext.getItem
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.decor.AbstractSelectionItemDecoration
+import org.haziffe.dropsauce.core.util.ext.getItem
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.explore.ui.model.MangaSourceItem
 import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR
 

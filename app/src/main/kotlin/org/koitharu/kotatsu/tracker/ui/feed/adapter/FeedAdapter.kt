@@ -1,21 +1,21 @@
-package org.koitharu.kotatsu.tracker.ui.feed.adapter
+package org.haziffe.dropsauce.tracker.ui.feed.adapter
 
 import android.content.Context
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.list.fastscroll.FastScroller
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.MangaListListener
-import org.koitharu.kotatsu.list.ui.adapter.emptyStateListAD
-import org.koitharu.kotatsu.list.ui.adapter.errorFooterAD
-import org.koitharu.kotatsu.list.ui.adapter.errorStateListAD
-import org.koitharu.kotatsu.list.ui.adapter.listHeaderAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingFooterAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingStateAD
-import org.koitharu.kotatsu.list.ui.adapter.quickFilterAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.size.ItemSizeResolver
-import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
+import org.haziffe.dropsauce.core.ui.BaseListAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.list.fastscroll.FastScroller
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.MangaListListener
+import org.haziffe.dropsauce.list.ui.adapter.emptyStateListAD
+import org.haziffe.dropsauce.list.ui.adapter.errorFooterAD
+import org.haziffe.dropsauce.list.ui.adapter.errorStateListAD
+import org.haziffe.dropsauce.list.ui.adapter.listHeaderAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingFooterAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingStateAD
+import org.haziffe.dropsauce.list.ui.adapter.quickFilterAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.size.ItemSizeResolver
+import org.haziffe.dropsauce.tracker.ui.feed.model.FeedItem
 
 class FeedAdapter(
 	listener: MangaListListener,

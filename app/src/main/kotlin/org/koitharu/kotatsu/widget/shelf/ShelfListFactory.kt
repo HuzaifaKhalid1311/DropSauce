@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.widget.shelf
+package org.haziffe.dropsauce.widget.shelf
 
 import android.content.Context
 import android.content.Intent
@@ -13,16 +13,16 @@ import coil3.size.Size
 import coil3.transform.RoundedCornersTransformation
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.AppWidgetConfig
-import org.koitharu.kotatsu.core.ui.image.TrimTransformation
-import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
-import org.koitharu.kotatsu.core.util.ext.mangaExtra
-import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.replaceWith
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.AppWidgetConfig
+import org.haziffe.dropsauce.core.ui.image.TrimTransformation
+import org.haziffe.dropsauce.core.util.ext.getDrawableOrThrow
+import org.haziffe.dropsauce.core.util.ext.mangaExtra
+import org.haziffe.dropsauce.favourites.domain.FavouritesRepository
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.replaceWith
 
 class ShelfListFactory(
 	private val context: Context,

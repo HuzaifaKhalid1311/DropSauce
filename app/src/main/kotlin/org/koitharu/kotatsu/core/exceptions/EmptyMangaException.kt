@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.core.exceptions
+package org.haziffe.dropsauce.core.exceptions
 
-import org.koitharu.kotatsu.details.ui.pager.EmptyMangaReason
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.details.ui.pager.EmptyMangaReason
+import org.haziffe.dropsauce.parsers.model.Manga
 
 class EmptyMangaException(
     val reason: EmptyMangaReason?,

@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu.tracker.ui.updates
+package org.haziffe.dropsauce.tracker.ui.updates
 
-import org.koitharu.kotatsu.core.ui.FragmentContainerActivity
+import org.haziffe.dropsauce.core.ui.FragmentContainerActivity
 
 class UpdatesActivity : FragmentContainerActivity(UpdatesFragment::class.java)

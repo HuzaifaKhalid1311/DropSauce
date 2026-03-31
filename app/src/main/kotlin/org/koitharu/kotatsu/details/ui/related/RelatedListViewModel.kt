@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui.related
+package org.haziffe.dropsauce.details.ui.related
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -12,23 +12,23 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.require
-import org.koitharu.kotatsu.list.domain.MangaListMapper
-import org.koitharu.kotatsu.list.ui.MangaListViewModel
-import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.list.ui.model.toErrorState
-import org.koitharu.kotatsu.local.data.LocalStorageChanges
-import org.koitharu.kotatsu.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.require
+import org.haziffe.dropsauce.list.domain.MangaListMapper
+import org.haziffe.dropsauce.list.ui.MangaListViewModel
+import org.haziffe.dropsauce.list.ui.model.EmptyState
+import org.haziffe.dropsauce.list.ui.model.LoadingState
+import org.haziffe.dropsauce.list.ui.model.toErrorState
+import org.haziffe.dropsauce.local.data.LocalStorageChanges
+import org.haziffe.dropsauce.local.domain.model.LocalManga
+import org.haziffe.dropsauce.parsers.model.Manga
 import javax.inject.Inject
 
 @HiltViewModel

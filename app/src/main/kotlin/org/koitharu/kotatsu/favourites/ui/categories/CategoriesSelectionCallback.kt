@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.favourites.ui.categories
+package org.haziffe.dropsauce.favourites.ui.categories
 
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.appcompat.view.ActionMode
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.list.ListSelectionController
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.ui.list.ListSelectionController
 
 class CategoriesSelectionCallback(
 	private val recyclerView: RecyclerView,

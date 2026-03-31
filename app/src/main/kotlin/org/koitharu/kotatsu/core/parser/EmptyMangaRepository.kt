@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.core.parser
+package org.haziffe.dropsauce.core.parser
 
-import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
-import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.haziffe.dropsauce.core.exceptions.UnsupportedSourceException
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.parsers.model.MangaListFilterCapabilities
+import org.haziffe.dropsauce.parsers.model.MangaListFilterOptions
+import org.haziffe.dropsauce.parsers.model.MangaPage
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.SortOrder
 import java.util.EnumSet
 
 open class EmptyMangaRepository(override val source: MangaSource) : MangaRepository {

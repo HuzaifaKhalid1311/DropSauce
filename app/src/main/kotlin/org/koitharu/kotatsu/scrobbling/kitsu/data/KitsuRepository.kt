@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.scrobbling.kitsu.data
+package org.haziffe.dropsauce.scrobbling.kitsu.data
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -9,24 +9,24 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import org.json.JSONObject
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.util.ext.parseJsonOrNull
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.urlEncoded
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerRepository
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
-import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuInterceptor.Companion.VND_JSON
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.util.ext.parseJsonOrNull
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.parsers.util.json.getFloatOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getIntOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getStringOrNull
+import org.haziffe.dropsauce.parsers.util.json.mapJSON
+import org.haziffe.dropsauce.parsers.util.parseJson
+import org.haziffe.dropsauce.parsers.util.urlEncoded
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerRepository
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerStorage
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblingEntity
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerManga
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerUser
+import org.haziffe.dropsauce.scrobbling.kitsu.data.KitsuInterceptor.Companion.VND_JSON
 
 private const val BASE_WEB_URL = "https://kitsu.app"
 

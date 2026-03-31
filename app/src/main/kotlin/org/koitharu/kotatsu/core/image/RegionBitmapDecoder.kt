@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.image
+package org.haziffe.dropsauce.core.image
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -23,7 +23,7 @@ import coil3.size.Scale
 import coil3.size.Size
 import coil3.size.isOriginal
 import coil3.size.pxOrElse
-import org.koitharu.kotatsu.core.util.ext.copyWithNewSource
+import org.haziffe.dropsauce.core.util.ext.copyWithNewSource
 import kotlin.math.roundToInt
 
 class RegionBitmapDecoder(

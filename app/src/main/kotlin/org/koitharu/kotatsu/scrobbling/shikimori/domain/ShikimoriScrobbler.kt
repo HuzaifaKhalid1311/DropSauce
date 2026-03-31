@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.scrobbling.shikimori.domain
+package org.haziffe.dropsauce.scrobbling.shikimori.domain
 
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
-import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriRepository
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.scrobbling.common.domain.Scrobbler
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingStatus
+import org.haziffe.dropsauce.scrobbling.shikimori.data.ShikimoriRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

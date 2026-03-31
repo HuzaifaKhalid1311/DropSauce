@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.ui.list
+package org.haziffe.dropsauce.favourites.ui.list
 
 import android.os.Bundle
 import android.view.Menu
@@ -10,14 +10,14 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.list.ListSelectionController
-import org.koitharu.kotatsu.core.util.ext.sortedByOrdinal
-import org.koitharu.kotatsu.core.util.ext.withArgs
-import org.koitharu.kotatsu.databinding.FragmentListBinding
-import org.koitharu.kotatsu.list.domain.ListSortOrder
-import org.koitharu.kotatsu.list.ui.MangaListFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.list.ListSelectionController
+import org.haziffe.dropsauce.core.util.ext.sortedByOrdinal
+import org.haziffe.dropsauce.core.util.ext.withArgs
+import org.haziffe.dropsauce.databinding.FragmentListBinding
+import org.haziffe.dropsauce.list.domain.ListSortOrder
+import org.haziffe.dropsauce.list.ui.MangaListFragment
 
 @AndroidEntryPoint
 class FavouritesListFragment : MangaListFragment(), PopupMenu.OnMenuItemClickListener {

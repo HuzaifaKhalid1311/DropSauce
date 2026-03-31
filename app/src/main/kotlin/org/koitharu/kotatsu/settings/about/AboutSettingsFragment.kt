@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.about
+package org.haziffe.dropsauce.settings.about
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,16 +10,16 @@ import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.github.AppVersion
-import org.koitharu.kotatsu.core.github.VersionId
-import org.koitharu.kotatsu.core.github.isStable
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.github.AppVersion
+import org.haziffe.dropsauce.core.github.VersionId
+import org.haziffe.dropsauce.core.github.isStable
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
 
 @AndroidEntryPoint
 class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {

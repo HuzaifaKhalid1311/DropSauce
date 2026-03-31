@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings
+package org.haziffe.dropsauce.settings
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -15,18 +15,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.network.BaseHttpClient
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.settings.utils.EditTextBindListener
-import org.koitharu.kotatsu.settings.utils.PasswordSummaryProvider
-import org.koitharu.kotatsu.settings.utils.validation.DomainValidator
-import org.koitharu.kotatsu.settings.utils.validation.PortNumberValidator
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.network.BaseHttpClient
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.viewLifecycleScope
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.settings.utils.EditTextBindListener
+import org.haziffe.dropsauce.settings.utils.PasswordSummaryProvider
+import org.haziffe.dropsauce.settings.utils.validation.DomainValidator
+import org.haziffe.dropsauce.settings.utils.validation.PortNumberValidator
 import java.net.Proxy
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException

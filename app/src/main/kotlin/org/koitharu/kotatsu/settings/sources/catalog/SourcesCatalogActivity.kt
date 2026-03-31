@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import android.os.Bundle
 import android.app.DownloadManager
@@ -29,27 +29,27 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.titleResId
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
-import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView.ChipModel
-import org.koitharu.kotatsu.core.util.LocaleComparator
-import org.koitharu.kotatsu.core.util.ext.getDisplayName
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.toLocale
-import org.koitharu.kotatsu.core.ui.dialog.setEditText
-import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
-import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
-import org.koitharu.kotatsu.parsers.model.ContentType
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.titleResId
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.util.FadingAppbarMediator
+import org.haziffe.dropsauce.core.ui.util.ReversibleActionObserver
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView.ChipModel
+import org.haziffe.dropsauce.core.util.LocaleComparator
+import org.haziffe.dropsauce.core.util.ext.getDisplayName
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.toLocale
+import org.haziffe.dropsauce.core.ui.dialog.setEditText
+import org.haziffe.dropsauce.databinding.ActivitySourcesCatalogBinding
+import org.haziffe.dropsauce.list.ui.adapter.TypedListSpacingDecoration
+import org.haziffe.dropsauce.main.ui.owners.AppBarOwner
+import org.haziffe.dropsauce.parsers.model.ContentType
 
 @AndroidEntryPoint
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),

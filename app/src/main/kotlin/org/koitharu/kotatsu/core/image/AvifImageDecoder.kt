@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.image
+package org.haziffe.dropsauce.core.image
 
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
@@ -17,7 +17,7 @@ import coil3.util.component2
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
 import kotlinx.coroutines.runInterruptible
 import org.aomedia.avif.android.AvifDecoder
-import org.koitharu.kotatsu.core.util.ext.readByteBuffer
+import org.haziffe.dropsauce.core.util.ext.readByteBuffer
 
 class AvifImageDecoder(
 	private val source: ImageSource,

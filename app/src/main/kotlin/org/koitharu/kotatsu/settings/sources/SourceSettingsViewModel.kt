@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources
+package org.haziffe.dropsauce.settings.sources
 
 import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
@@ -7,24 +7,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import okhttp3.HttpUrl
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
-import org.koitharu.kotatsu.core.parser.CachingMangaRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.SourceSettings
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.mihon.MihonExtensionManager
-import org.koitharu.kotatsu.mihon.MihonMangaRepository
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
-import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.network.cookies.MutableCookieJar
+import org.haziffe.dropsauce.core.parser.CachingMangaRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.SourceSettings
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.util.ReversibleAction
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.mihon.MihonExtensionManager
+import org.haziffe.dropsauce.mihon.MihonMangaRepository
+import org.haziffe.dropsauce.mihon.model.MihonMangaSource
+import org.haziffe.dropsauce.parsers.MangaParserAuthProvider
+import org.haziffe.dropsauce.parsers.exception.AuthRequiredException
 import javax.inject.Inject
 
 @HiltViewModel

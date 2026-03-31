@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.download.ui.dialog
+package org.haziffe.dropsauce.download.ui.dialog
 
 import androidx.collection.ArraySet
 import androidx.collection.LongLongMap
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.util.mapNotNullToSet
 
 interface ChaptersSelectMacro {
 

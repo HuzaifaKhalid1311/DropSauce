@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.widget.shelf
+package org.haziffe.dropsauce.widget.shelf
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -8,18 +8,18 @@ import androidx.activity.viewModels
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.prefs.AppWidgetConfig
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
-import org.koitharu.kotatsu.databinding.ActivityAppwidgetShelfBinding
-import org.koitharu.kotatsu.widget.shelf.adapter.CategorySelectAdapter
-import org.koitharu.kotatsu.widget.shelf.model.CategoryItem
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.prefs.AppWidgetConfig
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.consumeAllSystemBarsInsets
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.systemBarsInsets
+import org.haziffe.dropsauce.databinding.ActivityAppwidgetShelfBinding
+import org.haziffe.dropsauce.widget.shelf.adapter.CategorySelectAdapter
+import org.haziffe.dropsauce.widget.shelf.model.CategoryItem
 
 @AndroidEntryPoint
 class ShelfWidgetConfigActivity :

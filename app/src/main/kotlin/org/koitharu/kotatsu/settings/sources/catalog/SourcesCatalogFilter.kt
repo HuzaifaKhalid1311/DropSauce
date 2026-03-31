@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
-import org.koitharu.kotatsu.parsers.model.ContentType
+import org.haziffe.dropsauce.parsers.model.ContentType
 
 data class SourcesCatalogFilter(
 	val mode: SourcesCatalogMode,

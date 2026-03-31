@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import android.widget.EditText
 import androidx.preference.EditTextPreference
-import org.koitharu.kotatsu.core.util.EditTextValidator
+import org.haziffe.dropsauce.core.util.EditTextValidator
 
 class EditTextBindListener(
 	private val inputType: Int,

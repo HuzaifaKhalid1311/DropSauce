@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.db
+package org.haziffe.dropsauce.core.db
 
 import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4

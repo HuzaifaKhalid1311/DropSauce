@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.sync.data.model
+package org.haziffe.dropsauce.sync.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

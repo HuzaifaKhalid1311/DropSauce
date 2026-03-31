@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.work
+package org.haziffe.dropsauce.settings.work
 
 interface PeriodicWorkScheduler {
 

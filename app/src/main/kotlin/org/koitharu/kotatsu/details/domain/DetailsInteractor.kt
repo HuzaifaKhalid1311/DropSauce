@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.domain
+package org.haziffe.dropsauce.details.domain
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -6,21 +6,21 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.TriStateOption
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
-import org.koitharu.kotatsu.tracker.domain.TrackingRepository
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.TriStateOption
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.favourites.domain.FavouritesRepository
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.local.data.LocalMangaRepository
+import org.haziffe.dropsauce.local.domain.model.LocalManga
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.scrobbling.common.domain.Scrobbler
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingInfo
+import org.haziffe.dropsauce.tracker.domain.TrackingRepository
 import javax.inject.Inject
 
 /* TODO: remove */

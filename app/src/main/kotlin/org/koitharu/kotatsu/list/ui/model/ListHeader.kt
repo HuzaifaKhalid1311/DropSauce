@@ -1,17 +1,17 @@
-package org.koitharu.kotatsu.list.ui.model
+package org.haziffe.dropsauce.list.ui.model
 
 import android.content.Context
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.core.model.getLocalizedTitle
-import org.koitharu.kotatsu.core.ui.model.DateTimeAgo
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.haziffe.dropsauce.core.model.getLocalizedTitle
+import org.haziffe.dropsauce.core.ui.model.DateTimeAgo
+import org.haziffe.dropsauce.parsers.model.MangaChapter
 
 data class ListHeader private constructor(
 	private val textRaw: Any,
 	@StringRes val buttonTextRes: Int,
 	val payload: Any?,
 	val badge: String?,
-	val filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+	val filterMode: org.haziffe.dropsauce.explore.ui.SourceFilterMode? = null,
 ) : ListModel {
 
 	constructor(
@@ -19,7 +19,7 @@ data class ListHeader private constructor(
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+		filterMode: org.haziffe.dropsauce.explore.ui.SourceFilterMode? = null,
 	) : this(textRaw = text, buttonTextRes, payload, badge, filterMode)
 
 	constructor(
@@ -27,7 +27,7 @@ data class ListHeader private constructor(
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+		filterMode: org.haziffe.dropsauce.explore.ui.SourceFilterMode? = null,
 	) : this(textRaw = textRes, buttonTextRes, payload, badge, filterMode)
 
 	constructor(
@@ -35,7 +35,7 @@ data class ListHeader private constructor(
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+		filterMode: org.haziffe.dropsauce.explore.ui.SourceFilterMode? = null,
 	) : this(textRaw = chapter, buttonTextRes, payload, badge, filterMode)
 
 	constructor(
@@ -43,7 +43,7 @@ data class ListHeader private constructor(
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-		filterMode: org.koitharu.kotatsu.explore.ui.SourceFilterMode? = null,
+		filterMode: org.haziffe.dropsauce.explore.ui.SourceFilterMode? = null,
 	) : this(textRaw = dateTimeAgo, buttonTextRes, payload, badge, filterMode)
 
 	fun getText(context: Context): CharSequence? = when (textRaw) {

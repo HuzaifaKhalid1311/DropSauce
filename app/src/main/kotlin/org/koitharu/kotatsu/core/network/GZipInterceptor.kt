@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.Response
 import okio.IOException
-import org.koitharu.kotatsu.core.exceptions.WrapperIOException
-import org.koitharu.kotatsu.core.network.CommonHeaders.CONTENT_ENCODING
+import org.haziffe.dropsauce.core.exceptions.WrapperIOException
+import org.haziffe.dropsauce.core.network.CommonHeaders.CONTENT_ENCODING
 
 class GZipInterceptor : Interceptor {
 

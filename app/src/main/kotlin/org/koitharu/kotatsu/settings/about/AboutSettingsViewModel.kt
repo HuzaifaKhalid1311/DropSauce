@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.settings.about
+package org.haziffe.dropsauce.settings.about
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import org.koitharu.kotatsu.core.github.AppUpdateRepository
-import org.koitharu.kotatsu.core.github.AppVersion
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
+import org.haziffe.dropsauce.core.github.AppUpdateRepository
+import org.haziffe.dropsauce.core.github.AppVersion
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
 import javax.inject.Inject
 
 @HiltViewModel

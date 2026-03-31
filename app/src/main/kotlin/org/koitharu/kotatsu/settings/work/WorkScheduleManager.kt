@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.settings.work
+package org.haziffe.dropsauce.settings.work
 
 import android.content.SharedPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
-import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
-import org.koitharu.kotatsu.tracker.work.TrackWorker
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.processLifecycleScope
+import org.haziffe.dropsauce.suggestions.ui.SuggestionsWorker
+import org.haziffe.dropsauce.tracker.work.TrackWorker
 import javax.inject.Inject
 import javax.inject.Singleton
 

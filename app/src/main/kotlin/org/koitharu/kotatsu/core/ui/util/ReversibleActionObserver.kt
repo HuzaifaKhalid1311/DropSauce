@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.FlowCollector
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.findActivity
-import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
-import org.koitharu.kotatsu.main.ui.owners.BottomSheetOwner
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.findActivity
+import org.haziffe.dropsauce.main.ui.owners.BottomNavOwner
+import org.haziffe.dropsauce.main.ui.owners.BottomSheetOwner
 
 class ReversibleActionObserver(
 	private val snackbarHost: View,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.search.ui.multi.adapter
+package org.haziffe.dropsauce.search.ui.multi.adapter
 
 import android.annotation.SuppressLint
 import androidx.core.view.isGone
@@ -6,20 +6,20 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView.RecycledViewPool
 import com.hannesdorfmann.adapterdelegates4.ListDelegationAdapter
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
-import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.list.decor.SpacingItemDecoration
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ItemListGroupBinding
-import org.koitharu.kotatsu.list.ui.MangaSelectionDecoration
-import org.koitharu.kotatsu.list.ui.adapter.mangaGridItemAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.MangaListModel
-import org.koitharu.kotatsu.list.ui.size.ItemSizeResolver
-import org.koitharu.kotatsu.search.ui.multi.SearchResultsListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.UnknownMangaSource
+import org.haziffe.dropsauce.core.ui.list.AdapterDelegateClickListenerAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.ui.list.decor.SpacingItemDecoration
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ItemListGroupBinding
+import org.haziffe.dropsauce.list.ui.MangaSelectionDecoration
+import org.haziffe.dropsauce.list.ui.adapter.mangaGridItemAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.MangaListModel
+import org.haziffe.dropsauce.list.ui.size.ItemSizeResolver
+import org.haziffe.dropsauce.search.ui.multi.SearchResultsListModel
 
 @SuppressLint("NotifyDataSetChanged")
 fun searchResultsAD(

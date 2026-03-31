@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui.config
+package org.haziffe.dropsauce.reader.ui.config
 
 import android.graphics.Bitmap
 import android.view.View
@@ -19,15 +19,15 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.core.model.ZoomMode
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ReaderBackground
-import org.koitharu.kotatsu.core.prefs.ReaderMode
-import org.koitharu.kotatsu.core.util.MediatorStateFlow
-import org.koitharu.kotatsu.core.util.ext.isLowRamDevice
-import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
-import org.koitharu.kotatsu.reader.domain.ReaderColorFilter
+import org.haziffe.dropsauce.core.model.ZoomMode
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ReaderBackground
+import org.haziffe.dropsauce.core.prefs.ReaderMode
+import org.haziffe.dropsauce.core.util.MediatorStateFlow
+import org.haziffe.dropsauce.core.util.ext.isLowRamDevice
+import org.haziffe.dropsauce.core.util.ext.processLifecycleScope
+import org.haziffe.dropsauce.reader.domain.ReaderColorFilter
 
 data class ReaderSettings(
 	val zoomMode: ZoomMode,

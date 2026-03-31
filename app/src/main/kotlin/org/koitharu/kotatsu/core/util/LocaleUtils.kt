@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.core.util
+package org.haziffe.dropsauce.core.util
 
 import android.graphics.Paint
 import androidx.core.graphics.PaintCompat
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
 import java.util.Locale
 
 object LocaleUtils {

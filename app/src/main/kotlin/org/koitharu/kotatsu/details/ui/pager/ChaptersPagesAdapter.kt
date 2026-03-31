@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.details.ui.pager
+package org.haziffe.dropsauce.details.ui.pager
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.details.ui.pager.bookmarks.BookmarksFragment
-import org.koitharu.kotatsu.details.ui.pager.chapters.ChaptersFragment
-import org.koitharu.kotatsu.details.ui.pager.pages.PagesFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.details.ui.pager.bookmarks.BookmarksFragment
+import org.haziffe.dropsauce.details.ui.pager.chapters.ChaptersFragment
+import org.haziffe.dropsauce.details.ui.pager.pages.PagesFragment
 
 class ChaptersPagesAdapter(
 	fragment: Fragment,

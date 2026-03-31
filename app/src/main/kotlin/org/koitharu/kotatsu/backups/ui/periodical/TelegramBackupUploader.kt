@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.backups.ui.periodical
+package org.haziffe.dropsauce.backups.ui.periodical
 
 import android.content.Context
 import androidx.annotation.CheckResult
@@ -11,14 +11,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.network.BaseHttpClient
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.parseJson
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.network.BaseHttpClient
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.parsers.util.json.getBooleanOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getStringOrNull
+import org.haziffe.dropsauce.parsers.util.parseJson
 import java.io.File
 import javax.inject.Inject
 

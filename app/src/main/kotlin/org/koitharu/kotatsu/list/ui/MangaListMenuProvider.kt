@@ -1,17 +1,17 @@
-package org.koitharu.kotatsu.list.ui
+package org.haziffe.dropsauce.list.ui
 
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.favourites.ui.list.FavouritesListFragment
-import org.koitharu.kotatsu.history.ui.HistoryListFragment
-import org.koitharu.kotatsu.list.ui.config.ListConfigSection
-import org.koitharu.kotatsu.suggestions.ui.SuggestionsFragment
-import org.koitharu.kotatsu.tracker.ui.updates.UpdatesFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.favourites.ui.list.FavouritesListFragment
+import org.haziffe.dropsauce.history.ui.HistoryListFragment
+import org.haziffe.dropsauce.list.ui.config.ListConfigSection
+import org.haziffe.dropsauce.suggestions.ui.SuggestionsFragment
+import org.haziffe.dropsauce.tracker.ui.updates.UpdatesFragment
 
 class MangaListMenuProvider(
 	private val fragment: Fragment,

@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.google.android.material.badge.BadgeDrawable
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.databinding.ItemHeaderBinding
-import org.koitharu.kotatsu.explore.ui.SourceFilterMode
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.databinding.ItemHeaderBinding
+import org.haziffe.dropsauce.explore.ui.SourceFilterMode
+import org.haziffe.dropsauce.list.ui.model.ListHeader
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 fun listHeaderAD(
 	listener: ListHeaderClickListener?,

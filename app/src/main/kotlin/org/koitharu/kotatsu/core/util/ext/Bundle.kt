@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.Intent
 import android.os.Build
@@ -11,7 +11,7 @@ import androidx.core.content.IntentCompat
 import androidx.core.os.BundleCompat
 import androidx.core.os.ParcelCompat
 import androidx.lifecycle.SavedStateHandle
-import org.koitharu.kotatsu.parsers.util.toArraySet
+import org.haziffe.dropsauce.parsers.util.toArraySet
 import java.io.Serializable
 import java.util.EnumSet
 

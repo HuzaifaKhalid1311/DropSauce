@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.list.fastscroll
+package org.haziffe.dropsauce.core.ui.list.fastscroll
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -8,8 +8,8 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import org.koitharu.kotatsu.core.util.ext.animatorDurationScale
-import org.koitharu.kotatsu.core.util.ext.measureWidth
+import org.haziffe.dropsauce.core.util.ext.animatorDurationScale
+import org.haziffe.dropsauce.core.util.ext.measureWidth
 import kotlin.math.hypot
 
 class BubbleAnimator(

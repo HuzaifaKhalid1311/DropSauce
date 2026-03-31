@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.ui.image
+package org.haziffe.dropsauce.core.ui.image
 
 import android.graphics.Bitmap
 import androidx.core.graphics.get
 import coil3.size.Size
 import coil3.transform.Transformation
-import org.koitharu.kotatsu.reader.domain.EdgeDetector.Companion.isColorTheSame
+import org.haziffe.dropsauce.reader.domain.EdgeDetector.Companion.isColorTheSame
 
 class TrimTransformation(
 	private val tolerance: Int = 20,

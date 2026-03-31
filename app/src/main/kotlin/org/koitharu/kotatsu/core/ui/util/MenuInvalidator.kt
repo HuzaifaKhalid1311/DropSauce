@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import androidx.core.view.MenuHost
 import kotlinx.coroutines.flow.FlowCollector

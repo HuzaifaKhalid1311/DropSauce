@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.content.Context
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.details.data.MangaDetails
-import org.koitharu.kotatsu.details.ui.model.ChapterListItem
-import org.koitharu.kotatsu.details.ui.model.toListItem
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.details.data.MangaDetails
+import org.haziffe.dropsauce.details.ui.model.ChapterListItem
+import org.haziffe.dropsauce.details.ui.model.toListItem
+import org.haziffe.dropsauce.list.ui.model.ListHeader
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.util.mapToSet
 
 fun MangaDetails.mapChapters(
 	currentChapterId: Long,

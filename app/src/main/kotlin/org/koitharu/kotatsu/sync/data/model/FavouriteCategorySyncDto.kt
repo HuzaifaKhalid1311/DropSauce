@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.sync.data.model
+package org.haziffe.dropsauce.sync.data.model
 
 import android.database.Cursor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.core.util.ext.buildContentValues
-import org.koitharu.kotatsu.core.util.ext.getBoolean
+import org.haziffe.dropsauce.core.util.ext.buildContentValues
+import org.haziffe.dropsauce.core.util.ext.getBoolean
 
 @Serializable
 data class FavouriteCategorySyncDto(

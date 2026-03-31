@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.local.ui
+package org.haziffe.dropsauce.local.ui
 
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.core.ui.CoroutineIntentService
-import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
+import org.haziffe.dropsauce.core.ui.CoroutineIntentService
+import org.haziffe.dropsauce.local.data.index.LocalMangaIndex
 import javax.inject.Inject
 
 @AndroidEntryPoint

@@ -1,23 +1,23 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.getSummary
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isBroken
-import org.koitharu.kotatsu.core.model.isExternalSource
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.drawableStart
-import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.databinding.ItemEmptyCardBinding
-import org.koitharu.kotatsu.databinding.ItemSourceCatalogBinding
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.getSummary
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.model.isBroken
+import org.haziffe.dropsauce.core.model.isExternalSource
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.ui.image.FaviconDrawable
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.drawableStart
+import org.haziffe.dropsauce.core.util.ext.getThemeDimensionPixelOffset
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.databinding.ItemEmptyCardBinding
+import org.haziffe.dropsauce.databinding.ItemSourceCatalogBinding
+import org.haziffe.dropsauce.list.ui.model.ListModel
 import androidx.appcompat.R as appcompatR
 
 interface ExtensionActionListener {

@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.reader.ui.pager.doublepage
+package org.haziffe.dropsauce.reader.ui.pager.doublepage
 
 import androidx.core.view.children
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.reader.ui.pager.standard.PageHolder
+import org.haziffe.dropsauce.reader.ui.pager.standard.PageHolder
 
 fun RecyclerView.visiblePageHolders(): Sequence<PageHolder> {
 	val lm = layoutManager as? LinearLayoutManager ?: return emptySequence()

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui
+package org.haziffe.dropsauce.core.ui
 
 import android.os.Bundle
 import android.view.View
@@ -9,11 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.consumeSystemBarsInsets
-import org.koitharu.kotatsu.databinding.ActivityContainerBinding
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
-import org.koitharu.kotatsu.main.ui.owners.SnackbarOwner
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.consumeSystemBarsInsets
+import org.haziffe.dropsauce.databinding.ActivityContainerBinding
+import org.haziffe.dropsauce.main.ui.owners.AppBarOwner
+import org.haziffe.dropsauce.main.ui.owners.SnackbarOwner
 
 @AndroidEntryPoint
 abstract class FragmentContainerActivity(private val fragmentClass: Class<out Fragment>) :

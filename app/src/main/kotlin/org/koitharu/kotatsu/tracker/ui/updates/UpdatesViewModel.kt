@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.tracker.ui.updates
+package org.haziffe.dropsauce.tracker.ui.updates
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,29 +10,29 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ListMode
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.ui.model.DateTimeAgo
-import org.koitharu.kotatsu.core.util.ext.calculateTimeAgo
-import org.koitharu.kotatsu.core.util.ext.onFirst
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.domain.MangaListMapper
-import org.koitharu.kotatsu.list.domain.QuickFilterListener
-import org.koitharu.kotatsu.list.ui.MangaListViewModel
-import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.list.ui.model.toErrorState
-import org.koitharu.kotatsu.tracker.domain.TrackingRepository
-import org.koitharu.kotatsu.tracker.domain.UpdatesListQuickFilter
-import org.koitharu.kotatsu.tracker.domain.model.MangaTracking
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ListMode
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.core.ui.model.DateTimeAgo
+import org.haziffe.dropsauce.core.util.ext.calculateTimeAgo
+import org.haziffe.dropsauce.core.util.ext.onFirst
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.MangaListMapper
+import org.haziffe.dropsauce.list.domain.QuickFilterListener
+import org.haziffe.dropsauce.list.ui.MangaListViewModel
+import org.haziffe.dropsauce.list.ui.model.EmptyState
+import org.haziffe.dropsauce.list.ui.model.ListHeader
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.LoadingState
+import org.haziffe.dropsauce.list.ui.model.toErrorState
+import org.haziffe.dropsauce.tracker.domain.TrackingRepository
+import org.haziffe.dropsauce.tracker.domain.UpdatesListQuickFilter
+import org.haziffe.dropsauce.tracker.domain.model.MangaTracking
 import javax.inject.Inject
-import org.koitharu.kotatsu.local.data.LocalStorageChanges
-import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.haziffe.dropsauce.local.data.LocalStorageChanges
+import org.haziffe.dropsauce.local.domain.model.LocalManga
 import kotlinx.coroutines.flow.SharedFlow
 
 @HiltViewModel

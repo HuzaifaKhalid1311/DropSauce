@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -19,13 +19,13 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.children
 import androidx.core.widget.TextViewCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
-import org.koitharu.kotatsu.core.util.ext.getThemeColorStateList
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.resolveDp
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getAnimationDuration
+import org.haziffe.dropsauce.core.util.ext.getThemeColorStateList
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.resolveDp
+import org.haziffe.dropsauce.core.util.ext.setTextAndVisible
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
 import androidx.appcompat.R as appcompatR
 
 class ProgressButton @JvmOverloads constructor(

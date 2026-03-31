@@ -16,12 +16,12 @@
 -dontwarn com.google.j2objc.annotations.**
 -dontwarn coil3.PlatformContext
 
--keep class org.koitharu.kotatsu.settings.NotificationSettingsLegacyFragment
--keep class org.koitharu.kotatsu.settings.about.changelog.ChangelogFragment
+-keep class org.haziffe.dropsauce.settings.NotificationSettingsLegacyFragment
+-keep class org.haziffe.dropsauce.settings.about.changelog.ChangelogFragment
 
--keep class org.koitharu.kotatsu.core.exceptions.* { *; }
--keep class org.koitharu.kotatsu.core.prefs.ScreenshotsPolicy { *; }
--keep class org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupSettingsFragment { *; }
+-keep class org.haziffe.dropsauce.core.exceptions.* { *; }
+-keep class org.haziffe.dropsauce.core.prefs.ScreenshotsPolicy { *; }
+-keep class org.haziffe.dropsauce.backups.ui.periodical.PeriodicalBackupSettingsFragment { *; }
 -keep class org.jsoup.parser.Tag
 -keep class org.jsoup.internal.StringUtil
 
@@ -31,7 +31,7 @@
 -keep class org.acra.sender.JobSenderService
 
 # Preference XML and FragmentManager may instantiate fragments by class name.
--keep class org.koitharu.kotatsu.**Fragment { *; }
+-keep class org.haziffe.dropsauce.**Fragment { *; }
 
 # ============================================================
 # Mihon Extension Support
@@ -80,12 +80,12 @@
 -dontwarn okhttp3.**
 
 # Mihon bridge and model classes
--keep class org.koitharu.kotatsu.mihon.** { *; }
--keepclassmembers class org.koitharu.kotatsu.mihon.** {
+-keep class org.haziffe.dropsauce.mihon.** { *; }
+-keepclassmembers class org.haziffe.dropsauce.mihon.** {
     public <init>(...);
     public protected *;
 }
--keep class org.koitharu.kotatsu.mihon.compat.** { *; }
+-keep class org.haziffe.dropsauce.mihon.compat.** { *; }
 
 # Jsoup (used by ParsedHttpSource)
 -keep class org.jsoup.** { *; }

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.scrobbling
+package org.haziffe.dropsauce.scrobbling
 
 import android.content.Context
 import dagger.Module
@@ -8,27 +8,27 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.ElementsIntoSet
 import okhttp3.OkHttpClient
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.network.BaseHttpClient
-import org.koitharu.kotatsu.core.network.CurlLoggingInterceptor
-import org.koitharu.kotatsu.scrobbling.anilist.data.AniListAuthenticator
-import org.koitharu.kotatsu.scrobbling.anilist.data.AniListInterceptor
-import org.koitharu.kotatsu.scrobbling.anilist.domain.AniListScrobbler
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
-import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
-import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuAuthenticator
-import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuInterceptor
-import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuRepository
-import org.koitharu.kotatsu.scrobbling.kitsu.domain.KitsuScrobbler
-import org.koitharu.kotatsu.scrobbling.mal.data.MALAuthenticator
-import org.koitharu.kotatsu.scrobbling.mal.data.MALInterceptor
-import org.koitharu.kotatsu.scrobbling.mal.domain.MALScrobbler
-import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriAuthenticator
-import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriInterceptor
-import org.koitharu.kotatsu.scrobbling.shikimori.domain.ShikimoriScrobbler
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.network.BaseHttpClient
+import org.haziffe.dropsauce.core.network.CurlLoggingInterceptor
+import org.haziffe.dropsauce.scrobbling.anilist.data.AniListAuthenticator
+import org.haziffe.dropsauce.scrobbling.anilist.data.AniListInterceptor
+import org.haziffe.dropsauce.scrobbling.anilist.domain.AniListScrobbler
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerStorage
+import org.haziffe.dropsauce.scrobbling.common.domain.Scrobbler
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerType
+import org.haziffe.dropsauce.scrobbling.kitsu.data.KitsuAuthenticator
+import org.haziffe.dropsauce.scrobbling.kitsu.data.KitsuInterceptor
+import org.haziffe.dropsauce.scrobbling.kitsu.data.KitsuRepository
+import org.haziffe.dropsauce.scrobbling.kitsu.domain.KitsuScrobbler
+import org.haziffe.dropsauce.scrobbling.mal.data.MALAuthenticator
+import org.haziffe.dropsauce.scrobbling.mal.data.MALInterceptor
+import org.haziffe.dropsauce.scrobbling.mal.domain.MALScrobbler
+import org.haziffe.dropsauce.scrobbling.shikimori.data.ShikimoriAuthenticator
+import org.haziffe.dropsauce.scrobbling.shikimori.data.ShikimoriInterceptor
+import org.haziffe.dropsauce.scrobbling.shikimori.domain.ShikimoriScrobbler
 import javax.inject.Singleton
 
 @Module

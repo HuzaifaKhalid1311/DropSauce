@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui.pager.standard
+package org.haziffe.dropsauce.reader.ui.pager.standard
 
 import android.view.KeyEvent
 import android.view.View
@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.core.view.children
 import androidx.viewpager2.widget.ViewPager2
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
-import org.koitharu.kotatsu.core.util.ext.recyclerView
+import org.haziffe.dropsauce.core.util.ext.recyclerView
 
 class PagerEventSupplier(private val pager: ViewPager2) : View.OnKeyListener {
 

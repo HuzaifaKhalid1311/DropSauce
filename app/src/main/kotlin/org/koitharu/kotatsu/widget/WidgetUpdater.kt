@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.widget
+package org.haziffe.dropsauce.widget
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -6,10 +6,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.koitharu.kotatsu.core.db.TABLE_FAVOURITES
-import org.koitharu.kotatsu.core.db.TABLE_HISTORY
-import org.koitharu.kotatsu.widget.recent.RecentWidgetProvider
-import org.koitharu.kotatsu.widget.shelf.ShelfWidgetProvider
+import org.haziffe.dropsauce.core.db.TABLE_FAVOURITES
+import org.haziffe.dropsauce.core.db.TABLE_HISTORY
+import org.haziffe.dropsauce.widget.recent.RecentWidgetProvider
+import org.haziffe.dropsauce.widget.shelf.ShelfWidgetProvider
 import javax.inject.Inject
 import javax.inject.Singleton
 

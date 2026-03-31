@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.filter.ui.model
+package org.haziffe.dropsauce.filter.ui.model
 
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.parsers.model.SortOrder
 
 data class FilterHeaderModel(
 	val chips: Collection<ChipsView.ChipModel>,

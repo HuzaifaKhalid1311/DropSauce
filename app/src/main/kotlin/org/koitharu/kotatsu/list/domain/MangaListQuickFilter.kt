@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.list.domain
+package org.haziffe.dropsauce.list.domain
 
 import androidx.collection.ArraySet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.koitharu.kotatsu.core.model.toChipModel
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.list.ui.model.QuickFilter
-import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
-import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.haziffe.dropsauce.core.model.toChipModel
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.list.ui.model.QuickFilter
+import org.haziffe.dropsauce.parsers.util.suspendlazy.getOrNull
+import org.haziffe.dropsauce.parsers.util.suspendlazy.suspendLazy
 
 abstract class MangaListQuickFilter(
 	private val settings: AppSettings,

@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.Context
 import androidx.core.os.LocaleListCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.parsers.util.Set
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.parsers.util.Set
+import org.haziffe.dropsauce.parsers.util.toTitleCase
 import java.util.Locale
 
 operator fun LocaleListCompat.iterator(): ListIterator<Locale> = LocaleListCompatIterator(this)

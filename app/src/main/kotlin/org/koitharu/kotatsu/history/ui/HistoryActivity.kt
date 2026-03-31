@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu.history.ui
+package org.haziffe.dropsauce.history.ui
 
-import org.koitharu.kotatsu.core.ui.FragmentContainerActivity
+import org.haziffe.dropsauce.core.ui.FragmentContainerActivity
 
 class HistoryActivity : FragmentContainerActivity(HistoryListFragment::class.java)

@@ -312,7 +312,7 @@
     <string name="removed_from_favourites">Видалено з уподобань</string>
     <string name="other_cache">Інший кеш</string>
     <string name="memory_usage_pattern">%s - %s</string>
-    <string name="manga_error_description_pattern">Деталі помилки:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Спробуйте &lt;a href=%2$s&gt;відкрити манґу у веб-браузері&lt;/a&gt;, щоб переконатися, що вона доступна в джерелі&lt;br&gt;2. Переконайтеся, що ви використовуєте &lt;a href=kotatsu://about&gt;останню версію DropSauce&lt;/a&gt;&lt;br&gt;3. Якщо він доступний, надішліть звіт про помилку розробникам.</string>
+    <string name="manga_error_description_pattern">Деталі помилки:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Спробуйте &lt;a href=%2$s&gt;відкрити манґу у веб-браузері&lt;/a&gt;, щоб переконатися, що вона доступна в джерелі&lt;br&gt;2. Переконайтеся, що ви використовуєте &lt;a href=dropsauce://about&gt;останню версію DropSauce&lt;/a&gt;&lt;br&gt;3. Якщо він доступний, надішліть звіт про помилку розробникам.</string>
     <string name="history_shortcuts">Показувати ярлики останньої прочитаної манґи</string>
     <string name="history_shortcuts_summary">Зробити нещодавно прочитану манґу доступною за довгим натисканням на іконку застосунку</string>
     <string name="reader_control_ltr_summary">Не налаштовуйте напрям перемикання сторінок у режим читання, наприклад, натискання правої клавіші завжди перемикається на наступну сторінку. Ця опція впливає лише на апаратні пристрої введення</string>
@@ -770,7 +770,7 @@
     <string name="send_backups_telegram">Надсилати резервні копії до Telegram</string>
     <string name="test_connection">Тестове з\'єднання</string>
     <string name="telegram_chat_id_summary">Введіть ID чату, куди слід надсилати резервні копії</string>
-    <string name="open_telegram_bot_summary">Натисніть, щоб відкрити чат з Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Натисніть, щоб відкрити чат з DropSauce Backup Bot</string>
     <string name="clear_database">Очистити базу даних</string>
     <string name="clear_database_summary">Видалити інформацію про мангу, яка не використовується</string>
     <string name="enable_all_sources">Включити всі джерела манги</string>

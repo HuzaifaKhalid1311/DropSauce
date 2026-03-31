@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.filter.data
+package org.haziffe.dropsauce.filter.data
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.SetSerializer
@@ -12,14 +12,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.serializer
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.util.ext.toLocaleOrNull
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Demographic
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.util.ext.toLocaleOrNull
+import org.haziffe.dropsauce.parsers.model.ContentRating
+import org.haziffe.dropsauce.parsers.model.ContentType
+import org.haziffe.dropsauce.parsers.model.Demographic
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.parsers.model.MangaState
+import org.haziffe.dropsauce.parsers.model.MangaTag
 import java.util.Locale
 
 object MangaListFilterSerializer : KSerializer<MangaListFilter> {

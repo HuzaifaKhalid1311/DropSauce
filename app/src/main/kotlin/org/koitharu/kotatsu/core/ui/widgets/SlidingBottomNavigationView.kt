@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -19,8 +19,8 @@ import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView
 import com.google.android.material.navigation.NavigationBarView
-import org.koitharu.kotatsu.core.util.ext.applySystemAnimatorScale
-import org.koitharu.kotatsu.core.util.ext.measureHeight
+import org.haziffe.dropsauce.core.util.ext.applySystemAnimatorScale
+import org.haziffe.dropsauce.core.util.ext.measureHeight
 import kotlin.math.max
 import com.google.android.material.R as materialR
 

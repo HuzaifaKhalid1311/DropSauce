@@ -406,7 +406,7 @@
     <string name="reader_info_pattern">Chương %1$d/%2$d - Trang %3$d/%4$d</string>
     <string name="memory_usage_pattern">%s - %s</string>
     <string name="web_view_unavailable">WebView hiện không có sẵn: Kiểm tra xem ứng dụng WebView được cài chưa</string>
-    <string name="manga_error_description_pattern">Chi tiết lỗi: &lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Hãy thử &lt;a href=%2$s&gt;mở manga trong trình duyệt web&lt;/a&gt; để đảm bảo rằng manga này có trong nguồn&lt;br&gt;2. Hãy chắc chắn rằng bạn đang dùng &lt;a href=kotatsu://about&gt;bản mới nhất của DropSauce&lt;/a&gt;&lt;br&gt;3. Nếu đã đáp ứng các yêu cầu trên, gửi báo cáo lỗi lên nhà phát triển.</string>
+    <string name="manga_error_description_pattern">Chi tiết lỗi: &lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Hãy thử &lt;a href=%2$s&gt;mở manga trong trình duyệt web&lt;/a&gt; để đảm bảo rằng manga này có trong nguồn&lt;br&gt;2. Hãy chắc chắn rằng bạn đang dùng &lt;a href=dropsauce://about&gt;bản mới nhất của DropSauce&lt;/a&gt;&lt;br&gt;3. Nếu đã đáp ứng các yêu cầu trên, gửi báo cáo lỗi lên nhà phát triển.</string>
     <string name="text_history_holder_secondary">Tìm truyện để đọc trong phần «Khám phá»</string>
     <string name="this_month">Tháng này</string>
     <string name="tracker_wifi_only_summary">Không kiểm tra các chương mới bằng kết nối mạng có đo lường</string>
@@ -599,7 +599,7 @@
     <string name="split_by_translations_summary">Hiển thị chương với các bản dịch tách riêng ra, không gộp lại thành một danh sách</string>
     <string name="order_oldest">Cũ nhất</string>
     <string name="unread">Chưa đọc</string>
-    <string name="unsupported_backup_message">Vui lòng chọn một tệp sao lưu Kotatsu / DropSauce hợp lệ</string>
+    <string name="unsupported_backup_message">Vui lòng chọn một tệp sao lưu DropSauce / DropSauce hợp lệ</string>
     <string name="remaining_time_pattern">Còn %1$s %2$s</string>
     <string name="fix">Sửa lỗi</string>
     <string name="missing_storage_permission">Không có quyền để truy cập manga trên bộ nhớ ngoài</string>
@@ -765,7 +765,7 @@
     <string name="telegram_chat_id_summary">Nhập Chat ID từ Telegram của bạn, nơi mà Bot sẽ gửi bản sao lưu dữ liệu của ứng dụng cho bạn</string>
     <string name="test_connection">Kiểm tra kết nối</string>
     <string name="send_backups_telegram">Gửi bản sao lưu dữ liệu vào Telegram</string>
-    <string name="open_telegram_bot_summary">Ấn vào đây để mở đoạn Chat với Kotatsu Backup Bot (cần cài đặt Telegram)</string>
+    <string name="open_telegram_bot_summary">Ấn vào đây để mở đoạn Chat với DropSauce Backup Bot (cần cài đặt Telegram)</string>
     <string name="clear_database">Xóa database</string>
     <string name="clear_database_summary">Xoá thông tin dữ liệu về manga chưa từng được sử dụng (cache)</string>
     <string name="all_sources_enabled">Toàn bộ nguồn đọc đã được bật</string>

@@ -335,7 +335,7 @@
     <string name="network_unavailable_hint">I-on ang Wi-Fi o mobile network para magbasa ng manga online</string>
     <string name="reader_control_ltr_summary">Huwag i-adjust ang direksyon ng pagpalit ng pahina sa reader mode, hal. kapag pindutin ang kanan (right) na key ay palaging lumilipat sa susunod na pahina. Ang opsyong ito ay nakakaapekto lamang sa mga hardware input device</string>
     <string name="reader_slider">Ipakita ang slider ng paglipat ng pahina</string>
-    <string name="manga_error_description_pattern">Mga detalye ng error:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Subukang &lt;a href=%2$s&gt;magbukas ng manga sa isang web browser&lt;/a&gt; upang matiyak na available ito sa souce&lt;br&gt;2. Tiyaking ginagamit mo ang &lt;a href=kotatsu://about&gt;pinakabagong bersyon ng DropSauce&lt;/a&gt;&lt;br&gt;3. Kung available ito, magpadala ng ulat ng error sa mga developer.</string>
+    <string name="manga_error_description_pattern">Mga detalye ng error:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Subukang &lt;a href=%2$s&gt;magbukas ng manga sa isang web browser&lt;/a&gt; upang matiyak na available ito sa souce&lt;br&gt;2. Tiyaking ginagamit mo ang &lt;a href=dropsauce://about&gt;pinakabagong bersyon ng DropSauce&lt;/a&gt;&lt;br&gt;3. Kung available ito, magpadala ng ulat ng error sa mga developer.</string>
     <string name="enable_logging">Paganahin ang pag-log</string>
     <string name="source_disabled">Di pinagana ang source</string>
     <string name="importing_manga">Pag-import ng manga</string>
@@ -765,7 +765,7 @@
     <string name="clear_database_summary">Tanggalin ang impormasyon tungkol sa manga na hindi ginamit</string>
     <string name="send_backups_telegram">Magpadala ng mga backup sa Telegram</string>
     <string name="test_connection">I-test ang koneksyon</string>
-    <string name="open_telegram_bot_summary">Pindutin para buksan ang pinag-usapan gamit ang Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Pindutin para buksan ang pinag-usapan gamit ang DropSauce Backup Bot</string>
     <string name="translation">Pagsasalin</string>
     <string name="telegram_chat_id_summary">Ilagay ang chat ID kung saan dapat ipadala ang mga backup</string>
     <string name="rating">Kaurian</string>

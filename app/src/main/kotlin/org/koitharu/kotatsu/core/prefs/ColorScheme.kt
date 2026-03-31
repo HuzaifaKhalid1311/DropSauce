@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.core.prefs
+package org.haziffe.dropsauce.core.prefs
 
 import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import com.google.android.material.color.DynamicColors
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.parsers.util.find
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.parsers.util.find
 
 @Keep
 enum class ColorScheme(

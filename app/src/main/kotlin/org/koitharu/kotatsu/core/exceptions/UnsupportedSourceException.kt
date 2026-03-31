@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.core.exceptions
+package org.haziffe.dropsauce.core.exceptions
 
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.Manga
 
 class UnsupportedSourceException(
 	message: String?,

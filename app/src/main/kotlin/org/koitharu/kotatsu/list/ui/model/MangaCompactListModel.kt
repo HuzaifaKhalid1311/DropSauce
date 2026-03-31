@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.list.ui.model
+package org.haziffe.dropsauce.list.ui.model
 
-import org.koitharu.kotatsu.core.ui.model.MangaOverride
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.ui.model.MangaOverride
+import org.haziffe.dropsauce.parsers.model.Manga
 
 data class MangaCompactListModel(
 	override val manga: Manga,

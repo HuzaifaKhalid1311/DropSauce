@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.db.dao
+package org.haziffe.dropsauce.core.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import org.koitharu.kotatsu.core.db.entity.TagEntity
+import org.haziffe.dropsauce.core.db.entity.TagEntity
 
 @Dao
 abstract class TagsDao {

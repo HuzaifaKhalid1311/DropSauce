@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 enum class ListItemType {
 

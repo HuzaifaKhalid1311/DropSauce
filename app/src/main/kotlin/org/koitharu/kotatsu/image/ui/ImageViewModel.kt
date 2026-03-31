@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.image.ui
+package org.haziffe.dropsauce.image.ui
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -12,14 +12,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.core.util.ext.require
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.getDrawableOrThrow
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.core.util.ext.require
 import javax.inject.Inject
 
 @HiltViewModel

@@ -299,7 +299,7 @@
     <string name="email_enter_hint">Каб працягнуць, увядзіце свой адрас электроннай пошты</string>
     <string name="import_completed_hint">Вы можаце выдаліць зыходны файл са сховішча, каб зэканоміць месца</string>
     <string name="import_will_start_soon">Хутка пачнецца імпарт</string>
-    <string name="manga_error_description_pattern">Дэталі памылкі:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Паспрабуйце &lt;a href=%2$s&gt;адкрыць мангу ў вэб-браўзеры&lt;/a&gt;, каб пераканацца, што яна даступная ў крыніцы&lt;br&gt;2. Упэўніцеся, што вы выкарыстоўваеце &lt;a href=kotatsu://about&gt;апошнюю версію DropSauce&lt;/a&gt;&lt;br&gt;3. Калі ён даступны, адпраўце распрацоўнікам справаздачу аб памылцы.</string>
+    <string name="manga_error_description_pattern">Дэталі памылкі:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Паспрабуйце &lt;a href=%2$s&gt;адкрыць мангу ў вэб-браўзеры&lt;/a&gt;, каб пераканацца, што яна даступная ў крыніцы&lt;br&gt;2. Упэўніцеся, што вы выкарыстоўваеце &lt;a href=dropsauce://about&gt;апошнюю версію DropSauce&lt;/a&gt;&lt;br&gt;3. Калі ён даступны, адпраўце распрацоўнікам справаздачу аб памылцы.</string>
     <string name="history_shortcuts">Паказаць апошнія ярлыкі мангі</string>
     <string name="history_shortcuts_summary">Зрабіце нядаўнюю мангу даступнай, доўга націскаючы на значок праграмы</string>
     <string name="reader_control_ltr_summary">Не настройвайце кірунак пераключэння старонак у рэжым чытання, напрыклад, націск правай клавішы заўсёды перамыкае на наступную старонку. Гэтая опцыя ўплывае толькі на апаратныя прылады ўводу</string>
@@ -775,7 +775,7 @@
     <string name="simple">Просты</string>
     <string name="send_backups_telegram">Адпраўляць рэзервовыя копіі ў Telegram</string>
     <string name="telegram_chat_id_summary">Увядзіце ID чата, куды трэба адпраўляць рэзервовыя копіі</string>
-    <string name="open_telegram_bot_summary">Націсніце, каб адкрыць чат з Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Націсніце, каб адкрыць чат з DropSauce Backup Bot</string>
     <string name="test_connection">Тэставое злучэнне</string>
     <string name="delete_old_backups_summary">Аўтаматычна выдаляць старыя рэзервовыя копіі, каб вызваліць месца для дадзеных</string>
     <string name="delete_old_backups">Выдаліць старыя рэзервовыя копіі</string>

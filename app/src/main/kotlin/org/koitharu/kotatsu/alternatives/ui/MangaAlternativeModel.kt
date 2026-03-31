@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.alternatives.ui
+package org.haziffe.dropsauce.alternatives.ui
 
-import org.koitharu.kotatsu.core.model.chaptersCount
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.MangaGridModel
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.model.chaptersCount
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.MangaGridModel
+import org.haziffe.dropsauce.parsers.model.Manga
 
 data class MangaAlternativeModel(
 	val mangaModel: MangaGridModel,

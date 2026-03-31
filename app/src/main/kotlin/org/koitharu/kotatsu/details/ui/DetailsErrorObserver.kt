@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import com.google.android.material.snackbar.Snackbar
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
-import org.koitharu.kotatsu.core.exceptions.resolve.ErrorObserver
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.isNetworkError
-import org.koitharu.kotatsu.core.util.ext.isSerializable
-import org.koitharu.kotatsu.parsers.exception.NotFoundException
-import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.UnsupportedSourceException
+import org.haziffe.dropsauce.core.exceptions.resolve.ErrorObserver
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.core.util.ext.isNetworkError
+import org.haziffe.dropsauce.core.util.ext.isSerializable
+import org.haziffe.dropsauce.parsers.exception.NotFoundException
+import org.haziffe.dropsauce.parsers.exception.ParseException
 
 class DetailsErrorObserver(
 	override val activity: androidx.fragment.app.FragmentActivity,

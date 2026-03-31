@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu.details.ui.related
+package org.haziffe.dropsauce.details.ui.related
 
-import org.koitharu.kotatsu.core.ui.FragmentContainerActivity
+import org.haziffe.dropsauce.core.ui.FragmentContainerActivity
 
 class RelatedMangaActivity : FragmentContainerActivity(RelatedListFragment::class.java)

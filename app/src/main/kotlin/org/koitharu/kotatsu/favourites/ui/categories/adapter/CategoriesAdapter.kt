@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.favourites.ui.categories.adapter
+package org.haziffe.dropsauce.favourites.ui.categories.adapter
 
-import org.koitharu.kotatsu.core.ui.ReorderableListAdapter
-import org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesListListener
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.ListStateHolderListener
-import org.koitharu.kotatsu.list.ui.adapter.emptyStateListAD
-import org.koitharu.kotatsu.list.ui.adapter.loadingStateAD
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.ui.ReorderableListAdapter
+import org.haziffe.dropsauce.favourites.ui.categories.FavouriteCategoriesListListener
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.list.ui.adapter.ListStateHolderListener
+import org.haziffe.dropsauce.list.ui.adapter.emptyStateListAD
+import org.haziffe.dropsauce.list.ui.adapter.loadingStateAD
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 class CategoriesAdapter(
 	onItemClickListener: FavouriteCategoriesListListener,

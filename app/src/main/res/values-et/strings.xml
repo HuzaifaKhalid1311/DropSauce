@@ -189,7 +189,7 @@
     <string name="manga_downloading_">Laadin alla…</string>
     <string name="screenshots_block_all">Alati blokeeri</string>
     <string name="new_sources_text">Uued manga allikad on saadaval</string>
-    <string name="manga_error_description_pattern">Vea detailid:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Proovi &lt;a href=%2$s&gt;avada mangat oma browseris&lt;/a&gt; et olla kindel et see manga on saadaval allikast &lt;br&gt;2. tee kindlaks et sa kasutad &lt;a href=kotatsu://about&gt;kõige uuemat versiooni Kotatsut&lt;/a&gt;&lt;br&gt;3. Kui see on saadaval, saada vea raport arendajatele.</string>
+    <string name="manga_error_description_pattern">Vea detailid:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Proovi &lt;a href=%2$s&gt;avada mangat oma browseris&lt;/a&gt; et olla kindel et see manga on saadaval allikast &lt;br&gt;2. tee kindlaks et sa kasutad &lt;a href=dropsauce://about&gt;kõige uuemat versiooni Kotatsut&lt;/a&gt;&lt;br&gt;3. Kui see on saadaval, saada vea raport arendajatele.</string>
     <string name="open_in_browser">Ava veebibrauser</string>
     <string name="about_app_translation">Tõlge</string>
     <string name="zoom_mode_fit_height">Sobita kõrgusele</string>

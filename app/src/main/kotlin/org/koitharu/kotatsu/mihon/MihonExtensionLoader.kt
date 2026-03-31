@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.mihon
+package org.haziffe.dropsauce.mihon
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -18,9 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import org.koitharu.kotatsu.mihon.compat.KotoInjektBridge
-import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
-import org.koitharu.kotatsu.mihon.model.MihonLoadResult
+import org.haziffe.dropsauce.mihon.compat.KotoInjektBridge
+import org.haziffe.dropsauce.mihon.model.MihonExtensionInfo
+import org.haziffe.dropsauce.mihon.model.MihonLoadResult
 import javax.inject.Inject
 import javax.inject.Singleton
 

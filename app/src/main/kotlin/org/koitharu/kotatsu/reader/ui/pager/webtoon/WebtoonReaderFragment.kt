@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui.pager.webtoon
+package org.haziffe.dropsauce.reader.ui.pager.webtoon
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,18 +16,18 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.ui.list.lifecycle.RecyclerViewLifecycleDispatcher
-import org.koitharu.kotatsu.core.util.ext.firstVisibleItemPosition
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.removeItemDecoration
-import org.koitharu.kotatsu.databinding.FragmentReaderWebtoonBinding
-import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.ui.ReaderState
-import org.koitharu.kotatsu.reader.ui.pager.BaseReaderAdapter
-import org.koitharu.kotatsu.reader.ui.pager.BaseReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.ui.list.lifecycle.RecyclerViewLifecycleDispatcher
+import org.haziffe.dropsauce.core.util.ext.firstVisibleItemPosition
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.removeItemDecoration
+import org.haziffe.dropsauce.databinding.FragmentReaderWebtoonBinding
+import org.haziffe.dropsauce.reader.domain.PageLoader
+import org.haziffe.dropsauce.reader.ui.ReaderState
+import org.haziffe.dropsauce.reader.ui.pager.BaseReaderAdapter
+import org.haziffe.dropsauce.reader.ui.pager.BaseReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 import javax.inject.Inject
 
 @AndroidEntryPoint

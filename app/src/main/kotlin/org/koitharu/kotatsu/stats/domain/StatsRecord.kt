@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.stats.domain
+package org.haziffe.dropsauce.stats.domain
 
-import org.koitharu.kotatsu.details.data.ReadingTime
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.details.data.ReadingTime
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.Manga
 import java.util.concurrent.TimeUnit
 
 data class StatsRecord(

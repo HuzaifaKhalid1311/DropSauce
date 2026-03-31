@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.details.ui.pager.chapters
+package org.haziffe.dropsauce.details.ui.pager.chapters
 
 import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
 import kotlin.math.roundToInt
 
 class ChapterGridSpanHelper private constructor() : View.OnLayoutChangeListener {

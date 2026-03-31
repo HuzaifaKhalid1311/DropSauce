@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.image
+package org.haziffe.dropsauce.core.image
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -28,12 +28,12 @@ import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.util.ext.decodeRegion
-import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.isNetworkError
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.util.ext.decodeRegion
+import org.haziffe.dropsauce.core.util.ext.getAnimationDuration
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.isNetworkError
 import java.util.LinkedList
 import javax.inject.Inject
 

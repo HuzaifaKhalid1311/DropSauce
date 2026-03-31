@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.history.data
+package org.haziffe.dropsauce.history.data
 
 import android.database.DatabaseUtils.sqlEscapeString
 import androidx.room.Dao
@@ -12,13 +12,13 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
-import org.koitharu.kotatsu.core.db.MangaQueryBuilder
-import org.koitharu.kotatsu.core.db.TABLE_HISTORY
-import org.koitharu.kotatsu.core.db.entity.MangaWithTags
-import org.koitharu.kotatsu.core.db.entity.TagEntity
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.domain.ListSortOrder
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_COMPLETED
+import org.haziffe.dropsauce.core.db.MangaQueryBuilder
+import org.haziffe.dropsauce.core.db.TABLE_HISTORY
+import org.haziffe.dropsauce.core.db.entity.MangaWithTags
+import org.haziffe.dropsauce.core.db.entity.TagEntity
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.ListSortOrder
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_COMPLETED
 
 @Dao
 abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {

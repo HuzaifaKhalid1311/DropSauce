@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.util
+package org.haziffe.dropsauce.util
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
@@ -11,7 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Ignore
 import org.junit.Test
-import org.koitharu.kotatsu.core.util.MultiMutex
+import org.haziffe.dropsauce.core.util.MultiMutex
 
 class MultiMutexTest {
 

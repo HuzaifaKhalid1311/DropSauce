@@ -331,7 +331,7 @@
     <string name="categories_delete_confirm">Sei sicuro/a di voler eliminare le categorie preferite selezionate? \n Tutti i manga in esso contenuti andranno persi e questo non può essere annullato.</string>
     <string name="history_shortcuts_summary">Rendere disponibili i manga recenti premendo a lungo sull\'icona dell\'applicazione</string>
     <string name="reader_info_bar">Mostra la barra delle informazioni nel lettore</string>
-    <string name="manga_error_description_pattern">Dettagli dell\'errore:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Prova ad &lt;a href=%2$s&gt;aprire il manga in un browser web&lt;/a&gt; per assicurarsi che sia disponibile sulla sua fonte&lt;br&gt;2. Controllare di stare usando la &lt;a href=kotatsu://about&gt;versione più recente di DropSauce&lt;/a&gt;&lt;br&gt;3. Se è disponibile, inviare una segnalazione di errore agli sviluppatori.</string>
+    <string name="manga_error_description_pattern">Dettagli dell\'errore:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Prova ad &lt;a href=%2$s&gt;aprire il manga in un browser web&lt;/a&gt; per assicurarsi che sia disponibile sulla sua fonte&lt;br&gt;2. Controllare di stare usando la &lt;a href=dropsauce://about&gt;versione più recente di DropSauce&lt;/a&gt;&lt;br&gt;3. Se è disponibile, inviare una segnalazione di errore agli sviluppatori.</string>
     <string name="text_unsaved_changes_prompt">Salvare o eliminare le modifiche non salvate\?</string>
     <string name="discard">Abbandona</string>
     <string name="language">Lingua</string>
@@ -762,7 +762,7 @@
     <string name="clear_database_summary">Elimina le informazioni sui manga che non vengono utilizzate</string>
     <string name="send_backups_telegram">Invia i backup a Telegram</string>
     <string name="telegram_chat_id_summary">Inserisci l\'ID della chat dove inviare i backup</string>
-    <string name="open_telegram_bot_summary">Premi per aprire la chat con Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Premi per aprire la chat con DropSauce Backup Bot</string>
     <string name="translation">Traduzione</string>
     <string name="test_connection">Connessione test</string>
     <string name="backup_tg_check">Verifica se l\'API è funzionante</string>

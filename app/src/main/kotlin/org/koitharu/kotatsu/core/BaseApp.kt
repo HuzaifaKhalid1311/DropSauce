@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core
+package org.haziffe.dropsauce.core
 
 import android.app.Application
 import android.content.Context
@@ -21,18 +21,18 @@ import org.acra.data.StringFormat
 import org.acra.ktx.initAcra
 import org.acra.sender.HttpSender
 import org.conscrypt.Conscrypt
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.os.AppValidator
-import org.koitharu.kotatsu.core.os.RomCompat
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
-import org.koitharu.kotatsu.local.data.LocalStorageChanges
-import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
-import org.koitharu.kotatsu.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
-import org.koitharu.kotatsu.settings.work.WorkScheduleManager
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.os.AppValidator
+import org.haziffe.dropsauce.core.os.RomCompat
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.processLifecycleScope
+import org.haziffe.dropsauce.local.data.LocalStorageChanges
+import org.haziffe.dropsauce.local.data.index.LocalMangaIndex
+import org.haziffe.dropsauce.local.domain.model.LocalManga
+import org.haziffe.dropsauce.parsers.util.suspendlazy.getOrNull
+import org.haziffe.dropsauce.settings.work.WorkScheduleManager
 import java.security.Security
 import javax.inject.Inject
 import javax.inject.Provider

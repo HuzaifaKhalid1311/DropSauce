@@ -1,16 +1,16 @@
-package org.koitharu.kotatsu.core.parser
+package org.haziffe.dropsauce.core.parser
 
 import android.util.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.core.network.MangaHttpClient
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.core.network.MangaHttpClient
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.util.EnumSet
 import javax.inject.Inject
 

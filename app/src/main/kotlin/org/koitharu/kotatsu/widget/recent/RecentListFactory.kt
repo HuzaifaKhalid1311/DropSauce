@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.widget.recent
+package org.haziffe.dropsauce.widget.recent
 
 import android.content.Context
 import android.content.Intent
@@ -13,15 +13,15 @@ import coil3.size.Size
 import coil3.transform.RoundedCornersTransformation
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
-import org.koitharu.kotatsu.core.util.ext.mangaExtra
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.util.replaceWith
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.getDrawableOrThrow
+import org.haziffe.dropsauce.core.util.ext.mangaExtra
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.util.replaceWith
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 
 class RecentListFactory(
 	private val context: Context,

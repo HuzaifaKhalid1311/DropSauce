@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.github
+package org.haziffe.dropsauce.core.github
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.koitharu.kotatsu.BuildConfig
+import org.haziffe.dropsauce.BuildConfig
 
 class VersionIdTest {
 

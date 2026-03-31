@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.tracker.ui.debug
+package org.haziffe.dropsauce.tracker.ui.debug
 
 import android.graphics.Color
 import android.text.format.DateUtils
@@ -7,12 +7,12 @@ import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.drawableStart
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.databinding.ItemTrackDebugBinding
-import org.koitharu.kotatsu.tracker.data.TrackEntity
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.drawableStart
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.databinding.ItemTrackDebugBinding
+import org.haziffe.dropsauce.tracker.data.TrackEntity
 import androidx.appcompat.R as appcompatR
 
 fun trackDebugAD(

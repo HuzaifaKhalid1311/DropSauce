@@ -1,20 +1,20 @@
-package org.koitharu.kotatsu.suggestions.domain
+package org.haziffe.dropsauce.suggestions.domain
 
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.entity.toEntities
-import org.koitharu.kotatsu.core.db.entity.toEntity
-import org.koitharu.kotatsu.core.db.entity.toManga
-import org.koitharu.kotatsu.core.db.entity.toMangaTagsList
-import org.koitharu.kotatsu.core.model.toMangaSources
-import org.koitharu.kotatsu.core.util.ext.mapItems
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.suggestions.data.SuggestionEntity
-import org.koitharu.kotatsu.suggestions.data.SuggestionWithManga
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.entity.toEntities
+import org.haziffe.dropsauce.core.db.entity.toEntity
+import org.haziffe.dropsauce.core.db.entity.toManga
+import org.haziffe.dropsauce.core.db.entity.toMangaTagsList
+import org.haziffe.dropsauce.core.model.toMangaSources
+import org.haziffe.dropsauce.core.util.ext.mapItems
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.suggestions.data.SuggestionEntity
+import org.haziffe.dropsauce.suggestions.data.SuggestionWithManga
 import javax.inject.Inject
 
 class SuggestionRepository @Inject constructor(

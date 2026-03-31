@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.main.ui
+package org.haziffe.dropsauce.main.ui
 
 import android.os.Bundle
 import android.view.Gravity
@@ -26,24 +26,24 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.bookmarks.ui.AllBookmarksFragment
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.NavItem
-import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
-import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
-import org.koitharu.kotatsu.core.util.ext.buildBundle
-import org.koitharu.kotatsu.core.util.ext.setContentDescriptionAndTooltip
-import org.koitharu.kotatsu.core.util.ext.smoothScrollToTop
-import org.koitharu.kotatsu.databinding.NavigationRailFabBinding
-import org.koitharu.kotatsu.explore.ui.ExploreFragment
-import org.koitharu.kotatsu.favourites.ui.container.FavouritesContainerFragment
-import org.koitharu.kotatsu.history.ui.HistoryListFragment
-import org.koitharu.kotatsu.local.ui.LocalListFragment
-import org.koitharu.kotatsu.suggestions.ui.SuggestionsFragment
-import org.koitharu.kotatsu.tracker.ui.feed.FeedFragment
-import org.koitharu.kotatsu.tracker.ui.updates.UpdatesFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.bookmarks.ui.AllBookmarksFragment
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.NavItem
+import org.haziffe.dropsauce.core.ui.util.RecyclerViewOwner
+import org.haziffe.dropsauce.core.ui.widgets.SlidingBottomNavigationView
+import org.haziffe.dropsauce.core.util.ext.buildBundle
+import org.haziffe.dropsauce.core.util.ext.setContentDescriptionAndTooltip
+import org.haziffe.dropsauce.core.util.ext.smoothScrollToTop
+import org.haziffe.dropsauce.databinding.NavigationRailFabBinding
+import org.haziffe.dropsauce.explore.ui.ExploreFragment
+import org.haziffe.dropsauce.favourites.ui.container.FavouritesContainerFragment
+import org.haziffe.dropsauce.history.ui.HistoryListFragment
+import org.haziffe.dropsauce.local.ui.LocalListFragment
+import org.haziffe.dropsauce.suggestions.ui.SuggestionsFragment
+import org.haziffe.dropsauce.tracker.ui.feed.FeedFragment
+import org.haziffe.dropsauce.tracker.ui.updates.UpdatesFragment
 import java.util.LinkedList
 import com.google.android.material.R as materialR
 

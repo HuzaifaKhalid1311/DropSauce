@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.stats.ui
+package org.haziffe.dropsauce.stats.ui
 
 import android.content.res.ColorStateList
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.KotatsuColors
-import org.koitharu.kotatsu.databinding.ItemStatsBinding
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.stats.domain.StatsRecord
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.KotatsuColors
+import org.haziffe.dropsauce.databinding.ItemStatsBinding
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.stats.domain.StatsRecord
 
 fun statsAD(
 	listener: OnListItemClickListener<Manga>,

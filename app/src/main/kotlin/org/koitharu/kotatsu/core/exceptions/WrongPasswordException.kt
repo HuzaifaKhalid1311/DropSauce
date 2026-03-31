@@ -1,3 +1,3 @@
-package org.koitharu.kotatsu.core.exceptions
+package org.haziffe.dropsauce.core.exceptions
 
 class WrongPasswordException : IllegalArgumentException()

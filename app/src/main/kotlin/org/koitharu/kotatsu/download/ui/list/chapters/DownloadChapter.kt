@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.download.ui.list.chapters
+package org.haziffe.dropsauce.download.ui.list.chapters
 
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 data class DownloadChapter(
 	val number: String?,

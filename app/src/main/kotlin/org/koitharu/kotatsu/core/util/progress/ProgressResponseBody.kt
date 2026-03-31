@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.progress
+package org.haziffe.dropsauce.core.util.progress
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import okhttp3.MediaType

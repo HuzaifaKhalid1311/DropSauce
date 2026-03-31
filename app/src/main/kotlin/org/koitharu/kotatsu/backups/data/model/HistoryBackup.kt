@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.backups.data.model
+package org.haziffe.dropsauce.backups.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.core.db.entity.MangaWithTags
-import org.koitharu.kotatsu.history.data.HistoryEntity
-import org.koitharu.kotatsu.history.data.HistoryWithManga
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
+import org.haziffe.dropsauce.core.db.entity.MangaWithTags
+import org.haziffe.dropsauce.history.data.HistoryEntity
+import org.haziffe.dropsauce.history.data.HistoryWithManga
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 
 @Serializable
 class HistoryBackup(

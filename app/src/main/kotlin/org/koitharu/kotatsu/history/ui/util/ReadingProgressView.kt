@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.history.ui.util
+package org.haziffe.dropsauce.history.ui.util
 
 import android.animation.Animator
 import android.animation.ValueAnimator
@@ -10,15 +10,15 @@ import android.view.ViewOutlineProvider
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode.CHAPTERS_LEFT
-import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode.CHAPTERS_READ
-import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode.NONE
-import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode.PERCENT_LEFT
-import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode.PERCENT_READ
-import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
-import org.koitharu.kotatsu.list.domain.ReadingProgress
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.ProgressIndicatorMode.CHAPTERS_LEFT
+import org.haziffe.dropsauce.core.prefs.ProgressIndicatorMode.CHAPTERS_READ
+import org.haziffe.dropsauce.core.prefs.ProgressIndicatorMode.NONE
+import org.haziffe.dropsauce.core.prefs.ProgressIndicatorMode.PERCENT_LEFT
+import org.haziffe.dropsauce.core.prefs.ProgressIndicatorMode.PERCENT_READ
+import org.haziffe.dropsauce.core.util.ext.getAnimationDuration
+import org.haziffe.dropsauce.list.domain.ReadingProgress
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 
 class ReadingProgressView @JvmOverloads constructor(
 	context: Context,

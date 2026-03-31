@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
 import android.content.ContentResolver
 import android.content.Context
@@ -9,8 +9,8 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
 import androidx.core.net.toFile
-import org.koitharu.kotatsu.parsers.util.nullIfEmpty
-import org.koitharu.kotatsu.parsers.util.removeSuffix
+import org.haziffe.dropsauce.parsers.util.nullIfEmpty
+import org.haziffe.dropsauce.parsers.util.removeSuffix
 import java.io.File
 import java.lang.reflect.Array as ArrayReflect
 

@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.details.ui.pager.pages
+package org.haziffe.dropsauce.details.ui.pager.pages
 
 import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.core.util.ext.getItem
-import org.koitharu.kotatsu.list.ui.MangaSelectionDecoration
+import org.haziffe.dropsauce.core.util.ext.getItem
+import org.haziffe.dropsauce.list.ui.MangaSelectionDecoration
 
 class PagesSelectionDecoration(context: Context) : MangaSelectionDecoration(context) {
 

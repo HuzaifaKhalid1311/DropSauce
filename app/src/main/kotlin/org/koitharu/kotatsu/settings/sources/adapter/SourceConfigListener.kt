@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.settings.sources.adapter
+package org.haziffe.dropsauce.settings.sources.adapter
 
-import org.koitharu.kotatsu.core.ui.list.OnTipCloseListener
-import org.koitharu.kotatsu.settings.sources.model.SourceConfigItem
+import org.haziffe.dropsauce.core.ui.list.OnTipCloseListener
+import org.haziffe.dropsauce.settings.sources.model.SourceConfigItem
 
 interface SourceConfigListener : OnTipCloseListener<SourceConfigItem.Tip> {
 

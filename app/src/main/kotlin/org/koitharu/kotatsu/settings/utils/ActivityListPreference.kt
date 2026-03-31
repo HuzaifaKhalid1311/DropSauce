@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.util.AttributeSet
 import androidx.preference.ListPreference
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
 
 @Suppress("unused")
 class ActivityListPreference : ListPreference {

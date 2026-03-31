@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi
 
-import org.koitharu.kotatsu.BuildConfig
+import org.haziffe.dropsauce.BuildConfig
 
 /**
  * Provides host application info for extensions.

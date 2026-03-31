@@ -1,19 +1,19 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.content.res.Configuration
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ReaderMode
-import org.koitharu.kotatsu.core.util.ext.findKeyByValue
-import org.koitharu.kotatsu.reader.ui.pager.BaseReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.doublepage.DoubleReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.doublereversed.ReversedDoubleReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.reversed.ReversedReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.standard.PagerReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.vertical.VerticalReaderFragment
-import org.koitharu.kotatsu.reader.ui.pager.webtoon.WebtoonReaderFragment
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ReaderMode
+import org.haziffe.dropsauce.core.util.ext.findKeyByValue
+import org.haziffe.dropsauce.reader.ui.pager.BaseReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.doublepage.DoubleReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.doublereversed.ReversedDoubleReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.reversed.ReversedReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.standard.PagerReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.vertical.VerticalReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.webtoon.WebtoonReaderFragment
 import java.util.EnumMap
 
 class ReaderManager(

@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.browser.cloudflare
+package org.haziffe.dropsauce.browser.cloudflare
 
-import org.koitharu.kotatsu.browser.BrowserCallback
+import org.haziffe.dropsauce.browser.BrowserCallback
 
 interface CloudFlareCallback : BrowserCallback {
 

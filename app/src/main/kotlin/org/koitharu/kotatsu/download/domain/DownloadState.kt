@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.download.domain
+package org.haziffe.dropsauce.download.domain
 
 import androidx.work.Data
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
-import org.koitharu.kotatsu.local.domain.model.LocalManga
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_NONE
+import org.haziffe.dropsauce.local.domain.model.LocalManga
+import org.haziffe.dropsauce.parsers.model.Manga
 import java.time.Instant
 
 data class DownloadState(

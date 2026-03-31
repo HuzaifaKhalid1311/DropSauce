@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util.progress
+package org.haziffe.dropsauce.core.util.progress
 
 data class Progress(
 	val progress: Int,

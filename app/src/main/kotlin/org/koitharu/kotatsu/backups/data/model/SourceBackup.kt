@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.backups.data.model
+package org.haziffe.dropsauce.backups.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.koitharu.kotatsu.core.db.entity.MangaSourceEntity
+import org.haziffe.dropsauce.core.db.entity.MangaSourceEntity
 
 @Serializable
 class SourceBackup(

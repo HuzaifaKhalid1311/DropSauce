@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.scrobbling.common.domain.model
+package org.haziffe.dropsauce.scrobbling.common.domain.model
 
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 enum class ScrobblingStatus : ListModel {
 

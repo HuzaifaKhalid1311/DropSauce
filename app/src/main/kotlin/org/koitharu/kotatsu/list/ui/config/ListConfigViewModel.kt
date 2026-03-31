@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.list.ui.config
+package org.haziffe.dropsauce.list.ui.config
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.runBlocking
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ListMode
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.require
-import org.koitharu.kotatsu.core.util.ext.sortedByOrdinal
-import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
-import org.koitharu.kotatsu.favourites.ui.list.FavouritesListFragment.Companion.NO_ID
-import org.koitharu.kotatsu.list.domain.ListSortOrder
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ListMode
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.require
+import org.haziffe.dropsauce.core.util.ext.sortedByOrdinal
+import org.haziffe.dropsauce.favourites.domain.FavouritesRepository
+import org.haziffe.dropsauce.favourites.ui.list.FavouritesListFragment.Companion.NO_ID
+import org.haziffe.dropsauce.list.domain.ListSortOrder
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 @HiltViewModel

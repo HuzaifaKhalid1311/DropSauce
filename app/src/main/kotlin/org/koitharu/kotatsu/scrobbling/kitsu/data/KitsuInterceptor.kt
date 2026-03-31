@@ -1,18 +1,18 @@
-package org.koitharu.kotatsu.scrobbling.kitsu.data
+package org.haziffe.dropsauce.scrobbling.kitsu.data
 
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import okio.IOException
-import org.koitharu.kotatsu.core.network.CommonHeaders
-import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.parsers.util.nullIfEmpty
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
-import org.koitharu.kotatsu.scrobbling.common.domain.ScrobblerAuthRequiredException
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.core.network.CommonHeaders
+import org.haziffe.dropsauce.parsers.util.mimeType
+import org.haziffe.dropsauce.parsers.util.nullIfEmpty
+import org.haziffe.dropsauce.parsers.util.parseHtml
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerStorage
+import org.haziffe.dropsauce.scrobbling.common.domain.ScrobblerAuthRequiredException
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
 import java.net.HttpURLConnection
 
 class KitsuInterceptor(private val storage: ScrobblerStorage) : Interceptor {

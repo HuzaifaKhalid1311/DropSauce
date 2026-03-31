@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.core.ui.model
+package org.haziffe.dropsauce.core.ui.model
 
-import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.haziffe.dropsauce.parsers.model.ContentRating
 
 data class MangaOverride(
 	val coverUrl: String?,

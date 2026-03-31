@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.core.db
+package org.haziffe.dropsauce.core.db
 
 import androidx.sqlite.db.SimpleSQLiteQuery
-import org.koitharu.kotatsu.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.ListFilterOption
 import java.util.LinkedList
 
 class MangaQueryBuilder(

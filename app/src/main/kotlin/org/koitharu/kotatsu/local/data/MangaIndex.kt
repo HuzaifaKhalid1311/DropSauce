@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.data
+package org.haziffe.dropsauce.local.data
 
 import androidx.annotation.WorkerThread
 import okio.FileSystem
@@ -8,27 +8,27 @@ import okio.buffer
 import org.jetbrains.annotations.Blocking
 import org.json.JSONArray
 import org.json.JSONObject
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getEnumValueOrNull
-import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getLongOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
-import org.koitharu.kotatsu.parsers.util.json.toStringSet
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.parsers.model.ContentRating
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaState
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.model.RATING_UNKNOWN
+import org.haziffe.dropsauce.parsers.util.json.getBooleanOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getEnumValueOrNull
+import org.haziffe.dropsauce.parsers.util.json.getFloatOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getIntOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getLongOrDefault
+import org.haziffe.dropsauce.parsers.util.json.getStringOrNull
+import org.haziffe.dropsauce.parsers.util.json.mapJSONToSet
+import org.haziffe.dropsauce.parsers.util.json.toStringSet
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.parsers.util.toTitleCase
 import java.io.File
 
 class MangaIndex(source: String?) {
@@ -146,7 +146,7 @@ class MangaIndex(source: String?) {
 			item.put(KEY_ID, id)
 			list.add(item)
 		}
-		val comparator = org.koitharu.kotatsu.core.util.AlphanumComparator()
+		val comparator = org.haziffe.dropsauce.core.util.AlphanumComparator()
 		list.sortWith(compareBy(comparator) { it.getString(KEY_NAME) })
 		val newJo = JSONObject()
 		list.forEachIndexed { i, obj ->

@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.settings.sources.adapter
+package org.haziffe.dropsauce.settings.sources.adapter
 
-import org.koitharu.kotatsu.core.ui.ReorderableListAdapter
-import org.koitharu.kotatsu.settings.sources.model.SourceConfigItem
+import org.haziffe.dropsauce.core.ui.ReorderableListAdapter
+import org.haziffe.dropsauce.settings.sources.model.SourceConfigItem
 
 class SourceConfigAdapter(
 	listener: SourceConfigListener,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.domain
+package org.haziffe.dropsauce.reader.domain
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -20,7 +20,7 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.koitharu.kotatsu.core.util.SynchronizedSieveCache
+import org.haziffe.dropsauce.core.util.SynchronizedSieveCache
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

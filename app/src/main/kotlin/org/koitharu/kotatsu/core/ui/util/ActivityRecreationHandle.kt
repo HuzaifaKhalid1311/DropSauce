@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import android.app.Activity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
-import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
+import org.haziffe.dropsauce.core.ui.DefaultActivityLifecycleCallbacks
 import java.util.WeakHashMap
 import javax.inject.Inject
 import javax.inject.Singleton

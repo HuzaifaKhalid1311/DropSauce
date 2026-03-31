@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
-import org.koitharu.kotatsu.core.exceptions.CloudFlareBlockedException
-import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.haziffe.dropsauce.core.exceptions.CloudFlareBlockedException
+import org.haziffe.dropsauce.core.exceptions.CloudFlareProtectedException
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.network.CloudFlareHelper
 
 class CloudFlareInterceptor : Interceptor {
 

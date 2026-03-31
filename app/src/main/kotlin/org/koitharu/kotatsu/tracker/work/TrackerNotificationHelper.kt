@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.tracker.work
+package org.haziffe.dropsauce.tracker.work
 
 import android.app.Notification
 import android.app.NotificationManager
@@ -14,18 +14,18 @@ import androidx.core.app.PendingIntentCompat
 import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.request.ImageRequest
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.model.getLocalizedTitle
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
-import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.core.util.ext.toBitmapOrNull
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.core.model.getLocalizedTitle
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.checkNotificationPermission
+import org.haziffe.dropsauce.core.util.ext.getQuantityStringSafe
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.core.util.ext.toBitmapOrNull
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
 import javax.inject.Inject
 
 class TrackerNotificationHelper @Inject constructor(
@@ -195,7 +195,7 @@ class TrackerNotificationHelper @Inject constructor(
 
 		const val CHANNEL_ID = "tracker_chapters"
 		const val GROUP_NOTIFICATION_ID = 0
-		const val GROUP_NEW_CHAPTERS = "org.koitharu.kotatsu.NEW_CHAPTERS"
+		const val GROUP_NEW_CHAPTERS = "org.haziffe.dropsauce.NEW_CHAPTERS"
 		const val TAG = "tracker"
 
 		private const val LEGACY_CHANNELS_GROUP_ID = "trackers"

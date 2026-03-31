@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.filter.ui
+package org.haziffe.dropsauce.filter.ui
 
 import android.content.Context
 import android.util.AttributeSet
@@ -15,12 +15,12 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
 import androidx.core.widget.TextViewCompat
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.drawableStart
-import org.koitharu.kotatsu.core.util.ext.getThemeColorStateList
-import org.koitharu.kotatsu.core.util.ext.setThemeTextAppearance
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ViewFilterFieldBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.drawableStart
+import org.haziffe.dropsauce.core.util.ext.getThemeColorStateList
+import org.haziffe.dropsauce.core.util.ext.setThemeTextAppearance
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ViewFilterFieldBinding
 import java.util.LinkedList
 import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR

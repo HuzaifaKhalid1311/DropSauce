@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.text.Spannable
 import android.text.TextPaint

@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.settings.sources.model
+package org.haziffe.dropsauce.settings.sources.model
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 sealed interface SourceConfigItem : ListModel {
 

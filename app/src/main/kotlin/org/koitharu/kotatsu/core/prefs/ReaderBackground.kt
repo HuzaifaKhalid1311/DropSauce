@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.prefs
+package org.haziffe.dropsauce.core.prefs
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -6,8 +6,8 @@ import android.view.ContextThemeWrapper
 import androidx.annotation.Keep
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
-import org.koitharu.kotatsu.core.util.ext.getThemeDrawable
-import org.koitharu.kotatsu.core.util.ext.isNightMode
+import org.haziffe.dropsauce.core.util.ext.getThemeDrawable
+import org.haziffe.dropsauce.core.util.ext.isNightMode
 import com.google.android.material.R as materialR
 
 @Keep

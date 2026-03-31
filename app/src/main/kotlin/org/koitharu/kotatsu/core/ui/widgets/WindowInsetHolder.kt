@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.content.Context
 import android.util.AttributeSet
@@ -10,8 +10,8 @@ import android.widget.LinearLayout
 import androidx.annotation.AttrRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.WindowInsetsCompat
-import org.koitharu.kotatsu.core.util.ext.end
-import org.koitharu.kotatsu.core.util.ext.start
+import org.haziffe.dropsauce.core.util.ext.end
+import org.haziffe.dropsauce.core.util.ext.start
 
 class WindowInsetHolder @JvmOverloads constructor(
 	context: Context,

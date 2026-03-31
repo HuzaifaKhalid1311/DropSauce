@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.ui.list.lifecycle
+package org.haziffe.dropsauce.core.ui.list.lifecycle
 
 import android.view.View
 import androidx.core.view.children
 import androidx.core.view.isEmpty
 import androidx.viewpager2.widget.ViewPager2
-import org.koitharu.kotatsu.core.util.ext.recyclerView
+import org.haziffe.dropsauce.core.util.ext.recyclerView
 
 class PagerLifecycleDispatcher(
 	private val pager: ViewPager2,

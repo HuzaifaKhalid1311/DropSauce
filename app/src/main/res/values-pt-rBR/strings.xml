@@ -283,7 +283,7 @@
     <string name="select_range">Selecionar intervalo</string>
     <string name="disable_all">Desativar tudo</string>
     <string name="no_chapters">Sem capítulos</string>
-    <string name="manga_error_description_pattern">Detalhes do erro:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Tente &lt;a href=%2$s&gt;abrir a obra no navegador web&lt;/a&gt; para ver se ela ainda está disponível nesta fonte.&lt;br&gt;2. Verifique se você está usando a &lt;a href=kotatsu://about&gt;versão mais recente do DropSauce&lt;/a&gt;.&lt;br&gt;3. Se a obra estiver lá, envie um relatório de erro para os desenvolvedores.</string>
+    <string name="manga_error_description_pattern">Detalhes do erro:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Tente &lt;a href=%2$s&gt;abrir a obra no navegador web&lt;/a&gt; para ver se ela ainda está disponível nesta fonte.&lt;br&gt;2. Verifique se você está usando a &lt;a href=dropsauce://about&gt;versão mais recente do DropSauce&lt;/a&gt;.&lt;br&gt;3. Se a obra estiver lá, envie um relatório de erro para os desenvolvedores.</string>
     <string name="feed">Fluxo</string>
     <string name="history_shortcuts_summary">Torne os mangás recentes disponíveis ao pressionar e segurar o ícone do aplicativo</string>
     <string name="no_manga_sources_text">Habilite fontes para ler mangás online</string>
@@ -761,7 +761,7 @@
     <string name="backup_tg_echo">Mensagem de teste</string>
     <string name="translation">Tradução</string>
     <string name="send_backups_telegram">Enviar backups no Telegram</string>
-    <string name="open_telegram_bot_summary">Pressione para abrir o chat com o Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Pressione para abrir o chat com o DropSauce Backup Bot</string>
     <string name="incognito">Anônimo</string>
     <string name="telegram_chat_id_summary">Insira o ID do chat para onde os backups devem ser enviados</string>
     <string name="author">Autor</string>

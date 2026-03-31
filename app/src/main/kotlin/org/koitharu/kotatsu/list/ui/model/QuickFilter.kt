@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.list.ui.model
+package org.haziffe.dropsauce.list.ui.model
 
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback
 
 data class QuickFilter(
 	val items: List<ChipsView.ChipModel>,

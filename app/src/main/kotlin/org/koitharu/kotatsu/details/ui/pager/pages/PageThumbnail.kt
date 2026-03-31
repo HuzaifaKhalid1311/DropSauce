@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.details.ui.pager.pages
+package org.haziffe.dropsauce.details.ui.pager.pages
 
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 
 data class PageThumbnail(
 	val isCurrent: Boolean,

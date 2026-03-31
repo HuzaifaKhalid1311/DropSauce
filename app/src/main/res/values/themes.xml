@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
 	<!-- Base application theme. -->
-	<style name="Base.Theme.Kotatsu" parent="Theme.Material3.DayNight.NoActionBar">
+	<style name="Base.Theme.DropSauce" parent="Theme.Material3.DayNight.NoActionBar">
 
 		<!-- Theme Colors -->
 		<item name="colorPrimary">@color/kotatsu_primary</item>
@@ -54,39 +54,41 @@
 		<item name="windowActionModeOverlay">true</item>
 
 		<!-- System components styles -->
-		<item name="android:alertDialogTheme">@style/ThemeOverlay.Kotatsu.AlertDialog</item>
-		<item name="alertDialogTheme">@style/ThemeOverlay.Kotatsu.AlertDialog</item>
-		<item name="bottomSheetDialogTheme">@style/ThemeOverlay.Kotatsu.BottomSheetDialog</item>
-		<item name="sideSheetDialogTheme">@style/ThemeOverlay.Kotatsu.SideSheetDialog</item>
-		<item name="recyclerViewStyle">@style/Widget.Kotatsu.RecyclerView</item>
-		<item name="android:dropDownSpinnerStyle">@style/Widget.Kotatsu.Spinner.DropDown</item>
+		<item name="android:alertDialogTheme">@style/ThemeOverlay.DropSauce.AlertDialog</item>
+		<item name="alertDialogTheme">@style/ThemeOverlay.DropSauce.AlertDialog</item>
+		<item name="bottomSheetDialogTheme">@style/ThemeOverlay.DropSauce.BottomSheetDialog</item>
+		<item name="sideSheetDialogTheme">@style/ThemeOverlay.DropSauce.SideSheetDialog</item>
+		<item name="recyclerViewStyle">@style/Widget.DropSauce.RecyclerView</item>
+		<item name="android:dropDownSpinnerStyle">@style/Widget.DropSauce.Spinner.DropDown</item>
 		<item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat.M3</item>
-		<item name="circularProgressIndicatorStyle">@style/Widget.Kotatsu.CircularProgressIndicator</item>
-		<item name="linearProgressIndicatorStyle">@style/Widget.Kotatsu.LinearProgressIndicator</item>
-		<item name="bottomSheetDragHandleStyle">@style/Widget.Kotatsu.BottomSheet.DragHandle</item>
-		<item name="preferenceTheme">@style/PreferenceThemeOverlay.Kotatsu</item>
+		<item name="circularProgressIndicatorStyle">@style/Widget.DropSauce.CircularProgressIndicator</item>
+		<item name="linearProgressIndicatorStyle">@style/Widget.DropSauce.LinearProgressIndicator</item>
+		<item name="bottomSheetDragHandleStyle">@style/Widget.DropSauce.BottomSheet.DragHandle</item>
+		<item name="preferenceTheme">@style/PreferenceThemeOverlay.DropSauce</item>
 		<!-- Fix crash in A15 -->
 		<item name="actionButtonStyle">@style/Widget.AppCompat.ActionButton</item>
 
 		<!-- Custom views -->
-		<item name="fastScrollerStyle">@style/Widget.Kotatsu.FastScroller</item>
-		<item name="listItemTextViewStyle">@style/Widget.Kotatsu.ListItemTextView</item>
-		<item name="dotIndicatorStyle">@style/Widget.Kotatsu.DotIndicator</item>
-		<item name="badgeViewStyle">@style/Widget.Kotatsu.BadgeView</item>
-		<item name="coverImageViewStyle">@style/Widget.Kotatsu.ImageView.Cover</item>
+		<item name="fastScrollerStyle">@style/Widget.DropSauce.FastScroller</item>
+		<item name="listItemTextViewStyle">@style/Widget.DropSauce.ListItemTextView</item>
+		<item name="dotIndicatorStyle">@style/Widget.DropSauce.DotIndicator</item>
+		<item name="badgeViewStyle">@style/Widget.DropSauce.BadgeView</item>
+		<item name="coverImageViewStyle">@style/Widget.DropSauce.ImageView.Cover</item>
 	</style>
 
 	<!--== Default Theme ==-->
-	<style name="Theme.Kotatsu" parent="Base.Theme.Kotatsu" />
+	<style name="Theme.DropSauce" parent="Base.Theme.DropSauce" />
+	<!-- Identity rename: keep existing Theme.DropSauce for backward compatibility. -->
+	<style name="Theme.DropSauce" parent="Theme.DropSauce" />
 
 	<!-- Base ThemeOverlay -->
-	<style name="ThemeOverlay.Kotatsu" parent="ThemeOverlay.Material3.Light" />
+	<style name="ThemeOverlay.DropSauce" parent="ThemeOverlay.Material3.Light" />
 
 	<!-- Monet theme only support S+ -->
-	<style name="ThemeOverlay.Kotatsu.Monet" parent="ThemeOverlay.Material3.DynamicColors.Light" />
+	<style name="ThemeOverlay.DropSauce.Monet" parent="ThemeOverlay.Material3.DynamicColors.Light" />
 
 	<!-- Expressive Monet theme -->
-	<style name="ThemeOverlay.Kotatsu.Expressive" parent="ThemeOverlay.Material3Expressive.DynamicColors.DayNight">
+	<style name="ThemeOverlay.DropSauce.Expressive" parent="ThemeOverlay.Material3Expressive.DynamicColors.DayNight">
 		<item name="alertDialogTheme">@style/ThemeOverlay.Material3Expressive.Dialog.Alert</item>
 		<item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3Expressive.MaterialAlertDialog</item>
 
@@ -148,11 +150,11 @@
 	</style>
 
 	<!-- Changes only for night -->
-	<style name="ThemeOverlay.Kotatsu.Amoled" parent="" />
+	<style name="ThemeOverlay.DropSauce.Amoled" parent="" />
 
 	<!-- App Widgets -->
 
-	<style name="Theme.Kotatsu.AppWidgetContainer" parent="@style/Theme.MaterialComponents.Light">
+	<style name="Theme.DropSauce.AppWidgetContainer" parent="@style/Theme.MaterialComponents.Light">
 		<item name="android:colorBackground">@color/kotatsu_background</item>
 		<item name="android:panelColorBackground">@color/kotatsu_primaryContainer</item>
 	</style>

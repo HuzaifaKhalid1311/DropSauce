@@ -1,20 +1,20 @@
-package org.koitharu.kotatsu.alternatives.domain
+package org.haziffe.dropsauce.alternatives.domain
 
 import androidx.room.withTransaction
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.model.getPreferredBranch
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.details.domain.ProgressUpdateUseCase
-import org.koitharu.kotatsu.history.data.HistoryEntity
-import org.koitharu.kotatsu.history.data.toMangaHistory
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
-import org.koitharu.kotatsu.tracker.data.TrackEntity
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.model.getPreferredBranch
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.details.domain.ProgressUpdateUseCase
+import org.haziffe.dropsauce.history.data.HistoryEntity
+import org.haziffe.dropsauce.history.data.toMangaHistory
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_NONE
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaChapter
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.scrobbling.common.domain.Scrobbler
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblingStatus
+import org.haziffe.dropsauce.tracker.data.TrackEntity
 import javax.inject.Inject
 
 class MigrateUseCase

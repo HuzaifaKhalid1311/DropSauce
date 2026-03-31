@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources.manage
+package org.haziffe.dropsauce.settings.sources.manage
 
 import android.content.Context
 import androidx.room.InvalidationTracker
@@ -13,20 +13,20 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.db.TABLE_SOURCES
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.model.unwrap
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.lifecycleScope
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.explore.data.SourcesSortOrder
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.settings.sources.model.SourceConfigItem
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.core.db.TABLE_SOURCES
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.model.unwrap
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.lifecycleScope
+import org.haziffe.dropsauce.explore.data.MangaSourcesRepository
+import org.haziffe.dropsauce.explore.data.SourcesSortOrder
+import org.haziffe.dropsauce.mihon.model.MihonMangaSource
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.parsers.util.mapToSet
+import org.haziffe.dropsauce.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
 
 @ViewModelScoped

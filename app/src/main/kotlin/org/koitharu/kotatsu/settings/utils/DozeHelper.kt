@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -11,9 +11,9 @@ import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.snackbar.Snackbar
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.powerManager
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.powerManager
 
 @SuppressLint("BatteryLife")
 class DozeHelper(

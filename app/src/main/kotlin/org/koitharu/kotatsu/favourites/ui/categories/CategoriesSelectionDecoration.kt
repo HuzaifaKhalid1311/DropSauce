@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.ui.categories
+package org.haziffe.dropsauce.favourites.ui.categories
 
 import android.content.Context
 import android.graphics.Canvas
@@ -8,11 +8,11 @@ import android.graphics.RectF
 import android.view.View
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.decor.AbstractSelectionItemDecoration
-import org.koitharu.kotatsu.core.util.ext.getItem
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.favourites.ui.categories.adapter.CategoryListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.decor.AbstractSelectionItemDecoration
+import org.haziffe.dropsauce.core.util.ext.getItem
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.favourites.ui.categories.adapter.CategoryListModel
 import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR
 

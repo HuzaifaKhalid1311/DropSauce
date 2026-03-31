@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.animation.Animator
 import android.animation.ValueAnimator
@@ -13,10 +13,10 @@ import androidx.annotation.ColorInt
 import androidx.annotation.FloatRange
 import androidx.collection.MutableFloatList
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
-import org.koitharu.kotatsu.core.util.ext.resolveDp
-import org.koitharu.kotatsu.parsers.util.replaceWith
+import org.haziffe.dropsauce.core.util.ext.getAnimationDuration
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.core.util.ext.resolveDp
+import org.haziffe.dropsauce.parsers.util.replaceWith
 
 class SegmentedBarView @JvmOverloads constructor(
 	context: Context,

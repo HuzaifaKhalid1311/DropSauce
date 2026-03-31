@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.sheet
+package org.haziffe.dropsauce.core.ui.sheet
 
 import android.annotation.SuppressLint
 import android.view.View

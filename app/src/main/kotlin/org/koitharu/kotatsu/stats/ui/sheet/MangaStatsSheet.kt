@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.stats.ui.sheet
+package org.haziffe.dropsauce.stats.ui.sheet
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,16 +9,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
-import org.koitharu.kotatsu.core.util.KotatsuColors
-import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.SheetStatsMangaBinding
-import org.koitharu.kotatsu.parsers.util.format
-import org.koitharu.kotatsu.stats.ui.views.BarChartView
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.sheet.BaseAdaptiveSheet
+import org.haziffe.dropsauce.core.util.KotatsuColors
+import org.haziffe.dropsauce.core.util.ext.consume
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.SheetStatsMangaBinding
+import org.haziffe.dropsauce.parsers.util.format
+import org.haziffe.dropsauce.stats.ui.views.BarChartView
 
 @AndroidEntryPoint
 class MangaStatsSheet : BaseAdaptiveSheet<SheetStatsMangaBinding>(), View.OnClickListener {

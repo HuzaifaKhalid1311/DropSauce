@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.util
+package org.haziffe.dropsauce.core.ui.util
 
 import androidx.annotation.IdRes
 import androidx.appcompat.widget.Toolbar

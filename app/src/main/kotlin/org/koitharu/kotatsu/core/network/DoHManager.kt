@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import okhttp3.Cache
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
 import java.net.InetAddress
 import java.net.UnknownHostException
 

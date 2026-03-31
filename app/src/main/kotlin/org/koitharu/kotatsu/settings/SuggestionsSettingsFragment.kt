@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings
+package org.haziffe.dropsauce.settings
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -6,13 +6,13 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.settings.utils.MultiAutoCompleteTextViewPreference
-import org.koitharu.kotatsu.settings.utils.TagsAutoCompleteProvider
-import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
-import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.settings.utils.MultiAutoCompleteTextViewPreference
+import org.haziffe.dropsauce.settings.utils.TagsAutoCompleteProvider
+import org.haziffe.dropsauce.suggestions.domain.SuggestionRepository
+import org.haziffe.dropsauce.suggestions.ui.SuggestionsWorker
 import javax.inject.Inject
 
 @AndroidEntryPoint

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import android.content.Context
 import android.content.res.TypedArray
@@ -17,10 +17,10 @@ import androidx.core.view.updatePaddingRelative
 import androidx.customview.view.AbsSavedState
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.ColorScheme
-import org.koitharu.kotatsu.databinding.ItemColorSchemeBinding
-import org.koitharu.kotatsu.databinding.PreferenceThemeBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.ColorScheme
+import org.haziffe.dropsauce.databinding.ItemColorSchemeBinding
+import org.haziffe.dropsauce.databinding.PreferenceThemeBinding
 import java.lang.ref.WeakReference
 import com.google.android.material.R as materialR
 

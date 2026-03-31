@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.stats.ui.sheet
+package org.haziffe.dropsauce.stats.ui.sheet
 
 import androidx.collection.MutableIntList
 import androidx.collection.emptyIntList
@@ -6,13 +6,13 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.model.DateTimeAgo
-import org.koitharu.kotatsu.core.util.ext.calculateTimeAgo
-import org.koitharu.kotatsu.core.util.ext.require
-import org.koitharu.kotatsu.stats.data.StatsRepository
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.model.DateTimeAgo
+import org.haziffe.dropsauce.core.util.ext.calculateTimeAgo
+import org.haziffe.dropsauce.core.util.ext.require
+import org.haziffe.dropsauce.stats.data.StatsRepository
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject

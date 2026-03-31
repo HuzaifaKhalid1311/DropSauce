@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.sync.ui.favourites
+package org.haziffe.dropsauce.sync.ui.favourites
 
 import android.app.Service
 import android.content.Intent

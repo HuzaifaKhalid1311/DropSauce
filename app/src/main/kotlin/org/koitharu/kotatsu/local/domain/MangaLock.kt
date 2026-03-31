@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.local.domain
+package org.haziffe.dropsauce.local.domain
 
-import org.koitharu.kotatsu.core.util.MultiMutex
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.util.MultiMutex
+import org.haziffe.dropsauce.parsers.model.Manga
 import javax.inject.Inject
 import javax.inject.Singleton
 

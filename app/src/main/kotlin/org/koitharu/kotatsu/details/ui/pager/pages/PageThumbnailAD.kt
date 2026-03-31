@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.details.ui.pager.pages
+package org.haziffe.dropsauce.details.ui.pager.pages
 
 import coil3.size.Size
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.util.ext.setTextColorAttr
-import org.koitharu.kotatsu.databinding.ItemPageThumbBinding
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.list.AdapterDelegateClickListenerAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.core.util.ext.setTextColorAttr
+import org.haziffe.dropsauce.databinding.ItemPageThumbBinding
+import org.haziffe.dropsauce.list.ui.model.ListModel
 import com.google.android.material.R as materialR
 
 fun pageThumbnailAD(

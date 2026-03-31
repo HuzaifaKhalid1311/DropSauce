@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.main.ui.owners
+package org.haziffe.dropsauce.main.ui.owners
 
-import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
+import org.haziffe.dropsauce.core.ui.widgets.SlidingBottomNavigationView
 
 interface BottomNavOwner {
 

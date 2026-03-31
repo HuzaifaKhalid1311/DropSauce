@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.reader.ui.pager.standard
+package org.haziffe.dropsauce.reader.ui.pager.standard
 
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.reader.ui.pager.BasePagerReaderFragment
+import org.haziffe.dropsauce.reader.ui.pager.BasePagerReaderFragment
 
 @AndroidEntryPoint
 class PagerReaderFragment : BasePagerReaderFragment()

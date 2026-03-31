@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.ui.pager.vertical
+package org.haziffe.dropsauce.reader.ui.pager.vertical
 
 import android.view.View
 import androidx.viewpager2.widget.ViewPager2

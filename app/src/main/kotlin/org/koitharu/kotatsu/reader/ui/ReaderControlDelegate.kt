@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.reader.ui
+package org.haziffe.dropsauce.reader.ui
 
 import android.content.res.Resources
 import android.view.KeyEvent
 import android.view.View
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ReaderMode
-import org.koitharu.kotatsu.reader.data.TapGridSettings
-import org.koitharu.kotatsu.reader.domain.TapGridArea
-import org.koitharu.kotatsu.reader.ui.tapgrid.TapAction
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ReaderMode
+import org.haziffe.dropsauce.reader.data.TapGridSettings
+import org.haziffe.dropsauce.reader.domain.TapGridArea
+import org.haziffe.dropsauce.reader.ui.tapgrid.TapAction
 import kotlin.math.sign
 
 class ReaderControlDelegate(

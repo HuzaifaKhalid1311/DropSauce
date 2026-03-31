@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui.pager.pages
+package org.haziffe.dropsauce.details.ui.pager.pages
 
 import androidx.core.net.toUri
 import coil3.ImageLoader
@@ -17,20 +17,20 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
-import org.koitharu.kotatsu.core.network.MangaHttpClient
-import org.koitharu.kotatsu.core.network.imageproxy.ImageProxyInterceptor
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.fetch
-import org.koitharu.kotatsu.core.util.ext.isNetworkUri
-import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
-import org.koitharu.kotatsu.local.data.LocalStorageCache
-import org.koitharu.kotatsu.local.data.PageCache
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.parsers.util.requireBody
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.reader.domain.PageLoader
+import org.haziffe.dropsauce.core.network.MangaHttpClient
+import org.haziffe.dropsauce.core.network.imageproxy.ImageProxyInterceptor
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.fetch
+import org.haziffe.dropsauce.core.util.ext.isNetworkUri
+import org.haziffe.dropsauce.core.util.ext.toMimeTypeOrNull
+import org.haziffe.dropsauce.local.data.LocalStorageCache
+import org.haziffe.dropsauce.local.data.PageCache
+import org.haziffe.dropsauce.parsers.model.MangaPage
+import org.haziffe.dropsauce.parsers.util.mimeType
+import org.haziffe.dropsauce.parsers.util.requireBody
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.reader.domain.PageLoader
 import javax.inject.Inject
 
 class MangaPageFetcher(

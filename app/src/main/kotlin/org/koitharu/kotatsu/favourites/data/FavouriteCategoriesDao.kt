@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.data
+package org.haziffe.dropsauce.favourites.data
 
 import androidx.room.Dao
 import androidx.room.Insert

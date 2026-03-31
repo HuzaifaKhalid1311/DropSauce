@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.core.db.dao
+package org.haziffe.dropsauce.core.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
-import org.koitharu.kotatsu.core.db.entity.MangaPrefsEntity
+import org.haziffe.dropsauce.core.db.entity.MangaPrefsEntity
 
 @Dao
 abstract class PreferencesDao {

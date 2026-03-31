@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.scrobbling.common.ui
+package org.haziffe.dropsauce.scrobbling.common.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
-import org.koitharu.kotatsu.scrobbling.common.domain.ScrobblerRepositoryMap
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
-import org.koitharu.kotatsu.scrobbling.kitsu.ui.KitsuAuthActivity
+import org.haziffe.dropsauce.scrobbling.common.domain.ScrobblerRepositoryMap
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerUser
+import org.haziffe.dropsauce.scrobbling.kitsu.ui.KitsuAuthActivity
 import javax.inject.Inject
 
 class ScrobblerAuthHelper @Inject constructor(

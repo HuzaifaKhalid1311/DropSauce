@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.favourites.domain.model
+package org.haziffe.dropsauce.favourites.domain.model
 
-import org.koitharu.kotatsu.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.MangaSource
 
 data class Cover(
 	val url: String?,

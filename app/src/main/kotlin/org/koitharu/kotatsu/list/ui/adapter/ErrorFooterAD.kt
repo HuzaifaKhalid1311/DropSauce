@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.list.ui.adapter
+package org.haziffe.dropsauce.list.ui.adapter
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.databinding.ItemErrorFooterBinding
-import org.koitharu.kotatsu.list.ui.model.ErrorFooter
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.databinding.ItemErrorFooterBinding
+import org.haziffe.dropsauce.list.ui.model.ErrorFooter
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 fun errorFooterAD(
 	listener: ListStateHolderListener?,

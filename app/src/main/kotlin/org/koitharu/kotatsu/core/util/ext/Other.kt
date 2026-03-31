@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.core.util.ext
+package org.haziffe.dropsauce.core.util.ext
 
-import org.koitharu.kotatsu.core.io.NullOutputStream
+import org.haziffe.dropsauce.core.io.NullOutputStream
 import java.io.ObjectOutputStream
 
 @Suppress("UNCHECKED_CAST")

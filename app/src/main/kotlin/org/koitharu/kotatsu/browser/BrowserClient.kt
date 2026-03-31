@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.browser
+package org.haziffe.dropsauce.browser
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -11,7 +11,7 @@ import androidx.annotation.AnyThread
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import org.koitharu.kotatsu.core.network.webview.adblock.AdBlock
+import org.haziffe.dropsauce.core.network.webview.adblock.AdBlock
 import java.io.ByteArrayInputStream
 
 open class BrowserClient(

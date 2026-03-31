@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.dialog
+package org.haziffe.dropsauce.core.ui.dialog
 
 import android.content.DialogInterface
 

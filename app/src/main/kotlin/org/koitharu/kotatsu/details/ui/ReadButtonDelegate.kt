@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.content.Context
 import android.graphics.Color
@@ -20,13 +20,13 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialSplitButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.combine
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.ReaderIntent
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.details.ui.model.HistoryInfo
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.nav.ReaderIntent
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.details.ui.model.HistoryInfo
 
 class ReadButtonDelegate(
 	private val splitButton: MaterialSplitButton,

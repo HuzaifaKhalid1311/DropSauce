@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.list
+package org.haziffe.dropsauce.core.ui.list
 
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView

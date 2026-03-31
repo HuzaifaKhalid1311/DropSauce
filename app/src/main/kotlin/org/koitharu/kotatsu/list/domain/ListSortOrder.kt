@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.list.domain
+package org.haziffe.dropsauce.list.domain
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.parsers.util.find
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.parsers.util.find
 import java.util.EnumSet
 
 enum class ListSortOrder(

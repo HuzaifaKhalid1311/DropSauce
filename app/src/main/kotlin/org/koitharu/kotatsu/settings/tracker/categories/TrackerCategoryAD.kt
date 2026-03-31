@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.settings.tracker.categories
+package org.haziffe.dropsauce.settings.tracker.categories
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.databinding.ItemCategoryCheckableMultipleBinding
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.ui.list.AdapterDelegateClickListenerAdapter
+import org.haziffe.dropsauce.core.ui.list.OnListItemClickListener
+import org.haziffe.dropsauce.databinding.ItemCategoryCheckableMultipleBinding
 
 fun trackerCategoryAD(
 	listener: OnListItemClickListener<FavouriteCategory>,

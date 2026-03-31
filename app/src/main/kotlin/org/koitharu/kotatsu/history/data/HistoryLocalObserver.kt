@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.history.data
+package org.haziffe.dropsauce.history.data
 
 import dagger.Reusable
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.entity.toManga
-import org.koitharu.kotatsu.core.db.entity.toMangaTags
-import org.koitharu.kotatsu.history.domain.model.MangaWithHistory
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.domain.ListSortOrder
-import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
-import org.koitharu.kotatsu.local.domain.LocalObserveMapper
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.entity.toManga
+import org.haziffe.dropsauce.core.db.entity.toMangaTags
+import org.haziffe.dropsauce.history.domain.model.MangaWithHistory
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.ListSortOrder
+import org.haziffe.dropsauce.local.data.index.LocalMangaIndex
+import org.haziffe.dropsauce.local.domain.LocalObserveMapper
+import org.haziffe.dropsauce.parsers.model.Manga
 import javax.inject.Inject
 
 @Reusable

@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.local.data.index
+package org.haziffe.dropsauce.local.data.index
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
 
 @Entity(
 	tableName = "local_index",

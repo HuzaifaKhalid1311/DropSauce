@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.discord
+package org.haziffe.dropsauce.settings.discord
 
 enum class TokenState {
 

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.favourites.domain
+package org.haziffe.dropsauce.favourites.domain
 
 import androidx.room.withTransaction
 import dagger.Reusable
@@ -8,27 +8,27 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.TABLE_FAVOURITES
-import org.koitharu.kotatsu.core.db.TABLE_FAVOURITE_CATEGORIES
-import org.koitharu.kotatsu.core.db.entity.toEntities
-import org.koitharu.kotatsu.core.db.entity.toEntity
-import org.koitharu.kotatsu.core.db.entity.toMangaList
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.model.toMangaSources
-import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
-import org.koitharu.kotatsu.core.util.ext.mapItems
-import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
-import org.koitharu.kotatsu.favourites.data.FavouriteEntity
-import org.koitharu.kotatsu.favourites.data.toFavouriteCategory
-import org.koitharu.kotatsu.favourites.data.toMangaList
-import org.koitharu.kotatsu.favourites.domain.model.Cover
-import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.domain.ListSortOrder
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.levenshteinDistance
-import org.koitharu.kotatsu.search.domain.SearchKind
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.TABLE_FAVOURITES
+import org.haziffe.dropsauce.core.db.TABLE_FAVOURITE_CATEGORIES
+import org.haziffe.dropsauce.core.db.entity.toEntities
+import org.haziffe.dropsauce.core.db.entity.toEntity
+import org.haziffe.dropsauce.core.db.entity.toMangaList
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.core.model.toMangaSources
+import org.haziffe.dropsauce.core.ui.util.ReversibleHandle
+import org.haziffe.dropsauce.core.util.ext.mapItems
+import org.haziffe.dropsauce.favourites.data.FavouriteCategoryEntity
+import org.haziffe.dropsauce.favourites.data.FavouriteEntity
+import org.haziffe.dropsauce.favourites.data.toFavouriteCategory
+import org.haziffe.dropsauce.favourites.data.toMangaList
+import org.haziffe.dropsauce.favourites.domain.model.Cover
+import org.haziffe.dropsauce.list.domain.ListFilterOption
+import org.haziffe.dropsauce.list.domain.ListSortOrder
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.util.levenshteinDistance
+import org.haziffe.dropsauce.search.domain.SearchKind
 import javax.inject.Inject
 
 @Reusable

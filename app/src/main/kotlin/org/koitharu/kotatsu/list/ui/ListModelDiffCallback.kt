@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.list.ui
+package org.haziffe.dropsauce.list.ui
 
 import androidx.recyclerview.widget.DiffUtil
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 open class ListModelDiffCallback<T : ListModel> : DiffUtil.ItemCallback<T>() {
 

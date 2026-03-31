@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.reader.domain
+package org.haziffe.dropsauce.reader.domain
 
 import androidx.collection.LongSparseArray
 import androidx.collection.contains
-import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.haziffe.dropsauce.reader.ui.pager.ReaderPage
 
 class ChapterPages private constructor(private val pages: ArrayDeque<ReaderPage>) : List<ReaderPage> by pages {
 

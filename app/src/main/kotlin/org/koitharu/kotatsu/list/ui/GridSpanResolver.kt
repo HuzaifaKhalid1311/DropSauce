@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.list.ui
+package org.haziffe.dropsauce.list.ui
 
 import android.content.res.Resources
 import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

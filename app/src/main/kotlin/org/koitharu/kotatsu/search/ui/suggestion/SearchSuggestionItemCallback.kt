@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.search.ui.suggestion
+package org.haziffe.dropsauce.search.ui.suggestion
 
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.core.util.ext.getItem
-import org.koitharu.kotatsu.search.ui.suggestion.adapter.SEARCH_SUGGESTION_ITEM_TYPE_QUERY
-import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
+import org.haziffe.dropsauce.core.util.ext.getItem
+import org.haziffe.dropsauce.search.ui.suggestion.adapter.SEARCH_SUGGESTION_ITEM_TYPE_QUERY
+import org.haziffe.dropsauce.search.ui.suggestion.model.SearchSuggestionItem
 
 class SearchSuggestionItemCallback(
 	private val listener: SuggestionItemListener,

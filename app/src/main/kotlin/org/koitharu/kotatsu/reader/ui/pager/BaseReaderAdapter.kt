@@ -1,14 +1,14 @@
-package org.koitharu.kotatsu.reader.ui.pager
+package org.haziffe.dropsauce.reader.ui.pager
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.util.ext.resetTransformations
-import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
+import org.haziffe.dropsauce.core.exceptions.resolve.ExceptionResolver
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.util.ext.resetTransformations
+import org.haziffe.dropsauce.reader.domain.PageLoader
+import org.haziffe.dropsauce.reader.ui.config.ReaderSettings
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

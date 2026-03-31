@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.network.imageproxy
+package org.haziffe.dropsauce.core.network.imageproxy
 
 import coil3.intercept.Interceptor
 import okhttp3.OkHttpClient

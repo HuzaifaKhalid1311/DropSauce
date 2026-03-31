@@ -312,7 +312,7 @@
     <string name="reader_info_bar">リーダーで情報バーを表示する</string>
     <string name="comics_archive">コミックアーカイブ</string>
     <string name="feed">フィード</string>
-    <string name="manga_error_description_pattern">エラーの詳細:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. &lt;a href=%2$s&gt;Webブラウザで漫画を開いてみて&lt;/a&gt;、そのソースで利用可能かどうか確認してください&lt;br&gt;2.&lt;a href=kotatsu://about&gt;最新版のこたつ&lt;/a&gt;&lt;br&gt;3.利用可能であれば、開発者にエラーレポートを送ってみてください。</string>
+    <string name="manga_error_description_pattern">エラーの詳細:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. &lt;a href=%2$s&gt;Webブラウザで漫画を開いてみて&lt;/a&gt;、そのソースで利用可能かどうか確認してください&lt;br&gt;2.&lt;a href=dropsauce://about&gt;最新版のこたつ&lt;/a&gt;&lt;br&gt;3.利用可能であれば、開発者にエラーレポートを送ってみてください。</string>
     <string name="reader_control_ltr">人間工学に基づいたリーダーコントロール</string>
     <string name="history_shortcuts">最近のマンガのショートカットを表示</string>
     <string name="history_shortcuts_summary">アプリケーションアイコンを長押しして最近のマンガを利用できるようにする</string>

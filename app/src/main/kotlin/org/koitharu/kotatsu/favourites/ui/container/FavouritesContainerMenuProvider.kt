@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.favourites.ui.container
+package org.haziffe.dropsauce.favourites.ui.container
 
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
 
 class FavouritesContainerMenuProvider(
 	private val router: AppRouter,

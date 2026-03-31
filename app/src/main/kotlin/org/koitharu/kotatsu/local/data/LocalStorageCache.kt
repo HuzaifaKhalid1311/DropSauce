@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.local.data
+package org.haziffe.dropsauce.local.data
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -12,18 +12,18 @@ import okio.Source
 import okio.buffer
 import okio.sink
 import okio.use
-import org.koitharu.kotatsu.core.exceptions.NoDataReceivedException
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.MimeType
-import org.koitharu.kotatsu.core.util.ext.compressToPNG
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.subdir
-import org.koitharu.kotatsu.core.util.ext.takeIfReadable
-import org.koitharu.kotatsu.core.util.ext.takeIfWriteable
-import org.koitharu.kotatsu.core.util.ext.writeAllCancellable
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.haziffe.dropsauce.core.exceptions.NoDataReceivedException
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.MimeType
+import org.haziffe.dropsauce.core.util.ext.compressToPNG
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.subdir
+import org.haziffe.dropsauce.core.util.ext.takeIfReadable
+import org.haziffe.dropsauce.core.util.ext.takeIfWriteable
+import org.haziffe.dropsauce.core.util.ext.writeAllCancellable
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.parsers.util.suspendlazy.suspendLazy
 import java.io.File
 import java.util.UUID
 

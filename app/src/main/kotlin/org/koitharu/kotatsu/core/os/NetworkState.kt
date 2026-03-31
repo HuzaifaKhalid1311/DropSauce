@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.os
+package org.haziffe.dropsauce.core.os
 
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
@@ -9,8 +9,8 @@ import android.net.NetworkRequest
 import android.os.Build
 import coil3.network.ConnectivityChecker
 import kotlinx.coroutines.flow.first
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.MediatorStateFlow
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.util.MediatorStateFlow
 
 class NetworkState(
 	private val connectivityManager: ConnectivityManager,

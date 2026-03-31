@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.details.domain
+package org.haziffe.dropsauce.details.domain
 
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.model.isLocal
-import org.koitharu.kotatsu.core.os.NetworkState
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
-import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.model.isLocal
+import org.haziffe.dropsauce.core.os.NetworkState
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_NONE
+import org.haziffe.dropsauce.local.data.LocalMangaRepository
+import org.haziffe.dropsauce.parsers.model.Manga
 import javax.inject.Inject
 
 class ProgressUpdateUseCase @Inject constructor(

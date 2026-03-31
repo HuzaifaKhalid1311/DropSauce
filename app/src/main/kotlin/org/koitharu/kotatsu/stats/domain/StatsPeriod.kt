@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.stats.domain
+package org.haziffe.dropsauce.stats.domain
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 enum class StatsPeriod(
 	@StringRes val titleResId: Int,

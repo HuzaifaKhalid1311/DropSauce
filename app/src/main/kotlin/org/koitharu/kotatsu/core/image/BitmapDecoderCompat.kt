@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.image
+package org.haziffe.dropsauce.core.image
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,13 +14,13 @@ import okio.source
 import org.aomedia.avif.android.AvifDecoder
 import org.aomedia.avif.android.AvifDecoder.Info
 import org.jetbrains.annotations.Blocking
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.MimeType
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.readByteBuffer
-import org.koitharu.kotatsu.core.util.ext.toByteBuffer
-import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.MimeType
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.readByteBuffer
+import org.haziffe.dropsauce.core.util.ext.toByteBuffer
+import org.haziffe.dropsauce.core.util.ext.toMimeTypeOrNull
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.io.File
 import java.io.InputStream
 import java.nio.ByteBuffer

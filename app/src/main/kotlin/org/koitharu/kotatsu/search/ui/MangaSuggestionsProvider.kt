@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.search.ui
+package org.haziffe.dropsauce.search.ui
 
 import android.app.SearchManager
 import android.content.ContentResolver
@@ -7,7 +7,7 @@ import android.content.SearchRecentSuggestionsProvider
 import android.net.Uri
 import android.provider.SearchRecentSuggestions
 import androidx.core.net.toUri
-import org.koitharu.kotatsu.BuildConfig
+import org.haziffe.dropsauce.BuildConfig
 
 class MangaSuggestionsProvider : SearchRecentSuggestionsProvider() {
 

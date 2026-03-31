@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.core.parser.favicon
+package org.haziffe.dropsauce.core.parser.favicon
 
 import android.net.Uri
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
 
 const val URI_SCHEME_FAVICON = "favicon"
 

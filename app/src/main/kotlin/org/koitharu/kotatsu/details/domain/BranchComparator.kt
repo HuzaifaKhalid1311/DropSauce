@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.details.domain
+package org.haziffe.dropsauce.details.domain
 
-import org.koitharu.kotatsu.core.util.LocaleStringComparator
-import org.koitharu.kotatsu.details.ui.model.MangaBranch
+import org.haziffe.dropsauce.core.util.LocaleStringComparator
+import org.haziffe.dropsauce.details.ui.model.MangaBranch
 
 class BranchComparator : Comparator<MangaBranch> {
 

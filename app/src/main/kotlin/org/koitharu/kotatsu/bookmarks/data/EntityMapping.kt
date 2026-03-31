@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.bookmarks.data
+package org.haziffe.dropsauce.bookmarks.data
 
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.parsers.model.Manga
 import java.time.Instant
 
 fun BookmarkEntity.toBookmark(manga: Manga) = Bookmark(

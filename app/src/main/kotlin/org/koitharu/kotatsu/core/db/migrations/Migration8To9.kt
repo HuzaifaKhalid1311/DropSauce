@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.core.db.migrations
+package org.haziffe.dropsauce.core.db.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.haziffe.dropsauce.parsers.model.SortOrder
 
 class Migration8To9 : Migration(8, 9) {
 

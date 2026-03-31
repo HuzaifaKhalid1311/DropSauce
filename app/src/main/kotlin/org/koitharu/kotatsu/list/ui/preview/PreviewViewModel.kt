@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.ui.preview
+package org.haziffe.dropsauce.list.ui.preview
 
 import android.text.Html
 import android.text.SpannableString
@@ -20,16 +20,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.core.model.getPreferredBranch
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.require
-import org.koitharu.kotatsu.core.util.ext.sanitize
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.list.domain.MangaListMapper
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
+import org.haziffe.dropsauce.core.model.getPreferredBranch
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.require
+import org.haziffe.dropsauce.core.util.ext.sanitize
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.list.domain.MangaListMapper
+import org.haziffe.dropsauce.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import javax.inject.Inject
 
 @HiltViewModel

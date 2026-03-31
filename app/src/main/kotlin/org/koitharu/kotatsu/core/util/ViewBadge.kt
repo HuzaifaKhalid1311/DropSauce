@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util
+package org.haziffe.dropsauce.core.util
 
 import android.view.View
 import androidx.annotation.OptIn

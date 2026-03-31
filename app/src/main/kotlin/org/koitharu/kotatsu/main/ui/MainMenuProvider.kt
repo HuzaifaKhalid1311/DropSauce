@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.main.ui
+package org.haziffe.dropsauce.main.ui
 
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.AppRouter
 
 class MainMenuProvider(
 	private val router: AppRouter,

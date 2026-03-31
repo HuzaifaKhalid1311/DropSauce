@@ -328,7 +328,7 @@
     <string name="importing_manga">Mengimport komik</string>
     <string name="import_will_start_soon">Import akan bermula tidak lama lagi</string>
     <string name="feed">Suapan</string>
-    <string name="manga_error_description_pattern">Butiran ralat:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Cuba &lt;a href=%2$s&gt;buka manga dalam pelayar web&lt;/a&gt; untuk memastikan ia tersedia pada sumbernya&lt;br&gt;2. Pastikan anda menggunakan &lt;a href=kotatsu://about&gt;versi terbaharu DropSauce&lt;/a&gt;&lt;br&gt;3. Jika tersedia, hantar laporan ralat kepada pembangun.</string>
+    <string name="manga_error_description_pattern">Butiran ralat:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Cuba &lt;a href=%2$s&gt;buka manga dalam pelayar web&lt;/a&gt; untuk memastikan ia tersedia pada sumbernya&lt;br&gt;2. Pastikan anda menggunakan &lt;a href=dropsauce://about&gt;versi terbaharu DropSauce&lt;/a&gt;&lt;br&gt;3. Jika tersedia, hantar laporan ralat kepada pembangun.</string>
     <string name="color_correction">Pembetulan warna</string>
     <string name="brightness">Kecerahan</string>
     <string name="contrast">Berbeza</string>

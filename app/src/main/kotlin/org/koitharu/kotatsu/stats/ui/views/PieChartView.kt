@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.stats.ui.views
+package org.haziffe.dropsauce.stats.ui.views
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,9 +13,9 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.PointerIconCompat
 import androidx.core.view.ViewCompat
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
-import org.koitharu.kotatsu.core.util.ext.resolveDp
-import org.koitharu.kotatsu.parsers.util.replaceWith
+import org.haziffe.dropsauce.core.util.ext.getThemeColor
+import org.haziffe.dropsauce.core.util.ext.resolveDp
+import org.haziffe.dropsauce.parsers.util.replaceWith
 import kotlin.math.atan2
 import kotlin.math.sqrt
 

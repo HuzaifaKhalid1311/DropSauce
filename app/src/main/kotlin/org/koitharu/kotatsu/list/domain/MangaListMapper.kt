@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.list.domain
+package org.haziffe.dropsauce.list.domain
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,24 +8,24 @@ import androidx.collection.MutableScatterSet
 import androidx.collection.ScatterSet
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.parser.MangaDataRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.ListMode
-import org.koitharu.kotatsu.core.ui.model.MangaOverride
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
-import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
-import org.koitharu.kotatsu.history.data.HistoryRepository
-import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
-import org.koitharu.kotatsu.list.ui.model.MangaDetailedListModel
-import org.koitharu.kotatsu.list.ui.model.MangaGridModel
-import org.koitharu.kotatsu.list.ui.model.MangaListModel
-import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.tracker.domain.TrackingRepository
-import org.koitharu.kotatsu.tracker.domain.model.TrackingLogItem
-import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.parser.MangaDataRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.ListMode
+import org.haziffe.dropsauce.core.ui.model.MangaOverride
+import org.haziffe.dropsauce.core.ui.widgets.ChipsView
+import org.haziffe.dropsauce.favourites.domain.FavouritesRepository
+import org.haziffe.dropsauce.history.data.HistoryRepository
+import org.haziffe.dropsauce.list.ui.model.MangaCompactListModel
+import org.haziffe.dropsauce.list.ui.model.MangaDetailedListModel
+import org.haziffe.dropsauce.list.ui.model.MangaGridModel
+import org.haziffe.dropsauce.list.ui.model.MangaListModel
+import org.haziffe.dropsauce.local.data.index.LocalMangaIndex
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaTag
+import org.haziffe.dropsauce.tracker.domain.TrackingRepository
+import org.haziffe.dropsauce.tracker.domain.model.TrackingLogItem
+import org.haziffe.dropsauce.tracker.ui.feed.model.FeedItem
 import javax.inject.Inject
 
 @Reusable

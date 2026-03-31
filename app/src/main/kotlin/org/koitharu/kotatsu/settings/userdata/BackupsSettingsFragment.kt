@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.userdata
+package org.haziffe.dropsauce.settings.userdata
 
 import android.net.Uri
 import android.os.Bundle
@@ -9,16 +9,16 @@ import androidx.fragment.app.viewModels
 import androidx.preference.Preference
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.domain.BackupUtils
-import org.koitharu.kotatsu.backups.ui.backup.BackupService
-import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.tryLaunch
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.backups.domain.BackupUtils
+import org.haziffe.dropsauce.backups.ui.backup.BackupService
+import org.haziffe.dropsauce.core.exceptions.resolve.SnackbarErrorObserver
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BasePreferenceFragment
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.tryLaunch
 
 @AndroidEntryPoint
 class BackupsSettingsFragment : BasePreferenceFragment(R.string.backup_restore),

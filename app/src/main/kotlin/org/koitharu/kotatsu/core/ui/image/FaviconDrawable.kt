@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.image
+package org.haziffe.dropsauce.core.ui.image
 
 import android.content.Context
 import android.content.res.ColorStateList
@@ -18,11 +18,11 @@ import coil3.asImage
 import coil3.getExtra
 import coil3.request.ImageRequest
 import com.google.android.material.color.MaterialColors
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.util.KotatsuColors
-import org.koitharu.kotatsu.core.util.ext.hasFocusStateSpecified
-import org.koitharu.kotatsu.core.util.ext.mangaSourceKey
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.util.KotatsuColors
+import org.haziffe.dropsauce.core.util.ext.hasFocusStateSpecified
+import org.haziffe.dropsauce.core.util.ext.mangaSourceKey
 
 open class FaviconDrawable(
 	context: Context,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.sources.catalog
+package org.haziffe.dropsauce.settings.sources.catalog
 
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.viewModelScope
@@ -11,26 +11,26 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.TABLE_SOURCES
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
-import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.mapSortedByCount
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.explore.data.SourcesSortOrder
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.mihon.MihonExtensionLoader
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.db.TABLE_SOURCES
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.ui.util.ReversibleAction
+import org.haziffe.dropsauce.core.util.ext.MutableEventFlow
+import org.haziffe.dropsauce.core.util.ext.call
+import org.haziffe.dropsauce.core.util.ext.mapSortedByCount
+import org.haziffe.dropsauce.extensions.runtime.getExternalExtensionLanguageDisplayName
+import org.haziffe.dropsauce.explore.data.MangaSourcesRepository
+import org.haziffe.dropsauce.explore.data.SourcesSortOrder
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.list.ui.model.LoadingState
+import org.haziffe.dropsauce.mihon.MihonExtensionLoader
+import org.haziffe.dropsauce.mihon.model.MihonMangaSource
+import org.haziffe.dropsauce.parsers.model.ContentType
+import org.haziffe.dropsauce.parsers.model.MangaParserSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
 import java.util.Comparator
 import java.util.EnumSet
 import java.util.LinkedHashSet
@@ -390,15 +390,15 @@ class SourcesCatalogViewModel @Inject constructor(
 				)
 			}
 			if (pending.isNotEmpty()) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
+				add(org.haziffe.dropsauce.list.ui.model.ListHeader(R.string.updates_pending))
 				addAll(pending)
 			}
 			if (installedSorted.isNotEmpty()) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
+				add(org.haziffe.dropsauce.list.ui.model.ListHeader(R.string.installed))
 				addAll(installedSorted)
 			}
 			if (availableItems.isNotEmpty()) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
+				add(org.haziffe.dropsauce.list.ui.model.ListHeader(R.string.available_to_install))
 				addAll(availableItems)
 			}
 			if (isEmpty()) {

@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.favourites.data
+package org.haziffe.dropsauce.favourites.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import org.koitharu.kotatsu.core.db.TABLE_FAVOURITE_CATEGORIES
+import org.haziffe.dropsauce.core.db.TABLE_FAVOURITE_CATEGORIES
 
 @Entity(tableName = TABLE_FAVOURITE_CATEGORIES)
 data class FavouriteCategoryEntity(

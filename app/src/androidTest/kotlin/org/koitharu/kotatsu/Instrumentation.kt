@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu
+package org.haziffe.dropsauce
 
 import android.app.Instrumentation
 import kotlin.coroutines.resume

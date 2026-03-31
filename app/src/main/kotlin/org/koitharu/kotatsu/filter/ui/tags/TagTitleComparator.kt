@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.filter.ui.tags
+package org.haziffe.dropsauce.filter.ui.tags
 
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.haziffe.dropsauce.parsers.model.MangaTag
 import java.text.Collator
 import java.util.Locale
 

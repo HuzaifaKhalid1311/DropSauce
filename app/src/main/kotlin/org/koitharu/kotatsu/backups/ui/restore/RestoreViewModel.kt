@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.backups.ui.restore
+package org.haziffe.dropsauce.backups.ui.restore
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runInterruptible
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.koitharu.kotatsu.backups.data.model.BackupIndex
-import org.koitharu.kotatsu.backups.domain.BackupSection
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.toUriOrNull
+import org.haziffe.dropsauce.backups.data.model.BackupIndex
+import org.haziffe.dropsauce.backups.domain.BackupSection
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseViewModel
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.toUriOrNull
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.util.Date

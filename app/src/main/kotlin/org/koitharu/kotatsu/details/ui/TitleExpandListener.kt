@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.details.ui
+package org.haziffe.dropsauce.details.ui
 
 import android.annotation.SuppressLint
 import android.transition.TransitionManager
@@ -7,9 +7,9 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewGroup
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.widgets.SelectableTextView
-import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.widgets.SelectableTextView
+import org.haziffe.dropsauce.core.util.ext.isAnimationsEnabled
 
 @SuppressLint("ClickableViewAccessibility")
 class TitleExpandListener(

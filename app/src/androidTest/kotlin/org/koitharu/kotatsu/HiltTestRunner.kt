@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu
+package org.haziffe.dropsauce
 
 import android.app.Application
 import android.content.Context

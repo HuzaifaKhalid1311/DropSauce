@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.parser.favicon
+package org.haziffe.dropsauce.core.parser.favicon
 
 import android.graphics.Color
 import android.graphics.drawable.AdaptiveIconDrawable
@@ -25,22 +25,22 @@ import kotlinx.coroutines.runInterruptible
 import okio.FileSystem
 import okio.IOException
 import okio.Path.Companion.toOkioPath
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaRepository
-import org.koitharu.kotatsu.core.util.MimeTypes
-import org.koitharu.kotatsu.core.util.ext.fetch
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
-import org.koitharu.kotatsu.local.data.FaviconCache
-import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.local.data.LocalStorageCache
-import org.koitharu.kotatsu.mihon.MihonMangaRepository
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.exceptions.CloudFlareProtectedException
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.parser.EmptyMangaRepository
+import org.haziffe.dropsauce.core.parser.MangaRepository
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.core.parser.external.ExternalMangaRepository
+import org.haziffe.dropsauce.core.util.MimeTypes
+import org.haziffe.dropsauce.core.util.ext.fetch
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.toMimeTypeOrNull
+import org.haziffe.dropsauce.local.data.FaviconCache
+import org.haziffe.dropsauce.local.data.LocalMangaRepository
+import org.haziffe.dropsauce.local.data.LocalStorageCache
+import org.haziffe.dropsauce.mihon.MihonMangaRepository
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
 import coil3.Uri as CoilUri

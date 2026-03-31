@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.image
+package org.haziffe.dropsauce.core.ui.image
 
 import android.graphics.drawable.Drawable
 import android.view.Gravity

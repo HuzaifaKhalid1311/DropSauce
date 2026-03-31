@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.list.lifecycle
+package org.haziffe.dropsauce.core.ui.list.lifecycle
 
 import android.view.View
 import androidx.annotation.CallSuper

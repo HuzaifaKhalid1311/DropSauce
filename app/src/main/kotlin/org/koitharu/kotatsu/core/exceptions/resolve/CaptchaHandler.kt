@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.exceptions.resolve
+package org.haziffe.dropsauce.core.exceptions.resolve
 
 import android.Manifest
 import android.app.Notification
@@ -34,30 +34,30 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.exceptions.CloudFlareException
-import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.network.webview.WebViewExecutor
-import org.koitharu.kotatsu.core.parser.favicon.faviconUri
-import org.koitharu.kotatsu.core.prefs.SourceSettings
-import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
-import org.koitharu.kotatsu.core.util.ext.getNotificationIconSize
-import org.koitharu.kotatsu.core.util.ext.goAsync
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
-import org.koitharu.kotatsu.core.util.ext.toBitmapOrNull
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
-import org.koitharu.kotatsu.parsers.util.mapToArray
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.LocalizedAppContext
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.exceptions.CloudFlareException
+import org.haziffe.dropsauce.core.exceptions.CloudFlareProtectedException
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.UnknownMangaSource
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.network.webview.WebViewExecutor
+import org.haziffe.dropsauce.core.parser.favicon.faviconUri
+import org.haziffe.dropsauce.core.prefs.SourceSettings
+import org.haziffe.dropsauce.core.util.ext.checkNotificationPermission
+import org.haziffe.dropsauce.core.util.ext.getNotificationIconSize
+import org.haziffe.dropsauce.core.util.ext.goAsync
+import org.haziffe.dropsauce.core.util.ext.mangaSourceExtra
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.core.util.ext.processLifecycleScope
+import org.haziffe.dropsauce.core.util.ext.toBitmapOrNull
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.network.CloudFlareHelper
+import org.haziffe.dropsauce.parsers.util.mapToArray
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -283,10 +283,10 @@ class CaptchaHandler @Inject constructor(
 
 		private const val CHANNEL_ID = "captcha"
 		private const val TAG = CHANNEL_ID
-		private const val GROUP_CAPTCHA = "org.koitharu.kotatsu.CAPTCHA"
+		private const val GROUP_CAPTCHA = "org.haziffe.dropsauce.CAPTCHA"
 		private const val GROUP_NOTIFICATION_ID = 34
 		private const val SETTINGS_ACTION_CODE = 3
-		private const val ACTION_DISCARD = "org.koitharu.kotatsu.CAPTCHA_DISCARD"
+		private const val ACTION_DISCARD = "org.haziffe.dropsauce.CAPTCHA_DISCARD"
 		private const val RESOLVE_TIMEOUT = 20_000L
 	}
 }

@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.tracker.data
+package org.haziffe.dropsauce.tracker.data
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
 
 class TrackWithManga(
 	@Embedded val track: TrackEntity,

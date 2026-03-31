@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings
+package org.haziffe.dropsauce.settings
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,29 +17,29 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupSettingsFragment
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.util.ext.buildBundle
-import org.koitharu.kotatsu.core.util.ext.end
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.start
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ActivitySettingsBinding
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
-import org.koitharu.kotatsu.settings.about.AboutSettingsFragment
-import org.koitharu.kotatsu.settings.discord.DiscordSettingsFragment
-import org.koitharu.kotatsu.settings.search.SettingsItem
-import org.koitharu.kotatsu.settings.search.SettingsSearchFragment
-import org.koitharu.kotatsu.settings.search.SettingsSearchViewModel
-import org.koitharu.kotatsu.settings.sources.SourceSettingsFragment
-import org.koitharu.kotatsu.settings.sources.SourcesSettingsFragment
-import org.koitharu.kotatsu.settings.sources.manage.SourcesManageFragment
-import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
-import org.koitharu.kotatsu.settings.userdata.BackupsSettingsFragment
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.backups.ui.periodical.PeriodicalBackupSettingsFragment
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.util.ext.buildBundle
+import org.haziffe.dropsauce.core.util.ext.end
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.observeEvent
+import org.haziffe.dropsauce.core.util.ext.start
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ActivitySettingsBinding
+import org.haziffe.dropsauce.main.ui.owners.AppBarOwner
+import org.haziffe.dropsauce.settings.about.AboutSettingsFragment
+import org.haziffe.dropsauce.settings.discord.DiscordSettingsFragment
+import org.haziffe.dropsauce.settings.search.SettingsItem
+import org.haziffe.dropsauce.settings.search.SettingsSearchFragment
+import org.haziffe.dropsauce.settings.search.SettingsSearchViewModel
+import org.haziffe.dropsauce.settings.sources.SourceSettingsFragment
+import org.haziffe.dropsauce.settings.sources.SourcesSettingsFragment
+import org.haziffe.dropsauce.settings.sources.manage.SourcesManageFragment
+import org.haziffe.dropsauce.settings.tracker.TrackerSettingsFragment
+import org.haziffe.dropsauce.settings.userdata.BackupsSettingsFragment
 
 @AndroidEntryPoint
 class SettingsActivity :

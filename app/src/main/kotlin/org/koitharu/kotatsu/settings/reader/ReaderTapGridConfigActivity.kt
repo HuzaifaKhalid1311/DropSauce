@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.reader
+package org.haziffe.dropsauce.settings.reader
 
 import android.content.DialogInterface
 import android.graphics.drawable.Drawable
@@ -16,16 +16,16 @@ import androidx.core.text.buildSpannedString
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
-import org.koitharu.kotatsu.core.util.ext.findKeyByValue
-import org.koitharu.kotatsu.core.util.ext.getThemeDrawable
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
-import org.koitharu.kotatsu.databinding.ActivityReaderTapActionsBinding
-import org.koitharu.kotatsu.reader.domain.TapGridArea
-import org.koitharu.kotatsu.reader.ui.tapgrid.TapAction
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.ui.BaseActivity
+import org.haziffe.dropsauce.core.util.ext.consumeAllSystemBarsInsets
+import org.haziffe.dropsauce.core.util.ext.findKeyByValue
+import org.haziffe.dropsauce.core.util.ext.getThemeDrawable
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.core.util.ext.systemBarsInsets
+import org.haziffe.dropsauce.databinding.ActivityReaderTapActionsBinding
+import org.haziffe.dropsauce.reader.domain.TapGridArea
+import org.haziffe.dropsauce.reader.ui.tapgrid.TapAction
 import java.util.EnumMap
 import androidx.appcompat.R as appcompatR
 

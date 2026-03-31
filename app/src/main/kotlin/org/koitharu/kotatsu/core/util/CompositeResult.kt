@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.util
+package org.haziffe.dropsauce.core.util
 
 class CompositeResult private constructor(
 	private var successCount: Int,

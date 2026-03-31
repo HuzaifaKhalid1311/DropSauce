@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.reader.ui.pager
+package org.haziffe.dropsauce.reader.ui.pager
 
 import android.content.res.Resources
-import org.koitharu.kotatsu.core.model.getLocalizedTitle
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.haziffe.dropsauce.core.model.getLocalizedTitle
+import org.haziffe.dropsauce.parsers.model.MangaChapter
 
 data class ReaderUiState(
 	val mangaName: String?,

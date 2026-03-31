@@ -331,7 +331,7 @@
     <string name="webtoon_zoom">Powiększanie webtoon</string>
     <string name="clear_new_chapters_counters">Wyczyść też informacje o nowych rozdziałach</string>
     <string name="reset">Resetuj</string>
-    <string name="manga_error_description_pattern">Szczegóły błędu:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Spróbuj &lt;a href=%2$s&gt;otworzyć mangę w przeglądarce internetowej&lt;/a&gt;, aby upewnić się, że jest dostępna w swoim źródle&lt;br&gt;2. Upewnij się, że używasz &lt;a href=kotatsu://about&gt;najnowszej wersji DropSauce&lt;/a&gt;&lt;br&gt;3. Jeśli jest dostępny, wyślij raport o błędzie do programistów.</string>
+    <string name="manga_error_description_pattern">Szczegóły błędu:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Spróbuj &lt;a href=%2$s&gt;otworzyć mangę w przeglądarce internetowej&lt;/a&gt;, aby upewnić się, że jest dostępna w swoim źródle&lt;br&gt;2. Upewnij się, że używasz &lt;a href=dropsauce://about&gt;najnowszej wersji DropSauce&lt;/a&gt;&lt;br&gt;3. Jeśli jest dostępny, wyślij raport o błędzie do programistów.</string>
     <string name="theme_name_mamimi">Mamimi</string>
     <string name="theme_name_kanade">Kanade</string>
     <string name="services">Usługi</string>
@@ -809,7 +809,7 @@
     <string name="no_write_permission_to_file">Nie ma uprawnień do zapisu pliku</string>
     <string name="simple">Prosty</string>
     <string name="manga_override_hint">Te zmiany wpłyną na sposób wyświetlania mangi w aplikacji</string>
-    <string name="open_telegram_bot_summary">Naciśnij, aby otworzyć czat z Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Naciśnij, aby otworzyć czat z DropSauce Backup Bot</string>
     <string name="pages_slider">Suwak przełączania stron</string>
     <string name="link_to_manga_on_s">Link do mangi na %s</string>
     <string name="disable_captcha_notifications_summary">Nie będziesz otrzymywać powiadomień o rozwiązaniu CAPTCHA dla tego źródła, ale może to prowadzić do przerwania operacji w tle (sprawdzanie nowych rozdziałów, uzyskiwanie rekomendacji itp.)</string>

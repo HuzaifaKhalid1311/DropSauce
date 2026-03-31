@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceViewHolder
 import androidx.preference.SwitchPreferenceCompat
-import org.koitharu.kotatsu.R
+import org.haziffe.dropsauce.R
 
 class SplitSwitchPreference @JvmOverloads constructor(
 	context: Context,

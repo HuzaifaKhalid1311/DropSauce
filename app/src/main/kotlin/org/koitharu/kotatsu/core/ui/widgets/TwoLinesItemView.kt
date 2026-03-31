@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -24,11 +24,11 @@ import androidx.core.widget.TextViewCompat
 import com.google.android.material.ripple.RippleUtils
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.getDrawableCompat
-import org.koitharu.kotatsu.core.util.ext.resolveDp
-import org.koitharu.kotatsu.core.util.ext.textAndVisible
-import org.koitharu.kotatsu.databinding.ViewTwoLinesItemBinding
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.getDrawableCompat
+import org.haziffe.dropsauce.core.util.ext.resolveDp
+import org.haziffe.dropsauce.core.util.ext.textAndVisible
+import org.haziffe.dropsauce.databinding.ViewTwoLinesItemBinding
 
 @SuppressLint("RestrictedApi")
 class TwoLinesItemView @JvmOverloads constructor(

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.main.ui
+package org.haziffe.dropsauce.main.ui
 
 import android.view.View
 import androidx.activity.OnBackPressedCallback
@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.observeAsFlow
+import org.haziffe.dropsauce.main.ui.owners.BottomNavOwner
 
 class ExitCallback(
 	private val activity: MainActivity,

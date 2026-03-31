@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.explore.ui
+package org.haziffe.dropsauce.explore.ui
 
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
-import org.koitharu.kotatsu.explore.ui.adapter.ExploreAdapter
-import org.koitharu.kotatsu.list.ui.adapter.ListItemType
+import org.haziffe.dropsauce.explore.ui.adapter.ExploreAdapter
+import org.haziffe.dropsauce.list.ui.adapter.ListItemType
 
 class ExploreGridSpanSizeLookup(
 	private val adapter: ExploreAdapter,

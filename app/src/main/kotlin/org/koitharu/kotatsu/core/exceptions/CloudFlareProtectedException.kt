@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.exceptions
+package org.haziffe.dropsauce.core.exceptions
 
 import okhttp3.Headers
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.haziffe.dropsauce.core.model.UnknownMangaSource
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.network.CloudFlareHelper
 
 class CloudFlareProtectedException(
 	override val url: String,

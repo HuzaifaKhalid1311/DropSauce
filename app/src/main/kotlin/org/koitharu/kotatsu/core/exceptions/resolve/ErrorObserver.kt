@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.exceptions.resolve
+package org.haziffe.dropsauce.core.exceptions.resolve
 
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -12,9 +12,9 @@ import androidx.lifecycle.coroutineScope
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.util.ext.findActivity
-import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.util.ext.findActivity
+import org.haziffe.dropsauce.core.util.ext.viewLifecycleScope
 
 abstract class ErrorObserver(
 	protected val host: View,

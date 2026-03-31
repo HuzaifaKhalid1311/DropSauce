@@ -1,12 +1,12 @@
-package org.koitharu.kotatsu.scrobbling.discord.ui
+package org.haziffe.dropsauce.scrobbling.discord.ui
 
 import android.os.Bundle
 import android.view.MenuItem
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.browser.BaseBrowserActivity
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.haziffe.dropsauce.browser.BaseBrowserActivity
+import org.haziffe.dropsauce.core.parser.ParserMangaRepository
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.parsers.model.MangaSource
 import javax.inject.Inject
 
 @AndroidEntryPoint

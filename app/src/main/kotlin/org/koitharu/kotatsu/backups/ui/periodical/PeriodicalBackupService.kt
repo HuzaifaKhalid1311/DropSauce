@@ -1,21 +1,21 @@
-package org.koitharu.kotatsu.backups.ui.periodical
+package org.haziffe.dropsauce.backups.ui.periodical
 
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.PendingIntentCompat
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.data.BackupRepository
-import org.koitharu.kotatsu.backups.domain.BackupUtils
-import org.koitharu.kotatsu.backups.domain.ExternalBackupStorage
-import org.koitharu.kotatsu.backups.ui.BaseBackupRestoreService
-import org.koitharu.kotatsu.core.ErrorReporterReceiver
-import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.CoroutineIntentService
-import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
-import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.backups.data.BackupRepository
+import org.haziffe.dropsauce.backups.domain.BackupUtils
+import org.haziffe.dropsauce.backups.domain.ExternalBackupStorage
+import org.haziffe.dropsauce.backups.ui.BaseBackupRestoreService
+import org.haziffe.dropsauce.core.ErrorReporterReceiver
+import org.haziffe.dropsauce.core.nav.AppRouter
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.ui.CoroutineIntentService
+import org.haziffe.dropsauce.core.util.ext.checkNotificationPermission
+import org.haziffe.dropsauce.core.util.ext.getDisplayMessage
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 

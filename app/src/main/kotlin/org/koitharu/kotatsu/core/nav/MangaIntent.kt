@@ -1,15 +1,15 @@
-package org.koitharu.kotatsu.core.nav
+package org.haziffe.dropsauce.core.nav
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.lifecycle.SavedStateHandle
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.core.nav.AppRouter.Companion.KEY_ID
-import org.koitharu.kotatsu.core.nav.AppRouter.Companion.KEY_MANGA
-import org.koitharu.kotatsu.core.util.ext.getParcelableCompat
-import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
-import org.koitharu.kotatsu.parsers.model.Manga
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.core.nav.AppRouter.Companion.KEY_ID
+import org.haziffe.dropsauce.core.nav.AppRouter.Companion.KEY_MANGA
+import org.haziffe.dropsauce.core.util.ext.getParcelableCompat
+import org.haziffe.dropsauce.core.util.ext.getParcelableExtraCompat
+import org.haziffe.dropsauce.parsers.model.Manga
 
 class MangaIntent private constructor(
 	@JvmField val manga: Manga?,

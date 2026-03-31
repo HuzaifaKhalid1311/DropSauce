@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.sync.data
+package org.haziffe.dropsauce.sync.data
 
 import android.accounts.Account
 import android.accounts.AccountManager
@@ -8,8 +8,8 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.network.CommonHeaders
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.network.CommonHeaders
 
 class SyncAuthenticator(
 	context: Context,

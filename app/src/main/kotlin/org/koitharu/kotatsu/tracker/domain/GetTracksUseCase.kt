@@ -1,6 +1,6 @@
-package org.koitharu.kotatsu.tracker.domain
+package org.haziffe.dropsauce.tracker.domain
 
-import org.koitharu.kotatsu.tracker.domain.model.MangaTracking
+import org.haziffe.dropsauce.tracker.domain.model.MangaTracking
 import javax.inject.Inject
 
 class GetTracksUseCase @Inject constructor(

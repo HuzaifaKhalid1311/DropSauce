@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.search.ui.suggestion.adapter
+package org.haziffe.dropsauce.search.ui.suggestion.adapter
 
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.core.model.getSummary
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.databinding.ItemSearchSuggestionSourceBinding
-import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionListener
-import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
+import org.haziffe.dropsauce.core.model.getSummary
+import org.haziffe.dropsauce.core.model.getTitle
+import org.haziffe.dropsauce.databinding.ItemSearchSuggestionSourceBinding
+import org.haziffe.dropsauce.search.ui.suggestion.SearchSuggestionListener
+import org.haziffe.dropsauce.search.ui.suggestion.model.SearchSuggestionItem
 
 fun searchSuggestionSourceAD(
 	listener: SearchSuggestionListener,

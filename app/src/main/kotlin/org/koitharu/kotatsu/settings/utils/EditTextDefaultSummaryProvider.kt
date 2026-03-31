@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.settings.utils
+package org.haziffe.dropsauce.settings.utils
 
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
 
 class EditTextDefaultSummaryProvider(
 	private val defaultValue: String,

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.reader.domain
+package org.haziffe.dropsauce.reader.domain
 
 enum class TapGridArea {
 

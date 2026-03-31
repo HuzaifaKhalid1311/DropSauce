@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.scrobbling.shikimori.data
+package org.haziffe.dropsauce.scrobbling.shikimori.data
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -7,23 +7,23 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.util.ext.toRequestBody
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.parseJsonArray
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerRepository
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
-import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
-import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.db.MangaDatabase
+import org.haziffe.dropsauce.core.util.ext.toRequestBody
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.parsers.util.json.getStringOrNull
+import org.haziffe.dropsauce.parsers.util.json.mapJSON
+import org.haziffe.dropsauce.parsers.util.parseJson
+import org.haziffe.dropsauce.parsers.util.parseJsonArray
+import org.haziffe.dropsauce.parsers.util.toAbsoluteUrl
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerRepository
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblerStorage
+import org.haziffe.dropsauce.scrobbling.common.data.ScrobblingEntity
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerManga
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerService
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerType
+import org.haziffe.dropsauce.scrobbling.common.domain.model.ScrobblerUser
 import javax.inject.Inject
 import javax.inject.Singleton
 

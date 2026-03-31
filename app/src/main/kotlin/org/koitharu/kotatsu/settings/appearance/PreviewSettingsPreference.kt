@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.appearance
+package org.haziffe.dropsauce.settings.appearance
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -16,10 +16,10 @@ import androidx.core.graphics.ColorUtils
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import androidx.transition.TransitionManager
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.prefs.DetailsUiMode
-import org.koitharu.kotatsu.details.ui.BackdropController.Companion.blurRadius
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.prefs.AppSettings
+import org.haziffe.dropsauce.core.prefs.DetailsUiMode
+import org.haziffe.dropsauce.details.ui.BackdropController.Companion.blurRadius
 
 class PreviewSettingsPreference @JvmOverloads constructor(
 	context: Context,

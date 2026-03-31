@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.details.ui.model
+package org.haziffe.dropsauce.details.ui.model
 
 import android.content.res.Resources
 import android.text.format.DateUtils
 import org.jsoup.internal.StringUtil.StringJoiner
-import org.koitharu.kotatsu.core.model.getLocalizedTitle
-import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.haziffe.dropsauce.core.model.getLocalizedTitle
+import org.haziffe.dropsauce.list.ui.model.ListModel
+import org.haziffe.dropsauce.parsers.model.MangaChapter
 import kotlin.experimental.and
 
 data class ChapterListItem(

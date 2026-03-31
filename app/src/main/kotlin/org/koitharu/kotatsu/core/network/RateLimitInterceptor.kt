@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
-import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
+import org.haziffe.dropsauce.parsers.exception.TooManyRequestExceptions
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit

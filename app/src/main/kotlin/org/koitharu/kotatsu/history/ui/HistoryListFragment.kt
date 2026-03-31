@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.history.ui
+package org.haziffe.dropsauce.history.ui
 
 import android.os.Bundle
 import android.view.Menu
@@ -7,17 +7,17 @@ import android.view.MenuItem
 import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.list.ListSelectionController
-import org.koitharu.kotatsu.core.ui.list.RecyclerScrollKeeper
-import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
-import org.koitharu.kotatsu.core.util.ext.addMenuProvider
-import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.databinding.FragmentListBinding
-import org.koitharu.kotatsu.list.ui.MangaListFragment
-import org.koitharu.kotatsu.list.ui.size.DynamicItemSizeResolver
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.nav.router
+import org.haziffe.dropsauce.core.ui.dialog.buildAlertDialog
+import org.haziffe.dropsauce.core.ui.list.ListSelectionController
+import org.haziffe.dropsauce.core.ui.list.RecyclerScrollKeeper
+import org.haziffe.dropsauce.core.ui.util.MenuInvalidator
+import org.haziffe.dropsauce.core.util.ext.addMenuProvider
+import org.haziffe.dropsauce.core.util.ext.observe
+import org.haziffe.dropsauce.databinding.FragmentListBinding
+import org.haziffe.dropsauce.list.ui.MangaListFragment
+import org.haziffe.dropsauce.list.ui.size.DynamicItemSizeResolver
 
 @AndroidEntryPoint
 class HistoryListFragment : MangaListFragment() {

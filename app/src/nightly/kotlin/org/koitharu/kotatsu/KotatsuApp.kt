@@ -1,5 +1,5 @@
-package org.koitharu.kotatsu
+package org.haziffe.dropsauce
 
-import org.koitharu.kotatsu.core.BaseApp
+import org.haziffe.dropsauce.core.BaseApp
 
-class KotatsuApp : BaseApp()
+class DropSauceApp : BaseApp()

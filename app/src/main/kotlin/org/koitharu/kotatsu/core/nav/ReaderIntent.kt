@@ -1,13 +1,13 @@
-package org.koitharu.kotatsu.core.nav
+package org.haziffe.dropsauce.core.nav
 
 import android.content.Context
 import android.content.Intent
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.bookmarks.domain.Bookmark
-import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.reader.ui.ReaderActivity
-import org.koitharu.kotatsu.reader.ui.ReaderState
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.bookmarks.domain.Bookmark
+import org.haziffe.dropsauce.core.model.parcelable.ParcelableManga
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.reader.ui.ReaderActivity
+import org.haziffe.dropsauce.reader.ui.ReaderState
 
 @JvmInline
 value class ReaderIntent private constructor(

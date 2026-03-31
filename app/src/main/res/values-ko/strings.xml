@@ -335,5 +335,5 @@
     <string name="contrast">차이</string>
     <string name="reset">초기화</string>
     <string name="text_unsaved_changes_prompt">저장되지 않은 변경 사항을 저장하거나 삭제하시겠습니까\?</string>
-    <string name="manga_error_description_pattern">오류 세부정보:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. &lt;a href=%2$s&gt;웹 브라우저에서 만화를 열어&lt;/a&gt; 소스에서 사용할 수 있는지 확인하세요&lt;br&gt;2. &lt;a href=kotatsu://about&gt;최신 버전의 DropSauce&lt;/a&gt;&lt;br&gt;를 사용하고 있는지 확인하세요.3. 사용 가능한 경우 개발자에게 오류 보고서를 보냅니다.</string>
+    <string name="manga_error_description_pattern">오류 세부정보:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. &lt;a href=%2$s&gt;웹 브라우저에서 만화를 열어&lt;/a&gt; 소스에서 사용할 수 있는지 확인하세요&lt;br&gt;2. &lt;a href=dropsauce://about&gt;최신 버전의 DropSauce&lt;/a&gt;&lt;br&gt;를 사용하고 있는지 확인하세요.3. 사용 가능한 경우 개발자에게 오류 보고서를 보냅니다.</string>
 </resources>

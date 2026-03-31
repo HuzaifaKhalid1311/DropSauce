@@ -1,8 +1,8 @@
-package org.koitharu.kotatsu.settings.nav.model
+package org.haziffe.dropsauce.settings.nav.model
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.core.prefs.NavItem
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.core.prefs.NavItem
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 data class NavItemConfigModel(
 	val item: NavItem,

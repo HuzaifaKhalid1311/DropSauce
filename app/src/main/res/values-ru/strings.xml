@@ -312,7 +312,7 @@
     <string name="import_completed">Импорт завершён</string>
     <string name="import_will_start_soon">Импорт скоро начнётся</string>
     <string name="feed">Лента</string>
-    <string name="manga_error_description_pattern">Сведения об ошибке:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Попробуйте &lt;a href=%2$s&gt;открыть мангу в веб-браузере&lt;/a&gt;, чтобы убедиться, что она доступна в источнике&lt;br&gt;2. Убедитесь, что вы используете &lt;a href=kotatsu://about&gt;последнюю версию DropSauce&lt;/a&gt;&lt;br&gt;3. Если возможно, отправьте отчёт об ошибке разработчикам.</string>
+    <string name="manga_error_description_pattern">Сведения об ошибке:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Попробуйте &lt;a href=%2$s&gt;открыть мангу в веб-браузере&lt;/a&gt;, чтобы убедиться, что она доступна в источнике&lt;br&gt;2. Убедитесь, что вы используете &lt;a href=dropsauce://about&gt;последнюю версию DropSauce&lt;/a&gt;&lt;br&gt;3. Если возможно, отправьте отчёт об ошибке разработчикам.</string>
     <string name="history_shortcuts">Показывать ярлыки последней прочитанной манги</string>
     <string name="history_shortcuts_summary">Сделать недавно прочитанную мангу доступной по долгому нажатию на иконку приложения</string>
     <string name="reader_control_ltr_summary">Не настраивайте направление переключения страниц в режим чтения, например, нажатие правой клавиши всегда переключает на следующую страницу. Эта опция влияет только на аппаратные устройства ввода</string>
@@ -764,7 +764,7 @@
     <string name="test_connection">Тестовое соединение</string>
     <string name="send_backups_telegram">Отправлять резервные копии в Telegram</string>
     <string name="telegram_chat_id_summary">Введите ID чата, куда следует отправлять резервные копии</string>
-    <string name="open_telegram_bot_summary">Нажмите, чтобы открыть чат с Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Нажмите, чтобы открыть чат с DropSauce Backup Bot</string>
     <string name="handle_links">Обработка ссылок</string>
     <string name="enable_all_sources_summary">Все доступные источники манги будут включены навсегда</string>
     <string name="translation">Перевод</string>

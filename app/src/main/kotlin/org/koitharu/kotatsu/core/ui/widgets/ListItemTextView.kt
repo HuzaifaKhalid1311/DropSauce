@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.ui.widgets
+package org.haziffe.dropsauce.core.ui.widgets
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -18,8 +18,8 @@ import androidx.core.content.withStyledAttributes
 import com.google.android.material.ripple.RippleUtils
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.util.ext.resolveDp
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.core.util.ext.resolveDp
 
 @SuppressLint("RestrictedApi")
 class ListItemTextView @JvmOverloads constructor(

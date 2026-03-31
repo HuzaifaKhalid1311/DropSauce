@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<style name="Base.V27.Kotatsu" parent="Base.Theme.Kotatsu">
+	<style name="Base.V27.DropSauce" parent="Base.Theme.DropSauce">
 		<item name="android:windowLightNavigationBar">@bool/light_navigation_bar</item>
 		<item name="android:navigationBarColor">@android:color/transparent</item>
 	</style>
 
-	<style name="Theme.Kotatsu" parent="Base.V27.Kotatsu" />
+	<style name="Theme.DropSauce" parent="Base.V27.DropSauce" />
 
 </resources>

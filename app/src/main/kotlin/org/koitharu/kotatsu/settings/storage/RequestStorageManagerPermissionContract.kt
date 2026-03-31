@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.settings.storage
+package org.haziffe.dropsauce.settings.storage
 
 import android.content.Context
 import android.content.Intent

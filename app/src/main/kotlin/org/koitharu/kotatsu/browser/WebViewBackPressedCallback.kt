@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.browser
+package org.haziffe.dropsauce.browser
 
 import android.webkit.WebView
 import androidx.activity.OnBackPressedCallback

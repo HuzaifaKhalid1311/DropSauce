@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.extensions.runtime
+package org.haziffe.dropsauce.extensions.runtime
 
 import android.content.BroadcastReceiver
 import android.content.Context

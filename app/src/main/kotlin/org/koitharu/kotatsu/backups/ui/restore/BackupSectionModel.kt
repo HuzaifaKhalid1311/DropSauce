@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.backups.ui.restore
+package org.haziffe.dropsauce.backups.ui.restore
 
 import androidx.annotation.StringRes
-import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.domain.BackupSection
-import org.koitharu.kotatsu.list.ui.ListModelDiffCallback
-import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.haziffe.dropsauce.R
+import org.haziffe.dropsauce.backups.domain.BackupSection
+import org.haziffe.dropsauce.list.ui.ListModelDiffCallback
+import org.haziffe.dropsauce.list.ui.model.ListModel
 
 data class BackupSectionModel(
 	val section: BackupSection,

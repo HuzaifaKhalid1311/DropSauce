@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -6,8 +6,8 @@ import android.content.res.AssetManager
 import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.tls.HandshakeCertificates
-import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.haziffe.dropsauce.BuildConfig
+import org.haziffe.dropsauce.core.util.ext.printStackTraceDebug
 import java.security.SecureRandom
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate

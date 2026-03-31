@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.core.network
+package org.haziffe.dropsauce.core.network
 
 import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import okio.Buffer
-import org.koitharu.kotatsu.core.network.CommonHeaders.ACCEPT_ENCODING
+import org.haziffe.dropsauce.core.network.CommonHeaders.ACCEPT_ENCODING
 
 class CurlLoggingInterceptor(
 	private val curlOptions: String? = null

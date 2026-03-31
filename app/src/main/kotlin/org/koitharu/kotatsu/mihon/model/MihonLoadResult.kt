@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.mihon.model
+package org.haziffe.dropsauce.mihon.model
 
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source

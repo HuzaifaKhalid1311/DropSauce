@@ -1,16 +1,16 @@
-package org.koitharu.kotatsu.sync.data
+package org.haziffe.dropsauce.sync.data
 
 import dagger.Reusable
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
-import org.koitharu.kotatsu.core.exceptions.SyncApiException
-import org.koitharu.kotatsu.core.network.BaseHttpClient
-import org.koitharu.kotatsu.core.util.ext.toRequestBody
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.parseRaw
-import org.koitharu.kotatsu.parsers.util.removeSurrounding
+import org.haziffe.dropsauce.core.exceptions.SyncApiException
+import org.haziffe.dropsauce.core.network.BaseHttpClient
+import org.haziffe.dropsauce.core.util.ext.toRequestBody
+import org.haziffe.dropsauce.parsers.util.await
+import org.haziffe.dropsauce.parsers.util.parseJson
+import org.haziffe.dropsauce.parsers.util.parseRaw
+import org.haziffe.dropsauce.parsers.util.removeSurrounding
 import javax.inject.Inject
 
 @Reusable

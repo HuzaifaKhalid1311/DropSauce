@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu
+package org.haziffe.dropsauce
 
 import android.app.Notification
 import android.app.Notification.BigTextStyle
@@ -14,7 +14,7 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.strictmode.FragmentStrictMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
-import org.koitharu.kotatsu.core.util.ShareHelper
+import org.haziffe.dropsauce.core.util.ShareHelper
 import kotlin.math.absoluteValue
 import androidx.fragment.app.strictmode.Violation as FragmentViolation
 

@@ -1,11 +1,11 @@
-package org.koitharu.kotatsu.favourites.data
+package org.haziffe.dropsauce.favourites.data
 
 import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
-import org.koitharu.kotatsu.core.db.entity.MangaEntity
-import org.koitharu.kotatsu.core.db.entity.MangaTagsEntity
-import org.koitharu.kotatsu.core.db.entity.TagEntity
+import org.haziffe.dropsauce.core.db.entity.MangaEntity
+import org.haziffe.dropsauce.core.db.entity.MangaTagsEntity
+import org.haziffe.dropsauce.core.db.entity.TagEntity
 
 class FavouriteManga(
 	@Embedded val favourite: FavouriteEntity,

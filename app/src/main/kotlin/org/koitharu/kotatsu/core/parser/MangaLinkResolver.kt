@@ -1,21 +1,21 @@
-package org.koitharu.kotatsu.core.parser
+package org.haziffe.dropsauce.core.parser
 
 import android.net.Uri
 import coil3.request.CachePolicy
 import dagger.Reusable
-import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.UnknownMangaSource
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.util.ext.isHttpUrl
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.exception.NotFoundException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.almostEquals
-import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
-import org.koitharu.kotatsu.parsers.util.levenshteinDistance
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import org.haziffe.dropsauce.core.model.MangaSource
+import org.haziffe.dropsauce.core.model.UnknownMangaSource
+import org.haziffe.dropsauce.core.model.isNsfw
+import org.haziffe.dropsauce.core.util.ext.isHttpUrl
+import org.haziffe.dropsauce.parsers.MangaLoaderContext
+import org.haziffe.dropsauce.parsers.exception.NotFoundException
+import org.haziffe.dropsauce.parsers.model.Manga
+import org.haziffe.dropsauce.parsers.model.MangaListFilter
+import org.haziffe.dropsauce.parsers.model.MangaSource
+import org.haziffe.dropsauce.parsers.util.almostEquals
+import org.haziffe.dropsauce.parsers.util.ifNullOrEmpty
+import org.haziffe.dropsauce.parsers.util.levenshteinDistance
+import org.haziffe.dropsauce.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 
 @Reusable
@@ -118,7 +118,9 @@ class MangaLinkResolver @Inject constructor(
 	companion object {
 
 		fun isValidLink(str: String): Boolean {
-			return str.isHttpUrl() || str.startsWith("kotatsu://", ignoreCase = true)
+			return str.isHttpUrl() ||
+				str.startsWith("dropsauce://", ignoreCase = true) ||
+				str.startsWith("kotatsu://", ignoreCase = true)
 		}
 	}
 }

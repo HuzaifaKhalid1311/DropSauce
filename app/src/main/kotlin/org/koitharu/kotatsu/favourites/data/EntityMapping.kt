@@ -1,9 +1,9 @@
-package org.koitharu.kotatsu.favourites.data
+package org.haziffe.dropsauce.favourites.data
 
-import org.koitharu.kotatsu.core.db.entity.toManga
-import org.koitharu.kotatsu.core.db.entity.toMangaTags
-import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.list.domain.ListSortOrder
+import org.haziffe.dropsauce.core.db.entity.toManga
+import org.haziffe.dropsauce.core.db.entity.toMangaTags
+import org.haziffe.dropsauce.core.model.FavouriteCategory
+import org.haziffe.dropsauce.list.domain.ListSortOrder
 import java.time.Instant
 
 fun FavouriteCategoryEntity.toFavouriteCategory(id: Long = categoryId.toLong()) = FavouriteCategory(
