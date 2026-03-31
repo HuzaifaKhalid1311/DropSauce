@@ -86,7 +86,8 @@ jobs:
         DOWNLOAD_NOTES=""
         for apk in "${APK_FILES[@]}"; do
           filename=$(basename "$apk")
-          target="release/DropSauce-${{ env.TAG_NAME }}-release.apk"
+          # Updated file name format: DropSauce-release-v1.0.0.apk
+          target="release/DropSauce-release-${{ env.TAG_NAME }}.apk"
           cp "$apk" "$target"
           DOWNLOAD_NOTES="- \`$(basename "$target")\`"
         done
@@ -99,6 +100,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.TAG_NAME }}
+        name: Dropsauce ${{ env.TAG_NAME }}  # Updated Release Title
         files: |
           release/*.apk
         body: |
