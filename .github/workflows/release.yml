@@ -94,6 +94,33 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Validate Room @Query imports
+        run: |
+          set -euo pipefail
+
+          BAD=0
+          QUERY_FILES="$(rg -l '@Query\(' app/src/main/kotlin || true)"
+
+          if [ -z "$QUERY_FILES" ]; then
+            echo "No @Query usages found."
+            exit 0
+          fi
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if ! rg -q '^import androidx\.room\.Query$' "$file"; then
+              echo "::error file=$file::Found @Query usage without importing androidx.room.Query"
+              BAD=1
+            fi
+          done <<< "$QUERY_FILES"
+
+          if [ "$BAD" -ne 0 ]; then
+            echo "Room annotation validation failed."
+            exit 1
+          fi
+
+          echo "Room annotation validation passed."
+
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -107,6 +134,14 @@ jobs:
               -storepass password -keypass password \
               -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
           fi
+
+      - name: KSP Release diagnostics
+        run: |
+          ./gradlew :app:kspReleaseKotlin --no-daemon --stacktrace --info \
+            -PRELEASE_STORE_FILE=../release.keystore \
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
 
       - name: Build Release APK
         run: |
