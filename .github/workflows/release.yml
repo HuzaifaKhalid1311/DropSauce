@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  workflows: write
 
 jobs:
   build-and-release:
@@ -42,22 +41,6 @@ jobs:
 
           sed -i "s/versionCode = ${CURRENT_CODE}/versionCode = ${NEW_CODE}/" app/build.gradle
           sed -i "s/versionName = '.*'/versionName = '${VERSION}'/" app/build.gradle
-
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          version = "${VERSION}"
-          wf = Path(".github/workflows/release.yml")
-          text = wf.read_text(encoding="utf-8")
-          text = re.sub(
-              r"(description:\s*'New version name \(current:\s*).*(\)')",
-              rf"\1{version}\2",
-              text,
-              count=1,
-          )
-          wf.write_text(text, encoding="utf-8")
-          PY
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
