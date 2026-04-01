@@ -67,17 +67,34 @@ jobs:
         sed -i -E "s/versionCode = [0-9]+/versionCode = ${NEXT_CODE}/" "$BUILD_GRADLE"
 
     - name: Commit version updates
+      id: version_commit
       run: |
+        BRANCH_NAME="${{ github.ref_name }}"
+
         if git diff --quiet -- app/build.gradle; then
           echo "No version changes to commit"
+          echo "commit_sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
           exit 0
         fi
+
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git pull --rebase origin "${{ github.ref_name }}"
         git add app/build.gradle
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
-        git push origin "HEAD:${{ github.ref_name }}"
+
+        for attempt in 1 2 3; do
+          git pull --rebase origin "$BRANCH_NAME"
+          if git push origin "HEAD:$BRANCH_NAME"; then
+            break
+          fi
+          if [ "$attempt" -eq 3 ]; then
+            echo "Failed to push version commit after 3 attempts"
+            exit 1
+          fi
+          sleep 2
+        done
+
+        echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
     - name: Find previous successful release workflow run
       id: previous_success
@@ -96,7 +113,7 @@ jobs:
             per_page: 100,
           });
 
-          const previous = runs.find((run) => run.conclusion === "success");
+          const previous = runs.find((run) => run.conclusion === "success" && run.id !== context.runId);
           core.setOutput("sha", previous ? previous.head_sha : "");
 
     - name: Generate Changelog
@@ -146,7 +163,7 @@ jobs:
       with:
         tag_name: v${{ inputs.version_name }}
         name: v${{ inputs.version_name }}
-        target_commitish: ${{ github.ref_name }}
+        target_commitish: ${{ steps.version_commit.outputs.commit_sha }}
         files: |
           release/*.apk
         body: |
