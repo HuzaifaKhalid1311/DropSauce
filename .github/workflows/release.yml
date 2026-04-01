@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: 'New version name (for app/build.gradle and release tag)'
+        description: 'New version name (e.g. 1.2.3) — release tag will be created as v<version>'
         required: true
         type: string
 
@@ -19,6 +19,27 @@ jobs:
       contents: write
 
     steps:
+    - name: Validate version_name input
+      run: |
+        VERSION_NAME="${{ inputs.version_name }}"
+
+        # Reject branch-like names that must never be used as tags
+        RESERVED_NAMES="main master develop dev release"
+        for reserved in $RESERVED_NAMES; do
+          if [ "$VERSION_NAME" = "$reserved" ]; then
+            echo "::error::version_name '${VERSION_NAME}' is a reserved branch name and cannot be used as a version/tag."
+            exit 1
+          fi
+        done
+
+        # Require the version to match a semver-like pattern (no leading 'v'; release tag will be v<version>)
+        if ! echo "$VERSION_NAME" | grep -qE '^[0-9]+(\.[0-9]+)*(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'; then
+          echo "::error::version_name '${VERSION_NAME}' is invalid. Use a semver-like format such as '1.2.3' or '1.2.3-beta.1'. The release tag will be created as v${VERSION_NAME}."
+          exit 1
+        fi
+
+        echo "version_name '${VERSION_NAME}' is valid. Release tag will be: v${VERSION_NAME}"
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -82,15 +103,16 @@ jobs:
         git add app/build.gradle
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
 
+        # Use refs/heads/ explicitly to avoid ambiguity with any tag that shares the branch name
         for attempt in 1 2 3; do
-          if git push origin "HEAD:$BRANCH_NAME"; then
+          if git push origin "HEAD:refs/heads/$BRANCH_NAME"; then
             break
           fi
           if [ "$attempt" -eq 3 ]; then
             echo "Failed to push version commit after 3 attempts"
             exit 1
           fi
-          git pull --rebase origin "$BRANCH_NAME"
+          git pull --rebase origin "refs/heads/$BRANCH_NAME"
           sleep 2
         done
 
