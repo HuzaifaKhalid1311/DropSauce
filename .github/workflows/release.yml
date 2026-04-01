@@ -83,7 +83,6 @@ jobs:
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
 
         for attempt in 1 2 3; do
-          git pull --rebase origin "$BRANCH_NAME"
           if git push origin "HEAD:$BRANCH_NAME"; then
             break
           fi
@@ -91,6 +90,7 @@ jobs:
             echo "Failed to push version commit after 3 attempts"
             exit 1
           fi
+          git pull --rebase origin "$BRANCH_NAME"
           sleep 2
         done
 
@@ -120,7 +120,7 @@ jobs:
       id: changelog
       run: |
         PREVIOUS_SUCCESS_SHA="${{ steps.previous_success.outputs.sha }}"
-        CURRENT_SHA="${{ github.sha }}"
+        CURRENT_SHA="${{ steps.version_commit.outputs.commit_sha }}"
 
         if [ -z "$PREVIOUS_SUCCESS_SHA" ]; then
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
