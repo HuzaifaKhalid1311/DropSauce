@@ -148,16 +148,15 @@ jobs:
         fi
 
         DOWNLOAD_NOTES=""
-        for i in "${!APK_FILES[@]}"; do
-          apk="${APK_FILES[$i]}"
+        for apk in "${APK_FILES[@]}"; do
           if [ ${#APK_FILES[@]} -eq 1 ]; then
             target="release/DropSauce-v${{ inputs.version_name }}.apk"
           else
-            filename=$(basename "$apk" .apk)
-            target="release/DropSauce-v${{ inputs.version_name }}-${filename}.apk"
+            base_name=$(basename "$apk" .apk)
+            target="release/DropSauce-v${{ inputs.version_name }}-${base_name}.apk"
           fi
           cp "$apk" "$target"
-          DOWNLOAD_NOTES="${DOWNLOAD_NOTES}- \`$(basename "$target")\`"$'\n'
+          printf -v DOWNLOAD_NOTES '%s- `%s`\n' "$DOWNLOAD_NOTES" "$(basename "$target")"
         done
 
         echo "download_notes<<EOF" >> "$GITHUB_OUTPUT"
