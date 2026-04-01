@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.core
 
 import android.app.Application
 import android.content.Context
-import android.os.Build
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.hilt.work.HiltWorkerFactory
@@ -14,13 +13,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import okhttp3.internal.platform.PlatformRegistry
 import org.acra.ACRA
-import org.acra.ReportField
 import org.acra.config.dialog
-import org.acra.config.httpSender
 import org.acra.data.StringFormat
 import org.acra.ktx.initAcra
-import org.acra.sender.HttpSender
-import org.conscrypt.Conscrypt
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.MangaDatabase
@@ -33,7 +28,6 @@ import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.settings.work.WorkScheduleManager
-import java.security.Security
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -80,10 +74,7 @@ open class BaseApp : Application(), Configuration.Provider {
 			return
 		}
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
-		// TLS 1.3 support for Android < 10
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-			Security.insertProviderAt(Conscrypt.newProvider(), 1)
-		}
+		// Keep default platform security provider.
 		setupActivityLifecycleCallbacks()
 		processLifecycleScope.launch {
 			ACRA.errorReporter.putCustomData("isOriginalApp", appValidator.isOriginalApp.getOrNull().toString())

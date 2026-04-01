@@ -27,12 +27,10 @@ import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.util.DefaultTextWatcher
-import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.ActivityProtectBinding
 import com.google.android.material.R as materialR
 
@@ -83,7 +81,7 @@ class ProtectActivity :
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
-		val barsInsets = insets.systemBarsInsets
+		val barsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 		val basePadding = resources.getDimensionPixelOffset(R.dimen.screen_padding)
 		viewBinding.root.setPadding(
 			barsInsets.left + basePadding,
@@ -91,7 +89,7 @@ class ProtectActivity :
 			barsInsets.right + basePadding,
 			barsInsets.bottom + basePadding,
 		)
-		return insets.consumeAllSystemBarsInsets()
+		return WindowInsetsCompat.CONSUMED
 	}
 
 	override fun onClick(v: View) {
@@ -139,13 +137,12 @@ class ProtectActivity :
 			return false
 		}
 		val request = AuthenticationRequest.biometricRequest(
-			title = getString(R.string.app_name),
-			authFallback = Biometric.Fallback.NegativeButton(getString(android.R.string.cancel)),
-			init = {
+			getString(R.string.app_name),
+			Biometric.Fallback.DeviceCredential,
+		) {
 				setMinStrength(Biometric.Strength.Class2)
 				setIsConfirmationRequired(false)
-			},
-		)
+			}
 		biometricPrompt.launch(request)
 		return true
 	}

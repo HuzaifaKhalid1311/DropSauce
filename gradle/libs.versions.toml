@@ -1,57 +1,55 @@
 [versions]
 acra = "5.13.1"
-activity = "1.11.0"
+activity = "1.13.0"
 adapterdelegates = "4.3.2"
 appcompat = "1.7.1"
 avifDecoder = "1.1.1.14d8e3c4"
-biometric = "1.4.0-alpha04"
-coil = "3.3.0"
-collections = "1.5.0"
-# https://github.com/google/conscrypt/issues/1268
-#noinspection NewerVersionAvailable,GradleDependency - 2.5.3 cause crashes
-conscrypt = "2.5.2"
+biometric = "1.4.0-alpha06"
+coil = "3.4.0"
+collections = "1.6.0"
 constraintlayout = "2.2.1"
-coreKtx = "1.17.0"
+coreKtx = "1.18.0"
 coroutines = "1.10.2"
+#noinspection NewerVersionAvailable - Hilt 2.59.2 requires AGP 9+, project is pinned to AGP 8.13.2
 dagger = "2.57.2"
-decoroutinator = "2.5.7"
 desugar = "2.1.5"
 diskLruCache = "1.5"
 documentfile = "1.1.0"
 fragment = "1.8.9"
-gradle = "8.13.0"
-guava = "33.4.8-android"
+gradle = "8.13.2"
+guava = "33.5.0-android"
 hilt = "1.3.0"
-json = "20250517"
+json = "20251224"
 junit = "4.13.2"
 junitKtx = "1.3.0"
-kotlin = "2.2.10"
+kotlinPlugin = "2.3.20"
+kotlinStdlib = "2.3.20"
 kizzyRpc = "ad8f2e32eb"
-ksp = "2.2.10-2.0.2"
+ksp = "2.3.6"
 leakcanary = "3.0-alpha-8"
-lifecycle = "2.9.4"
+lifecycle = "2.10.0"
 markwon = "4.6.2"
-material = "1.14.0-alpha05"
+material = "1.14.0-alpha10"
 moshi = "1.15.2"
-okhttp = "5.2.1"
-okio = "3.16.1"
+okhttp = "5.3.2"
+okio = "3.17.0"
 parsers = "21d4b79b5f"
 preference = "1.2.1"
 recyclerview = "1.4.0"
-room = "2.7.2"
+room = "2.8.4"
 rxjava = "1.3.8"
-serialization = "1.9.0"
+serialization = "1.10.0"
 injekt = "1.16.1"
 ssiv = "376930523c"
-swiperefreshlayout = "1.1.0"
+swiperefreshlayout = "1.2.0"
 testRules = "1.7.0"
 testRunner = "1.7.0"
-transition = "1.6.0"
+transition = "1.7.0"
 viewpager2 = "1.1.0"
-webkit = "1.14.0"
-workRuntime = "2.10.5"
+webkit = "1.15.0"
+workRuntime = "2.11.2"
 workinspector = "1.2"
-window = "1.3.0"
+window = "1.5.1"
 
 [libraries]
 acra-dialog = { module = "ch.acra:acra-dialog", version.ref = "acra" }
@@ -89,7 +87,6 @@ coil-core = { module = "io.coil-kt.coil3:coil-core", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
-conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscrypt" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 disk-lru-cache = { module = "com.github.solkin:disk-lru-cache", version.ref = "diskLruCache" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -100,7 +97,7 @@ hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dag
 json = { module = "org.json:json", version.ref = "json" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kizzyrpc = { module = "com.github.dead8309:KizzyRPC", version.ref = "kizzyRpc" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -126,8 +123,7 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlinx-serizliation = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinPlugin" }
+kotlinx-serizliation = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
-decoroutinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decoroutinator" }
