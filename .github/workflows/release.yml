@@ -8,6 +8,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: release-workflow
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -81,7 +85,6 @@ jobs:
         script: |
           const owner = context.repo.owner;
           const repo = context.repo.repo;
-          const currentRunId = context.runId;
           const workflowId = "release.yml";
 
           const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
@@ -92,7 +95,7 @@ jobs:
             per_page: 100,
           });
 
-          const previous = runs.find((run) => run.conclusion === "success" && run.id !== currentRunId);
+          const previous = runs.find((run) => run.conclusion === "success");
           core.setOutput("sha", previous ? previous.head_sha : "");
 
     - name: Generate Changelog
@@ -102,7 +105,7 @@ jobs:
         CURRENT_SHA="${{ github.sha }}"
 
         if [ -z "$PREVIOUS_SUCCESS_SHA" ]; then
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$CURRENT_SHA" --no-merges -n 50)
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$CURRENT_SHA" --no-merges)
         else
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_SUCCESS_SHA..$CURRENT_SHA" --no-merges)
         fi
