@@ -90,7 +90,7 @@ class ImportService : CoroutineIntentService() {
 			.setSilent(true)
 			.setOngoing(true)
 			.setProgress(0, 0, true)
-			.setSmallIcon(android.R.drawable.stat_sys_download)
+			.setSmallIcon(R.drawable.general_notification)
 			.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
 			.setCategory(NotificationCompat.CATEGORY_PROGRESS)
 			.build()
@@ -132,13 +132,13 @@ class ImportService : CoroutineIntentService() {
 			)
 			notification.setContentTitle(applicationContext.getString(R.string.import_completed))
 				.setContentText(applicationContext.getString(R.string.import_completed_hint))
-				.setSmallIcon(R.drawable.ic_stat_done)
+				.setSmallIcon(R.drawable.general_notification)
 			NotificationCompat.BigTextStyle(notification)
 				.bigText(applicationContext.getString(R.string.import_completed_hint))
 		}.onFailure { error ->
 			notification.setContentTitle(applicationContext.getString(R.string.error_occurred))
 				.setContentText(error.getDisplayMessage(applicationContext.resources))
-				.setSmallIcon(android.R.drawable.stat_notify_error)
+				.setSmallIcon(R.drawable.general_notification)
 			ErrorReporterReceiver.getNotificationAction(
 				context = applicationContext,
 				e = error,

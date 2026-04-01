@@ -248,7 +248,7 @@ class TrackWorker @AssistedInject constructor(
 			workManager.createCancelPendingIntent(id),
 		)
 		setProgress(max, progress, max == 0)
-		setSmallIcon(android.R.drawable.stat_notify_sync)
+		setSmallIcon(R.drawable.general_notification)
 		setForegroundServiceBehavior(
 			if (TAG_ONESHOT in tags) {
 				NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE

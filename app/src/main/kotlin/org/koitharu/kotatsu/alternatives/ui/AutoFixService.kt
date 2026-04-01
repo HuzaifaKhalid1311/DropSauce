@@ -93,7 +93,7 @@ class AutoFixService : CoroutineIntentService() {
 			.setSilent(true)
 			.setOngoing(true)
 			.setProgress(0, 0, true)
-			.setSmallIcon(R.drawable.ic_stat_auto_fix)
+			.setSmallIcon(R.drawable.general_notification)
 			.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
 			.setCategory(NotificationCompat.CATEGORY_PROGRESS)
 			.addAction(
@@ -154,12 +154,12 @@ class AutoFixService : CoroutineIntentService() {
 							replacement.source.getTitle(this),
 						),
 					)
-					.setSmallIcon(R.drawable.ic_stat_done)
+					.setSmallIcon(R.drawable.general_notification)
 			} else {
 				notification
 					.setContentTitle(getString(R.string.fixing_manga))
 					.setContentText(getString(R.string.no_fix_required, seed.title))
-					.setSmallIcon(android.R.drawable.stat_sys_warning)
+					.setSmallIcon(R.drawable.general_notification)
 			}
 		}.onFailure { error ->
 			notification
@@ -170,7 +170,7 @@ class AutoFixService : CoroutineIntentService() {
 					} else {
 						error.getDisplayMessage(resources)
 					},
-				).setSmallIcon(android.R.drawable.stat_notify_error)
+				).setSmallIcon(R.drawable.general_notification)
 			ErrorReporterReceiver.getNotificationAction(
 				context = this,
 				e = error,

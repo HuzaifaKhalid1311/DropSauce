@@ -74,7 +74,7 @@ class TrackerNotificationHelper @Inject constructor(
 						.build(),
 				).toBitmapOrNull(),
 			)
-			setSmallIcon(R.drawable.ic_stat_book_plus)
+			setSmallIcon(R.drawable.read_notification)
 			setGroup(GROUP_NEW_CHAPTERS)
 			val style = NotificationCompat.InboxStyle(this)
 			for (chapter in newChapters) {
@@ -116,7 +116,7 @@ class TrackerNotificationHelper @Inject constructor(
 			)
 			setContentTitle(title)
 			setContentText(notifications.joinToString { it.manga.title })
-			setSmallIcon(R.drawable.ic_stat_book_plus)
+			setSmallIcon(R.drawable.read_notification)
 			val style = NotificationCompat.InboxStyle(this)
 			for (item in notifications) {
 				style.addLine(

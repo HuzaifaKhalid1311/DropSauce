@@ -88,7 +88,7 @@ class RestoreService : BaseBackupRestoreService() {
 					getString(R.string.fraction_pattern, progress.progress, progress.total)
 				},
 			)
-			.setSmallIcon(android.R.drawable.stat_sys_upload)
+			.setSmallIcon(R.drawable.general_notification)
 			.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
 			.setCategory(NotificationCompat.CATEGORY_PROGRESS)
 			.addAction(

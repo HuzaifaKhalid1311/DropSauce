@@ -166,7 +166,7 @@ class CaptchaHandler @Inject constructor(
 				.setPriority(NotificationCompat.PRIORITY_LOW)
 				.setDefaults(0)
 				.setOnlyAlertOnce(true)
-				.setSmallIcon(R.drawable.ic_bot)
+				.setSmallIcon(R.drawable.general_notification)
 				.setGroup(GROUP_CAPTCHA)
 				.setContentIntent(
 					PendingIntentCompat.getActivities(

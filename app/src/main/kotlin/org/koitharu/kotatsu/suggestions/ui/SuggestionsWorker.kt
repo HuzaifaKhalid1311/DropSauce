@@ -148,7 +148,7 @@ class SuggestionsWorker @AssistedInject constructor(
 			.setOngoing(false)
 			.setSilent(true)
 			.setProgress(0, 0, true)
-			.setSmallIcon(android.R.drawable.stat_notify_sync)
+			.setSmallIcon(R.drawable.general_notification)
 			.setForegroundServiceBehavior(
 				if (TAG_ONESHOT in tags) {
 					NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
@@ -217,25 +217,26 @@ class SuggestionsWorker @AssistedInject constructor(
 		if (appSettings.isSuggestionsNotificationAvailable
 			&& applicationContext.checkNotificationPermission(MANGA_CHANNEL_ID)
 		) {
-			for (i in 0..3) {
+			// Try a few times to pick a good suggestion.
+			repeat(4) {
 				try {
 					val manga = suggestions[Random.nextInt(0, suggestions.size / 3)]
 					val details = mangaRepositoryFactory.create(manga.manga.source)
 						.getDetails(manga.manga)
 					if (details.chapters.isNullOrEmpty()) {
-						continue
+						return@repeat
 					}
 					if (details.rating > 0 && details.rating < RATING_MIN) {
-						continue
+						return@repeat
 					}
 					if (details.isNsfw() && (appSettings.isSuggestionsExcludeNsfw || appSettings.isNsfwContentDisabled)) {
-						continue
+						return@repeat
 					}
 					if (details in tagsBlacklist) {
-						continue
+						return@repeat
 					}
 					showNotification(details)
-					break
+					return@repeat
 				} catch (e: CancellationException) {
 					throw e
 				} catch (e: Exception) {
@@ -285,7 +286,8 @@ class SuggestionsWorker @AssistedInject constructor(
 		list.take(MAX_SOURCE_RESULTS)
 	}.onFailure { e ->
 		if (e is CloudFlareException) {
-			captchaHandler.handle(e)
+			// Some implementations may return a value; we only need side-effects.
+			captchaHandler.handle(e).let { Unit }
 		}
 		e.printStackTraceDebug()
 	}.getOrDefault(emptyList())

@@ -128,7 +128,7 @@ class DownloadNotificationFactory @AssistedInject constructor(
 			builder.setContentText(context.getString(R.string.manga_downloading_))
 		}
 		builder.setProgress(1, 0, true)
-		builder.setSmallIcon(android.R.drawable.stat_sys_download)
+		builder.setSmallIcon(R.drawable.general_notification)
 		builder.setContentIntent(queueIntent)
 		builder.setStyle(null)
 		builder.setLargeIcon(if (state != null) getCover(state.manga)?.toBitmap() else null)
@@ -149,7 +149,7 @@ class DownloadNotificationFactory @AssistedInject constructor(
 				builder.setContentText(context.getString(R.string.download_complete))
 				builder.setContentIntent(createMangaIntent(context, state.localManga.manga))
 				builder.setAutoCancel(true)
-				builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
+				builder.setSmallIcon(R.drawable.general_notification)
 				builder.setCategory(null)
 				builder.setStyle(null)
 				builder.setOngoing(false)
@@ -200,7 +200,7 @@ class DownloadNotificationFactory @AssistedInject constructor(
 
 			state.error != null -> { // error, final state
 				builder.setProgress(0, 0, false)
-				builder.setSmallIcon(android.R.drawable.stat_notify_error)
+				builder.setSmallIcon(R.drawable.general_notification)
 				builder.setSubText(context.getString(R.string.error))
 				builder.setContentText(state.errorMessage)
 				builder.setAutoCancel(true)

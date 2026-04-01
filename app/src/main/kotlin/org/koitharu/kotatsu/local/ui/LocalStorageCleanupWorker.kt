@@ -79,7 +79,7 @@ class LocalStorageCleanupWorker @AssistedInject constructor(
 			.setOngoing(false)
 			.setSilent(true)
 			.setProgress(0, 0, true)
-			.setSmallIcon(android.R.drawable.stat_notify_sync)
+			.setSmallIcon(R.drawable.general_notification)
 			.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_DEFERRED)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			val actionIntent = PendingIntentCompat.getActivity(
