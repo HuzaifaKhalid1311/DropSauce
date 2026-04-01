@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="url_github" translatable="false">https://github.com/skepsun/DropSauce</string>
+	<string name="url_github" translatable="false">https://github.com/HuzaifaKhalid1311/DropSauce</string>
 	<string name="url_discord_web" translatable="false">https://discord.gg/PTd2bYgz9m</string>
 	<string name="url_weblate" translatable="false">https://hosted.weblate.org/engage/kotatsu</string>
 	<string name="url_user_manual" translatable="false">https://kotatsu.app/manuals/guides/getting-started/</string>
