@@ -74,9 +74,10 @@ jobs:
         fi
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git pull --rebase origin "${{ github.ref_name }}"
         git add app/build.gradle
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
-        git push
+        git push origin "HEAD:${{ github.ref_name }}"
 
     - name: Find previous successful release workflow run
       id: previous_success
@@ -105,7 +106,7 @@ jobs:
         CURRENT_SHA="${{ github.sha }}"
 
         if [ -z "$PREVIOUS_SUCCESS_SHA" ]; then
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$CURRENT_SHA" --no-merges)
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
         else
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_SUCCESS_SHA..$CURRENT_SHA" --no-merges)
         fi
@@ -145,7 +146,7 @@ jobs:
       with:
         tag_name: v${{ inputs.version_name }}
         name: v${{ inputs.version_name }}
-        target_commitish: ${{ github.sha }}
+        target_commitish: ${{ github.ref_name }}
         files: |
           release/*.apk
         body: |
