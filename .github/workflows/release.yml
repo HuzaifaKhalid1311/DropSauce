@@ -69,14 +69,6 @@ jobs:
             -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
         fi
 
-    - name: Build Release APK
-      run: |
-        ./gradlew assembleRelease --no-daemon --stacktrace \
-          -PRELEASE_STORE_FILE=../release.keystore \
-          -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
-          -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
-          -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
-
     - name: Update versionName and increment versionCode
       run: |
         VERSION_NAME="${{ inputs.version_name }}"
@@ -86,6 +78,14 @@ jobs:
         CURRENT_CODE=$(grep -E "versionCode = [0-9]+" "$BUILD_GRADLE" | head -n1 | sed -E "s/.*= ([0-9]+)/\1/")
         NEXT_CODE=$((CURRENT_CODE + 1))
         sed -i -E "s/versionCode = [0-9]+/versionCode = ${NEXT_CODE}/" "$BUILD_GRADLE"
+
+    - name: Build Release APK
+      run: |
+        ./gradlew assembleRelease --no-daemon --stacktrace \
+          -PRELEASE_STORE_FILE=../release.keystore \
+          -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
+          -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
+          -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
 
     - name: Commit version updates
       id: version_commit
