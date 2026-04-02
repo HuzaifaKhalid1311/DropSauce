@@ -10,6 +10,7 @@
 ### Certificate fingerprints
 
 <div align="left">
+  
 SHA1: 
 ```plaintext
 9A:11:C9:FC:90:C6:E4:3F:7B:D4:2B:44:A3:37:D0:85:E6:E3:27:27
