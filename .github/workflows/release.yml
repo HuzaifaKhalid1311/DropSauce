@@ -185,7 +185,7 @@ jobs:
         done
 
         echo "download_notes<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$DOWNLOAD_NOTES" >> "$GITHUB_OUTPUT
+        echo "$DOWNLOAD_NOTES" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
 
     - name: Create Release
