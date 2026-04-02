@@ -10,13 +10,12 @@ collections = "1.6.0"
 constraintlayout = "2.2.1"
 coreKtx = "1.18.0"
 coroutines = "1.10.2"
-#noinspection NewerVersionAvailable - Hilt 2.59.2 requires AGP 9+, project is pinned to AGP 8.13.2
-dagger = "2.57.2"
+dagger = "2.59.2"
 desugar = "2.1.5"
 diskLruCache = "1.5"
 documentfile = "1.1.0"
 fragment = "1.8.9"
-gradle = "8.13.2"
+gradle = "9.1.0"
 guava = "33.5.0-android"
 hilt = "1.3.0"
 json = "20251224"
@@ -114,7 +113,7 @@ okhttp-brotli = { module = "com.squareup.okhttp3:okhttp-brotli", version.ref = "
 okhttp-dnsoverhttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps", version.ref = "okhttp" }
 okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-rxjava = { module = "io.reactivex:rxjava", version.ref = "rxjava" }
+rxjava = { id = "io.reactivex:rxjava", version.ref = "rxjava" }
 injekt-core = { module = "uy.kohesive.injekt:injekt-core", version.ref = "injekt" }
 ssiv = { module = "com.github.KotatsuApp:subsampling-scale-image-view", version.ref = "ssiv" }
 workinspector = { module = "com.github.Koitharu:WorkInspector", version.ref = "workinspector" }
@@ -123,7 +122,6 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradle" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinPlugin" }
-kotlinx-serizliation = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }

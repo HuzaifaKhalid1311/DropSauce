@@ -2,13 +2,12 @@ import java.time.LocalDateTime
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-	id 'com.android.application'
-	id 'kotlin-android'
-	id 'com.google.devtools.ksp'
+	alias(libs.plugins.android.application)
+	alias(libs.plugins.ksp)
 	id 'kotlin-parcelize'
-	id 'dagger.hilt.android.plugin'
-	id 'androidx.room'
-	id 'org.jetbrains.kotlin.plugin.serialization'
+	alias(libs.plugins.hilt)
+	alias(libs.plugins.room)
+	alias(libs.plugins.kotlinx.serialization)
 	// enable if needed
 	// id 'dev.reformator.stacktracedecoroutinator'
 }
@@ -77,6 +76,7 @@ android {
 	buildFeatures {
 		viewBinding true
 		buildConfig true
+		resValues true
 	}
 	packaging {
 		resources {
