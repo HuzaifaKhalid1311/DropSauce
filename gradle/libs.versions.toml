@@ -113,7 +113,7 @@ okhttp-brotli = { module = "com.squareup.okhttp3:okhttp-brotli", version.ref = "
 okhttp-dnsoverhttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps", version.ref = "okhttp" }
 okhttp-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-rxjava = { id = "io.reactivex:rxjava", version.ref = "rxjava" }
+rxjava = { module = "io.reactivex:rxjava", version.ref = "rxjava" }
 injekt-core = { module = "uy.kohesive.injekt:injekt-core", version.ref = "injekt" }
 ssiv = { module = "com.github.KotatsuApp:subsampling-scale-image-view", version.ref = "ssiv" }
 workinspector = { module = "com.github.Koitharu:WorkInspector", version.ref = "workinspector" }
