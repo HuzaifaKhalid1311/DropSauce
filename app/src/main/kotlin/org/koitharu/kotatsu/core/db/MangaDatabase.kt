@@ -131,7 +131,7 @@ fun getDatabaseMigrations(context: Context): Array<Migration> = arrayOf(
 	Migration13To14(),
 	Migration14To15(),
 	Migration15To16(),
-	Migration16To17(context),
+	Migration16To17(),
 	Migration17To18(),
 	Migration18To19(),
 	Migration19To20(),
