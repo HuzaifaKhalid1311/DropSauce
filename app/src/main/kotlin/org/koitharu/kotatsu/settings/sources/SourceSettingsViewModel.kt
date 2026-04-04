@@ -4,34 +4,26 @@ import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import okhttp3.HttpUrl
-import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
-import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import javax.inject.Inject
 
 @HiltViewModel
 class SourceSettingsViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
 	mangaRepositoryFactory: MangaRepository.Factory,
-	private val cookieJar: MutableCookieJar,
 	private val settings: AppSettings,
 	private val mihonExtensionManager: MihonExtensionManager,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -43,24 +35,13 @@ class SourceSettingsViewModel @Inject constructor(
 	val username = MutableStateFlow<String?>(null)
 	val isAuthorized = MutableStateFlow<Boolean?>(null)
 	val browserUrl = MutableStateFlow<String?>(null)
-	private var usernameLoadJob: Job? = null
-
 	init {
-		when (repository) {
-			is ParserMangaRepository -> {
-				browserUrl.value = "https://${repository.domain}"
-				repository.getConfig().subscribe(this)
-				loadUsername(repository.getAuthProvider())
-			}
-		}
+		// Extensions handle their own config; no built-in parser config to subscribe
+		browserUrl.value = null
 	}
 
 	override fun onCleared() {
-		when (repository) {
-			is ParserMangaRepository -> {
-				repository.getConfig().unsubscribe(this)
-			}
-		}
+		// No-op: extensions handle their own config
 		super.onCleared()
 	}
 
@@ -70,30 +51,14 @@ class SourceSettingsViewModel @Inject constructor(
 				repository.invalidateCache()
 			}
 		}
-		if (repository is ParserMangaRepository) {
-			if (key == SourceSettings.KEY_DOMAIN) {
-				browserUrl.value = "https://${repository.domain}"
-			}
-		}
 	}
 
 	fun onResume() {
-		if (usernameLoadJob?.isActive != true && repository is ParserMangaRepository) {
-			loadUsername(repository.getAuthProvider())
-		}
+		// Auth not supported in extension-only mode
 	}
 
 	fun clearCookies() {
-		if (repository !is ParserMangaRepository) return
-		launchLoadingJob(Dispatchers.Default) {
-			val url = HttpUrl.Builder()
-				.scheme("https")
-				.host(repository.domain)
-				.build()
-			cookieJar.removeCookies(url, null)
-			onActionDone.call(ReversibleAction(R.string.cookies_cleared, null))
-			loadUsername(repository.getAuthProvider())
-		}
+		// No built-in parser domain to clear cookies for
 	}
 
 	/**
@@ -111,17 +76,5 @@ class SourceSettingsViewModel @Inject constructor(
 
 	fun setMihonSourceLangEnabled(pkgName: String, lang: String, enabled: Boolean) {
 		settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
-	}
-
-	private fun loadUsername(authProvider: MangaParserAuthProvider?) {
-		launchLoadingJob(Dispatchers.Default) {
-			try {
-				username.value = null
-				isAuthorized.value = null
-				isAuthorized.value = authProvider?.isAuthorized()
-				username.value = authProvider?.getUsername()
-			} catch (_: AuthRequiredException) {
-			}
-		}
 	}
 }

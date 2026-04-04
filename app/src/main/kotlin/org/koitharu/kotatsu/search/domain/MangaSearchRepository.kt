@@ -16,7 +16,6 @@ import org.koitharu.kotatsu.core.db.entity.toMangaTag
 import org.koitharu.kotatsu.core.db.entity.toMangaTagsList
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
@@ -128,20 +127,12 @@ class MangaSearchRepository @Inject constructor(
 
 	suspend fun getSourcesSuggestion(limit: Int): List<MangaSource> = sourcesRepository.getTopSources(limit)
 
-	fun getSourcesSuggestion(query: String, limit: Int): List<MangaSource> {
+	fun getSourcesSuggestion(query: String, @Suppress("UNUSED_PARAMETER") limit: Int): List<MangaSource> {
 		if (query.length < 3) {
 			return emptyList()
 		}
-		val skipNsfw = settings.isNsfwContentDisabled
-		val sources = sourcesRepository.allMangaSources
-			.filter { x ->
-				(x.contentType != ContentType.HENTAI || !skipNsfw) && x.title.contains(query, ignoreCase = true)
-			}
-		return if (limit == 0) {
-			sources
-		} else {
-			sources.take(limit)
-		}
+		// No built-in sources to suggest; extensions are discovered at runtime
+		return emptyList()
 	}
 
 	fun saveSearchQuery(query: String) {

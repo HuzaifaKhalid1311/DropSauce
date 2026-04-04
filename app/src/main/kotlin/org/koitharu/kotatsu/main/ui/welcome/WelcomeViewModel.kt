@@ -8,18 +8,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.LocaleComparator
-import org.koitharu.kotatsu.core.util.ext.mapSortedByCount
-import org.koitharu.kotatsu.core.util.ext.sortedWithSafe
 import org.koitharu.kotatsu.core.util.ext.toList
-import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.filter.ui.model.FilterProperty
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
-import java.util.EnumSet
 import java.util.Locale
 import javax.inject.Inject
 
@@ -29,9 +23,6 @@ class WelcomeViewModel @Inject constructor(
 	private val settings: AppSettings,
 	@LocalizedAppContext context: Context,
 ) : BaseViewModel() {
-
-	private val allSources = repository.allMangaSources
-	private val localesGroups by lazy { allSources.groupBy { it.locale.toLocale() } }
 
 	private var updateJob: Job
 
@@ -55,19 +46,19 @@ class WelcomeViewModel @Inject constructor(
 
 	init {
 		updateJob = launchJob(Dispatchers.Default) {
-			val contentTypes = allSources.mapSortedByCount { it.contentType }
+			// No built-in sources; just show default content types
+			val contentTypes = ContentType.entries.toList()
 			types.value = types.value.copy(
 				availableItems = contentTypes,
 				isLoading = false,
 			)
-			val languages = localesGroups.keys.associateBy { x -> x.language }
 			val selectedLocales = HashSet<Locale>(2)
 			ConfigurationCompat.getLocales(context.resources.configuration).toList()
-				.firstNotNullOfOrNull { lc -> languages[lc.language] }
+				.firstOrNull()
 				?.let { selectedLocales += it }
 			selectedLocales += Locale.ROOT
 			locales.value = locales.value.copy(
-				availableItems = localesGroups.keys.sortedWithSafe(LocaleComparator()),
+				availableItems = listOf(Locale.ROOT),
 				selectedItems = selectedLocales,
 				isLoading = false,
 			)
@@ -108,13 +99,9 @@ class WelcomeViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun commit() {
+	private fun commit() {
 		val languages = locales.value.selectedItems.mapToSet { it.language }
-		val types = types.value.selectedItems
-		val enabledSources = allSources.filterTo(EnumSet.noneOf(MangaParserSource::class.java)) { x ->
-			x.contentType in types && x.locale in languages
-		}
-		repository.setSourcesEnabledExclusive(enabledSources)
+		// No built-in sources to enable/disable; extensions are managed separately
 		settings.preferredSourceLanguages = languages
 	}
 }

@@ -66,10 +66,7 @@ class ReaderConfigSheet :
         mode = arguments?.getInt(AppRouter.KEY_READER_MODE)
             ?.let { ReaderMode.valueOf(it) }
             ?: ReaderMode.STANDARD
-        imageServerDelegate = ImageServerDelegate(
-            mangaRepositoryFactory = mangaRepositoryFactory,
-            mangaSource = viewModel.getMangaOrNull()?.source,
-        )
+        imageServerDelegate = ImageServerDelegate()
     }
 
     override fun onCreateViewBinding(
@@ -243,7 +240,7 @@ class ReaderConfigSheet :
         switch.setOnCheckedChangeListener(this)
     }
 
-    private suspend fun bindImageServerTitle() {
+    private fun bindImageServerTitle() {
         viewBinding?.buttonImageServer?.text = getString(
             R.string.inline_preference_pattern,
             getString(R.string.image_server),

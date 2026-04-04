@@ -48,7 +48,6 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.exceptions.resolve.CaptchaHandler
 import org.koitharu.kotatsu.core.model.distinctById
-import org.koitharu.kotatsu.core.model.getLocale
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.ReaderIntent
@@ -248,15 +247,8 @@ class SuggestionsWorker @AssistedInject constructor(
 	}
 
 	private suspend fun getSources(): List<MangaSource> {
-		if (appSettings.isSuggestionsIncludeDisabledSources) {
-			val result = sourcesRepository.allMangaSources.toMutableList<MangaSource>()
-			result.addAll(sourcesRepository.getExternalSources())
-			result.shuffle()
-			result.sortWith(compareBy(nullsLast(LocaleComparator())) { it.getLocale() })
-			return result
-		} else {
-			return sourcesRepository.getEnabledSources().shuffled()
-		}
+		// Only extension sources are available
+		return sourcesRepository.getEnabledSources().shuffled()
 	}
 
 	private suspend fun getList(

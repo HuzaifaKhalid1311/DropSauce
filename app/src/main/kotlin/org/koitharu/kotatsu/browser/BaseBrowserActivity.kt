@@ -8,11 +8,9 @@ import androidx.core.view.updatePadding
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.network.CommonHeaders
 import org.koitharu.kotatsu.core.network.proxy.ProxyProvider
 import org.koitharu.kotatsu.core.network.webview.adblock.AdBlock
 import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.util.ext.configureForParser
 import org.koitharu.kotatsu.core.util.ext.consumeAll
@@ -45,9 +43,8 @@ abstract class BaseBrowserActivity : BaseActivity<ActivityBrowserBinding>(), Bro
 		onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
 		val mangaSource = MangaSource(intent?.getStringExtra(AppRouter.KEY_SOURCE))
-		val repository = mangaRepositoryFactory.create(mangaSource) as? ParserMangaRepository
+		val repository = mangaRepositoryFactory.create(mangaSource)
 		val userAgent = intent?.getStringExtra(AppRouter.KEY_USER_AGENT)?.nullIfEmpty()
-			?: repository?.getRequestHeaders()?.get(CommonHeaders.USER_AGENT)
 		viewBinding.webView.configureForParser(userAgent)
 
 		onCreate2(savedInstanceState, mangaSource, repository)
@@ -56,7 +53,7 @@ abstract class BaseBrowserActivity : BaseActivity<ActivityBrowserBinding>(), Bro
 	protected abstract fun onCreate2(
 		savedInstanceState: Bundle?,
 		source: MangaSource,
-		repository: ParserMangaRepository?
+		repository: MangaRepository?
 	)
 
 	override fun onApplyWindowInsets(

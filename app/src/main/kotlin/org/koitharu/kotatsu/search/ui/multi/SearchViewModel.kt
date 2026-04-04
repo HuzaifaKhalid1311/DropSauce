@@ -27,7 +27,6 @@ import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.append
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
 import org.koitharu.kotatsu.history.data.HistoryRepository
@@ -38,12 +37,10 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.search.domain.SearchKind
 import org.koitharu.kotatsu.search.domain.SearchV2Helper
-import java.util.Locale
 import javax.inject.Inject
 
 private const val MAX_PARALLELISM = 4
@@ -142,10 +139,9 @@ class SearchViewModel @Inject constructor(
 			includeDisabledSources.value = true
 			prevJob?.join()
 			val sources = if (pinnedOnly.value) {
-				emptyList()
+				emptyList<MangaSource>()
 			} else {
-				sourcesRepository.getDisabledSources()
-					.sortedByDescending { it.priority() }
+				sourcesRepository.getDisabledSources().toList()
 			}
 			val semaphore = Semaphore(MAX_PARALLELISM)
 			sources.map { source ->
@@ -207,11 +203,7 @@ class SearchViewModel @Inject constructor(
 		},
 		onFailure = { error ->
 			error.printStackTraceDebug()
-			if (source is MangaParserSource && source.isBroken) {
-				null
-			} else {
-				SearchResultsListModel(0, source, null, null, emptyList(), error)
-			}
+			SearchResultsListModel(0, source, null, null, emptyList(), error)
 		},
 	)
 
@@ -316,11 +308,4 @@ class SearchViewModel @Inject constructor(
 		}
 	}
 
-	private fun MangaSource.priority(): Int {
-		var res = 0
-		if (this is MangaParserSource) {
-			if (locale.toLocale() == Locale.getDefault()) res += 2
-		}
-		return res
-	}
 }

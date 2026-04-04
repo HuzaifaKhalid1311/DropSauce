@@ -20,16 +20,12 @@ import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.mapSortedByCount
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.Comparator
 import java.util.EnumSet
@@ -39,7 +35,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SourcesCatalogViewModel @Inject constructor(
-	@LocalizedAppContext private val context: android.content.Context,
+	@LocalizedAppContext context: android.content.Context,
 	private val repository: MangaSourcesRepository,
 	private val externalRepoRepository: ExternalExtensionRepoRepository,
 	private val mihonExtensionLoader: MihonExtensionLoader,
@@ -48,12 +44,11 @@ class SourcesCatalogViewModel @Inject constructor(
 ) : BaseViewModel() {
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
-	private val builtInLocales: Set<String?> = repository.allMangaSources.mapTo(LinkedHashSet<String?>()) { it.locale }.also {
-		it.add(null)
-	}
+	private val appContext = context
+	private val builtInLocales: Set<String?> = setOf(null)
 	private val builtInContentTypes = MutableStateFlow<List<ContentType>>(emptyList())
 	private val mihonSources = repository.observeMihonSources()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList<org.koitharu.kotatsu.mihon.model.MihonMangaSource>())
 	private val availableRepoEntries = MutableStateFlow<List<ExternalExtensionRepoEntry>>(emptyList())
 
 	private val searchQuery = MutableStateFlow<String?>(null)
@@ -172,9 +167,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	fun addSource(source: MangaSource) {
-		if (source !is MangaParserSource) {
-			return
-		}
 		launchJob(Dispatchers.Default) {
 			val rollback = repository.setSourcesEnabled(setOf(source), true)
 			onActionDone.call(ReversibleAction(R.string.source_enabled, rollback))
@@ -228,21 +220,9 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
-		val sources = when (filter.mode) {
-			SourcesCatalogMode.BUILTIN -> repository.queryParserSources(
-				isDisabledOnly = true,
-				isNewOnly = filter.isNewOnly,
-				excludeBroken = false,
-				types = filter.types,
-				query = query,
-				locale = filter.locale,
-				sortOrder = SourcesSortOrder.ALPHABETIC,
-			)
-			SourcesCatalogMode.MIHON -> emptyList()
-		}
 		return if (filter.mode == SourcesCatalogMode.MIHON) {
 			buildExtensionsList(filter, query, forceRefresh)
-		} else if (sources.isEmpty()) {
+		} else {
 			listOf(
 				if (query == null) {
 					SourceCatalogItem.Hint(
@@ -258,13 +238,6 @@ class SourcesCatalogViewModel @Inject constructor(
 					)
 				},
 			)
-		} else {
-			sources.map {
-				SourceCatalogItem.Source(
-					source = it,
-					isAddAvailable = filter.mode == SourcesCatalogMode.BUILTIN,
-				)
-			}
 		}
 	}
 
@@ -287,7 +260,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val available = availableResult.getOrDefault(emptyList())
 		availableRepoEntries.value = available
 
-		val installed = mihonExtensionLoader.getInstalledExtensions(context).associateBy { it.pkgName }
+		val installed = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
 		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
 
 		val pending = ArrayList<SourceCatalogItem.Extension>()
@@ -419,11 +392,11 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	@WorkerThread
 	private fun getContentTypes(isNsfwDisabled: Boolean): List<ContentType> {
-		val result = repository.allMangaSources.mapSortedByCount { it.contentType }
+		// No built-in sources; content types come from extensions
 		return if (isNsfwDisabled) {
-			result.filterNot { it == ContentType.HENTAI }
+			ContentType.entries.filterNot { it == ContentType.HENTAI }
 		} else {
-			result
+			ContentType.entries.toList()
 		}
 	}
 }

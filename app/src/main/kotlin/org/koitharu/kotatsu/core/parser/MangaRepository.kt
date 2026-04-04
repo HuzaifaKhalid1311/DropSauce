@@ -1,28 +1,21 @@
 package org.koitharu.kotatsu.core.parser
 
-import android.content.Context
 import androidx.annotation.AnyThread
 import androidx.collection.ArrayMap
-import dagger.hilt.android.qualifiers.ApplicationContext
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.model.LocalMangaSource
-import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.TestMangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaRepository
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import java.lang.ref.WeakReference
@@ -58,11 +51,8 @@ interface MangaRepository {
 
 	@Singleton
 	class Factory @Inject constructor(
-		@ApplicationContext private val context: Context,
 		private val localMangaRepository: LocalMangaRepository,
-		private val loaderContext: MangaLoaderContext,
 		private val contentCache: MemoryContentCache,
-		private val mirrorSwitcher: MirrorSwitcher,
 		private val mihonExtensionManager: MihonExtensionManager,
 	) {
 
@@ -71,7 +61,6 @@ interface MangaRepository {
 		@AnyThread
 		fun create(source: MangaSource): MangaRepository {
 			when (source) {
-				is MangaSourceInfo -> return create(source.mangaSource)
 				LocalMangaSource -> return localMangaRepository
 				UnknownMangaSource -> return EmptyMangaRepository(source)
 				is MihonMangaSource -> mihonExtensionManager.initialize()
@@ -90,31 +79,10 @@ interface MangaRepository {
 		}
 
 		private fun createRepository(source: MangaSource): MangaRepository? = when (source) {
-			is MangaParserSource -> ParserMangaRepository(
-				parser = loaderContext.newParserInstance(source),
-				cache = contentCache,
-				mirrorSwitcher = mirrorSwitcher,
-			)
-
 			is MihonMangaSource -> MihonMangaRepository(
 				source = source,
 				cache = contentCache,
 			)
-
-			TestMangaSource -> TestMangaRepository(
-				loaderContext = loaderContext,
-				cache = contentCache,
-			)
-
-			is ExternalMangaSource -> if (source.isAvailable(context)) {
-				ExternalMangaRepository(
-					contentResolver = context.contentResolver,
-					source = source,
-					cache = contentCache,
-				)
-			} else {
-				EmptyMangaRepository(source)
-			}
 
 			else -> null
 		}

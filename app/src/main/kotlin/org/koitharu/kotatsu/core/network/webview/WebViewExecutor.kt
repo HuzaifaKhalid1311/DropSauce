@@ -17,15 +17,11 @@ import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.network.CommonHeaders
 import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
 import org.koitharu.kotatsu.core.network.proxy.ProxyProvider
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
 import org.koitharu.kotatsu.core.util.ext.configureForParser
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.lang.ref.WeakReference
 import javax.inject.Inject
-import javax.inject.Provider
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -35,7 +31,6 @@ class WebViewExecutor @Inject constructor(
 	@ApplicationContext private val context: Context,
 	private val proxyProvider: ProxyProvider,
 	private val cookieJar: MutableCookieJar,
-	private val mangaRepositoryFactoryProvider: Provider<MangaRepository.Factory>,
 ) {
 
 	private var webViewCached: WeakReference<WebView>? = null
@@ -56,12 +51,12 @@ class WebViewExecutor @Inject constructor(
 			val webView = obtainWebView()
 			try {
 				if (!baseUrl.isNullOrEmpty()) {
-					suspendCoroutine { cont ->
+					suspendCancellableCoroutine { cont ->
 						webView.webViewClient = ContinuationResumeWebViewClient(cont)
 						webView.loadDataWithBaseURL(baseUrl, " ", "text/html", null, null)
 					}
 				}
-				suspendCoroutine { cont ->
+				suspendCancellableCoroutine { cont ->
 					webView.evaluateJavascript(script) { result ->
 						cont.resume(result?.takeUnless { it == "null" })
 					}
@@ -77,8 +72,9 @@ class WebViewExecutor @Inject constructor(
 			withContext(Dispatchers.Main.immediate) {
 				val webView = obtainWebView()
 				try {
-					exception.source.getUserAgent()?.let {
-						webView.settings.userAgentString = it
+					val ua = defaultUserAgent
+					if (ua != null) {
+						webView.settings.userAgentString = ua
 					}
 					withTimeout(timeout) {
 						suspendCancellableCoroutine { cont ->
@@ -116,11 +112,6 @@ class WebViewExecutor @Inject constructor(
 				it.resumeTimers()
 			}
 		}
-	}
-
-	private fun MangaSource.getUserAgent(): String? {
-		val repository = mangaRepositoryFactoryProvider.get().create(this) as? ParserMangaRepository
-		return repository?.getRequestHeaders()?.get(CommonHeaders.USER_AGENT)
 	}
 
 	@MainThread

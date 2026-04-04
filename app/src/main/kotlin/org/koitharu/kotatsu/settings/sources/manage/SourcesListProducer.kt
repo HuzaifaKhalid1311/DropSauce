@@ -24,7 +24,6 @@ import org.koitharu.kotatsu.core.util.ext.lifecycleScope
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
@@ -89,7 +88,7 @@ class SourcesListProducer @Inject constructor(
 					isDraggable = false,
 					isAvailable = !isNsfwDisabled || !it.isNsfw(),
 					isPinned = it.name in pinned,
-					isDisableAvailable = isDisableAvailable && it.unwrap() is MangaParserSource,
+					isDisableAvailable = false,
 					isMenuAvailable = it.unwrap() !is MihonMangaSource,
 				)
 			}.ifEmpty {
@@ -106,7 +105,7 @@ class SourcesListProducer @Inject constructor(
 				)
 			}
 			enabledSources.mapTo(result) {
-				val isParserSource = it.unwrap() is MangaParserSource
+				val isParserSource = false
 				SourceConfigItem.SourceItem(
 					source = it,
 					isEnabled = true,

@@ -19,7 +19,6 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
-import org.koitharu.kotatsu.core.parser.ParserMangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
@@ -57,8 +56,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		val isValidSource = viewModel.repository !is EmptyMangaRepository
 
 		findPreference<Preference>(KEY_AUTH)?.run {
-			val authProvider = (viewModel.repository as? ParserMangaRepository)?.getAuthProvider()
-			isVisible = authProvider != null
+			isVisible = false
 		}
 		findPreference<Preference>(SourceSettings.KEY_SLOWDOWN)?.isVisible = isValidSource
 	}
@@ -180,7 +178,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		moveMihonLanguageTogglesToBottom(screen)
 	}
 
-	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: androidx.preference.PreferenceScreen) {
+	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: PreferenceScreen) {
 		val pkgName = repo.source.pkgName
 		val siblings = viewModel.getSiblingMihonSources()
 		if (siblings.size <= 1) return

@@ -1,9 +1,6 @@
 package org.koitharu.kotatsu.explore.ui
 
 import android.content.DialogInterface
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -22,7 +19,6 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
@@ -43,7 +39,6 @@ import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogMode
 
 @AndroidEntryPoint
@@ -115,18 +110,11 @@ class ExploreFragment :
 		if (item.payload == R.id.nav_suggestions) {
 			router.openSuggestions()
 		} else {
-			when (item.filterMode) {
-				SourceFilterMode.EXTERNAL -> router.openSourcesCatalog(
-					mode = SourcesCatalogMode.MIHON,
-					isExternalOnly = true,
-				)
-				else -> router.openSourcesCatalog()
-			}
+			router.openSourcesCatalog(
+				mode = SourcesCatalogMode.MIHON,
+				isExternalOnly = true,
+			)
 		}
-	}
-
-	override fun onListHeaderFilterModeChanged(item: ListHeader, mode: org.koitharu.kotatsu.explore.ui.SourceFilterMode) {
-		viewModel.setSourceFilter(mode)
 	}
 
 	override fun onClick(v: View) {
@@ -157,13 +145,10 @@ class ExploreFragment :
 	override fun onRetryClick(error: Throwable) = Unit
 
 	override fun onEmptyActionClick() {
-		when (viewModel.sourceFilterMode.value) {
-			SourceFilterMode.EXTERNAL -> router.openSourcesCatalog(
-				mode = SourcesCatalogMode.MIHON,
-				isExternalOnly = true,
-			)
-			SourceFilterMode.LOCAL -> router.openSourcesCatalog()
-		}
+		router.openSourcesCatalog(
+			mode = SourcesCatalogMode.MIHON,
+			isExternalOnly = true,
+		)
 	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
@@ -182,13 +167,12 @@ class ExploreFragment :
 	override fun onPrepareActionMode(controller: ListSelectionController, mode: ActionMode?, menu: Menu): Boolean {
 		val selectedSources = viewModel.sourcesSnapshot(controller.peekCheckedIds())
 		val isSingleSelection = selectedSources.size == 1
-		menu.findItem(R.id.action_settings).isVisible = isSingleSelection
-		menu.findItem(R.id.action_shortcut).isVisible = isSingleSelection
-		menu.findItem(R.id.action_pin).isVisible = selectedSources.all { !it.isPinned }
-		menu.findItem(R.id.action_unpin).isVisible = selectedSources.all { it.isPinned }
-		menu.findItem(R.id.action_disable)?.isVisible = !viewModel.isAllSourcesEnabled.value &&
-			selectedSources.all { it.mangaSource is MangaParserSource }
-		menu.findItem(R.id.action_delete)?.isVisible = selectedSources.all { it.mangaSource is ExternalMangaSource }
+		menu.findItem(R.id.action_settings)?.isVisible = isSingleSelection
+		menu.findItem(R.id.action_shortcut)?.isVisible = isSingleSelection
+		menu.findItem(R.id.action_pin)?.isVisible = selectedSources.all { !it.isPinned }
+		menu.findItem(R.id.action_unpin)?.isVisible = selectedSources.all { it.isPinned }
+		menu.findItem(R.id.action_disable)?.isVisible = false
+		menu.findItem(R.id.action_delete)?.isVisible = false
 		return super.onPrepareActionMode(controller, mode, menu)
 	}
 
@@ -201,18 +185,6 @@ class ExploreFragment :
 			R.id.action_settings -> {
 				val source = selectedSources.singleOrNull() ?: return false
 				router.openSourceSettings(source)
-				mode?.finish()
-			}
-
-			R.id.action_disable -> {
-				viewModel.disableSources(selectedSources)
-				mode?.finish()
-			}
-
-			R.id.action_delete -> {
-				selectedSources.forEach {
-					(it.mangaSource as? ExternalMangaSource)?.let { uninstallExternalSource(it) }
-				}
 				mode?.finish()
 			}
 
@@ -262,16 +234,5 @@ class ExploreFragment :
 			.setNegativeButton(R.string.no_thanks, listener)
 			.create()
 			.show()
-	}
-
-	private fun uninstallExternalSource(source: ExternalMangaSource) {
-		val uri = Uri.fromParts("package", source.packageName, null)
-		val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			Intent.ACTION_DELETE
-		} else {
-			@Suppress("DEPRECATION")
-			Intent.ACTION_UNINSTALL_PACKAGE
-		}
-		context?.startActivity(Intent(action, uri))
 	}
 }

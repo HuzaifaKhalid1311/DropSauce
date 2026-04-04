@@ -33,19 +33,11 @@ import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
-
-enum class SourceFilterMode {
-	LOCAL, EXTERNAL;
-
-	fun next(): SourceFilterMode = entries[(ordinal + 1) % entries.size]
-}
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
@@ -62,12 +54,6 @@ class ExploreViewModel @Inject constructor(
 		valueProducer = { isSourcesGridMode },
 	)
 
-	val isAllSourcesEnabled = settings.observeAsStateFlow(
-		scope = viewModelScope + Dispatchers.IO,
-		key = AppSettings.KEY_SOURCES_ENABLED_ALL,
-		valueProducer = { isAllSourcesEnabled },
-	)
-
 	private val isSuggestionsEnabled = settings.observeAsFlow(
 		key = AppSettings.KEY_SUGGESTIONS,
 		valueProducer = { isSuggestionsEnabled },
@@ -77,7 +63,6 @@ class ExploreViewModel @Inject constructor(
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val onShowSuggestionsTip = MutableEventFlow<Unit>()
 	private val isRandomLoading = MutableStateFlow(false)
-	val sourceFilterMode = MutableStateFlow(SourceFilterMode.LOCAL)
 
 	val content: StateFlow<List<ListModel>> = isLoading.flatMapLatest { loading ->
 		if (loading) {
@@ -95,10 +80,6 @@ class ExploreViewModel @Inject constructor(
 		}
 	}
 
-	fun setSourceFilter(mode: SourceFilterMode) {
-		sourceFilterMode.value = mode
-	}
-
 	fun openRandom() {
 		if (isRandomLoading.value) {
 			return
@@ -111,14 +92,6 @@ class ExploreViewModel @Inject constructor(
 			} finally {
 				isRandomLoading.value = false
 			}
-		}
-	}
-
-	fun disableSources(sources: Collection<MangaSource>) {
-		launchJob(Dispatchers.Default) {
-			val rollback = sourcesRepository.setSourcesEnabled(sources, isEnabled = false)
-			val message = if (sources.size == 1) R.string.source_disabled else R.string.sources_disabled
-			onActionDone.call(ReversibleAction(message, rollback))
 		}
 	}
 
@@ -151,16 +124,19 @@ class ExploreViewModel @Inject constructor(
 		}
 	}
 
-	private fun createContentFlow() = combine(
+	@Suppress("UNCHECKED_CAST")
+	private fun createContentFlow() = kotlinx.coroutines.flow.combine(
 		sourcesRepository.observeEnabledSources(),
 		getSuggestionFlow(),
 		isGrid,
 		isRandomLoading,
-		isAllSourcesEnabled,
-		sourcesRepository.observeHasNewSourcesForBadge(),
-		sourceFilterMode,
-	) { content, suggestions, grid, randomLoading, allSourcesEnabled, newSources, filterMode ->
-		buildList(content, suggestions, grid, randomLoading, allSourcesEnabled, newSources, filterMode)
+	) { args ->
+		buildList(
+			args[0] as List<MangaSourceInfo>,
+			args[1] as List<Manga>,
+			args[2] as Boolean,
+			args[3] as Boolean,
+		)
 	}.withErrorHandling()
 
 	private fun buildList(
@@ -168,9 +144,6 @@ class ExploreViewModel @Inject constructor(
 		recommendation: List<Manga>,
 		isGrid: Boolean,
 		randomLoading: Boolean,
-		allSourcesEnabled: Boolean,
-		hasNewSources: Boolean,
-		filterMode: SourceFilterMode,
 	): List<ListModel> {
 		val result = ArrayList<ListModel>(sources.size + 3)
 		result += ExploreButtons(randomLoading)
@@ -178,46 +151,22 @@ class ExploreViewModel @Inject constructor(
 			result += ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions)
 			result += RecommendationsItem(recommendation.toRecommendationList())
 		}
-		
-		val filteredSources = when (filterMode) {
-			SourceFilterMode.LOCAL -> sources.filter { it.mangaSource is MangaParserSource }
-			SourceFilterMode.EXTERNAL -> sources.filter {
-				it.mangaSource is MihonMangaSource || it.mangaSource is org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
-			}
-		}
 
-		val headerButtonRes = when (filterMode) {
-			SourceFilterMode.LOCAL -> R.string.catalog
-			SourceFilterMode.EXTERNAL -> R.string.manage
-		}
-
-		if (filteredSources.isNotEmpty()) {
+		if (sources.isNotEmpty()) {
 			result += ListHeader(
 				textRes = R.string.remote_sources,
-				buttonTextRes = headerButtonRes,
-				badge = if (!allSourcesEnabled && hasNewSources) "" else null,
-				filterMode = filterMode,
+				buttonTextRes = R.string.manage,
 			)
-			filteredSources.mapTo(result) { MangaSourceItem(it, isGrid) }
+			sources.mapTo(result) { MangaSourceItem(it, isGrid) }
 		} else {
 			result += ListHeader(
 				textRes = R.string.remote_sources,
-				buttonTextRes = headerButtonRes,
-				badge = if (!allSourcesEnabled && hasNewSources) "" else null,
-				filterMode = filterMode,
+				buttonTextRes = R.string.manage,
 			)
 			result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
-				textPrimary = if (filterMode == SourceFilterMode.EXTERNAL) {
-					R.string.no_external_source_installed
-				} else {
-					R.string.no_manga_source_enabled
-				},
-				textSecondary = if (filterMode == SourceFilterMode.EXTERNAL) {
-					R.string.manage_manga_extensions_from_settings_icon
-				} else {
-					R.string.enable_manga_sources_from_settings_icon
-				},
+				textPrimary = R.string.no_external_source_installed,
+				textSecondary = R.string.manage_manga_extensions_from_settings_icon,
 				actionStringRes = NO_ACTION_STRING_RES,
 			)
 		}

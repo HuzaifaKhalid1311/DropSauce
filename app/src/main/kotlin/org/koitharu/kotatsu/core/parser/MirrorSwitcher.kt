@@ -8,10 +8,8 @@ import okhttp3.Request
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.core.network.MangaHttpClient
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import java.util.EnumSet
 import javax.inject.Inject
 
 class MirrorSwitcher @Inject constructor(
@@ -19,7 +17,7 @@ class MirrorSwitcher @Inject constructor(
 	@MangaHttpClient private val okHttpClient: OkHttpClient,
 ) {
 
-	private val blacklist = EnumSet.noneOf(MangaParserSource::class.java)
+	private val blacklist = HashSet<String>()
 	private val mutex: Mutex = Mutex()
 
 	val isEnabled: Boolean
@@ -27,7 +25,7 @@ class MirrorSwitcher @Inject constructor(
 
 	suspend fun <T : Any> trySwitchMirror(repository: ParserMangaRepository, loader: suspend () -> T?): T? {
 		val source = repository.source
-		if (!isEnabled || source in blacklist) {
+		if (!isEnabled || source.name in blacklist) {
 			return null
 		}
 		val availableMirrors = repository.domains
@@ -36,7 +34,7 @@ class MirrorSwitcher @Inject constructor(
 			return null
 		}
 		mutex.withLock {
-			if (source in blacklist) {
+			if (source.name in blacklist) {
 				return null
 			}
 			logd { "Looking for mirrors for ${source}..." }
@@ -59,7 +57,7 @@ class MirrorSwitcher @Inject constructor(
 				}
 			}
 			repository.domain = currentHost // rollback
-			blacklist.add(source)
+			blacklist.add(source.name)
 			logd { "$source blacklisted" }
 			return null
 		}

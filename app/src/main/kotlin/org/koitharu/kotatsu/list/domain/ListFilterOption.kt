@@ -7,9 +7,8 @@ import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.unwrap
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
 import org.koitharu.kotatsu.core.parser.favicon.faviconUri
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 
@@ -116,7 +115,7 @@ sealed interface ListFilterOption {
 	) : ListFilterOption {
 		override val titleResId: Int
 			get() = when (mangaSource.unwrap()) {
-				is ExternalMangaSource -> R.string.external_source
+				is MihonMangaSource -> R.string.external_source
 				LocalMangaSource -> R.string.local_storage
 				else -> 0
 			}
@@ -126,7 +125,7 @@ sealed interface ListFilterOption {
 
 		override val titleText: CharSequence?
 			get() = when (val source = mangaSource.unwrap()) {
-				is MangaParserSource -> source.title
+				is MihonMangaSource -> source.displayName
 				else -> null
 			}
 

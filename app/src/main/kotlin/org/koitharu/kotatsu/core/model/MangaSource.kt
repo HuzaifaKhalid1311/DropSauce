@@ -10,16 +10,10 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.text.inSpans
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
-import org.koitharu.kotatsu.core.util.ext.getDisplayName
-import org.koitharu.kotatsu.core.util.ext.toLocale
-import org.koitharu.kotatsu.core.util.ext.toLocaleOrNull
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.splitTwoParts
 import java.util.Locale
 
 data object LocalMangaSource : MangaSource {
@@ -44,15 +38,8 @@ fun MangaSource(name: String?): MangaSource {
 		LocalMangaSource.name -> return LocalMangaSource
 		TestMangaSource.name -> return TestMangaSource
 	}
-	if (name.startsWith("content:")) {
-		val parts = name.substringAfter(':').splitTwoParts('/') ?: return UnknownMangaSource
-		return ExternalMangaSource(packageName = parts.first, authority = parts.second)
-	}
 	if (name.startsWith("MIHON_")) {
 		return MihonExtensionManager.getByName(name) ?: MissingMangaSource(name)
-	}
-	MangaParserSource.entries.forEach {
-		if (it.name == name) return it
 	}
 	return MissingMangaSource(name)
 }
@@ -61,14 +48,12 @@ fun Collection<String>.toMangaSources() = map(::MangaSource)
 
 fun MangaSource.isNsfw(): Boolean = when (this) {
 	is MangaSourceInfo -> mangaSource.isNsfw()
-	is MangaParserSource -> contentType == ContentType.HENTAI
 	is MihonMangaSource -> isNsfw
 	else -> false
 }
 
 val MangaSource.isBroken: Boolean
-	get() = when (val source = unwrap()) {
-		is MangaParserSource -> source.isBroken
+	get() = when (unwrap()) {
 		is MissingMangaSource -> true
 		UnknownMangaSource -> true
 		else -> false
@@ -100,19 +85,12 @@ tailrec fun MangaSource.unwrap(): MangaSource = if (this is MangaSourceInfo) {
 	this
 }
 
-fun MangaSource.getLocale(): Locale? = (unwrap() as? MangaParserSource)?.locale?.toLocaleOrNull()
+fun MangaSource.getLocale(): Locale? = null
 
 fun MangaSource.getSummary(context: Context): String? = when (val source = unwrap()) {
-	is MangaParserSource -> {
-		val type = context.getString(source.contentType.titleResId)
-		val locale = source.locale.toLocale().getDisplayName(context)
-		context.getString(R.string.source_summary_pattern, type, locale)
-	}
-
-	is ExternalMangaSource -> context.getString(R.string.external_source)
 	is MihonMangaSource -> context.getString(R.string.external_source)
 	is MissingMangaSource -> {
-		if (source.name.startsWith("MIHON_") || source.name.startsWith("content:")) {
+		if (source.name.startsWith("MIHON_")) {
 			context.getString(R.string.external_source)
 		} else {
 			null
@@ -123,26 +101,21 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 }
 
 fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()) {
-	is MangaParserSource -> source.title
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	TestMangaSource -> context.getString(R.string.test_parser)
-	is ExternalMangaSource -> source.resolveName(context)
 	is MihonMangaSource -> source.displayName
 	is MissingMangaSource -> source.resolveDisplayName(context)
 	else -> context.getString(R.string.unknown)
 }
 
 fun MangaSource.isExternalSource(): Boolean = when (val source = unwrap()) {
-	is ExternalMangaSource,
 	is MihonMangaSource -> true
-	is MissingMangaSource -> source.name.startsWith("MIHON_") || source.name.startsWith("content:")
+	is MissingMangaSource -> source.name.startsWith("MIHON_")
 	else -> false
 }
 
 fun MangaSource.getStoredTitleOrNull(): String? = when (val source = unwrap()) {
-	is MangaParserSource -> source.title
 	is MihonMangaSource -> source.displayName
-	is ExternalMangaSource -> source.authority.ifBlank { source.packageName }
 	is MissingMangaSource -> source.cachedDisplayNameOrNull()
 	LocalMangaSource -> null
 	TestMangaSource -> null
@@ -150,12 +123,6 @@ fun MangaSource.getStoredTitleOrNull(): String? = when (val source = unwrap()) {
 }
 
 private fun MissingMangaSource.resolveDisplayName(context: Context): String {
-	if (name.startsWith("content:")) {
-		val parts = name.substringAfter(':').splitTwoParts('/')
-		if (parts != null) {
-			return parts.second.ifBlank { parts.first }
-		}
-	}
 	if (name.startsWith("MIHON_")) {
 		val cachedName = cachedDisplayNameOrNull()
 		return if (cachedName != null) {

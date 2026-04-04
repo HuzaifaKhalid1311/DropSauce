@@ -23,7 +23,6 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.toErrorFooter
 import org.koitharu.kotatsu.list.ui.model.toErrorState
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 
 @HiltViewModel(assistedFactory = TagsCatalogViewModel.Factory::class)
@@ -90,8 +89,7 @@ class TagsCatalogViewModel @AssistedInject constructor(
 			}
 		}
 		if (result.isNotEmpty()) {
-			val locale = (filter.mangaSource as? MangaParserSource)?.locale
-			result.sortWith(compareBy(TagTitleComparator(locale)) { (it as TagCatalogItem).tag })
+		result.sortWith(compareBy(TagTitleComparator(null)) { (it as TagCatalogItem).tag })
 		}
 		available.exceptionOrNull()?.let { error ->
 			result.add(

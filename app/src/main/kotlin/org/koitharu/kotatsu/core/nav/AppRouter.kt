@@ -42,7 +42,7 @@ import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaListFilter
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaPage
 import org.koitharu.kotatsu.core.network.CommonHeaders
-import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.DetailsUiMode
 import org.koitharu.kotatsu.core.prefs.ReaderMode
@@ -808,8 +808,8 @@ class AppRouter private constructor(
 
         fun sourceSettingsIntent(context: Context, source: MangaSource): Intent = when (source) {
             is MangaSourceInfo -> sourceSettingsIntent(context, source.mangaSource)
-            is ExternalMangaSource -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                .setData(Uri.fromParts("package", source.packageName, null))
+            is MihonMangaSource -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.fromParts("package", source.pkgName, null))
 
             else -> Intent(context, SettingsActivity::class.java)
                 .setAction(ACTION_SOURCE)
