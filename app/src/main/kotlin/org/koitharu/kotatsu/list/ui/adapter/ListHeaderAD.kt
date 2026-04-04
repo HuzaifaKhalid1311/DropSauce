@@ -25,27 +25,28 @@ fun listHeaderAD(
 	}
 
 	bind {
-		binding.textViewTitle.text = item.getText(context)
-		if (item.buttonTextRes == 0) {
+		val currentItem = item
+		binding.textViewTitle.text = currentItem.getText(context)
+		val filterMode = currentItem.filterMode
+		if (currentItem.buttonTextRes == 0) {
 			binding.buttonMore.isGone = true
 			binding.buttonMore.text = null
 			binding.buttonMore.clearBadge(badge)
 		} else {
-			if (item.filterMode != null) {
+			if (filterMode != null) {
 				binding.buttonMore.text = null
 				binding.buttonMore.setIconResource(R.drawable.ic_add)
-				binding.buttonMore.contentDescription = context.getString(item.buttonTextRes)
+				binding.buttonMore.contentDescription = context.getString(currentItem.buttonTextRes)
 			} else {
 				binding.buttonMore.icon = null
-				binding.buttonMore.setText(item.buttonTextRes)
-				binding.buttonMore.contentDescription = context.getString(item.buttonTextRes)
+				binding.buttonMore.setText(currentItem.buttonTextRes)
+				binding.buttonMore.contentDescription = context.getString(currentItem.buttonTextRes)
 			}
 			binding.buttonMore.isVisible = true
-			badge = itemView.bindBadge(badge, item.badge)
+			badge = itemView.bindBadge(badge, currentItem.badge)
 		}
 
-		if (item.filterMode != null) {
-			val filterMode = item.filterMode!!
+		if (filterMode != null) {
 			binding.toggleGroupFilter.isVisible = true
 			binding.toggleGroupFilter.clearOnButtonCheckedListeners()
 			when (filterMode) {
@@ -59,7 +60,7 @@ fun listHeaderAD(
 						R.id.button_filter_mihon -> SourceFilterMode.EXTERNAL
 						else -> SourceFilterMode.LOCAL
 					}
-					listener?.onListHeaderFilterModeChanged(item, newMode)
+					listener?.onListHeaderFilterModeChanged(currentItem, newMode)
 				}
 			}
 		} else {
