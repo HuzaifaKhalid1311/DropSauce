@@ -62,6 +62,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 				listView,
 				this,
 				exceptionResolver,
+				null,
 			),
 		)
 		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(listView))
