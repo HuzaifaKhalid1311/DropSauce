@@ -54,9 +54,7 @@ class AlternativesUseCase @Inject constructor(
 	}
 
 	@Suppress("UNUSED_PARAMETER")
-	private suspend fun getSources(ref: MangaSource, disabled: Boolean): List<MangaSource> = if (disabled) {
-		sourcesRepository.getDisabledSources().toList()
-	} else {
-		sourcesRepository.getEnabledSources().toList()
+	private suspend fun getSources(ref: MangaSource, disabled: Boolean): List<MangaSource> {
+		return sourcesRepository.getEnabledSources().toList()
 	}
 }

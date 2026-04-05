@@ -51,10 +51,6 @@ class MangaSourcesRepository @Inject constructor(
 		return getEnabledSources().take(limit)
 	}
 
-	fun getDisabledSources(): Set<MangaSource> {
-		return emptySet()
-	}
-
 	fun observeEnabledSourcesCount(): Flow<Int> {
 		return observeMihonSources().map { it.size }.distinctUntilChanged()
 	}

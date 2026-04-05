@@ -68,9 +68,8 @@ class SearchViewModel @Inject constructor(
 	val list: StateFlow<List<ListModel>> = combine(
 		results,
 		isLoading.dropWhile { !it },
-		includeDisabledSources,
 		hideEmpty,
-	) { list, loading, includeDisabled, hideEmptyVal ->
+	) { list, loading, hideEmptyVal ->
 		val filteredList = if (hideEmptyVal) {
 			list.filter { it.list.isNotEmpty() }
 		} else {
@@ -90,8 +89,7 @@ class SearchViewModel @Inject constructor(
 			)
 
 			loading -> filteredList + LoadingFooter()
-			includeDisabled -> filteredList
-			else -> filteredList + ButtonFooter(R.string.search_disabled_sources)
+			else -> filteredList
 		}
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
@@ -115,7 +113,6 @@ class SearchViewModel @Inject constructor(
 	fun retry() {
 		searchJob?.cancel()
 		results.value = emptyList()
-		includeDisabledSources.value = false
 		doSearch()
 	}
 
@@ -128,30 +125,6 @@ class SearchViewModel @Inject constructor(
 
 	fun setHideEmpty(value: Boolean) {
 		hideEmpty.value = value
-	}
-
-	fun continueSearch() {
-		if (includeDisabledSources.value) {
-			return
-		}
-		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
-			includeDisabledSources.value = true
-			prevJob?.join()
-			val sources = if (pinnedOnly.value) {
-				emptyList<MangaSource>()
-			} else {
-				sourcesRepository.getDisabledSources().toList()
-			}
-			val semaphore = Semaphore(MAX_PARALLELISM)
-			sources.map { source ->
-				launch {
-					semaphore.withPermit {
-						appendResult(searchSource(source))
-					}
-				}
-			}.joinAll()
-		}
 	}
 
 	private fun doSearch() {

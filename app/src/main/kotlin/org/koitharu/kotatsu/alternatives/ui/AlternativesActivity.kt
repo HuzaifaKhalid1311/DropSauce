@@ -100,7 +100,7 @@ class AlternativesActivity : BaseActivity<ActivityAlternativesBinding>(),
 
 	override fun onEmptyActionClick() = Unit
 
-	override fun onFooterButtonClick() = viewModel.continueSearch()
+	override fun onFooterButtonClick() = Unit
 
 	private fun confirmMigration(target: Manga) {
 		buildAlertDialog(this, isCentered = true) {

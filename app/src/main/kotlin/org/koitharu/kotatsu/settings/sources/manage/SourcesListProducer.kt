@@ -48,8 +48,7 @@ class SourcesListProducer @Inject constructor(
 		settings.observeChanges()
 			.filter {
 				it == AppSettings.KEY_TIPS_CLOSED ||
-					it == AppSettings.KEY_DISABLE_NSFW ||
-					it == AppSettings.KEY_SOURCES_HIDE_BROKEN
+					it == AppSettings.KEY_DISABLE_NSFW
 			}
 			.flowOn(Dispatchers.Default)
 			.onEach { onInvalidated(emptySet()) }
@@ -105,14 +104,13 @@ class SourcesListProducer @Inject constructor(
 				)
 			}
 			enabledSources.mapTo(result) {
-				val isParserSource = false
 				SourceConfigItem.SourceItem(
 					source = it,
 					isEnabled = true,
-					isDraggable = isReorderAvailable && isParserSource,
+					isDraggable = false,
 					isAvailable = false,
 					isPinned = it.name in pinned,
-					isDisableAvailable = isDisableAvailable && isParserSource,
+					isDisableAvailable = false,
 					isMenuAvailable = it.unwrap() !is MihonMangaSource,
 				)
 			}
