@@ -11,6 +11,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.parsers.exception.GraphQLException
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -36,6 +37,7 @@ private const val REQUEST_QUERY = "query"
 private const val REQUEST_MUTATION = "mutation"
 private const val KEY_SCORE_FORMAT = "score_format"
 
+@OptIn(InternalParsersApi::class)
 @Singleton
 class AniListRepository @Inject constructor(
 	@ApplicationContext context: Context,

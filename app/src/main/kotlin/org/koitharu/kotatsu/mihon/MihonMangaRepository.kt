@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.mihon.model.toSChapter
 import org.koitharu.kotatsu.mihon.model.toSManga
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
@@ -27,6 +28,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.EnumSet
 
+@OptIn(InternalParsersApi::class)
 class MihonMangaRepository(
 	override val source: MihonMangaSource,
 	cache: MemoryContentCache,
