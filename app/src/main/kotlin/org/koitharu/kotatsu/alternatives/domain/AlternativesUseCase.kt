@@ -23,8 +23,8 @@ class AlternativesUseCase @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 ) {
 
-	suspend operator fun invoke(manga: Manga, throughDisabledSources: Boolean): Flow<Manga> {
-		val sources = getSources(manga.source, throughDisabledSources)
+	suspend operator fun invoke(manga: Manga): Flow<Manga> {
+		val sources = getSources()
 		if (sources.isEmpty()) {
 			return emptyFlow()
 		}
@@ -53,8 +53,7 @@ class AlternativesUseCase @Inject constructor(
 		}
 	}
 
-	@Suppress("UNUSED_PARAMETER")
-	private suspend fun getSources(ref: MangaSource, disabled: Boolean): List<MangaSource> {
+	private suspend fun getSources(): List<MangaSource> {
 		return sourcesRepository.getEnabledSources().toList()
 	}
 }

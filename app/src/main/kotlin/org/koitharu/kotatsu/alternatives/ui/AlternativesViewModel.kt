@@ -106,7 +106,7 @@ class AlternativesViewModel @Inject constructor(
 			prevJob?.cancelAndJoin()
 			val ref = mangaDetails.getOrDefault(manga)
 			val refCount = ref.chaptersCount()
-			alternativesUseCase.invoke(ref, throughDisabledSources = false)
+			alternativesUseCase.invoke(ref)
 				.collect {
 					val model = MangaAlternativeModel(
 						mangaModel = mangaListMapper.toListModel(it, ListMode.GRID) as MangaGridModel,

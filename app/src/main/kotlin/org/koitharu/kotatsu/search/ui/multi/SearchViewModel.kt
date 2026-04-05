@@ -31,7 +31,6 @@ import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.list.domain.MangaListMapper
-import org.koitharu.kotatsu.list.ui.model.ButtonFooter
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
@@ -58,7 +57,6 @@ class SearchViewModel @Inject constructor(
 	val query = savedStateHandle.get<String>(AppRouter.KEY_QUERY).orEmpty()
 	val kind = savedStateHandle.get<SearchKind>(AppRouter.KEY_KIND) ?: SearchKind.SIMPLE
 
-	private var includeDisabledSources = MutableStateFlow(false)
 	private var pinnedOnly = MutableStateFlow(false)
 	private var hideEmpty = MutableStateFlow(false)
 	private val results = MutableStateFlow<List<SearchResultsListModel>>(emptyList())
