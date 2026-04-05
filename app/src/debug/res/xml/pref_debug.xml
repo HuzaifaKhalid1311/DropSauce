@@ -13,11 +13,5 @@
 		android:persistent="false"
 		android:title="@string/wi_lib_name" />
 
-	<Preference
-		android:key="test_parser"
-		android:persistent="false"
-		android:title="@string/test_parser"
-		app:allowDividerAbove="true" />
-
 
 </androidx.preference.PreferenceScreen>

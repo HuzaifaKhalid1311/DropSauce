@@ -859,7 +859,6 @@
     <string name="no_chapters_in_manga">Ця манга не містить жодних розділів</string>
     <string name="chapters_load_failed">Не вдалося завантажити список розділів</string>
     <string name="telegram_integration">Інтеграція з Telegram</string>
-    <string name="test_parser">Джерело тестової манги</string>
     <string name="pull_to_prev_chapter">Відпустіть, щоб відкрити попередній розділ</string>
     <string name="pull_to_next_chapter">Відпустіть, щоб відкрити наступний розділ</string>
     <string name="pull_top_no_prev">Немає попереднього розділу</string>

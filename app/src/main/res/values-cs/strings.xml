@@ -870,7 +870,6 @@
     <string name="no_chapters_in_manga">Tato manga neobsahuje žádné kapitoly</string>
     <string name="chapters_load_failed">Načítání kapitol selhalo</string>
     <string name="telegram_integration">Integrace Telegramu</string>
-    <string name="test_parser">Vyzkoušet zdroje mang</string>
     <string name="rename">Přejmenovat</string>
     <string name="save_filter">Uložit filtr</string>
     <string name="overwrite">Nahradit</string>

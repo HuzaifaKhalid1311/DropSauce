@@ -851,7 +851,6 @@
     <string name="no_chapters_in_manga">இந்த மங்காவில் எந்த அத்தியாயங்களும் இல்லை</string>
     <string name="chapters_load_failed">அத்தியாய பட்டியலை ஏற்றுவதில் தோல்வி</string>
     <string name="telegram_integration">தந்தி ஒருங்கிணைப்பு</string>
-    <string name="test_parser">சோதனை மங்கா மூல</string>
     <string name="pull_to_prev_chapter">முந்தைய அத்தியாயத்தைத் திறக்க வெளியீடு</string>
     <string name="pull_to_next_chapter">அடுத்த அத்தியாயத்தைத் திறக்க வெளியீடு</string>
     <string name="pull_top_no_prev">முந்தைய அத்தியாயம் இல்லை</string>

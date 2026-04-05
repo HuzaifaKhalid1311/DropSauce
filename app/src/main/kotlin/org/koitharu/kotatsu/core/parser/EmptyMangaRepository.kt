@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.core.parser
 
 import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
@@ -11,6 +12,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import java.util.EnumSet
 
+@OptIn(InternalParsersApi::class)
 open class EmptyMangaRepository(override val source: MangaSource) : MangaRepository {
 
 	override val sortOrders: Set<SortOrder>

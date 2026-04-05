@@ -857,7 +857,6 @@
     <string name="no_chapters_in_manga">Este manga no contiene ningún capítulo</string>
     <string name="chapters_load_failed">No se pudo cargar la lista de capítulos</string>
     <string name="telegram_integration">Integración con Telegram</string>
-    <string name="test_parser">Probar la fuente de manga</string>
     <string name="pull_to_prev_chapter">Abrir el capítulo anterior</string>
     <string name="pull_to_next_chapter">Abrir el siguiente capítulo</string>
     <string name="pull_top_no_prev">No existe capítulo anterior</string>

@@ -24,10 +24,6 @@ data object UnknownMangaSource : MangaSource {
 	override val name = "UNKNOWN"
 }
 
-data object TestMangaSource : MangaSource {
-	override val name = "TEST"
-}
-
 data class MissingMangaSource(
 	override val name: String,
 ) : MangaSource
@@ -36,7 +32,6 @@ fun MangaSource(name: String?): MangaSource {
 	when (name ?: return UnknownMangaSource) {
 		UnknownMangaSource.name -> return UnknownMangaSource
 		LocalMangaSource.name -> return LocalMangaSource
-		TestMangaSource.name -> return TestMangaSource
 	}
 	if (name.startsWith("MIHON_")) {
 		return MihonExtensionManager.getByName(name) ?: MissingMangaSource(name)
@@ -102,7 +97,6 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 
 fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()) {
 	LocalMangaSource -> context.getString(R.string.local_storage)
-	TestMangaSource -> context.getString(R.string.test_parser)
 	is MihonMangaSource -> source.displayName
 	is MissingMangaSource -> source.resolveDisplayName(context)
 	else -> context.getString(R.string.unknown)
@@ -118,7 +112,6 @@ fun MangaSource.getStoredTitleOrNull(): String? = when (val source = unwrap()) {
 	is MihonMangaSource -> source.displayName
 	is MissingMangaSource -> source.cachedDisplayNameOrNull()
 	LocalMangaSource -> null
-	TestMangaSource -> null
 	else -> null
 }
 

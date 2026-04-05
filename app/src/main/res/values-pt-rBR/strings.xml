@@ -874,7 +874,6 @@
     <string name="create_or_restore_backup">Criar ou restaurar um backup</string>
     <string name="privacy">Privacidade</string>
     <string name="enter_name">Insira um nome</string>
-    <string name="test_parser">Testar fonte de mangás</string>
     <string name="data_removal">Remoção de dados</string>
     <string name="source_broken_warning">Esta fonte de mangá está quebrada. Algumas funções podem não funcionar</string>
     <string name="frequency_every_6_hours">A cada 6 horas</string>
