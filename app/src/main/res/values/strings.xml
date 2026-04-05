@@ -51,7 +51,6 @@
     <string name="sort_order">Sorting order</string>
     <string name="filter">Filter</string>
     <string name="filter_sources_all">All</string>
-    <string name="filter_sources_built_in">Local</string>
     <string name="filter_sources_mihon">External</string>
     <string name="saved_filters">Saved filters</string>
     <string name="theme">Theme</string>
@@ -550,9 +549,7 @@
     <string name="source_summary_pattern" translatable="false">%1$s, %2$s</string>
     <string name="sources_catalog">Sources catalog</string>
     <string name="extension_management">Extension manager</string>
-    <string name="source_mode_builtin">Local</string>
     <string name="source_mode_mihon">External</string>
-    <string name="source_mode_prompt">Source type</string>
     <string name="source_enabled">Source enabled</string>
     <string name="no_manga_sources_catalog_text">There are no sources available in this section, or all of it might have been already added.\nStay tuned</string>
     <string name="extensions_repo_required">Repo required</string>

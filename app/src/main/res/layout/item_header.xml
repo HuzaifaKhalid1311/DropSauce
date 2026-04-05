@@ -53,16 +53,6 @@
 		tools:visibility="visible">
 
 		<com.google.android.material.button.MaterialButton
-			android:id="@+id/button_filter_builtin"
-			style="?attr/materialButtonOutlinedStyle"
-			android:layout_width="0dp"
-			android:layout_height="56dp"
-			android:layout_weight="1"
-			android:text="@string/filter_sources_built_in"
-			android:gravity="center"
-			android:textSize="14sp" />
-
-		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_filter_mihon"
 			style="?attr/materialButtonOutlinedStyle"
 			android:layout_width="0dp"
