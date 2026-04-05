@@ -17,6 +17,11 @@
 		app:showAsAction="ifRoom" />
 
 	<item
+		android:id="@+id/action_update_all"
+		android:title="@string/update_all"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_repo_remove"
 		android:icon="@drawable/ic_delete"
 		android:title="@string/remove_repo"

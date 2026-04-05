@@ -18,7 +18,7 @@ class ExploreMenuProvider(
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
 		return when (menuItem.itemId) {
 			R.id.action_manage -> {
-				router.openSourcesSettings()
+				router.openSourcesCatalog(isExternalOnly = true)
 				true
 			}
 

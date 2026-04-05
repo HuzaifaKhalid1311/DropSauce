@@ -42,9 +42,8 @@ class SourcesCatalogMenuProvider(
 	}
 
 	override fun onPrepareMenu(menu: Menu) {
-		val isExternalMode = isExternalOnly || viewModel.appliedFilter.value.mode == SourcesCatalogMode.MIHON
 		menu.findItem(R.id.action_repo).apply {
-			isVisible = isExternalMode
+			isVisible = isExternalOnly || viewModel.content.value.isNotEmpty()
 			icon = ContextCompat.getDrawable(activity, R.drawable.ic_edit)
 		}
 		menu.findItem(R.id.action_repo_remove).isVisible = false

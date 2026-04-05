@@ -9,10 +9,10 @@
         android:title="@string/appearance" />
 
     <PreferenceScreen
-        android:fragment="org.koitharu.kotatsu.settings.sources.SourcesSettingsFragment"
+        android:fragment="org.koitharu.kotatsu.settings.sources.ExtensionsSettingsFragment"
         android:icon="@drawable/ic_manga_source"
-        android:key="remote_sources"
-        android:title="@string/remote_sources" />
+        android:key="extensions"
+        android:title="@string/extensions" />
 
     <PreferenceScreen
         android:fragment="org.koitharu.kotatsu.settings.ReaderSettingsFragment"

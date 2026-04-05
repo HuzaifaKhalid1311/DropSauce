@@ -49,7 +49,7 @@ class ShelfListFactory(
 	override fun getItemId(position: Int) = dataSet.getOrNull(position)?.id ?: 0L
 
 	override fun onDataSetChanged() {
-		val data = if (settings.appPassword.isNullOrEmpty()) {
+		val data = if (!settings.isAppProtectionEnabled) {
 			runBlocking {
 				val category = config.categoryId
 				if (category == 0L) {

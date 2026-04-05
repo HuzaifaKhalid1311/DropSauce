@@ -49,7 +49,9 @@ class ImportDialogFragment : AlertDialogFragment<DialogImportBinding>(), View.On
 
 	override fun onClick(v: View) {
 		val res = when (v.id) {
-			R.id.button_file -> importFileCall.tryLaunch(arrayOf("*/*"))
+			R.id.button_file -> importFileCall.tryLaunch(
+				arrayOf("application/zip", "application/x-cbz", "application/pdf", "*/*"),
+			)
 			R.id.button_dir -> importDirCall.tryLaunch(null)
 			else -> true
 		}

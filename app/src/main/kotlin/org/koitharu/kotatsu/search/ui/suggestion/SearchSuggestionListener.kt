@@ -17,5 +17,7 @@ interface SearchSuggestionListener : TextWatcher, TextView.OnEditorActionListene
 
 	fun onSourceClick(source: MangaSource)
 
+	fun onSourceSettingsClick(source: MangaSource)
+
 	fun onTagClick(tag: MangaTag)
 }

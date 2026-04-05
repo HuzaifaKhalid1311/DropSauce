@@ -34,10 +34,9 @@ import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.titleResId
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
-import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView.ChipModel
 import org.koitharu.kotatsu.core.util.LocaleComparator
@@ -50,10 +49,10 @@ import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.parsers.model.ContentType
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
-	OnListItemClickListener<SourceCatalogItem.Source>,
 	ExtensionActionListener,
 	AppBarOwner,
 	MenuItem.OnActionExpandListener,
@@ -62,13 +61,16 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	override val appBar: AppBarLayout
 		get() = viewBinding.appbar
 
+	@Inject
+	lateinit var settings: AppSettings
+
 	private val viewModel by viewModels<SourcesCatalogViewModel>()
 	private val isExternalOnly by lazy(LazyThreadSafetyMode.NONE) {
 		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, false) == true
 	}
 	private var isScrollToTopShown = false
 	private val downloadManager by lazy(LazyThreadSafetyMode.NONE) {
-		getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+		getSystemService(DOWNLOAD_SERVICE) as DownloadManager
 	}
 	private val pendingInstallerDownloads = HashSet<Long>()
 	private var pendingInstallUrl: String? = null
@@ -93,34 +95,23 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (isExternalOnly) {
 			title = getString(R.string.extension_management)
 		}
-		val sourcesAdapter = SourcesCatalogAdapter(this, this)
+		val sourcesAdapter = SourcesCatalogAdapter(extensionActionListener = this)
 		with(viewBinding.recyclerView) {
 			setHasFixedSize(true)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 			adapter = sourcesAdapter
 		}
 		viewBinding.chipsFilter.onChipClickListener = this
-		if (isExternalOnly) {
-			viewModel.setMode(SourcesCatalogMode.MIHON)
-		} else {
-			intent?.getStringExtra(AppRouter.KEY_SOURCE_CATALOG_MODE)?.let { modeName ->
-				SourcesCatalogMode.entries.firstOrNull { it.name == modeName }?.let { mode ->
-					viewModel.setMode(mode)
-				}
-			}
-		}
+		pendingInstallerDownloads.addAll(settings.pendingExtensionDownloads)
 		FadingAppbarMediator(viewBinding.appbar, viewBinding.toolbar).bind()
 		viewModel.content.observe(this, sourcesAdapter)
+		viewModel.hasUpdates.observe(this) { invalidateOptionsMenu() }
 		viewModel.isRefreshing.observe(this) {
 			viewBinding.swipeRefreshLayout.isRefreshing = it
 		}
 		viewBinding.swipeRefreshLayout.setOnRefreshListener {
 			viewModel.refresh()
 		}
-		viewModel.onActionDone.observeEvent(
-			this,
-			ReversibleActionObserver(viewBinding.recyclerView),
-		)
 		viewModel.onOpenPackageInstaller.observeEvent(this) { url ->
 			onInstallExtensionRequested(url)
 		}
@@ -142,10 +133,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			viewModel.hasNewSources,
 			viewModel.contentTypes,
 			viewModel.locales,
-		) { filter, hasNewSources, contentTypes, locales ->
-			CatalogUiState(filter, hasNewSources, contentTypes, locales)
+			viewModel.isNsfwDisabled,
+		) { filter, hasNewSources, contentTypes, locales, isNsfwDisabled ->
+			CatalogUiState(filter, hasNewSources, contentTypes, locales, isNsfwDisabled)
 		}.observe(this) {
-			updateFilers(it.filter, it.hasNewSources, it.contentTypes, it.locales)
+			updateFilers(it.filter, it.hasNewSources, it.contentTypes, it.locales, it.isNsfwDisabled)
 		}
 		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
 		ContextCompat.registerReceiver(
@@ -154,6 +146,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			android.content.IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
 			ContextCompat.RECEIVER_EXPORTED,
 		)
+		checkPendingInstallerDownloads()
 		viewBinding.buttonScrollToTop.setOnClickListener {
 			viewBinding.recyclerView.smoothScrollToPosition(0)
 		}
@@ -198,18 +191,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	override fun onChipClick(chip: Chip, data: Any?) {
 		when (data) {
 			is ContentType -> viewModel.setContentType(data, !chip.isChecked)
-			is Boolean -> viewModel.setNewOnly(!chip.isChecked)
-			else -> showLocalesMenu(chip)
+			FilterChip.NEW_ONLY -> viewModel.setNewOnly(!chip.isChecked)
+			FilterChip.NSFW_DISABLED -> viewModel.setNsfwDisabled(!chip.isChecked)
+			FilterChip.LOCALE -> showLocalesMenu(chip)
+			else -> Unit
 		}
-	}
-
-	override fun onItemClick(item: SourceCatalogItem.Source, view: View) {
-		router.openList(item.source, null, null)
-	}
-
-	override fun onItemLongClick(item: SourceCatalogItem.Source, view: View): Boolean {
-		viewModel.addSource(item.source)
-		return false
 	}
 
 	override fun onExtensionActionClick(item: SourceCatalogItem.Extension) {
@@ -242,21 +228,29 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		hasNewSources: Boolean,
 		contentTypes: List<ContentType>,
 		locales: Set<String?>,
+		isNsfwDisabled: Boolean,
 	) {
-		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
-		if (locales.size > 1 || appliedFilter.mode == SourcesCatalogMode.MIHON) {
+		val chips = ArrayList<ChipModel>(contentTypes.size + 3)
+		if (locales.size > 1) {
 			chips += ChipModel(
 				title = appliedFilter.locale?.toLocale().getDisplayName(this),
 				icon = R.drawable.ic_language,
 				isDropdown = true,
+				data = FilterChip.LOCALE,
 			)
 		}
-		if (hasNewSources && appliedFilter.mode == SourcesCatalogMode.BUILTIN) {
+		chips += ChipModel(
+			title = getString(R.string.disable_nsfw),
+			icon = R.drawable.ic_nsfw,
+			isChecked = isNsfwDisabled,
+			data = FilterChip.NSFW_DISABLED,
+		)
+		if (hasNewSources) {
 			chips += ChipModel(
 				title = getString(R.string._new),
 				icon = R.drawable.ic_updated,
 				isChecked = appliedFilter.isNewOnly,
-				data = true,
+				data = FilterChip.NEW_ONLY,
 			)
 		}
 		contentTypes.mapTo(chips) { type ->
@@ -328,7 +322,14 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val hasNewSources: Boolean,
 		val contentTypes: List<ContentType>,
 		val locales: Set<String?>,
+		val isNsfwDisabled: Boolean,
 	)
+
+	private enum class FilterChip {
+		NEW_ONLY,
+		LOCALE,
+		NSFW_DISABLED,
+	}
 
 	private fun updateScrollToTopVisibility() {
 		val layoutManager = viewBinding.recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
@@ -375,6 +376,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			.setMimeType("application/vnd.android.package-archive")
 		val downloadId = downloadManager.enqueue(request)
 		pendingInstallerDownloads += downloadId
+		settings.pendingExtensionDownloads = pendingInstallerDownloads
 		Toast.makeText(this, R.string.download_started, Toast.LENGTH_SHORT).show()
 	}
 
@@ -382,15 +384,36 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val apkUri = downloadManager.getUriForDownloadedFile(downloadId) ?: return
 		val mime = downloadManager.getMimeTypeForDownloadedFile(downloadId)
 			?: "application/vnd.android.package-archive"
-		val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE)
+		val installIntent = Intent(Intent.ACTION_VIEW)
 			.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 			.setDataAndType(apkUri, mime)
-			.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
 		try {
 			startActivity(installIntent)
+			settings.pendingExtensionDownloads = pendingInstallerDownloads
 		} catch (_: ActivityNotFoundException) {
 			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
 		}
+	}
+
+	private fun checkPendingInstallerDownloads() {
+		if (pendingInstallerDownloads.isEmpty()) {
+			return
+		}
+		val pendingSnapshot = pendingInstallerDownloads.toLongArray()
+		val query = DownloadManager.Query().setFilterById(*pendingSnapshot)
+		val cursor = downloadManager.query(query) ?: return
+		cursor.use {
+			val idColumn = it.getColumnIndex(DownloadManager.COLUMN_ID)
+			val statusColumn = it.getColumnIndex(DownloadManager.COLUMN_STATUS)
+			while (it.moveToNext()) {
+				val id = if (idColumn >= 0) it.getLong(idColumn) else continue
+				val status = if (statusColumn >= 0) it.getInt(statusColumn) else continue
+				if (status == DownloadManager.STATUS_SUCCESSFUL && pendingInstallerDownloads.remove(id)) {
+					installDownloadedApk(id)
+				}
+			}
+		}
+		settings.pendingExtensionDownloads = pendingInstallerDownloads
 	}
 
 	private fun clearOldApks() {
@@ -401,7 +424,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 					file.delete()
 				}
 			}
-		} catch (e: Exception) {
+		} catch (_: Exception) {
 			// Ignore
 		}
 	}

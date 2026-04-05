@@ -23,7 +23,7 @@ class SourceAuthActivity : BaseBrowserActivity(), BrowserCallback {
 			finishAfterTransition()
 			return
 		}
-		// Auth via built-in parsers is no longer supported; extensions handle auth themselves
+		// Auth is handled by extensions
 		Toast.makeText(
 			this,
 			getString(R.string.auth_not_supported_by, source.getTitle(this)),

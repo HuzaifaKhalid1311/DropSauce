@@ -139,9 +139,17 @@
 
         <SwitchPreferenceCompat
             android:key="protect_app"
-            android:persistent="false"
-            android:summary="@string/protect_application_summary"
-            android:title="@string/protect_application" />
+      android:summary="@string/require_unlock_summary"
+      android:title="@string/require_unlock" />
+
+    <ListPreference
+      android:defaultValue="INSTANT"
+      android:dependency="protect_app"
+      android:entries="@array/protect_app_timeout_options"
+      android:entryValues="@array/protect_app_timeout_values"
+      android:key="protect_app_timeout"
+      android:title="@string/require_unlock_after"
+      app:useSimpleSummaryProvider="true" />
 
         <ListPreference
             android:defaultValue="allow"

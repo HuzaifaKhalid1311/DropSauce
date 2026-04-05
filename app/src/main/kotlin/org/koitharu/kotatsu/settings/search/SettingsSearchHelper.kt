@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.settings.search
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.XmlRes
+import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
@@ -20,7 +21,7 @@ import org.koitharu.kotatsu.settings.StorageAndNetworkSettingsFragment
 import org.koitharu.kotatsu.settings.SuggestionsSettingsFragment
 import org.koitharu.kotatsu.settings.about.AboutSettingsFragment
 import org.koitharu.kotatsu.settings.discord.DiscordSettingsFragment
-import org.koitharu.kotatsu.settings.sources.SourcesSettingsFragment
+import org.koitharu.kotatsu.settings.sources.ExtensionsSettingsFragment
 import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
 import org.koitharu.kotatsu.settings.userdata.BackupsSettingsFragment
 import org.koitharu.kotatsu.settings.userdata.storage.DataCleanupSettingsFragment
@@ -36,7 +37,7 @@ class SettingsSearchHelper @Inject constructor(
         val preferenceManager = PreferenceManager(context)
         val result = ArrayList<SettingsItem>()
         preferenceManager.inflateTo(result, R.xml.pref_appearance, emptyList(), AppearanceSettingsFragment::class.java)
-        preferenceManager.inflateTo(result, R.xml.pref_sources, emptyList(), SourcesSettingsFragment::class.java)
+        preferenceManager.inflateTo(result, R.xml.pref_extensions, emptyList(), ExtensionsSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_reader, emptyList(), ReaderSettingsFragment::class.java)
         preferenceManager.inflateTo(
             result,
@@ -79,12 +80,6 @@ class SettingsSearchHelper @Inject constructor(
             listOf(context.getString(R.string.services)),
             DiscordSettingsFragment::class.java,
         )
-        preferenceManager.inflateTo(
-            result,
-            R.xml.pref_sources,
-            listOf(),
-            SourcesSettingsFragment::class.java,
-        )
         return result
     }
 
@@ -103,13 +98,13 @@ class SettingsSearchHelper @Inject constructor(
         )
     }
 
-    private fun PreferenceScreen.inflateTo(
+    private fun PreferenceGroup.inflateTo(
         result: MutableList<SettingsItem>,
         breadcrumbs: List<String>,
         fragmentClass: Class<out PreferenceFragmentCompat>
     ): Unit = repeat(preferenceCount) { i ->
         val pref = this[i]
-        if (pref is PreferenceScreen) {
+        if (pref is PreferenceGroup) {
             val screenTitle = pref.title?.toString()
             pref.inflateTo(
                 result = result,
@@ -117,11 +112,28 @@ class SettingsSearchHelper @Inject constructor(
                 fragmentClass = fragmentClass,
             )
         } else {
+            val key = pref.key ?: return@repeat
+            val title = pref.title ?: return@repeat
+            val summary = pref.summary?.toString().orEmpty()
+            val searchText = buildString {
+                append(title)
+                append(' ')
+                append(key)
+                if (summary.isNotBlank()) {
+                    append(' ')
+                    append(summary)
+                }
+                if (breadcrumbs.isNotEmpty()) {
+                    append(' ')
+                    append(breadcrumbs.joinToString(" "))
+                }
+            }
             result.add(
                 SettingsItem(
-                    key = pref.key ?: return@repeat,
-                    title = pref.title ?: return@repeat,
+                    key = key,
+                    title = title,
                     breadcrumbs = breadcrumbs,
+                    searchText = searchText,
                     fragmentClass = fragmentClass,
                 ),
             )

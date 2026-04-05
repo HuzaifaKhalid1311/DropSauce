@@ -4,6 +4,7 @@ import androidx.annotation.AnyThread
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.model.LocalMangaSource
+import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.TestMangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
@@ -60,22 +61,28 @@ interface MangaRepository {
 
 		@AnyThread
 		fun create(source: MangaSource): MangaRepository {
-			when (source) {
+			val unwrapped = unwrap(source)
+			when (unwrapped) {
 				LocalMangaSource -> return localMangaRepository
-				UnknownMangaSource -> return EmptyMangaRepository(source)
+				UnknownMangaSource -> return EmptyMangaRepository(unwrapped)
 				is MihonMangaSource -> mihonExtensionManager.initialize()
 			}
-			cache[source]?.get()?.let { return it }
+			cache[unwrapped]?.get()?.let { return it }
 			return synchronized(cache) {
-				cache[source]?.get()?.let { return it }
-				val repository = createRepository(source)
+				cache[unwrapped]?.get()?.let { return it }
+				val repository = createRepository(unwrapped)
 				if (repository != null) {
-					cache[source] = WeakReference(repository)
+					cache[unwrapped] = WeakReference(repository)
 					repository
 				} else {
-					EmptyMangaRepository(source)
+					EmptyMangaRepository(unwrapped)
 				}
 			}
+		}
+
+		private fun unwrap(source: MangaSource): MangaSource = when (source) {
+			is MangaSourceInfo -> source.mangaSource
+			else -> source
 		}
 
 		private fun createRepository(source: MangaSource): MangaRepository? = when (source) {

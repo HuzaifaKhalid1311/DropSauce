@@ -46,7 +46,7 @@ class RecentListFactory(
 	override fun getItemId(position: Int) = dataSet.getOrNull(position)?.id ?: 0L
 
 	override fun onDataSetChanged() {
-		val data = if (settings.appPassword.isNullOrEmpty()) {
+		val data = if (!settings.isAppProtectionEnabled) {
 			runBlocking { historyRepository.getList(0, 10) }
 		} else {
 			emptyList()

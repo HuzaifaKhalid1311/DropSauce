@@ -27,7 +27,7 @@ class SettingsSearchViewModel @Inject constructor(
 		if (q == null) {
 			emptyList()
 		} else {
-			allSettings.filter { it.title.contains(q, ignoreCase = true) }
+			allSettings.filter { it.searchText.contains(q, ignoreCase = true) }
 		}
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
 

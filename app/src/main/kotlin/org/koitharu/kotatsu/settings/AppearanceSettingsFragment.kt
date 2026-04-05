@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.settings
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.app.KeyguardManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +17,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.AppProtectionTimeout
 import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode
 import org.koitharu.kotatsu.core.prefs.ScreenshotsPolicy
@@ -32,7 +34,6 @@ import org.koitharu.kotatsu.core.util.ext.toList
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.names
 import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.settings.protect.ProtectSetupActivity
 import org.koitharu.kotatsu.settings.utils.ActivityListPreference
 import org.koitharu.kotatsu.settings.utils.MultiSummaryProvider
 import org.koitharu.kotatsu.settings.utils.PercentSummaryProvider
@@ -80,8 +81,12 @@ class AppearanceSettingsFragment :
         }
         findPreference<Preference>(AppSettings.KEY_SHORTCUTS)?.isVisible =
             appShortcutManager.isDynamicShortcutsAvailable()
-        findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)
-            ?.isChecked = !settings.appPassword.isNullOrEmpty()
+        findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)?.isChecked = settings.isAppProtectionEnabled
+        findPreference<ListPreference>(AppSettings.KEY_PROTECT_APP_TIMEOUT)?.run {
+            entryValues = AppProtectionTimeout.entries.names()
+            entries = AppProtectionTimeout.entries.map { context.getString(it.titleResId) }.toTypedArray()
+            setDefaultValueCompat(AppProtectionTimeout.INSTANT.name)
+        }
         findPreference<ListPreference>(AppSettings.KEY_SCREENSHOTS_POLICY)?.run {
             entryValues = ScreenshotsPolicy.entries.names()
             setDefaultValueCompat(ScreenshotsPolicy.ALLOW.name)
@@ -97,6 +102,7 @@ class AppearanceSettingsFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        bindProtectionPrefs()
         settings.subscribe(this)
     }
 
@@ -125,10 +131,8 @@ class AppearanceSettingsFragment :
                 bindNavSummary()
             }
 
-            AppSettings.KEY_APP_PASSWORD -> {
-                findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)
-                    ?.isChecked = !settings.appPassword.isNullOrEmpty()
-            }
+            AppSettings.KEY_PROTECT_APP,
+            AppSettings.KEY_PROTECT_APP_TIMEOUT -> bindProtectionPrefs()
         }
     }
 
@@ -136,11 +140,12 @@ class AppearanceSettingsFragment :
         return when (preference.key) {
             AppSettings.KEY_PROTECT_APP -> {
                 val pref = (preference as? TwoStatePreference ?: return false)
-                if (pref.isChecked) {
+                if (!isDeviceSecure()) {
                     pref.isChecked = false
-                    startActivity(Intent(preference.context, ProtectSetupActivity::class.java))
+                    bindProtectionPrefs()
+                    return true
                 } else {
-                    settings.appPassword = null
+                    settings.isAppProtectionEnabled = pref.isChecked
                 }
                 true
             }
@@ -182,4 +187,23 @@ class AppearanceSettingsFragment :
             getString(it.title)
         }
     }
+
+  private fun bindProtectionPrefs() {
+    val protectPref = findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP) ?: return
+    val timeoutPref = findPreference<ListPreference>(AppSettings.KEY_PROTECT_APP_TIMEOUT)
+    val secure = isDeviceSecure()
+    protectPref.isChecked = secure && settings.isAppProtectionEnabled
+    protectPref.isEnabled = secure
+    protectPref.summary = if (secure) {
+      getString(R.string.require_unlock_summary)
+    } else {
+      getString(R.string.require_unlock_unavailable)
+    }
+    timeoutPref?.isEnabled = secure && protectPref.isChecked
+  }
+
+  private fun isDeviceSecure(): Boolean {
+    val manager = context?.getSystemService(KeyguardManager::class.java) ?: return false
+    return manager.isDeviceSecure
+  }
 }

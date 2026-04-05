@@ -280,9 +280,28 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			if (value != null) putString(KEY_APP_PASSWORD, value) else remove(KEY_APP_PASSWORD)
 		}
 
+	var isAppProtectionEnabled: Boolean
+		get() = prefs.getBoolean(KEY_PROTECT_APP, false)
+		set(value) = prefs.edit { putBoolean(KEY_PROTECT_APP, value) }
+
+	var appProtectionTimeout: AppProtectionTimeout
+		get() = prefs.getEnumValue(KEY_PROTECT_APP_TIMEOUT, AppProtectionTimeout.INSTANT)
+		set(value) = prefs.edit { putEnumValue(KEY_PROTECT_APP_TIMEOUT, value) }
+
+	val appProtectionTimeoutMillis: Long
+		get() = appProtectionTimeout.timeoutMillis
+
 	var isAppPasswordNumeric: Boolean
 		get() = prefs.getBoolean(KEY_APP_PASSWORD_NUMERIC, false)
 		set(value) = prefs.edit { putBoolean(KEY_APP_PASSWORD_NUMERIC, value) }
+
+	var pendingExtensionDownloads: Set<Long>
+		get() = prefs.getStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, emptySet())
+			.orEmpty()
+			.mapNotNullToSet { it.toLongOrNull() }
+		set(value) = prefs.edit {
+			putStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, value.mapToSet { it.toString() })
+		}
 
 	val searchSuggestionTypes: Set<SearchSuggestionType>
 		get() = prefs.getStringSet(KEY_SEARCH_SUGGESTION_TYPES, null)?.let { stringSet ->
@@ -334,7 +353,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 
 	var sourcesSortOrder: SourcesSortOrder
-		get() = prefs.getEnumValue(KEY_SOURCES_ORDER, SourcesSortOrder.MANUAL)
+		get() = prefs.getEnumValue(KEY_SOURCES_ORDER, SourcesSortOrder.LAST_USED)
 		set(value) = prefs.edit { putEnumValue(KEY_SOURCES_ORDER, value) }
 
 	var isSourcesGridMode: Boolean
@@ -779,6 +798,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_APP_PASSWORD = "app_password"
 		const val KEY_APP_PASSWORD_NUMERIC = "app_password_num"
 		const val KEY_PROTECT_APP = "protect_app"
+		const val KEY_PROTECT_APP_TIMEOUT = "protect_app_timeout"
 		const val KEY_PROTECT_APP_BIOMETRIC = "protect_app_bio"
 		const val KEY_ZOOM_MODE = "zoom_mode"
 		const val KEY_BACKUP = "backup"
@@ -887,6 +907,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_BACKUP_TG_ENABLED = "backup_periodic_tg_enabled"
 		const val KEY_BACKUP_TG_CHAT = "backup_periodic_tg_chat_id"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
+		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
 		const val KEY_TAGS_WARNINGS = "tags_warnings"
 		const val KEY_DISCORD_RPC = "discord_rpc"
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"

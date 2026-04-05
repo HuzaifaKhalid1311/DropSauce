@@ -205,7 +205,7 @@ class ChipsView @JvmOverloads constructor(
 				setTextColor(tint)
 			}
 			bindIcon(model)
-			isCheckedIconVisible = model.isChecked
+			isCheckedIconVisible = model.isChecked && !model.isDropdown
 			isCloseIconVisible = if (model.isCloseable || model.isDropdown) {
 				setCloseIconResource(
 					if (model.isDropdown) R.drawable.ic_expand_more else materialR.drawable.ic_m3_chip_close,

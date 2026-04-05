@@ -36,7 +36,7 @@ class SourceSettingsViewModel @Inject constructor(
 	val isAuthorized = MutableStateFlow<Boolean?>(null)
 	val browserUrl = MutableStateFlow<String?>(null)
 	init {
-		// Extensions handle their own config; no built-in parser config to subscribe
+		// Extensions handle their own config
 		browserUrl.value = null
 	}
 
@@ -58,7 +58,7 @@ class SourceSettingsViewModel @Inject constructor(
 	}
 
 	fun clearCookies() {
-		// No built-in parser domain to clear cookies for
+		// No parser domain to clear cookies for in extension mode
 	}
 
 	/**

@@ -14,6 +14,7 @@ import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.db.entity.toManga
 import org.koitharu.kotatsu.core.db.entity.toMangaTag
 import org.koitharu.kotatsu.core.db.entity.toMangaTagsList
+import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -131,8 +132,14 @@ class MangaSearchRepository @Inject constructor(
 		if (query.length < 3) {
 			return emptyList()
 		}
-		// No built-in sources to suggest; extensions are discovered at runtime
-		return emptyList()
+		val q = query.trim()
+		if (q.isEmpty()) return emptyList()
+		return sourcesRepository.getEnabledSources()
+			.filter { source ->
+				source.name.contains(q, ignoreCase = true) ||
+					source.getTitle(context).contains(q, ignoreCase = true)
+			}
+			.take(limit)
 	}
 
 	fun saveSearchQuery(query: String) {

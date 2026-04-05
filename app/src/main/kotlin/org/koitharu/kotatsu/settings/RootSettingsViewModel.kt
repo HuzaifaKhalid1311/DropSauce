@@ -15,7 +15,7 @@ class RootSettingsViewModel @Inject constructor(
 	sourcesRepository: MangaSourcesRepository,
 ) : BaseViewModel() {
 
-	val totalSourcesCount = 0 // No built-in sources; extensions provide all sources
+	val totalSourcesCount = 0 // Sources come from extensions
 
 	val enabledSourcesCount = sourcesRepository.observeEnabledSourcesCount()
 		.withErrorHandling()

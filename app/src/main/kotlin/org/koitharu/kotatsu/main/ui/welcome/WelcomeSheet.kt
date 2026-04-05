@@ -52,6 +52,7 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 		binding.chipBackup.setOnClickListener(this)
 		binding.chipSync.setOnClickListener(this)
 		binding.chipDirectories.setOnClickListener(this)
+		binding.chipExtensions.setOnClickListener(this)
 
 		viewModel.locales.observe(viewLifecycleOwner, ::onLocalesChanged)
 		viewModel.types.observe(viewLifecycleOwner, ::onTypesChanged)
@@ -88,9 +89,14 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 				am.addAccount(accountType, accountType, null, null, requireActivity(), null, null)
 			}
 
-            R.id.chip_directories -> {
-                router.openDirectoriesSettings()
-            }
+			R.id.chip_directories -> {
+				router.openDirectoriesSettings()
+			}
+
+			R.id.chip_extensions -> {
+				router.openSourcesCatalog()
+				dismiss()
+			}
 		}
 	}
 

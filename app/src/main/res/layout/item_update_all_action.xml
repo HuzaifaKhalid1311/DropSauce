@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:paddingStart="16dp"
+	android:paddingTop="8dp"
+	android:paddingEnd="16dp"
+	android:paddingBottom="4dp">
+
+	<com.google.android.material.button.MaterialButton
+		android:id="@+id/button_update_all"
+		style="?materialButtonStyle"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/update_all" />
+
+</FrameLayout>
+

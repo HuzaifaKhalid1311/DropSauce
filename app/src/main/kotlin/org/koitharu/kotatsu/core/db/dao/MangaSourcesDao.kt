@@ -138,7 +138,6 @@ abstract class MangaSourcesDao {
 
 	private fun getOrderBy(order: SourcesSortOrder) = when (order) {
 		SourcesSortOrder.ALPHABETIC -> "source ASC"
-		SourcesSortOrder.POPULARITY -> "(SELECT COUNT(*) FROM manga WHERE source = sources.source) DESC"
 		SourcesSortOrder.MANUAL -> "sort_key ASC"
 		SourcesSortOrder.LAST_USED -> "used_at DESC"
 	}

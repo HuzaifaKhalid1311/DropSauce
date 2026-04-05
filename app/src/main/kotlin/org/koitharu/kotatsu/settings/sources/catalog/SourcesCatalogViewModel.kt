@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
@@ -16,8 +17,8 @@ import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.db.TABLE_SOURCES
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
@@ -26,11 +27,9 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.Comparator
 import java.util.EnumSet
 import java.util.LinkedHashSet
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,10 +42,8 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val settings: AppSettings,
 ) : BaseViewModel() {
 
-	val onActionDone = MutableEventFlow<ReversibleAction>()
 	private val appContext = context
-	private val builtInLocales: Set<String?> = setOf(null)
-	private val builtInContentTypes = MutableStateFlow<List<ContentType>>(emptyList())
+	private val defaultLocales: Set<String?> = setOf(null)
 	private val mihonSources = repository.observeMihonSources()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList<org.koitharu.kotatsu.mihon.model.MihonMangaSource>())
 	private val availableRepoEntries = MutableStateFlow<List<ExternalExtensionRepoEntry>>(emptyList())
@@ -56,11 +53,12 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val refreshTrigger = MutableStateFlow(0)
 	private var lastRefreshTrigger = 0
 	val isRefreshing = MutableStateFlow(false)
+	val isNsfwDisabled = settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled }
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isNsfwContentDisabled)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
-			mode = SourcesCatalogMode.BUILTIN,
 			types = emptySet(),
-			locale = Locale.getDefault().language.takeIf { it in builtInLocales },
+			locale = null,
 			isNewOnly = false,
 		),
 	)
@@ -71,38 +69,23 @@ class SourcesCatalogViewModel @Inject constructor(
 	val hasNewSources = combine(
 		appliedFilter,
 		repository.observeHasNewSources(),
-	) { filter, hasNewSources ->
-		filter.mode == SourcesCatalogMode.BUILTIN && hasNewSources
+	) { _, hasNewSources ->
+		hasNewSources
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
 
 	val locales: StateFlow<Set<String?>> = combine(
 		appliedFilter,
 		mihonSources,
 		availableRepoEntries,
-	) { filter, sources, repoEntries ->
-		when (filter.mode) {
-			SourcesCatalogMode.BUILTIN -> builtInLocales
-			SourcesCatalogMode.MIHON -> {
-				// Include locales from both installed sources and available repo entries
-				val localeSet = LinkedHashSet<String?>()
-				sources.mapTo(localeSet) { it.language }
-				repoEntries.mapTo(localeSet) { it.lang }
-				localeSet.add(null)
-				localeSet
-			}
-		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, builtInLocales)
+	) { _, sources, repoEntries ->
+		val localeSet = LinkedHashSet<String?>()
+		sources.mapTo(localeSet) { it.language }
+		repoEntries.mapTo(localeSet) { it.lang }
+		localeSet.add(null)
+		localeSet
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, defaultLocales)
 
-	val contentTypes: StateFlow<List<ContentType>> = combine(
-		appliedFilter,
-		builtInContentTypes,
-	) { filter, types ->
-		if (filter.mode == SourcesCatalogMode.BUILTIN) {
-			types
-		} else {
-			emptyList()
-		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+	val contentTypes: StateFlow<List<ContentType>> = MutableStateFlow(emptyList())
 
 	val content: StateFlow<List<ListModel>> = combine(
 		searchQuery,
@@ -124,11 +107,12 @@ class SourcesCatalogViewModel @Inject constructor(
 		result
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
+	val hasUpdates = content.map { items ->
+		items.any { it is SourceCatalogItem.Extension && it.action == SourceCatalogItem.Extension.Action.UPDATE }
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+
 	init {
 		repository.clearNewSourcesBadge()
-		launchJob(Dispatchers.Default) {
-			builtInContentTypes.value = getContentTypes(settings.isNsfwContentDisabled)
-		}
 	}
 
 	fun performSearch(query: String?) {
@@ -140,37 +124,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		refreshTrigger.value++
 	}
 
-	fun setMode(value: SourcesCatalogMode) {
-		val filter = appliedFilter.value
-		if (filter.mode == value) {
-			return
-		}
-		val locales = when (value) {
-			SourcesCatalogMode.BUILTIN -> builtInLocales
-			SourcesCatalogMode.MIHON -> {
-				val localeSet = LinkedHashSet<String?>()
-				mihonSources.value.mapTo(localeSet) { it.language }
-				localeSet.add(null)
-				localeSet
-			}
-		}
-		appliedFilter.value = filter.copy(
-			mode = value,
-			types = emptySet(),
-			locale = filter.locale?.takeIf { it in locales },
-			isNewOnly = if (value == SourcesCatalogMode.BUILTIN) filter.isNewOnly else false,
-		)
-	}
-
 	fun setLocale(value: String?) {
 		appliedFilter.value = appliedFilter.value.copy(locale = value)
-	}
-
-	fun addSource(source: MangaSource) {
-		launchJob(Dispatchers.Default) {
-			val rollback = repository.setSourcesEnabled(setOf(source), true)
-			onActionDone.call(ReversibleAction(R.string.source_enabled, rollback))
-		}
 	}
 
 	fun setContentType(value: ContentType, isAdd: Boolean) {
@@ -198,6 +153,10 @@ class SourcesCatalogViewModel @Inject constructor(
 		externalRepoUrl.value = settings.externalExtensionsRepoUrl
 	}
 
+	fun setNsfwDisabled(value: Boolean) {
+		settings.isNsfwContentDisabled = value
+	}
+
 	fun onInstallEntryClick(item: SourceCatalogItem.Extension) {
 		launchJob(Dispatchers.Default) {
 			when (item.action) {
@@ -219,26 +178,29 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
-		return if (filter.mode == SourcesCatalogMode.MIHON) {
-			buildExtensionsList(filter, query, forceRefresh)
-		} else {
-			listOf(
-				if (query == null) {
-					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_empty_feed,
-						title = R.string.no_manga_sources,
-						text = R.string.no_manga_sources_catalog_text,
-					)
-				} else {
-					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_empty_feed,
-						title = R.string.nothing_found,
-						text = R.string.no_manga_sources_found,
-					)
-				},
-			)
+	fun updateAllExtensions() {
+		launchJob(Dispatchers.Default) {
+			val repoUrl = externalRepoUrl.value
+			if (repoUrl.isNullOrBlank()) {
+				onShowMessage.call(R.string.extensions_repo_required)
+				return@launchJob
+			}
+			val updates = content.value.filterIsInstance<SourceCatalogItem.Extension>()
+				.filter { it.action == SourceCatalogItem.Extension.Action.UPDATE }
+			if (updates.isEmpty()) {
+				onShowMessage.call(R.string.nothing_found)
+				return@launchJob
+			}
+			val entries = getAvailableEntries(repoUrl, forceRefresh = false).associateBy { it.packageName }
+			for (item in updates) {
+				val entry = entries[item.packageName] ?: continue
+				onOpenPackageInstaller.call(externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName))
+			}
 		}
+	}
+
+	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
+		return buildExtensionsList(filter, query, forceRefresh)
 	}
 
 	private suspend fun buildExtensionsList(
@@ -392,7 +354,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	@WorkerThread
 	private fun getContentTypes(isNsfwDisabled: Boolean): List<ContentType> {
-		// No built-in sources; content types come from extensions
+		// Content types come from extensions
 		return if (isNsfwDisabled) {
 			ContentType.entries.filterNot { it == ContentType.HENTAI }
 		} else {

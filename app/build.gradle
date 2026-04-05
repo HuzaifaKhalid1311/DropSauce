@@ -2,12 +2,13 @@ import java.time.LocalDateTime
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-	alias(libs.plugins.android.application)
-	alias(libs.plugins.ksp)
+	id 'com.android.application'
+	id 'kotlin-android'
+	id 'com.google.devtools.ksp'
 	id 'kotlin-parcelize'
-	alias(libs.plugins.hilt)
-	alias(libs.plugins.room)
-	alias(libs.plugins.kotlinx.serialization)
+	id 'dagger.hilt.android.plugin'
+	id 'androidx.room'
+	id 'org.jetbrains.kotlin.plugin.serialization'
 	// enable if needed
 	// id 'dev.reformator.stacktracedecoroutinator'
 }
@@ -25,8 +26,8 @@ android {
 		applicationId 'org.haziffe.dropsauce'
 		minSdk = 23
 		targetSdk = 36
-		versionCode = 10
-		versionName = '1.1.2'
+		versionCode = 7
+		versionName = '1.1.0'
 		generatedDensities = []
 		testInstrumentationRunner 'org.koitharu.kotatsu.HiltTestRunner'
 		ksp {
@@ -76,7 +77,6 @@ android {
 	buildFeatures {
 		viewBinding true
 		buildConfig true
-		resValues true
 	}
 	packaging {
 		resources {

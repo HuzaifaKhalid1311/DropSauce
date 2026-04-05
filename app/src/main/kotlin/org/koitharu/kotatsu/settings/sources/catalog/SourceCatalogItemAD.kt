@@ -1,17 +1,12 @@
 package org.koitharu.kotatsu.settings.sources.catalog
 
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
+import androidx.appcompat.widget.TooltipCompat
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.getSummary
-import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isBroken
-import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
@@ -26,44 +21,6 @@ interface ExtensionActionListener {
 	fun onExtensionItemClick(item: SourceCatalogItem.Extension)
 }
 
-fun sourceCatalogItemSourceAD(
-	listener: OnListItemClickListener<SourceCatalogItem.Source>
-) = adapterDelegateViewBinding<SourceCatalogItem.Source, ListModel, ItemSourceCatalogBinding>(
-	{ layoutInflater, parent ->
-		ItemSourceCatalogBinding.inflate(layoutInflater, parent, false)
-	},
-) {
-
-	binding.imageViewAdd.setOnClickListener { v ->
-		listener.onItemLongClick(item, v)
-	}
-	binding.root.setOnClickListener { v ->
-		listener.onItemClick(item, v)
-	}
-	val basePadding = context.getThemeDimensionPixelOffset(
-		appcompatR.attr.listPreferredItemPaddingEnd,
-		binding.root.paddingStart,
-	)
-	val compactEndPadding = (basePadding - context.resources.getDimensionPixelOffset(R.dimen.margin_small)).coerceAtLeast(0)
-
-	bind {
-		binding.imageViewAdd.isVisible = item.isAddAvailable
-		binding.viewAddDivider.isVisible = item.isAddAvailable
-		binding.imageViewIcon.applyExternalSourceStyle(item.source.isExternalSource())
-		binding.root.updatePaddingRelative(
-			end = if (item.isAddAvailable) compactEndPadding else basePadding,
-		)
-		binding.textViewTitle.text = item.source.getTitle(context)
-		binding.textViewDescription.text = item.source.getSummary(context)
-		binding.textViewDescription.drawableStart = if (item.source.isBroken) {
-			ContextCompat.getDrawable(context, R.drawable.ic_off_small)
-		} else {
-			null
-		}
-		FaviconDrawable(context, R.style.FaviconDrawable_Small, item.source.name)
-		binding.imageViewIcon.setImageAsync(item.source)
-	}
-}
 
 fun sourceCatalogItemExtensionAD(
 	listener: ExtensionActionListener,
@@ -95,7 +52,7 @@ fun sourceCatalogItemExtensionAD(
 		binding.root.updatePaddingRelative(end = compactEndPadding)
 		binding.imageViewAdd.setImageResource(item.action.iconRes)
 		binding.imageViewAdd.contentDescription = context.getString(item.action.titleRes)
-		binding.imageViewAdd.tooltipText = context.getString(item.action.titleRes)
+		TooltipCompat.setTooltipText(binding.imageViewAdd, context.getString(item.action.titleRes))
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
@@ -133,3 +90,4 @@ fun sourceCatalogItemHintAD() = adapterDelegateViewBinding<SourceCatalogItem.Hin
 		binding.textSecondary.setTextAndVisible(item.text)
 	}
 }
+

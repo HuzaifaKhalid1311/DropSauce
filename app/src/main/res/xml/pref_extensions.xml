@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:title="@string/extensions">
+
+    <!-- Manage extensions -->
+    <Preference
+        android:icon="@drawable/ic_download"
+        android:key="sources_catalog"
+        android:persistent="false"
+        android:title="@string/manage_extensions"
+        android:summary="@string/manage_extensions_summary" />
+
+    <!-- Display -->
+    <PreferenceCategory
+        android:key="cat_extension_display"
+        android:title="@string/appearance">
+
+        <ListPreference
+            android:defaultValue="LAST_USED"
+            android:icon="@drawable/ic_sort_asc"
+            android:key="sources_sort_order"
+            android:title="@string/sort_order"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/ic_grid"
+            android:key="sources_grid"
+            android:title="@string/show_in_grid_view" />
+
+    </PreferenceCategory>
+
+    <!-- Content Filtering -->
+    <PreferenceCategory
+        android:key="cat_extension_content"
+        android:title="@string/filter">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:icon="@drawable/ic_nsfw"
+            android:key="no_nsfw"
+            android:summary="@string/disable_nsfw_summary"
+            android:title="@string/disable_nsfw" />
+
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:icon="@drawable/ic_tag"
+            android:key="tags_warnings"
+            android:summary="@string/tags_warnings_summary"
+            android:title="@string/tags_warnings" />
+
+        <ListPreference
+            android:entries="@array/incognito_nsfw_options"
+            android:entryValues="@array/incognito_nsfw_values"
+            android:icon="@drawable/ic_incognito"
+            android:key="incognito_nsfw"
+            android:title="@string/incognito_for_nsfw"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <!-- Links & Integration -->
+    <PreferenceCategory
+        android:key="cat_extension_links"
+        android:title="@string/handle_links">
+
+        <SwitchPreferenceCompat
+            android:icon="@drawable/ic_open_external"
+            android:key="handle_links"
+            android:persistent="false"
+            android:summary="@string/handle_links_summary"
+            android:title="@string/handle_links" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

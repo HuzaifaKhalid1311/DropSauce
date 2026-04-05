@@ -39,7 +39,6 @@ import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogMode
 
 @AndroidEntryPoint
 class ExploreFragment :
@@ -110,10 +109,7 @@ class ExploreFragment :
 		if (item.payload == R.id.nav_suggestions) {
 			router.openSuggestions()
 		} else {
-			router.openSourcesCatalog(
-				mode = SourcesCatalogMode.MIHON,
-				isExternalOnly = true,
-			)
+			router.openSourcesCatalog(isExternalOnly = true)
 		}
 	}
 
@@ -145,10 +141,7 @@ class ExploreFragment :
 	override fun onRetryClick(error: Throwable) = Unit
 
 	override fun onEmptyActionClick() {
-		router.openSourcesCatalog(
-			mode = SourcesCatalogMode.MIHON,
-			isExternalOnly = true,
-		)
+		router.openSourcesCatalog(isExternalOnly = true)
 	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {

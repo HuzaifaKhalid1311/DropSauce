@@ -13,8 +13,8 @@ fun searchSuggestionSourceAD(
 	{ inflater, parent -> ItemSearchSuggestionSourceBinding.inflate(inflater, parent, false) },
 ) {
 
-	binding.switchLocal.setOnCheckedChangeListener { _, isChecked ->
-		listener.onSourceToggle(item.source, isChecked)
+	binding.imageViewSettings.setOnClickListener {
+		listener.onSourceSettingsClick(item.source)
 	}
 	binding.root.setOnClickListener {
 		listener.onSourceClick(item.source)
@@ -23,7 +23,6 @@ fun searchSuggestionSourceAD(
 	bind {
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewSubtitle.text = item.source.getSummary(context)
-		binding.switchLocal.isChecked = item.isEnabled
 		binding.imageViewCover.setImageAsync(item.source)
 	}
 }

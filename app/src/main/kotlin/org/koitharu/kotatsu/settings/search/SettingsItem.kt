@@ -7,6 +7,7 @@ data class SettingsItem(
 	val key: String,
 	val title: CharSequence,
 	val breadcrumbs: List<String>,
+	val searchText: String,
 	val fragmentClass: Class<out PreferenceFragmentCompat>,
 ) : ListModel {
 

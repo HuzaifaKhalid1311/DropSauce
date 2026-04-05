@@ -46,7 +46,7 @@ class WelcomeViewModel @Inject constructor(
 
 	init {
 		updateJob = launchJob(Dispatchers.Default) {
-			// No built-in sources; just show default content types
+			// Show default content types
 			val contentTypes = ContentType.entries.toList()
 			types.value = types.value.copy(
 				availableItems = contentTypes,
@@ -101,7 +101,7 @@ class WelcomeViewModel @Inject constructor(
 
 	private fun commit() {
 		val languages = locales.value.selectedItems.mapToSet { it.language }
-		// No built-in sources to enable/disable; extensions are managed separately
+		// Extensions are managed separately
 		settings.preferredSourceLanguages = languages
 	}
 }

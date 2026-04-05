@@ -148,4 +148,21 @@
 		<item>@string/ask_every_time</item>
 		<item>@string/disable</item>
 	</string-array>
+	<string-array name="incognito_nsfw_values" translatable="false">
+		<item>ENABLED</item>
+		<item>ASK</item>
+		<item>DISABLED</item>
+	</string-array>
+	<string-array name="protect_app_timeout_options" translatable="false">
+		<item>@string/lock_timeout_instant</item>
+		<item>@string/lock_timeout_10_seconds</item>
+		<item>@string/lock_timeout_1_minute</item>
+		<item>@string/lock_timeout_5_minutes</item>
+	</string-array>
+	<string-array name="protect_app_timeout_values" translatable="false">
+		<item>INSTANT</item>
+		<item>SECONDS_10</item>
+		<item>MINUTE_1</item>
+		<item>MINUTES_5</item>
+	</string-array>
 </resources>

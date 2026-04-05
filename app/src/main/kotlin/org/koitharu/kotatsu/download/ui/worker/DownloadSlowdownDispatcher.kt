@@ -13,7 +13,7 @@ class DownloadSlowdownDispatcher @Inject constructor() {
 	private val defaultDelay = 1_600L
 
 	suspend fun delay(source: MangaSource) {
-		// Extensions handle their own rate limiting; no built-in slowdown needed
+		// Extensions handle their own rate limiting
 		val lastRequest = synchronized(timeMap) {
 			val res = timeMap.getOrDefault(source, 0L)
 			timeMap[source] = SystemClock.elapsedRealtime()

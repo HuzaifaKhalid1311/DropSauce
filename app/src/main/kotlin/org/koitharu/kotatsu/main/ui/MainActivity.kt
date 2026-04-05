@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.viewModels
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.max
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupService
 import org.koitharu.kotatsu.browser.AdListUpdateService
@@ -131,6 +133,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.textViewTitle?.let { tv ->
 			navigationDelegate.observeTitle().observe(this) { tv.text = it }
 		}
+		viewBinding.searchView.setupWithSearchBar(viewBinding.searchBar)
 
 		addMenuProvider(MainMenuProvider(router, viewModel))
 
@@ -172,6 +175,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onFragmentChanged(fragment: Fragment, fromUser: Boolean) {
 		adjustFabVisibility(topFragment = fragment)
 		adjustAppbar(topFragment = fragment)
+		if (viewBinding.searchView.isShowing) {
+			normalizeSearchInputLayout()
+		}
 		if (fromUser) {
 			actionModeDelegate.finishActionMode()
 			viewBinding.appbar.setExpanded(true)
@@ -243,6 +249,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val isOpened = newState >= SearchView.TransitionState.SHOWING
 		if (isOpened != wasOpened) {
 			adjustSearchUI(isOpened)
+			if (isOpened) {
+				normalizeSearchInputLayout()
+			}
 		}
 	}
 
@@ -402,6 +411,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		)
 		ItemTouchHelper(SearchSuggestionItemCallback(this))
 			.attachToRecyclerView(viewBinding.recyclerViewSearch)
+	}
+
+	private fun normalizeSearchInputLayout() {
+		viewBinding.searchView.post {
+			val toolbar = viewBinding.searchView.toolbar
+			toolbar.setContentInsetsRelative(0, 0)
+			toolbar.setContentInsetsAbsolute(0, 0)
+			viewBinding.searchView.getEditText().apply {
+				val startPadding = max(paddingStart, resources.getDimensionPixelOffset(R.dimen.screen_padding))
+				translationX = 0f
+				translationY = 0f
+				gravity = Gravity.START or Gravity.CENTER_VERTICAL
+				setPaddingRelative(startPadding, paddingTop, paddingEnd, paddingBottom)
+				scrollTo(0, 0)
+				requestLayout()
+			}
+		}
 	}
 
 	private fun setNavbarPinned(isPinned: Boolean) {
