@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.mihon
 
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -13,6 +14,7 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
  * Each Mihon filter is converted to a MangaTag with a structured key that encodes
  * the filter path, allowing round-trip conversion back to Mihon filter state.
  */
+@OptIn(InternalParsersApi::class)
 object MihonFilterMapper {
 
 	private const val PREFIX_TOP = "top:"
