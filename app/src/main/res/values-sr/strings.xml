@@ -865,5 +865,4 @@
     <string name="no_chapters_in_manga">Ова манга не садржи ниједно поглавље</string>
     <string name="chapters_load_failed">Учитавање листе поглавља није успело</string>
     <string name="telegram_integration">Интеграција Телеграма</string>
-    <string name="test_parser">Извор тест манге</string>
 </resources>

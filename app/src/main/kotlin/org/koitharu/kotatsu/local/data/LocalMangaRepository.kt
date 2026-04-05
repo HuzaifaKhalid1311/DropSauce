@@ -26,6 +26,7 @@ import org.koitharu.kotatsu.local.data.output.LocalMangaOutput
 import org.koitharu.kotatsu.local.data.output.LocalMangaUtil
 import org.koitharu.kotatsu.local.domain.MangaLock
 import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -47,6 +48,7 @@ private const val MAX_PARALLELISM = 4
 private const val FILENAME_SKIP = ".notamanga"
 
 @Singleton
+@OptIn(InternalParsersApi::class)
 class LocalMangaRepository @Inject constructor(
 	private val storageManager: LocalStorageManager,
 	private val localMangaIndex: LocalMangaIndex,

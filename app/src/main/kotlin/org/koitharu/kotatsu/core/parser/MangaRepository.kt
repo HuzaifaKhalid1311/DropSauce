@@ -5,7 +5,6 @@ import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
-import org.koitharu.kotatsu.core.model.TestMangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.mihon.MihonExtensionManager

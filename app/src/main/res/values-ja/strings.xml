@@ -676,7 +676,6 @@
     <string name="no_chapters_in_manga">この漫画には利用可能なチャプターが含まれていません</string>
     <string name="chapters_load_failed">チャプターリストの読み込みに失敗</string>
     <string name="telegram_integration">Telegramで連携</string>
-    <string name="test_parser">漫画のソースをテストする</string>
     <string name="rename">リネーム</string>
     <string name="save_filter">フィルターを保存</string>
     <string name="overwrite">上書き</string>

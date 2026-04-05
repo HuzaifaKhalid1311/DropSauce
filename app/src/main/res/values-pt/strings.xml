@@ -869,7 +869,6 @@
     <string name="enable_pull_gesture_summary">Use o gesto de puxar para mudar de capítulo na webtoon</string>
     <string name="reader_chapter_toast">Mostrar pop-up de mudança de capítulo</string>
     <string name="reader_chapter_toast_summary">Mostrar uma mensagem pop-up com o título do capítulo quando ele for alterado</string>
-    <string name="test_parser">Teste fonte do mangá</string>
     <string name="rename">Renomear</string>
     <string name="save_filter">Salvar filtro</string>
     <string name="overwrite">Sobrescrever</string>

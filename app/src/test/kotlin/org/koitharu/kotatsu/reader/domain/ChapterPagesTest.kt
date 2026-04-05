@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.reader.domain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.koitharu.kotatsu.core.model.TestMangaSource
+import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import kotlin.random.Random
 
@@ -73,6 +73,6 @@ class ChapterPagesTest {
 		preview = null,
 		chapterId = chapterId,
 		index = Random.nextInt(),
-		source = TestMangaSource,
+		source = UnknownMangaSource,
 	)
 }
