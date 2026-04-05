@@ -124,7 +124,6 @@ kotlin {
 			'-opt-in=coil3.annotation.ExperimentalCoilApi',
 			'-opt-in=coil3.annotation.InternalCoilApi',
 			'-opt-in=kotlinx.serialization.ExperimentalSerializationApi',
-			'-opt-in=org.koitharu.kotatsu.parsers.InternalParsersApi',
 			'-Xjspecify-annotations=strict',
 			'-Xannotation-default-target=first-only',
 			'-Xtype-enhancement-improvements-strict-mode'
@@ -142,14 +141,8 @@ androidComponents {
 	}
 }
 dependencies {
-	def parsersVersion = libs.versions.parsers.get()
-	if (System.properties.containsKey('parsersVersionOverride')) {
-		// usage:
-		// -DparsersVersionOverride=$(curl -s https://api.github.com/repos/yakateam/kotatsu-parsers/commits/master -H "Accept: application/vnd.github.sha" | cut -c -10)
-		parsersVersion = System.getProperty('parsersVersionOverride')
-	}
 	//noinspection UseTomlInstead
-	implementation("com.github.YakaTeam:kotatsu-parsers:$parsersVersion") {
+	implementation("com.github.YakaTeam:kotatsu-parsers:${libs.versions.parsers.get()}") {
 		exclude group: 'org.json', module: 'json'
 	}
 

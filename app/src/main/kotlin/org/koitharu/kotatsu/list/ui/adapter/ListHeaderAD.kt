@@ -49,16 +49,12 @@ fun listHeaderAD(
 		if (filterMode != null) {
 			binding.toggleGroupFilter.isVisible = true
 			binding.toggleGroupFilter.clearOnButtonCheckedListeners()
-			when (filterMode) {
-				SourceFilterMode.LOCAL -> binding.toggleGroupFilter.check(R.id.button_filter_builtin)
-				SourceFilterMode.EXTERNAL -> binding.toggleGroupFilter.check(R.id.button_filter_mihon)
-			}
+			binding.toggleGroupFilter.check(R.id.button_filter_mihon)
 			binding.toggleGroupFilter.addOnButtonCheckedListener { _, checkedId, isChecked ->
 				if (isChecked) {
 					val newMode = when (checkedId) {
-						R.id.button_filter_builtin -> SourceFilterMode.LOCAL
 						R.id.button_filter_mihon -> SourceFilterMode.EXTERNAL
-						else -> SourceFilterMode.LOCAL
+						else -> SourceFilterMode.EXTERNAL
 					}
 					listener?.onListHeaderFilterModeChanged(currentItem, newMode)
 				}
