@@ -12,18 +12,14 @@ import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import eu.kanade.tachiyomi.source.ConfigurableSource
-import kotlinx.coroutines.flow.filterNotNull
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
-import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.withArgs
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
@@ -41,7 +37,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		context?.let { ctx ->
 			setTitle(viewModel.source.getTitle(ctx))
 		}
-		viewModel.onResume()
 	}
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -55,66 +50,21 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		addPreferencesFromRepository(viewModel.repository)
 		val isValidSource = viewModel.repository !is EmptyMangaRepository
 
-		findPreference<Preference>(KEY_AUTH)?.run {
-			isVisible = false
-		}
 		findPreference<Preference>(SourceSettings.KEY_SLOWDOWN)?.isVisible = isValidSource
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		tryAddMihonPreferences()
-		viewModel.isAuthorized.filterNotNull().observe(viewLifecycleOwner) { isAuthorized ->
-			findPreference<Preference>(KEY_AUTH)?.isEnabled = !isAuthorized
-		}
-		viewModel.username.observe(viewLifecycleOwner) { username ->
-			findPreference<Preference>(KEY_AUTH)?.summary = username?.let {
-				getString(R.string.logged_in_as, it)
-			}
-		}
 		viewModel.onError.observeEvent(
 			viewLifecycleOwner,
 			SnackbarErrorObserver(
 				listView,
 				this,
 				exceptionResolver,
-			) { viewModel.onResume() },
+			),
 		)
-		viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-			findPreference<Preference>(KEY_AUTH)?.isEnabled = !isLoading
-		}
-		viewModel.browserUrl.observe(viewLifecycleOwner) {
-			findPreference<Preference>(AppSettings.KEY_OPEN_BROWSER)?.run {
-				isVisible = it != null
-				summary = it
-			}
-		}
 		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(listView))
-	}
-
-	override fun onPreferenceTreeClick(preference: Preference): Boolean {
-		return when (preference.key) {
-			KEY_AUTH -> {
-				router.openSourceAuth(viewModel.source)
-				true
-			}
-
-			AppSettings.KEY_OPEN_BROWSER -> {
-				router.openBrowser(
-					url = viewModel.browserUrl.value ?: return false,
-					source = viewModel.source,
-					title = viewModel.source.getTitle(preference.context),
-				)
-				true
-			}
-
-			AppSettings.KEY_COOKIES_CLEAR -> {
-				viewModel.clearCookies()
-				true
-			}
-
-			else -> super.onPreferenceTreeClick(preference)
-		}
 	}
 
 	override fun onDisplayPreferenceDialog(preference: Preference) {
@@ -221,7 +171,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 
 	companion object {
 
-		private const val KEY_AUTH = "auth"
 		private const val KEY_MIHON_LANGUAGE_TOGGLES = "mihon_language_toggles"
 
 		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {

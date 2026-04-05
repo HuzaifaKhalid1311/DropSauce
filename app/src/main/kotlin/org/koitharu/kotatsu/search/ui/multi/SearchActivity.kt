@@ -150,11 +150,11 @@ class SearchActivity :
 
 	override fun onFilterClick(view: View?) = Unit
 
-	override fun onEmptyActionClick() = viewModel.continueSearch()
+	override fun onEmptyActionClick() = Unit
 
 	override fun onListHeaderClick(item: ListHeader, view: View) = Unit
 
-	override fun onFooterButtonClick() = viewModel.continueSearch()
+	override fun onFooterButtonClick() = Unit
 
 	override fun onPrimaryButtonClick(tipView: TipView) = Unit
 

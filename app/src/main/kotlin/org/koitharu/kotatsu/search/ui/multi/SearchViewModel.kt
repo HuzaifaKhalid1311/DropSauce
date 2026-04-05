@@ -31,7 +31,6 @@ import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.list.domain.MangaListMapper
-import org.koitharu.kotatsu.list.ui.model.ButtonFooter
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
@@ -58,7 +57,6 @@ class SearchViewModel @Inject constructor(
 	val query = savedStateHandle.get<String>(AppRouter.KEY_QUERY).orEmpty()
 	val kind = savedStateHandle.get<SearchKind>(AppRouter.KEY_KIND) ?: SearchKind.SIMPLE
 
-	private var includeDisabledSources = MutableStateFlow(false)
 	private var pinnedOnly = MutableStateFlow(false)
 	private var hideEmpty = MutableStateFlow(false)
 	private val results = MutableStateFlow<List<SearchResultsListModel>>(emptyList())
@@ -68,9 +66,8 @@ class SearchViewModel @Inject constructor(
 	val list: StateFlow<List<ListModel>> = combine(
 		results,
 		isLoading.dropWhile { !it },
-		includeDisabledSources,
 		hideEmpty,
-	) { list, loading, includeDisabled, hideEmptyVal ->
+	) { list, loading, hideEmptyVal ->
 		val filteredList = if (hideEmptyVal) {
 			list.filter { it.list.isNotEmpty() }
 		} else {
@@ -90,8 +87,7 @@ class SearchViewModel @Inject constructor(
 			)
 
 			loading -> filteredList + LoadingFooter()
-			includeDisabled -> filteredList
-			else -> filteredList + ButtonFooter(R.string.search_disabled_sources)
+			else -> filteredList
 		}
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
@@ -115,7 +111,6 @@ class SearchViewModel @Inject constructor(
 	fun retry() {
 		searchJob?.cancel()
 		results.value = emptyList()
-		includeDisabledSources.value = false
 		doSearch()
 	}
 
@@ -128,30 +123,6 @@ class SearchViewModel @Inject constructor(
 
 	fun setHideEmpty(value: Boolean) {
 		hideEmpty.value = value
-	}
-
-	fun continueSearch() {
-		if (includeDisabledSources.value) {
-			return
-		}
-		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
-			includeDisabledSources.value = true
-			prevJob?.join()
-			val sources = if (pinnedOnly.value) {
-				emptyList<MangaSource>()
-			} else {
-				sourcesRepository.getDisabledSources().toList()
-			}
-			val semaphore = Semaphore(MAX_PARALLELISM)
-			sources.map { source ->
-				launch {
-					semaphore.withPermit {
-						appendResult(searchSource(source))
-					}
-				}
-			}.joinAll()
-		}
 	}
 
 	private fun doSearch() {

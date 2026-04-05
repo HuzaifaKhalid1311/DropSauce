@@ -26,7 +26,6 @@ import org.koitharu.kotatsu.core.util.ext.append
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.require
 import org.koitharu.kotatsu.list.domain.MangaListMapper
-import org.koitharu.kotatsu.list.ui.model.ButtonFooter
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
@@ -48,7 +47,6 @@ class AlternativesViewModel @Inject constructor(
 
 	val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
-	private var includeDisabledSources = MutableStateFlow(false)
 	private val results = MutableStateFlow<List<MangaAlternativeModel>>(emptyList())
 
 	private var migrationJob: Job? = null
@@ -63,8 +61,7 @@ class AlternativesViewModel @Inject constructor(
 	val list: StateFlow<List<ListModel>> = combine(
 		results,
 		isLoading,
-		includeDisabledSources,
-	) { list, loading, includeDisabled ->
+	) { list, loading ->
 		when {
 			list.isEmpty() -> listOf(
 				when {
@@ -79,32 +76,18 @@ class AlternativesViewModel @Inject constructor(
 			)
 
 			loading -> list + LoadingFooter()
-			includeDisabled -> list
-			else -> list + ButtonFooter(R.string.search_disabled_sources)
+			else -> list
 		}
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
-		doSearch(throughDisabledSources = false)
+		doSearch()
 	}
 
 	fun retry() {
 		searchJob?.cancel()
 		results.value = emptyList()
-		includeDisabledSources.value = false
-		doSearch(throughDisabledSources = false)
-	}
-
-	fun continueSearch() {
-		if (includeDisabledSources.value) {
-			return
-		}
-		val prevJob = searchJob
-		searchJob = launchLoadingJob(Dispatchers.Default) {
-			includeDisabledSources.value = true
-			prevJob?.join()
-			doSearch(throughDisabledSources = true)
-		}
+		doSearch()
 	}
 
 	fun migrate(target: Manga) {
@@ -117,13 +100,13 @@ class AlternativesViewModel @Inject constructor(
 		}
 	}
 
-	private fun doSearch(throughDisabledSources: Boolean) {
+	private fun doSearch() {
 		val prevJob = searchJob
 		searchJob = launchLoadingJob(Dispatchers.Default) {
 			prevJob?.cancelAndJoin()
 			val ref = mangaDetails.getOrDefault(manga)
 			val refCount = ref.chaptersCount()
-			alternativesUseCase.invoke(ref, throughDisabledSources)
+			alternativesUseCase.invoke(ref)
 				.collect {
 					val model = MangaAlternativeModel(
 						mangaModel = mangaListMapper.toListModel(it, ListMode.GRID) as MangaGridModel,

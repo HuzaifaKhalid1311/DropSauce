@@ -3,11 +3,8 @@ package org.koitharu.kotatsu.settings.sources
 import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -32,18 +29,6 @@ class SourceSettingsViewModel @Inject constructor(
 	val repository = mangaRepositoryFactory.create(source)
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
-	val username = MutableStateFlow<String?>(null)
-	val isAuthorized = MutableStateFlow<Boolean?>(null)
-	val browserUrl = MutableStateFlow<String?>(null)
-	init {
-		// Extensions handle their own config
-		browserUrl.value = null
-	}
-
-	override fun onCleared() {
-		// No-op: extensions handle their own config
-		super.onCleared()
-	}
 
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
 		if (repository is CachingMangaRepository) {
@@ -51,14 +36,6 @@ class SourceSettingsViewModel @Inject constructor(
 				repository.invalidateCache()
 			}
 		}
-	}
-
-	fun onResume() {
-		// Auth not supported in extension-only mode
-	}
-
-	fun clearCookies() {
-		// No parser domain to clear cookies for in extension mode
 	}
 
 	/**
