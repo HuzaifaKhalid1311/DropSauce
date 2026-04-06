@@ -324,7 +324,7 @@
     <string name="no_manga_sources">No manga sources</string>
     <string name="no_manga_sources_text">Enable manga sources to read manga online</string>
     <string name="no_external_source_installed">No external source found</string>
-    <string name="manage_manga_extensions_from_settings_icon">Manage manga extensions from the plus icon to start reading</string>
+    <string name="manage_manga_extensions_from_settings_icon">Manage manga extensions from manage to start reading</string>
     <string name="no_manga_source_enabled">No manga source enabled</string>
     <string name="enable_manga_sources_from_settings_icon">Enable manga sources from the plus icon to start reading</string>
     <string name="random">Random</string>
@@ -971,4 +971,8 @@
     <string name="nsfw_filter">NSFW filter</string>
     <string name="extensions_summary_with_count">Manage extensions, sorting, and filters · %1$d sources installed</string>
     <string name="extensions_summary_no_sources">No extension sources installed yet</string>
+    <string name="unlock_required_to_change_protection">Unlock required to change app protection</string>
+    <string name="allow_unknown_apps_install">Allow installing unknown apps for DropSauce to continue automatic extension updates</string>
+    <string name="open_unknown_apps_settings">Open settings</string>
+    <string name="enable_all_languages">Enable all languages</string>
 </resources>

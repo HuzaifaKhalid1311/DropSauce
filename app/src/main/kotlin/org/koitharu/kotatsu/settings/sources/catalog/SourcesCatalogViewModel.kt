@@ -115,8 +115,12 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	fun refresh() {
-		isRefreshing.value = true
-		refreshTrigger.value++
+		launchJob(Dispatchers.Default) {
+			isRefreshing.value = true
+			availableRepoEntries.value = emptyList()
+			runCatching { mihonExtensionLoader.loadExtensions() }
+			refreshTrigger.value++
+		}
 	}
 
 	fun setLocale(value: String?) {
@@ -320,7 +324,13 @@ class SourcesCatalogViewModel @Inject constructor(
 				)
 			}
 			if (pending.isNotEmpty()) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
+				add(
+					org.koitharu.kotatsu.list.ui.model.ListHeader(
+						textRes = R.string.updates_pending,
+						buttonTextRes = R.string.update_all,
+						payload = HEADER_PAYLOAD_UPDATE_ALL,
+					),
+				)
 				addAll(pending)
 			}
 			if (installedSorted.isNotEmpty()) {
@@ -345,6 +355,10 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private suspend fun getAvailableEntries(repoUrl: String, forceRefresh: Boolean): List<ExternalExtensionRepoEntry> {
 		return externalRepoRepository.getExtensions(repoUrl, forceRefresh)
+	}
+
+	companion object {
+		const val HEADER_PAYLOAD_UPDATE_ALL = "updates_pending_update_all"
 	}
 
 	@WorkerThread

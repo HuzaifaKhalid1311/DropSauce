@@ -174,9 +174,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onFragmentChanged(fragment: Fragment, fromUser: Boolean) {
 		adjustFabVisibility(topFragment = fragment)
 		adjustAppbar(topFragment = fragment)
-		if (viewBinding.searchView.isShowing) {
-			normalizeSearchInputLayout()
-		}
 		if (fromUser) {
 			actionModeDelegate.finishActionMode()
 			viewBinding.appbar.setExpanded(true)
@@ -248,7 +245,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val isOpened = newState >= SearchView.TransitionState.SHOWING
 		if (isOpened != wasOpened) {
 			adjustSearchUI(isOpened)
-			if (isOpened) {
+			if (newState == SearchView.TransitionState.SHOWN) {
 				normalizeSearchInputLayout()
 			}
 		}
@@ -413,17 +410,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	private fun normalizeSearchInputLayout() {
 		viewBinding.searchView.post {
-			val toolbar = viewBinding.searchView.toolbar
-			toolbar.setContentInsetsRelative(0, 0)
-			toolbar.setContentInsetsAbsolute(0, 0)
 			viewBinding.searchView.getEditText().apply {
 				val startPadding = max(paddingStart, resources.getDimensionPixelOffset(R.dimen.screen_padding))
-				translationX = 0f
-				translationY = 0f
+				if (translationX != 0f) translationX = 0f
+				if (translationY != 0f) translationY = 0f
 				gravity = Gravity.START or Gravity.CENTER_VERTICAL
-				setPaddingRelative(startPadding, paddingTop, paddingEnd, paddingBottom)
+				if (paddingStart != startPadding) {
+					setPaddingRelative(startPadding, paddingTop, paddingEnd, paddingBottom)
+				}
 				scrollTo(0, 0)
-				requestLayout()
 			}
 		}
 	}

@@ -9,6 +9,15 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.biometric.AuthenticationRequest
+import androidx.biometric.AuthenticationRequest.Biometric
+import androidx.biometric.AuthenticationResult
+import androidx.biometric.AuthenticationResultCallback
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
+import androidx.biometric.registerForAuthenticationResult
 import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
@@ -43,13 +52,17 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class AppearanceSettingsFragment :
     BasePreferenceFragment(R.string.appearance),
-    SharedPreferences.OnSharedPreferenceChangeListener {
+    SharedPreferences.OnSharedPreferenceChangeListener,
+    AuthenticationResultCallback {
 
     @Inject
     lateinit var activityRecreationHandle: ActivityRecreationHandle
 
     @Inject
     lateinit var appShortcutManager: AppShortcutManager
+
+    private val protectionAuthPrompt = registerForAuthenticationResult(resultCallback = this)
+    private var pendingProtectionToggle: Boolean? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.pref_appearance)
@@ -82,6 +95,20 @@ class AppearanceSettingsFragment :
         findPreference<Preference>(AppSettings.KEY_SHORTCUTS)?.isVisible =
             appShortcutManager.isDynamicShortcutsAvailable()
         findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)?.isChecked = settings.isAppProtectionEnabled
+        findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)?.onPreferenceChangeListener =
+            Preference.OnPreferenceChangeListener { _, newValue ->
+                val targetValue = newValue as? Boolean ?: return@OnPreferenceChangeListener false
+                if (!isDeviceSecure()) {
+                    bindProtectionPrefs()
+                    return@OnPreferenceChangeListener false
+                }
+                if (settings.isAppProtectionEnabled == targetValue) {
+                    return@OnPreferenceChangeListener false
+                }
+                pendingProtectionToggle = targetValue
+                requestProtectionToggleAuth()
+                false
+            }
         findPreference<ListPreference>(AppSettings.KEY_PROTECT_APP_TIMEOUT)?.run {
             entryValues = AppProtectionTimeout.entries.names()
             entries = AppProtectionTimeout.entries.map { context.getString(it.titleResId) }.toTypedArray()
@@ -138,18 +165,6 @@ class AppearanceSettingsFragment :
 
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
         return when (preference.key) {
-            AppSettings.KEY_PROTECT_APP -> {
-                val pref = (preference as? TwoStatePreference ?: return false)
-                if (!isDeviceSecure()) {
-                    pref.isChecked = false
-                    bindProtectionPrefs()
-                    return true
-                } else {
-                    settings.isAppProtectionEnabled = pref.isChecked
-                }
-                true
-            }
-
             else -> super.onPreferenceTreeClick(preference)
         }
     }
@@ -205,5 +220,35 @@ class AppearanceSettingsFragment :
   private fun isDeviceSecure(): Boolean {
     val manager = context?.getSystemService(KeyguardManager::class.java) ?: return false
     return manager.isDeviceSecure
+  }
+
+  override fun onAuthResult(result: AuthenticationResult) {
+    val target = pendingProtectionToggle ?: return
+    pendingProtectionToggle = null
+    if (!result.isSuccess()) {
+      bindProtectionPrefs()
+      return
+    }
+    settings.isAppProtectionEnabled = target
+    bindProtectionPrefs()
+  }
+
+  private fun requestProtectionToggleAuth() {
+    val canAuth = context?.let {
+      BiometricManager.from(it).canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS
+    } == true
+    if (!canAuth) {
+      pendingProtectionToggle = null
+      bindProtectionPrefs()
+      return
+    }
+    val request = AuthenticationRequest.biometricRequest(
+      getString(R.string.app_name),
+      Biometric.Fallback.DeviceCredential,
+    ) {
+      setMinStrength(Biometric.Strength.Class2)
+      setIsConfirmationRequired(false)
+    }
+    protectionAuthPrompt.launch(request)
   }
 }

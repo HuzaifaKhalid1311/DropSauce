@@ -54,4 +54,9 @@ class SourceSettingsViewModel @Inject constructor(
 	fun setMihonSourceLangEnabled(pkgName: String, lang: String, enabled: Boolean) {
 		settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
 	}
+
+	fun getCurrentMihonPackageName(): String? {
+		val repo = repository as? MihonMangaRepository ?: return null
+		return repo.source.pkgName
+	}
 }

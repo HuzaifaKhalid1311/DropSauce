@@ -13,6 +13,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -47,6 +48,8 @@ import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.core.ui.dialog.setEditText
 import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
+import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
+import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.parsers.model.ContentType
 import javax.inject.Inject
@@ -56,7 +59,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	ExtensionActionListener,
 	AppBarOwner,
 	MenuItem.OnActionExpandListener,
-	ChipsView.OnChipClickListener {
+	ChipsView.OnChipClickListener,
+	ListHeaderClickListener {
 
 	override val appBar: AppBarLayout
 		get() = viewBinding.appbar
@@ -95,7 +99,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (isExternalOnly) {
 			title = getString(R.string.extension_management)
 		}
-		val sourcesAdapter = SourcesCatalogAdapter(extensionActionListener = this)
+		val sourcesAdapter = SourcesCatalogAdapter(
+			extensionActionListener = this,
+			headerClickListener = this,
+		)
 		with(viewBinding.recyclerView) {
 			setHasFixedSize(true)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
@@ -165,6 +172,17 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		super.onDestroy()
 	}
 
+	override fun onResume() {
+		super.onResume()
+		if (canInstallUnknownApps()) {
+			pendingInstallUrl?.let {
+				pendingInstallUrl = null
+				downloadAndInstallExtension(it)
+			}
+			checkPendingInstallerDownloads()
+		}
+	}
+
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 		viewBinding.recyclerView.updatePadding(
@@ -200,6 +218,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onExtensionActionClick(item: SourceCatalogItem.Extension) {
 		viewModel.onInstallEntryClick(item)
+	}
+
+	override fun onListHeaderClick(item: ListHeader, view: View) {
+		if (item.payload == SourcesCatalogViewModel.HEADER_PAYLOAD_UPDATE_ALL) {
+			viewModel.updateAllExtensions()
+		}
 	}
 
 	override fun onExtensionSettingsClick(item: SourceCatalogItem.Extension) {
@@ -362,6 +386,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			storagePermissionRequest.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 		} else {
+			if (!canInstallUnknownApps()) {
+				promptUnknownAppsPermission()
+				return
+			}
 			downloadAndInstallExtension(url)
 		}
 	}
@@ -384,9 +412,17 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val apkUri = downloadManager.getUriForDownloadedFile(downloadId) ?: return
 		val mime = downloadManager.getMimeTypeForDownloadedFile(downloadId)
 			?: "application/vnd.android.package-archive"
-		val installIntent = Intent(Intent.ACTION_VIEW)
+		if (!canInstallUnknownApps()) {
+			promptUnknownAppsPermission()
+			pendingInstallerDownloads += downloadId
+			settings.pendingExtensionDownloads = pendingInstallerDownloads
+			return
+		}
+		val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE)
 			.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 			.setDataAndType(apkUri, mime)
+			.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+			.putExtra(Intent.EXTRA_RETURN_RESULT, false)
 		try {
 			startActivity(installIntent)
 			settings.pendingExtensionDownloads = pendingInstallerDownloads
@@ -427,6 +463,32 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		} catch (_: Exception) {
 			// Ignore
 		}
+	}
+
+	private fun canInstallUnknownApps(): Boolean {
+		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			packageManager.canRequestPackageInstalls()
+		} else {
+			true
+		}
+	}
+
+	private fun promptUnknownAppsPermission() {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+			return
+		}
+		MaterialAlertDialogBuilder(this)
+			.setTitle(R.string.install_extensions)
+			.setMessage(R.string.allow_unknown_apps_install)
+			.setNegativeButton(android.R.string.cancel, null)
+			.setPositiveButton(R.string.open_unknown_apps_settings) { _, _ ->
+				val intent = Intent(
+					Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+					Uri.parse("package:$packageName"),
+				)
+				startActivity(intent)
+			}
+			.show()
 	}
 
 	private class ExtensionDownloadReceiver(
