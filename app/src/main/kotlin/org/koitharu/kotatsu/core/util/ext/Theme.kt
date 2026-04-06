@@ -32,14 +32,6 @@ fun Context.getThemeColor(
 }
 
 @Px
-fun Context.getThemeDimensionPixelSize(
-	@AttrRes resId: Int,
-	@Px fallback: Int = 0,
-) = obtainStyledAttributes(intArrayOf(resId)).use {
-	it.getDimensionPixelSize(0, fallback)
-}
-
-@Px
 fun Context.getThemeDimensionPixelOffset(
 	@AttrRes resId: Int,
 	@Px fallback: Int = 0,

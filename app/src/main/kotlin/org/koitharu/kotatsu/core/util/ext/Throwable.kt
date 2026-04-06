@@ -47,7 +47,6 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import org.koitharu.kotatsu.scrobbling.common.domain.ScrobblerAuthRequiredException
-import java.io.File
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.NoRouteToHostException
@@ -253,14 +252,6 @@ fun Throwable.isWebViewUnavailable(): Boolean {
     return trace.contains("android.webkit.WebView.<init>")
 }
 
-@Suppress("FunctionName")
-fun NoSpaceLeftException() = IOException(MSG_NO_SPACE_LEFT)
-
-fun FileNotFoundException.getFile(): File? {
-    val groups = FNFE_MESSAGE_REGEX.matchEntire(message ?: return null)?.groupValues ?: return null
-    return groups.getOrNull(1)?.let { File(it) }
-}
-
 fun FileNotFoundException.parseMessage(resources: Resources): String? {
     /*
     Examples:
@@ -286,4 +277,3 @@ fun FileNotFoundException.parseMessage(resources: Resources): String? {
         )
     }
 }
-

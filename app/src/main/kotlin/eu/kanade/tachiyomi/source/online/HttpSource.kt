@@ -19,7 +19,6 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.security.MessageDigest
 import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.MangaSource
 
 abstract class HttpSource : CatalogueSource {
 	protected val network: NetworkHelper by injectLazy()
