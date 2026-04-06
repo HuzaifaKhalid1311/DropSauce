@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -23,7 +22,6 @@ import javax.inject.Singleton
 @Singleton
 class MangaSourcesRepository @Inject constructor(
 	@LocalizedAppContext private val context: Context,
-	private val db: MangaDatabase,
 	private val settings: AppSettings,
 	private val mihonExtensionManager: MihonExtensionManager? = null,
 ) {
