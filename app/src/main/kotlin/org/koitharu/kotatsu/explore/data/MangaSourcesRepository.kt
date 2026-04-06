@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.dao.MangaSourcesDao
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -28,10 +27,6 @@ class MangaSourcesRepository @Inject constructor(
 	private val settings: AppSettings,
 	private val mihonExtensionManager: MihonExtensionManager? = null,
 ) {
-
-	@Suppress("unused")
-	private val dao: MangaSourcesDao
-		get() = db.getSourcesDao()
 
 	private val usageRefresh = MutableStateFlow(0)
 	private val pinnedRefresh = MutableStateFlow(0)
