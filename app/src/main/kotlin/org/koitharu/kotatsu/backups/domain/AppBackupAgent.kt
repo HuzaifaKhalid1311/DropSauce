@@ -46,7 +46,6 @@ class AppBackupAgent : BackupAgent() {
 				tapGridSettings = TapGridSettings(applicationContext),
 				mangaSourcesRepository = MangaSourcesRepository(
 					context = applicationContext,
-					db = MangaDatabase(context = applicationContext),
 					settings = AppSettings(applicationContext),
 				),
 				savedFiltersRepository = SavedFiltersRepository(
@@ -79,7 +78,6 @@ class AppBackupAgent : BackupAgent() {
 					tapGridSettings = TapGridSettings(applicationContext),
 					mangaSourcesRepository = MangaSourcesRepository(
 						context = applicationContext,
-						db = MangaDatabase(context = applicationContext),
 						settings = AppSettings(applicationContext),
 					),
 					savedFiltersRepository = SavedFiltersRepository(
