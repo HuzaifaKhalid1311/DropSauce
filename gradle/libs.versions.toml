@@ -50,7 +50,6 @@ webkit = "1.15.0"
 workRuntime = "2.11.2"
 workinspector = "1.2"
 window = "1.5.1"
-googleGmsGoogleServices = "4.4.4"
 
 [libraries]
 acra-dialog = { module = "ch.acra:acra-dialog", version.ref = "acra" }
@@ -128,4 +127,3 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinPlugin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
-google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
