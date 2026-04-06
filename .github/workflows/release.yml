@@ -150,7 +150,7 @@ jobs:
         if [ -z "$PREVIOUS_SUCCESS_SHA" ]; then
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
         else
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_SUCCESS_SHA..$CURRENT_SHA" --no-merges)
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_SUCCESS_SHA..$CURRENT_SHA" --no-merges --invert-grep --grep='^chore(release): set versionName ')
         fi
 
         if [ -z "$CHANGELOG" ]; then
