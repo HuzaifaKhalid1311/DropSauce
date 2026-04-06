@@ -174,22 +174,7 @@
 		<activity
 			android:name="org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesActivity"
 			android:label="@string/manage_categories" />
-		<activity
-			android:name="org.koitharu.kotatsu.widget.shelf.ShelfWidgetConfigActivity"
-			android:exported="true"
-			android:label="@string/manga_shelf">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-			</intent-filter>
-		</activity>
-		<activity
-			android:name="org.koitharu.kotatsu.widget.recent.RecentWidgetConfigActivity"
-			android:exported="true"
-			android:label="@string/recent_manga">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-			</intent-filter>
-		</activity>
+
 		<activity
 			android:name="org.koitharu.kotatsu.search.ui.multi.SearchActivity"
 			android:label="@string/search" />
@@ -299,14 +284,7 @@
 			android:name="org.koitharu.kotatsu.local.ui.ImportService"
 			android:foregroundServiceType="dataSync"
 			android:label="@string/importing_manga" />
-		<service
-			android:name="org.koitharu.kotatsu.widget.shelf.ShelfWidgetService"
-			android:label="@string/manga_shelf"
-			android:permission="android.permission.BIND_REMOTEVIEWS" />
-		<service
-			android:name="org.koitharu.kotatsu.widget.recent.RecentWidgetService"
-			android:label="@string/recent_manga"
-			android:permission="android.permission.BIND_REMOTEVIEWS" />
+
 		<service
 			android:name="org.koitharu.kotatsu.details.service.MangaPrefetchService"
 			android:exported="false"
@@ -346,28 +324,7 @@
 				<action android:name="org.koitharu.kotatsu.CAPTCHA_DISCARD" />
 			</intent-filter>
 		</receiver>
-		<receiver
-			android:name="org.koitharu.kotatsu.widget.shelf.ShelfWidgetProvider"
-			android:exported="true"
-			android:label="@string/manga_shelf">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-			</intent-filter>
-			<meta-data
-				android:name="android.appwidget.provider"
-				android:resource="@xml/widget_shelf" />
-		</receiver>
-		<receiver
-			android:name="org.koitharu.kotatsu.widget.recent.RecentWidgetProvider"
-			android:exported="true"
-			android:label="@string/recent_manga">
-			<intent-filter>
-				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-			</intent-filter>
-			<meta-data
-				android:name="android.appwidget.provider"
-				android:resource="@xml/widget_recent" />
-		</receiver>
+
 		<receiver
 			android:name="org.koitharu.kotatsu.core.ErrorReporterReceiver"
 			android:exported="false">

@@ -62,7 +62,6 @@ import org.koitharu.kotatsu.main.ui.protect.AppProtectHelper
 import org.koitharu.kotatsu.main.ui.protect.ScreenshotPolicyHelper
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.search.ui.MangaSuggestionsProvider
-import org.koitharu.kotatsu.widget.WidgetUpdater
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -156,10 +155,8 @@ interface AppModule {
 		@Provides
 		@ElementsIntoSet
 		fun provideDatabaseObservers(
-			widgetUpdater: WidgetUpdater,
 			appShortcutManager: AppShortcutManager,
 		): Set<@JvmSuppressWildcards InvalidationTracker.Observer> = arraySetOf(
-			widgetUpdater,
 			appShortcutManager,
 		)
 
