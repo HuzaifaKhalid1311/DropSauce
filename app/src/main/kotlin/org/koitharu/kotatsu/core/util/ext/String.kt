@@ -1,8 +1,11 @@
 package org.koitharu.kotatsu.core.util.ext
 
+import android.content.Context
 import androidx.collection.arraySetOf
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.parsers.util.ellipsize
 import java.util.UUID
+
 
 fun String.toUUIDOrNull(): UUID? = try {
 	UUID.fromString(this)
