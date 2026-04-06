@@ -48,7 +48,6 @@ sealed interface SearchSuggestionItem : ListModel {
 
 	data class Source(
 		val source: MangaSource,
-		val isEnabled: Boolean,
 	) : SearchSuggestionItem {
 
 		val isNsfw: Boolean
@@ -56,17 +55,6 @@ sealed interface SearchSuggestionItem : ListModel {
 
 		override fun areItemsTheSame(other: ListModel): Boolean {
 			return other is Source && other.source.name == source.name
-		}
-
-		override fun getChangePayload(previousState: ListModel): Any? {
-			if (previousState !is Source) {
-				return super.getChangePayload(previousState)
-			}
-			return if (isEnabled != previousState.isEnabled) {
-				ListModelDiffCallback.PAYLOAD_CHECKED_CHANGED
-			} else {
-				null
-			}
 		}
 	}
 

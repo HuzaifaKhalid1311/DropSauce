@@ -9,7 +9,9 @@ plugins {
 	id 'dagger.hilt.android.plugin'
 	id 'androidx.room'
 	id 'org.jetbrains.kotlin.plugin.serialization'
-	// enable if needed
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.firebase.crashlytics)
+    // enable if needed
 	// id 'dev.reformator.stacktracedecoroutinator'
 }
 
@@ -145,8 +147,9 @@ dependencies {
 	implementation("com.github.YakaTeam:kotatsu-parsers:${libs.versions.parsers.get()}") {
 		exclude group: 'org.json', module: 'json'
 	}
+    implementation libs.firebase.crashlytics
 
-	coreLibraryDesugaring libs.desugar.jdk.libs
+    coreLibraryDesugaring libs.desugar.jdk.libs
 	implementation libs.kotlin.stdlib
 	implementation libs.kotlinx.coroutines.android
 	implementation libs.kotlinx.coroutines.guava

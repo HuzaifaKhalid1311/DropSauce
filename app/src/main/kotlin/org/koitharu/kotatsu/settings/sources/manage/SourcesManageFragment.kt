@@ -134,10 +134,6 @@ class SourcesManageFragment :
 		viewModel.setPinned(item.source, !item.isPinned)
 	}
 
-	override fun onItemEnabledChanged(item: SourceConfigItem.SourceItem, isEnabled: Boolean) {
-		viewModel.setEnabled(item.source, isEnabled)
-	}
-
 	override fun onCloseTip(tip: SourceConfigItem.Tip) {
 		viewModel.onTipClosed(tip)
 	}
@@ -163,11 +159,6 @@ class SourcesManageFragment :
 				true
 			}
 
-			R.id.action_disable_all -> {
-				viewModel.disableAll()
-				true
-			}
-
 			R.id.action_no_nsfw -> {
 				settings.isNsfwContentDisabled = !menuItem.isChecked
 				true
@@ -179,8 +170,7 @@ class SourcesManageFragment :
 		override fun onPrepareMenu(menu: Menu) {
 			super.onPrepareMenu(menu)
 			menu.findItem(R.id.action_no_nsfw).isChecked = settings.isNsfwContentDisabled
-			menu.findItem(R.id.action_disable_all).isVisible = !settings.isAllSourcesEnabled
-			menu.findItem(R.id.action_catalog).isVisible = !settings.isAllSourcesEnabled
+			menu.findItem(R.id.action_catalog).isVisible = true
 		}
 
 		override fun onMenuItemActionExpand(item: MenuItem): Boolean {

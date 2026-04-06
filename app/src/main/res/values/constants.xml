@@ -5,7 +5,6 @@
 	<string name="url_weblate" translatable="false">https://hosted.weblate.org/engage/kotatsu</string>
 	<string name="url_user_manual" translatable="false">https://kotatsu.app/manuals/guides/getting-started/</string>
 	<string name="url_error_report" translatable="false">https://github.com/HuzaifaKhalid1311/DropSauce/issues/new</string>
-	<string name="account_type_sync" translatable="false">org.skepsun.dropsauce.sync</string>
 	<string name="github_updates_repo" translatable="false">HuzaifaKhalid1311/DropSauce</string>
 	<string name="shikimori_clientId" translatable="false">Mw6F0tPEOgyV7F9U9Twg50Q8SndMY7hzIOfXg0AX_XU</string>
 	<string name="shikimori_clientSecret" translatable="false">euBMt1GGRSDpVIFQVPxZrO7Kh6X4gWyv0dABuj4B-M8</string>
@@ -14,9 +13,6 @@
 	<string name="mal_clientId" translatable="false">6cd8e6349e9a36bc1fc1ab97703c9fd1</string>
 	<string name="kitsu_clientId" translatable="false">dd031b32d2f56c990b1425efe6c42ad847e7fe3ab46bf1299f05ecd856bdb7dd</string>
 	<string name="kitsu_clientSecret" translatable="false">54d7307928f63414defd96399fc31ba847961ceaecef3a5fd93144e960c0e151</string>
-	<string name="sync_authority_history" translatable="false">org.skepsun.dropsauce.history</string>
-	<string name="sync_authority_favourites" translatable="false">org.skepsun.dropsauce.favourites</string>
-	<string name="tg_backup_bot_name" translatable="false">kotatsu_backup_bot</string>
 	<string name="discord_app_id" translatable="false">1444242650067894303</string>
 	<string name="app_icon_url" translatable="false">https://raw.githubusercontent.com/YakaTeam/artifacts/refs/heads/main/.github/assets/icon.png</string>
 	<string-array name="values_theme" translatable="false">
@@ -41,23 +37,10 @@
 		<item>0</item>
 		<item>1</item>
 	</string-array>
-	<string-array name="sync_url_list" translatable="false">
-		<item>https://moe.shirizu.org</item>
-		<item>http://54.254.71.100</item>
-		<item>http://86.57.183.214:8081</item>
-	</string-array>
 	<string-array name="values_proxy_types" translatable="false">
 		<item>DIRECT</item>
 		<item>HTTP</item>
 		<item>SOCKS</item>
-	</string-array>
-	<string-array name="values_backup_frequency" translatable="false">
-		<item>0.25</item>
-		<item>1</item>
-		<item>2</item>
-		<item>7</item>
-		<item>14</item>
-		<item>30</item>
 	</string-array>
 	<string-array name="details_tabs_values" translatable="false">
 		<item>-1</item>

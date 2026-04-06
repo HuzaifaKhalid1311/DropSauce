@@ -42,7 +42,6 @@ import org.koitharu.kotatsu.reader.domain.ReaderColorFilter
 import java.io.File
 import java.net.Proxy
 import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -364,10 +363,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_SOURCES_VERSION, 0)
 		set(value) = prefs.edit { putInt(KEY_SOURCES_VERSION, value) }
 
-	var isAllSourcesEnabled: Boolean
-		get() = prefs.getBoolean(KEY_SOURCES_ENABLED_ALL, false)
-		set(value) = prefs.edit { putBoolean(KEY_SOURCES_ENABLED_ALL, value) }
-
 	var preferredSourceLanguages: Set<String>
 		get() = prefs.getStringSet(KEY_SOURCES_PREFERRED_LANGUAGES, emptySet()).orEmpty()
 		set(value) = prefs.edit { putStringSet(KEY_SOURCES_PREFERRED_LANGUAGES, value) }
@@ -612,32 +607,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_DISCORD_TOKEN, null)?.trim()?.nullIfEmpty()
 		set(value) = prefs.edit { putString(KEY_DISCORD_TOKEN, value?.nullIfEmpty()) }
 
-	val isPeriodicalBackupEnabled: Boolean
-		get() = prefs.getBoolean(KEY_BACKUP_PERIODICAL_ENABLED, false)
-
-	val periodicalBackupFrequency: Float
-		get() = prefs.getString(KEY_BACKUP_PERIODICAL_FREQUENCY, null)?.toFloatOrNull() ?: 7f
-
-	val periodicalBackupFrequencyMillis: Long
-		get() = (TimeUnit.DAYS.toMillis(1) * periodicalBackupFrequency).toLong()
-
-	val periodicalBackupMaxCount: Int
-		get() = if (prefs.getBoolean(KEY_BACKUP_PERIODICAL_TRIM, true)) {
-			prefs.getInt(KEY_BACKUP_PERIODICAL_COUNT, 10)
-		} else {
-			Int.MAX_VALUE
-		}
-
-	var periodicalBackupDirectory: Uri?
-		get() = prefs.getString(KEY_BACKUP_PERIODICAL_OUTPUT, null)?.toUriOrNull()
-		set(value) = prefs.edit { putString(KEY_BACKUP_PERIODICAL_OUTPUT, value?.toString()) }
-
-	val isBackupTelegramUploadEnabled: Boolean
-		get() = prefs.getBoolean(KEY_BACKUP_TG_ENABLED, false)
-
-	val backupTelegramChatId: String?
-		get() = prefs.getString(KEY_BACKUP_TG_CHAT, null)?.nullIfEmpty()
-
 	val isReadingTimeEstimationEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READING_TIME, true)
 
@@ -797,14 +766,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PROTECT_APP_TIMEOUT = "protect_app_timeout"
 		const val KEY_PROTECT_APP_BIOMETRIC = "protect_app_bio"
 		const val KEY_ZOOM_MODE = "zoom_mode"
-		const val KEY_BACKUP = "backup"
-		const val KEY_RESTORE = "restore"
-		const val KEY_BACKUP_PERIODICAL_ENABLED = "backup_periodic"
-		const val KEY_BACKUP_PERIODICAL_FREQUENCY = "backup_periodic_freq"
-		const val KEY_BACKUP_PERIODICAL_TRIM = "backup_periodic_trim"
-		const val KEY_BACKUP_PERIODICAL_COUNT = "backup_periodic_count"
-		const val KEY_BACKUP_PERIODICAL_OUTPUT = "backup_periodic_output"
-		const val KEY_BACKUP_PERIODICAL_LAST = "backup_periodic_last"
 		const val KEY_HISTORY_GROUPING = "history_grouping"
 		const val KEY_UPDATED_GROUPING = "updated_grouping"
 		const val KEY_PROGRESS_INDICATORS = "progress_indicators"
@@ -832,8 +793,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EXIT_CONFIRM = "exit_confirm"
 		const val KEY_INCOGNITO_MODE = "incognito"
 		const val KEY_READER_MULTITASK = "reader_multitask"
-		const val KEY_SYNC = "sync"
-		const val KEY_SYNC_SETTINGS = "sync_settings"
 		const val KEY_READER_BAR = "reader_bar"
 		const val KEY_READER_BAR_TRANSPARENT = "reader_bar_transparent"
 		const val KEY_READER_CHAPTER_TOAST = "reader_chapter_toast"
@@ -896,11 +855,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_FEED_HEADER = "feed_header"
 		const val KEY_SEARCH_SUGGESTION_TYPES = "search_suggest_types"
 		const val KEY_SOURCES_VERSION = "sources_version"
-		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
-		const val KEY_BACKUP_TG_ENABLED = "backup_periodic_tg_enabled"
-		const val KEY_BACKUP_TG_CHAT = "backup_periodic_tg_chat_id"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
 		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
 		const val KEY_TAGS_WARNINGS = "tags_warnings"
@@ -919,9 +875,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PROXY_TEST = "proxy_test"
 		const val KEY_OPEN_BROWSER = "open_browser"
 		const val KEY_HANDLE_LINKS = "handle_links"
-		const val KEY_BACKUP_TG = "backup_periodic_tg"
-		const val KEY_BACKUP_TG_OPEN = "backup_periodic_tg_open"
-		const val KEY_BACKUP_TG_TEST = "backup_periodic_tg_test"
 		const val KEY_CLEAR_MANGA_DATA = "manga_data_clear"
 		const val KEY_STORAGE_USAGE = "storage_usage"
 		const val KEY_WEBVIEW_CLEAR = "webview_clear"

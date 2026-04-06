@@ -10,7 +10,6 @@ import androidx.preference.PreferenceScreen
 import androidx.preference.get
 import dagger.Reusable
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupSettingsFragment
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.settings.AppearanceSettingsFragment
 import org.koitharu.kotatsu.settings.DownloadsSettingsFragment
@@ -23,7 +22,6 @@ import org.koitharu.kotatsu.settings.about.AboutSettingsFragment
 import org.koitharu.kotatsu.settings.discord.DiscordSettingsFragment
 import org.koitharu.kotatsu.settings.sources.ExtensionsSettingsFragment
 import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
-import org.koitharu.kotatsu.settings.userdata.BackupsSettingsFragment
 import org.koitharu.kotatsu.settings.userdata.storage.DataCleanupSettingsFragment
 import javax.inject.Inject
 
@@ -45,7 +43,6 @@ class SettingsSearchHelper @Inject constructor(
             emptyList(),
             StorageAndNetworkSettingsFragment::class.java,
         )
-        preferenceManager.inflateTo(result, R.xml.pref_backups, emptyList(), BackupsSettingsFragment::class.java)
         preferenceManager.inflateTo(
             result,
             R.xml.pref_data_cleanup,
@@ -56,12 +53,6 @@ class SettingsSearchHelper @Inject constructor(
         preferenceManager.inflateTo(result, R.xml.pref_tracker, emptyList(), TrackerSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_services, emptyList(), ServicesSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_about, emptyList(), AboutSettingsFragment::class.java)
-        preferenceManager.inflateTo(
-            result,
-            R.xml.pref_backup_periodic,
-            listOf(context.getString(R.string.backup_restore)),
-            PeriodicalBackupSettingsFragment::class.java,
-        )
         preferenceManager.inflateTo(
             result,
             R.xml.pref_proxy,

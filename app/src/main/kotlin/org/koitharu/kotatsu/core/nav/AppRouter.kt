@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.core.nav
 
-import android.accounts.Account
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -8,7 +7,6 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.view.View
 import androidx.annotation.CheckResult
 import androidx.annotation.UiContext
@@ -25,8 +23,6 @@ import dagger.hilt.android.EntryPointAccessors
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.alternatives.ui.AlternativesActivity
-import org.koitharu.kotatsu.backups.ui.backup.BackupDialogFragment
-import org.koitharu.kotatsu.backups.ui.restore.RestoreDialogFragment
 import org.koitharu.kotatsu.bookmarks.ui.AllBookmarksActivity
 import org.koitharu.kotatsu.browser.BrowserActivity
 import org.koitharu.kotatsu.browser.cloudflare.CloudFlareActivity
@@ -338,14 +334,6 @@ class AppRouter private constructor(
     }
 
     @CheckResult
-    fun openSystemSyncSettings(account: Account): Boolean {
-        val args = Bundle(1)
-        args.putParcelable(ACCOUNT_KEY, account)
-        val intent = Intent(ACTION_ACCOUNT_SYNC_SETTINGS)
-        intent.putExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS, args)
-        return startActivitySafe(intent)
-    }
-
     /** Dialogs **/
 
     fun showDownloadDialog(manga: Manga, snackbarHost: View?) = showDownloadDialog(setOf(manga), snackbarHost)
@@ -467,18 +455,6 @@ class AppRouter private constructor(
             putSerializable(KEY_ERROR, error)
             putString(KEY_URL, url)
         }.show()
-    }
-
-    fun showBackupRestoreDialog(fileUri: Uri) {
-        RestoreDialogFragment().withArgs(1) {
-            putString(KEY_FILE, fileUri.toString())
-        }.show()
-    }
-
-    fun createBackup(destination: Uri) {
-        BackupDialogFragment().withArgs(1) {
-            putParcelable(KEY_DATA, destination)
-        }.showDistinct()
     }
 
     fun showImportDialog() {
@@ -776,10 +752,6 @@ class AppRouter private constructor(
             Intent(context, SettingsActivity::class.java)
                 .setAction(ACTION_TRACKER)
 
-        fun periodicBackupSettingsIntent(context: Context) =
-            Intent(context, SettingsActivity::class.java)
-                .setAction(ACTION_PERIODIC_BACKUP)
-
         fun discordSettingsIntent(context: Context) =
             Intent(context, SettingsActivity::class.java)
                 .setAction(ACTION_MANAGE_DISCORD)
@@ -787,10 +759,6 @@ class AppRouter private constructor(
         fun proxySettingsIntent(context: Context) =
             Intent(context, SettingsActivity::class.java)
                 .setAction(ACTION_PROXY)
-
-        fun historySettingsIntent(context: Context) =
-            Intent(context, SettingsActivity::class.java)
-                .setAction(ACTION_HISTORY)
 
         fun sourcesSettingsIntent(context: Context) =
             Intent(context, SettingsActivity::class.java)
@@ -863,7 +831,6 @@ class AppRouter private constructor(
         const val KEY_SUCCESS_COOKIE_URL = "success_cookie_url"
         const val KEY_SUCCESS_COOKIE_NAME = "success_cookie_name"
 
-        const val ACTION_HISTORY = "${BuildConfig.APPLICATION_ID}.action.MANAGE_HISTORY"
         const val ACTION_MANAGE_DOWNLOADS = "${BuildConfig.APPLICATION_ID}.action.MANAGE_DOWNLOADS"
         const val ACTION_MANAGE_SOURCES = "${BuildConfig.APPLICATION_ID}.action.MANAGE_SOURCES_LIST"
         const val ACTION_MANGA_EXPLORE = "${BuildConfig.APPLICATION_ID}.action.EXPLORE_MANGA"
@@ -874,11 +841,6 @@ class AppRouter private constructor(
         const val ACTION_MANAGE_DISCORD = "${BuildConfig.APPLICATION_ID}.action.MANAGE_DISCORD"
         const val ACTION_SUGGESTIONS = "${BuildConfig.APPLICATION_ID}.action.MANAGE_SUGGESTIONS"
         const val ACTION_TRACKER = "${BuildConfig.APPLICATION_ID}.action.MANAGE_TRACKER"
-        const val ACTION_PERIODIC_BACKUP = "${BuildConfig.APPLICATION_ID}.action.MANAGE_PERIODIC_BACKUP"
-
-        private const val ACCOUNT_KEY = "account"
-        private const val ACTION_ACCOUNT_SYNC_SETTINGS = "android.settings.ACCOUNT_SYNC_SETTINGS"
-        private const val EXTRA_SHOW_FRAGMENT_ARGUMENTS = ":settings:show_fragment_args"
 
         private const val TYPE_TEXT = "text/plain"
         private const val TYPE_IMAGE = "image/*"

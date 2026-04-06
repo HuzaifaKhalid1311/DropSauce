@@ -4,7 +4,6 @@ import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegate
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
@@ -32,20 +31,14 @@ fun sourceConfigItemDelegate2(
 	val iconPinned = ContextCompat.getDrawable(context, R.drawable.ic_pin_small)
 	val eventListener = View.OnClickListener { v ->
 		when (v.id) {
-			R.id.imageView_add -> listener.onItemEnabledChanged(item, true)
-			R.id.imageView_remove -> listener.onItemEnabledChanged(item, false)
 			R.id.imageView_menu -> showSourceMenu(v, item, listener)
 		}
 	}
-	binding.imageViewRemove.setOnClickListener(eventListener)
-	binding.imageViewAdd.setOnClickListener(eventListener)
 	binding.imageViewMenu.setOnClickListener(eventListener)
 
 	bind {
 		binding.textViewTitle.text = item.source.getTitle(context)
-		binding.imageViewAdd.isGone = item.isEnabled || !item.isAvailable
-		binding.imageViewRemove.isVisible = item.isEnabled && item.isDisableAvailable
-		binding.imageViewMenu.isVisible = item.isEnabled && item.isMenuAvailable
+		binding.imageViewMenu.isVisible = true
 		binding.textViewTitle.drawableStart = if (item.isPinned) iconPinned else null
 		binding.textViewDescription.text = item.source.getSummary(context)
 		binding.imageViewIcon.setImageAsync(item.source)
@@ -82,7 +75,7 @@ private fun showSourceMenu(
 	menu.inflate(R.menu.popup_source_config)
 	menu.menu.findItem(R.id.action_shortcut)
 		?.isVisible = ShortcutManagerCompat.isRequestPinShortcutSupported(anchor.context)
-	menu.menu.findItem(R.id.action_pin)?.isVisible = item.isEnabled
+	menu.menu.findItem(R.id.action_pin)?.isVisible = true
 	menu.menu.findItem(R.id.action_pin)?.isChecked = item.isPinned
 	menu.menu.findItem(R.id.action_lift)?.isVisible = item.isDraggable
 	menu.setOnMenuItemClickListener {

@@ -1,13 +1,9 @@
 package org.koitharu.kotatsu.main.ui.welcome
 
-import android.accounts.AccountManager
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
 import androidx.core.view.updatePadding
@@ -30,15 +26,9 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import java.util.Locale
 
 @AndroidEntryPoint
-class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipClickListener, View.OnClickListener,
-	ActivityResultCallback<Uri?> {
+class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipClickListener, View.OnClickListener {
 
 	private val viewModel by viewModels<WelcomeViewModel>()
-
-	private val backupSelectCall = registerForActivityResult(
-		ActivityResultContracts.OpenDocument(),
-		this,
-	)
 
 	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetWelcomeBinding {
 		return SheetWelcomeBinding.inflate(inflater, container, false)
@@ -49,8 +39,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 		binding.textViewWelcomeTitle.isGone = resources.getBoolean(R.bool.is_tablet)
 		binding.chipsLocales.onChipClickListener = this
 		binding.chipsType.onChipClickListener = this
-		binding.chipBackup.setOnClickListener(this)
-		binding.chipSync.setOnClickListener(this)
 		binding.chipDirectories.setOnClickListener(this)
 		binding.chipExtensions.setOnClickListener(this)
 
@@ -75,20 +63,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 
 	override fun onClick(v: View) {
 		when (v.id) {
-			R.id.chip_backup -> {
-				if (!backupSelectCall.tryLaunch(arrayOf("*/*"))) {
-					Snackbar.make(
-						v, R.string.operation_not_supported, Snackbar.LENGTH_SHORT,
-					).show()
-				}
-			}
-
-			R.id.chip_sync -> {
-				val am = AccountManager.get(v.context)
-				val accountType = getString(R.string.account_type_sync)
-				am.addAccount(accountType, accountType, null, null, requireActivity(), null, null)
-			}
-
 			R.id.chip_directories -> {
 				router.openDirectoriesSettings()
 			}
@@ -97,12 +71,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 				router.openSourcesCatalog()
 				dismiss()
 			}
-		}
-	}
-
-	override fun onActivityResult(result: Uri?) {
-		if (result != null) {
-			router.showBackupRestoreDialog(result)
 		}
 	}
 

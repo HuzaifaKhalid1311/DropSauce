@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.settings
 
-import android.accounts.AccountManager
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
@@ -21,15 +20,11 @@ import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.ui.ScrobblerAuthHelper
 import org.koitharu.kotatsu.settings.utils.SplitSwitchPreference
-import org.koitharu.kotatsu.sync.domain.SyncController
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 	SharedPreferences.OnSharedPreferenceChangeListener {
-
-	@Inject
-	lateinit var syncController: SyncController
 
 	@Inject
 	lateinit var scrobblerAuthHelper: ScrobblerAuthHelper
@@ -62,7 +57,6 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 		bindScrobblerSummary(AppSettings.KEY_ANILIST, ScrobblerService.ANILIST)
 		bindScrobblerSummary(AppSettings.KEY_MAL, ScrobblerService.MAL)
 		bindScrobblerSummary(AppSettings.KEY_KITSU, ScrobblerService.KITSU)
-		bindSyncSummary()
 	}
 
 	override fun onSharedPreferenceChanged(prefs: SharedPreferences?, key: String?) {
@@ -92,11 +86,6 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 
 			AppSettings.KEY_KITSU -> {
 				handleScrobblerClick(ScrobblerService.KITSU)
-				true
-			}
-
-			AppSettings.KEY_SYNC -> {
-				Snackbar.make(listView, R.string.sync_feature_not_working, Snackbar.LENGTH_LONG).show()
 				true
 			}
 
@@ -137,23 +126,6 @@ class ServicesSettingsFragment : BasePreferenceFragment(R.string.services),
 			confirmScrobblerAuth(scrobblerService)
 		} else {
 			router.openScrobblerSettings(scrobblerService)
-		}
-	}
-
-	private fun bindSyncSummary() {
-		viewLifecycleScope.launch {
-			val account = withContext(Dispatchers.Default) {
-				val type = getString(R.string.account_type_sync)
-				AccountManager.get(requireContext()).getAccountsByType(type).firstOrNull()
-			}
-			findPreference<Preference>(AppSettings.KEY_SYNC)?.run {
-				summary = when {
-					account == null -> getString(R.string.sync_title)
-					syncController.isEnabled(account) -> account.name
-					else -> getString(R.string.disabled)
-				}
-			}
-			findPreference<Preference>(AppSettings.KEY_SYNC_SETTINGS)?.isEnabled = account != null
 		}
 	}
 

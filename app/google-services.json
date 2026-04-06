@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "680628635037",
+    "project_id": "weebcentral-ae8b2334",
+    "storage_bucket": "weebcentral-ae8b2334.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680628635037:android:e47de3ef0027fab76d9b74",
+        "android_client_info": {
+          "package_name": "org.haziffe.dropsauce.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0WXOu7aoWJIOksfdj903uLX_1W8o8WIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

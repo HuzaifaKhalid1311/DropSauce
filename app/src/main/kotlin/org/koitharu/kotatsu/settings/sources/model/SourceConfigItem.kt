@@ -10,12 +10,8 @@ sealed interface SourceConfigItem : ListModel {
 
 	data class SourceItem(
 		val source: MangaSource,
-		val isEnabled: Boolean,
 		val isDraggable: Boolean,
-		val isAvailable: Boolean,
 		val isPinned: Boolean,
-		val isDisableAvailable: Boolean,
-		val isMenuAvailable: Boolean,
 	) : SourceConfigItem {
 
 		val isNsfw: Boolean

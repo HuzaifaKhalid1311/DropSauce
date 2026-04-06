@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.settings.sources.catalog
 
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.viewModelScope
-import androidx.room.invalidationTrackerFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +13,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.TABLE_SOURCES
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
@@ -38,7 +35,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val repository: MangaSourcesRepository,
 	private val externalRepoRepository: ExternalExtensionRepoRepository,
 	private val mihonExtensionLoader: MihonExtensionLoader,
-	db: MangaDatabase,
 	private val settings: AppSettings,
 ) : BaseViewModel() {
 
@@ -90,14 +86,13 @@ class SourcesCatalogViewModel @Inject constructor(
 	val content: StateFlow<List<ListModel>> = combine(
 		searchQuery,
 		appliedFilter,
-		db.invalidationTrackerFlow(TABLE_SOURCES),
 		mihonSources,
 		externalRepoUrl,
 		refreshTrigger,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
-		val currentTrigger = args[5] as Int
+		val currentTrigger = args[4] as Int
 		val forceRefresh = currentTrigger > lastRefreshTrigger
 		if (forceRefresh) {
 			lastRefreshTrigger = currentTrigger

@@ -66,18 +66,6 @@ class MangaSourcesRepository @Inject constructor(
 		mihon.map { it to true }
 	}
 
-	fun setSourcesEnabled(sources: Collection<MangaSource>, isEnabled: Boolean): ReversibleHandle {
-		return ReversibleHandle { }
-	}
-
-	fun setSourcesEnabledExclusive(sources: Set<MangaSource>) {
-		// No-op for Mihon-only mode
-	}
-
-	fun disableAllSources() {
-		// No-op for Mihon-only mode
-	}
-
 	fun setPositions(sources: List<MangaSource>) {
 		// No-op for Mihon-only mode
 	}

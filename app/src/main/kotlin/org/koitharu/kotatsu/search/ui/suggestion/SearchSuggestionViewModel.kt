@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -21,10 +20,7 @@ import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.search.domain.MangaSearchRepository
 import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
@@ -43,7 +39,6 @@ private const val MAX_SOURCES_TIPS_ITEMS = 2
 class SearchSuggestionViewModel @Inject constructor(
 	private val repository: MangaSearchRepository,
 	private val settings: AppSettings,
-	private val sourcesRepository: MangaSourcesRepository,
 ) : BaseViewModel() {
 
 	private val query = MutableStateFlow("")
@@ -57,14 +52,13 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	val suggestion: Flow<List<SearchSuggestionItem>> = combine(
 		query.debounce(DEBOUNCE_TIMEOUT),
-		sourcesRepository.observeEnabledSources().map { it.mapToSet { x -> x.name } },
 		settings.observeAsFlow(AppSettings.KEY_SEARCH_SUGGESTION_TYPES) { searchSuggestionTypes },
 		invalidationTrigger,
 	)
-	{ a, b, c, _ ->
-		Triple(a, b, c)
-	}.mapLatest { (searchQuery, enabledSources, types) ->
-		buildSearchSuggestion(searchQuery, enabledSources, types)
+	{ a, b, _ ->
+		Pair(a, b)
+	}.mapLatest { (searchQuery, types) ->
+		buildSearchSuggestion(searchQuery, types)
 	}.distinctUntilChanged()
 		.withErrorHandling()
 		.flowOn(Dispatchers.Default)
@@ -87,12 +81,6 @@ class SearchSuggestionViewModel @Inject constructor(
 		}
 	}
 
-	fun onSourceToggle(source: MangaSource, isEnabled: Boolean) {
-		launchJob(Dispatchers.Default) {
-			sourcesRepository.setSourcesEnabled(setOf(source), isEnabled)
-		}
-	}
-
 	fun deleteQuery(query: String) {
 		launchJob(Dispatchers.Default) {
 			repository.deleteSearchQuery(query)
@@ -102,7 +90,6 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	private suspend fun buildSearchSuggestion(
 		searchQuery: String,
-		enabledSources: Set<String>,
 		types: Set<SearchSuggestionType>,
 	): List<SearchSuggestionItem> = coroutineScope {
 		listOfNotNull(
@@ -127,7 +114,7 @@ class SearchSuggestionViewModel @Inject constructor(
 				null
 			},
 			if (SearchSuggestionType.SOURCES in types) {
-				async { getSources(searchQuery, enabledSources) }
+				async { getSources(searchQuery) }
 			} else {
 				null
 			},
@@ -194,10 +181,10 @@ class SearchSuggestionViewModel @Inject constructor(
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
-	private fun getSources(searchQuery: String, enabledSources: Set<String>): List<SearchSuggestionItem> =
+	private fun getSources(searchQuery: String): List<SearchSuggestionItem> =
 		runCatchingCancellable {
 			repository.getSourcesSuggestion(searchQuery, MAX_SOURCES_ITEMS)
-				.map { SearchSuggestionItem.Source(it, it.name in enabledSources) }
+				.map { SearchSuggestionItem.Source(it) }
 		}.getOrElse { e ->
 			e.printStackTraceDebug()
 			listOf(SearchSuggestionItem.Text(0, e))

@@ -18,7 +18,6 @@ import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupSettingsFragment
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.ui.BaseActivity
@@ -39,7 +38,6 @@ import org.koitharu.kotatsu.settings.sources.ExtensionsSettingsFragment
 import org.koitharu.kotatsu.settings.sources.SourceSettingsFragment
 import org.koitharu.kotatsu.settings.sources.manage.SourcesManageFragment
 import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
-import org.koitharu.kotatsu.settings.userdata.BackupsSettingsFragment
 
 @AndroidEntryPoint
 class SettingsActivity :
@@ -146,9 +144,7 @@ class SettingsActivity :
 		val fragment = when (intent?.action) {
 			AppRouter.ACTION_READER -> ReaderSettingsFragment()
 			AppRouter.ACTION_SUGGESTIONS -> SuggestionsSettingsFragment()
-			AppRouter.ACTION_HISTORY -> BackupsSettingsFragment()
 			AppRouter.ACTION_TRACKER -> TrackerSettingsFragment()
-			AppRouter.ACTION_PERIODIC_BACKUP -> PeriodicalBackupSettingsFragment()
 			AppRouter.ACTION_SOURCES -> ExtensionsSettingsFragment()
 			AppRouter.ACTION_MANAGE_DISCORD -> DiscordSettingsFragment()
 			AppRouter.ACTION_PROXY -> ProxySettingsFragment()
@@ -161,7 +157,6 @@ class SettingsActivity :
 			Intent.ACTION_VIEW -> {
 				when (intent.data?.host) {
 					HOST_ABOUT -> AboutSettingsFragment()
-					HOST_SYNC_SETTINGS -> SyncSettingsFragment()
 					else -> null
 				}
 			}
@@ -184,7 +179,6 @@ class SettingsActivity :
 	companion object {
 
 		private const val HOST_ABOUT = "about"
-		private const val HOST_SYNC_SETTINGS = "sync-settings"
 		const val ARG_PREF_KEY = "pref_key"
 	}
 }

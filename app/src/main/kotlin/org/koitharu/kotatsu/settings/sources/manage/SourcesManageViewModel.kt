@@ -5,8 +5,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.removeObserverAsync
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
@@ -20,7 +18,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SourcesManageViewModel @Inject constructor(
-	private val database: MangaDatabase,
 	private val settings: AppSettings,
 	private val repository: MangaSourcesRepository,
 	private val listProducer: SourcesListProducer,
@@ -29,17 +26,6 @@ class SourcesManageViewModel @Inject constructor(
 	val content = listProducer.list
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	private var commitJob: Job? = null
-
-	init {
-		launchJob(Dispatchers.Default) {
-			database.invalidationTracker.addObserver(listProducer)
-		}
-	}
-
-	override fun onCleared() {
-		super.onCleared()
-		database.invalidationTracker.removeObserverAsync(listProducer)
-	}
 
 	fun saveSourcesOrder(snapshot: List<SourceConfigItem>) {
 		val prevJob = commitJob
@@ -60,16 +46,7 @@ class SourcesManageViewModel @Inject constructor(
 		val snapshot = content.value
 		val oldPosItem = snapshot.getOrNull(oldPos) as? SourceConfigItem.SourceItem ?: return false
 		val newPosItem = snapshot.getOrNull(newPos) as? SourceConfigItem.SourceItem ?: return false
-		return oldPosItem.isEnabled && newPosItem.isEnabled && oldPosItem.isPinned == newPosItem.isPinned
-	}
-
-	fun setEnabled(source: MangaSource, isEnabled: Boolean) {
-		launchJob(Dispatchers.Default) {
-			val rollback = repository.setSourcesEnabled(setOf(source), isEnabled)
-			if (!isEnabled) {
-				onActionDone.call(ReversibleAction(R.string.source_disabled, rollback))
-			}
-		}
+		return oldPosItem.isPinned == newPosItem.isPinned
 	}
 
 	fun setPinned(source: MangaSource, isPinned: Boolean) {
@@ -106,12 +83,6 @@ class SourcesManageViewModel @Inject constructor(
 				commitJob?.join()
 				onActionDone.call(revert)
 			}
-		}
-	}
-
-	fun disableAll() {
-		launchJob(Dispatchers.Default) {
-			repository.disableAllSources()
 		}
 	}
 

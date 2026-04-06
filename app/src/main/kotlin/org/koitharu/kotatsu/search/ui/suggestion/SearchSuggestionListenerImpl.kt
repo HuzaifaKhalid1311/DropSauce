@@ -42,10 +42,6 @@ class SearchSuggestionListenerImpl(
 		router.openSearch(tag.title, SearchKind.TAG)
 	}
 
-	override fun onSourceToggle(source: MangaSource, isEnabled: Boolean) {
-		viewModel.onSourceToggle(source, isEnabled)
-	}
-
 	override fun onSourceClick(source: MangaSource) {
 		router.openList(source, null, null)
 	}

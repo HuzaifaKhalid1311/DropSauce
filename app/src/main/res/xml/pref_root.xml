@@ -45,12 +45,6 @@
         android:title="@string/services" />
 
     <PreferenceScreen
-        android:fragment="org.koitharu.kotatsu.settings.userdata.BackupsSettingsFragment"
-        android:icon="@drawable/ic_backup_restore"
-        android:key="userdata"
-        android:title="@string/backup_restore" />
-
-    <PreferenceScreen
         android:fragment="org.koitharu.kotatsu.settings.about.AboutSettingsFragment"
         android:icon="@drawable/ic_info_outline"
         android:key="about"

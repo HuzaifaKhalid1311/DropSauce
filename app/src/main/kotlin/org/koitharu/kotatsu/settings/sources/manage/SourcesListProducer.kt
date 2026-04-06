@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.settings.sources.manage
 
 import android.content.Context
-import androidx.room.InvalidationTracker
 import dagger.hilt.android.ViewModelLifecycle
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.Dispatchers
@@ -15,15 +14,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.db.TABLE_SOURCES
 import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isNsfw
-import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.lifecycleScope
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.settings.sources.model.SourceConfigItem
 import javax.inject.Inject
@@ -34,7 +29,7 @@ class SourcesListProducer @Inject constructor(
 	@LocalizedAppContext private val context: Context,
 	private val repository: MangaSourcesRepository,
 	private val settings: AppSettings,
-) : InvalidationTracker.Observer(TABLE_SOURCES) {
+) {
 
 	private val scope = lifecycle.lifecycleScope
 	private var query: String = ""
@@ -51,11 +46,11 @@ class SourcesListProducer @Inject constructor(
 					it == AppSettings.KEY_DISABLE_NSFW
 			}
 			.flowOn(Dispatchers.Default)
-			.onEach { onInvalidated(emptySet()) }
+			.onEach { invalidateList() }
 			.launchIn(scope)
 	}
 
-	override fun onInvalidated(tables: Set<String>) {
+	private fun invalidateList() {
 		val prevJob = job
 		job = scope.launch(Dispatchers.Default) {
 			prevJob.cancelAndJoin()
@@ -65,17 +60,14 @@ class SourcesListProducer @Inject constructor(
 
 	fun setQuery(value: String) {
 		this.query = value
-		onInvalidated(emptySet())
+		invalidateList()
 	}
 
 	private suspend fun buildList(): List<SourceConfigItem> {
 		val enabledSources = repository.getEnabledSources()
 		val pinned = repository.getPinnedSources().mapToSet { it.name }
-		val isNsfwDisabled = settings.isNsfwContentDisabled
 		val isReorderAvailable = settings.sourcesSortOrder == SourcesSortOrder.MANUAL
-		val isDisableAvailable = !settings.isAllSourcesEnabled
 		val withTip = isReorderAvailable && settings.isTipEnabled(TIP_REORDER)
-		val enabledSet = enabledSources.toSet()
 		if (query.isNotEmpty()) {
 			return enabledSources.mapNotNull {
 				if (!it.getTitle(context).contains(query, ignoreCase = true)) {
@@ -83,12 +75,8 @@ class SourcesListProducer @Inject constructor(
 				}
 				SourceConfigItem.SourceItem(
 					source = it,
-					isEnabled = it in enabledSet,
 					isDraggable = false,
-					isAvailable = !isNsfwDisabled || !it.isNsfw(),
 					isPinned = it.name in pinned,
-					isDisableAvailable = false,
-					isMenuAvailable = it.unwrap() !is MihonMangaSource,
 				)
 			}.ifEmpty {
 				listOf(SourceConfigItem.EmptySearchResult)
@@ -106,12 +94,8 @@ class SourcesListProducer @Inject constructor(
 			enabledSources.mapTo(result) {
 				SourceConfigItem.SourceItem(
 					source = it,
-					isEnabled = true,
-					isDraggable = false,
-					isAvailable = false,
+					isDraggable = isReorderAvailable,
 					isPinned = it.name in pinned,
-					isDisableAvailable = false,
-					isMenuAvailable = it.unwrap() !is MihonMangaSource,
 				)
 			}
 		}

@@ -12,9 +12,6 @@
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-	<uses-permission android:name="android.permission.READ_SYNC_STATS" />
-	<uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
-	<uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 	<uses-permission
@@ -44,11 +41,7 @@
 	<application
 		android:name="org.koitharu.kotatsu.KotatsuApp"
 		android:allowBackup="true"
-		android:backupAgent="org.koitharu.kotatsu.backups.domain.AppBackupAgent"
-		android:dataExtractionRules="@xml/backup_rules"
 		android:enableOnBackInvokedCallback="@bool/is_predictive_back_enabled"
-        android:fullBackupContent="@xml/backup_content"
-		android:fullBackupOnly="true"
 		android:hasFragileUserData="true"
 		android:restoreAnyVersion="true"
 		android:icon="@mipmap/ic_launcher"
@@ -163,7 +156,6 @@
 
 				<data android:scheme="kotatsu" />
 				<data android:host="about" />
-				<data android:host="sync-settings" />
 			</intent-filter>
 		</activity>
 		<activity
@@ -223,10 +215,6 @@
 		<activity
 			android:name="org.koitharu.kotatsu.settings.override.OverrideConfigActivity"
 			android:label="@string/edit" />
-		<activity
-			android:name="org.koitharu.kotatsu.sync.ui.SyncAuthActivity"
-			android:exported="true"
-			android:label="@string/sync" />
 		<activity
 			android:name="org.koitharu.kotatsu.reader.ui.colorfilter.ColorFilterConfigActivity"
 			android:label="@string/color_correction" />
@@ -307,24 +295,12 @@
 			android:foregroundServiceType="dataSync"
 			android:label="@string/local_manga_processing" />
 		<service
-			android:name="org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupService"
-			android:foregroundServiceType="dataSync"
-			android:label="@string/periodic_backups" />
-		<service
 			android:name="org.koitharu.kotatsu.alternatives.ui.AutoFixService"
 			android:foregroundServiceType="dataSync"
 			android:label="@string/fixing_manga" />
 		<service
 			android:name="org.koitharu.kotatsu.local.ui.LocalIndexUpdateService"
 			android:label="@string/local_manga_processing" />
-		<service
-			android:name="org.koitharu.kotatsu.backups.ui.backup.BackupService"
-			android:foregroundServiceType="dataSync"
-			android:label="@string/creating_backup" />
-		<service
-			android:name="org.koitharu.kotatsu.backups.ui.restore.RestoreService"
-			android:foregroundServiceType="dataSync"
-			android:label="@string/restoring_backup" />
 		<service
 			android:name="org.koitharu.kotatsu.local.ui.ImportService"
 			android:foregroundServiceType="dataSync"
@@ -337,39 +313,6 @@
 			android:name="org.koitharu.kotatsu.widget.recent.RecentWidgetService"
 			android:label="@string/recent_manga"
 			android:permission="android.permission.BIND_REMOTEVIEWS" />
-		<service
-			android:name="org.koitharu.kotatsu.sync.ui.SyncAuthenticatorService"
-			android:exported="true"
-			tools:ignore="ExportedService">
-			<intent-filter>
-				<action android:name="android.accounts.AccountAuthenticator" />
-			</intent-filter>
-			<meta-data
-				android:name="android.accounts.AccountAuthenticator"
-				android:resource="@xml/authenticator_sync" />
-		</service>
-		<service
-			android:name="org.koitharu.kotatsu.sync.ui.favourites.FavouritesSyncService"
-			android:exported="false"
-			android:label="@string/favourites">
-			<intent-filter>
-				<action android:name="android.content.SyncAdapter" />
-			</intent-filter>
-			<meta-data
-				android:name="android.content.SyncAdapter"
-				android:resource="@xml/sync_favourites" />
-		</service>
-		<service
-			android:name="org.koitharu.kotatsu.sync.ui.history.HistorySyncService"
-			android:exported="false"
-			android:label="@string/history">
-			<intent-filter>
-				<action android:name="android.content.SyncAdapter" />
-			</intent-filter>
-			<meta-data
-				android:name="android.content.SyncAdapter"
-				android:resource="@xml/sync_history" />
-		</service>
 		<service
 			android:name="org.koitharu.kotatsu.details.service.MangaPrefetchService"
 			android:exported="false"
@@ -391,18 +334,6 @@
 				android:name="android.support.FILE_PROVIDER_PATHS"
 				android:resource="@xml/filepaths" />
 		</provider>
-		<provider
-			android:name="org.koitharu.kotatsu.sync.ui.favourites.FavouritesSyncProvider"
-			android:authorities="@string/sync_authority_favourites"
-			android:exported="false"
-			android:label="@string/favourites"
-			android:syncable="true" />
-		<provider
-			android:name="org.koitharu.kotatsu.sync.ui.history.HistorySyncProvider"
-			android:authorities="@string/sync_authority_history"
-			android:exported="false"
-			android:label="@string/history"
-			android:syncable="true" />
 		<provider
 			android:name="androidx.startup.InitializationProvider"
 			android:authorities="${applicationId}.androidx-startup"
