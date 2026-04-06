@@ -10,14 +10,6 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.hannesdorfmann.adapterdelegates4.dsl.AdapterDelegateViewBindingViewHolder
 import com.hannesdorfmann.adapterdelegates4.dsl.AdapterDelegateViewHolder
 
-fun RecyclerView.clearItemDecorations() {
-	suppressLayout(true)
-	while (itemDecorationCount > 0) {
-		removeItemDecorationAt(0)
-	}
-	suppressLayout(false)
-}
-
 fun RecyclerView.removeItemDecoration(cls: Class<out RecyclerView.ItemDecoration>) {
 	repeat(itemDecorationCount) { i ->
 		if (cls.isInstance(getItemDecorationAt(i))) {
