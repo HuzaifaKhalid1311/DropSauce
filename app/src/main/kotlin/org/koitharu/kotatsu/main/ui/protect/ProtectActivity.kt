@@ -32,6 +32,8 @@ class ProtectActivity :
 	lateinit var protectHelper: AppProtectHelper
 
 	private val biometricPrompt = registerForAuthenticationResult(resultCallback = this)
+	private var authInProgress = false
+	private var autoPromptShown = false
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -45,7 +47,14 @@ class ProtectActivity :
 		}
 		viewBinding.layoutPassword.visibility = View.GONE
 		viewBinding.textViewSubtitle.setText(R.string.require_unlock)
-		startUnlockFlow()
+	}
+
+	override fun onResume() {
+		super.onResume()
+		if (!autoPromptShown && !authInProgress) {
+			autoPromptShown = true
+			startUnlockFlow()
+		}
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -68,7 +77,8 @@ class ProtectActivity :
 	}
 
 	override fun onAuthResult(result: AuthenticationResult) {
-		if (result.isSuccess()) {
+		authInProgress = false
+		if (result.didAuthenticate()) {
 			protectHelper.unlock()
 			val sourceIntent = intent.getParcelableExtraCompat<Intent>(EXTRA_INTENT)
 			if (sourceIntent != null) {
@@ -82,6 +92,7 @@ class ProtectActivity :
 		if (BiometricManager.from(this).canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) != BIOMETRIC_SUCCESS) {
 			return false
 		}
+		authInProgress = true
 		val request = AuthenticationRequest.biometricRequest(
 			getString(R.string.app_name),
 			Biometric.Fallback.DeviceCredential,

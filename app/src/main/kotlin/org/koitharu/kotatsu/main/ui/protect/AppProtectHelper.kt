@@ -23,16 +23,7 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 			isUnlocked = true
 			return
 		}
-		if (!isUnlocked && activity !is ProtectActivity && activity !is CrashReportDialog) {
-			val sourceIntent = Intent(activity, activity.javaClass)
-			activity.intent?.let {
-				sourceIntent.putExtras(it)
-				sourceIntent.action = it.action
-				sourceIntent.setDataAndType(it.data, it.type)
-			}
-			activity.startActivity(ProtectActivity.newIntent(activity, sourceIntent))
-			activity.finishAfterTransition()
-		}
+		ensureProtected(activity)
 	}
 
 	override fun onActivityStarted(activity: Activity) {
@@ -46,6 +37,7 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 				isUnlocked = false
 			}
 		}
+		ensureProtected(activity)
 	}
 
 	override fun onActivityStopped(activity: Activity) {
@@ -74,5 +66,19 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 
 	private fun restoreLock() {
 		isUnlocked = !settings.isAppProtectionEnabled
+	}
+
+	private fun ensureProtected(activity: Activity) {
+		if (isUnlocked || activity is ProtectActivity || activity is CrashReportDialog) {
+			return
+		}
+		val sourceIntent = Intent(activity, activity.javaClass)
+		activity.intent?.let {
+			sourceIntent.putExtras(it)
+			sourceIntent.action = it.action
+			sourceIntent.setDataAndType(it.data, it.type)
+		}
+		activity.startActivity(ProtectActivity.newIntent(activity, sourceIntent))
+		activity.finishAfterTransition()
 	}
 }
