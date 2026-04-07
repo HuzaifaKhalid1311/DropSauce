@@ -2,13 +2,13 @@ package org.koitharu.kotatsu.main.ui.protect
 
 import androidx.biometric.AuthenticationResult
 
-private val isSuccessMethod by lazy(LazyThreadSafetyMode.NONE) {
+private val isSuccessMethod by lazy {
 	AuthenticationResult::class.java.methods.firstOrNull {
 		it.name == "isSuccess" && it.parameterCount == 0
 	}
 }
 
-private val authenticationTypeMethod by lazy(LazyThreadSafetyMode.NONE) {
+private val authenticationTypeMethod by lazy {
 	AuthenticationResult::class.java.methods.firstOrNull {
 		it.name == "getAuthenticationType" && it.parameterCount == 0
 	}
