@@ -11,6 +11,8 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
 import androidx.core.content.ContextCompat
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import dagger.hilt.android.AndroidEntryPoint
 import eu.kanade.tachiyomi.source.ConfigurableSource
 import org.koitharu.kotatsu.R
@@ -25,7 +27,6 @@ import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.withArgs
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.io.File
 
@@ -119,6 +120,9 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return
 		val screen = preferenceScreen ?: return
 		screen.removePreferenceRecursively(KEY_MIHON_LANGUAGE_TOGGLES)
+		viewModel.getCurrentMihonPackageName()?.let { pkg ->
+			screen.removePreferenceRecursively("$KEY_UNINSTALL_PREF$pkg")
+		}
 		val mihonSource = repo.mihonSource as? ConfigurableSource
 		if (mihonSource != null) {
 			try {
@@ -128,7 +132,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 			}
 		}
 		addMihonLanguageToggles(repo, screen)
-		moveMihonLanguageTogglesToBottom(screen)
 	}
 
 	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: PreferenceScreen) {
@@ -191,8 +194,15 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 
 		val uninstallPref = Preference(requireContext()).apply {
-			key = "uninstall_extension_$pkgName"
-			title = getString(R.string.uninstall)
+			key = "$KEY_UNINSTALL_PREF$pkgName"
+			title = SpannableString(getString(R.string.uninstall)).apply {
+				setSpan(
+					ForegroundColorSpan(ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_error)),
+					0,
+					length,
+					0,
+				)
+			}
 			icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete)
 			isIconSpaceReserved = false
 			order = Int.MAX_VALUE
@@ -204,17 +214,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 		uninstallPref.icon?.setTint(ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_error))
 		screen.addPreference(uninstallPref)
-	}
-
-	private fun moveMihonLanguageTogglesToBottom(screen: PreferenceScreen) {
-		val category = screen.findPreference<PreferenceCategory>(KEY_MIHON_LANGUAGE_TOGGLES) ?: return
-		val maxOrder = (0 until screen.preferenceCount)
-			.map { screen.getPreference(it) }
-			.filterNot { it.key == KEY_MIHON_LANGUAGE_TOGGLES }
-			.maxOfOrNull { it.order } ?: 0
-		category.order = maxOrder + 1
-		screen.removePreference(category)
-		screen.addPreference(category)
 	}
 
 	companion object {
