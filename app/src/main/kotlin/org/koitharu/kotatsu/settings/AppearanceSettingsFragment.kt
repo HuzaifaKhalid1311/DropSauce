@@ -47,6 +47,7 @@ import org.koitharu.kotatsu.settings.utils.ActivityListPreference
 import org.koitharu.kotatsu.settings.utils.MultiSummaryProvider
 import org.koitharu.kotatsu.settings.utils.PercentSummaryProvider
 import org.koitharu.kotatsu.settings.utils.SliderPreference
+import org.koitharu.kotatsu.main.ui.protect.didAuthenticate
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -225,7 +226,7 @@ class AppearanceSettingsFragment :
   override fun onAuthResult(result: AuthenticationResult) {
     val target = pendingProtectionToggle ?: return
     pendingProtectionToggle = null
-    if (!result.isSuccess()) {
+    if (!result.didAuthenticate()) {
       bindProtectionPrefs()
       return
     }

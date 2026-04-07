@@ -418,11 +418,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			settings.pendingExtensionDownloads = pendingInstallerDownloads
 			return
 		}
-		val installIntent = Intent(Intent.ACTION_INSTALL_PACKAGE)
+		val installIntent = Intent(Intent.ACTION_VIEW)
 			.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 			.setDataAndType(apkUri, mime)
-			.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-			.putExtra(Intent.EXTRA_RETURN_RESULT, false)
 		try {
 			startActivity(installIntent)
 			settings.pendingExtensionDownloads = pendingInstallerDownloads

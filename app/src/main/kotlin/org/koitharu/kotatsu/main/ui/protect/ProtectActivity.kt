@@ -78,7 +78,7 @@ class ProtectActivity :
 
 	override fun onAuthResult(result: AuthenticationResult) {
 		authInProgress = false
-		if (result.isSuccess()) {
+		if (result.didAuthenticate()) {
 			protectHelper.unlock()
 			val sourceIntent = intent.getParcelableExtraCompat<Intent>(EXTRA_INTENT)
 			if (sourceIntent != null) {

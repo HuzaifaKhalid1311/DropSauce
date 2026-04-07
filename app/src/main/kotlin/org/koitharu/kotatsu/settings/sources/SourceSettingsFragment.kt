@@ -183,7 +183,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 					val allPref = category.findPreference<SwitchPreferenceCompat>("lang_toggle_all_$pkgName")
 					allPref?.isChecked = sortedSiblings.all { item ->
 						if (item.language == lang) {
-							newValue as Boolean
+							newValue
 						} else {
 							viewModel.isMihonSourceLangEnabled(pkgName, item.language)
 						}
