@@ -203,7 +203,9 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 					0,
 				)
 			}
-			icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete)
+			icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete)?.mutate()?.also {
+				it.setTint(ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_error))
+			}
 			isIconSpaceReserved = false
 			order = Int.MAX_VALUE
 			summary = repo.source.displayName
@@ -212,7 +214,6 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 				true
 			}
 		}
-		uninstallPref.icon?.setTint(ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_error))
 		screen.addPreference(uninstallPref)
 	}
 
