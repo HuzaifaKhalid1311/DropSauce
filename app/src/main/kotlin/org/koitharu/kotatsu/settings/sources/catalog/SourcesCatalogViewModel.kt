@@ -118,7 +118,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			isRefreshing.value = true
 			availableRepoEntries.value = emptyList()
-			runCatching { mihonExtensionLoader.loadExtensions() }
+			runCatching { mihonExtensionLoader.loadExtensions(appContext) }
 			refreshTrigger.value++
 		}
 	}

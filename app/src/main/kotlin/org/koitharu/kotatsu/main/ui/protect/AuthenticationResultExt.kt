@@ -15,8 +15,9 @@ private val authenticationTypeMethod by lazy {
 }
 
 fun AuthenticationResult.didAuthenticate(): Boolean {
-	if (isSuccessMethod != null) {
-		return (isSuccessMethod.invoke(this) as? Boolean) == true
+	val method = isSuccessMethod
+	if (method != null) {
+		return (method.invoke(this) as? Boolean) == true
 	}
 	val authType = authenticationTypeMethod?.invoke(this) as? Int
 	return authType?.let { it != 0 } ?: true

@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.list.ui.adapter
 
+import androidx.appcompat.R as appcompatR
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isGone
 import com.google.android.material.color.MaterialColors
@@ -35,14 +36,14 @@ fun listHeaderAD(
 			binding.buttonMore.setText(currentItem.buttonTextRes)
 			binding.buttonMore.contentDescription = context.getString(currentItem.buttonTextRes)
 			if (currentItem.buttonTextRes == R.string.update_all) {
-				val primary = MaterialColors.getColor(binding.buttonMore, com.google.android.material.R.attr.colorPrimary)
+				val primary = MaterialColors.getColor(binding.buttonMore, appcompatR.attr.colorPrimary)
 				val onPrimary = MaterialColors.getColor(binding.buttonMore, com.google.android.material.R.attr.colorOnPrimary)
 				binding.buttonMore.backgroundTintList = android.content.res.ColorStateList.valueOf(primary)
 				binding.buttonMore.setTextColor(onPrimary)
 			} else {
 				binding.buttonMore.backgroundTintList = null
 				binding.buttonMore.setTextColor(
-					MaterialColors.getColor(binding.buttonMore, com.google.android.material.R.attr.colorPrimary),
+					MaterialColors.getColor(binding.buttonMore, appcompatR.attr.colorPrimary),
 				)
 			}
 			binding.buttonMore.isGone = false
