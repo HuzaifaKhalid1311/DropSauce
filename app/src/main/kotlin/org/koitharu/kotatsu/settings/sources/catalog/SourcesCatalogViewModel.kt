@@ -357,10 +357,6 @@ class SourcesCatalogViewModel @Inject constructor(
 		return externalRepoRepository.getExtensions(repoUrl, forceRefresh)
 	}
 
-	companion object {
-		const val HEADER_PAYLOAD_UPDATE_ALL = "updates_pending_update_all"
-	}
-
 	@WorkerThread
 	private fun getContentTypes(isNsfwDisabled: Boolean): List<ContentType> {
 		// Content types come from extensions
@@ -369,5 +365,9 @@ class SourcesCatalogViewModel @Inject constructor(
 		} else {
 			ContentType.entries.toList()
 		}
+	}
+
+	companion object {
+		const val HEADER_PAYLOAD_UPDATE_ALL = "updates_pending_update_all"
 	}
 }

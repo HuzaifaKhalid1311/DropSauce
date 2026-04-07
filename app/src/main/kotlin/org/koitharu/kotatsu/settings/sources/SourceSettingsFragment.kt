@@ -208,7 +208,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 			order = Int.MAX_VALUE
 			summary = repo.source.displayName
 			onPreferenceClickListener = Preference.OnPreferenceClickListener {
-				showUninstallDialog(pkgName)
+				showUninstallDialog(pkgName, repo.source.displayName)
 				true
 			}
 		}
@@ -226,10 +226,10 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 	}
 
-	private fun showUninstallDialog(pkgName: String) {
+	private fun showUninstallDialog(pkgName: String, displayName: String) {
 		androidx.appcompat.app.AlertDialog.Builder(requireContext())
 			.setTitle(R.string.uninstall)
-			.setMessage(pkgName)
+			.setMessage(displayName)
 			.setNegativeButton(android.R.string.cancel, null)
 			.setPositiveButton(R.string.uninstall) { _, _ ->
 				startActivity(
