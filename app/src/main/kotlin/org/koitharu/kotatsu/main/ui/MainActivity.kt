@@ -101,6 +101,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 	private lateinit var navigationDelegate: MainNavigationDelegate
 	private lateinit var fadingAppbarMediator: FadingAppbarMediator
+	private lateinit var searchSuggestionMenuProvider: SearchSuggestionMenuProvider
 
 	override val appBar: AppBarLayout
 		get() = viewBinding.appbar
@@ -174,9 +175,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onFragmentChanged(fragment: Fragment, fromUser: Boolean) {
 		adjustFabVisibility(topFragment = fragment)
 		adjustAppbar(topFragment = fragment)
-		if (viewBinding.searchView.isShowing) {
-			normalizeSearchInputLayout()
-		}
+		normalizeSearchInputLayout()
 		if (fromUser) {
 			actionModeDelegate.finishActionMode()
 			viewBinding.appbar.setExpanded(true)
@@ -248,9 +247,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val isOpened = newState >= SearchView.TransitionState.SHOWING
 		if (isOpened != wasOpened) {
 			adjustSearchUI(isOpened)
-			if (isOpened) {
-				normalizeSearchInputLayout()
-			}
+			normalizeSearchInputLayout()
 		}
 	}
 
@@ -386,9 +383,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	private fun initSearch() {
 		val listener = SearchSuggestionListenerImpl(router, viewBinding.searchView, searchSuggestionViewModel)
 		val adapter = SearchSuggestionAdapter(listener)
-		viewBinding.searchView.toolbar.addMenuProvider(
-			SearchSuggestionMenuProvider(this, voiceInputLauncher, searchSuggestionViewModel),
-		)
+		searchSuggestionMenuProvider = SearchSuggestionMenuProvider(this, voiceInputLauncher, searchSuggestionViewModel)
+		bindSearchSuggestionMenuProvider()
 		viewBinding.searchView.editText.addTextChangedListener(listener)
 		viewBinding.recyclerViewSearch.adapter = adapter
 		viewBinding.searchView.editText.setOnEditorActionListener(listener)
@@ -413,19 +409,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	private fun normalizeSearchInputLayout() {
 		viewBinding.searchView.post {
+			bindSearchSuggestionMenuProvider()
 			val toolbar = viewBinding.searchView.toolbar
-			toolbar.setContentInsetsRelative(0, 0)
-			toolbar.setContentInsetsAbsolute(0, 0)
+			val isOpened = viewBinding.searchView.isShowing
+			if (isOpened) {
+				toolbar.setContentInsetsRelative(0, 0)
+				toolbar.setContentInsetsAbsolute(0, 0)
+			}
 			viewBinding.searchView.getEditText().apply {
-				val startPadding = max(paddingStart, resources.getDimensionPixelOffset(R.dimen.screen_padding))
+				val defaultPadding = resources.getDimensionPixelOffset(R.dimen.screen_padding)
+				val startPadding = if (isOpened) max(paddingStart, defaultPadding) else defaultPadding
+				val endPadding = if (isOpened) paddingEnd else defaultPadding
 				translationX = 0f
 				translationY = 0f
 				gravity = Gravity.START or Gravity.CENTER_VERTICAL
-				setPaddingRelative(startPadding, paddingTop, paddingEnd, paddingBottom)
+				setPaddingRelative(startPadding, paddingTop, endPadding, paddingBottom)
 				scrollTo(0, 0)
 				requestLayout()
 			}
 		}
+	}
+
+	private fun bindSearchSuggestionMenuProvider() {
+		val toolbar = viewBinding.searchView.toolbar
+		toolbar.removeMenuProvider(searchSuggestionMenuProvider)
+		toolbar.addMenuProvider(searchSuggestionMenuProvider)
 	}
 
 	private fun setNavbarPinned(isPinned: Boolean) {

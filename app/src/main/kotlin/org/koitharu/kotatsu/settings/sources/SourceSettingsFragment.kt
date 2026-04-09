@@ -1,8 +1,14 @@
 package org.koitharu.kotatsu.settings.sources
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.preference.EditTextPreference
 import androidx.preference.EditTextPreferenceDialogFragmentCompat
@@ -117,6 +123,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return
 		val screen = preferenceScreen ?: return
 		screen.removePreferenceRecursively(KEY_MIHON_LANGUAGE_TOGGLES)
+		screen.removePreferenceRecursively(KEY_MIHON_UNINSTALL_EXTENSION)
 		val mihonSource = repo.mihonSource as? ConfigurableSource
 		if (mihonSource != null) {
 			try {
@@ -127,12 +134,14 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 		addMihonLanguageToggles(repo, screen)
 		moveMihonLanguageTogglesToBottom(screen)
+		addMihonUninstallPreference(screen, repo.source.pkgName)
 	}
 
 	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: PreferenceScreen) {
 		val pkgName = repo.source.pkgName
-		val siblings = viewModel.getSiblingMihonSources()
+		val siblings = viewModel.getSiblingMihonSources().sortedBy { it.language }
 		if (siblings.size <= 1) return
+		val langs = siblings.map { it.language }
 
 		val category = PreferenceCategory(requireContext()).apply {
 			key = KEY_MIHON_LANGUAGE_TOGGLES
@@ -141,7 +150,28 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 		screen.addPreference(category)
 
-		for ((index, source) in siblings.sortedBy { it.language }.withIndex()) {
+		val allLanguagesToggle = SwitchPreferenceCompat(requireContext()).apply {
+			key = "lang_toggle_all_${pkgName}"
+			title = getString(R.string.all_languages)
+			isPersistent = false
+			isChecked = viewModel.areAllMihonSourceLangsEnabled(pkgName, langs)
+			isIconSpaceReserved = false
+			order = -1
+			onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+				val enabled = newValue as Boolean
+				viewModel.setMihonSourceLangsEnabled(pkgName, langs, enabled)
+				for (i in 0 until category.preferenceCount) {
+					val pref = category.getPreference(i) as? SwitchPreferenceCompat ?: continue
+					if (pref.key != key) {
+						pref.isChecked = enabled
+					}
+				}
+				true
+			}
+		}
+		category.addPreference(allLanguagesToggle)
+
+		for ((index, source) in siblings.withIndex()) {
 			val lang = source.language
 			val langDisplayName = getExternalExtensionLanguageDisplayName(lang)
 			SwitchPreferenceCompat(requireContext()).apply {
@@ -153,6 +183,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 				order = index
 				onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
 					viewModel.setMihonSourceLangEnabled(pkgName, lang, newValue as Boolean)
+					allLanguagesToggle.isChecked = viewModel.areAllMihonSourceLangsEnabled(pkgName, langs)
 					true
 				}
 			}.also { category.addPreference(it) }
@@ -170,9 +201,39 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		screen.addPreference(category)
 	}
 
+	private fun addMihonUninstallPreference(screen: PreferenceScreen, packageName: String) {
+		val errorColor = ContextCompat.getColor(requireContext(), android.R.color.holo_red_light)
+		val uninstallPref = Preference(requireContext()).apply {
+			key = KEY_MIHON_UNINSTALL_EXTENSION
+			title = SpannableString(getString(R.string.uninstall)).apply {
+				setSpan(ForegroundColorSpan(errorColor), 0, length, 0)
+			}
+			icon = ContextCompat.getDrawable(context, R.drawable.ic_delete)
+			summary = packageName
+			isIconSpaceReserved = true
+			onPreferenceClickListener = Preference.OnPreferenceClickListener {
+				val uri = Uri.fromParts("package", packageName, null)
+				val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+					Intent.ACTION_DELETE
+				} else {
+					@Suppress("DEPRECATION")
+					Intent.ACTION_UNINSTALL_PACKAGE
+				}
+				startActivity(Intent(action, uri))
+				true
+			}
+		}
+		val maxOrder = (0 until screen.preferenceCount)
+			.map { screen.getPreference(it) }
+			.maxOfOrNull { it.order } ?: 0
+		uninstallPref.order = maxOrder + 1
+		screen.addPreference(uninstallPref)
+	}
+
 	companion object {
 
 		private const val KEY_MIHON_LANGUAGE_TOGGLES = "mihon_language_toggles"
+		private const val KEY_MIHON_UNINSTALL_EXTENSION = "mihon_uninstall_extension"
 
 		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {
 			putString(AppRouter.KEY_SOURCE, source.name)

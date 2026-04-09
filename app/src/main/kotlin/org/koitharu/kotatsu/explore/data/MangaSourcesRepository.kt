@@ -218,6 +218,10 @@ class MangaSourcesRepository @Inject constructor(
 		}.distinctUntilChanged()
 	}
 
+	suspend fun reloadMihonSources() {
+		mihonExtensionManager?.loadExtensions()
+	}
+
 	private companion object {
 		private const val KEY_PINNED_ORDER = "pinned_order"
 		private const val PIN_SEPARATOR = "\n"

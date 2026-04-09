@@ -16,10 +16,6 @@
 		android:title="@string/manage_repo"
 		app:showAsAction="ifRoom" />
 
-	<item
-		android:id="@+id/action_update_all"
-		android:title="@string/update_all"
-		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_repo_remove"

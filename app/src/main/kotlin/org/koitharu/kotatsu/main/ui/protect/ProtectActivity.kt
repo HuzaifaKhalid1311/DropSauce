@@ -32,6 +32,7 @@ class ProtectActivity :
 	lateinit var protectHelper: AppProtectHelper
 
 	private val biometricPrompt = registerForAuthenticationResult(resultCallback = this)
+	private var isAutoPromptPending = true
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -45,7 +46,14 @@ class ProtectActivity :
 		}
 		viewBinding.layoutPassword.visibility = View.GONE
 		viewBinding.textViewSubtitle.setText(R.string.require_unlock)
-		startUnlockFlow()
+	}
+
+	override fun onPostResume() {
+		super.onPostResume()
+		if (isAutoPromptPending) {
+			isAutoPromptPending = false
+			startUnlockFlow()
+		}
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {

@@ -116,7 +116,13 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	fun refresh() {
 		isRefreshing.value = true
-		refreshTrigger.value++
+		launchJob(Dispatchers.Default) {
+			try {
+				repository.reloadMihonSources()
+			} finally {
+				refreshTrigger.value++
+			}
+		}
 	}
 
 	fun setLocale(value: String?) {
@@ -320,7 +326,13 @@ class SourcesCatalogViewModel @Inject constructor(
 				)
 			}
 			if (pending.isNotEmpty()) {
-				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.updates_pending))
+				add(
+					org.koitharu.kotatsu.list.ui.model.ListHeader(
+						textRes = R.string.updates_pending,
+						buttonTextRes = R.string.update_all,
+						payload = HEADER_ACTION_UPDATE_ALL,
+					),
+				)
 				addAll(pending)
 			}
 			if (installedSorted.isNotEmpty()) {
@@ -355,5 +367,9 @@ class SourcesCatalogViewModel @Inject constructor(
 		} else {
 			ContentType.entries.toList()
 		}
+	}
+
+	companion object {
+		const val HEADER_ACTION_UPDATE_ALL = "update_all"
 	}
 }

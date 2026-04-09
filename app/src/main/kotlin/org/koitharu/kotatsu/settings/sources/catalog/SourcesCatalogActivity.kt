@@ -13,6 +13,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -46,7 +47,9 @@ import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.core.ui.dialog.setEditText
 import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
+import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
+import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.parsers.model.ContentType
 import javax.inject.Inject
@@ -55,6 +58,7 @@ import javax.inject.Inject
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	ExtensionActionListener,
 	AppBarOwner,
+	ListHeaderClickListener,
 	MenuItem.OnActionExpandListener,
 	ChipsView.OnChipClickListener {
 
@@ -72,19 +76,31 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private val downloadManager by lazy(LazyThreadSafetyMode.NONE) {
 		getSystemService(DOWNLOAD_SERVICE) as DownloadManager
 	}
+	private val pendingInstallQueue = ArrayDeque<String>()
 	private val pendingInstallerDownloads = HashSet<Long>()
-	private var pendingInstallUrl: String? = null
+	private val pendingDownloadedInstalls = ArrayDeque<Long>()
+	private var isInstallerActive = false
 	private val extensionDownloadReceiver = ExtensionDownloadReceiver { downloadId ->
 		if (pendingInstallerDownloads.remove(downloadId)) {
-			installDownloadedApk(downloadId)
+			pendingDownloadedInstalls += downloadId
+			settings.pendingExtensionDownloads = pendingInstallerDownloads
+			processDownloadedInstallerQueue()
 		}
 	}
 	private val storagePermissionRequest = registerForActivityResult(
 		ActivityResultContracts.RequestPermission(),
 	) { granted ->
 		if (granted) {
-			pendingInstallUrl?.let(::downloadAndInstallExtension)
+			processInstallQueue()
 		}
+	}
+	private val installPermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+		processDownloadedInstallerQueue()
+	}
+	private val packageInstallerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+		isInstallerActive = false
+		viewModel.refresh()
+		processDownloadedInstallerQueue()
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,7 +111,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (isExternalOnly) {
 			title = getString(R.string.extension_management)
 		}
-		val sourcesAdapter = SourcesCatalogAdapter(extensionActionListener = this)
+		val sourcesAdapter = SourcesCatalogAdapter(extensionActionListener = this, headerClickListener = this)
 		with(viewBinding.recyclerView) {
 			setHasFixedSize(true)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
@@ -113,7 +129,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			viewModel.refresh()
 		}
 		viewModel.onOpenPackageInstaller.observeEvent(this) { url ->
-			onInstallExtensionRequested(url)
+			enqueueInstall(url)
 		}
 		viewModel.onOpenUninstall.observeEvent(this) { pkg ->
 			val uri = Uri.fromParts("package", pkg, null)
@@ -200,6 +216,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onExtensionActionClick(item: SourceCatalogItem.Extension) {
 		viewModel.onInstallEntryClick(item)
+	}
+
+	override fun onListHeaderClick(item: ListHeader, view: View) {
+		if (item.payload == SourcesCatalogViewModel.HEADER_ACTION_UPDATE_ALL) {
+			viewModel.updateAllExtensions()
+		}
 	}
 
 	override fun onExtensionSettingsClick(item: SourceCatalogItem.Extension) {
@@ -357,12 +379,18 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 	}
 
-	private fun onInstallExtensionRequested(url: String) {
-		pendingInstallUrl = url
+	private fun enqueueInstall(url: String) {
+		pendingInstallQueue += url
+		processInstallQueue()
+	}
+
+	private fun processInstallQueue() {
+		val nextUrl = pendingInstallQueue.removeFirstOrNull() ?: return
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			storagePermissionRequest.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+			pendingInstallQueue.addFirst(nextUrl)
 		} else {
-			downloadAndInstallExtension(url)
+			downloadAndInstallExtension(nextUrl)
 		}
 	}
 
@@ -372,15 +400,21 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val request = DownloadManager.Request(uri)
 			.setTitle(fileName)
 			.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName)
-			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
 			.setMimeType("application/vnd.android.package-archive")
 		val downloadId = downloadManager.enqueue(request)
 		pendingInstallerDownloads += downloadId
 		settings.pendingExtensionDownloads = pendingInstallerDownloads
 		Toast.makeText(this, R.string.download_started, Toast.LENGTH_SHORT).show()
+		processInstallQueue()
 	}
 
 	private fun installDownloadedApk(downloadId: Long) {
+		if (!canInstallPackages()) {
+			pendingDownloadedInstalls.addFirst(downloadId)
+			requestInstallPackagesPermission()
+			return
+		}
 		val apkUri = downloadManager.getUriForDownloadedFile(downloadId) ?: return
 		val mime = downloadManager.getMimeTypeForDownloadedFile(downloadId)
 			?: "application/vnd.android.package-archive"
@@ -388,9 +422,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 			.setDataAndType(apkUri, mime)
 		try {
-			startActivity(installIntent)
-			settings.pendingExtensionDownloads = pendingInstallerDownloads
+			isInstallerActive = true
+			packageInstallerLauncher.launch(installIntent)
 		} catch (_: ActivityNotFoundException) {
+			isInstallerActive = false
 			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
 		}
 	}
@@ -409,11 +444,40 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 				val id = if (idColumn >= 0) it.getLong(idColumn) else continue
 				val status = if (statusColumn >= 0) it.getInt(statusColumn) else continue
 				if (status == DownloadManager.STATUS_SUCCESSFUL && pendingInstallerDownloads.remove(id)) {
-					installDownloadedApk(id)
+					pendingDownloadedInstalls += id
 				}
 			}
 		}
 		settings.pendingExtensionDownloads = pendingInstallerDownloads
+		processDownloadedInstallerQueue()
+	}
+
+	private fun processDownloadedInstallerQueue() {
+		if (isInstallerActive) {
+			return
+		}
+		while (!isInstallerActive) {
+			val downloadId = pendingDownloadedInstalls.removeFirstOrNull() ?: break
+			installDownloadedApk(downloadId)
+		}
+	}
+
+	private fun canInstallPackages(): Boolean {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+			return true
+		}
+		return packageManager.canRequestPackageInstalls()
+	}
+
+	private fun requestInstallPackagesPermission() {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+			return
+		}
+		val intent = Intent(
+			Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+			Uri.parse("package:$packageName"),
+		)
+		installPermissionLauncher.launch(intent)
 	}
 
 	private fun clearOldApks() {

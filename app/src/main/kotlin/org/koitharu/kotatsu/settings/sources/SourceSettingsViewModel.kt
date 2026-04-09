@@ -54,4 +54,14 @@ class SourceSettingsViewModel @Inject constructor(
 	fun setMihonSourceLangEnabled(pkgName: String, lang: String, enabled: Boolean) {
 		settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
 	}
+
+	fun setMihonSourceLangsEnabled(pkgName: String, langs: Collection<String>, enabled: Boolean) {
+		for (lang in langs) {
+			settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
+		}
+	}
+
+	fun areAllMihonSourceLangsEnabled(pkgName: String, langs: Collection<String>): Boolean {
+		return langs.all { settings.isMihonSourceLangEnabled(pkgName, it) }
+	}
 }

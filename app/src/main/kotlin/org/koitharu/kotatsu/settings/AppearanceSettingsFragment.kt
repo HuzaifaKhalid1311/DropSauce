@@ -3,11 +3,13 @@ package org.koitharu.kotatsu.settings
 import android.content.Intent
 import android.content.SharedPreferences
 import android.app.KeyguardManager
+import android.app.Activity
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
@@ -44,6 +46,17 @@ import javax.inject.Inject
 class AppearanceSettingsFragment :
     BasePreferenceFragment(R.string.appearance),
     SharedPreferences.OnSharedPreferenceChangeListener {
+
+  private var pendingProtectState: Boolean? = null
+  private var previousProtectState: Boolean = false
+  private val protectAuthLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    val newState = pendingProtectState ?: return@registerForActivityResult
+    val accepted = result.resultCode == Activity.RESULT_OK
+    settings.isAppProtectionEnabled = if (accepted) newState else previousProtectState
+    findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)?.isChecked = settings.isAppProtectionEnabled
+    pendingProtectState = null
+    bindProtectionPrefs()
+  }
 
     @Inject
     lateinit var activityRecreationHandle: ActivityRecreationHandle
@@ -140,13 +153,22 @@ class AppearanceSettingsFragment :
         return when (preference.key) {
             AppSettings.KEY_PROTECT_APP -> {
                 val pref = (preference as? TwoStatePreference ?: return false)
+                val requestedState = pref.isChecked
                 if (!isDeviceSecure()) {
                     pref.isChecked = false
+                    settings.isAppProtectionEnabled = false
                     bindProtectionPrefs()
                     return true
-                } else {
-                    settings.isAppProtectionEnabled = pref.isChecked
                 }
+                val authIntent = createProtectionAuthIntent()
+                if (authIntent == null) {
+					settings.isAppProtectionEnabled = requestedState
+					bindProtectionPrefs()
+					return true
+				}
+				previousProtectState = settings.isAppProtectionEnabled
+				pendingProtectState = requestedState
+				protectAuthLauncher.launch(authIntent)
                 true
             }
 
@@ -205,5 +227,20 @@ class AppearanceSettingsFragment :
   private fun isDeviceSecure(): Boolean {
     val manager = context?.getSystemService(KeyguardManager::class.java) ?: return false
     return manager.isDeviceSecure
+  }
+
+  private fun createProtectionAuthIntent(): Intent? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+      return null
+    }
+    val manager = context?.getSystemService(KeyguardManager::class.java) ?: return null
+    if (!manager.isDeviceSecure) {
+      return null
+    }
+    @Suppress("DEPRECATION")
+    return manager.createConfirmDeviceCredentialIntent(
+      getString(R.string.require_unlock),
+      getString(R.string.app_name),
+    )
   }
 }
