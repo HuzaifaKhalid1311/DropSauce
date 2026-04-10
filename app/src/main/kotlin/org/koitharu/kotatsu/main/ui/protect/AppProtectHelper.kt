@@ -76,13 +76,11 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 		if (activity is ProtectActivity || activity.isFinishing || activity.isDestroyed) {
 			return
 		}
-		val sourceIntent = Intent(activity, activity.javaClass)
-		activity.intent?.let {
-			sourceIntent.putExtras(it)
-			sourceIntent.action = it.action
-			sourceIntent.setDataAndType(it.data, it.type)
+		val intent = Intent(activity, ProtectActivity::class.java).apply {
+			addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
 		}
-		activity.startActivity(ProtectActivity.newIntent(activity, sourceIntent))
-		activity.finishAfterTransition()
+		activity.startActivity(intent)
+		@Suppress("DEPRECATION")
+		activity.overridePendingTransition(0, 0)
 	}
 }

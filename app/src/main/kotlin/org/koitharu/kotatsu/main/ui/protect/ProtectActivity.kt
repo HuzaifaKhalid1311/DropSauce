@@ -1,7 +1,5 @@
 package org.koitharu.kotatsu.main.ui.protect
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -46,10 +44,7 @@ class ProtectActivity :
 		}
 		viewBinding.layoutPassword.visibility = View.GONE
 		viewBinding.textViewSubtitle.setText(R.string.require_unlock)
-	}
 
-	override fun onPostResume() {
-		super.onPostResume()
 		if (isAutoPromptPending) {
 			isAutoPromptPending = false
 			startUnlockFlow()
@@ -78,11 +73,9 @@ class ProtectActivity :
 	override fun onAuthResult(result: AuthenticationResult) {
 		if (result.isSuccess()) {
 			protectHelper.unlock()
-			val sourceIntent = intent.getParcelableExtraCompat<Intent>(EXTRA_INTENT)
-			if (sourceIntent != null) {
-				startActivity(sourceIntent)
-			}
-			finishAfterTransition()
+			@Suppress("DEPRECATION")
+			overridePendingTransition(0, 0)
+			finish()
 		}
 	}
 
@@ -101,13 +94,5 @@ class ProtectActivity :
 		return true
 	}
 
-	companion object {
-
-		private const val EXTRA_INTENT = "src_intent"
-
-		fun newIntent(context: Context, sourceIntent: Intent): Intent {
-			return Intent(context, ProtectActivity::class.java)
-				.putExtra(EXTRA_INTENT, sourceIntent)
-		}
-	}
+	companion object
 }

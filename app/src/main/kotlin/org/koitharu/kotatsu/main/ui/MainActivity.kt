@@ -1,13 +1,10 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.Manifest
-import android.app.BackgroundServiceStartNotAllowedException
-import android.app.ServiceStartNotAllowedException
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.os.Bundle
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.viewModels
@@ -45,7 +42,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.max
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.browser.AdListUpdateService
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
@@ -101,7 +97,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 	private lateinit var navigationDelegate: MainNavigationDelegate
 	private lateinit var fadingAppbarMediator: FadingAppbarMediator
-	private lateinit var searchSuggestionMenuProvider: SearchSuggestionMenuProvider
 
 	override val appBar: AppBarLayout
 		get() = viewBinding.appbar
@@ -123,17 +118,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			navBar = checkNotNull(bottomNav ?: viewBinding.navRail),
 			fragmentManager = supportFragmentManager,
 			settings = settings,
-		).apply {
-			onExploreReselected = {
-				viewBinding.searchView.show()
-			}
-		}
+		)
 		navigationDelegate.addOnFragmentChangedListener(this)
 		navigationDelegate.onCreate(this, savedInstanceState)
 		viewBinding.textViewTitle?.let { tv ->
 			navigationDelegate.observeTitle().observe(this) { tv.text = it }
 		}
-		viewBinding.searchView.setupWithSearchBar(viewBinding.searchBar)
 
 		addMenuProvider(MainMenuProvider(router, viewModel))
 
@@ -175,7 +165,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onFragmentChanged(fragment: Fragment, fromUser: Boolean) {
 		adjustFabVisibility(topFragment = fragment)
 		adjustAppbar(topFragment = fragment)
-		normalizeSearchInputLayout()
 		if (fromUser) {
 			actionModeDelegate.finishActionMode()
 			viewBinding.appbar.setExpanded(true)
@@ -247,7 +236,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val isOpened = newState >= SearchView.TransitionState.SHOWING
 		if (isOpened != wasOpened) {
 			adjustSearchUI(isOpened)
-			normalizeSearchInputLayout()
 		}
 	}
 
@@ -383,8 +371,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	private fun initSearch() {
 		val listener = SearchSuggestionListenerImpl(router, viewBinding.searchView, searchSuggestionViewModel)
 		val adapter = SearchSuggestionAdapter(listener)
-		searchSuggestionMenuProvider = SearchSuggestionMenuProvider(this, voiceInputLauncher, searchSuggestionViewModel)
-		bindSearchSuggestionMenuProvider()
+		viewBinding.searchView.toolbar.addMenuProvider(
+			SearchSuggestionMenuProvider(this, voiceInputLauncher, searchSuggestionViewModel),
+		)
 		viewBinding.searchView.editText.addTextChangedListener(listener)
 		viewBinding.recyclerViewSearch.adapter = adapter
 		viewBinding.searchView.editText.setOnEditorActionListener(listener)
@@ -407,34 +396,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			.attachToRecyclerView(viewBinding.recyclerViewSearch)
 	}
 
-	private fun normalizeSearchInputLayout() {
-		viewBinding.searchView.post {
-			bindSearchSuggestionMenuProvider()
-			val toolbar = viewBinding.searchView.toolbar
-			val isOpened = viewBinding.searchView.isShowing
-			if (isOpened) {
-				toolbar.setContentInsetsRelative(0, 0)
-				toolbar.setContentInsetsAbsolute(0, 0)
-			}
-			viewBinding.searchView.getEditText().apply {
-				val defaultPadding = resources.getDimensionPixelOffset(R.dimen.screen_padding)
-				val startPadding = if (isOpened) max(paddingStart, defaultPadding) else defaultPadding
-				val endPadding = if (isOpened) paddingEnd else defaultPadding
-				translationX = 0f
-				translationY = 0f
-				gravity = Gravity.START or Gravity.CENTER_VERTICAL
-				setPaddingRelative(startPadding, paddingTop, endPadding, paddingBottom)
-				scrollTo(0, 0)
-				requestLayout()
-			}
-		}
-	}
-
-	private fun bindSearchSuggestionMenuProvider() {
-		val toolbar = viewBinding.searchView.toolbar
-		toolbar.removeMenuProvider(searchSuggestionMenuProvider)
-		toolbar.addMenuProvider(searchSuggestionMenuProvider)
-	}
 
 	private fun setNavbarPinned(isPinned: Boolean) {
 		val bottomNavBar = viewBinding.bottomNav

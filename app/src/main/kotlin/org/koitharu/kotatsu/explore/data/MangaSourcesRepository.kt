@@ -204,6 +204,16 @@ class MangaSourcesRepository @Inject constructor(
 		}
 	}
 
+	private fun getAllMihonSources(): List<MihonMangaSource> {
+		val manager = mihonExtensionManager ?: return emptyList()
+		manager.initialize()
+		val sources = manager.getMihonMangaSources()
+		val hideNsfw = settings.isNsfwContentDisabled
+		return sources.filter { source ->
+			!hideNsfw || !source.isNsfw
+		}
+	}
+
 	fun observeMihonSources(): Flow<List<MihonMangaSource>> {
 		val manager = mihonExtensionManager ?: return kotlinx.coroutines.flow.flowOf(emptyList())
 		manager.initialize()
@@ -215,6 +225,18 @@ class MangaSourcesRepository @Inject constructor(
 			settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled },
 		) { _: Any?, _: Any?, _: Any?, _: Any?, _: Any? ->
 			getMihonSources()
+		}.distinctUntilChanged()
+	}
+
+	fun observeAllMihonSources(): Flow<List<MihonMangaSource>> {
+		val manager = mihonExtensionManager ?: return kotlinx.coroutines.flow.flowOf(emptyList())
+		manager.initialize()
+		return combine(
+			manager.installedExtensions,
+			manager.isLoading,
+			settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled },
+		) { _: Any?, _: Any?, _: Any? ->
+			getAllMihonSources()
 		}.distinctUntilChanged()
 	}
 

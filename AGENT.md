@@ -1,0 +1,9 @@
+- Fix each and every issue I tell you to individually
+- Make sure the code can be build without errors (./gradlew assembleDebug)
+- When you change something, make sure thats accomodated for the related files as well
+- The app should rely fully on mihon/tachiyomi extensions
+- Every feature in kotatsu should be usable with the external extensions
+- Try not to leave any waste residue code
+- Every change in the UI should be similar to the app's actual design language
+- The project does not have that much files. Instead of guessing and searching each file individually and wasting tokens, just list all of them in your memory at the start
+- Only end the task and test build when you're certain the problem is solved

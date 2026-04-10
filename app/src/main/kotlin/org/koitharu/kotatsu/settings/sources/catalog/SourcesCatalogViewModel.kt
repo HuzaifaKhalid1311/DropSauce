@@ -42,6 +42,8 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val defaultLocales: Set<String?> = setOf(null)
 	private val mihonSources = repository.observeMihonSources()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList<org.koitharu.kotatsu.mihon.model.MihonMangaSource>())
+	private val allMihonSources = repository.observeAllMihonSources()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList<org.koitharu.kotatsu.mihon.model.MihonMangaSource>())
 	private val availableRepoEntries = MutableStateFlow<List<ExternalExtensionRepoEntry>>(emptyList())
 
 	private val searchQuery = MutableStateFlow<String?>(null)
@@ -87,12 +89,13 @@ class SourcesCatalogViewModel @Inject constructor(
 		searchQuery,
 		appliedFilter,
 		mihonSources,
+		allMihonSources,
 		externalRepoUrl,
 		refreshTrigger,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
-		val currentTrigger = args[4] as Int
+		val currentTrigger = args[5] as Int
 		val forceRefresh = currentTrigger > lastRefreshTrigger
 		if (forceRefresh) {
 			lastRefreshTrigger = currentTrigger
@@ -225,6 +228,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 		val installed = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
 		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
+		val allInstalledSourcesByPkg = allMihonSources.value.groupBy { it.pkgName }
 
 		val pending = ArrayList<SourceCatalogItem.Extension>()
 		val installedItems = linkedMapOf<String, SourceCatalogItem.Extension>()
@@ -235,10 +239,11 @@ class SourcesCatalogViewModel @Inject constructor(
 
 		for (local in installed.values) {
 			if (settings.isNsfwContentDisabled && local.isNsfw) continue
-			if (locale != null && local.lang != locale) continue
+			val pkgAllSources = allInstalledSourcesByPkg[local.pkgName].orEmpty()
+			if (locale != null && local.lang != locale && pkgAllSources.none { it.language == locale }) continue
 			if (q != null && !local.appName.contains(q, ignoreCase = true) && !local.pkgName.contains(q, ignoreCase = true)) continue
 
-			val pkgSources = installedSourcesByPkg[local.pkgName]
+			val pkgSources = allInstalledSourcesByPkg[local.pkgName] ?: installedSourcesByPkg[local.pkgName]
 			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(local.lang))
@@ -265,7 +270,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
 
 			val local = installed[entry.packageName]
-			val pkgSources = installedSourcesByPkg[entry.packageName]
+			val pkgSources = allInstalledSourcesByPkg[entry.packageName] ?: installedSourcesByPkg[entry.packageName]
 			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
