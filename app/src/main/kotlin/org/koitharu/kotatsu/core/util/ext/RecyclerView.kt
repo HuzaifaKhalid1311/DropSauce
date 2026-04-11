@@ -1,10 +1,9 @@
 package org.koitharu.kotatsu.core.util.ext
 
-import android.util.DisplayMetrics
+import android.animation.ValueAnimator
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isEmpty
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.hannesdorfmann.adapterdelegates4.dsl.AdapterDelegateViewBindingViewHolder
@@ -78,25 +77,41 @@ fun RecyclerView.smoothScrollToTop() {
 		return
 	}
 
-	val smoothScroller = object : LinearSmoothScroller(context) {
-		init {
-			targetPosition = 0
-		}
-
-		override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?) =
-			super.calculateSpeedPerPixel(displayMetrics) / DEFAULT_SPEED_FACTOR
+	val totalOffset = computeVerticalScrollOffset()
+	if (totalOffset <= 0) {
+		return
 	}
 
 	val jumpBeforeScroll = layoutManager.findFirstVisibleItemPosition() > DEFAULT_JUMP_THRESHOLD
 	if (jumpBeforeScroll) {
 		layoutManager.scrollToPositionWithOffset(DEFAULT_JUMP_THRESHOLD, 0)
 		doOnNextLayout {
-			layoutManager.startSmoothScroll(smoothScroller)
+			animateScrollOffsetToTop(DEFAULT_SCROLL_DURATION_MS)
 		}
 	} else {
-		layoutManager.startSmoothScroll(smoothScroller)
+		animateScrollOffsetToTop(DEFAULT_SCROLL_DURATION_MS)
 	}
 }
 
 private const val DEFAULT_JUMP_THRESHOLD = 30
-private const val DEFAULT_SPEED_FACTOR = 1f
+private const val DEFAULT_SCROLL_DURATION_MS = 1000L
+
+private fun RecyclerView.animateScrollOffsetToTop(durationMs: Long) {
+	val startOffset = computeVerticalScrollOffset()
+	if (startOffset <= 0) {
+		return
+	}
+	var previousOffset = startOffset
+	ValueAnimator.ofInt(startOffset, 0).apply {
+		duration = durationMs
+		addUpdateListener { animator ->
+			val currentOffset = animator.animatedValue as Int
+			val delta = previousOffset - currentOffset
+			if (delta != 0) {
+				scrollBy(0, -delta)
+				previousOffset = currentOffset
+			}
+		}
+		start()
+	}
+}

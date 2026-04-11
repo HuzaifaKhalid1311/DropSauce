@@ -156,12 +156,14 @@ class ExploreViewModel @Inject constructor(
 			result += ListHeader(
 				textRes = R.string.remote_sources,
 				buttonTextRes = R.string.manage,
+				buttonStyle = ListHeader.ButtonStyle.OUTLINED,
 			)
 			sources.mapTo(result) { MangaSourceItem(it, isGrid) }
 		} else {
 			result += ListHeader(
 				textRes = R.string.remote_sources,
 				buttonTextRes = R.string.manage,
+				buttonStyle = ListHeader.ButtonStyle.OUTLINED,
 			)
 			result += EmptyHint(
 				icon = R.drawable.ic_empty_common,

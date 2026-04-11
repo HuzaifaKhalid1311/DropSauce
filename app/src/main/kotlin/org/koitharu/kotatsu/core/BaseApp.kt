@@ -1,7 +1,9 @@
 package org.koitharu.kotatsu.core
 
 import android.app.Application
+import android.app.DownloadManager
 import android.content.Context
+import android.os.Environment
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.hilt.work.HiltWorkerFactory
@@ -76,6 +78,7 @@ open class BaseApp : Application(), Configuration.Provider {
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
 		// Keep default platform security provider.
 		setupActivityLifecycleCallbacks()
+		cleanupDownloadedExtensionApks()
 		processLifecycleScope.launch {
 			ACRA.errorReporter.putCustomData("isOriginalApp", appValidator.isOriginalApp.getOrNull().toString())
 			ACRA.errorReporter.putCustomData("isMiui", RomCompat.isMiui.getOrNull().toString())
@@ -117,6 +120,24 @@ open class BaseApp : Application(), Configuration.Provider {
 	private fun setupActivityLifecycleCallbacks() {
 		activityLifecycleCallbacks.forEach {
 			registerActivityLifecycleCallbacks(it)
+		}
+	}
+
+	private fun cleanupDownloadedExtensionApks() {
+		runCatching {
+			val pendingIds = settings.pendingExtensionDownloads.toLongArray()
+			if (pendingIds.isNotEmpty()) {
+				val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+				downloadManager.remove(*pendingIds)
+			}
+			settings.pendingExtensionDownloads = emptySet()
+			getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+				?.listFiles()
+				?.forEach { file ->
+					if (file.isFile && file.name.endsWith(".apk", ignoreCase = true)) {
+						file.delete()
+					}
+				}
 		}
 	}
 }

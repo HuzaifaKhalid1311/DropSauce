@@ -48,6 +48,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
+	private val installingPackages = MutableStateFlow<Set<String>>(emptySet())
 	private val refreshTrigger = MutableStateFlow(0)
 	private var lastRefreshTrigger = 0
 	val isRefreshing = MutableStateFlow(false)
@@ -60,7 +61,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			isNewOnly = false,
 		),
 	)
-	val onOpenPackageInstaller = MutableEventFlow<String>()
+	val onOpenPackageInstaller = MutableEventFlow<List<InstallRequest>>()
 	val onOpenUninstall = MutableEventFlow<String>()
 	val onShowMessage = MutableEventFlow<Int>()
 
@@ -91,11 +92,12 @@ class SourcesCatalogViewModel @Inject constructor(
 		mihonSources,
 		allMihonSources,
 		externalRepoUrl,
+		installingPackages,
 		refreshTrigger,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
-		val currentTrigger = args[5] as Int
+		val currentTrigger = args[6] as Int
 		val forceRefresh = currentTrigger > lastRefreshTrigger
 		if (forceRefresh) {
 			lastRefreshTrigger = currentTrigger
@@ -122,6 +124,11 @@ class SourcesCatalogViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			try {
 				repository.reloadMihonSources()
+				externalRepoUrl.value?.takeIf { it.isNotBlank() }?.let { repoUrl ->
+					runCatching {
+						getAvailableEntries(repoUrl, forceRefresh = true)
+					}
+				}
 			} finally {
 				refreshTrigger.value++
 			}
@@ -162,6 +169,9 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	fun onInstallEntryClick(item: SourceCatalogItem.Extension) {
+		if (item.isInProgress) {
+			return
+		}
 		launchJob(Dispatchers.Default) {
 			when (item.action) {
 				SourceCatalogItem.Extension.Action.INSTALL,
@@ -175,7 +185,14 @@ class SourcesCatalogViewModel @Inject constructor(
 						onShowMessage.call(R.string.nothing_found)
 						return@launchJob
 					}
-					onOpenPackageInstaller.call(externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName))
+					emitInstallRequests(
+						listOf(
+							InstallRequest(
+								packageName = item.packageName,
+								url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
+							),
+						),
+					)
 				}
 				SourceCatalogItem.Extension.Action.UNINSTALL -> onOpenUninstall.call(item.packageName)
 			}
@@ -189,18 +206,53 @@ class SourcesCatalogViewModel @Inject constructor(
 				onShowMessage.call(R.string.extensions_repo_required)
 				return@launchJob
 			}
-			val updates = content.value.filterIsInstance<SourceCatalogItem.Extension>()
-				.filter { it.action == SourceCatalogItem.Extension.Action.UPDATE }
-			if (updates.isEmpty()) {
+			val updateEntries = getUpdatableEntries(repoUrl)
+			if (updateEntries.isEmpty()) {
 				onShowMessage.call(R.string.nothing_found)
 				return@launchJob
 			}
-			val entries = getAvailableEntries(repoUrl, forceRefresh = false).associateBy { it.packageName }
-			for (item in updates) {
-				val entry = entries[item.packageName] ?: continue
-				onOpenPackageInstaller.call(externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName))
-			}
+			emitInstallRequests(
+				updateEntries.map { entry ->
+					InstallRequest(
+						packageName = entry.packageName,
+						url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
+					)
+				},
+			)
 		}
+	}
+
+	fun setExtensionInProgress(packageName: String, isInProgress: Boolean) {
+		val current = installingPackages.value
+		installingPackages.value = if (isInProgress) {
+			current + packageName
+		} else {
+			current - packageName
+		}
+	}
+
+	fun clearExtensionInProgress(packageName: String?) {
+		if (packageName != null) {
+			setExtensionInProgress(packageName, false)
+		}
+	}
+
+	private fun emitInstallRequests(requests: List<InstallRequest>) {
+		if (requests.isEmpty()) {
+			return
+		}
+		installingPackages.value = installingPackages.value + requests.mapTo(HashSet(requests.size)) { it.packageName }
+		onOpenPackageInstaller.call(requests)
+	}
+
+	private suspend fun getUpdatableEntries(repoUrl: String): List<ExternalExtensionRepoEntry> {
+		val installedByPkg = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
+		return getAvailableEntries(repoUrl, forceRefresh = false)
+			.filter { entry ->
+				val local = installedByPkg[entry.packageName] ?: return@filter false
+				entry.versionCode > local.versionCode
+			}
+			.sortedBy { it.name.lowercase() }
 	}
 
 	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
@@ -236,6 +288,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val packagesWithUpdates = HashSet<String>()
 		val locale = filter.locale
 		val q = query?.takeIf { it.isNotBlank() }
+		val inProgressPackages = installingPackages.value
 
 		for (local in installed.values) {
 			if (settings.isNsfwContentDisabled && local.isNsfw) continue
@@ -258,6 +311,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				title = local.appName.removePrefix("Tachiyomi: ").trim(),
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.UNINSTALL,
+				isInProgress = local.pkgName in inProgressPackages,
 				iconUrl = null,
 				sourceIconName = source?.name,
 				sourceName = source?.name,
@@ -287,6 +341,7 @@ class SourcesCatalogViewModel @Inject constructor(
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.INSTALL,
+					isInProgress = entry.packageName in inProgressPackages,
 					iconUrl = iconUrl,
 					sourceIconName = source?.name,
 				)
@@ -295,6 +350,7 @@ class SourcesCatalogViewModel @Inject constructor(
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
 					subtitle = subtitle,
 					action = SourceCatalogItem.Extension.Action.UPDATE,
+					isInProgress = entry.packageName in inProgressPackages,
 					iconUrl = iconUrl,
 					sourceIconName = source?.name,
 					sourceName = source?.name,
@@ -377,4 +433,9 @@ class SourcesCatalogViewModel @Inject constructor(
 	companion object {
 		const val HEADER_ACTION_UPDATE_ALL = "update_all"
 	}
+
+	data class InstallRequest(
+		val packageName: String,
+		val url: String,
+	)
 }

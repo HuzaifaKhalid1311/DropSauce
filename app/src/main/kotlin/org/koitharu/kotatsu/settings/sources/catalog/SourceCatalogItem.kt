@@ -12,6 +12,7 @@ sealed interface SourceCatalogItem : ListModel {
 		val title: String,
 		val subtitle: String,
 		val action: Action,
+		val isInProgress: Boolean = false,
 		val iconUrl: String? = null,
 		val sourceIconName: String? = null,
 		val sourceName: String? = null,

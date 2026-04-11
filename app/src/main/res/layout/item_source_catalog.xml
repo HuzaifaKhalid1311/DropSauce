@@ -12,16 +12,37 @@
 	android:paddingStart="?listPreferredItemPaddingStart"
 	tools:ignore="RtlSymmetry">
 
-	<org.koitharu.kotatsu.core.ui.image.FaviconView
-		android:id="@+id/imageView_icon"
-		android:layout_width="32dp"
-		android:layout_height="32dp"
-		android:background="?colorControlHighlight"
-		android:labelFor="@id/textView_title"
-		android:scaleType="fitCenter"
-		app:iconStyle="@style/FaviconDrawable.Small"
-		app:shapeAppearance="?shapeAppearanceCornerSmall"
-		tools:src="@tools:sample/avatars" />
+	<FrameLayout
+		android:layout_width="44dp"
+		android:layout_height="44dp"
+		android:foregroundGravity="center">
+
+		<org.koitharu.kotatsu.core.ui.image.FaviconView
+			android:id="@+id/imageView_icon"
+			android:layout_width="32dp"
+			android:layout_height="32dp"
+			android:layout_gravity="center"
+			android:background="?colorControlHighlight"
+			android:labelFor="@id/textView_title"
+			android:scaleType="fitCenter"
+			app:iconStyle="@style/FaviconDrawable.Small"
+			app:shapeAppearance="?shapeAppearanceCornerSmall"
+			tools:src="@tools:sample/avatars" />
+
+		<com.google.android.material.progressindicator.CircularProgressIndicator
+			android:id="@+id/progress_icon"
+			style="@style/Widget.Kotatsu.CircularProgressIndicator"
+			android:layout_width="44dp"
+			android:layout_height="44dp"
+			android:layout_gravity="center"
+			android:indeterminate="true"
+			android:visibility="gone"
+			app:indicatorColor="?attr/colorPrimary"
+			app:indicatorInset="0dp"
+			app:indicatorSize="44dp"
+			app:trackColor="?attr/colorOutlineVariant"
+			app:trackThickness="3dp" />
+	</FrameLayout>
 
 	<LinearLayout
 		android:layout_width="0dp"

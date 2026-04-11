@@ -46,13 +46,22 @@ fun sourceCatalogItemExtensionAD(
 	val compactEndPadding = (basePadding - context.resources.getDimensionPixelOffset(R.dimen.margin_small)).coerceAtLeast(0)
 
 	bind {
+		val isInProgress = item.isInProgress
 		binding.imageViewAdd.isVisible = true
+		binding.imageViewAdd.isEnabled = !isInProgress
+		binding.imageViewAdd.alpha = if (isInProgress) 0.45f else 1f
+		binding.progressIcon.isVisible = isInProgress
 		binding.imageViewSettings.isVisible = item.action != SourceCatalogItem.Extension.Action.INSTALL && item.sourceName != null
 		binding.viewAddDivider.isVisible = true
 		binding.root.updatePaddingRelative(end = compactEndPadding)
 		binding.imageViewAdd.setImageResource(item.action.iconRes)
-		binding.imageViewAdd.contentDescription = context.getString(item.action.titleRes)
-		TooltipCompat.setTooltipText(binding.imageViewAdd, context.getString(item.action.titleRes))
+		val actionDescription = if (isInProgress) {
+			context.getString(R.string.in_progress)
+		} else {
+			context.getString(item.action.titleRes)
+		}
+		binding.imageViewAdd.contentDescription = actionDescription
+		TooltipCompat.setTooltipText(binding.imageViewAdd, actionDescription)
 		binding.textViewTitle.text = item.title
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null

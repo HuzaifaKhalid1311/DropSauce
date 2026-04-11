@@ -558,6 +558,8 @@
     <string name="click_edit_icon_add_extension_repo">Click on the edit icon to add an extension repository</string>
     <string name="extensions_repo_load_error">Failed to load extensions repo. Check URL and try again.</string>
     <string name="updates_pending">Updates pending</string>
+    <string name="extension_install_permission_required_title">Allow app installs</string>
+    <string name="extension_install_permission_required_message">Enable \"Install unknown apps\" for this app to install or update extensions.</string>
     <string name="installed">Installed</string>
     <string name="available_to_install">Available to install</string>
     <string name="no_manga_sources_found">No available manga sources found by your query</string>

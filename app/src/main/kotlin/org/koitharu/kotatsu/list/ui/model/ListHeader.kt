@@ -11,35 +11,45 @@ data class ListHeader private constructor(
 	@StringRes val buttonTextRes: Int,
 	val payload: Any?,
 	val badge: String?,
+	val buttonStyle: ButtonStyle,
 ) : ListModel {
+
+	enum class ButtonStyle {
+		TEXT,
+		OUTLINED,
+	}
 
 	constructor(
 		text: CharSequence,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = text, buttonTextRes, payload, badge)
+		buttonStyle: ButtonStyle = ButtonStyle.TEXT,
+	) : this(textRaw = text, buttonTextRes, payload, badge, buttonStyle)
 
 	constructor(
 		@StringRes textRes: Int,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = textRes, buttonTextRes, payload, badge)
+		buttonStyle: ButtonStyle = ButtonStyle.TEXT,
+	) : this(textRaw = textRes, buttonTextRes, payload, badge, buttonStyle)
 
 	constructor(
 		chapter: MangaChapter,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = chapter, buttonTextRes, payload, badge)
+		buttonStyle: ButtonStyle = ButtonStyle.TEXT,
+	) : this(textRaw = chapter, buttonTextRes, payload, badge, buttonStyle)
 
 	constructor(
 		dateTimeAgo: DateTimeAgo,
 		@StringRes buttonTextRes: Int = 0,
 		payload: Any? = null,
 		badge: String? = null,
-	) : this(textRaw = dateTimeAgo, buttonTextRes, payload, badge)
+		buttonStyle: ButtonStyle = ButtonStyle.TEXT,
+	) : this(textRaw = dateTimeAgo, buttonTextRes, payload, badge, buttonStyle)
 
 	fun getText(context: Context): CharSequence? = when (textRaw) {
 		is CharSequence -> textRaw
