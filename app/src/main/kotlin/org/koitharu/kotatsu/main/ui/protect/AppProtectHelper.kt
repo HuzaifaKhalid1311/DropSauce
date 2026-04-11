@@ -4,6 +4,10 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
 import org.acra.dialog.CrashReportDialog
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
@@ -19,6 +23,9 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 	private var lastBackgroundAt = 0L
 
 	override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+		if (!ensureProtectionAvailability(activity)) {
+			return
+		}
 		if (!settings.isAppProtectionEnabled) {
 			isUnlocked = true
 			return
@@ -29,6 +36,9 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 	}
 
 	override fun onActivityStarted(activity: Activity) {
+		if (!ensureProtectionAvailability(activity)) {
+			return
+		}
 		if (activity is ProtectActivity || !settings.isAppProtectionEnabled) {
 			return
 		}
@@ -45,6 +55,9 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 	}
 
 	override fun onActivityStopped(activity: Activity) {
+		if (!ensureProtectionAvailability(activity)) {
+			return
+		}
 		if (activity is ProtectActivity || !settings.isAppProtectionEnabled) {
 			return
 		}
@@ -82,5 +95,21 @@ class AppProtectHelper @Inject constructor(private val settings: AppSettings) :
 		activity.startActivity(intent)
 		@Suppress("DEPRECATION")
 		activity.overridePendingTransition(0, 0)
+	}
+
+	private fun ensureProtectionAvailability(activity: Activity): Boolean {
+		if (!settings.isAppProtectionEnabled) {
+			return true
+		}
+		val canAuthenticate = BiometricManager.from(activity)
+			.canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS
+		if (canAuthenticate) {
+			return true
+		}
+		settings.isAppProtectionEnabled = false
+		isUnlocked = true
+		startedActivities = 0
+		lastBackgroundAt = 0L
+		return false
 	}
 }

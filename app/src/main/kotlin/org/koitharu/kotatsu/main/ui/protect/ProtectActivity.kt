@@ -17,7 +17,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
 import org.koitharu.kotatsu.databinding.ActivityProtectBinding
 
 @AndroidEntryPoint
@@ -45,9 +44,13 @@ class ProtectActivity :
 		viewBinding.layoutPassword.visibility = View.GONE
 		viewBinding.textViewSubtitle.setText(R.string.require_unlock)
 
+	}
+
+	override fun onStart() {
+		super.onStart()
 		if (isAutoPromptPending) {
 			isAutoPromptPending = false
-			startUnlockFlow()
+			viewBinding.root.post { startUnlockFlow() }
 		}
 	}
 
@@ -66,7 +69,7 @@ class ProtectActivity :
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.button_next -> startUnlockFlow()
-			R.id.button_cancel -> finish()
+			R.id.button_cancel -> finishAffinity()
 		}
 	}
 
@@ -81,6 +84,7 @@ class ProtectActivity :
 
 	private fun startUnlockFlow(): Boolean {
 		if (BiometricManager.from(this).canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) != BIOMETRIC_SUCCESS) {
+			finishAffinity()
 			return false
 		}
 		val request = AuthenticationRequest.biometricRequest(

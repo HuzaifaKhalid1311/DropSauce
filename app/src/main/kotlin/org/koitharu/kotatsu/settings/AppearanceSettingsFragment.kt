@@ -2,15 +2,18 @@ package org.koitharu.kotatsu.settings
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.app.KeyguardManager
-import android.app.Activity
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
@@ -24,7 +27,6 @@ import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode
 import org.koitharu.kotatsu.core.prefs.ScreenshotsPolicy
 import org.koitharu.kotatsu.core.prefs.SearchSuggestionType
-import org.koitharu.kotatsu.core.prefs.TriStateOption
 import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
 import org.koitharu.kotatsu.core.ui.util.ActivityRecreationHandle
 import org.koitharu.kotatsu.core.util.LocaleComparator
@@ -49,14 +51,6 @@ class AppearanceSettingsFragment :
 
   private var pendingProtectState: Boolean? = null
   private var previousProtectState: Boolean = false
-  private val protectAuthLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-    val newState = pendingProtectState ?: return@registerForActivityResult
-    val accepted = result.resultCode == Activity.RESULT_OK
-    settings.isAppProtectionEnabled = if (accepted) newState else previousProtectState
-    findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)?.isChecked = settings.isAppProtectionEnabled
-    pendingProtectState = null
-    bindProtectionPrefs()
-  }
 
     @Inject
     lateinit var activityRecreationHandle: ActivityRecreationHandle
@@ -119,11 +113,6 @@ class AppearanceSettingsFragment :
         settings.subscribe(this)
     }
 
-    override fun onDestroyView() {
-        settings.unsubscribe(this)
-        super.onDestroyView()
-    }
-
     override fun onSharedPreferenceChanged(prefs: SharedPreferences?, key: String?) {
         when (key) {
             AppSettings.KEY_THEME -> {
@@ -154,21 +143,19 @@ class AppearanceSettingsFragment :
             AppSettings.KEY_PROTECT_APP -> {
                 val pref = (preference as? TwoStatePreference ?: return false)
                 val requestedState = pref.isChecked
-                if (!isDeviceSecure()) {
+                if (!isAuthenticationSupported()) {
                     pref.isChecked = false
                     settings.isAppProtectionEnabled = false
                     bindProtectionPrefs()
                     return true
                 }
-                val authIntent = createProtectionAuthIntent()
-                if (authIntent == null) {
-					settings.isAppProtectionEnabled = requestedState
-					bindProtectionPrefs()
-					return true
-				}
 				previousProtectState = settings.isAppProtectionEnabled
 				pendingProtectState = requestedState
-				protectAuthLauncher.launch(authIntent)
+				if (!startProtectionAuthentication()) {
+					pendingProtectState = null
+					pref.isChecked = previousProtectState
+					bindProtectionPrefs()
+				}
                 true
             }
 
@@ -213,7 +200,7 @@ class AppearanceSettingsFragment :
   private fun bindProtectionPrefs() {
     val protectPref = findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP) ?: return
     val timeoutPref = findPreference<ListPreference>(AppSettings.KEY_PROTECT_APP_TIMEOUT)
-    val secure = isDeviceSecure()
+    val secure = isAuthenticationSupported()
     protectPref.isChecked = secure && settings.isAppProtectionEnabled
     protectPref.isEnabled = secure
     protectPref.summary = if (secure) {
@@ -224,23 +211,48 @@ class AppearanceSettingsFragment :
     timeoutPref?.isEnabled = secure && protectPref.isChecked
   }
 
-  private fun isDeviceSecure(): Boolean {
-    val manager = context?.getSystemService(KeyguardManager::class.java) ?: return false
-    return manager.isDeviceSecure
+  private fun applyPendingProtectState(accepted: Boolean) {
+    val newState = pendingProtectState ?: return
+    settings.isAppProtectionEnabled = if (accepted) newState else previousProtectState
+    findPreference<TwoStatePreference>(AppSettings.KEY_PROTECT_APP)?.isChecked = settings.isAppProtectionEnabled
+    pendingProtectState = null
+    bindProtectionPrefs()
   }
 
-  private fun createProtectionAuthIntent(): Intent? {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-      return null
-    }
-    val manager = context?.getSystemService(KeyguardManager::class.java) ?: return null
-    if (!manager.isDeviceSecure) {
-      return null
-    }
-    @Suppress("DEPRECATION")
-    return manager.createConfirmDeviceCredentialIntent(
-      getString(R.string.require_unlock),
-      getString(R.string.app_name),
-    )
+  private fun isAuthenticationSupported(): Boolean {
+    val manager = context?.let { BiometricManager.from(it) } ?: return false
+    return manager.canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BIOMETRIC_SUCCESS
   }
+
+  private fun startProtectionAuthentication(): Boolean {
+    if (!isAuthenticationSupported() || !isAdded) {
+      return false
+    }
+    val executor = context?.let { ContextCompat.getMainExecutor(it) } ?: return false
+    val prompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+      override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+        applyPendingProtectState(accepted = true)
+      }
+
+      override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+        applyPendingProtectState(accepted = false)
+      }
+    })
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+      .setTitle(getString(R.string.app_name))
+      .setSubtitle(getString(R.string.require_unlock))
+      .setAllowedAuthenticators(BIOMETRIC_WEAK or DEVICE_CREDENTIAL)
+      .setConfirmationRequired(false)
+      .build()
+    prompt.authenticate(promptInfo)
+    return true
+  }
+
+	override fun onDestroyView() {
+		if (pendingProtectState != null) {
+			applyPendingProtectState(accepted = false)
+		}
+		settings.unsubscribe(this)
+		super.onDestroyView()
+	}
 }
