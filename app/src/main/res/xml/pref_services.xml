@@ -6,24 +6,28 @@
 
 	<PreferenceScreen
 		android:fragment="org.koitharu.kotatsu.settings.SuggestionsSettingsFragment"
+		android:icon="@drawable/ic_suggestion"
 		android:key="suggestions"
 		android:title="@string/suggestions"
 		app:allowDividerAbove="true" />
 
 	<SwitchPreferenceCompat
 		android:defaultValue="true"
+		android:icon="@drawable/ic_heart_outline"
 		android:key="related_manga"
 		android:summary="@string/related_manga_summary"
 		android:title="@string/related_manga" />
 
 	<org.koitharu.kotatsu.settings.utils.SplitSwitchPreference
 		android:defaultValue="false"
+		android:icon="@drawable/ic_timelapse"
 		android:key="stats_on"
 		android:title="@string/reading_stats"
 		app:allowDividerAbove="true" />
 
 	<SwitchPreferenceCompat
 		android:defaultValue="true"
+		android:icon="@drawable/ic_timer"
 		android:key="reading_time"
 		android:summary="@string/reading_time_estimation_summary"
 		android:title="@string/reading_time_estimation" />

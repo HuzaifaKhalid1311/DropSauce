@@ -6,6 +6,7 @@
 
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
+		android:icon="@drawable/ic_timelapse"
 		android:key="slowdown"
 		android:order="105"
 		android:summary="@string/download_slowdown_summary"

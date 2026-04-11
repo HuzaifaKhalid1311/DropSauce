@@ -12,18 +12,21 @@
 
 	<Preference
 		android:dependency="tracker_notifications"
+		android:icon="@drawable/ic_notification"
 		android:key="notifications_sound"
 		android:title="@string/notification_sound" />
 
 	<CheckBoxPreference
 		android:defaultValue="false"
 		android:dependency="tracker_notifications"
+		android:icon="@drawable/ic_timelapse"
 		android:key="notifications_vibrate"
 		android:title="@string/vibration" />
 
 	<CheckBoxPreference
 		android:defaultValue="true"
 		android:dependency="tracker_notifications"
+		android:icon="@drawable/ic_eye"
 		android:key="notifications_light"
 		android:title="@string/light_indicator" />
 

@@ -13,6 +13,7 @@
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:dependency="tracker_enabled"
+		android:icon="@drawable/ic_network_cellular"
 		android:key="tracker_wifi"
 		android:summary="@string/tracker_wifi_only_summary"
 		android:title="@string/only_using_wifi" />
@@ -22,6 +23,7 @@
 		android:dependency="tracker_enabled"
 		android:entries="@array/tracker_frequency"
 		android:entryValues="@array/values_tracker_frequency"
+		android:icon="@drawable/ic_timelapse"
 		android:key="tracker_freq"
 		android:title="@string/frequency_of_check"
 		app:useSimpleSummaryProvider="true" />
@@ -31,23 +33,27 @@
 		android:dependency="tracker_enabled"
 		android:entries="@array/track_sources"
 		android:entryValues="@array/values_track_sources"
+		android:icon="@drawable/ic_manga_source"
 		android:key="track_sources"
 		android:title="@string/track_sources"
 		app:allowDividerAbove="true" />
 
 	<Preference
 		android:key="track_categories"
+		android:icon="@drawable/ic_list_group"
 		android:title="@string/favourites_categories" />
 
 	<Preference
 		android:dependency="tracker_enabled"
 		android:fragment="org.koitharu.kotatsu.settings.NotificationSettingsLegacyFragment"
+		android:icon="@drawable/ic_notification"
 		android:key="notifications_settings"
 		android:title="@string/notifications_settings" />
 
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:dependency="tracker_enabled"
+		android:icon="@drawable/ic_nsfw"
 		android:key="tracker_no_nsfw"
 		android:summary="@string/disable_nsfw_notifications_summary"
 		android:title="@string/disable_nsfw_notifications" />
@@ -55,6 +61,7 @@
 	<ListPreference
 		android:dependency="tracker_enabled"
 		android:entries="@array/tracker_download_strategies"
+		android:icon="@drawable/ic_download"
 		android:key="tracker_download"
 		android:title="@string/download_new_chapters"
 		app:useSimpleSummaryProvider="true" />
@@ -63,6 +70,7 @@
 
 		<Preference
 			android:dependency="tracker_enabled"
+			android:icon="@drawable/ic_script"
 			android:key="tracker_debug"
 			android:persistent="false"
 			android:summary="@string/tracker_debug_info_summary"
@@ -70,6 +78,7 @@
 
 		<Preference
 			android:dependency="tracker_enabled"
+			android:icon="@drawable/ic_battery_outline"
 			android:key="ignore_dose"
 			android:persistent="false"
 			android:summary="@string/disable_battery_optimization_summary"

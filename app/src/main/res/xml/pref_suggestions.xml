@@ -13,6 +13,7 @@
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:dependency="suggestions"
+		android:icon="@drawable/ic_network_cellular"
 		android:key="suggestions_wifi"
 		android:summary="@string/suggestions_wifi_only_summary"
 		android:title="@string/only_using_wifi" />
@@ -20,6 +21,7 @@
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:dependency="suggestions"
+		android:icon="@drawable/ic_disable"
 		android:key="suggestions_disabled_sources"
 		android:summary="@string/suggestions_disabled_sources_summary"
 		android:title="@string/include_disabled_sources" />
@@ -27,12 +29,14 @@
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:dependency="suggestions"
+		android:icon="@drawable/ic_notification"
 		android:key="suggestions_notifications"
 		android:summary="@string/suggestions_notifications_summary"
 		android:title="@string/notifications_enable" />
 
 	<org.koitharu.kotatsu.settings.utils.MultiAutoCompleteTextViewPreference
 		android:dependency="suggestions"
+		android:icon="@drawable/ic_tag"
 		android:key="suggestions_exclude_tags"
 		android:summary="@string/suggestions_excluded_genres_summary"
 		android:title="@string/suggestions_excluded_genres"
@@ -41,6 +45,7 @@
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:dependency="suggestions"
+		android:icon="@drawable/ic_nsfw"
 		android:key="suggestions_exclude_nsfw"
 		android:summary="@string/exclude_nsfw_from_suggestions_summary"
 		android:title="@string/exclude_nsfw_from_suggestions" />

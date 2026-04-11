@@ -5,23 +5,27 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<Preference
+		android:icon="@drawable/ic_folder_file"
 		android:key="local_manga_dirs"
 		android:persistent="false"
 		android:title="@string/local_manga_directories" />
 
 	<Preference
+		android:icon="@drawable/ic_storage"
 		android:key="local_storage"
 		android:persistent="false"
 		android:title="@string/manga_save_location" />
 
 	<ListPreference
 		android:entries="@array/download_formats"
+		android:icon="@drawable/ic_file_zip"
 		android:key="downloads_format"
 		android:title="@string/preferred_download_format"
 		app:useSimpleSummaryProvider="true" />
 
 	<ListPreference
 		android:entries="@array/metered_network_options"
+		android:icon="@drawable/ic_network_cellular"
 		android:key="downloads_metered_network"
 		android:title="@string/download_over_cellular"
 		app:useSimpleSummaryProvider="true" />
@@ -34,6 +38,7 @@
 		android:summary="@string/downloads_settings_info" />
 
 	<Preference
+		android:icon="@drawable/ic_battery_outline"
 		android:key="ignore_dose"
 		android:persistent="false"
 		android:summary="@string/disable_battery_optimization_summary_downloads"
@@ -44,12 +49,14 @@
 	<PreferenceCategory android:title="@string/pages_saving">
 
 		<Preference
+			android:icon="@drawable/ic_save"
 			android:key="pages_dir"
 			android:persistent="false"
 			android:title="@string/default_page_save_dir" />
 
 		<SwitchPreferenceCompat
 			android:defaultValue="true"
+			android:icon="@drawable/ic_alert_outline"
 			android:key="pages_dir_ask"
 			android:title="@string/ask_for_dest_dir_every_time" />
 

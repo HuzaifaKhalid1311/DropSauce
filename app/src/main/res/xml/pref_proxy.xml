@@ -8,16 +8,19 @@
 		android:defaultValue="DIRECT"
 		android:entries="@array/proxy_types"
 		android:entryValues="@array/values_proxy_types"
+		android:icon="@drawable/ic_sync"
 		android:key="proxy_type_2"
 		android:title="@string/type"
 		app:useSimpleSummaryProvider="true" />
 
 	<EditTextPreference
+		android:icon="@drawable/ic_web"
 		android:key="proxy_address"
 		android:title="@string/address"
 		app:useSimpleSummaryProvider="true" />
 
 	<EditTextPreference
+		android:icon="@drawable/ic_plug_large"
 		android:key="proxy_port"
 		android:title="@string/port"
 		app:useSimpleSummaryProvider="true" />
@@ -27,17 +30,20 @@
 		android:title="@string/authorization_optional">
 
 		<EditTextPreference
+			android:icon="@drawable/ic_user"
 			android:key="proxy_login"
 			android:title="@string/username"
 			app:useSimpleSummaryProvider="true" />
 
 		<EditTextPreference
+			android:icon="@drawable/ic_lock"
 			android:key="proxy_password"
 			android:title="@string/password" />
 
 	</PreferenceCategory>
 
 	<Preference
+		android:icon="@drawable/ic_retry"
 		android:key="proxy_test"
 		android:persistent="false"
 		android:title="@string/test_connection"
