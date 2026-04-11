@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:state_enabled="true" android:state_pressed="true">
+		<shape>
+			<solid android:color="@color/selector_overlay" />
+			<corners android:radius="@dimen/list_selector_corner" />
+		</shape>
+	</item>
+	<item android:state_enabled="true" android:state_focused="true">
+		<shape>
+			<solid android:color="@color/selector_overlay" />
+			<corners android:radius="@dimen/list_selector_corner" />
+		</shape>
+	</item>
+</selector>
+

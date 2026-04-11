@@ -20,6 +20,7 @@
 
 	<item
 		android:id="@+id/action_delete"
+		android:icon="@drawable/ic_delete"
 		android:orderInCategory="40"
 		android:title="@string/delete"
 		android:visible="false"
@@ -27,48 +28,56 @@
 
 	<item
 		android:id="@+id/action_edit_override"
+		android:icon="@drawable/ic_edit"
 		android:orderInCategory="40"
 		android:title="@string/edit"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_scrobbling"
+		android:icon="@drawable/ic_sync"
 		android:orderInCategory="50"
 		android:title="@string/tracking"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_stats"
+		android:icon="@drawable/ic_timelapse"
 		android:orderInCategory="50"
 		android:title="@string/statistics"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_related"
+		android:icon="@drawable/ic_heart_outline"
 		android:orderInCategory="50"
 		android:title="@string/find_similar"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_alternatives"
+		android:icon="@drawable/ic_list_group"
 		android:orderInCategory="50"
 		android:title="@string/alternatives"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_online"
+		android:icon="@drawable/ic_web"
 		android:orderInCategory="50"
 		android:title="@string/online_variant"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_browser"
+		android:icon="@drawable/ic_open_external"
 		android:orderInCategory="50"
 		android:title="@string/open_in_browser"
 		app:showAsAction="never" />
 
 	<item
 		android:id="@+id/action_shortcut"
+		android:icon="@drawable/ic_shortcut"
 		android:orderInCategory="50"
 		android:title="@string/create_shortcut"
 		app:showAsAction="never" />

@@ -4,6 +4,8 @@
 	<style name="ThemeOverlay.Kotatsu" parent="ThemeOverlay.Material3.Dark">
 		<item name="android:navigationBarColor">@android:color/transparent</item>
 		<item name="android:windowBackground">?android:colorBackground</item>
+		<item name="popupMenuStyle">@style/Widget.Kotatsu.PopupMenu</item>
+		<item name="actionOverflowMenuStyle">@style/Widget.Kotatsu.PopupMenu.Overflow</item>
 	</style>
 
 	<style name="ThemeOverlay.Kotatsu.Amoled" parent="">

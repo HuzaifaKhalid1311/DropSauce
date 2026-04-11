@@ -4,6 +4,7 @@
 
 	<item
 		android:id="@+id/action_manage"
+		android:icon="@drawable/ic_manga_source"
 		android:title="@string/extension_management"
 		android:titleCondensed="@string/manage" />
 

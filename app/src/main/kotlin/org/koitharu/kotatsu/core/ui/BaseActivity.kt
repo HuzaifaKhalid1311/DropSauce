@@ -3,15 +3,18 @@ package org.koitharu.kotatsu.core.ui
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.drawable.InsetDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.Menu
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -126,6 +129,25 @@ abstract class BaseActivity<B : ViewBinding> :
 			}
 		}
 		return super.onKeyDown(keyCode, event)
+	}
+
+	override fun onPreparePanel(featureId: Int, view: View?, menu: Menu): Boolean {
+		(menu as? MenuBuilder)?.setOptionalIconsVisible(true)
+		adjustMenuIconSpacing(menu)
+		return super.onPreparePanel(featureId, view, menu)
+	}
+
+	private fun adjustMenuIconSpacing(menu: Menu) {
+		val endInset = resources.getDimensionPixelSize(R.dimen.menu_icon_text_spacing_extra)
+		for (index in 0 until menu.size()) {
+			val item = menu.getItem(index)
+			item.icon?.let { icon ->
+				if (icon !is InsetDrawable) {
+					item.icon = InsetDrawable(icon.mutate(), 0, 0, endInset, 0)
+				}
+			}
+			item.subMenu?.let(::adjustMenuIconSpacing)
+		}
 	}
 
 	protected fun isDarkAmoledTheme(): Boolean {

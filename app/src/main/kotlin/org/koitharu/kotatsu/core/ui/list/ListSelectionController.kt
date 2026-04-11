@@ -1,12 +1,14 @@
 package org.koitharu.kotatsu.core.ui.list
 
 import android.os.Bundle
+import android.graphics.drawable.InsetDrawable
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ActionMode
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.PopupMenu
 import androidx.collection.LongSet
 import androidx.collection.longSetOf
@@ -17,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryOwner
 import kotlinx.coroutines.Dispatchers
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.list.decor.AbstractSelectionItemDecoration
 import org.koitharu.kotatsu.core.util.ext.toLongArray
 import org.koitharu.kotatsu.core.util.ext.toSet
@@ -99,8 +102,10 @@ class ListSelectionController(
 	fun onItemContextClick(view: View, id: Long): Boolean {
 		focusedItemId = longSetOf(id)
 		val menu = PopupMenu(view.context, view)
+		enableMenuIcons(menu.menu)
 		callback.onCreateActionMode(this, menu.menuInflater, menu.menu)
 		callback.onPrepareActionMode(this, null, menu.menu)
+		adjustMenuIconSpacing(menu.menu, view.resources.getDimensionPixelSize(R.dimen.menu_icon_text_spacing_extra))
 		menu.setForceShowIcon(true)
 		if (menu.menu.hasVisibleItems()) {
 			menu.setOnMenuItemClickListener { menuItem ->
@@ -117,16 +122,34 @@ class ListSelectionController(
 		}
 	}
 
+	private fun adjustMenuIconSpacing(menu: Menu, endInset: Int) {
+		for (index in 0 until menu.size()) {
+			val item = menu.getItem(index)
+			item.icon?.let { icon ->
+				if (icon !is InsetDrawable) {
+					item.icon = InsetDrawable(icon.mutate(), 0, 0, endInset, 0)
+				}
+			}
+			item.subMenu?.let { adjustMenuIconSpacing(it, endInset) }
+		}
+	}
+
+	private fun enableMenuIcons(menu: Menu) {
+		(menu as? MenuBuilder)?.setOptionalIconsVisible(true)
+	}
+
 	fun startSelection(id: Long): Boolean = startActionMode()?.also {
 		decoration.setItemIsChecked(id, true)
 		notifySelectionChanged()
 	} != null
 
 	override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+		enableMenuIcons(menu)
 		return callback.onCreateActionMode(this, mode.menuInflater, menu)
 	}
 
 	override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+		enableMenuIcons(menu)
 		return callback.onPrepareActionMode(this, mode, menu)
 	}
 

@@ -7,3 +7,4 @@
 - Every change in the UI should be similar to the app's actual design language
 - The project does not have that much files. Instead of guessing and searching each file individually and wasting tokens, just list all of them in your memory at the start
 - Only end the task and test build when you're certain the problem is solved
+- Make every UI change to follow the material3expressive guidelines

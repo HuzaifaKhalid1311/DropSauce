@@ -5,11 +5,13 @@
 
 	<item
 		android:id="@+id/action_reset"
+		android:icon="@drawable/ic_revert"
 		android:title="@string/reset"
 		app:showAsAction="never" />
 		
 	<item
 		android:id="@+id/action_disable_all"
+		android:icon="@drawable/ic_disable"
 		android:title="@string/disable_all"
 		app:showAsAction="never" />
 

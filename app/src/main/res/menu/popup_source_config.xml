@@ -4,19 +4,23 @@
 
 	<item
 		android:id="@+id/action_lift"
+		android:icon="@drawable/ic_arrow_up"
 		android:title="@string/to_top" />
 
 	<item
 		android:id="@+id/action_pin"
 		android:checkable="true"
+		android:icon="@drawable/ic_pin"
 		android:title="@string/pin" />
 
 	<item
 		android:id="@+id/action_shortcut"
+		android:icon="@drawable/ic_shortcut"
 		android:title="@string/create_shortcut" />
 
 	<item
 		android:id="@+id/action_settings"
+		android:icon="@drawable/ic_services"
 		android:title="@string/settings" />
 
 </menu>

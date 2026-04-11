@@ -35,6 +35,27 @@
 		<item name="android:popupElevation">3dp</item>
 	</style>
 
+	<style name="Widget.Kotatsu.PopupMenu" parent="Widget.Material3.PopupMenu">
+		<item name="android:popupBackground">@drawable/m3_menu_background</item>
+		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
+	</style>
+
+	<style name="Widget.Kotatsu.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
+		<item name="android:popupBackground">@drawable/m3_menu_background</item>
+		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
+	</style>
+
+	<style name="Widget.Kotatsu.PopupMenu.ListView" parent="Widget.AppCompat.ListView.DropDown">
+		<item name="android:listSelector">@drawable/m3_popup_menu_row_selector</item>
+		<item name="android:divider">@null</item>
+		<item name="android:dividerHeight">0dp</item>
+		<item name="android:paddingStart">0dp</item>
+		<item name="android:paddingEnd">0dp</item>
+		<item name="android:paddingTop">0dp</item>
+		<item name="android:paddingBottom">0dp</item>
+		<item name="android:clipToPadding">true</item>
+	</style>
+
 	<style name="Animation.Kotatsu.BottomSheetDialog" parent="Animation.AppCompat.Dialog">
 		<item name="android:windowEnterAnimation">@anim/bottom_sheet_slide_in</item>
 		<item name="android:windowExitAnimation">@anim/bottom_sheet_slide_out</item>
@@ -212,6 +233,8 @@
 
 	<style name="ThemeOverlay.Kotatsu.MainToolbar" parent="">
 		<item name="colorControlHighlight">@color/selector_overlay</item>
+		<item name="popupMenuStyle">@style/Widget.Kotatsu.PopupMenu</item>
+		<item name="actionOverflowMenuStyle">@style/Widget.Kotatsu.PopupMenu.Overflow</item>
 	</style>
 
 	<style name="ThemeOverlay.Kotatsu.ActionMode" parent="">

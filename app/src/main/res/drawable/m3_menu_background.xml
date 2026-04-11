@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+	<item>
+		<shape>
+			<solid android:color="?attr/colorSurface" />
+			<corners android:radius="@dimen/menu_popup_corner_radius" />
+		</shape>
+	</item>
+	<item>
+		<shape>
+			<solid android:color="@color/m3_popupmenu_overlay_color" />
+			<corners android:radius="@dimen/menu_popup_corner_radius" />
+			<padding
+				android:bottom="@dimen/menu_popup_content_padding_vertical"
+				android:left="@dimen/menu_popup_content_padding_left"
+				android:right="@dimen/menu_popup_content_padding"
+				android:top="@dimen/menu_popup_content_padding_vertical" />
+		</shape>
+	</item>
+</layer-list>

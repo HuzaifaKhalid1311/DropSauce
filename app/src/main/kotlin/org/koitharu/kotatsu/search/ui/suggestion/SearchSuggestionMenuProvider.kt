@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
@@ -38,6 +39,7 @@ class SearchSuggestionMenuProvider(
 
 	override fun onPrepareMenu(menu: Menu) {
 		super.onPrepareMenu(menu)
+		(menu as? MenuBuilder)?.setOptionalIconsVisible(true)
 		menu.findItem(R.id.action_voice_search)?.isVisible = voiceInputLauncher.resolve(context, null) != null
 	}
 

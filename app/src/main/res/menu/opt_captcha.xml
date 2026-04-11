@@ -5,6 +5,7 @@
 
 	<item
 		android:id="@+id/action_retry"
+		android:icon="@drawable/ic_retry"
 		android:title="@string/try_again"
 		app:showAsAction="never" />
 

@@ -19,6 +19,7 @@
 	<item
 		android:id="@+id/action_no_nsfw"
 		android:checkable="true"
+		android:icon="@drawable/ic_nsfw"
 		android:title="@string/disable_nsfw"
 		app:showAsAction="never" />
 

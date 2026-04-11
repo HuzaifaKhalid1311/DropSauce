@@ -4,15 +4,18 @@
 
 	<item
 		android:id="@+id/action_edit"
+		android:icon="@drawable/ic_edit"
 		android:title="@string/edit_category"
 		android:titleCondensed="@string/edit" />
 
 	<item
 		android:id="@+id/action_delete"
+		android:icon="@drawable/ic_delete"
 		android:title="@string/delete" />
 
 	<item
 		android:id="@+id/action_hide"
+		android:icon="@drawable/ic_eye_off"
 		android:title="@string/hide" />
 
 </menu>

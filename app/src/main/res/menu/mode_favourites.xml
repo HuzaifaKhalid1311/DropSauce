@@ -5,7 +5,7 @@
 
 	<item
 		android:id="@+id/action_share"
-		android:icon="?actionModeShareDrawable"
+		android:icon="@drawable/ic_open_external"
 		android:title="@string/share"
 		app:showAsAction="ifRoom|withText" />
 
@@ -47,7 +47,7 @@
 
 	<item
 		android:id="@+id/action_select_all"
-		android:icon="?actionModeSelectAllDrawable"
+		android:icon="@drawable/ic_select_group"
 		android:title="@android:string/selectAll"
 		app:showAsAction="ifRoom|withText" />
 
