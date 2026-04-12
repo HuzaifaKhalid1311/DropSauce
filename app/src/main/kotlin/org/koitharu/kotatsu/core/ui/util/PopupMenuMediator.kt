@@ -4,10 +4,10 @@ import android.graphics.drawable.InsetDrawable
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 
 class PopupMenuMediator(
 	private val provider: MenuProvider,
@@ -18,7 +18,7 @@ class PopupMenuMediator(
 
 	override fun onLongClick(v: View): Boolean {
 		val menu = PopupMenu(v.context, v)
-		(menu.menu as? MenuBuilder)?.setOptionalIconsVisible(true)
+		menu.menu.setOptionalIconsVisibleCompat(true)
 		provider.onCreateMenu(menu.menu, menu.menuInflater)
 		provider.onPrepareMenu(menu.menu)
 		if (!menu.menu.hasVisibleItems()) {

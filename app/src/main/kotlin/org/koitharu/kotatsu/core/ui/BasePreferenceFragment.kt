@@ -11,7 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceGroupAdapter
+import androidx.preference.PreferenceGroup
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
@@ -100,7 +100,7 @@ abstract class BasePreferenceFragment(@StringRes private val titleId: Int) :
 		}
 		scrollToPreference(pref)
 		listView.post {
-			val adapter = listView.adapter as? PreferenceGroupAdapter ?: return@post
+			val adapter = listView.adapter as? PreferenceGroup.PreferencePositionCallback ?: return@post
 			val prefIndex = adapter.getPreferenceAdapterPosition(pref)
 			if (prefIndex < 0) {
 				return@post

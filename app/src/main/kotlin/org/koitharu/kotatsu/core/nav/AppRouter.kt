@@ -333,7 +333,6 @@ class AppRouter private constructor(
         )
     }
 
-    @CheckResult
     /** Dialogs **/
 
     fun showDownloadDialog(manga: Manga, snackbarHost: View?) = showDownloadDialog(setOf(manga), snackbarHost)

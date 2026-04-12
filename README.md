@@ -5,7 +5,6 @@
 ### Contribute
 
 **👋 You can send a Pull Request for your patches / fixes / new features at here.**
-</details>
 
 ### Certificate fingerprints
 

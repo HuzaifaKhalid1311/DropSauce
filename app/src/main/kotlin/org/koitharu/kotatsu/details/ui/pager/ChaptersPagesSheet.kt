@@ -84,7 +84,7 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 			binding.tabs.setSelectedTabIndicatorColor(
 				MaterialColors.getColor(
 					binding.tabs,
-                    AppCompatR.attr.colorPrimary,
+					AppCompatR.attr.colorPrimary,
 					MaterialColors.getColor(binding.tabs, android.R.attr.textColorPrimary),
 				),
 			)
@@ -121,11 +121,11 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat = insets
 
 	override fun onStateChanged(sheet: View, newState: Int) {
-        val binding = viewBinding ?: return
-        binding.layoutTouchBlock.isTouchEventsAllowed = dialog != null || newState != STATE_COLLAPSED
-        if (newState == STATE_DRAGGING || newState == STATE_SETTLING) {
-            return
-        }
+		val binding = viewBinding ?: return
+		binding.layoutTouchBlock.isTouchEventsAllowed = dialog != null || newState != STATE_COLLAPSED
+		if (newState == STATE_DRAGGING || newState == STATE_SETTLING) {
+			return
+		}
 		val isActionModeStarted = actionModeDelegate?.isActionModeStarted == true
 		binding.toolbar.menuView?.isVisible = newState == STATE_EXPANDED && !isActionModeStarted
 		if (settings.detailsUiMode == DetailsUiMode.CLASSIC) {

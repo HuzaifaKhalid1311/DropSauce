@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.PopupMenu
 import androidx.collection.LongSet
 import androidx.collection.longSetOf
@@ -21,6 +20,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import kotlinx.coroutines.Dispatchers
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.list.decor.AbstractSelectionItemDecoration
+import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.core.util.ext.toLongArray
 import org.koitharu.kotatsu.core.util.ext.toSet
 import kotlin.coroutines.EmptyCoroutineContext
@@ -135,7 +135,7 @@ class ListSelectionController(
 	}
 
 	private fun enableMenuIcons(menu: Menu) {
-		(menu as? MenuBuilder)?.setOptionalIconsVisible(true)
+		menu.setOptionalIconsVisibleCompat(true)
 	}
 
 	fun startSelection(id: Long): Boolean = startActionMode()?.also {

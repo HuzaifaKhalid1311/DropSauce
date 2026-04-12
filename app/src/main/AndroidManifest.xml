@@ -53,7 +53,7 @@
 		android:roundIcon="@mipmap/ic_launcher_round"
 		android:supportsRtl="true"
 		android:theme="@style/Theme.Kotatsu"
-		tools:ignore="UnusedAttribute">
+		tools:ignore="UnusedAttribute,RemoveWorkManagerInitializer">
 
 
 		<activity
@@ -306,11 +306,12 @@
 				android:name="android.support.FILE_PROVIDER_PATHS"
 				android:resource="@xml/filepaths" />
 		</provider>
+		<!--suppress RemoveWorkManagerInitializer -->
 		<provider
 			android:name="androidx.startup.InitializationProvider"
 			android:authorities="${applicationId}.androidx-startup"
 			android:exported="false"
-			tools:node="remove">
+			tools:node="merge">
 			<meta-data
 				android:name="androidx.work.WorkManagerInitializer"
 				android:value="androidx.startup"

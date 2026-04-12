@@ -17,6 +17,8 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.settings.SettingsActivity
+import org.koitharu.kotatsu.settings.about.changelog.ChangelogFragment
 
 @AndroidEntryPoint
 class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
@@ -42,6 +44,15 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 
 	override fun onPreferenceTreeClick(preference: Preference): Boolean {
 		return when (preference.key) {
+			"changelog" -> {
+				(activity as? SettingsActivity)?.openFragment(
+					ChangelogFragment::class.java,
+					preference.extras,
+					isFromRoot = false,
+				)
+				true
+			}
+
 			AppSettings.KEY_APP_VERSION -> {
 				viewModel.checkForUpdates()
 				true

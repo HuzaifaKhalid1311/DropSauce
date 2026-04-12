@@ -14,7 +14,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -31,6 +30,7 @@ import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.ui.util.ActionModeDelegate
 import org.koitharu.kotatsu.core.util.ext.isWebViewUnavailable
+import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.main.ui.protect.ScreenshotPolicyHelper
 import androidx.appcompat.R as appcompatR
 
@@ -132,7 +132,7 @@ abstract class BaseActivity<B : ViewBinding> :
 	}
 
 	override fun onPreparePanel(featureId: Int, view: View?, menu: Menu): Boolean {
-		(menu as? MenuBuilder)?.setOptionalIconsVisible(true)
+		menu.setOptionalIconsVisibleCompat(true)
 		adjustMenuIconSpacing(menu)
 		return super.onPreparePanel(featureId, view, menu)
 	}
