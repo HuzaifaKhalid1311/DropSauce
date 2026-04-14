@@ -18,6 +18,9 @@ abstract class ScrobblingDao {
 	@Query("SELECT * FROM scrobblings WHERE scrobbler = :scrobbler")
 	abstract fun observe(scrobbler: Int): Flow<List<ScrobblingEntity>>
 
+	@Query("SELECT * FROM scrobblings WHERE manga_id = :mangaId")
+	abstract suspend fun findAll(mangaId: Long): List<ScrobblingEntity>
+
 	@Upsert
 	abstract suspend fun upsert(entity: ScrobblingEntity)
 

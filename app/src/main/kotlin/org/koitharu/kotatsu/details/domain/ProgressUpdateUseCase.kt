@@ -23,8 +23,8 @@ class ProgressUpdateUseCase @Inject constructor(
 		} else {
 			manga
 		}
-		if (!seed.isLocal && !networkState.value) {
-			return PROGRESS_NONE
+			if (!seed.isLocal && !networkState.value) {
+				return history.percent
 		}
 		val repo = mangaRepositoryFactory.create(seed.source)
 		val details = if (manga.source != seed.source || seed.chapters.isNullOrEmpty()) {
@@ -32,7 +32,14 @@ class ProgressUpdateUseCase @Inject constructor(
 		} else {
 			seed
 		}
-		val chapter = details.findChapterById(history.chapterId) ?: return PROGRESS_NONE
+			val cachedChapterUrl = database.getChaptersDao().findAll(manga.id)
+				.firstOrNull { it.chapterId == history.chapterId }
+				?.url
+			val chapter = details.findChapterById(history.chapterId)
+				?: cachedChapterUrl?.let { url ->
+					details.chapters?.firstOrNull { it.url == url }
+				}
+				?: return history.percent
 		val chapters = details.getChapters(chapter.branch)
 		val chapterRepo = if (repo.source == chapter.source) {
 			repo
@@ -40,13 +47,16 @@ class ProgressUpdateUseCase @Inject constructor(
 			mangaRepositoryFactory.create(chapter.source)
 		}
 		val chaptersCount = chapters.size
-		if (chaptersCount == 0) {
-			return PROGRESS_NONE
+			if (chaptersCount == 0) {
+				return history.percent
 		}
-		val chapterIndex = chapters.indexOfFirst { x -> x.id == history.chapterId }
+			val chapterIndex = chapters.indexOfFirst { x -> x.id == chapter.id }
+			if (chapterIndex < 0) {
+				return history.percent
+			}
 		val pagesCount = chapterRepo.getPages(chapter).size
-		if (pagesCount == 0) {
-			return PROGRESS_NONE
+			if (pagesCount == 0) {
+				return history.percent
 		}
 		val pagePercent = (history.page + 1) / pagesCount.toFloat()
 		val ppc = 1f / chaptersCount

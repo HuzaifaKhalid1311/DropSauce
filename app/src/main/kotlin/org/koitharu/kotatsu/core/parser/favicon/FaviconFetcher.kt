@@ -1,12 +1,10 @@
 package org.koitharu.kotatsu.core.parser.favicon
 
-import android.graphics.Color
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
-import coil3.ColorImage
 import coil3.ImageLoader
 import coil3.asImage
 import coil3.decode.DataSource
@@ -32,7 +30,9 @@ import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
 import org.koitharu.kotatsu.local.data.FaviconCache
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.local.data.LocalStorageCache
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import javax.inject.Inject
@@ -43,19 +43,24 @@ class FaviconFetcher(
 	private val options: Options,
 	private val imageLoader: ImageLoader,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
+	private val mihonExtensionManager: MihonExtensionManager,
 	private val localStorageCache: LocalStorageCache,
 ) : Fetcher {
 
 	override suspend fun fetch(): FetchResult? {
 		val mangaSource = MangaSource(uri.schemeSpecificPart)
+		resolveMihonSource(uri.schemeSpecificPart)?.let { return fetchMihonIcon(it) }
 
 		return when (val repo = mangaRepositoryFactory.create(mangaSource)) {
 			is MihonMangaRepository -> fetchMihonIcon(repo)
-			is EmptyMangaRepository -> ImageFetchResult(
-				image = ColorImage(Color.WHITE),
-				isSampled = false,
-				dataSource = DataSource.MEMORY,
-			)
+			is EmptyMangaRepository -> {
+				val resolvedMihonSource = resolveMihonSource(mangaSource.name)
+				if (resolvedMihonSource != null) {
+					fetchMihonIcon(resolvedMihonSource)
+				} else {
+					imageLoader.fetch(R.drawable.ic_manga_source, options)
+				}
+			}
 
 			is LocalMangaRepository -> imageLoader.fetch(R.drawable.ic_storage, options)
 
@@ -64,15 +69,34 @@ class FaviconFetcher(
 	}
 
 	private suspend fun fetchMihonIcon(repository: MihonMangaRepository): FetchResult {
-		val icon = runInterruptible {
-			options.context.packageManager.getApplicationIcon(repository.source.pkgName)
-		}
+		return fetchMihonIcon(repository.source)
+	}
+
+	private suspend fun fetchMihonIcon(source: MihonMangaSource): FetchResult {
+		val icon = runCatching {
+			runInterruptible {
+			options.context.packageManager.getApplicationIcon(source.pkgName)
+			}
+		}.getOrNull() ?: return requireNotNull(imageLoader.fetch(R.drawable.ic_manga_source, options))
+
 		return ImageFetchResult(
 			image = icon.nonAdaptive().asImage(),
 			isSampled = false,
 			dataSource = DataSource.DISK,
 		)
 	}
+
+	private suspend fun resolveMihonSource(name: String): MihonMangaSource? {
+		if (!name.startsWith("MIHON_")) return null
+		mihonExtensionManager.ensureReady()
+		val sourceId = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
+		val existing = sourceId?.let { mihonExtensionManager.getMihonMangaSourceById(it) }
+			?: mihonExtensionManager.getMihonMangaSourceByName(name)
+		if (existing != null) return existing
+		mihonExtensionManager.ensureReady(forceRefresh = true)
+		return sourceId?.let { mihonExtensionManager.getMihonMangaSourceById(it) }
+			?: mihonExtensionManager.getMihonMangaSourceByName(name)
+		}
 
 	private suspend fun writeToCache(key: String, result: FetchResult): FetchResult = runCatchingCancellable {
 		when (result) {
@@ -106,6 +130,7 @@ class FaviconFetcher(
 
 	class Factory @Inject constructor(
 		private val mangaRepositoryFactory: MangaRepository.Factory,
+		private val mihonExtensionManager: MihonExtensionManager,
 		@FaviconCache private val faviconCache: LocalStorageCache,
 	) : Fetcher.Factory<CoilUri> {
 
@@ -114,7 +139,7 @@ class FaviconFetcher(
 			options: Options,
 			imageLoader: ImageLoader
 		): Fetcher? = if (data.scheme == URI_SCHEME_FAVICON) {
-			FaviconFetcher(data.toAndroidUri(), options, imageLoader, mangaRepositoryFactory, faviconCache)
+			FaviconFetcher(data.toAndroidUri(), options, imageLoader, mangaRepositoryFactory, mihonExtensionManager, faviconCache)
 		} else {
 			null
 		}

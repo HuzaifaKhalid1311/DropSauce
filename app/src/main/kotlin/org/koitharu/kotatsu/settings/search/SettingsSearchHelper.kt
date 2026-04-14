@@ -12,6 +12,7 @@ import dagger.Reusable
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.settings.AppearanceSettingsFragment
+import org.koitharu.kotatsu.settings.BackupSettingsFragment
 import org.koitharu.kotatsu.settings.DownloadsSettingsFragment
 import org.koitharu.kotatsu.settings.ProxySettingsFragment
 import org.koitharu.kotatsu.settings.ReaderSettingsFragment
@@ -50,6 +51,7 @@ class SettingsSearchHelper @Inject constructor(
             DataCleanupSettingsFragment::class.java,
         )
         preferenceManager.inflateTo(result, R.xml.pref_downloads, emptyList(), DownloadsSettingsFragment::class.java)
+        preferenceManager.inflateTo(result, R.xml.pref_backup, emptyList(), BackupSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_tracker, emptyList(), TrackerSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_services, emptyList(), ServicesSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_about, emptyList(), AboutSettingsFragment::class.java)

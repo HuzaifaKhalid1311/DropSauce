@@ -17,10 +17,11 @@ import java.io.File
 
 class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig {
 
-    private val prefs = context.getSharedPreferences(
-        source.name.replace(File.separatorChar, '$'),
-        Context.MODE_PRIVATE,
-    )
+	private val prefs = context.getSharedPreferences(getStorageName(source.name), Context.MODE_PRIVATE)
+
+	init {
+		migrateLegacyStorageIfNeeded(context, source.name)
+	}
 
 	var defaultSortOrder: SortOrder?
 		get() = prefs.getEnumValue(KEY_SORT_ORDER, SortOrder::class.java)
@@ -69,6 +70,41 @@ class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig 
 	}
 
 	companion object {
+
+		fun getStorageName(sourceName: String): String {
+			val sourceId = sourceName
+				.takeIf { it.startsWith("MIHON_") }
+				?.removePrefix("MIHON_")
+				?.substringBefore(':')
+				?.toLongOrNull()
+			return if (sourceId != null && sourceId > 0) {
+				"source_$sourceId"
+			} else {
+				sourceName.replace(File.separatorChar, '$')
+			}
+		}
+
+		private fun migrateLegacyStorageIfNeeded(context: Context, sourceName: String) {
+			val canonicalName = getStorageName(sourceName)
+			val legacyName = sourceName.replace(File.separatorChar, '$')
+			if (canonicalName == legacyName) return
+			val canonicalPrefs = context.getSharedPreferences(canonicalName, Context.MODE_PRIVATE)
+			if (canonicalPrefs.all.isNotEmpty()) return
+			val legacyPrefs = context.getSharedPreferences(legacyName, Context.MODE_PRIVATE)
+			if (legacyPrefs.all.isEmpty()) return
+			canonicalPrefs.edit {
+				legacyPrefs.all.forEach { (key, value) ->
+					when (value) {
+						is String -> putString(key, value)
+						is Int -> putInt(key, value)
+						is Long -> putLong(key, value)
+						is Float -> putFloat(key, value)
+						is Boolean -> putBoolean(key, value)
+						is Set<*> -> putStringSet(key, value.filterIsInstance<String>().toSet())
+					}
+				}
+			}
+		}
 
 		const val KEY_DOMAIN = "domain"
 		const val KEY_NO_CAPTCHA = "no_captcha"

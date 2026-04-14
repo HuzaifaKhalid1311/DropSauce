@@ -33,6 +33,7 @@ class WorkScheduleManager @Inject constructor(
 				isEnabled = settings.isSuggestionsEnabled,
 				force = key != AppSettings.KEY_SUGGESTIONS,
 			)
+
 		}
 	}
 

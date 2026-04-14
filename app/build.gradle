@@ -37,12 +37,6 @@ android {
 			// https://issuetracker.google.com/issues/408030127
 			generateLocaleConfig false
 		}
-		def localProperties = new Properties()
-		def localPropertiesFile = rootProject.file('local.properties')
-		if (localPropertiesFile.exists()) {
-			localProperties.load(new FileInputStream(localPropertiesFile))
-		}
-		resValue 'string', 'tg_backup_bot_token', localProperties.getProperty('tg_backup_bot_token', '')
 	}
 	signingConfigs {
 		if (project.hasProperty('RELEASE_STORE_FILE')) {
@@ -189,6 +183,7 @@ dependencies {
 	implementation libs.rxjava
 	implementation libs.injekt.core
 	implementation libs.kotlinx.serialization.json
+	implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.8.1"
 
 	implementation libs.adapterdelegates
 	implementation libs.adapterdelegates.viewbinding
@@ -225,6 +220,7 @@ dependencies {
 	androidTestImplementation libs.androidx.junit
 
 	androidTestImplementation libs.kotlinx.coroutines.test
+	androidTestImplementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.8.1"
 
 	androidTestImplementation libs.androidx.room.testing
 	androidTestImplementation libs.moshi.kotlin

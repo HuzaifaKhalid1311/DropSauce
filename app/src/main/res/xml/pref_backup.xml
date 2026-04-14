@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="backup_actions"
+        android:title="@string/backup_restore">
+
+        <Preference
+            android:key="restore_backup"
+            android:icon="@drawable/ic_revert"
+            android:summary="@string/restore_summary"
+            android:title="@string/restore_backup" />
+    </PreferenceCategory>
+
+
+</PreferenceScreen>
+
+

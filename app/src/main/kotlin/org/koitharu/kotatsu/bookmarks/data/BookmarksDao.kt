@@ -27,6 +27,9 @@ abstract class BookmarksDao {
 	@Query("SELECT * FROM bookmarks WHERE manga_id = :mangaId AND chapter_id = :chapterId AND page = :page ORDER BY percent")
 	abstract fun observe(mangaId: Long, chapterId: Long, page: Int): Flow<BookmarkEntity?>
 
+	@Query("SELECT * FROM bookmarks WHERE manga_id = :mangaId")
+	abstract suspend fun findAll(mangaId: Long): List<BookmarkEntity>
+
 	@Query("SELECT * FROM bookmarks WHERE manga_id = :mangaId ORDER BY percent")
 	abstract fun observe(mangaId: Long): Flow<List<BookmarkEntity>>
 

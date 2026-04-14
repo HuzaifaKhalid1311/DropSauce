@@ -77,9 +77,11 @@ fun <ResultT, SuccessT, ErrorT, SourceT, CatalogueSourceT : SourceT, WrappedSour
 	val untrustedPackages = mutableListOf<String>()
 
 	results.forEach { result ->
+		val success = successOf(result)
+		val error = errorOf(result)
+		val untrustedPackage = untrustedPackageNameOf(result)
 		when {
-			successOf(result) != null -> {
-				val success = requireNotNull(successOf(result))
+			success != null -> {
 				successful += success
 				successSources(success).forEach { source ->
 					sourceById[sourceId(source)] = source
@@ -88,15 +90,13 @@ fun <ResultT, SuccessT, ErrorT, SourceT, CatalogueSourceT : SourceT, WrappedSour
 					}
 				}
 			}
-			errorOf(result) != null -> {
-				val error = requireNotNull(errorOf(result))
+			error != null -> {
 				failed += error
 				onError(error)
 			}
-			untrustedPackageNameOf(result) != null -> {
-				val pkg = requireNotNull(untrustedPackageNameOf(result))
-				untrustedPackages += pkg
-				onUntrusted(pkg)
+			untrustedPackage != null -> {
+				untrustedPackages += untrustedPackage
+				onUntrusted(untrustedPackage)
 			}
 		}
 	}
@@ -128,6 +128,9 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 	private val _isLoading = MutableStateFlow(false)
 	val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+	private val _isReady = MutableStateFlow(false)
+	val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+
 	private val sourceCache = mutableMapOf<Long, SourceT>()
 	private val wrappedSourceCache = mutableMapOf<Long, WrappedSourceT>()
 	@Volatile
@@ -157,6 +160,7 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 			wrappedSourceCache.putAll(processed.wrappedSourceById)
 			_installedExtensions.value = processed.successful
 			_failedExtensions.value = processed.failed
+			_isReady.value = true
 		} finally {
 			_isLoading.value = false
 		}
@@ -201,6 +205,7 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 	val installedExtensions: StateFlow<List<SuccessT>> = runtime.installedExtensions
 	val failedExtensions: StateFlow<List<ErrorT>> = runtime.failedExtensions
 	val isLoading: StateFlow<Boolean> = runtime.isLoading
+	val isReady: StateFlow<Boolean> = runtime.isReady
 
 	fun initialize() {
 		runtime.initialize(::loadExtensions)

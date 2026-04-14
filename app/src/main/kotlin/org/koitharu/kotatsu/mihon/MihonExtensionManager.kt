@@ -7,7 +7,11 @@ import eu.kanade.tachiyomi.source.Source
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.extensions.runtime.ExternalExtensionManagerFacade
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
@@ -24,10 +28,13 @@ class MihonExtensionManager @Inject constructor(
 		@Volatile
 		private var activeInstance: MihonExtensionManager? = null
 
+		fun getById(sourceId: Long): MihonMangaSource? = activeInstance?.getMihonMangaSourceById(sourceId)
+
 		fun getByName(name: String): MihonMangaSource? = activeInstance?.getMihonMangaSourceByName(name)
 	}
 
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	private val refreshMutex = Mutex()
 
 	private val facade = ExternalExtensionManagerFacade<
 		MihonLoadResult,
@@ -63,6 +70,7 @@ class MihonExtensionManager @Inject constructor(
 	val installedExtensions: StateFlow<List<MihonLoadResult.Success>> = facade.installedExtensions
 	val failedExtensions: StateFlow<List<MihonLoadResult.Error>> = facade.failedExtensions
 	val isLoading: StateFlow<Boolean> = facade.isLoading
+	val isReady: StateFlow<Boolean> = facade.isReady
 
 	init {
 		activeInstance = this
@@ -73,7 +81,26 @@ class MihonExtensionManager @Inject constructor(
 	}
 
 	suspend fun loadExtensions() {
-		facade.loadExtensions()
+		refreshMutex.withLock {
+			facade.loadExtensions()
+		}
+	}
+
+	suspend fun ensureReady(forceRefresh: Boolean = false) {
+		initialize()
+		if (forceRefresh) {
+			loadExtensions()
+			return
+		}
+		if (!isReady.value && !isLoading.value) {
+			loadExtensions()
+		}
+		if (isLoading.value) {
+			isLoading.filter { !it }.first()
+		}
+		if (!isReady.value) {
+			loadExtensions()
+		}
 	}
 
 	fun getCatalogueSources(): List<CatalogueSource> = facade.getCatalogueSources()
@@ -86,7 +113,12 @@ class MihonExtensionManager @Inject constructor(
 
 	fun getMihonMangaSourceById(sourceId: Long): MihonMangaSource? = facade.getWrappedSourceById(sourceId)
 
-	fun getMihonMangaSourceByName(name: String): MihonMangaSource? = facade.getWrappedSourceByName(name)
+	fun getMihonMangaSourceByName(name: String): MihonMangaSource? {
+		val exact = facade.getWrappedSourceByName(name)
+		if (exact != null) return exact
+		val sourceId = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: return null
+		return facade.getWrappedSourceById(sourceId)
+	}
 
 	fun getSourcesByLanguage(): Map<String, List<CatalogueSource>> = facade.getSourcesByLanguage()
 

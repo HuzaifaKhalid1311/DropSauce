@@ -4,6 +4,8 @@ import androidx.annotation.AnyThread
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.model.LocalMangaSource
+import org.koitharu.kotatsu.core.model.MangaSource as ResolveMangaSource
+import org.koitharu.kotatsu.core.model.MissingMangaSource
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
@@ -60,21 +62,34 @@ interface MangaRepository {
 
 		@AnyThread
 		fun create(source: MangaSource): MangaRepository {
-			val unwrapped = unwrap(source)
+			val unwrapped = resolveFreshSource(unwrap(source))
+			val isExternalMissing = unwrapped is MissingMangaSource && unwrapped.name.startsWith("MIHON_")
 			when (unwrapped) {
 				LocalMangaSource -> return localMangaRepository
 				UnknownMangaSource -> return EmptyMangaRepository(unwrapped)
 				is MihonMangaSource -> mihonExtensionManager.initialize()
 			}
-			cache[unwrapped]?.get()?.let { return it }
+			cache[unwrapped]?.get()?.let { cached ->
+				if (!isExternalMissing || cached !is EmptyMangaRepository) {
+					return cached
+				}
+			}
 			return synchronized(cache) {
-				cache[unwrapped]?.get()?.let { return it }
+				cache[unwrapped]?.get()?.let { cached ->
+					if (!isExternalMissing || cached !is EmptyMangaRepository) {
+						return cached
+					}
+				}
 				val repository = createRepository(unwrapped)
 				if (repository != null) {
 					cache[unwrapped] = WeakReference(repository)
 					repository
 				} else {
-					EmptyMangaRepository(unwrapped)
+					EmptyMangaRepository(unwrapped).also {
+						if (!isExternalMissing) {
+							cache[unwrapped] = WeakReference(it)
+						}
+					}
 				}
 			}
 		}
@@ -82,6 +97,14 @@ interface MangaRepository {
 		private fun unwrap(source: MangaSource): MangaSource = when (source) {
 			is MangaSourceInfo -> source.mangaSource
 			else -> source
+		}
+
+		private fun resolveFreshSource(source: MangaSource): MangaSource {
+			if (source is MissingMangaSource && source.name.startsWith("MIHON_")) {
+				mihonExtensionManager.initialize()
+				return ResolveMangaSource(source.name)
+			}
+			return source
 		}
 
 		private fun createRepository(source: MangaSource): MangaRepository? = when (source) {

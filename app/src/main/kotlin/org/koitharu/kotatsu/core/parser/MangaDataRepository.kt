@@ -20,6 +20,8 @@ import org.koitharu.kotatsu.core.db.entity.toManga
 import org.koitharu.kotatsu.core.db.entity.toMangaChapters
 import org.koitharu.kotatsu.core.db.entity.toMangaTags
 import org.koitharu.kotatsu.core.model.LocalMangaSource
+import org.koitharu.kotatsu.core.model.MangaSource as ResolveMangaSource
+import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.nav.MangaIntent
 import org.koitharu.kotatsu.core.os.AppShortcutManager
@@ -124,7 +126,17 @@ class MangaDataRepository @Inject constructor(
 	}
 
 	suspend fun resolveIntent(intent: MangaIntent, withChapters: Boolean): Manga? = when {
-		intent.manga != null -> intent.manga.withCachedChaptersIfNeeded(withChapters)
+		intent.manga != null -> {
+			val direct = intent.manga.copy(source = ResolveMangaSource(intent.manga.source.name))
+			val resolved = if (direct.source.isExternalSource()) {
+				findMangaById(direct.id, withChapters)?.let { stored ->
+					stored.copy(source = ResolveMangaSource(stored.source.name))
+				} ?: direct
+			} else {
+				direct
+			}
+			resolved.withCachedChaptersIfNeeded(withChapters)
+		}
 		intent.mangaId != 0L -> findMangaById(intent.mangaId, withChapters)
 		intent.uri != null -> resolverProvider.get().resolve(intent.uri).withCachedChaptersIfNeeded(withChapters)
 		else -> null

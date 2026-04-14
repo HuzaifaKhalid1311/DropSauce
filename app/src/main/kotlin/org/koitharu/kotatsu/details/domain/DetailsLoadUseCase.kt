@@ -17,17 +17,22 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runInterruptible
 import org.koitharu.kotatsu.core.model.isLocal
+import org.koitharu.kotatsu.core.model.isExternalSource
+import org.koitharu.kotatsu.core.model.MangaSource as ResolveMangaSource
 import org.koitharu.kotatsu.core.nav.MangaIntent
 import org.koitharu.kotatsu.core.os.NetworkState
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
+import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
 import org.koitharu.kotatsu.core.ui.model.MangaOverride
 import org.koitharu.kotatsu.core.util.ext.sanitize
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.explore.domain.RecoverMangaUseCase
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
@@ -42,6 +47,7 @@ class DetailsLoadUseCase @Inject constructor(
 	private val recoverUseCase: RecoverMangaUseCase,
 	private val imageGetter: Html.ImageGetter,
 	private val networkState: NetworkState,
+	private val mihonExtensionManager: MihonExtensionManager,
 ) {
 
 	operator fun invoke(intent: MangaIntent, force: Boolean): Flow<MangaDetails> = flow {
@@ -150,17 +156,36 @@ class DetailsLoadUseCase @Inject constructor(
 	}
 
 	private suspend fun getDetails(seed: Manga, force: Boolean) = runCatchingCancellable {
-		val repository = mangaRepositoryFactory.create(seed.source)
-		if (repository is CachingMangaRepository) {
-			repository.getDetails(seed, if (force) CachePolicy.WRITE_ONLY else CachePolicy.ENABLED)
+		loadDetails(seed, force, refreshExtensions = false)
+	}.recoverCatching { error ->
+		if (seed.source.name.startsWith("MIHON_")) {
+			loadDetails(seed, force, refreshExtensions = true)
+		} else if (error is UnsupportedSourceException && seed.source.isExternalSource()) {
+			loadDetails(seed, force, refreshExtensions = true)
 		} else {
-			repository.getDetails(seed)
+			throw error
 		}
 	}.recoverNotNull { e ->
 		if (e is NotFoundException) {
 			recoverUseCase(seed)
 		} else {
 			null
+		}
+	}
+
+	private suspend fun loadDetails(seed: Manga, force: Boolean, refreshExtensions: Boolean): Manga {
+		val resolvedSeed = if (seed.source.name.startsWith("MIHON_")) {
+			mihonExtensionManager.ensureReady(forceRefresh = refreshExtensions || seed.source !is MihonMangaSource)
+			val resolvedSource = ResolveMangaSource(seed.source.name)
+			seed.copy(source = resolvedSource)
+		} else {
+			seed
+		}
+		val repository = mangaRepositoryFactory.create(resolvedSeed.source)
+		return if (repository is CachingMangaRepository) {
+			repository.getDetails(resolvedSeed, if (force) CachePolicy.WRITE_ONLY else CachePolicy.ENABLED)
+		} else {
+			repository.getDetails(resolvedSeed)
 		}
 	}
 

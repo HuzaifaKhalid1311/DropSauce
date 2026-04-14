@@ -82,6 +82,14 @@
 		<item>@string/frequency_twice_per_month</item>
 		<item>@string/frequency_once_per_month</item>
 	</string-array>
+	<string-array name="backup_frequency_values" translatable="false">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>4</item>
+		<item>5</item>
+	</string-array>
 	<string-array name="details_tabs" translatable="false">
 		<item>@string/last_used</item>
 		<item>@string/chapters</item>

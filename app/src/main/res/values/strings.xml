@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">DropSauce</string>
     <string name="local_storage">Local storage</string>
@@ -18,8 +18,8 @@
     <string name="install_extensions">Install extensions</string>
     <string name="extension_management_summary">Browse and manage installed extensions</string>
     <string name="sources_catalog_summary">Find and install new extensions</string>
-    <string name="loading_">Loading…</string>
-    <string name="computing_">Computing…</string>
+    <string name="loading_">Loading...</string>
+    <string name="computing_">Computing...</string>
     <string name="chapter_d_of_d">Chapter %1$d of %2$d</string>
     <string name="close">Close</string>
     <string name="try_again">Try again</string>
@@ -39,8 +39,8 @@
     <string name="share_s">Share %s</string>
     <string name="search">Search</string>
     <string name="search_manga">Search manga</string>
-    <string name="manga_downloading_">Downloading…</string>
-    <string name="processing_">Processing…</string>
+    <string name="manga_downloading_">Downloading...</string>
+    <string name="processing_">Processing...</string>
     <string name="download_complete">Downloaded</string>
     <string name="downloads">Downloads</string>
     <string name="by_name">Name</string>
@@ -103,10 +103,10 @@
     <string name="vibration">Vibration</string>
     <string name="favourites_categories">Favorite categories</string>
     <string name="remove_category">Remove</string>
-    <string name="text_empty_holder_primary">It\'s kind of empty here…</string>
+    <string name="text_empty_holder_primary">It\'s kind of empty here...</string>
     <string name="text_search_holder_secondary">Try to reformulate the query.</string>
     <string name="text_history_holder_primary">What you read will be displayed here</string>
-    <string name="text_history_holder_secondary">Find what to read in the «Explore» section</string>
+    <string name="text_history_holder_secondary">Find what to read in the "Explore" section</string>
     <string name="text_empty_holder_secondary_filtered">There are no manga matching the filters you selected</string>
     <string name="text_local_holder_primary">Save something first</string>
     <string name="text_local_holder_secondary">Save something from an online catalog or import it from a file.</string>
@@ -166,13 +166,32 @@
     <string name="black_dark_theme_summary">Uses less power on AMOLED screens</string>
     <string name="backup_restore">Backup and restore</string>
     <string name="create_backup">Create data backup</string>
-    <string name="restore_backup">Restore from backup</string>
+    <string name="restore_backup">Restore from tachi backup</string>
     <string name="data_restored">Restored</string>
-    <string name="preparing_">Preparing…</string>
+    <string name="preparing_">Preparing...</string>
     <string name="file_not_found">File not found</string>
     <string name="data_restored_success">All data was restored</string>
     <string name="data_restored_with_errors">The data was restored, but there are errors</string>
     <string name="backup_information">You can create backup of your history and favorites and restore it</string>
+    <string name="backup_contents">Backup contents</string>
+    <string name="backup_include_library">Library entries</string>
+    <string name="backup_include_library_summary">Manga, categories, chapters, history, bookmarks</string>
+    <string name="backup_include_tracking">Tracking and read statistics</string>
+    <string name="backup_include_tracking_summary">External tracker links and reading duration</string>
+    <string name="backup_include_app_settings">App settings</string>
+    <string name="backup_include_app_settings_summary">General app preferences and behavior</string>
+    <string name="backup_include_source_settings">Source settings</string>
+    <string name="backup_include_source_settings_summary">Per-source preferences used by extensions</string>
+    <string name="backup_include_extension_repo">Extension repositories</string>
+    <string name="backup_include_extension_repo_summary">Custom extension catalog URL and metadata</string>
+    <string name="select_at_least_one_item">Select at least one backup item</string>
+    <string name="restore_diagnostics_title">Restore diagnostics</string>
+    <string name="restore_report_restored">Restored manga: %1$d\nRestored tracker links: %2$d</string>
+    <string name="restore_report_restored_simple">Restored items: %1$d manga</string>
+    <string name="restore_report_missing_extensions">Missing extensions:\n%1$s</string>
+    <string name="restore_report_missing_extensions_compact">Missing extensions:\n%1$s</string>
+    <string name="restore_report_missing_trackers">Missing tracker services IDs:\n%1$s</string>
+    <string name="restore_report_skipped_items">Skipped items:\n%1$s</string>
     <string name="just_now">Just now</string>
     <string name="yesterday">Yesterday</string>
     <string name="long_ago">Long ago</string>
@@ -344,7 +363,7 @@
     <string name="removed_from_favourites">Removed from favorites</string>
     <string name="options">Options</string>
     <string name="not_found_404">Content not found or removed</string>
-    <string name="download_summary_pattern" translatable="false">%1$s · %2$s</string>
+    <string name="download_summary_pattern" translatable="false">%1$s - %2$s</string>
     <string name="incognito_mode">Incognito mode</string>
     <string name="no_chapters">No chapters</string>
     <string name="automatic_scroll">Automatic scroll</string>
@@ -399,7 +418,7 @@
     <string name="theme_name_mamimi">Mamimi</string>
     <string name="theme_name_kanade">Kanade</string>
     <string name="nothing_here">There is nothing here</string>
-    <string name="scrobbling_empty_hint">To track reading progress, select Menu → Track on the manga details screen.</string>
+    <string name="scrobbling_empty_hint">To track reading progress, select Menu -> Track on the manga details screen.</string>
     <string name="services">Services</string>
     <string name="allow_unstable_updates">Allow unstable updates</string>
     <string name="allow_unstable_updates_summary">Receive notifications about unstable builds</string>
@@ -540,6 +559,7 @@
     <string name="periodic_backups_enable">Enable periodic backups</string>
     <string name="backups_output_directory">Backups output directory</string>
     <string name="last_successful_backup">Last successful backup: %s</string>
+    <string name="last_successful_backup_status">Last successful backup</string>
     <string name="speed_value">x%.1f</string>
     <string name="lock_screen_rotation">Lock screen rotation</string>
     <string name="content_type_manga">Manga</string>
@@ -602,7 +622,7 @@
     <string name="default_tab">Default tab</string>
     <string name="mark_as_completed">Mark as completed</string>
     <string name="mark_as_completed_prompt">Mark selected manga as completely read?\n\nWarning: current reading progress will be lost.</string>
-    <string name="category_hidden_done">This category was hidden from the main screen and is accessible through Menu → Manage categories</string>
+    <string name="category_hidden_done">This category was hidden from the main screen and is accessible through Menu -> Manage categories</string>
     <string name="remaining_time_pattern" translatable="false">%1$s %2$s</string>
     <string name="volume_">Volume %d</string>
     <string name="volume_unknown">Unknown volume</string>
@@ -683,7 +703,7 @@
     <string name="show_pages_thumbs">Show pages thumbnails</string>
     <string name="show_pages_thumbs_summary">Enable the \"Pages\" tab on the details screen</string>
     <string name="error_no_data_received">No data was received from server</string>
-    <string name="unsupported_backup_message">Please select a proper DropSauce backup file</string>
+    <string name="unsupported_backup_message">Please select a valid DropSauce or Mihon backup file</string>
     <string name="list_ellipsize_pattern" translatable="false">(+%d)</string>
     <!-- Short hours format pattern -->
     <string name="hours_short">%d h</string>
@@ -843,9 +863,7 @@
     <!-- Button label, should be as short as possible -->
     <string name="incognito">Incognito</string>
     <string name="error_connection_reset">Connection reset by remote host</string>
-    <string name="backup_tg_check">Check if API works</string>
-    <string name="backup_tg_echo">Test message</string>
-    <string name="backup_tg_id_not_set">Chat ID is not set</string>
+    <string name="not_set">Not set</string>
     <string name="telegram_chat_id">Telegram chat ID</string>
     <string name="open_telegram_bot">Open the Telegram bot</string>
     <string name="send_backups_telegram">Send backups in Telegram</string>
@@ -961,7 +979,7 @@
     <string name="overwrite">Overwrite</string>
     <string name="filter_overwrite_confirm">A filter named \"%s\" already exists. Do you want to overwrite it?</string>
     <string name="storage_and_network">Storage and network</string>
-    <string name="create_or_restore_backup">Create or restore a backup</string>
+    <string name="create_or_restore_backup">Create/Restore backup, Periodic backups</string>
     <string name="data_removal">Data removal</string>
     <string name="privacy">Privacy</string>
     <string name="source_broken_warning">This manga source has been marked as broken. Some features may not work</string>
@@ -971,6 +989,6 @@
     <string name="manage_extensions">Manage extensions</string>
     <string name="manage_extensions_summary">Add, remove or update extensions</string>
     <string name="nsfw_filter">NSFW filter</string>
-    <string name="extensions_summary_with_count">Manage extensions, sorting, and filters · %1$d sources installed</string>
+    <string name="extensions_summary_with_count">Manage extensions, sorting, and filters - %1$d sources installed</string>
     <string name="extensions_summary_no_sources">No extension sources installed yet</string>
 </resources>

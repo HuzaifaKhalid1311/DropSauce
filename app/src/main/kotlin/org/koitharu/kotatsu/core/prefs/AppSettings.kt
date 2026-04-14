@@ -400,6 +400,27 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			}
 		}
 
+
+	var backupIncludeLibraryEntries: Boolean
+		get() = prefs.getBoolean(KEY_BACKUP_INCLUDE_LIBRARY, true)
+		set(value) = prefs.edit { putBoolean(KEY_BACKUP_INCLUDE_LIBRARY, value) }
+
+	var backupIncludeAppSettings: Boolean
+		get() = prefs.getBoolean(KEY_BACKUP_INCLUDE_APP_SETTINGS, true)
+		set(value) = prefs.edit { putBoolean(KEY_BACKUP_INCLUDE_APP_SETTINGS, value) }
+
+	var backupIncludeSourceSettings: Boolean
+		get() = prefs.getBoolean(KEY_BACKUP_INCLUDE_SOURCE_SETTINGS, true)
+		set(value) = prefs.edit { putBoolean(KEY_BACKUP_INCLUDE_SOURCE_SETTINGS, value) }
+
+	var backupIncludeExtensionRepo: Boolean
+		get() = prefs.getBoolean(KEY_BACKUP_INCLUDE_EXTENSION_REPO, true)
+		set(value) = prefs.edit { putBoolean(KEY_BACKUP_INCLUDE_EXTENSION_REPO, value) }
+
+	var backupIncludeTracking: Boolean
+		get() = prefs.getBoolean(KEY_BACKUP_INCLUDE_TRACKING, true)
+		set(value) = prefs.edit { putBoolean(KEY_BACKUP_INCLUDE_TRACKING, value) }
+
 	val isPagesNumbersEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_NUMBERS, false)
 
@@ -837,6 +858,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_MIHON_PREFERRED_LANGUAGES = "mihon_preferred_languages"
 		const val KEY_MIHON_PER_EXT_DISABLED_LANGS = "mihon_per_ext_disabled_langs"
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
+		const val KEY_BACKUP_INCLUDE_LIBRARY = "backup_include_library"
+		const val KEY_BACKUP_INCLUDE_APP_SETTINGS = "backup_include_app_settings"
+		const val KEY_BACKUP_INCLUDE_SOURCE_SETTINGS = "backup_include_source_settings"
+		const val KEY_BACKUP_INCLUDE_EXTENSION_REPO = "backup_include_extension_repo"
+		const val KEY_BACKUP_INCLUDE_TRACKING = "backup_include_tracking"
 		const val KEY_SOURCES_CATALOG = "sources_catalog"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
 		const val KEY_CF_CONTRAST = "cf_contrast"
@@ -878,6 +904,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_CLEAR_MANGA_DATA = "manga_data_clear"
 		const val KEY_STORAGE_USAGE = "storage_usage"
 		const val KEY_WEBVIEW_CLEAR = "webview_clear"
+		const val KEY_RESTORE_BACKUP = "restore_backup"
 
 		// old keys are for migration only
 		private const val KEY_IMAGES_PROXY_OLD = "images_proxy"

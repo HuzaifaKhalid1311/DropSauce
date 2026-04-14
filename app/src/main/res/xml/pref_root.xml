@@ -33,6 +33,12 @@
         android:title="@string/downloads" />
 
     <PreferenceScreen
+        android:fragment="org.koitharu.kotatsu.settings.BackupSettingsFragment"
+        android:icon="@drawable/ic_backup_restore"
+        android:key="backup"
+        android:title="@string/backup_restore" />
+
+    <PreferenceScreen
         android:fragment="org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment"
         android:icon="@drawable/ic_feed"
         android:key="tracker"
