@@ -29,7 +29,6 @@ import org.koitharu.kotatsu.core.prefs.TriStateOption
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.computeSize
-import org.koitharu.kotatsu.core.util.ext.onEachWhile
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.details.domain.BranchComparator
 import org.koitharu.kotatsu.details.domain.DetailsInteractor
@@ -239,17 +238,20 @@ class DetailsViewModel @Inject constructor(
 
 	private fun doLoad(force: Boolean) = launchLoadingJob(Dispatchers.Default) {
 		detailsLoadUseCase.invoke(intent, force)
-			.onEachWhile {
+			.collect {
 				if (it.allChapters.isNotEmpty()) {
 					val manga = it.toManga()
-					// find default branch
 					val hist = historyRepository.getOne(manga)
-					selectedBranch.value = manga.getPreferredBranch(hist)
-					true
-				} else {
-					false
+					val preferredBranch = manga.getPreferredBranch(hist)
+					val resolvedBranch = resolveSelectedBranch(
+						selectedBranch = selectedBranch.value,
+						availableBranches = it.chapters.keys,
+						preferredBranch = preferredBranch,
+					)
+					if (resolvedBranch != selectedBranch.value) {
+						selectedBranch.value = resolvedBranch
+					}
 				}
-			}.collect {
 				mangaDetails.value = it
 			}
 	}
@@ -265,5 +267,20 @@ class DetailsViewModel @Inject constructor(
 			errorEvent.call(IllegalStateException("Scrobbler [$index] is not available"))
 		}
 		return scrobbler
+	}
+}
+
+internal fun resolveSelectedBranch(
+	selectedBranch: String?,
+	availableBranches: Set<String?>,
+	preferredBranch: String?,
+): String? {
+	if (availableBranches.isEmpty()) {
+		return null
+	}
+	return when {
+		selectedBranch in availableBranches -> selectedBranch
+		preferredBranch in availableBranches -> preferredBranch
+		else -> availableBranches.first()
 	}
 }
