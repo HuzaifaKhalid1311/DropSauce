@@ -648,7 +648,7 @@
     <string name="long_tap_action">Long tap action</string>
     <string name="none">None</string>
     <string name="config_reset_confirm">Reset settings to default values? This action cannot be undone.</string>
-    <string name="use_two_pages_landscape">Use two pages layout on landscape orientation (beta)</string>
+    <string name="use_two_pages_landscape">Use two pages layout on landscape orientation</string>
     <string name="auto_double_foldable">Auto Two-Page On Foldable</string>
     <string name="two_page_scroll_sensitivity">Two-Page Scroll Sensitivity</string>
     <string name="default_webtoon_zoom_out">Default webtoon zoom out</string>
@@ -900,6 +900,7 @@
     <string name="search_disabled_sources">Search through disabled sources</string>
     <string name="error_details">Error details</string>
     <string name="error_disclaimer_manga">Try to open manga in a web browser to ensure it is available on its source.</string>
+    <string name="error_disclaimer_captcha_required">Open the source and open any manga to verify captcha</string>
     <string name="error_disclaimer_app_outdated">It looks like your version of DropSauce is out of date. Please install the latest version to get all available fixes.</string>
     <string name="error_disclaimer_report">You can submit a bug report to the developers. This will help us investigate and fix the issue.</string>
     <string name="link_to_manga_on_s">Link to manga on %s</string>

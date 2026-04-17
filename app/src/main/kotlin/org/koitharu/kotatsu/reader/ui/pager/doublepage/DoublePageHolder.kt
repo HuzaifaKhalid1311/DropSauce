@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleOwner
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.os.NetworkState
 import org.koitharu.kotatsu.databinding.ItemPageBinding
@@ -29,6 +30,10 @@ class DoublePageHolder(
 	exceptionResolver = exceptionResolver,
 ) {
 
+	private val halfCenterGap: Int
+		get() = (itemView.resources.getDimensionPixelOffset(R.dimen.reader_double_page_center_gap) / 2)
+			.coerceAtLeast(1)
+
 	private val isEven: Boolean
 		get() = bindingAdapterPosition and 1 == 0
 
@@ -38,6 +43,12 @@ class DoublePageHolder(
 
 	override fun onBind(data: ReaderPage) {
 		super.onBind(data)
+		binding.root.setPaddingRelative(
+			if (isEven) 0 else halfCenterGap,
+			0,
+			if (isEven) halfCenterGap else 0,
+			0,
+		)
 		(binding.textViewNumber.layoutParams as FrameLayout.LayoutParams)
 			.gravity = (if (isEven) Gravity.START else Gravity.END) or Gravity.BOTTOM
 	}
@@ -55,5 +66,13 @@ class DoublePageHolder(
 				PointF(if (isEven) 0f else sWidth.toFloat(), sHeight / 2f),
 			)
 		}
+		alignPageToCenterSeam()
+	}
+
+	private fun alignPageToCenterSeam() {
+		val ssiv = binding.ssiv
+		val pageWidth = ssiv.sWidth * ssiv.minScale
+		val extraSpace = ((ssiv.width - pageWidth) / 2f).coerceAtLeast(0f)
+		ssiv.translationX = if (isEven) extraSpace else -extraSpace
 	}
 }

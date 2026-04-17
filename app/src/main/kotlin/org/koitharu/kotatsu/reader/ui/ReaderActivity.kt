@@ -194,7 +194,12 @@ class ReaderActivity :
         viewModel.isZoomControlsEnabled.observe(this) {
             viewBinding.zoomControl.isVisible = it
         }
-        addMenuProvider(ReaderMenuProvider(viewModel))
+        addMenuProvider(
+            ReaderMenuProvider(
+                onOpenMenu = ::openMenu,
+                isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
+            ),
+        )
 
         observeWindowLayout()
 

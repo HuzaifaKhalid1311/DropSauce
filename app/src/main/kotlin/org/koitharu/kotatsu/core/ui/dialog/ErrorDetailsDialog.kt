@@ -8,6 +8,8 @@ import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
+import org.koitharu.kotatsu.core.exceptions.InteractiveActionRequiredException
 import org.koitharu.kotatsu.core.github.AppUpdateRepository
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
@@ -48,7 +50,9 @@ class ErrorDetailsDialog : AlertDialogFragment<DialogErrorDetailsBinding>(), Vie
 		binding.buttonBrowser.isVisible = isUrlAvailable
 		binding.textViewBrowser.isVisible = isUrlAvailable
 		binding.textViewDescription.setTextAndVisible(
-			if (appUpdateRepository.isUpdateAvailable) {
+			if (exception is InteractiveActionRequiredException || exception is CloudFlareProtectedException) {
+				R.string.error_disclaimer_captcha_required
+			} else if (appUpdateRepository.isUpdateAvailable) {
 				R.string.error_disclaimer_app_outdated
 			} else if (exception.isReportable()) {
 				R.string.error_disclaimer_report

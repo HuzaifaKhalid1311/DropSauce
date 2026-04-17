@@ -119,6 +119,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			fragmentManager = supportFragmentManager,
 			settings = settings,
 		)
+		navigationDelegate.onExploreReselected = {
+			if (viewBinding.searchView.isShowing) {
+				viewBinding.searchView.hide()
+			} else {
+				viewBinding.searchView.show()
+			}
+		}
 		navigationDelegate.addOnFragmentChangedListener(this)
 		navigationDelegate.onCreate(this, savedInstanceState)
 		viewBinding.textViewTitle?.let { tv ->

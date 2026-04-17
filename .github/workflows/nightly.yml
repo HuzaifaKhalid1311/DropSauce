@@ -127,21 +127,22 @@ jobs:
 
     - name: Create nightly release
       if: steps.check.outputs.should_build == 'true'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: nightly
-        name: "Nightly Build N${{ steps.nightly.outputs.date }}"
-        files: |
-          release/*.apk
-        body: |
-          ## 🌙 DropSauce Nightly N${{ steps.nightly.outputs.date }}
-
-          > [!WARNING]
-          > Nightly builds are automatically generated and may contain incomplete features and bugs.
-
-          ### Commits in the last 24 hours
-          ${{ steps.changelog.outputs.changelog }}
-        draft: false
-        prerelease: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        NOTES_FILE="nightly_notes.md"
+
+        cat > "$NOTES_FILE" <<EOF
+        ## 🌙 DropSauce Nightly N${{ steps.nightly.outputs.date }}
+
+        > [!WARNING]
+        > Nightly builds are automatically generated and may contain incomplete features and bugs.
+
+        ### Commits in the last 24 hours
+        ${{ steps.changelog.outputs.changelog }}
+        EOF
+
+        gh release create "nightly" release/*.apk \
+          --title "Nightly Build N${{ steps.nightly.outputs.date }}" \
+          --notes-file "$NOTES_FILE" \
+          --prerelease

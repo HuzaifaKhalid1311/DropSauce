@@ -18,10 +18,12 @@ import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import eu.kanade.tachiyomi.source.ConfigurableSource
+import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.nav.AppRouter
+import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.ui.BasePreferenceFragment
@@ -123,6 +125,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return
 		val screen = preferenceScreen ?: return
 		screen.removePreferenceRecursively(KEY_MIHON_LANGUAGE_TOGGLES)
+		screen.removePreferenceRecursively(KEY_MIHON_OPEN_BROWSER)
 		screen.removePreferenceRecursively(KEY_MIHON_UNINSTALL_EXTENSION)
 		val mihonSource = repo.mihonSource as? ConfigurableSource
 		if (mihonSource != null) {
@@ -134,7 +137,32 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 		}
 		addMihonLanguageToggles(repo, screen)
 		moveMihonLanguageTogglesToBottom(screen)
+		addMihonOpenBrowserPreference(screen, repo)
 		addMihonUninstallPreference(screen, repo.source.pkgName)
+	}
+
+	private fun addMihonOpenBrowserPreference(screen: PreferenceScreen, repo: MihonMangaRepository) {
+		val baseUrl = (repo.mihonSource as? HttpSource)?.baseUrl?.takeIf { it.isNotBlank() } ?: return
+		val openBrowserPref = Preference(requireContext()).apply {
+			key = KEY_MIHON_OPEN_BROWSER
+			title = getString(R.string.open_in_browser)
+			icon = ContextCompat.getDrawable(context, R.drawable.ic_open_external)
+			summary = baseUrl
+			isIconSpaceReserved = true
+			onPreferenceClickListener = Preference.OnPreferenceClickListener {
+				router.openBrowser(
+					url = baseUrl,
+					source = repo.source,
+					title = repo.source.displayName,
+				)
+				true
+			}
+		}
+		val maxOrder = (0 until screen.preferenceCount)
+			.map { screen.getPreference(it) }
+			.maxOfOrNull { it.order } ?: 0
+		openBrowserPref.order = maxOrder + 1
+		screen.addPreference(openBrowserPref)
 	}
 
 	private fun addMihonLanguageToggles(repo: MihonMangaRepository, screen: PreferenceScreen) {
@@ -233,6 +261,7 @@ class SourceSettingsFragment : BasePreferenceFragment(0) {
 	companion object {
 
 		private const val KEY_MIHON_LANGUAGE_TOGGLES = "mihon_language_toggles"
+		private const val KEY_MIHON_OPEN_BROWSER = "mihon_open_browser"
 		private const val KEY_MIHON_UNINSTALL_EXTENSION = "mihon_uninstall_extension"
 
 		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {

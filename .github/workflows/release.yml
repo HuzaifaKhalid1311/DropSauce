@@ -189,27 +189,28 @@ jobs:
         echo "EOF" >> "$GITHUB_OUTPUT"
 
     - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ inputs.version_name }}
-        name: v${{ inputs.version_name }}
-        target_commitish: ${{ steps.version_commit.outputs.commit_sha }}
-        files: |
-          release/*.apk
-        body: |
-          ## DropSauce v${{ inputs.version_name }}
-
-          ### Download
-          ${{ steps.assets.outputs.download_notes }}
-
-          ### Installation Instructions
-          1. Download the APK file
-          2. Install it on your Android device
-          3. If this is your first time installing, you may need to allow installation of apps from unknown sources
-
-          ### Changelog
-          ${{ steps.changelog.outputs.changelog }}
-        draft: false
-        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG="v${{ inputs.version_name }}"
+        NOTES_FILE="release_notes.md"
+
+        cat > "$NOTES_FILE" <<EOF
+        ## DropSauce v${{ inputs.version_name }}
+
+        ### Download
+        ${{ steps.assets.outputs.download_notes }}
+
+        ### Installation Instructions
+        1. Download the APK file
+        2. Install it on your Android device
+        3. If this is your first time installing, you may need to allow installation of apps from unknown sources
+
+        ### Changelog
+        ${{ steps.changelog.outputs.changelog }}
+        EOF
+
+        gh release create "$TAG" release/*.apk \
+          --title "$TAG" \
+          --target "${{ steps.version_commit.outputs.commit_sha }}" \
+          --notes-file "$NOTES_FILE"

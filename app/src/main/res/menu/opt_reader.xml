@@ -4,10 +4,16 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_reader_menu"
+		android:icon="@drawable/ic_more_vert"
+		android:title="@string/options"
+		app:showAsAction="ifRoom" />
+
+	<item
 		android:id="@+id/action_info"
 		android:icon="@drawable/ic_info_outline"
 		android:title="@string/details"
 		android:visible="false"
-		app:showAsAction="always" />
+		app:showAsAction="ifRoom" />
 
 </menu>

@@ -21,6 +21,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.Insets
+import androidx.core.graphics.ColorUtils
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -341,6 +342,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		dialogBuilder.setPositiveButton(android.R.string.ok, null)
 		val dialog = dialogBuilder.create()
 		dialog.setOnShowListener {
+			val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
 			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 				val value = editor.text?.toString()?.trim().orEmpty()
 				if (!value.startsWith("https://")) {
@@ -350,6 +352,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 				viewModel.setExternalRepoUrl(value)
 				dialog.dismiss()
 			}
+			val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+			val defaultColor = neutralButton?.currentTextColor ?: positiveButton.currentTextColor
+			val redColor = ContextCompat.getColor(dialog.context, android.R.color.holo_red_dark)
+			dialog.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(
+				ColorUtils.blendARGB(defaultColor, redColor, 0.5f),
+			)
 		}
 		dialog.show()
 	}

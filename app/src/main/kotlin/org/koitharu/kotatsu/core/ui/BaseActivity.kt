@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -142,12 +143,18 @@ abstract class BaseActivity<B : ViewBinding> :
 		for (index in 0 until menu.size()) {
 			val item = menu.getItem(index)
 			item.icon?.let { icon ->
-				if (icon !is InsetDrawable) {
+				if (icon !is InsetDrawable && !item.requiresActionButtonCompat()) {
 					item.icon = InsetDrawable(icon.mutate(), 0, 0, endInset, 0)
 				}
 			}
 			item.subMenu?.let(::adjustMenuIconSpacing)
 		}
+	}
+
+	private fun MenuItem.requiresActionButtonCompat(): Boolean {
+		return runCatching {
+			javaClass.getMethod("requiresActionButton").invoke(this) as? Boolean
+		}.getOrNull() == true
 	}
 
 	protected fun isDarkAmoledTheme(): Boolean {

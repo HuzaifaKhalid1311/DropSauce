@@ -12,7 +12,8 @@
 
 	<FrameLayout
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content">
+		android:layout_height="wrap_content"
+		android:layout_marginEnd="@dimen/reader_actions_options_margin_end">
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_prev"
@@ -131,7 +132,7 @@
 			android:layout_height="48dp"
 			android:layout_gravity="center"
 			android:contentDescription="@string/options"
-			app:icon="@drawable/abc_ic_menu_overflow_material" />
+			app:icon="@drawable/ic_more_vert" />
 	</FrameLayout>
 
 </merge>
