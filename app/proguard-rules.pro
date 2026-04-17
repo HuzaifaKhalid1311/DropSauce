@@ -148,3 +148,7 @@
     public protected *;
 }
 
+# Preserve AppCompat optional menu icon method name for release reflection fallback.
+-keepclassmembers class androidx.appcompat.view.menu.** {
+    void setOptionalIconsVisible(boolean);
+}
