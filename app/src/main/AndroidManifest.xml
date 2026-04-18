@@ -68,6 +68,9 @@
 				android:value="org.koitharu.kotatsu.search.ui.multi.MultiSearchActivity" />
 		</activity>
 		<activity
+			android:name="org.koitharu.kotatsu.main.ui.welcome.OnboardingActivity"
+			android:exported="false" />
+		<activity
 			android:name="org.koitharu.kotatsu.details.ui.DetailsActivity"
 			android:exported="true">
 			<intent-filter>

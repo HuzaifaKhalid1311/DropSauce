@@ -4,6 +4,11 @@
 	<dimen name="grid_spacing_outer">2dp</dimen>
 	<dimen name="grid_spacing_outer_double">4dp</dimen>
 	<dimen name="preferred_grid_width">140dp</dimen>
+	<dimen name="onboarding_icon_size">88dp</dimen>
+	<dimen name="onboarding_content_side_padding">72dp</dimen>
+	<dimen name="onboarding_title_horizontal_margin">48dp</dimen>
+	<dimen name="onboarding_title_min_height">72dp</dimen>
+	<dimen name="onboarding_body_top_spacing">24dp</dimen>
 	<dimen name="reader_double_page_center_gap">1dp</dimen>
 	<dimen name="reader_actions_options_margin_end">12dp</dimen>
 </resources>

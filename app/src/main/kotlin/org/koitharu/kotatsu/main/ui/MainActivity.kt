@@ -67,6 +67,7 @@ import org.koitharu.kotatsu.local.ui.LocalIndexUpdateService
 import org.koitharu.kotatsu.local.ui.LocalStorageCleanupWorker
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
+import org.koitharu.kotatsu.main.ui.welcome.OnboardingActivity
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.remotelist.ui.MangaSearchMenuProvider
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionItemCallback
@@ -106,6 +107,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		if (!settings.isOnboardingCompleted) {
+			startActivity(Intent(this, OnboardingActivity::class.java))
+			finish()
+			return
+		}
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
 
@@ -154,7 +160,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)
 		viewModel.feedCounter.observe(this, ::onFeedCounterChanged)
 		viewModel.appUpdate.observe(this, MenuInvalidator(this))
-		viewModel.onFirstStart.observeEvent(this) { router.showWelcomeSheet() }
 		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
 		searchSuggestionViewModel.isIncognitoModeEnabled.observe(this, this::onIncognitoModeChanged)
 		viewBinding.bottomNav?.addOnLayoutChangeListener(this)
@@ -302,7 +307,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			}
 			withResumed {
 				MangaPrefetchService.prefetchLast(this@MainActivity)
-				requestNotificationsPermission()
 				startService(Intent(this@MainActivity, LocalIndexUpdateService::class.java))
 				if (settings.isAdBlockEnabled) {
 					startService(Intent(this@MainActivity, AdListUpdateService::class.java))

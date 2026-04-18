@@ -41,6 +41,7 @@ import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.reader.domain.ReaderColorFilter
 import java.io.File
 import java.net.Proxy
+import java.util.UUID
 import java.util.EnumSet
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,8 +50,23 @@ import javax.inject.Singleton
 class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+	private val onboardingInstallIdFile = File(context.noBackupFilesDir, "onboarding_install_id")
 	private val connectivityManager = context.connectivityManager
 	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges))
+	private val onboardingInstallId by lazy {
+		runCatching {
+			onboardingInstallIdFile.parentFile?.mkdirs()
+			if (onboardingInstallIdFile.exists()) {
+				onboardingInstallIdFile.readText().trim().ifBlank { throw IllegalStateException() }
+			} else {
+				val value = UUID.randomUUID().toString()
+				onboardingInstallIdFile.writeText(value)
+				value
+			}
+		}.getOrElse {
+			UUID.randomUUID().toString()
+		}
+	}
 
 	var listMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE, ListMode.GRID)
@@ -60,11 +76,35 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_THEME, null)?.toIntOrNull()
 			?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
 
+	fun setTheme(mode: Int) = prefs.edit {
+		putString(KEY_THEME, mode.toString())
+	}
+
 	val colorScheme: ColorScheme
 		get() = prefs.getEnumValue(KEY_COLOR_THEME, ColorScheme.default)
 
+	fun setColorScheme(value: ColorScheme) = prefs.edit {
+		putEnumValue(KEY_COLOR_THEME, value)
+	}
+
 	val isAmoledTheme: Boolean
 		get() = prefs.getBoolean(KEY_THEME_AMOLED, false)
+
+	fun setAmoledTheme(enabled: Boolean) = prefs.edit {
+		putBoolean(KEY_THEME_AMOLED, enabled)
+	}
+
+	var isOnboardingCompleted: Boolean
+		get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+			&& prefs.getString(KEY_ONBOARDING_INSTALL_ID, null) == onboardingInstallId
+		set(value) = prefs.edit {
+			putBoolean(KEY_ONBOARDING_COMPLETED, value)
+			if (value) {
+				putString(KEY_ONBOARDING_INSTALL_ID, onboardingInstallId)
+			} else {
+				remove(KEY_ONBOARDING_INSTALL_ID)
+			}
+		}
 
 	var mainNavItems: List<NavItem>
 		get() {
@@ -889,6 +929,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DISCORD_RPC = "discord_rpc"
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"
 		const val KEY_DISCORD_TOKEN = "discord_token"
+		const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+		const val KEY_ONBOARDING_INSTALL_ID = "onboarding_install_id"
 
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"

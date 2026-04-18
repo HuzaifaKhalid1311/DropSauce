@@ -1,107 +1,94 @@
 package org.koitharu.kotatsu.main.ui.welcome
 
-import android.content.Context
-import androidx.core.os.ConfigurationCompat
+import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.koitharu.kotatsu.core.LocalizedAppContext
+import org.koitharu.kotatsu.backup.MihonBackupManager
+import org.koitharu.kotatsu.backup.MihonBackupManager.RestoreReport
+import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.core.ui.BaseViewModel
-import org.koitharu.kotatsu.core.util.ext.toList
+import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
+import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
-import org.koitharu.kotatsu.filter.ui.model.FilterProperty
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import java.util.Locale
+import org.koitharu.kotatsu.local.data.LocalStorageManager
 import javax.inject.Inject
+
+data class RestoreBackupResult(
+	val report: RestoreReport?,
+	val error: Throwable?,
+)
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-	private val repository: MangaSourcesRepository,
+	repository: MangaSourcesRepository,
 	private val settings: AppSettings,
-	@LocalizedAppContext context: Context,
+	private val storageManager: LocalStorageManager,
+	private val backupManager: MihonBackupManager,
 ) : BaseViewModel() {
 
-	private var updateJob: Job
-
-	val locales = MutableStateFlow(
-		FilterProperty<Locale>(
-			availableItems = listOf(Locale.ROOT),
-			selectedItems = setOf(Locale.ROOT),
-			isLoading = true,
-			error = null,
-		),
-	)
-
-	val types = MutableStateFlow(
-		FilterProperty(
-			availableItems = listOf(ContentType.MANGA),
-			selectedItems = setOf(ContentType.MANGA),
-			isLoading = true,
-			error = null,
-		),
-	)
+	val selectedTheme = MutableStateFlow(settings.theme)
+	val selectedColorScheme = MutableStateFlow(settings.colorScheme)
+	val isAmoledEnabled = MutableStateFlow(settings.isAmoledTheme)
+	val storageSummary = MutableStateFlow<String?>(null)
+	val onBackupRestored = MutableEventFlow<RestoreBackupResult>()
 
 	init {
-		updateJob = launchJob(Dispatchers.Default) {
-			// Show default content types
-			val contentTypes = ContentType.entries.toList()
-			types.value = types.value.copy(
-				availableItems = contentTypes,
-				isLoading = false,
-			)
-			val selectedLocales = HashSet<Locale>(2)
-			ConfigurationCompat.getLocales(context.resources.configuration).toList()
-				.firstOrNull()
-				?.let { selectedLocales += it }
-			selectedLocales += Locale.ROOT
-			locales.value = locales.value.copy(
-				availableItems = listOf(Locale.ROOT),
-				selectedItems = selectedLocales,
-				isLoading = false,
-			)
+		launchJob(Dispatchers.Default) {
 			repository.clearNewSourcesBadge()
-			commit()
+			refreshStorageSummary()
 		}
 	}
 
-	fun setLocaleChecked(locale: Locale, isChecked: Boolean) {
-		val snapshot = locales.value
-		locales.value = snapshot.copy(
-			selectedItems = if (isChecked) {
-				snapshot.selectedItems + locale
-			} else {
-				snapshot.selectedItems - locale
-			},
-		)
-		val prevJob = updateJob
-		updateJob = launchJob(Dispatchers.Default) {
-			prevJob.join()
-			commit()
+	fun setTheme(mode: Int) {
+		if (selectedTheme.value == mode) {
+			return
+		}
+		selectedTheme.value = mode
+		settings.setTheme(mode)
+	}
+
+	fun setColorScheme(colorScheme: ColorScheme) {
+		if (selectedColorScheme.value == colorScheme) {
+			return
+		}
+		selectedColorScheme.value = colorScheme
+		settings.setColorScheme(colorScheme)
+	}
+
+	fun setAmoledTheme(isEnabled: Boolean) {
+		if (isAmoledEnabled.value == isEnabled) {
+			return
+		}
+		isAmoledEnabled.value = isEnabled
+		settings.setAmoledTheme(isEnabled)
+	}
+
+	fun refreshStorageSummary() {
+		launchJob(Dispatchers.Default) {
+			val summary = storageManager.getDefaultWriteableDir()?.let {
+				storageManager.getDirectoryDisplayName(it, isFullPath = true)
+			}
+			storageSummary.value = summary
 		}
 	}
 
-	fun setTypeChecked(type: ContentType, isChecked: Boolean) {
-		val snapshot = types.value
-		types.value = snapshot.copy(
-			selectedItems = if (isChecked) {
-				snapshot.selectedItems + type
-			} else {
-				snapshot.selectedItems - type
-			},
-		)
-		val prevJob = updateJob
-		updateJob = launchJob(Dispatchers.Default) {
-			prevJob.join()
-			commit()
+	fun restoreBackup(uri: Uri) {
+		launchLoadingJob(Dispatchers.Default) {
+			val result = runCatching {
+				backupManager.restoreBackup(uri, MihonBackupManager.Options())
+			}
+			onBackupRestored.call(
+				RestoreBackupResult(
+					report = result.getOrNull(),
+					error = result.exceptionOrNull(),
+				),
+			)
 		}
 	}
 
-	private fun commit() {
-		val languages = locales.value.selectedItems.mapToSet { it.language }
-		// Extensions are managed separately
-		settings.preferredSourceLanguages = languages
+	fun completeOnboarding() {
+		settings.isOnboardingCompleted = true
 	}
 }

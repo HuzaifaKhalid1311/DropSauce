@@ -3,7 +3,7 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content"
+	android:layout_height="match_parent"
 	android:orientation="vertical">
 
 	<org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetHeaderBar
@@ -12,107 +12,327 @@
 		android:layout_height="wrap_content"
 		app:title="@string/welcome" />
 
-	<androidx.core.widget.NestedScrollView
-		android:id="@+id/scrollView"
+	<FrameLayout
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:clipToPadding="false"
-		android:scrollIndicators="top">
+		android:layout_height="0dp"
+		android:layout_weight="1">
+
+		<androidx.core.widget.NestedScrollView
+			android:id="@+id/scrollView"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:clipToPadding="false"
+			android:scrollIndicators="top">
+
+			<LinearLayout
+				android:id="@+id/layout_content"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:paddingHorizontal="@dimen/onboarding_content_side_padding"
+				android:orientation="vertical"
+				android:paddingBottom="160dp">
+
+				<ImageView
+					android:id="@+id/image_welcome_icon"
+					android:layout_width="@dimen/onboarding_icon_size"
+					android:layout_height="@dimen/onboarding_icon_size"
+					android:layout_gravity="center_horizontal"
+					android:layout_marginTop="@dimen/margin_small"
+					android:contentDescription="@null"
+					android:scaleType="fitCenter"
+					android:src="@drawable/ic_welcome"
+					app:tint="?attr/colorPrimary" />
+
+				<TextView
+					android:id="@+id/text_welcome_title"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginHorizontal="@dimen/onboarding_title_horizontal_margin"
+					android:layout_marginTop="@dimen/margin_normal"
+					android:gravity="center"
+					android:minHeight="@dimen/onboarding_title_min_height"
+					android:text="@string/welcome"
+					android:textAppearance="?textAppearanceHeadlineLarge" />
+
+				<ViewFlipper
+					android:id="@+id/flipper_slides"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="@dimen/onboarding_body_top_spacing">
+
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginTop="@dimen/margin_small"
+						android:orientation="vertical"
+						android:paddingBottom="@dimen/margin_normal">
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:lineSpacingExtra="2dp"
+							android:text="@string/onboarding_welcome_description"
+							android:textAppearance="?textAppearanceBodyMedium" />
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_normal"
+							android:text="@string/color_theme"
+							android:textAppearance="?textAppearanceTitleSmall" />
+
+						<HorizontalScrollView
+							android:id="@+id/scroll_color_themes"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginTop="@dimen/margin_small"
+							android:clipToPadding="false"
+							android:paddingHorizontal="@dimen/margin_normal"
+							android:scrollbars="none">
+
+							<LinearLayout
+								android:id="@+id/linear_color_themes"
+								android:layout_width="wrap_content"
+								android:layout_height="wrap_content"
+								android:orientation="horizontal" />
+
+						</HorizontalScrollView>
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_normal"
+							android:text="@string/theme"
+							android:textAppearance="?textAppearanceTitleSmall" />
+
+						<com.google.android.material.button.MaterialButtonToggleGroup
+							android:id="@+id/group_theme"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_small"
+							app:selectionRequired="true"
+							app:singleSelection="true">
+
+							<com.google.android.material.button.MaterialButton
+								android:id="@+id/button_theme_system"
+								style="@style/Widget.Kotatsu.ToggleButton.Vertical"
+								android:layout_width="0dp"
+								android:layout_height="wrap_content"
+								android:layout_weight="1"
+								android:text="@string/follow_system" />
+
+							<com.google.android.material.button.MaterialButton
+								android:id="@+id/button_theme_light"
+								style="@style/Widget.Kotatsu.ToggleButton.Vertical"
+								android:layout_width="0dp"
+								android:layout_height="wrap_content"
+								android:layout_weight="1"
+								android:text="@string/light" />
+
+							<com.google.android.material.button.MaterialButton
+								android:id="@+id/button_theme_dark"
+								style="@style/Widget.Kotatsu.ToggleButton.Vertical"
+								android:layout_width="0dp"
+								android:layout_height="wrap_content"
+								android:layout_weight="1"
+								android:text="@string/dark" />
+
+						</com.google.android.material.button.MaterialButtonToggleGroup>
+
+						<com.google.android.material.materialswitch.MaterialSwitch
+							android:id="@+id/switch_amoled"
+							android:layout_width="match_parent"
+							android:layout_height="?android:listPreferredItemHeightSmall"
+							android:layout_marginTop="@dimen/margin_normal"
+							android:drawablePadding="?android:listPreferredItemPaddingStart"
+							android:paddingStart="?android:listPreferredItemPaddingStart"
+							android:paddingEnd="?android:listPreferredItemPaddingEnd"
+							android:text="@string/onboarding_full_black_oled"
+							android:textAppearance="?attr/textAppearanceListItem"
+							android:textColor="?colorOnSurfaceVariant"
+							app:drawableStartCompat="@drawable/ic_eye_off" />
+
+					</LinearLayout>
+
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginTop="@dimen/margin_small"
+						android:orientation="vertical"
+						android:paddingBottom="@dimen/margin_normal">
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:lineSpacingExtra="2dp"
+							android:text="@string/onboarding_storage_permissions_description"
+							android:textAppearance="?textAppearanceBodyMedium" />
+
+						<com.google.android.material.card.MaterialCardView
+							style="?materialCardViewOutlinedStyle"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_normal">
+
+							<LinearLayout
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:orientation="vertical"
+								android:padding="@dimen/margin_normal">
+
+								<TextView
+									android:layout_width="match_parent"
+									android:layout_height="wrap_content"
+									android:text="@string/manga_save_location"
+									android:textAppearance="?textAppearanceTitleSmall" />
+
+								<TextView
+									android:id="@+id/textView_download_destination"
+									android:layout_width="match_parent"
+									android:layout_height="wrap_content"
+									android:layout_marginTop="@dimen/margin_small"
+									android:textAppearance="?textAppearanceBodySmall" />
+
+								<com.google.android.material.button.MaterialButton
+									android:id="@+id/button_select_destination"
+									style="?materialButtonOutlinedStyle"
+									android:layout_width="match_parent"
+									android:layout_height="wrap_content"
+									android:layout_marginTop="@dimen/margin_normal"
+									android:text="@string/onboarding_select_destination"
+									app:icon="@drawable/ic_storage" />
+
+							</LinearLayout>
+
+						</com.google.android.material.card.MaterialCardView>
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_permission_install"
+							style="?materialButtonOutlinedStyle"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_normal"
+							android:text="@string/onboarding_permission_install"
+							app:icon="@drawable/ic_plug_large" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_permission_notifications"
+							style="?materialButtonOutlinedStyle"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_small"
+							android:text="@string/onboarding_permission_notifications"
+							app:icon="@drawable/ic_notification" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_permission_battery"
+							style="?materialButtonOutlinedStyle"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_small"
+							android:text="@string/onboarding_permission_battery"
+							app:icon="@drawable/ic_battery_outline" />
+
+					</LinearLayout>
+
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginTop="@dimen/margin_small"
+						android:orientation="vertical"
+						android:paddingBottom="@dimen/margin_normal">
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:lineSpacingExtra="2dp"
+							android:text="@string/onboarding_finish_description"
+							android:textAppearance="?textAppearanceBodyMedium" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_open_github"
+							style="?materialButtonOutlinedStyle"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_normal"
+							android:text="@string/source_code"
+							app:icon="@drawable/ic_github" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_open_discord"
+							style="?materialButtonOutlinedStyle"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_small"
+							android:text="@string/discord"
+							app:icon="@drawable/ic_discord" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_restore_backup"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:layout_marginHorizontal="@dimen/margin_normal"
+							android:layout_marginTop="@dimen/margin_small"
+							android:text="@string/restore_backup"
+							app:icon="@drawable/ic_backup_restore" />
+
+					</LinearLayout>
+				</ViewFlipper>
+			</LinearLayout>
+		</androidx.core.widget.NestedScrollView>
+
+		<com.google.android.material.floatingactionbutton.FloatingActionButton
+			android:id="@+id/button_next"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="bottom|center_horizontal"
+			android:layout_marginBottom="56dp"
+			android:contentDescription="@string/next"
+			app:srcCompat="@drawable/ic_arrow_forward" />
 
 		<LinearLayout
-			android:layout_width="match_parent"
+			android:id="@+id/layout_page_indicator"
+			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:paddingBottom="@dimen/margin_normal">
+			android:layout_gravity="bottom|center_horizontal"
+			android:layout_marginBottom="16dp"
+			android:gravity="center"
+			android:orientation="horizontal">
 
-			<TextView
-				android:id="@+id/textView_welcome_title"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginHorizontal="@dimen/margin_normal"
-				android:drawablePadding="16dp"
-				android:singleLine="true"
-				android:text="@string/welcome"
-				android:textAppearance="?textAppearanceTitleLarge"
-				app:drawableStartCompat="@drawable/ic_welcome" />
+			<View
+				android:id="@+id/dot_page_1"
+				android:layout_width="8dp"
+				android:layout_height="8dp"
+				android:background="@drawable/bg_onboarding_dot_selected" />
 
-			<HorizontalScrollView
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="8dp"
-				android:scrollbars="none">
+			<View
+				android:id="@+id/dot_page_2"
+				android:layout_width="8dp"
+				android:layout_height="8dp"
+				android:layout_marginStart="8dp"
+				android:background="@drawable/bg_onboarding_dot" />
 
-				<com.google.android.material.chip.ChipGroup
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:paddingHorizontal="@dimen/margin_normal"
-					app:singleLine="true">
-
-				<com.google.android.material.chip.Chip
-					android:id="@+id/chip_directories"
-					style="@style/Widget.Kotatsu.Chip.Assist"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:text="@string/local_manga_directories"
-					app:chipIcon="@drawable/ic_storage" />
-
-				<com.google.android.material.chip.Chip
-					android:id="@+id/chip_extensions"
-					style="@style/Widget.Kotatsu.Chip.Assist"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:text="@string/install_extensions"
-					app:chipIcon="@drawable/ic_plug_large" />
-
-			</com.google.android.material.chip.ChipGroup>
-
-			</HorizontalScrollView>
-
-			<TextView
-				android:id="@+id/textView_hint"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="8dp"
-				android:paddingHorizontal="@dimen/margin_normal"
-				android:text="@string/welcome_text"
-				android:textAppearance="?textAppearanceBodyMedium" />
-
-			<TextView
-				android:id="@+id/textView_locales_title"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginHorizontal="@dimen/margin_normal"
-				android:layout_marginTop="@dimen/margin_normal"
-				android:singleLine="true"
-				android:text="@string/languages"
-				android:textAppearance="?textAppearanceTitleSmall" />
-
-			<org.koitharu.kotatsu.core.ui.widgets.ChipsView
-				android:id="@+id/chips_locales"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginHorizontal="@dimen/margin_normal"
-				android:layout_marginTop="@dimen/margin_normal"
-				app:chipStyle="@style/Widget.Kotatsu.Chip.Filter" />
-
-			<TextView
-				android:id="@+id/textView_type_title"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginHorizontal="@dimen/margin_normal"
-				android:layout_marginTop="@dimen/margin_normal"
-				android:singleLine="true"
-				android:text="@string/type"
-				android:textAppearance="?textAppearanceTitleSmall" />
-
-			<org.koitharu.kotatsu.core.ui.widgets.ChipsView
-				android:id="@+id/chips_type"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginHorizontal="@dimen/margin_normal"
-				android:layout_marginTop="@dimen/margin_normal"
-				app:chipStyle="@style/Widget.Kotatsu.Chip.Filter" />
+			<View
+				android:id="@+id/dot_page_3"
+				android:layout_width="8dp"
+				android:layout_height="8dp"
+				android:layout_marginStart="8dp"
+				android:background="@drawable/bg_onboarding_dot" />
 
 		</LinearLayout>
-	</androidx.core.widget.NestedScrollView>
+
+	</FrameLayout>
+
 </LinearLayout>

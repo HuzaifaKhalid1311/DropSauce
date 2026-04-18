@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
@@ -22,23 +23,21 @@ import androidx.core.view.isVisible
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
-import androidx.fragment.app.viewModels
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.ColorScheme
-import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
+import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.databinding.ItemColorSchemeBinding
 import org.koitharu.kotatsu.databinding.SheetWelcomeBinding
+import org.koitharu.kotatsu.main.ui.MainActivity
 
 @AndroidEntryPoint
-class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListener {
+class OnboardingActivity : BaseActivity<SheetWelcomeBinding>(), View.OnClickListener {
 
 	private val viewModel by viewModels<WelcomeViewModel>()
 	private var currentSlide = 0
@@ -71,30 +70,26 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 		updatePermissionButtons()
 	}
 
-	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetWelcomeBinding {
-		return SheetWelcomeBinding.inflate(inflater, container, false)
-	}
-
-	override fun onViewBindingCreated(binding: SheetWelcomeBinding, savedInstanceState: Bundle?) {
-		super.onViewBindingCreated(binding, savedInstanceState)
-		disableFitToContents()
-		binding.headerBar.isGone = true
-		onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContentView(SheetWelcomeBinding.inflate(layoutInflater))
+		viewBinding.headerBar.isGone = true
+		onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
 			override fun handleOnBackPressed() {
 				handleBackNavigation()
 			}
 		})
-		initColorThemeSelector(binding)
-		binding.buttonNext.setOnClickListener(this)
-		binding.buttonSelectDestination.setOnClickListener(this)
-		binding.buttonPermissionInstall.setOnClickListener(this)
-		binding.buttonPermissionNotifications.setOnClickListener(this)
-		binding.buttonPermissionBattery.setOnClickListener(this)
-		binding.buttonOpenGithub.setOnClickListener(this)
-		binding.buttonOpenDiscord.setOnClickListener(this)
-		binding.buttonRestoreBackup.setOnClickListener(this)
+		initColorThemeSelector(viewBinding)
+		viewBinding.buttonNext.setOnClickListener(this)
+		viewBinding.buttonSelectDestination.setOnClickListener(this)
+		viewBinding.buttonPermissionInstall.setOnClickListener(this)
+		viewBinding.buttonPermissionNotifications.setOnClickListener(this)
+		viewBinding.buttonPermissionBattery.setOnClickListener(this)
+		viewBinding.buttonOpenGithub.setOnClickListener(this)
+		viewBinding.buttonOpenDiscord.setOnClickListener(this)
+		viewBinding.buttonRestoreBackup.setOnClickListener(this)
 
-		binding.groupTheme.addOnButtonCheckedListener { _, checkedId, isChecked ->
+		viewBinding.groupTheme.addOnButtonCheckedListener { _, checkedId, isChecked ->
 			if (!isChecked) {
 				return@addOnButtonCheckedListener
 			}
@@ -107,80 +102,52 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 			AppCompatDelegate.setDefaultNightMode(mode)
 		}
 
-		binding.switchAmoled.setOnCheckedChangeListener { _, isChecked ->
+		viewBinding.switchAmoled.setOnCheckedChangeListener { _, isChecked ->
 			if (isAmoledSyncInProgress) {
 				return@setOnCheckedChangeListener
 			}
 			viewModel.setAmoledTheme(isChecked)
-			requireActivity().recreate()
+			recreate()
 		}
 
-		viewModel.selectedTheme.observe(viewLifecycleOwner) { mode ->
+		viewModel.selectedTheme.observe(this) { mode ->
 			val target = when (mode) {
 				AppCompatDelegate.MODE_NIGHT_NO -> R.id.button_theme_light
 				AppCompatDelegate.MODE_NIGHT_YES -> R.id.button_theme_dark
 				else -> R.id.button_theme_system
 			}
-			if (binding.groupTheme.checkedButtonId != target) {
-				binding.groupTheme.check(target)
+			if (viewBinding.groupTheme.checkedButtonId != target) {
+				viewBinding.groupTheme.check(target)
 			}
 			updateAmoledAvailability(mode)
 		}
-		viewModel.selectedColorScheme.observe(viewLifecycleOwner) { colorScheme ->
+		viewModel.selectedColorScheme.observe(this) { colorScheme ->
 			renderColorThemeCards(colorScheme)
 		}
-		viewModel.isAmoledEnabled.observe(viewLifecycleOwner) {
-			if (binding.switchAmoled.isChecked != it) {
+		viewModel.isAmoledEnabled.observe(this) {
+			if (viewBinding.switchAmoled.isChecked != it) {
 				isAmoledSyncInProgress = true
-				binding.switchAmoled.isChecked = it
+				viewBinding.switchAmoled.isChecked = it
 				isAmoledSyncInProgress = false
 			}
 		}
-		viewModel.storageSummary.observe(viewLifecycleOwner) {
-			binding.textViewDownloadDestination.text = it ?: getString(R.string.onboarding_default_destination)
+		viewModel.storageSummary.observe(this) {
+			viewBinding.textViewDownloadDestination.text = it ?: getString(R.string.onboarding_default_destination)
 		}
-		viewModel.onBackupRestored.observeEvent(viewLifecycleOwner) { result ->
+		viewModel.onBackupRestored.observeEvent(this) { result ->
 			val text = if (result.error != null) {
 				result.error.getDisplayMessage(resources)
 			} else {
 				getString(R.string.data_restored_success)
 			}
-			Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
+			Toast.makeText(this, text, Toast.LENGTH_LONG).show()
 		}
-		viewModel.isLoading.observe(viewLifecycleOwner) {
-			binding.buttonRestoreBackup.isEnabled = !it
+		viewModel.isLoading.observe(this) {
+			viewBinding.buttonRestoreBackup.isEnabled = !it
 		}
 
 		updateSlideUi()
 		updatePermissionButtons()
-	}
-
-	private fun initColorThemeSelector(binding: SheetWelcomeBinding) {
-		renderColorThemeCards(viewModel.selectedColorScheme.value)
-	}
-
-	private fun renderColorThemeCards(selected: ColorScheme) {
-		val binding = viewBinding ?: return
-		val stroke = resources.getDimensionPixelSize(com.google.android.material.R.dimen.m3_comp_outlined_card_outline_width)
-		binding.linearColorThemes.removeAllViews()
-		for (theme in availableColorSchemes) {
-			val themedContext = ContextThemeWrapper(requireContext(), theme.styleResId)
-			val item = ItemColorSchemeBinding.inflate(LayoutInflater.from(themedContext), binding.linearColorThemes, false)
-			item.textViewTitle.setText(theme.titleResId)
-			val isSelected = theme == selected
-			item.card.isChecked = isSelected
-			item.card.strokeWidth = if (isSelected) stroke else 0
-			item.imageViewCheck.isVisible = isSelected
-			val click = View.OnClickListener {
-				if (viewModel.selectedColorScheme.value != theme) {
-					viewModel.setColorScheme(theme)
-					requireActivity().recreate()
-				}
-			}
-			item.root.setOnClickListener(click)
-			item.card.setOnClickListener(click)
-			binding.linearColorThemes.addView(item.root)
-		}
 	}
 
 	override fun onResume() {
@@ -193,14 +160,15 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val typeMask = WindowInsetsCompat.Type.systemBars()
 		val barsInsets = insets.getInsets(typeMask)
-		viewBinding?.scrollView?.updatePadding(
+		viewBinding.scrollView.updatePadding(top = barsInsets.top + resources.getDimensionPixelOffset(R.dimen.margin_small))
+		viewBinding.scrollView.updatePadding(
 			top = barsInsets.top + resources.getDimensionPixelOffset(R.dimen.margin_small),
 			bottom = barsInsets.bottom + resources.getDimensionPixelOffset(R.dimen.margin_normal) * 8,
 		)
-		viewBinding?.buttonNext?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+		viewBinding.buttonNext.updateLayoutParams<ViewGroup.MarginLayoutParams> {
 			bottomMargin = resources.getDimensionPixelOffset(R.dimen.margin_normal) * 3 + barsInsets.bottom
 		}
-		viewBinding?.layoutPageIndicator?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+		viewBinding.layoutPageIndicator.updateLayoutParams<ViewGroup.MarginLayoutParams> {
 			bottomMargin = resources.getDimensionPixelOffset(R.dimen.margin_normal) + barsInsets.bottom
 		}
 		return insets.consume(v, typeMask, bottom = true)
@@ -219,10 +187,38 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 		}
 	}
 
+	private fun initColorThemeSelector(binding: SheetWelcomeBinding) {
+		renderColorThemeCards(viewModel.selectedColorScheme.value)
+	}
+
+	private fun renderColorThemeCards(selected: ColorScheme) {
+		val stroke = resources.getDimensionPixelSize(com.google.android.material.R.dimen.m3_comp_outlined_card_outline_width)
+		viewBinding.linearColorThemes.removeAllViews()
+		for (theme in availableColorSchemes) {
+			val themedContext = ContextThemeWrapper(this, theme.styleResId)
+			val item = ItemColorSchemeBinding.inflate(LayoutInflater.from(themedContext), viewBinding.linearColorThemes, false)
+			item.textViewTitle.setText(theme.titleResId)
+			val isSelected = theme == selected
+			item.card.isChecked = isSelected
+			item.card.strokeWidth = if (isSelected) stroke else 0
+			item.imageViewCheck.isVisible = isSelected
+			val click = View.OnClickListener {
+				if (viewModel.selectedColorScheme.value != theme) {
+					viewModel.setColorScheme(theme)
+					recreate()
+				}
+			}
+			item.root.setOnClickListener(click)
+			item.card.setOnClickListener(click)
+			viewBinding.linearColorThemes.addView(item.root)
+		}
+	}
+
 	private fun onNextClick() {
 		if (currentSlide >= LAST_SLIDE_INDEX) {
 			viewModel.completeOnboarding()
-			dismiss()
+			startActivity(Intent(this, MainActivity::class.java))
+			finish()
 			return
 		}
 		currentSlide++
@@ -230,28 +226,26 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 	}
 
 	private fun updateSlideUi() {
-		val binding = viewBinding ?: return
-		binding.flipperSlides.displayedChild = currentSlide
+		viewBinding.flipperSlides.displayedChild = currentSlide
 		val (titleRes, iconRes) = when (currentSlide) {
 			0 -> R.string.welcome to R.drawable.ic_welcome
 			1 -> R.string.onboarding_storage_permissions_title to R.drawable.ic_storage
 			else -> R.string.onboarding_finish_title to R.drawable.ic_save_ok
 		}
-		binding.textWelcomeTitle.setText(titleRes)
-		binding.imageWelcomeIcon.setImageResource(iconRes)
+		viewBinding.textWelcomeTitle.setText(titleRes)
+		viewBinding.imageWelcomeIcon.setImageResource(iconRes)
 		updateIndicator()
 		if (currentSlide >= LAST_SLIDE_INDEX) {
-			binding.buttonNext.setImageResource(R.drawable.ic_check)
-			binding.buttonNext.contentDescription = getString(R.string.confirm)
+			viewBinding.buttonNext.setImageResource(R.drawable.ic_check)
+			viewBinding.buttonNext.contentDescription = getString(R.string.confirm)
 		} else {
-			binding.buttonNext.setImageResource(R.drawable.ic_arrow_forward)
-			binding.buttonNext.contentDescription = getString(R.string.next)
+			viewBinding.buttonNext.setImageResource(R.drawable.ic_arrow_forward)
+			viewBinding.buttonNext.contentDescription = getString(R.string.next)
 		}
 	}
 
 	private fun updateIndicator() {
-		val binding = viewBinding ?: return
-		val dots = arrayOf(binding.dotPage1, binding.dotPage2, binding.dotPage3)
+		val dots = arrayOf(viewBinding.dotPage1, viewBinding.dotPage2, viewBinding.dotPage3)
 		dots.forEachIndexed { index, view ->
 			val isSelected = index == currentSlide
 			view.setBackgroundResource(if (isSelected) R.drawable.bg_onboarding_dot_selected else R.drawable.bg_onboarding_dot)
@@ -266,7 +260,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 	}
 
 	private fun updateAmoledAvailability(themeMode: Int) {
-		val binding = viewBinding ?: return
 		val isDark = when (themeMode) {
 			AppCompatDelegate.MODE_NIGHT_YES -> true
 			AppCompatDelegate.MODE_NIGHT_NO -> false
@@ -274,11 +267,11 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 				(resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
 			}
 		}
-		binding.switchAmoled.isEnabled = isDark
-		binding.switchAmoled.alpha = if (isDark) 1f else 0.5f
-		if (!isDark && binding.switchAmoled.isChecked) {
+		viewBinding.switchAmoled.isEnabled = isDark
+		viewBinding.switchAmoled.alpha = if (isDark) 1f else 0.5f
+		if (!isDark && viewBinding.switchAmoled.isChecked) {
 			isAmoledSyncInProgress = true
-			binding.switchAmoled.isChecked = false
+			viewBinding.switchAmoled.isChecked = false
 			isAmoledSyncInProgress = false
 			viewModel.setAmoledTheme(false)
 		}
@@ -289,30 +282,29 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 			currentSlide--
 			updateSlideUi()
 		} else {
-			dismiss()
+			finish()
 		}
 	}
 
 	private fun updatePermissionButtons() {
-		val binding = viewBinding ?: return
 		bindPermissionButton(
-			button = binding.buttonPermissionInstall,
+			button = viewBinding.buttonPermissionInstall,
 			titleRes = R.string.onboarding_permission_install,
 			isGranted = hasInstallPermission(),
 		)
 		bindPermissionButton(
-			button = binding.buttonPermissionNotifications,
+			button = viewBinding.buttonPermissionNotifications,
 			titleRes = R.string.onboarding_permission_notifications,
 			isGranted = hasNotificationPermission(),
 		)
 		bindPermissionButton(
-			button = binding.buttonPermissionBattery,
+			button = viewBinding.buttonPermissionBattery,
 			titleRes = R.string.onboarding_permission_battery,
 			isGranted = isIgnoringBatteryOptimizations(),
 		)
 	}
 
-	private fun bindPermissionButton(button: MaterialButton, titleRes: Int, isGranted: Boolean) {
+	private fun bindPermissionButton(button: com.google.android.material.button.MaterialButton, titleRes: Int, isGranted: Boolean) {
 		button.text = getString(
 			R.string.onboarding_permission_title_status,
 			getString(titleRes),
@@ -325,22 +317,19 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
 			return true
 		}
-		return requireContext().packageManager.canRequestPackageInstalls()
+		return packageManager.canRequestPackageInstalls()
 	}
 
 	private fun hasNotificationPermission(): Boolean {
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
 			return true
 		}
-		return ContextCompat.checkSelfPermission(
-			requireContext(),
-			Manifest.permission.POST_NOTIFICATIONS,
-		) == PackageManager.PERMISSION_GRANTED
+		return ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 	}
 
 	private fun isIgnoringBatteryOptimizations(): Boolean {
-		val powerManager = requireContext().getSystemService(PowerManager::class.java) ?: return false
-		return powerManager.isIgnoringBatteryOptimizations(requireContext().packageName)
+		val powerManager = getSystemService(PowerManager::class.java) ?: return false
+		return powerManager.isIgnoringBatteryOptimizations(packageName)
 	}
 
 	private fun requestInstallPermission() {
@@ -349,12 +338,12 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 		}
 		val intent = Intent(
 			Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-			Uri.parse("package:${requireContext().packageName}"),
+			Uri.parse("package:$packageName"),
 		)
 		runCatching {
 			installPermissionLauncher.launch(intent)
 		}.onFailure {
-			Snackbar.make(requireView(), R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
+			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
 		}
 	}
 
@@ -371,18 +360,18 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 		}
 		val intent = Intent(
 			Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-			Uri.parse("package:${requireContext().packageName}"),
+			Uri.parse("package:$packageName"),
 		)
 		runCatching {
 			batteryPermissionLauncher.launch(intent)
 		}.onFailure {
-			Snackbar.make(requireView(), R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
+			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
 		}
 	}
 
 	private fun openExternalLink(url: String, title: String) {
 		if (!router.openExternalBrowser(url, title)) {
-			Snackbar.make(requireView(), R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
+			Toast.makeText(this, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
 		}
 	}
 
@@ -396,3 +385,4 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), View.OnClickListe
 		const val DOT_NORMAL_ALPHA = 0.75f
 	}
 }
+
