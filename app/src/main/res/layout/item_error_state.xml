@@ -21,7 +21,7 @@
 		app:drawableTopCompat="@drawable/ic_error_large"
 		tools:text="@tools:sample/lorem[6]" />
 
-	<Button
+	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_retry"
 		style="?materialButtonTonalStyle"
 		android:layout_width="wrap_content"
@@ -29,7 +29,7 @@
 		android:layout_marginTop="16dp"
 		android:text="@string/try_again" />
 
-	<Button
+	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_secondary"
 		style="?borderlessButtonStyle"
 		android:layout_width="wrap_content"

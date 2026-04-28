@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
+import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.app.ActivityCompat
@@ -31,6 +32,8 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
 import com.google.android.material.search.SearchView
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -165,6 +168,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.bottomNav?.addOnLayoutChangeListener(this)
 		viewBinding.searchView.addTransitionListener(this)
 		viewBinding.searchView.addTransitionListener(exitCallback)
+		observeFoldHinge()
 		initSearch()
 	}
 
@@ -232,7 +236,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		oldLeft: Int,
 		oldTop: Int,
 		oldRight: Int,
-		oldBottom: Int
+		oldBottom: Int,
 	) {
 		if (top != oldTop || bottom != oldBottom) {
 			updateContainerBottomMargin()
@@ -319,10 +323,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	private fun adjustAppbar(topFragment: Fragment) {
 		if (topFragment is FavouritesContainerFragment) {
-			viewBinding.appbar.fitsSystemWindows = true
 			fadingAppbarMediator.bind()
 		} else {
-			viewBinding.appbar.fitsSystemWindows = false
 			fadingAppbarMediator.unbind()
 		}
 	}
@@ -435,6 +437,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				params.bottomMargin = newMargin
 				layoutParams = params
 			}
+		}
+	}
+
+	private fun observeFoldHinge() {
+		val spacer = viewBinding.foldHingeSpacer ?: return
+		lifecycleScope.launch {
+			WindowInfoTracker.getOrCreate(this@MainActivity)
+				.windowLayoutInfo(this@MainActivity)
+				.collect { layoutInfo ->
+					val hingeWidth = layoutInfo.displayFeatures
+						.filterIsInstance<FoldingFeature>()
+						.firstOrNull { it.isSeparating && it.orientation == FoldingFeature.Orientation.VERTICAL }
+						?.bounds
+						?.width()
+						?: 0
+					spacer.isVisible = hingeWidth > 0
+					spacer.updateLayoutParams<LinearLayout.LayoutParams> {
+						width = hingeWidth
+					}
+				}
 		}
 	}
 

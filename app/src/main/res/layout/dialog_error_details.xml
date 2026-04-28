@@ -27,7 +27,7 @@
 			android:layout_marginTop="8dp"
 			android:text="@string/error_disclaimer_manga" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_browser"
 			style="?materialButtonTonalStyle"
 			android:layout_width="wrap_content"

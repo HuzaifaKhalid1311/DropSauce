@@ -2,7 +2,7 @@
 
 	<!--AlertDialog-->
 
-	<style name="ThemeOverlay.Kotatsu.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+	<style name="ThemeOverlay.Kotatsu.AlertDialog" parent="ThemeOverlay.Material3Expressive.Dialog.Alert">
 		<item name="alertDialogStyle">@style/AlertDialog.Kotatsu</item>
 		<item name="dialogCornerRadius">@dimen/m3_alert_dialog_corner_size</item>
 	</style>
@@ -71,11 +71,11 @@
 		<item name="android:textSize">18sp</item>
 	</style>
 
-	<style name="Widget.Kotatsu.CircularProgressIndicator" parent="Widget.Material3.CircularProgressIndicator">
+	<style name="Widget.Kotatsu.CircularProgressIndicator" parent="Widget.Material3Expressive.CircularProgressIndicator">
 		<item name="trackCornerRadius">@dimen/mtrl_progress_indicator_full_rounded_corner_radius</item>
 	</style>
 
-	<style name="Widget.Kotatsu.LinearProgressIndicator" parent="Widget.Material3.LinearProgressIndicator">
+	<style name="Widget.Kotatsu.LinearProgressIndicator" parent="Widget.Material3Expressive.LinearProgressIndicator">
 		<item name="trackCornerRadius">@dimen/mtrl_progress_indicator_full_rounded_corner_radius</item>
 	</style>
 
@@ -91,7 +91,7 @@
 		<item name="chipIconVisible">true</item>
 	</style>
 
-	<style name="Widget.Kotatsu.Button.More" parent="Widget.Material3.Button.TextButton">
+	<style name="Widget.Kotatsu.Button.More" parent="Widget.Material3Expressive.Button.TextButton">
 		<item name="android:minWidth">48dp</item>
 	</style>
 
@@ -101,7 +101,7 @@
 		<item name="android:minHeight">42dp</item>
 	</style>
 
-	<style name="Widget.Kotatsu.ToggleButton" parent="Widget.Material3.Button.OutlinedButton">
+	<style name="Widget.Kotatsu.ToggleButton" parent="Widget.Material3Expressive.Button.OutlinedButton">
 		<item name="android:checkable">true</item>
 		<item name="android:textAlignment">textStart</item>
 		<item name="iconPadding">16dp</item>
@@ -120,7 +120,7 @@
 		<item name="shapeAppearance">?shapeAppearanceCornerMedium</item>
 	</style>
 
-	<style name="Widget.Kotatsu.Slider.Wide" parent="Widget.Material3.Slider">
+	<style name="Widget.Kotatsu.Slider.Wide" parent="Widget.Material3Expressive.Slider.Xsmall">
 		<item name="thumbHeight">48dp</item>
 		<item name="trackCornerSize">12dp</item>
 		<item name="trackHeight">40dp</item>

@@ -123,7 +123,7 @@
 			app:barrierMargin="8dp"
 			app:constraint_referenced_ids="imageView_cover,rating_bar" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_read"
 			style="?materialButtonStyle"
 			android:layout_width="0dp"

@@ -70,14 +70,14 @@
 			android:layout_width="match_parent"
 			android:layout_height="@dimen/m3_comp_toolbar_docked_container_height">
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_cancel"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center_vertical|start"
 				android:text="@android:string/cancel" />
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_update"
 				style="?materialButtonTonalStyle"
 				android:layout_width="wrap_content"

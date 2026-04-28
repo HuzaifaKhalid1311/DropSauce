@@ -13,10 +13,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentFactory
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.appbar.AppBarLayout
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
@@ -70,6 +74,7 @@ class SettingsActivity :
 		}
 		viewModel.isSearchActive.observe(this, ::toggleSearchMode)
 		viewModel.onNavigateToPreference.observeEvent(this, ::navigateToPreference)
+		observeFoldHinge()
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -111,6 +116,12 @@ class SettingsActivity :
 		val hasFragment = supportFragmentManager.findFragmentById(R.id.container) != null
 		supportFragmentManager.commit {
 			setReorderingAllowed(true)
+			setCustomAnimations(
+				R.anim.m3_fade_through_enter,
+				R.anim.m3_fade_through_exit,
+				R.anim.m3_fade_through_pop_enter,
+				R.anim.m3_fade_through_pop_exit,
+			)
 			replace(R.id.container, fragmentClass, args)
 			setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 			if (!isMasterDetails || (hasFragment && !isFromRoot)) {
@@ -127,6 +138,12 @@ class SettingsActivity :
 				invalidateOptionsMenu()
 				supportFragmentManager.commit {
 					setReorderingAllowed(true)
+					setCustomAnimations(
+						R.anim.m3_fade_through_enter,
+						R.anim.m3_fade_through_exit,
+						R.anim.m3_fade_through_pop_enter,
+						R.anim.m3_fade_through_pop_exit,
+					)
 					remove(searchFragment)
 					setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
 				}
@@ -134,6 +151,12 @@ class SettingsActivity :
 		} else if (isEnabled) {
 			supportFragmentManager.commit {
 				setReorderingAllowed(true)
+				setCustomAnimations(
+					R.anim.m3_fade_through_enter,
+					R.anim.m3_fade_through_exit,
+					R.anim.m3_fade_through_pop_enter,
+					R.anim.m3_fade_through_pop_exit,
+				)
 				add(R.id.container_search, SettingsSearchFragment::class.java, null)
 				setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 			}
@@ -174,6 +197,26 @@ class SettingsActivity :
 			putString(ARG_PREF_KEY, item.key)
 		}
 		openFragment(item.fragmentClass, args, true)
+	}
+
+	private fun observeFoldHinge() {
+		val spacer = viewBinding.foldHingeSpacer ?: return
+		lifecycleScope.launch {
+			WindowInfoTracker.getOrCreate(this@SettingsActivity)
+				.windowLayoutInfo(this@SettingsActivity)
+				.collect { layoutInfo ->
+					val hingeWidth = layoutInfo.displayFeatures
+						.filterIsInstance<FoldingFeature>()
+						.firstOrNull { it.isSeparating && it.orientation == FoldingFeature.Orientation.VERTICAL }
+						?.bounds
+						?.width()
+						?: 0
+					spacer.isVisible = hingeWidth > 0
+					spacer.updateLayoutParams {
+						width = hingeWidth
+					}
+				}
+		}
 	}
 
 	companion object {

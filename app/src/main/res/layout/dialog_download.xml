@@ -210,14 +210,14 @@
 		android:gravity="end"
 		android:orientation="horizontal">
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_cancel"
 			style="?buttonBarButtonStyle"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@android:string/cancel" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_confirm"
 			style="?buttonBarButtonStyle"
 			android:layout_width="wrap_content"

@@ -48,7 +48,7 @@
 			android:singleLine="true"
 			tools:text="Открыть настройки" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_secondary"
 			style="?materialButtonTonalStyle"
 			android:layout_width="0dp"

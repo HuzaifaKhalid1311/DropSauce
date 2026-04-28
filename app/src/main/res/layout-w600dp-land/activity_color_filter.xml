@@ -14,7 +14,7 @@
 		tools:navigationIcon="@drawable/abc_ic_clear_material"
 		tools:title="@string/color_correction">
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_done"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -22,7 +22,7 @@
 			android:layout_marginEnd="@dimen/toolbar_button_margin"
 			android:text="@string/done" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_reset"
 			style="?materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"

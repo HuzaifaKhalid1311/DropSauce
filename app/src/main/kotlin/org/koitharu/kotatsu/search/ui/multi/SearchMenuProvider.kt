@@ -58,9 +58,16 @@ class SearchMenuProvider(
 				kind = newKind,
 			)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-				activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out, 0)
+				activity.overridePendingTransition(
+					R.anim.m3_fade_through_enter,
+					R.anim.m3_fade_through_exit,
+					0,
+				)
 			} else {
-				activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+				activity.overridePendingTransition(
+					R.anim.m3_fade_through_enter,
+					R.anim.m3_fade_through_exit,
+				)
 			}
 			activity.finishAfterTransition()
 		}

@@ -25,7 +25,7 @@
 		android:textAppearance="?textAppearanceTitleSmall"
 		tools:text="@tools:sample/lorem[2]" />
 
-	<Button
+	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_more"
 		style="@style/Widget.Kotatsu.Button.More"
 		android:layout_width="wrap_content"

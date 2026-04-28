@@ -23,8 +23,11 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
+import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.transition.TransitionManager
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import coil3.ImageLoader
 import coil3.request.Disposable
 import coil3.request.ImageRequest
@@ -99,6 +102,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import com.google.android.material.R as materialR
 
 @AndroidEntryPoint
@@ -246,6 +250,7 @@ class DetailsClassicActivity :
 			appShortcutManager = shortcutManager,
 		)
 		addMenuProvider(menuProvider)
+		observeFoldHinge()
 	}
 
 	override fun onDestroy() {
@@ -690,6 +695,24 @@ class DetailsClassicActivity :
 
 	private fun loadCover(imageUrl: String?) {
 		viewBinding.imageViewCover.setImageAsync(imageUrl, viewModel.getMangaOrNull())
+	}
+
+	private fun observeFoldHinge() {
+		val spacer = viewBinding.foldHingeSpacer ?: return
+		lifecycleScope.launch {
+			WindowInfoTracker.getOrCreate(this@DetailsClassicActivity)
+				.windowLayoutInfo(this@DetailsClassicActivity)
+				.collect { layoutInfo ->
+					val hingeWidth = layoutInfo.displayFeatures
+						.filterIsInstance<FoldingFeature>()
+						.firstOrNull { it.isSeparating && it.orientation == FoldingFeature.Orientation.VERTICAL }
+						?.bounds
+						?.width()
+						?: 0
+					spacer.isVisible = hingeWidth > 0
+					spacer.updateLayoutParams { width = hingeWidth }
+				}
+		}
 	}
 
 	private class PrefetchObserver(

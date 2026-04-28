@@ -227,7 +227,18 @@ class MainNavigationDelegate(
 		val args = buildBundle(1) {
 			putBoolean(AppRouter.KEY_IS_BOTTOMTAB, true)
 		}
-		fragment.enterTransition = MaterialFadeThrough()
+		fragment.enterTransition = MaterialFadeThrough().apply {
+			duration = 220L
+		}
+		fragment.exitTransition = MaterialFadeThrough().apply {
+			duration = 140L
+		}
+		fragment.returnTransition = MaterialFadeThrough().apply {
+			duration = 180L
+		}
+		fragment.reenterTransition = MaterialFadeThrough().apply {
+			duration = 180L
+		}
 		fragmentManager.beginTransaction()
 			.setReorderingAllowed(true)
 			.replace(R.id.container, fragmentClass, args, TAG_PRIMARY)

@@ -187,7 +187,7 @@
 						app:layout_constraintStart_toStartOf="parent"
 						app:layout_constraintTop_toBottomOf="@id/textView_progress_label" />
 
-					<Button
+					<com.google.android.material.button.MaterialButton
 						android:id="@+id/button_description_more"
 						style="@style/Widget.Kotatsu.Button.More"
 						android:layout_width="wrap_content"
@@ -243,7 +243,7 @@
 						app:layout_constraintStart_toStartOf="parent"
 						app:layout_constraintTop_toBottomOf="@id/chips_tags" />
 
-					<Button
+					<com.google.android.material.button.MaterialButton
 						android:id="@+id/button_scrobbling_more"
 						style="@style/Widget.Kotatsu.Button.More"
 						android:layout_width="wrap_content"
@@ -297,7 +297,7 @@
 						app:layout_constraintStart_toStartOf="parent"
 						app:layout_constraintTop_toBottomOf="@id/recyclerView_scrobbling" />
 
-					<Button
+					<com.google.android.material.button.MaterialButton
 						android:id="@+id/button_related_more"
 						style="@style/Widget.Kotatsu.Button.More"
 						android:layout_width="wrap_content"

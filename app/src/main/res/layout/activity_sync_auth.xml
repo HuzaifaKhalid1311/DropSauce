@@ -93,7 +93,7 @@
 
 			</com.google.android.material.textfield.TextInputLayout>
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_settings"
 				style="?borderlessButtonStyle"
 				android:layout_width="wrap_content"
@@ -116,14 +116,14 @@
 			android:layout_width="match_parent"
 			android:layout_height="@dimen/m3_comp_toolbar_docked_container_height">
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_cancel"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center_vertical|start"
 				android:text="@android:string/cancel" />
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_back"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
@@ -131,7 +131,7 @@
 				android:text="@string/back"
 				android:visibility="gone" />
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_next"
 				style="?materialButtonTonalStyle"
 				android:layout_width="wrap_content"
@@ -140,7 +140,7 @@
 				android:enabled="false"
 				android:text="@string/next" />
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_done"
 				style="?materialButtonTonalStyle"
 				android:layout_width="wrap_content"

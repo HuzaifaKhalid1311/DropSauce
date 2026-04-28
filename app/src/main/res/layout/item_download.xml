@@ -143,7 +143,7 @@
 			app:layout_constraintTop_toBottomOf="@id/textView_status"
 			tools:text="@tools:sample/lorem[10]" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_pause"
 			style="?materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"
@@ -152,7 +152,7 @@
 			android:visibility="gone"
 			tools:visibility="visible" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_resume"
 			style="?materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"
@@ -161,7 +161,7 @@
 			android:visibility="gone"
 			tools:visibility="visible" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_skip"
 			style="?materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"
@@ -170,7 +170,7 @@
 			android:visibility="gone"
 			tools:visibility="visible" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_skip_all"
 			style="?materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"
@@ -179,7 +179,7 @@
 			android:visibility="gone"
 			tools:visibility="visible" />
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_cancel"
 			style="?materialButtonOutlinedStyle"
 			android:layout_width="wrap_content"

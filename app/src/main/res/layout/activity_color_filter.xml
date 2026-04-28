@@ -14,7 +14,7 @@
 		tools:navigationIcon="@drawable/abc_ic_clear_material"
 		tools:title="@string/color_correction">
 
-		<Button
+		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_done"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
@@ -181,7 +181,7 @@
 				app:layout_constraintStart_toStartOf="parent"
 				app:layout_constraintTop_toBottomOf="@id/slider_contrast" />
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_reset"
 				style="?materialButtonOutlinedStyle"
 				android:layout_width="wrap_content"

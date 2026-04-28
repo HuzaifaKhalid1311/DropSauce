@@ -28,8 +28,11 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
+import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.transition.TransitionManager
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import coil3.ImageLoader
 import coil3.request.Disposable
 import coil3.request.ImageRequest
@@ -119,6 +122,7 @@ import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.google.android.material.R as materialR
 
@@ -250,6 +254,7 @@ class DetailsActivity :
 			appShortcutManager = shortcutManager,
 		)
 		addMenuProvider(menuProvider)
+		observeFoldHinge()
 	}
 
 	override fun onProvideAssistContent(outContent: AssistContent) {
@@ -574,6 +579,24 @@ class DetailsActivity :
 			(scrollY / threshold).coerceIn(0f, 1f).times(255).toInt()
 		}
 		viewBinding.appbar.setBackgroundColor(ColorUtils.setAlphaComponent(getSurfaceColor(), alpha))
+	}
+
+	private fun observeFoldHinge() {
+		val spacer = viewBinding.foldHingeSpacer ?: return
+		lifecycleScope.launch {
+			WindowInfoTracker.getOrCreate(this@DetailsActivity)
+				.windowLayoutInfo(this@DetailsActivity)
+				.collect { layoutInfo ->
+					val hingeWidth = layoutInfo.displayFeatures
+						.filterIsInstance<FoldingFeature>()
+						.firstOrNull { it.isSeparating && it.orientation == FoldingFeature.Orientation.VERTICAL }
+						?.bounds
+						?.width()
+						?: 0
+					spacer.isVisible = hingeWidth > 0
+					spacer.updateLayoutParams { width = hingeWidth }
+				}
+		}
 	}
 
 	private fun String.withEstimatedTime(time: ReadingTime?): String {

@@ -38,7 +38,7 @@
 				android:textAppearance="?textAppearanceBodyMedium"
 				tools:text="@string/sources_reorder_tip" />
 
-			<Button
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/button_close"
 				style="?borderlessButtonStyle"
 				android:layout_width="wrap_content"
