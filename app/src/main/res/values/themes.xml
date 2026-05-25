@@ -151,6 +151,9 @@
 		<item name="materialIconButtonStyle">@style/Widget.Kotatsu.IconButton</item>
 		<item name="materialIconButtonFilledStyle">@style/Widget.Kotatsu.IconButton.Filled</item>
 
+		<!-- Phase 29: chip defaults - 40dp tall, ?shapeAppearanceCornerLarge, LabelLarge text. -->
+		<item name="chipStyle">@style/Widget.Kotatsu.Chip.Assist</item>
+
 		<item name="sliderStyle">@style/Widget.Material3Expressive.Slider.Xsmall</item>
 
 		<!--
