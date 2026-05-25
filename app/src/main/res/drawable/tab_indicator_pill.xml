@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Phase 9.5: Material 3 Expressive pill-shape tab indicator. Used as
+    app:tabIndicator on TabLayout to give the active tab a tonal
+    background container that morphs between positions instead of the
+    classic thin underline.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="100dp" />
+    <solid android:color="?attr/colorSecondaryContainer" />
+</shape>

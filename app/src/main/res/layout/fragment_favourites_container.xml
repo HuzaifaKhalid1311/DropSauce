@@ -7,12 +7,18 @@
 	android:layout_height="match_parent"
 	android:orientation="vertical">
 
+	<!-- Phase 9.5: Expressive pill tab indicator (full-height tonal container). -->
 	<com.google.android.material.tabs.TabLayout
 		android:id="@+id/tabs"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:background="@null"
 		app:tabGravity="start"
+		app:tabIndicator="@drawable/tab_indicator_pill"
+		app:tabIndicatorAnimationMode="elastic"
+		app:tabIndicatorColor="?colorSecondaryContainer"
+		app:tabIndicatorFullWidth="false"
+		app:tabIndicatorGravity="stretch"
 		app:tabMode="scrollable" />
 
 	<androidx.viewpager2.widget.ViewPager2
