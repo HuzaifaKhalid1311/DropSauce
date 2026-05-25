@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.core.prefs
 import androidx.annotation.Keep
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
-import com.google.android.material.color.DynamicColors
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.parsers.util.find
 
@@ -14,8 +13,6 @@ enum class ColorScheme(
 ) {
 
 	DEFAULT(R.style.ThemeOverlay_Kotatsu_Totoro, R.string.theme_name_totoro),
-	MONET(R.style.ThemeOverlay_Kotatsu_Monet, R.string.theme_name_dynamic),
-	EXPRESSIVE(R.style.ThemeOverlay_Kotatsu_Expressive, R.string.theme_name_expressive),
 	MIKU(R.style.ThemeOverlay_Kotatsu_Miku, R.string.theme_name_miku),
 	RENA(R.style.ThemeOverlay_Kotatsu_Asuka, R.string.theme_name_asuka),
 	FROG(R.style.ThemeOverlay_Kotatsu_Mion, R.string.theme_name_mion),
@@ -29,20 +26,9 @@ enum class ColorScheme(
 	companion object {
 
 		val default: ColorScheme
-			get() = if (DynamicColors.isDynamicColorAvailable()) {
-				EXPRESSIVE
-			} else {
-				DEFAULT
-			}
+			get() = DEFAULT
 
-		fun getAvailableList(): List<ColorScheme> {
-			val list = ColorScheme.entries.toMutableList()
-			if (!DynamicColors.isDynamicColorAvailable()) {
-				list.remove(MONET)
-				list.remove(EXPRESSIVE)
-			}
-			return list
-		}
+		fun getAvailableList(): List<ColorScheme> = ColorScheme.entries.toList()
 
 		fun safeValueOf(name: String): ColorScheme? {
 			return ColorScheme.entries.find(name)

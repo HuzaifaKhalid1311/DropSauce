@@ -94,6 +94,23 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		putBoolean(KEY_THEME_AMOLED, enabled)
 	}
 
+	val isDynamicColorEnabled: Boolean
+		get() = prefs.getBoolean(
+			KEY_DYNAMIC_COLOR,
+			Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+		)
+
+	fun setDynamicColorEnabled(enabled: Boolean) = prefs.edit {
+		putBoolean(KEY_DYNAMIC_COLOR, enabled)
+	}
+
+	val isHapticsEnabled: Boolean
+		get() = prefs.getBoolean(KEY_ENABLE_HAPTICS, true)
+
+	fun setHapticsEnabled(enabled: Boolean) = prefs.edit {
+		putBoolean(KEY_ENABLE_HAPTICS, enabled)
+	}
+
 	var isOnboardingCompleted: Boolean
 		get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
 			&& prefs.getString(KEY_ONBOARDING_INSTALL_ID, null) == onboardingInstallId
@@ -810,6 +827,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_THEME = "theme"
 		const val KEY_COLOR_THEME = "color_theme"
 		const val KEY_THEME_AMOLED = "amoled_theme"
+		const val KEY_DYNAMIC_COLOR = "dynamic_color"
+		const val KEY_ENABLE_HAPTICS = "enable_haptics"
 		const val KEY_OFFLINE_DISABLED = "no_offline"
 		const val KEY_PAGES_CACHE_CLEAR = "pages_cache_clear"
 		const val KEY_HTTP_CACHE_CLEAR = "http_cache_clear"

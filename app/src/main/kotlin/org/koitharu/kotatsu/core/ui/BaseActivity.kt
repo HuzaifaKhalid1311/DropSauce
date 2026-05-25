@@ -22,6 +22,7 @@ import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -65,6 +66,9 @@ abstract class BaseActivity<B : ViewBinding> :
 		val settings = entryPoint.settings
 		isAmoledTheme = settings.isAmoledTheme
 		setTheme(settings.colorScheme.styleResId)
+		if (settings.isDynamicColorEnabled) {
+			DynamicColors.applyToActivityIfAvailable(this)
+		}
 		if (isAmoledTheme) {
 			setTheme(R.style.ThemeOverlay_Kotatsu_Amoled)
 		}
