@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
+import androidx.preference.TwoStatePreference
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
@@ -24,6 +25,8 @@ import org.koitharu.kotatsu.core.util.ext.container
 import org.koitharu.kotatsu.core.util.ext.end
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.getThemeDrawable
+import org.koitharu.kotatsu.core.util.ext.hapticTick
+import org.koitharu.kotatsu.core.util.ext.hapticToggle
 import org.koitharu.kotatsu.core.util.ext.parentView
 import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
@@ -80,6 +83,18 @@ abstract class BasePreferenceFragment(@StringRes private val titleId: Int) :
 			focusPreference(it)
 			arguments?.remove(SettingsActivity.ARG_PREF_KEY)
 		}
+	}
+
+	override fun onPreferenceTreeClick(preference: Preference): Boolean {
+		// Phase 8: haptic feedback on every preference interaction.
+		val anchor = listView ?: view
+		if (anchor != null) {
+			when (preference) {
+				is TwoStatePreference -> anchor.hapticToggle(!preference.isChecked)
+				else -> anchor.hapticTick()
+			}
+		}
+		return super.onPreferenceTreeClick(preference)
 	}
 
 	protected open fun setTitle(title: CharSequence?) {
