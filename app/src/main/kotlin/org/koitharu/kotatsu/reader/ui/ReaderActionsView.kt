@@ -21,6 +21,8 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderControl
+import org.koitharu.kotatsu.core.util.ext.hapticLongPress
+import org.koitharu.kotatsu.core.util.ext.hapticToggle
 import org.koitharu.kotatsu.core.util.ext.hasVisibleChildren
 import org.koitharu.kotatsu.core.util.ext.isRtl
 import org.koitharu.kotatsu.core.util.ext.setContentDescriptionAndTooltip
@@ -129,11 +131,19 @@ class ReaderActionsView @JvmOverloads constructor(
 			R.id.button_pages_thumbs -> AppRouter.from(this)?.showChapterPagesSheet()
 			R.id.button_screen_rotation -> listener?.toggleScreenOrientation()
 			R.id.button_options -> listener?.openMenu()
-			R.id.button_bookmark -> listener?.onBookmarkClick()
+			R.id.button_bookmark -> {
+				v.hapticToggle(!isBookmarkAdded)
+				listener?.onBookmarkClick()
+			}
 		}
 	}
 
-	override fun onLongClick(v: View): Boolean = when (v.id) {
+	override fun onLongClick(v: View): Boolean {
+		v.hapticLongPress()
+		return onLongClickInternal(v)
+	}
+
+	private fun onLongClickInternal(v: View): Boolean = when (v.id) {
 		R.id.button_bookmark -> AppRouter.from(this)
 			?.showChapterPagesSheet(ChaptersPagesSheet.TAB_BOOKMARKS)
 

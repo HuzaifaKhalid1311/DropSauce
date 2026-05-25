@@ -35,6 +35,7 @@ import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
 import org.koitharu.kotatsu.core.util.ext.buildBundle
 import org.koitharu.kotatsu.core.util.ext.setContentDescriptionAndTooltip
+import org.koitharu.kotatsu.core.util.ext.hapticTick
 import org.koitharu.kotatsu.core.util.ext.smoothScrollToTop
 import org.koitharu.kotatsu.databinding.NavigationRailFabBinding
 import org.koitharu.kotatsu.explore.ui.ExploreFragment
@@ -93,6 +94,7 @@ class MainNavigationDelegate(
 	}
 
 	override fun onNavigationItemReselected(item: MenuItem) {
+		navBar.hapticTick()
 		if (item.itemId == R.id.nav_explore) {
 			onExploreReselected?.invoke()
 		}

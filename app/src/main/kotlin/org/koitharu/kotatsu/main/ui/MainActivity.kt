@@ -58,6 +58,7 @@ import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.core.util.ext.end
+import org.koitharu.kotatsu.core.util.ext.hapticConfirm
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -195,7 +196,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onClick(v: View) {
 		when (v.id) {
-			R.id.fab, R.id.railFab -> viewModel.openLastReader()
+			R.id.fab, R.id.railFab -> {
+				v.hapticConfirm()
+				viewModel.openLastReader()
+			}
 		}
 	}
 
