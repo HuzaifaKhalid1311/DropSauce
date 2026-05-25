@@ -2,12 +2,12 @@
 
 	<!--AlertDialog-->
 
-	<style name="ThemeOverlay.Kotatsu.AlertDialog" parent="ThemeOverlay.Material3Expressive.MaterialAlertDialog">
+	<style name="ThemeOverlay.Kotatsu.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
 		<item name="alertDialogStyle">@style/AlertDialog.Kotatsu</item>
 		<item name="dialogCornerRadius">@dimen/m3_alert_dialog_corner_size</item>
 	</style>
 
-	<style name="AlertDialog.Kotatsu" parent="MaterialAlertDialog.Material3Expressive">
+	<style name="AlertDialog.Kotatsu" parent="MaterialAlertDialog.Material3">
 		<item name="android:background">@drawable/m3_popup_background</item>
 		<item name="android:textColor">@color/kotatsu_onSurface</item>
 		<item name="android:textColorPrimary">@color/kotatsu_onSurface</item>
@@ -18,18 +18,18 @@
 
 	<!-- Bottom sheet -->
 
-	<style name="ThemeOverlay.Kotatsu.BottomSheetDialog" parent="ThemeOverlay.Material3Expressive.BottomSheetDialog">
+	<style name="ThemeOverlay.Kotatsu.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
 		<item name="android:windowAnimationStyle">@style/Animation.Kotatsu.BottomSheetDialog</item>
 		<item name="bottomSheetStyle">@style/Widget.Kotatsu.BottomSheet.Modal</item>
 	</style>
 
 	<style name="ThemeOverlay.Kotatsu.SideSheetDialog" parent="ThemeOverlay.Material3.SideSheetDialog" />
 
-	<style name="Widget.Kotatsu.BottomSheet.Modal" parent="Widget.Material3Expressive.BottomSheet.Modal">
+	<style name="Widget.Kotatsu.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
 		<item name="paddingBottomSystemWindowInsets">false</item>
 	</style>
 
-	<style name="Widget.Kotatsu.BottomSheet.DragHandle" parent="Widget.Material3Expressive.BottomSheet.DragHandle">
+	<style name="Widget.Kotatsu.BottomSheet.DragHandle" parent="Widget.Material3.BottomSheet.DragHandle">
 		<!-- Fix weird bottom padding -->
 		<item name="android:paddingBottom">0dp</item>
 	</style>
@@ -40,12 +40,12 @@
 		<item name="android:popupElevation">3dp</item>
 	</style>
 
-	<style name="Widget.Kotatsu.PopupMenu" parent="Widget.Material3Expressive.PopupMenu">
+	<style name="Widget.Kotatsu.PopupMenu" parent="Widget.Material3.PopupMenu">
 		<item name="android:popupBackground">@drawable/m3_menu_background</item>
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 	</style>
 
-	<style name="Widget.Kotatsu.PopupMenu.Overflow" parent="Widget.Material3Expressive.PopupMenu.Overflow">
+	<style name="Widget.Kotatsu.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
 		<item name="android:popupBackground">@drawable/m3_menu_background</item>
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 	</style>
@@ -92,13 +92,13 @@
 		<item name="waveAmplitude">0dp</item>
 	</style>
 
-	<style name="Widget.Kotatsu.Chip" parent="Widget.Material3Expressive.Chip.Suggestion" />
+	<style name="Widget.Kotatsu.Chip" parent="Widget.Material3.Chip.Suggestion" />
 
-	<style name="Widget.Kotatsu.Chip.Filter" parent="Widget.Material3Expressive.Chip.Filter" />
+	<style name="Widget.Kotatsu.Chip.Filter" parent="Widget.Material3.Chip.Filter" />
 
-	<style name="Widget.Kotatsu.Chip.Assist" parent="Widget.Material3Expressive.Chip.Assist" />
+	<style name="Widget.Kotatsu.Chip.Assist" parent="Widget.Material3.Chip.Assist" />
 
-	<style name="Widget.Kotatsu.Chip.Dropdown" parent="Widget.Material3Expressive.Chip.Assist">
+	<style name="Widget.Kotatsu.Chip.Dropdown" parent="Widget.Material3.Chip.Assist">
 		<item name="closeIconVisible">true</item>
 		<item name="closeIcon">@drawable/ic_expand_more</item>
 		<item name="chipIconVisible">true</item>

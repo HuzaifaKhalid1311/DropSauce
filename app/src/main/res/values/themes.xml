@@ -138,18 +138,17 @@
 
 		<item name="sliderStyle">@style/Widget.Material3Expressive.Slider.Xsmall</item>
 
-		<!-- Phase 5: fill the Expressive coverage gaps -->
-		<item name="chipStyle">@style/Widget.Material3Expressive.Chip.Assist</item>
-		<item name="materialSwitchStyle">@style/Widget.Material3Expressive.CompoundButton.MaterialSwitch</item>
-		<item name="checkboxStyle">@style/Widget.Material3Expressive.CompoundButton.CheckBox</item>
-		<item name="radioButtonStyle">@style/Widget.Material3Expressive.CompoundButton.RadioButton</item>
-		<item name="tabStyle">@style/Widget.Material3Expressive.TabLayout</item>
-		<item name="snackbarStyle">@style/Widget.Material3Expressive.Snackbar</item>
-		<item name="materialDividerStyle">@style/Widget.Material3Expressive.MaterialDivider</item>
-
-		<!-- Phase 9.8: Material 3 Expressive Date Picker / Time Picker -->
-		<item name="materialCalendarTheme">@style/ThemeOverlay.Material3Expressive.MaterialCalendar</item>
-		<item name="materialTimePickerTheme">@style/ThemeOverlay.Material3Expressive.MaterialTimePicker</item>
+		<!--
+		    Phase 5: Several Expressive widget-specific styles
+		    (Chip.Assist, CompoundButton.MaterialSwitch / .CheckBox / .RadioButton,
+		    TabLayout, Snackbar, MaterialDivider) and the
+		    ThemeOverlay.Material3Expressive.MaterialCalendar / .MaterialTimePicker
+		    overlays are NOT yet shipped in com.google.android.material:1.14.0-alpha10.
+		    The base Theme.Material3Expressive parent already wires Expressive defaults
+		    for chips, switches, checkboxes, radio buttons, tabs, snackbars and
+		    dividers internally, so we get the Expressive look without pointing at
+		    style names that fail to resolve at resource-link time.
+		-->
 
 		<!-- Phase 12.7: Window background = elevated surface for Expressive transitions -->
 		<item name="android:windowBackground">?colorSurfaceContainer</item>
