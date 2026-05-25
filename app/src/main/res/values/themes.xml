@@ -105,7 +105,7 @@
 		<item name="collapsingToolbarLayoutMediumStyle">@style/Widget.Material3Expressive.CollapsingToolbar.Medium</item>
 		<item name="collapsingToolbarLayoutLargeStyle">@style/Widget.Material3Expressive.CollapsingToolbar.Large</item>
 
-		<item name="materialSearchBarStyle">@style/Widget.Material3Expressive.SearchBar</item>
+		<item name="materialSearchBarStyle">@style/Widget.Kotatsu.SearchBar</item>
 
 		<item name="floatingActionButtonStyle">@style/Widget.Material3Expressive.FloatingActionButton</item>
 		<item name="floatingActionButtonMediumStyle">@style/Widget.Material3Expressive.FloatingActionButton.Medium</item>
@@ -115,11 +115,12 @@
 		<item name="extendedFloatingActionButtonMediumStyle">@style/Widget.Material3Expressive.ExtendedFloatingActionButton.Medium</item>
 		<item name="extendedFloatingActionButtonLargeStyle">@style/Widget.Material3Expressive.ExtendedFloatingActionButton.Large</item>
 
-		<item name="materialButtonStyle">@style/Widget.Material3Expressive.Button</item>
-		<item name="materialButtonTonalStyle">@style/Widget.Material3Expressive.Button.TonalButton</item>
-		<item name="materialButtonOutlinedStyle">@style/Widget.Material3Expressive.Button.OutlinedButton</item>
-		<item name="materialButtonElevatedStyle">@style/Widget.Material3Expressive.Button.ElevatedButton</item>
-		<item name="borderlessButtonStyle">@style/Widget.Material3Expressive.Button.TextButton</item>
+		<!-- Phase 29: chunky Expressive defaults for every Button instance. -->
+		<item name="materialButtonStyle">@style/Widget.Kotatsu.Button</item>
+		<item name="materialButtonTonalStyle">@style/Widget.Kotatsu.Button.Tonal</item>
+		<item name="materialButtonOutlinedStyle">@style/Widget.Kotatsu.Button.Outlined</item>
+		<item name="materialButtonElevatedStyle">@style/Widget.Kotatsu.Button.Elevated</item>
+		<item name="borderlessButtonStyle">@style/Widget.Kotatsu.Button.Text</item>
 		<item name="buttonBarButtonStyle">@style/Widget.Material3Expressive.Button.TextButton.Dialog</item>
 		<item name="snackbarButtonStyle">@style/Widget.Material3Expressive.Button.TextButton.Snackbar</item>
 		<item name="materialIconButtonStyle">@style/Widget.Material3Expressive.Button.IconButton.Standard</item>
@@ -130,11 +131,25 @@
 		<item name="materialButtonGroupStyle">@style/Widget.Material3Expressive.MaterialButtonGroup</item>
 		<item name="materialButtonToggleGroupStyle">@style/Widget.Material3Expressive.MaterialButtonToggleGroup</item>
 
-		<item name="bottomNavigationStyle">@style/Widget.Material3Expressive.BottomNavigationView</item>
-		<item name="navigationRailStyle">@style/Widget.Material3Expressive.NavigationRailView</item>
+		<!-- Phase 29: explicit chunky bottom nav (80dp tall, 72x36 active pill in colorSecondaryContainer, bigger icons + bold active label). -->
+		<item name="bottomNavigationStyle">@style/Widget.Kotatsu.BottomNavigationView</item>
+		<item name="navigationRailStyle">@style/Widget.Kotatsu.NavigationRail</item>
 
-		<item name="toolbarStyle">@style/Widget.Material3Expressive.Toolbar</item>
+		<!-- Phase 29: taller toolbar (64dp) with Display-family title appearance. -->
+		<item name="toolbarStyle">@style/Widget.Kotatsu.Toolbar</item>
 		<item name="toolbarSurfaceStyle">@style/Widget.Material3Expressive.Toolbar.Surface</item>
+
+		<!-- Phase 29: TextInputLayout with 24dp corners, MaterialSwitch with bigger thumb. -->
+		<item name="textInputStyle">@style/Widget.Kotatsu.TextInputLayout</item>
+		<item name="materialSwitchStyle">@style/Widget.Kotatsu.Switch</item>
+		<!-- Phase 29: Card default = filled 24dp container. -->
+		<item name="materialCardViewStyle">@style/Widget.Kotatsu.CardView</item>
+		<item name="materialCardViewFilledStyle">@style/Widget.Kotatsu.CardView</item>
+		<item name="materialCardViewElevatedStyle">@style/Widget.Kotatsu.CardView.Elevated</item>
+		<item name="materialCardViewOutlinedStyle">@style/Widget.Kotatsu.CardView.Outlined</item>
+		<!-- Phase 29: IconButton defaults bigger / chunkier. -->
+		<item name="materialIconButtonStyle">@style/Widget.Kotatsu.IconButton</item>
+		<item name="materialIconButtonFilledStyle">@style/Widget.Kotatsu.IconButton.Filled</item>
 
 		<item name="sliderStyle">@style/Widget.Material3Expressive.Slider.Xsmall</item>
 

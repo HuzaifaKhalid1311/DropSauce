@@ -65,7 +65,8 @@ class FeedFragment :
 		val sizeResolver = StaticItemSizeResolver(resources.getDimensionPixelSize(R.dimen.smaller_grid_width))
 		val feedAdapter = FeedAdapter(this, sizeResolver) { item, v ->
 			viewModel.onItemClick(item)
-			router.openDetails(item.toMangaWithOverride())
+			// Phase 19: shared-element transform from the feed's cover tile.
+			router.openDetails(item.toMangaWithOverride(), v.findViewById<View?>(R.id.imageView_cover))
 		}
 		with(binding.recyclerView) {
 			val paddingVertical = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)

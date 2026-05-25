@@ -373,4 +373,152 @@
 		<item name="drawableSize">@dimen/m3_chip_icon_size</item>
 	</style>
 
+	<!-- =================================================================== -->
+	<!-- Phase 29: GLOBAL chunky Expressive default styles. Wired in themes.xml -->
+	<!-- so every Button / Card / Toolbar / BottomNav / TextInput / Switch /  -->
+	<!-- Chip / TabLayout / Slider in the app inherits these chunkier defaults -->
+	<!-- without per-layout edits.                                            -->
+	<!-- =================================================================== -->
+
+	<!-- Buttons: 56dp tall, ExtraLargeIncreased pill corners, bolder labels. -->
+	<style name="Widget.Kotatsu.Button" parent="Widget.Material3Expressive.Button">
+		<item name="android:minHeight">56dp</item>
+		<item name="android:paddingHorizontal">28dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerExtraLarge</item>
+		<item name="android:textAppearance">?textAppearanceLabelLarge</item>
+		<item name="android:letterSpacing">0.01</item>
+	</style>
+
+	<style name="Widget.Kotatsu.Button.Tonal" parent="Widget.Material3Expressive.Button.TonalButton">
+		<item name="android:minHeight">56dp</item>
+		<item name="android:paddingHorizontal">28dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerExtraLarge</item>
+		<item name="android:textAppearance">?textAppearanceLabelLarge</item>
+	</style>
+
+	<style name="Widget.Kotatsu.Button.Outlined" parent="Widget.Material3Expressive.Button.OutlinedButton">
+		<item name="android:minHeight">56dp</item>
+		<item name="android:paddingHorizontal">24dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerExtraLarge</item>
+		<item name="android:textAppearance">?textAppearanceLabelLarge</item>
+	</style>
+
+	<style name="Widget.Kotatsu.Button.Elevated" parent="Widget.Material3Expressive.Button.ElevatedButton">
+		<item name="android:minHeight">56dp</item>
+		<item name="android:paddingHorizontal">28dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerExtraLarge</item>
+		<item name="android:textAppearance">?textAppearanceLabelLarge</item>
+	</style>
+
+	<style name="Widget.Kotatsu.Button.Text" parent="Widget.Material3Expressive.Button.TextButton">
+		<item name="android:minHeight">48dp</item>
+		<item name="android:paddingHorizontal">20dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerLarge</item>
+		<item name="android:textAppearance">?textAppearanceLabelLarge</item>
+	</style>
+
+	<!-- Icon buttons: bigger touch target (48dp), bigger icon (24dp). -->
+	<style name="Widget.Kotatsu.IconButton" parent="Widget.Material3Expressive.Button.IconButton.Standard">
+		<item name="android:minWidth">48dp</item>
+		<item name="android:minHeight">48dp</item>
+		<item name="iconSize">24dp</item>
+	</style>
+
+	<style name="Widget.Kotatsu.IconButton.Filled" parent="Widget.Material3Expressive.Button.IconButton.Filled">
+		<item name="android:minWidth">48dp</item>
+		<item name="android:minHeight">48dp</item>
+		<item name="iconSize">24dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerLarge</item>
+	</style>
+
+	<!-- Cards: 24dp default corners. -->
+	<style name="Widget.Kotatsu.CardView" parent="Widget.Material3.CardView.Filled">
+		<item name="cardCornerRadius">24dp</item>
+		<item name="cardElevation">0dp</item>
+		<item name="cardBackgroundColor">?colorSurfaceContainer</item>
+	</style>
+
+	<style name="Widget.Kotatsu.CardView.Elevated" parent="Widget.Material3.CardView.Elevated">
+		<item name="cardCornerRadius">24dp</item>
+		<item name="cardElevation">2dp</item>
+	</style>
+
+	<style name="Widget.Kotatsu.CardView.Outlined" parent="Widget.Material3.CardView.Outlined">
+		<item name="cardCornerRadius">24dp</item>
+		<item name="strokeColor">?colorOutlineVariant</item>
+		<item name="strokeWidth">1dp</item>
+	</style>
+
+	<!-- Toolbar: taller height, Display-family title appearance. -->
+	<style name="Widget.Kotatsu.Toolbar" parent="Widget.Material3Expressive.Toolbar">
+		<item name="android:minHeight">64dp</item>
+		<item name="titleTextAppearance">@style/TextAppearance.Kotatsu.Toolbar.Title</item>
+		<item name="subtitleTextAppearance">?textAppearanceTitleSmall</item>
+	</style>
+
+	<style name="TextAppearance.Kotatsu.Toolbar.Title" parent="TextAppearance.Kotatsu.TitleLarge">
+		<item name="android:textSize">22sp</item>
+		<item name="android:fontFamily">@font/display</item>
+		<item name="fontFamily">@font/display</item>
+	</style>
+
+	<!-- Bottom navigation: explicit Expressive height + bigger active pill. -->
+	<style name="Widget.Kotatsu.BottomNavigationView" parent="Widget.Material3Expressive.BottomNavigationView">
+		<item name="android:minHeight">80dp</item>
+		<item name="itemActiveIndicatorStyle">@style/Widget.Kotatsu.BottomNavigationView.ActiveIndicator</item>
+		<item name="itemIconSize">24dp</item>
+		<item name="itemTextAppearanceActive">@style/TextAppearance.Kotatsu.Nav.Active</item>
+		<item name="itemTextAppearanceInactive">@style/TextAppearance.Kotatsu.Nav.Inactive</item>
+	</style>
+
+	<style name="Widget.Kotatsu.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+		<item name="android:width">72dp</item>
+		<item name="android:height">36dp</item>
+		<item name="marginHorizontal">8dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerLarge</item>
+		<item name="android:color">?colorSecondaryContainer</item>
+	</style>
+
+	<style name="TextAppearance.Kotatsu.Nav.Active" parent="TextAppearance.Kotatsu.LabelMedium">
+		<item name="android:textStyle">bold</item>
+		<item name="android:textColor">?colorOnSurface</item>
+	</style>
+
+	<style name="TextAppearance.Kotatsu.Nav.Inactive" parent="TextAppearance.Kotatsu.LabelMedium">
+		<item name="android:textColor">?colorOnSurfaceVariant</item>
+	</style>
+
+	<!-- Navigation rail: similar treatment. -->
+	<style name="Widget.Kotatsu.NavigationRail" parent="Widget.Material3Expressive.NavigationRailView">
+		<item name="itemActiveIndicatorStyle">@style/Widget.Kotatsu.BottomNavigationView.ActiveIndicator</item>
+		<item name="itemIconSize">24dp</item>
+		<item name="itemTextAppearanceActive">@style/TextAppearance.Kotatsu.Nav.Active</item>
+		<item name="itemTextAppearanceInactive">@style/TextAppearance.Kotatsu.Nav.Inactive</item>
+	</style>
+
+	<!-- TextInputLayout: Outlined, ExtraLarge corners. -->
+	<style name="Widget.Kotatsu.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+		<item name="boxCornerRadiusTopStart">24dp</item>
+		<item name="boxCornerRadiusTopEnd">24dp</item>
+		<item name="boxCornerRadiusBottomStart">24dp</item>
+		<item name="boxCornerRadiusBottomEnd">24dp</item>
+	</style>
+
+	<!-- Switch: explicit M3 parent so future Expressive overrides have a home. -->
+	<style name="Widget.Kotatsu.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
+
+	<!-- SearchBar: chunkier float, ExtraLargeIncreased corners. -->
+	<style name="Widget.Kotatsu.SearchBar" parent="Widget.Material3Expressive.SearchBar">
+		<item name="android:minHeight">64dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerExtraLarge</item>
+		<item name="android:textAppearance">?textAppearanceBodyLarge</item>
+	</style>
+
+	<!-- Chips: bumped corners + bolder text. -->
+	<style name="Widget.Kotatsu.Chip.Filter.Big" parent="Widget.Material3.Chip.Filter">
+		<item name="android:minHeight">40dp</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerLarge</item>
+		<item name="android:textAppearance">?textAppearanceLabelLarge</item>
+	</style>
+
 </resources>
