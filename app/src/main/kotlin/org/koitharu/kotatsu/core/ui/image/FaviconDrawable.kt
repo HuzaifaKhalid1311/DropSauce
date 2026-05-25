@@ -79,7 +79,12 @@ open class FaviconDrawable(
 		paint.textSize = getTextSizeForWidth(innerWidth, letter) * 0.5f
 		paint.getTextBounds(letter, 0, letter.length, textBounds)
 		clipPath.reset()
-		clipPath.addRoundRect(boundsF, cornerSize, cornerSize, Path.Direction.CW)
+		// Material 3 Expressive: clamp the radius to bounds/2 so callers can request
+		// any sufficiently large cornerSize (or set drawable_size > 0 with a matching
+		// cornerSize) to get a perfect circle without a percent-aware attribute.
+		val maxRadius = minOf(boundsF.width(), boundsF.height()) / 2f
+		val effectiveCorner = if (cornerSize <= 0f) 0f else minOf(cornerSize, maxRadius)
+		clipPath.addRoundRect(boundsF, effectiveCorner, effectiveCorner, Path.Direction.CW)
 		clipPath.close()
 	}
 

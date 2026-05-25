@@ -347,19 +347,24 @@
 		<item name="autoFitTextSize">true</item>
 	</style>
 
+	<!-- Phase 21: Material 3 Expressive favicons render circular by default
+	     so source avatars read as Material You "avatar"s rather than as
+	     square app-icons. FaviconDrawable.onBoundsChange clamps cornerSize
+	     to bounds/2 so any value >= max icon size produces a circle. -->
 	<style name="FaviconDrawable">
 		<item name="backgroundColor">?colorBackgroundFloating</item>
 		<item name="strokeColor">?colorOutline</item>
+		<item name="cornerSize">96dp</item>
 	</style>
 
 	<style name="FaviconDrawable.Small">
 		<item name="strokeWidth">1dp</item>
-		<item name="cornerSize">8dp</item>
+		<item name="cornerSize">96dp</item>
 	</style>
 
 	<style name="FaviconDrawable.Large">
 		<item name="strokeWidth">1dp</item>
-		<item name="cornerSize">12dp</item>
+		<item name="cornerSize">96dp</item>
 	</style>
 
 	<style name="FaviconDrawable.Chip">
