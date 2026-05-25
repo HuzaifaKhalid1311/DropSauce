@@ -16,6 +16,13 @@
 -dontwarn com.google.j2objc.annotations.**
 -dontwarn coil3.PlatformContext
 
+# Material 3 Expressive uses reflective view-style resolution for some macros
+# (e.g. materialCalendarTheme, materialTimePickerTheme, MaterialShapes). Keep
+# the public surface of the material library and graphics-shapes intact.
+-keep class com.google.android.material.** { *; }
+-keep class androidx.graphics.shapes.** { *; }
+-keep class androidx.dynamicanimation.animation.** { *; }
+
 -keep class org.koitharu.kotatsu.settings.NotificationSettingsLegacyFragment
 -keep class org.koitharu.kotatsu.settings.about.changelog.ChangelogFragment
 

@@ -161,6 +161,7 @@ dependencies {
 	implementation libs.androidx.biometric
 	implementation libs.material
 	implementation libs.androidx.graphics.shapes
+	implementation libs.androidx.dynamicanimation
 	implementation libs.androidx.lifecycle.common.java8
 	implementation libs.androidx.webkit
 

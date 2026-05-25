@@ -10,6 +10,7 @@ import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.Window
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.CallSuper
@@ -23,6 +24,7 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.color.DynamicColors
+import com.google.android.material.transition.platform.MaterialSharedAxis
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -72,6 +74,14 @@ abstract class BaseActivity<B : ViewBinding> :
 		if (isAmoledTheme) {
 			setTheme(R.style.ThemeOverlay_Kotatsu_Amoled)
 		}
+		// Material 3 Expressive activity transitions - request before setContentView.
+		window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
+		window.allowEnterTransitionOverlap = true
+		window.allowReturnTransitionOverlap = true
+		window.enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, /* forward = */ true)
+		window.returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, /* forward = */ false)
+		window.reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, /* forward = */ false)
+		window.exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, /* forward = */ true)
 		putDataToExtras(intent)
 		exceptionResolver = entryPoint.exceptionResolverFactory.create(this)
 		enableEdgeToEdge()
