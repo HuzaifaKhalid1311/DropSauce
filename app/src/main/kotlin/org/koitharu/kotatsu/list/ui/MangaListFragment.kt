@@ -38,6 +38,7 @@ import org.koitharu.kotatsu.core.ui.widgets.TipView
 import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
 import org.koitharu.kotatsu.core.util.ext.consumeAll
+import org.koitharu.kotatsu.core.ui.widget.SpringItemAnimator
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.hapticGestureEnd
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -113,6 +114,7 @@ abstract class MangaListFragment :
 		with(binding.recyclerView) {
 			setHasFixedSize(true)
 			adapter = listAdapter
+			itemAnimator = SpringItemAnimator()
 			checkNotNull(selectionController).attachToRecyclerView(this)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 			addOnScrollListener(checkNotNull(paginationListener))
