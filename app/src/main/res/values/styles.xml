@@ -4,7 +4,10 @@
 
 	<style name="ThemeOverlay.Kotatsu.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
 		<item name="alertDialogStyle">@style/AlertDialog.Kotatsu</item>
-		<item name="dialogCornerRadius">@dimen/m3_alert_dialog_corner_size</item>
+		<!-- Phase 29: chunkier dialog (28dp corners). -->
+		<item name="dialogCornerRadius">28dp</item>
+		<item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.Kotatsu.AlertDialog.Title</item>
+		<item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.Kotatsu.AlertDialog.Body</item>
 	</style>
 
 	<style name="AlertDialog.Kotatsu" parent="MaterialAlertDialog.Material3">
@@ -14,6 +17,20 @@
 		<item name="android:textColorSecondary">@color/kotatsu_onSurfaceVariant</item>
 		<item name="android:textColorAlertDialogListItem">@color/kotatsu_onSurface</item>
 		<item name="textColorAlertDialogListItem">@color/kotatsu_onSurface</item>
+	</style>
+
+	<style name="TextAppearance.Kotatsu.AlertDialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
+		<item name="android:fontFamily">@font/display</item>
+		<item name="fontFamily">@font/display</item>
+		<item name="android:textSize">22sp</item>
+		<item name="android:textColor">?attr/colorOnSurface</item>
+	</style>
+
+	<style name="TextAppearance.Kotatsu.AlertDialog.Body" parent="MaterialAlertDialog.Material3.Body.Text">
+		<item name="android:fontFamily">@font/body</item>
+		<item name="fontFamily">@font/body</item>
+		<item name="android:textSize">15sp</item>
+		<item name="android:lineSpacingMultiplier">1.25</item>
 	</style>
 
 	<!-- Bottom sheet -->
@@ -30,8 +47,10 @@
 	</style>
 
 	<style name="Widget.Kotatsu.BottomSheet.DragHandle" parent="Widget.Material3.BottomSheet.DragHandle">
-		<!-- Fix weird bottom padding -->
+		<!-- Phase 29: bolder drag handle for Expressive presence. -->
 		<item name="android:paddingBottom">0dp</item>
+		<item name="android:minHeight">28dp</item>
+		<item name="android:minWidth">64dp</item>
 	</style>
 
 	<style name="Widget.Kotatsu.Spinner.DropDown" parent="Widget.AppCompat.Spinner.DropDown">
@@ -312,6 +331,17 @@
 
 	<style name="PreferenceThemeOverlay.Kotatsu">
 		<item name="singleLineTitle">false</item>
+		<!-- Phase 28: chunky 64dp+ Expressive preference rows. -->
+		<item name="preferenceStyle">@style/Preference.Kotatsu</item>
+		<item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat.M3.Kotatsu</item>
+	</style>
+
+	<style name="Preference.Kotatsu" parent="Preference.Material">
+		<item name="android:layout">@layout/preference_row_kotatsu</item>
+	</style>
+
+	<style name="Preference.SwitchPreferenceCompat.M3.Kotatsu" parent="Preference.SwitchPreferenceCompat.M3">
+		<item name="android:layout">@layout/preference_row_kotatsu</item>
 	</style>
 
 	<style name="Preference.Slider" parent="Preference.SeekBarPreference.Material">
