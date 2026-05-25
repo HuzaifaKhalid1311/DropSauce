@@ -206,7 +206,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val typeMask = WindowInsetsCompat.Type.systemBars()
 		val barsInsets = insets.getInsets(typeMask)
-		val searchBarDefaultMargin = resources.getDimensionPixelOffset(materialR.dimen.m3_searchbar_margin_horizontal)
+		// Phase 14.5: use our Expressive screen_padding (20dp) for the SearchBar
+		// horizontal inset instead of the Material default 16dp, so the SearchBar
+		// floats with the same outer rhythm as everything else in the screen.
+		val searchBarDefaultMargin = resources.getDimensionPixelOffset(R.dimen.screen_padding)
 		viewBinding.searchBar.updateLayoutParams<MarginLayoutParams> {
 			marginEnd = searchBarDefaultMargin + barsInsets.end(v)
 			marginStart = if (viewBinding.navRail != null) {
