@@ -143,6 +143,30 @@ class AppRouter private constructor(
         startActivity(detailsIntent(contextOrNull() ?: return, manga))
     }
 
+    /**
+     * Material 3 Expressive: open Details with a shared-element transition on the
+     * given source view (typically the manga's CoverImageView). Falls back to the
+     * non-shared path when [sharedView] is null or the source activity can't be
+     * resolved.
+     */
+    fun openDetails(manga: Manga, sharedView: View?) {
+        val ctx = contextOrNull() ?: return
+        val activity = activity ?: fragment?.activity
+        val transitionName = androidx.core.view.ViewCompat.getTransitionName(sharedView ?: return run {
+            startActivity(detailsIntent(ctx, manga))
+        })
+        if (activity == null || transitionName.isNullOrEmpty()) {
+            startActivity(detailsIntent(ctx, manga))
+            return
+        }
+        val options = androidx.core.app.ActivityOptionsCompat.makeSceneTransitionAnimation(
+            activity,
+            sharedView,
+            transitionName,
+        )
+        startActivity(detailsIntent(ctx, manga), options.toBundle())
+    }
+
     fun openDetails(mangaId: Long) {
         startActivity(detailsIntent(contextOrNull() ?: return, mangaId))
     }

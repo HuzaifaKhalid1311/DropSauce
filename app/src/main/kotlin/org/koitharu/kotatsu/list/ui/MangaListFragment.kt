@@ -160,7 +160,10 @@ abstract class MangaListFragment :
 		if (selectionController?.onItemClick(item.id) != true) {
 			val manga = item.toMangaWithOverride()
 			if ((activity as? MangaListActivity)?.showPreview(manga) != true) {
-				router.openDetails(manga)
+				// Phase 19: hand the cover ImageView to AppRouter so it can build a
+				// MaterialContainerTransform shared-element animation into DetailsActivity.
+				val cover = view.findViewById<View?>(R.id.imageView_cover)
+				router.openDetails(manga, cover)
 			}
 		}
 	}

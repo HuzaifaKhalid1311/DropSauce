@@ -20,6 +20,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.text.method.LinkMovementMethodCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -45,6 +46,7 @@ import coil3.transform.RoundedCornersTransformation
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.chip.Chip
 import com.google.android.material.shape.MaterialShapeDrawable
+import com.google.android.material.transition.platform.MaterialContainerTransform
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -154,7 +156,25 @@ class DetailsActivity :
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		// Phase 19: receive the MaterialContainerTransform shared-element transition
+		// from the launching list-item cover. Set this BEFORE setContentView so the
+		// framework's transition machinery picks it up; the matching transitionName on
+		// viewBinding.imageViewCover is set right after setContentView.
+		val sharedMangaId = intent.data?.getQueryParameter("id")?.toLongOrNull() ?: 0L
+		if (sharedMangaId != 0L) {
+			window.sharedElementEnterTransition = MaterialContainerTransform().apply {
+				scrimColor = android.graphics.Color.TRANSPARENT
+				duration = 350L
+			}
+			window.sharedElementReturnTransition = MaterialContainerTransform().apply {
+				scrimColor = android.graphics.Color.TRANSPARENT
+				duration = 250L
+			}
+		}
 		setContentView(ActivityDetailsBinding.inflate(layoutInflater))
+		if (sharedMangaId != 0L) {
+			ViewCompat.setTransitionName(viewBinding.imageViewCover, "cover_$sharedMangaId")
+		}
 		infoBinding = LayoutDetailsTableBinding.bind(viewBinding.root)
 		WindowCompat.setDecorFitsSystemWindows(window, false)
 		enableEdgeToEdge()
