@@ -26,7 +26,7 @@
 				android:layout_height="wrap_content"
 				android:layout_marginTop="@dimen/margin_small"
 				android:paddingHorizontal="@dimen/margin_normal"
-				android:textAppearance="?textAppearanceBody2"
+				android:textAppearance="?textAppearanceBodyMedium"
 				tools:text="@tools:sample/lorem[15]" />
 
 			<org.koitharu.kotatsu.core.ui.widgets.TwoLinesItemView

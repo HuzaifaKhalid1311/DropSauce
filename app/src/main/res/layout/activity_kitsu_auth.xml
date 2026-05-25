@@ -15,7 +15,7 @@
 		android:drawablePadding="@dimen/screen_padding"
 		android:gravity="center_horizontal"
 		android:text="@string/kitsu"
-		android:textAppearance="?textAppearanceHeadline5"
+		android:textAppearance="?textAppearanceHeadlineSmall"
 		app:drawableTint="?colorPrimary"
 		app:drawableTopCompat="@drawable/ic_kitsu"
 		app:layout_constraintEnd_toEndOf="parent"
@@ -29,7 +29,7 @@
 		android:layout_marginTop="12dp"
 		android:gravity="center_horizontal"
 		android:text="@string/email_password_enter_hint"
-		android:textAppearance="?textAppearanceSubtitle1" />
+		android:textAppearance="?textAppearanceTitleMedium" />
 
 	<com.google.android.material.textfield.TextInputLayout
 		android:id="@+id/layout_email"
