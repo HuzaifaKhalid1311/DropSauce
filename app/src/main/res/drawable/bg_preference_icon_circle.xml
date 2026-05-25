@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Phase 28: 40dp circular tonal tile that sits behind each preference row's
+    icon (Pixel-style). Tinted ?colorPrimaryContainer.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <size android:width="40dp" android:height="40dp" />
+    <solid android:color="?attr/colorPrimaryContainer" />
+</shape>

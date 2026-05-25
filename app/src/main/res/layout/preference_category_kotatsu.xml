@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Phase 28: Material 3 Expressive preference category header.
-    Display-family title in colorPrimary at TitleSmall size, with generous
-    top padding so section breaks read clearly between Settings groups.
+    Phase 28: Material 3 Expressive section label between groups of
+    preference cards. Tighter than a hero heading - the Pixel-style
+    settings use a quiet LabelMedium-sized label in colorPrimary so the
+    rounded row cards do the visual heavy lifting.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
-    android:paddingTop="24dp"
+    android:paddingStart="28dp"
+    android:paddingEnd="28dp"
+    android:paddingTop="20dp"
     android:paddingBottom="8dp">
 
     <TextView
         android:id="@android:id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceTitleSmall"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="?attr/colorPrimary"
         android:fontFamily="@font/display"
         android:textAllCaps="false"

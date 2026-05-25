@@ -1,72 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Phase 28: Material 3 Expressive preference row.
-    Chunkier 64dp height, 28dp icon, TitleMedium title, BodyMedium summary,
-    generous 16dp horizontal / 12dp vertical padding so settings rows feel
-    distinct from the standard system Preference rendering.
+    Phase 28: Material 3 Expressive preference row, Pixel-style.
+
+    Root is a MaterialCardView so it carries the rounded shape, the
+    tonal container color (?colorSurfaceContainerHigh) and the click
+    ripple natively. android:layout_marginHorizontal=12dp +
+    layout_marginVertical=3dp produce the floating card look between
+    rows; PreferenceCategory headers slot between groups with their
+    own padding.
+
+    Icon sits inside a 40dp circular ?colorPrimaryContainer tile tinted
+    ?colorOnPrimaryContainer - the circular-icon-on-tonal-tile pattern
+    used by recent Pixel devices' Settings.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="64dp"
-    android:gravity="center_vertical"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
-    android:paddingTop="12dp"
-    android:paddingBottom="12dp"
-    android:background="?attr/selectableItemBackground"
-    android:clipToPadding="false">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@android:id/icon_frame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:minWidth="28dp">
-
-        <ImageView
-            android:id="@android:id/icon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:contentDescription="@null"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="3dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="0dp"
+    app:rippleColor="?attr/colorOnSurface"
+    app:strokeWidth="0dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:minHeight="72dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
-        <TextView
-            android:id="@android:id/title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="?attr/colorOnSurface" />
+        <FrameLayout
+            android:id="@android:id/icon_frame"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/bg_preference_icon_circle">
 
-        <TextView
-            android:id="@android:id/summary"
-            android:layout_width="match_parent"
+            <ImageView
+                android:id="@android:id/icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                app:tint="?attr/colorOnPrimaryContainer" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:maxLines="3"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@android:id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:id="@android:id/summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:maxLines="3"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@android:id/widget_frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:gravity="end|center_vertical"
+            android:orientation="vertical" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@android:id/widget_frame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:gravity="end|center_vertical"
-        android:orientation="vertical" />
-
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>
