@@ -114,6 +114,12 @@
 		<item name="android:minHeight">42dp</item>
 	</style>
 
+	<!-- Phase 9.5: IconToggleButton with shape morph between cookie (checked) and circle (unchecked). -->
+	<style name="Widget.Kotatsu.IconButton.Toggle" parent="Widget.Material3Expressive.Button.IconButton.Filled">
+		<item name="android:checkable">true</item>
+		<item name="shapeAppearance">?shapeAppearanceCornerLarge</item>
+	</style>
+
 	<style name="Widget.Kotatsu.ToggleButton" parent="Widget.Material3Expressive.Button.OutlinedButton">
 		<item name="android:checkable">true</item>
 		<item name="android:textAlignment">textStart</item>

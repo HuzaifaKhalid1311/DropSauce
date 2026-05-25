@@ -39,6 +39,7 @@ import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
 import org.koitharu.kotatsu.core.util.ext.consumeAll
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
+import org.koitharu.kotatsu.core.util.ext.hapticGestureEnd
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
@@ -184,7 +185,9 @@ abstract class MangaListFragment :
 
 	@CallSuper
 	override fun onRefresh() {
-		requireViewBinding().swipeRefreshLayout.isRefreshing = true
+		val binding = requireViewBinding()
+		binding.swipeRefreshLayout.hapticGestureEnd()
+		binding.swipeRefreshLayout.isRefreshing = true
 		viewModel.onRefresh()
 	}
 

@@ -22,6 +22,7 @@ import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
 import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.ui.widgets.TipView
+import org.koitharu.kotatsu.core.util.ext.hapticGestureEnd
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
 import org.koitharu.kotatsu.core.util.ext.consumeAll
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -100,6 +101,7 @@ class FeedFragment :
 	}
 
 	override fun onRefresh() {
+		requireViewBinding().swipeRefreshLayout.hapticGestureEnd()
 		viewModel.update()
 	}
 
