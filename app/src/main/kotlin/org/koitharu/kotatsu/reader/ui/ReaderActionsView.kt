@@ -228,6 +228,10 @@ class ReaderActionsView @JvmOverloads constructor(
 
 	private fun updateBookmarkButton() {
 		val button = binding.buttonBookmark
+		// Phase 21.1: filled IconButton.Toggle reads its state from isChecked
+		// (so the colorSecondaryContainer fill paints on add); the icon still
+		// swaps between outline and filled glyphs for redundancy.
+		button.isChecked = isBookmarkAdded
 		button.setIconResource(
 			if (isBookmarkAdded) R.drawable.ic_bookmark_added else R.drawable.ic_bookmark,
 		)

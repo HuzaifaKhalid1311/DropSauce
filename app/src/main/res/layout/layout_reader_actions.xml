@@ -99,7 +99,7 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_bookmark"
-			style="?materialIconButtonStyle"
+			style="@style/Widget.Kotatsu.IconButton.Toggle"
 			android:layout_width="48dp"
 			android:layout_height="48dp"
 			android:layout_gravity="center"
