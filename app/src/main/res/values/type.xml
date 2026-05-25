@@ -14,51 +14,51 @@
 	<style name="TextAppearance.Kotatsu.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 400</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 400</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 400</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 400</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 400</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 400</item>
 	</style>
 
 	<!-- Headline -->
 	<style name="TextAppearance.Kotatsu.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 500</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 500</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 500</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 500</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 500</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 500</item>
 	</style>
 
 	<!-- Title -->
 	<style name="TextAppearance.Kotatsu.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
 		<item name="android:fontFamily">@font/display</item>
 		<item name="fontFamily">@font/display</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 500</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 500</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
 		<item name="android:fontFamily">@font/body</item>
 		<item name="fontFamily">@font/body</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 500</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 500</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
 		<item name="android:fontFamily">@font/body</item>
 		<item name="fontFamily">@font/body</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 500</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 500</item>
 	</style>
 
 	<!-- Body -->
@@ -79,17 +79,17 @@
 	<style name="TextAppearance.Kotatsu.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
 		<item name="android:fontFamily">@font/body</item>
 		<item name="fontFamily">@font/body</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 600</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 600</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
 		<item name="android:fontFamily">@font/body</item>
 		<item name="fontFamily">@font/body</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 600</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 600</item>
 	</style>
 	<style name="TextAppearance.Kotatsu.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
 		<item name="android:fontFamily">@font/body</item>
 		<item name="fontFamily">@font/body</item>
-		<item name="android:fontVariationSettings" tools:targetApi="o">'wght' 600</item>
+		<item name="android:fontVariationSettings" tools:targetApi="o">\'wght\' 600</item>
 	</style>
 
 </resources>
