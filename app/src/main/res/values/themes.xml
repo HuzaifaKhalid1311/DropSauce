@@ -38,6 +38,19 @@
 		<item name="colorOnErrorContainer">@color/onErrorContainer</item>
 		<item name="colorOutline">@color/kotatsu_outline</item>
 		<item name="colorOutlineVariant">@color/kotatsu_outline</item>
+		<!-- Material 3 Expressive fixed-tone palette (Phase 2.1) -->
+		<item name="colorPrimaryFixed">@color/kotatsu_primaryFixed</item>
+		<item name="colorPrimaryFixedDim">@color/kotatsu_primaryFixedDim</item>
+		<item name="colorOnPrimaryFixed">@color/kotatsu_onPrimaryFixed</item>
+		<item name="colorOnPrimaryFixedVariant">@color/kotatsu_onPrimaryFixedVariant</item>
+		<item name="colorSecondaryFixed">@color/kotatsu_secondaryFixed</item>
+		<item name="colorSecondaryFixedDim">@color/kotatsu_secondaryFixedDim</item>
+		<item name="colorOnSecondaryFixed">@color/kotatsu_onSecondaryFixed</item>
+		<item name="colorOnSecondaryFixedVariant">@color/kotatsu_onSecondaryFixedVariant</item>
+		<item name="colorTertiaryFixed">@color/kotatsu_tertiaryFixed</item>
+		<item name="colorTertiaryFixedDim">@color/kotatsu_tertiaryFixedDim</item>
+		<item name="colorOnTertiaryFixed">@color/kotatsu_onTertiaryFixed</item>
+		<item name="colorOnTertiaryFixedVariant">@color/kotatsu_onTertiaryFixedVariant</item>
 		<item name="colorControlNormal">@color/kotatsu_onSurface</item>
 		<item name="colorControlActivated">@color/kotatsu_primary</item>
 		<item name="colorControlHighlight">@color/selector_overlay</item>

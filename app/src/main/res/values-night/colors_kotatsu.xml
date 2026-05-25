@@ -32,4 +32,17 @@
 	<color name="kotatsu_inverseOnSurface">#1A1B1F</color>
 	<color name="kotatsu_background">#1A1B1F</color>
 	<color name="kotatsu_outline">#8E9099</color>
+	<!-- Material 3 Expressive fixed-tone palette (Phase 2.1) - fixed tones do not flip in dark mode -->
+	<color name="kotatsu_primaryFixed">#D9E2FF</color>
+	<color name="kotatsu_primaryFixedDim">#AFC6FF</color>
+	<color name="kotatsu_onPrimaryFixed">#001944</color>
+	<color name="kotatsu_onPrimaryFixedVariant">#00458F</color>
+	<color name="kotatsu_secondaryFixed">#DBE2F9</color>
+	<color name="kotatsu_secondaryFixedDim">#BEC6DC</color>
+	<color name="kotatsu_onSecondaryFixed">#141B2C</color>
+	<color name="kotatsu_onSecondaryFixedVariant">#3E4759</color>
+	<color name="kotatsu_tertiaryFixed">#FDD7FB</color>
+	<color name="kotatsu_tertiaryFixedDim">#DDBCE0</color>
+	<color name="kotatsu_onTertiaryFixed">#2A132C</color>
+	<color name="kotatsu_onTertiaryFixedVariant">#573E5C</color>
 </resources>
