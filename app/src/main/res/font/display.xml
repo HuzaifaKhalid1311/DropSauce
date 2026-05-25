@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Display face used by Material 3 Expressive Display / Headline / Title.Large
+    text appearances. Rendered with a rounded, variable-width sans-serif.
+
+    Currently uses Nunito via the Downloadable Fonts provider as a public stand-in.
+    To swap in a local Google Sans Flex .ttf:
+      1. Drop google_sans_flex.ttf into res/font/
+      2. Replace this file with:
+           <font-family xmlns:android="http://schemas.android.com/apk/res/android">
+               <font
+                   android:font="@font/google_sans_flex"
+                   android:fontStyle="normal"
+                   android:fontWeight="400" />
+           </font-family>
+-->
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:fontProviderAuthority="com.google.android.gms.fonts"
+    app:fontProviderPackage="com.google.android.gms"
+    app:fontProviderQuery="name=Nunito&amp;weight=400..900&amp;besteffort=true"
+    app:fontProviderCerts="@array/com_google_android_gms_fonts_certs" />

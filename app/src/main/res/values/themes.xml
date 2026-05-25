@@ -139,6 +139,23 @@
 
 		<!-- Phase 12.7: Window background = elevated surface for Expressive transitions -->
 		<item name="android:windowBackground">?colorSurfaceContainer</item>
+
+		<!-- Phase 3: Material 3 Expressive typography -->
+		<item name="textAppearanceDisplayLarge">@style/TextAppearance.Kotatsu.DisplayLarge</item>
+		<item name="textAppearanceDisplayMedium">@style/TextAppearance.Kotatsu.DisplayMedium</item>
+		<item name="textAppearanceDisplaySmall">@style/TextAppearance.Kotatsu.DisplaySmall</item>
+		<item name="textAppearanceHeadlineLarge">@style/TextAppearance.Kotatsu.HeadlineLarge</item>
+		<item name="textAppearanceHeadlineMedium">@style/TextAppearance.Kotatsu.HeadlineMedium</item>
+		<item name="textAppearanceHeadlineSmall">@style/TextAppearance.Kotatsu.HeadlineSmall</item>
+		<item name="textAppearanceTitleLarge">@style/TextAppearance.Kotatsu.TitleLarge</item>
+		<item name="textAppearanceTitleMedium">@style/TextAppearance.Kotatsu.TitleMedium</item>
+		<item name="textAppearanceTitleSmall">@style/TextAppearance.Kotatsu.TitleSmall</item>
+		<item name="textAppearanceBodyLarge">@style/TextAppearance.Kotatsu.BodyLarge</item>
+		<item name="textAppearanceBodyMedium">@style/TextAppearance.Kotatsu.BodyMedium</item>
+		<item name="textAppearanceBodySmall">@style/TextAppearance.Kotatsu.BodySmall</item>
+		<item name="textAppearanceLabelLarge">@style/TextAppearance.Kotatsu.LabelLarge</item>
+		<item name="textAppearanceLabelMedium">@style/TextAppearance.Kotatsu.LabelMedium</item>
+		<item name="textAppearanceLabelSmall">@style/TextAppearance.Kotatsu.LabelSmall</item>
 	</style>
 
 	<!--== Default Theme ==-->

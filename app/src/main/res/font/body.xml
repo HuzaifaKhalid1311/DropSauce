@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Body face used by Material 3 Expressive Title.Medium / Title.Small / Body.* / Label.*
+    text appearances. Loaded dynamically via the Downloadable Fonts provider.
+-->
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:fontProviderAuthority="com.google.android.gms.fonts"
+    app:fontProviderPackage="com.google.android.gms"
+    app:fontProviderQuery="name=Montserrat&amp;weight=400..900&amp;besteffort=true"
+    app:fontProviderCerts="@array/com_google_android_gms_fonts_certs" />
