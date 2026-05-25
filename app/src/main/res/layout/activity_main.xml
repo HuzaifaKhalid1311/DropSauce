@@ -20,12 +20,11 @@
 		android:layout_height="wrap_content"
 		android:background="@null"
 		android:clipToPadding="false"
-		android:elevation="0dp"
 		android:fitsSystemWindows="false"
 		android:stateListAnimator="@null"
-		app:elevation="0dp"
-		app:liftOnScroll="false"
-		app:liftOnScrollColor="@null">
+		app:liftOnScroll="true"
+		app:liftOnScrollColor="?colorSurfaceContainer"
+		app:liftOnScrollTargetViewId="@id/container">
 
 		<org.koitharu.kotatsu.core.ui.widgets.WindowInsetHolder
 			android:id="@+id/insetsHolder"
