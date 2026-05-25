@@ -62,11 +62,16 @@
 	<style name="Widget.Kotatsu.PopupMenu" parent="Widget.Material3.PopupMenu">
 		<item name="android:popupBackground">@drawable/m3_menu_background</item>
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
+		<!-- Phase 29: more breathing space inside popup menus. -->
+		<item name="android:popupElevation">3dp</item>
+		<item name="android:dropDownVerticalOffset">8dp</item>
 	</style>
 
 	<style name="Widget.Kotatsu.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
 		<item name="android:popupBackground">@drawable/m3_menu_background</item>
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
+		<item name="android:popupElevation">3dp</item>
+		<item name="android:dropDownVerticalOffset">12dp</item>
 	</style>
 
 	<style name="Widget.Kotatsu.PopupMenu.ListView" parent="Widget.AppCompat.ListView.DropDown">
@@ -334,6 +339,7 @@
 		<!-- Phase 28: chunky 64dp+ Expressive preference rows. -->
 		<item name="preferenceStyle">@style/Preference.Kotatsu</item>
 		<item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat.M3.Kotatsu</item>
+		<item name="preferenceCategoryStyle">@style/Preference.Category.Kotatsu</item>
 	</style>
 
 	<style name="Preference.Kotatsu" parent="Preference.Material">
@@ -342,6 +348,10 @@
 
 	<style name="Preference.SwitchPreferenceCompat.M3.Kotatsu" parent="Preference.SwitchPreferenceCompat.M3">
 		<item name="android:layout">@layout/preference_row_kotatsu</item>
+	</style>
+
+	<style name="Preference.Category.Kotatsu" parent="Preference.Category.Material">
+		<item name="android:layout">@layout/preference_category_kotatsu</item>
 	</style>
 
 	<style name="Preference.Slider" parent="Preference.SeekBarPreference.Material">
