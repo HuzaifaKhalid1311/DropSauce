@@ -14,10 +14,10 @@
 		android:id="@+id/textView_error"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:drawablePadding="12dp"
+		android:drawablePadding="16dp"
 		android:gravity="center_horizontal"
 		android:textAlignment="center"
-		android:textAppearance="?attr/textAppearanceBodyMedium"
+		android:textAppearance="?attr/textAppearanceBodyLarge"
 		app:drawableTopCompat="@drawable/ic_error_large"
 		tools:text="@tools:sample/lorem[6]" />
 
@@ -26,8 +26,11 @@
 		style="?materialButtonTonalStyle"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="16dp"
-		android:text="@string/try_again" />
+		android:layout_marginTop="20dp"
+		android:minHeight="56dp"
+		android:paddingHorizontal="24dp"
+		android:text="@string/try_again"
+		app:shapeAppearance="?shapeAppearanceCornerExtraLarge" />
 
 	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_secondary"

@@ -23,18 +23,18 @@
 		android:id="@+id/textPrimary"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="@dimen/margin_normal"
+		android:layout_marginTop="24dp"
 		android:gravity="center"
-		android:textAppearance="?attr/textAppearanceTitleLarge"
+		android:textAppearance="?attr/textAppearanceHeadlineSmall"
 		tools:text="@tools:sample/lorem[3]" />
 
 	<TextView
 		android:id="@+id/textSecondary"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="@dimen/margin_normal"
+		android:layout_marginTop="12dp"
 		android:gravity="center"
-		android:textAppearance="?attr/textAppearanceBodyMedium"
+		android:textAppearance="?attr/textAppearanceBodyLarge"
 		tools:text="@tools:sample/lorem[15]" />
 
 	<com.google.android.material.button.MaterialButton
@@ -42,8 +42,11 @@
 		style="?materialButtonTonalStyle"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="@dimen/margin_normal"
+		android:layout_marginTop="24dp"
+		android:minHeight="56dp"
+		android:paddingHorizontal="24dp"
 		android:visibility="gone"
+		app:shapeAppearance="?shapeAppearanceCornerExtraLarge"
 		tools:text="@string/try_again"
 		tools:visibility="visible" />
 
