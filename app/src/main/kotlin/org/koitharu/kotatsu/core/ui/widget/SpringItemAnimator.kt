@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
  * on lists that should feel springy (manga grids, history, downloads, feed).
  */
 class SpringItemAnimator(
-	private val stiffness: Float = SpringForce.STIFFNESS_MEDIUM_LOW,
+	private val stiffness: Float = SpringForce.STIFFNESS_LOW,
 	private val dampingRatio: Float = SpringForce.DAMPING_RATIO_LOW_BOUNCY,
 ) : DefaultItemAnimator() {
 

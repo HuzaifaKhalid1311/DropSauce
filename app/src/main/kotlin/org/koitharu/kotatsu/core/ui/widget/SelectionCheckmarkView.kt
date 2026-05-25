@@ -15,6 +15,8 @@ import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.toPath
 import com.google.android.material.color.MaterialColors
+import androidx.appcompat.R as appcompatR
+import com.google.android.material.R as materialR
 
 /**
  * Material 3 Expressive selection badge. Renders a 9-sided cookie polygon
@@ -45,11 +47,11 @@ class SelectionCheckmarkView @JvmOverloads constructor(
 
 	private val cookiePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
 		style = Paint.Style.FILL
-		color = MaterialColors.getColor(this@SelectionCheckmarkView, com.google.android.material.R.attr.colorPrimary, Color.BLACK)
+		color = MaterialColors.getColor(this@SelectionCheckmarkView, appcompatR.attr.colorPrimary, Color.BLACK)
 	}
 	private val checkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
 		style = Paint.Style.STROKE
-		color = MaterialColors.getColor(this@SelectionCheckmarkView, com.google.android.material.R.attr.colorOnPrimary, Color.WHITE)
+		color = MaterialColors.getColor(this@SelectionCheckmarkView, materialR.attr.colorOnPrimary, Color.WHITE)
 		strokeWidth = resources.displayMetrics.density * 2f
 		strokeCap = Paint.Cap.ROUND
 		strokeJoin = Paint.Join.ROUND
@@ -57,7 +59,7 @@ class SelectionCheckmarkView @JvmOverloads constructor(
 
 	private val springAnim = SpringAnimation(this, DynamicAnimation.SCALE_X).apply {
 		spring = SpringForce(0f).apply {
-			stiffness = SpringForce.STIFFNESS_MEDIUM_LOW
+			stiffness = SpringForce.STIFFNESS_LOW
 			dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
 		}
 		addUpdateListener { _, value, _ -> scaleY = value }
