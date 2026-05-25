@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.list.ui.adapter
 
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
@@ -36,5 +37,7 @@ fun mangaListDetailedItemAD(
 		binding.textViewTags.text = item.tags.joinToString(separator = ", ") { it.title ?: "" }
 		binding.badge.number = item.counter
 		binding.badge.isVisible = item.counter > 0
+		// Phase 19: shared-element transitionName for MaterialContainerTransform.
+		ViewCompat.setTransitionName(binding.imageViewCover, "cover_${item.id}")
 	}
 }

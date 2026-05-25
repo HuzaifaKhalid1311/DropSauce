@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.list.ui.adapter
 
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
@@ -26,5 +27,8 @@ fun mangaListItemAD(
 		binding.imageViewCover.setImageAsync(item.coverUrl, item.manga)
 		binding.badge.number = item.counter
 		binding.badge.isVisible = item.counter > 0
+		// Phase 19: shared-element transitionName for MaterialContainerTransform
+		// list-item -> DetailsActivity cover (compact list-mode variant).
+		ViewCompat.setTransitionName(binding.imageViewCover, "cover_${item.id}")
 	}
 }
