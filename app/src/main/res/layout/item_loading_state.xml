@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Phase 23.1: screen-level loading uses the Material 3 Expressive
+    LoadingIndicator (animated cookie-shape) instead of the classic
+    determinate ring. Inline loaders (button spinners, list footers)
+    stay on CircularProgressIndicator.
+-->
 <FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:paddingBottom="?actionBarSize">
 
-	<com.google.android.material.progressindicator.CircularProgressIndicator
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_gravity="center"
-		android:indeterminate="true" />
+	<com.google.android.material.loadingindicator.LoadingIndicator
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:layout_gravity="center" />
 
 </FrameLayout>

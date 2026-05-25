@@ -52,7 +52,7 @@
 					android:gravity="center"
 					android:minHeight="@dimen/onboarding_title_min_height"
 					android:text="@string/welcome"
-					android:textAppearance="?textAppearanceHeadlineLarge" />
+					android:textAppearance="?textAppearanceDisplayMedium" />
 
 				<ViewFlipper
 					android:id="@+id/flipper_slides"
@@ -307,26 +307,26 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_gravity="bottom|center_horizontal"
-			android:layout_marginBottom="16dp"
+			android:layout_marginBottom="20dp"
 			android:gravity="center"
 			android:orientation="horizontal">
 
 			<View
 				android:id="@+id/dot_page_1"
-				android:layout_width="8dp"
+				android:layout_width="wrap_content"
 				android:layout_height="8dp"
 				android:background="@drawable/bg_onboarding_dot_selected" />
 
 			<View
 				android:id="@+id/dot_page_2"
-				android:layout_width="8dp"
+				android:layout_width="wrap_content"
 				android:layout_height="8dp"
 				android:layout_marginStart="8dp"
 				android:background="@drawable/bg_onboarding_dot" />
 
 			<View
 				android:id="@+id/dot_page_3"
-				android:layout_width="8dp"
+				android:layout_width="wrap_content"
 				android:layout_height="8dp"
 				android:layout_marginStart="8dp"
 				android:background="@drawable/bg_onboarding_dot" />

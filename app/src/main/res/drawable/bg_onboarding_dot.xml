@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+<!-- Phase 13.2 / 18: inactive page indicator. Pill-shape rectangle so the
+     active state can stretch from the same drawable family. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <size android:width="8dp" android:height="8dp" />
-    <solid android:color="?attr/colorOutline" />
+    <corners android:radius="4dp" />
+    <solid android:color="?attr/colorOutlineVariant" />
 </shape>
-

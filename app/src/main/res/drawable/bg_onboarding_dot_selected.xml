@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <size android:width="8dp" android:height="8dp" />
+<!-- Phase 13.2 / 18: active page indicator. Wider pill (24dp x 8dp) painted in
+     colorPrimary, the Material 3 Expressive page-progress identity. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <size android:width="24dp" android:height="8dp" />
+    <corners android:radius="4dp" />
     <solid android:color="?attr/colorPrimary" />
 </shape>
-
