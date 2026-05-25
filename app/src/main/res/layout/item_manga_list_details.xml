@@ -14,7 +14,10 @@
 		<org.koitharu.kotatsu.image.ui.CoverImageView
 			android:id="@+id/imageView_cover"
 			android:layout_width="0dp"
-			android:layout_height="118dp"
+			android:layout_height="124dp"
+			android:layout_marginStart="4dp"
+			android:layout_marginTop="4dp"
+			android:layout_marginBottom="4dp"
 			android:background="?colorSurfaceContainer"
 			app:aspectRationHeight="0"
 			app:aspectRationWidth="0"
@@ -22,7 +25,7 @@
 			app:layout_constraintDimensionRatio="2:3"
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toTopOf="parent"
-			app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Cover.Medium"
+			app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Cover"
 			app:trimImage="true"
 			tools:src="@tools:sample/backgrounds/scenic" />
 

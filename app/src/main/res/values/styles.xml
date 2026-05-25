@@ -282,18 +282,18 @@
 		<item name="android:lineHeight" tools:ignore="NewApi">14sp</item>
 	</style>
 
-	<!-- Shapes -->
+	<!-- Shapes (Phase 4: bumped corner radii for Material 3 Expressive's chunkier silhouette) -->
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.Cover" parent="">
-		<item name="cornerSize">12dp</item>
+		<item name="cornerSize">16dp</item>
 	</style>
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.Cover.Medium" parent="">
-		<item name="cornerSize">8dp</item>
+		<item name="cornerSize">12dp</item>
 	</style>
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.Cover.Small" parent="">
-		<item name="cornerSize">4dp</item>
+		<item name="cornerSize">8dp</item>
 	</style>
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.Circle" parent="">

@@ -63,11 +63,13 @@
 
 	</com.google.android.material.search.SearchView>
 
+	<!-- Phase 11: Expressive cradle margins - more horizontal+vertical inset for the floating feel. -->
 	<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 		android:id="@+id/fab"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginHorizontal="16dp"
+		android:layout_marginHorizontal="20dp"
+		android:layout_marginBottom="12dp"
 		android:text="@string/_continue"
 		android:visibility="gone"
 		app:icon="@drawable/ic_read"
