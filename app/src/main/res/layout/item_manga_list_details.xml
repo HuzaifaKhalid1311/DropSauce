@@ -114,6 +114,16 @@
 			tools:number="8"
 			tools:visibility="visible" />
 
+		<!-- Phase 16: Material 3 Expressive selection checkmark -->
+		<org.koitharu.kotatsu.core.ui.widget.SelectionCheckmarkView
+			android:id="@+id/selectionCheckmark"
+			android:layout_width="28dp"
+			android:layout_height="28dp"
+			android:layout_margin="6dp"
+			android:duplicateParentState="true"
+			app:layout_constraintEnd_toEndOf="@id/imageView_cover"
+			app:layout_constraintTop_toTopOf="@id/imageView_cover" />
+
 	</androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

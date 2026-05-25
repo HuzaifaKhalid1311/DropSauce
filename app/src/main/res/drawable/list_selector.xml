@@ -12,7 +12,7 @@
 				android:top="2dp">
 				<shape android:shape="rectangle">
 					<corners android:radius="@dimen/list_selector_corner" />
-					<solid android:color="@color/selector_overlay" />
+					<solid android:color="?attr/colorSecondaryContainer" />
 				</shape>
 			</item>
 			<item
@@ -23,7 +23,7 @@
 				android:top="2dp">
 				<shape android:shape="rectangle">
 					<corners android:radius="@dimen/list_selector_corner" />
-					<solid android:color="@color/selector_overlay" />
+					<solid android:color="?attr/colorSecondaryContainer" />
 				</shape>
 			</item>
 			<item
@@ -34,7 +34,7 @@
 				android:top="2dp">
 				<shape android:shape="rectangle">
 					<corners android:radius="@dimen/list_selector_corner" />
-					<solid android:color="@color/selector_overlay" />
+					<solid android:color="?attr/colorSecondaryContainer" />
 				</shape>
 			</item>
 		</selector>
