@@ -25,6 +25,19 @@
         android:summary="@string/black_dark_theme_summary"
         android:title="@string/black_dark_theme" />
 
+    <SwitchPreferenceCompat
+        android:icon="@drawable/ic_auto_fix"
+        android:key="dynamic_color"
+        android:summary="@string/dynamic_color_summary"
+        android:title="@string/dynamic_color" />
+
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:icon="@drawable/ic_tap"
+        android:key="enable_haptics"
+        android:summary="@string/enable_haptics_summary"
+        android:title="@string/enable_haptics" />
+
     <org.koitharu.kotatsu.settings.utils.ActivityListPreference
         android:icon="@drawable/ic_language"
         android:key="app_locale"
