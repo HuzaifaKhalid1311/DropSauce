@@ -398,7 +398,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 
 	var sourcesSortOrder: SourcesSortOrder
-		get() = prefs.getEnumValue(KEY_SOURCES_ORDER, SourcesSortOrder.LAST_USED)
+		get() = prefs.getEnumValue(KEY_SOURCES_ORDER, SourcesSortOrder.ALPHABETIC)
 		set(value) = prefs.edit { putEnumValue(KEY_SOURCES_ORDER, value) }
 
 	var isSourcesGridMode: Boolean
@@ -434,6 +434,20 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		val key = "$pkgName:$lang"
 		if (enabled) current.remove(key) else current.add(key)
 		mihonPerExtDisabledLangs = current
+	}
+
+	var mihonSelectedLanguages: Set<String>
+		get() = prefs.getStringSet(KEY_MIHON_SELECTED_LANGUAGES, emptySet()).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_MIHON_SELECTED_LANGUAGES, value) }
+
+	fun getMihonSelectedLanguage(pkgName: String): String? {
+		val prefix = "$pkgName:"
+		return mihonSelectedLanguages.firstOrNull { it.startsWith(prefix) }?.substringAfter(':')
+	}
+
+	fun setMihonSelectedLanguage(pkgName: String, lang: String) {
+		val prefix = "$pkgName:"
+		mihonSelectedLanguages = mihonSelectedLanguages.filterNotTo(HashSet()) { it.startsWith(prefix) } + "$pkgName:$lang"
 	}
 
 	var externalExtensionsRepoUrl: String?
@@ -931,6 +945,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_PREFERRED_LANGUAGES = "sources_preferred_languages"
 		const val KEY_MIHON_PREFERRED_LANGUAGES = "mihon_preferred_languages"
 		const val KEY_MIHON_PER_EXT_DISABLED_LANGS = "mihon_per_ext_disabled_langs"
+		const val KEY_MIHON_SELECTED_LANGUAGES = "mihon_selected_languages"
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_BACKUP_INCLUDE_LIBRARY = "backup_include_library"
 		const val KEY_BACKUP_INCLUDE_APP_SETTINGS = "backup_include_app_settings"

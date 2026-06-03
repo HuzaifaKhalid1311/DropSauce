@@ -106,6 +106,7 @@ class SettingsActivity :
 	}
 
 	fun setSectionTitle(title: CharSequence?) {
+		supportActionBar?.subtitle = null
 		viewBinding.textViewHeader?.apply {
 			textAndVisible = title
 		} ?: setTitle(title ?: getString(R.string.settings))
@@ -133,6 +134,17 @@ class SettingsActivity :
 			if (!isMasterDetails || (hasFragment && !isFromRoot)) {
 				addToBackStack(null)
 			}
+		}
+	}
+
+	fun replaceCurrentFragment(fragmentClass: Class<out Fragment>, args: Bundle?) {
+		viewModel.discardSearch()
+		val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, fragmentClass.name).apply {
+			arguments = args
+		}
+		supportFragmentManager.commit {
+			setReorderingAllowed(true)
+			replace(R.id.container, fragment)
 		}
 	}
 

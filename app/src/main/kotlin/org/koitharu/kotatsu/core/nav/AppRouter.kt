@@ -836,6 +836,7 @@ class AppRouter private constructor(
         const val KEY_SORT_ORDER = "sort_order"
         const val KEY_SOURCE_CATALOG_EXTERNAL_ONLY = "source_catalog_external_only"
         const val KEY_SOURCE = "source"
+        const val KEY_RETURN_TO_SOURCE_ON_LANGUAGE_CHANGE = "return_to_source_on_language_change"
         const val KEY_TAB = "tab"
         const val KEY_TITLE = "title"
         const val KEY_URL = "url"

@@ -11,14 +11,20 @@ data class MihonMangaSource(
 	val hasLanguageSuffix: Boolean = false,
 ) : MangaSource {
 	override val name: String
-		get() = "MIHON_${catalogueSource.id}"
+		get() = "MIHON_${catalogueSource.id}:$language"
 
 	val displayName: String
 		get() = if (hasLanguageSuffix) {
-			"${catalogueSource.name} (${getExternalExtensionLanguageDisplayName(language)})"
+			"$displayNameWithoutLanguage ($languageDisplayName)"
 		} else {
-			catalogueSource.name
+			displayNameWithoutLanguage
 		}
+
+	val displayNameWithoutLanguage: String
+		get() = catalogueSource.name
+
+	val languageDisplayName: String
+		get() = getExternalExtensionLanguageDisplayName(language)
 
 	val language: String
 		get() = catalogueSource.lang
@@ -31,13 +37,22 @@ data class MihonMangaSource(
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
-		if (other !is MangaSource) return false
-		val raw = other.name.removePrefix("MIHON_").substringBefore(':')
-		return raw.toLongOrNull() == sourceId
+		return when (other) {
+			is MihonMangaSource -> sourceId == other.sourceId && language == other.language
+			is MangaSource -> {
+				val raw = other.name.removePrefix("MIHON_")
+				val otherId = raw.substringBefore(':').toLongOrNull() ?: return false
+				val otherLanguage = raw.substringAfter(':', missingDelimiterValue = "")
+				sourceId == otherId && (otherLanguage.isEmpty() || language == otherLanguage)
+			}
+			else -> false
+		}
 	}
 
 	override fun hashCode(): Int {
-		return sourceId.hashCode()
+		var result = sourceId.hashCode()
+		result = 31 * result + language.hashCode()
+		return result
 	}
 
 	override fun toString(): String {

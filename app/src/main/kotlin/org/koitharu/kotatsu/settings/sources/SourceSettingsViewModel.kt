@@ -12,9 +12,11 @@ import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
+import org.koitharu.kotatsu.explore.data.getMihonLanguageCandidates
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,20 +50,24 @@ class SourceSettingsViewModel @Inject constructor(
 		return mihonExtensionManager.getMihonMangaSources().filter { it.pkgName == pkgName }
 	}
 
-	fun isMihonSourceLangEnabled(pkgName: String, lang: String): Boolean =
-		settings.isMihonSourceLangEnabled(pkgName, lang)
-
-	fun setMihonSourceLangEnabled(pkgName: String, lang: String, enabled: Boolean) {
-		settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
-	}
-
-	fun setMihonSourceLangsEnabled(pkgName: String, langs: Collection<String>, enabled: Boolean) {
-		for (lang in langs) {
-			settings.setMihonSourceLangEnabled(pkgName, lang, enabled)
+	fun getSelectedMihonSourceLang(pkgName: String, langs: Collection<String>): String? {
+		val selected = settings.getMihonSelectedLanguage(pkgName)
+		if (selected != null && selected in langs) {
+			return selected
 		}
+		return langs.pickByPreferredLanguage(getMihonLanguageCandidates())
 	}
 
-	fun areAllMihonSourceLangsEnabled(pkgName: String, langs: Collection<String>): Boolean {
-		return langs.all { settings.isMihonSourceLangEnabled(pkgName, it) }
+	fun setSelectedMihonSourceLang(pkgName: String, lang: String) {
+		settings.setMihonSelectedLanguage(pkgName, lang)
 	}
+}
+
+private fun Collection<String>.pickByPreferredLanguage(languageCandidates: Collection<String>): String? {
+	if (isEmpty()) return null
+	val byLanguage = associateBy { it.lowercase(Locale.ROOT) }
+	for (candidate in languageCandidates) {
+		byLanguage[candidate.lowercase(Locale.ROOT)]?.let { return it }
+	}
+	return byLanguage["en"] ?: first()
 }

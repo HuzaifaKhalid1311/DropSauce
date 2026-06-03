@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import androidx.core.os.LocaleListCompat
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.getTitle
@@ -16,6 +17,7 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,8 +35,7 @@ class MangaSourcesRepository @Inject constructor(
 		return buildSortedSourceInfoList(getMihonSources()).map { it.mangaSource }
 	}
 
-	/** All installed sources including those disabled via per-extension language toggles
-	 *  (still respects the NSFW filter). Used by suggestions when "include disabled sources" is on. */
+	/** All installed sources, including non-selected languages, while still respecting the NSFW filter. */
 	fun getAllSources(): List<MangaSource> {
 		return buildSortedSourceInfoList(getAllMihonSources()).map { it.mangaSource }
 	}
@@ -199,14 +200,32 @@ class MangaSourcesRepository @Inject constructor(
 		val manager = mihonExtensionManager ?: return emptyList()
 		manager.initialize()
 		val sources = manager.getMihonMangaSources()
-		val preferredLangs = settings.mihonPreferredLanguages
-		val disabledLangs = settings.mihonPerExtDisabledLangs
 		val hideNsfw = settings.isNsfwContentDisabled
-		return sources.filter { source ->
-			val isPreferredLang = preferredLangs.isEmpty() || source.language in preferredLangs
-			val isEnabled = "${source.pkgName}:${source.language}" !in disabledLangs
-			val isNsfwOk = !hideNsfw || !source.isNsfw
-			isPreferredLang && isEnabled && isNsfwOk
+		return sources
+			.filter { source -> !hideNsfw || !source.isNsfw }
+			.groupBy { it.pkgName }
+			.values
+			.mapNotNull(::selectSourceForPackage)
+	}
+
+	private fun selectSourceForPackage(sources: List<MihonMangaSource>): MihonMangaSource? {
+		if (sources.isEmpty()) return null
+		val pkgName = sources.first().pkgName
+		val selectedLang = settings.getMihonSelectedLanguage(pkgName)
+		if (selectedLang != null) {
+			sources.firstOrNull { it.language == selectedLang }?.let { return it }
+		}
+		val legacyEnabledLangs = sources
+			.filter { settings.isMihonSourceLangEnabled(pkgName, it.language) }
+			.mapTo(HashSet()) { it.language }
+		if (legacyEnabledLangs.size == 1) {
+			sources.firstOrNull { it.language in legacyEnabledLangs }?.let {
+				settings.setMihonSelectedLanguage(pkgName, it.language)
+				return it
+			}
+		}
+		return sources.pickByPreferredLanguage(getMihonLanguageCandidates())?.also {
+			settings.setMihonSelectedLanguage(pkgName, it.language)
 		}
 	}
 
@@ -226,10 +245,10 @@ class MangaSourcesRepository @Inject constructor(
 		return combine(
 			manager.installedExtensions,
 			manager.isLoading,
-			settings.observeAsFlow(AppSettings.KEY_MIHON_PREFERRED_LANGUAGES) { mihonPreferredLanguages },
 			settings.observeAsFlow(AppSettings.KEY_MIHON_PER_EXT_DISABLED_LANGS) { mihonPerExtDisabledLangs },
+			settings.observeAsFlow(AppSettings.KEY_MIHON_SELECTED_LANGUAGES) { mihonSelectedLanguages },
 			settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled },
-		) { _: Any?, _: Any?, _: Any?, _: Any?, _: Any? ->
+		) {
 			getMihonSources()
 		}.distinctUntilChanged()
 	}
@@ -260,4 +279,23 @@ class MangaSourcesRepository @Inject constructor(
 		private const val KEY_PINNED_ORDER = "pinned_order"
 		private const val PIN_SEPARATOR = "\n"
 	}
+}
+
+fun List<MihonMangaSource>.pickByPreferredLanguage(languageCandidates: Collection<String>): MihonMangaSource? {
+	if (isEmpty()) return null
+	val byLanguage = associateBy { it.language.lowercase(Locale.ROOT) }
+	for (candidate in languageCandidates) {
+		byLanguage[candidate.lowercase(Locale.ROOT)]?.let { return it }
+	}
+	return byLanguage["en"] ?: first()
+}
+
+fun getMihonLanguageCandidates(localeList: LocaleListCompat = LocaleListCompat.getAdjustedDefault()): List<String> {
+	val result = LinkedHashSet<String>()
+	for (i in 0 until localeList.size()) {
+		val locale = localeList.get(i) ?: continue
+		result += locale.toLanguageTag()
+		result += locale.language
+	}
+	return result.toList()
 }

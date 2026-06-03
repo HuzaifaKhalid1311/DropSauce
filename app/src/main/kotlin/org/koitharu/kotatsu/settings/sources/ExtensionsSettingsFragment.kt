@@ -87,7 +87,7 @@ private fun ExtensionsScreen(
 		ctx.resources.getStringArray(R.array.incognito_nsfw_values).toList()
 	}
 
-	var sortOrder by rememberStringPref(AppSettings.KEY_SOURCES_ORDER, SourcesSortOrder.LAST_USED.name)
+	var sortOrder by rememberStringPref(AppSettings.KEY_SOURCES_ORDER, SourcesSortOrder.ALPHABETIC.name)
 	var grid by rememberBooleanPref(AppSettings.KEY_SOURCES_GRID, true)
 	var noNsfw by rememberBooleanPref(AppSettings.KEY_DISABLE_NSFW, false)
 	var tagsWarnings by rememberBooleanPref(AppSettings.KEY_TAGS_WARNINGS, true)

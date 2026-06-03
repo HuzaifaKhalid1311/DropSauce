@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.settings.sources
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -17,18 +18,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.RadioButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.MultiSelectListPreference
@@ -42,7 +41,7 @@ import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
-import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.getTitleWithInlineLanguage
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
@@ -53,6 +52,7 @@ import org.koitharu.kotatsu.core.util.ext.withArgs
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.settings.SettingsActivity
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
@@ -60,6 +60,7 @@ import org.koitharu.kotatsu.settings.compose.EditTextSettingsItem
 import org.koitharu.kotatsu.settings.compose.InfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
+import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
@@ -74,9 +75,7 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 
 	override fun onResume() {
 		super.onResume()
-		val ctx = context ?: return
-		(activity as? org.koitharu.kotatsu.settings.SettingsActivity)
-			?.setSectionTitle(viewModel.source.getTitle(ctx))
+		updateSectionTitle()
 	}
 
 	override fun onCreateView(
@@ -93,7 +92,7 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		val openBrowserUrl = ((repo as? MihonMangaRepository)?.mihonSource as? HttpSource)
 			?.baseUrl?.takeIf { it.isNotBlank() }
 		val uninstallPkg = (repo as? MihonMangaRepository)?.source?.pkgName
-		val languageToggles = buildLanguageToggles()
+		val languageSelection = buildLanguageSelection()
 
 		setContent {
 			DropSauceTheme {
@@ -101,7 +100,7 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 					sourcePrefs = sourcePrefs,
 					isValidSource = isValidSource,
 					mihonSections = mihonSections,
-					languageToggles = languageToggles,
+					languageSelection = languageSelection,
 					openBrowserUrl = openBrowserUrl,
 					uninstallPkg = uninstallPkg,
 					onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
@@ -141,21 +140,45 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		return buildSections(screen)
 	}
 
-	private fun buildLanguageToggles(): LanguageToggles? {
+	private fun buildLanguageSelection(): LanguageSelection? {
 		val repo = viewModel.repository as? MihonMangaRepository ?: return null
 		val pkgName = repo.source.pkgName
 		val siblings = viewModel.getSiblingMihonSources().sortedBy { it.language }
 		if (siblings.size <= 1) return null
 		val langs = siblings.map { it.language }
-		return LanguageToggles(
-			pkgName = pkgName,
+		return LanguageSelection(
 			languages = langs.map { lang ->
-				LanguageEntry(lang, getExternalExtensionLanguageDisplayName(lang))
+				val source = siblings.first { it.language == lang }
+				LanguageEntry(
+					lang = lang,
+					displayName = getExternalExtensionLanguageDisplayName(lang),
+					sourceName = source.name,
+				)
 			},
-			isLangEnabled = { lang -> viewModel.isMihonSourceLangEnabled(pkgName, lang) },
-			setLangEnabled = { lang, enabled -> viewModel.setMihonSourceLangEnabled(pkgName, lang, enabled) },
-			areAllEnabled = { viewModel.areAllMihonSourceLangsEnabled(pkgName, langs) },
-			setAllEnabled = { enabled -> viewModel.setMihonSourceLangsEnabled(pkgName, langs, enabled) },
+			selectedLanguage = viewModel.getSelectedMihonSourceLang(pkgName, langs),
+			setSelectedLanguage = ::setSelectedLanguage,
+		)
+	}
+
+	private fun updateSectionTitle() {
+		val ctx = context ?: return
+		(activity as? SettingsActivity)?.setSectionTitle(viewModel.source.getTitleWithInlineLanguage(ctx))
+	}
+
+	private fun setSelectedLanguage(entry: LanguageEntry) {
+		val repo = viewModel.repository as? MihonMangaRepository ?: return
+		viewModel.setSelectedMihonSourceLang(repo.source.pkgName, entry.lang)
+		if (entry.sourceName == viewModel.source.name) {
+			updateSectionTitle()
+			return
+		}
+		if (shouldReturnToSourceOnLanguageChange()) {
+			finishWithSelectedSource(entry.sourceName)
+			return
+		}
+		(activity as? SettingsActivity)?.replaceCurrentFragment(
+			SourceSettingsFragment::class.java,
+			newInstance(entry.sourceName).arguments,
 		)
 	}
 
@@ -173,6 +196,18 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 			Intent.ACTION_UNINSTALL_PACKAGE
 		}
 		startActivity(Intent(action, uri))
+	}
+
+	private fun finishWithSelectedSource(sourceName: String) {
+		requireActivity().setResult(
+			Activity.RESULT_OK,
+			Intent().putExtra(AppRouter.KEY_SOURCE, sourceName),
+		)
+		requireActivity().finish()
+	}
+
+	private fun shouldReturnToSourceOnLanguageChange(): Boolean {
+		return activity?.intent?.getBooleanExtra(AppRouter.KEY_RETURN_TO_SOURCE_ON_LANGUAGE_CHANGE, false) == true
 	}
 
 	/** Splits a populated [PreferenceScreen] into sections: each PreferenceCategory becomes its
@@ -206,23 +241,22 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 	}
 
 	companion object {
-		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {
-			putString(AppRouter.KEY_SOURCE, source.name)
+		fun newInstance(source: MangaSource) = newInstance(source.name)
+
+		private fun newInstance(sourceName: String) = SourceSettingsFragment().withArgs(1) {
+			putString(AppRouter.KEY_SOURCE, sourceName)
 		}
 	}
 }
 
 private data class PreferenceSection(val title: String?, val preferences: List<Preference>)
 
-private class LanguageEntry(val lang: String, val displayName: String)
+private class LanguageEntry(val lang: String, val displayName: String, val sourceName: String)
 
-private class LanguageToggles(
-	val pkgName: String,
+private class LanguageSelection(
 	val languages: List<LanguageEntry>,
-	val isLangEnabled: (String) -> Boolean,
-	val setLangEnabled: (String, Boolean) -> Unit,
-	val areAllEnabled: () -> Boolean,
-	val setAllEnabled: (Boolean) -> Unit,
+	val selectedLanguage: String?,
+	val setSelectedLanguage: (LanguageEntry) -> Unit,
 )
 
 @Composable
@@ -230,7 +264,7 @@ private fun SourceSettingsScreen(
 	sourcePrefs: SharedPreferences,
 	isValidSource: Boolean,
 	mihonSections: List<PreferenceSection>,
-	languageToggles: LanguageToggles?,
+	languageSelection: LanguageSelection?,
 	openBrowserUrl: String?,
 	uninstallPkg: String?,
 	onBack: () -> Unit,
@@ -291,10 +325,10 @@ private fun SourceSettingsScreen(
 			}
 		}
 
-		if (languageToggles != null) {
+		if (languageSelection != null) {
 			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 			item {
-				LanguageTogglesGroup(languageToggles)
+				LanguageSelectionGroup(languageSelection)
 			}
 		}
 
@@ -414,37 +448,29 @@ private fun MihonPreferenceRow(
 }
 
 @Composable
-private fun LanguageTogglesGroup(toggles: LanguageToggles) {
-	// Single hoisted source of truth so toggling "All languages" updates every per-language
-	// switch immediately (previously each row kept its own state and only synced on re-entry).
-	val states = remember(toggles) {
-		mutableStateMapOf<String, Boolean>().apply {
-			toggles.languages.forEach { put(it.lang, toggles.isLangEnabled(it.lang)) }
-		}
+private fun LanguageSelectionGroup(selection: LanguageSelection) {
+	var selectedLang by remember(selection) {
+		mutableStateOf(selection.selectedLanguage ?: selection.languages.firstOrNull()?.lang)
 	}
-	val allEnabled = toggles.languages.isNotEmpty() && toggles.languages.all { states[it.lang] == true }
 	SettingsGroup(title = stringResource(R.string.languages)) {
-		item { pos ->
-			SwitchSettingsItem(
-				title = stringResource(R.string.all_languages),
-				checked = allEnabled,
-				onCheckedChange = { enabled ->
-					toggles.setAllEnabled(enabled)
-					toggles.languages.forEach { states[it.lang] = enabled }
-				},
-				shape = pos.shape,
-			)
-		}
-		toggles.languages.forEach { entry ->
+		selection.languages.forEach { entry ->
 			item { pos ->
-				SwitchSettingsItem(
+				SettingsItem(
 					title = entry.displayName,
-					checked = states[entry.lang] == true,
-					onCheckedChange = { value ->
-						toggles.setLangEnabled(entry.lang, value)
-						states[entry.lang] = value
+					onClick = {
+						selectedLang = entry.lang
+						selection.setSelectedLanguage(entry)
 					},
 					shape = pos.shape,
+					trailing = {
+						RadioButton(
+							selected = selectedLang == entry.lang,
+							onClick = {
+								selectedLang = entry.lang
+								selection.setSelectedLanguage(entry)
+							},
+						)
+					},
 				)
 			}
 		}

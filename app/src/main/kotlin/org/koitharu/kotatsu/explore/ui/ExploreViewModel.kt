@@ -29,6 +29,7 @@ import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
 import org.koitharu.kotatsu.list.ui.model.EmptyHint
+import org.koitharu.kotatsu.list.ui.model.InfoModel
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
@@ -153,7 +154,7 @@ class ExploreViewModel @Inject constructor(
 		isGrid: Boolean,
 		randomLoading: Boolean,
 	): List<ListModel> {
-		val result = ArrayList<ListModel>(sources.size + 3)
+		val result = ArrayList<ListModel>(sources.size + 4)
 		result += ExploreButtons(randomLoading)
 		if (recommendation.isNotEmpty()) {
 			result += ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions)
@@ -173,6 +174,14 @@ class ExploreViewModel @Inject constructor(
 				textPrimary = R.string.no_external_source_installed,
 				textSecondary = R.string.manage_manga_extensions_from_settings_icon,
 				actionStringRes = NO_ACTION_STRING_RES,
+			)
+		}
+		if (sources.isNotEmpty()) {
+			result += InfoModel(
+				key = KEY_EXTENSION_LANGUAGE_NOTE,
+				title = R.string.languages,
+				text = R.string.extension_language_settings_note,
+				icon = R.drawable.ic_language,
 			)
 		}
 		return result
@@ -205,6 +214,7 @@ class ExploreViewModel @Inject constructor(
 	companion object {
 
 		private const val TIP_SUGGESTIONS = "suggestions"
+		private const val KEY_EXTENSION_LANGUAGE_NOTE = "extension_language_note"
 		private const val SUGGESTIONS_COUNT = 8
 		private const val NO_ACTION_STRING_RES = 0
 	}

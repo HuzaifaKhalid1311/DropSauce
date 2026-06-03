@@ -18,15 +18,18 @@ import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
+import org.koitharu.kotatsu.explore.data.getMihonLanguageCandidates
+import org.koitharu.kotatsu.explore.data.pickByPreferredLanguage
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.ContentType
 import java.util.Comparator
 import java.util.EnumSet
 import java.util.LinkedHashSet
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -74,7 +77,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	val locales: StateFlow<Set<String?>> = combine(
 		appliedFilter,
-		mihonSources,
+		allMihonSources,
 		availableRepoEntries,
 	) { _, sources, repoEntries ->
 		val localeSet = LinkedHashSet<String?>()
@@ -181,10 +184,13 @@ class SourcesCatalogViewModel @Inject constructor(
 						onShowMessage.call(R.string.extensions_repo_required)
 						return@launchJob
 					}
-					val entry = getAvailableEntries(repoUrl, forceRefresh = false).firstOrNull { it.packageName == item.packageName } ?: run {
+					val entry = getAvailableEntries(repoUrl, forceRefresh = false)
+						.filter { it.packageName == item.packageName }
+						.pickByPreferredLanguage(item.selectedLanguage?.let(::listOf) ?: getMihonLanguageCandidates()) ?: run {
 						onShowMessage.call(R.string.nothing_found)
 						return@launchJob
 					}
+					entry.lang?.let { settings.setMihonSelectedLanguage(item.packageName, it) }
 					emitInstallRequests(
 						listOf(
 							InstallRequest(
@@ -213,6 +219,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			}
 			emitInstallRequests(
 				updateEntries.map { entry ->
+					entry.lang?.let { settings.setMihonSelectedLanguage(entry.packageName, it) }
 					InstallRequest(
 						packageName = entry.packageName,
 						url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
@@ -248,9 +255,11 @@ class SourcesCatalogViewModel @Inject constructor(
 	private suspend fun getUpdatableEntries(repoUrl: String): List<ExternalExtensionRepoEntry> {
 		val installedByPkg = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
 		return getAvailableEntries(repoUrl, forceRefresh = false)
-			.filter { entry ->
-				val local = installedByPkg[entry.packageName] ?: return@filter false
-				entry.versionCode > local.versionCode
+			.groupBy { it.packageName }
+			.mapNotNull { (_, entries) ->
+				val entry = entries.pickByPreferredLanguage(getMihonLanguageCandidates()) ?: return@mapNotNull null
+				val local = installedByPkg[entry.packageName] ?: return@mapNotNull null
+				entry.takeIf { it.versionCode > local.versionCode }
 			}
 			.sortedBy { it.name.lowercase() }
 	}
@@ -289,6 +298,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val locale = filter.locale
 		val q = query?.takeIf { it.isNotBlank() }
 		val inProgressPackages = installingPackages.value
+		val languageCandidates = getMihonLanguageCandidates()
 
 		for (local in installed.values) {
 			if (settings.isNsfwContentDisabled && local.isNsfw) continue
@@ -297,65 +307,55 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (q != null && !local.appName.contains(q, ignoreCase = true) && !local.pkgName.contains(q, ignoreCase = true)) continue
 
 			val pkgSources = allInstalledSourcesByPkg[local.pkgName] ?: installedSourcesByPkg[local.pkgName]
-			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
-			val subtitle = buildString {
-				append(getExternalExtensionLanguageDisplayName(local.lang))
-				append(" • ")
-				append(local.versionName)
-				if (local.isNsfw) {
-					append(" • 18+")
-				}
-			}
+			val source = pkgSources.selectCatalogSource(local.pkgName, languageCandidates)
+			val displaySubtitle = buildExtensionSubtitle(local.versionName, local.isNsfw)
 			installedItems[local.pkgName] = SourceCatalogItem.Extension(
 				packageName = local.pkgName,
 				title = local.appName.removePrefix("Tachiyomi: ").trim(),
-				subtitle = subtitle,
+				subtitle = displaySubtitle,
 				action = SourceCatalogItem.Extension.Action.UNINSTALL,
 				isInProgress = local.pkgName in inProgressPackages,
 				iconUrl = null,
 				sourceIconName = source?.name,
 				sourceName = source?.name,
+				selectedLanguage = source?.language ?: local.lang,
 			)
 		}
 
-		for (entry in available) {
+		for ((packageName, packageEntries) in available.groupBy { it.packageName }) {
+			val entry = packageEntries.pickByPreferredLanguage(languageCandidates) ?: continue
 			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
-			if (locale != null && entry.lang != locale) continue
+			if (locale != null && packageEntries.none { it.lang == locale }) continue
 			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
 
-			val local = installed[entry.packageName]
-			val pkgSources = allInstalledSourcesByPkg[entry.packageName] ?: installedSourcesByPkg[entry.packageName]
-			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
-			val subtitle = buildString {
-				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
-				append(" • ")
-				append(entry.versionName)
-				if (entry.isNsfw != 0) {
-					append(" • 18+")
-				}
-			}
-			val iconUrl = repoUrl?.let { externalRepoRepository.resolveIconUrl(it, entry.packageName) }
+			val local = installed[packageName]
+			val pkgSources = allInstalledSourcesByPkg[packageName] ?: installedSourcesByPkg[packageName]
+			val source = pkgSources.selectCatalogSource(packageName, languageCandidates)
+			val displaySubtitle = buildExtensionSubtitle(entry.versionName, entry.isNsfw != 0)
+			val iconUrl = repoUrl?.let { externalRepoRepository.resolveIconUrl(it, packageName) }
 			when {
 				local == null -> availableItems += SourceCatalogItem.Extension(
-					packageName = entry.packageName,
+					packageName = packageName,
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
-					subtitle = subtitle,
+					subtitle = displaySubtitle,
 					action = SourceCatalogItem.Extension.Action.INSTALL,
-					isInProgress = entry.packageName in inProgressPackages,
+					isInProgress = packageName in inProgressPackages,
 					iconUrl = iconUrl,
 					sourceIconName = source?.name,
+					selectedLanguage = entry.lang,
 				)
 				entry.versionCode > local.versionCode -> pending += SourceCatalogItem.Extension(
-					packageName = entry.packageName,
+					packageName = packageName,
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
-					subtitle = subtitle,
+					subtitle = displaySubtitle,
 					action = SourceCatalogItem.Extension.Action.UPDATE,
-					isInProgress = entry.packageName in inProgressPackages,
+					isInProgress = packageName in inProgressPackages,
 					iconUrl = iconUrl,
 					sourceIconName = source?.name,
 					sourceName = source?.name,
+					selectedLanguage = source?.language ?: entry.lang,
 				).also {
-					packagesWithUpdates += entry.packageName
+					packagesWithUpdates += packageName
 				}
 				else -> Unit
 			}
@@ -416,6 +416,27 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
+	private fun List<MihonMangaSource>?.selectCatalogSource(
+		packageName: String,
+		languageCandidates: Collection<String>,
+	): MihonMangaSource? {
+		val sources = this.orEmpty()
+		val selectedLang = settings.getMihonSelectedLanguage(packageName)
+		if (selectedLang != null) {
+			sources.firstOrNull { it.language == selectedLang }?.let { return it }
+		}
+		return sources.pickByPreferredLanguage(languageCandidates)
+	}
+
+	private fun buildExtensionSubtitle(versionName: String, isNsfw: Boolean): String {
+		return buildString {
+			append(versionName)
+			if (isNsfw) {
+				append(" - 18+")
+			}
+		}
+	}
+
 	private suspend fun getAvailableEntries(repoUrl: String, forceRefresh: Boolean): List<ExternalExtensionRepoEntry> {
 		return externalRepoRepository.getExtensions(repoUrl, forceRefresh)
 	}
@@ -438,4 +459,15 @@ class SourcesCatalogViewModel @Inject constructor(
 		val packageName: String,
 		val url: String,
 	)
+}
+
+private fun List<ExternalExtensionRepoEntry>.pickByPreferredLanguage(
+	languageCandidates: Collection<String>,
+): ExternalExtensionRepoEntry? {
+	if (isEmpty()) return null
+	val byLanguage = associateBy { it.lang.orEmpty().lowercase(Locale.ROOT) }
+	for (candidate in languageCandidates) {
+		byLanguage[candidate.lowercase(Locale.ROOT)]?.let { return it }
+	}
+	return byLanguage["en"] ?: first()
 }

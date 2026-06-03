@@ -5,6 +5,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.viewModels
 import com.google.android.material.snackbar.Snackbar
@@ -13,6 +14,8 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.MangaSource as mangaSourceOf
+import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
@@ -27,11 +30,16 @@ import org.koitharu.kotatsu.filter.ui.FilterCoordinator
 import org.koitharu.kotatsu.list.ui.MangaListFragment
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.search.domain.SearchKind
+import org.koitharu.kotatsu.search.ui.MangaListActivity
 
 @AndroidEntryPoint
 class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner, View.OnClickListener {
 
     override val viewModel by viewModels<RemoteListViewModel>()
+    private val sourceSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val sourceName = result.data?.getStringExtra(AppRouter.KEY_SOURCE) ?: return@registerForActivityResult
+        (activity as? MangaListActivity)?.switchSource(mangaSourceOf(sourceName))
+    }
 
     override val filterCoordinator: FilterCoordinator
         get() = viewModel.filterCoordinator
@@ -121,7 +129,10 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner, View.On
 
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
             R.id.action_source_settings -> {
-                router.openSourceSettings(viewModel.source)
+                sourceSettingsLauncher.launch(
+                    AppRouter.sourceSettingsIntent(requireContext(), viewModel.source)
+                        .putExtra(AppRouter.KEY_RETURN_TO_SOURCE_ON_LANGUAGE_CHANGE, true),
+                )
                 true
             }
 

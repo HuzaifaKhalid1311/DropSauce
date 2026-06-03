@@ -114,9 +114,15 @@ class MihonExtensionManager @Inject constructor(
 	fun getMihonMangaSourceById(sourceId: Long): MihonMangaSource? = facade.getWrappedSourceById(sourceId)
 
 	fun getMihonMangaSourceByName(name: String): MihonMangaSource? {
-		val exact = facade.getWrappedSourceByName(name)
-		if (exact != null) return exact
-		val sourceId = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: return null
+		if (!name.startsWith("MIHON_")) return null
+		val raw = name.removePrefix("MIHON_")
+		val sourceId = raw.substringBefore(':').toLongOrNull() ?: return null
+		val language = raw.substringAfter(':', missingDelimiterValue = "").ifBlank { null }
+		if (language != null) {
+			getMihonMangaSources().firstOrNull { it.sourceId == sourceId && it.language == language }?.let {
+				return it
+			}
+		}
 		return facade.getWrappedSourceById(sourceId)
 	}
 

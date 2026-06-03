@@ -3,7 +3,11 @@ package org.koitharu.kotatsu.core.model
 import android.content.Context
 import android.os.Build
 import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
 import android.text.style.ImageSpan
+import android.text.style.StyleSpan
+import android.graphics.Typeface
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -34,11 +38,12 @@ fun MangaSource(name: String?): MangaSource {
 		LocalMangaSource.name -> return LocalMangaSource
 	}
 	if (name.startsWith("MIHON_")) {
+		MihonExtensionManager.getByName(name)?.let { return it }
 		val sourceId = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
 		if (sourceId != null) {
 			return MihonExtensionManager.getById(sourceId) ?: MissingMangaSource(name)
 		}
-		return MihonExtensionManager.getByName(name) ?: MissingMangaSource(name)
+		return MissingMangaSource(name)
 	}
 	return MissingMangaSource(name)
 }
@@ -106,6 +111,11 @@ fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()
 	else -> context.getString(R.string.unknown)
 }
 
+fun MangaSource.getTitleWithInlineLanguage(context: Context): CharSequence = when (val source = unwrap()) {
+	is MihonMangaSource -> source.displayNameWithInlineLanguage()
+	else -> getTitle(context)
+}
+
 fun MangaSource.isExternalSource(): Boolean = when (val source = unwrap()) {
 	is MihonMangaSource -> true
 	is MissingMangaSource -> source.name.startsWith("MIHON_")
@@ -147,6 +157,19 @@ private fun MissingMangaSource.cachedDisplayNameOrNull(): String? {
 	if (!name.startsWith("MIHON_")) return null
 	val parts = name.removePrefix("MIHON_").split(':', limit = 2)
 	return parts.getOrNull(1)?.ifBlank { null }
+}
+
+private fun MihonMangaSource.displayNameWithInlineLanguage(): CharSequence {
+	if (!hasLanguageSuffix) {
+		return displayNameWithoutLanguage
+	}
+	val title = SpannableStringBuilder(displayNameWithoutLanguage)
+	title.append(' ')
+	val langStart = title.length
+	title.append(languageDisplayName)
+	title.setSpan(RelativeSizeSpan(0.72f), langStart, title.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+	title.setSpan(StyleSpan(Typeface.NORMAL), langStart, title.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+	return title
 }
 
 fun SpannableStringBuilder.appendIcon(textView: TextView, @DrawableRes resId: Int): SpannableStringBuilder {

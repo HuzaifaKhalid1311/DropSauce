@@ -21,10 +21,11 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.getSummary
-import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.getTitleWithInlineLanguage
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaListFilter
+import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
@@ -46,6 +47,7 @@ import org.koitharu.kotatsu.filter.ui.sheet.FilterSheetFragment
 import org.koitharu.kotatsu.list.ui.preview.PreviewFragment
 import org.koitharu.kotatsu.local.ui.LocalListFragment
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -67,7 +69,7 @@ class MangaListActivity :
 	override val filterCoordinator: FilterCoordinator
 		get() = checkNotNull(findFilterOwner()) {
 			"Cannot find FilterCoordinator.Owner fragment in ${supportFragmentManager.fragments}"
-		}.filterCoordinator
+	}.filterCoordinator
 
 	private lateinit var source: MangaSource
 
@@ -85,7 +87,7 @@ class MangaListActivity :
 			viewBinding.appbar.addOnOffsetChangedListener(this)
 		}
 		viewBinding.buttonOrder?.setOnClickListener(this)
-		title = source.getTitle(this)
+		updateSourceTitle()
 		initList(source, filter, sortOrder)
 	}
 
@@ -131,10 +133,10 @@ class MangaListActivity :
 
 	fun hidePreview() = setSideFragment(FilterSheetFragment::class.java, null)
 
-	private fun initList(source: MangaSource, filter: MangaListFilter?, sortOrder: SortOrder?) {
+	private fun initList(source: MangaSource, filter: MangaListFilter?, sortOrder: SortOrder?, forceReplace: Boolean = false) {
 		val fm = supportFragmentManager
 		val existingFragment = fm.findFragmentById(R.id.container)
-		if (existingFragment is FilterCoordinator.Owner) {
+		if (!forceReplace && existingFragment is FilterCoordinator.Owner) {
 			initFilter(existingFragment)
 		} else {
 			fm.commit {
@@ -213,5 +215,28 @@ class MangaListActivity :
 				filterOwner.filterCoordinator.setAdjusted(filter)
 			}
 		}
+	}
+
+	private fun shouldSwitchTo(nextSource: MangaSource): Boolean {
+		if (nextSource == source) {
+			return false
+		}
+		val currentMihon = source.unwrap() as? MihonMangaSource ?: return false
+		val nextMihon = nextSource.unwrap() as? MihonMangaSource ?: return false
+		return currentMihon.pkgName == nextMihon.pkgName
+	}
+
+	fun switchSource(nextSource: MangaSource) {
+		if (!shouldSwitchTo(nextSource)) {
+			return
+		}
+		source = nextSource
+		updateSourceTitle()
+		initList(source, filter = null, sortOrder = null, forceReplace = true)
+	}
+
+	private fun updateSourceTitle() {
+		title = source.getTitleWithInlineLanguage(this)
+		supportActionBar?.subtitle = null
 	}
 }
