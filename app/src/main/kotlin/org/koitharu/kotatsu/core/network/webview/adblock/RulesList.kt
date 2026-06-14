@@ -52,7 +52,7 @@ class RulesList {
 				substring(2).substringBefore('^').trim().addImpl(!isWhitelist, modifiers)
 			}
 
-			startsWith("##") -> {
+			contains("##") || contains("#@#") || contains("#?#") || contains("#$#") -> {
 				// TODO css rules
 			}
 
