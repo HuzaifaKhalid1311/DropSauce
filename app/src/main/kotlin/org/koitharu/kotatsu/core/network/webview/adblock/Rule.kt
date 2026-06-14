@@ -50,6 +50,12 @@ sealed interface Rule {
 					return false
 				}
 			}
+			if (domainsNot != null && domainsNot.any { baseUrl.host == it || baseUrl.host.endsWith(".$it") }) {
+				return false
+			}
+			if (!domains.isNullOrEmpty() && !domains.any { baseUrl.host == it || baseUrl.host.endsWith(".$it") }) {
+				return false
+			}
 			// TODO check other modifiers
 			return true
 		}
