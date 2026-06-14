@@ -28,6 +28,7 @@ import org.koitharu.kotatsu.core.exceptions.InteractiveActionRequiredException
 import org.koitharu.kotatsu.core.exceptions.NoDataReceivedException
 import org.koitharu.kotatsu.core.exceptions.NonFileUriException
 import org.koitharu.kotatsu.core.exceptions.ProxyConfigException
+import org.koitharu.kotatsu.core.exceptions.WebViewProxyNotSupportedException
 import org.koitharu.kotatsu.core.exceptions.SyncApiException
 import org.koitharu.kotatsu.core.exceptions.UnsupportedFileException
 import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
@@ -106,6 +107,7 @@ private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? = w
     is EmptyHistoryException -> resources.getString(R.string.history_is_empty)
     is EmptyMangaException -> reason?.let { resources.getString(it.msgResId) } ?: cause?.getDisplayMessage(resources)
     is ProxyConfigException -> resources.getString(R.string.invalid_proxy_configuration)
+    is WebViewProxyNotSupportedException -> resources.getString(R.string.webview_proxy_not_supported)
     is SyncApiException,
     is ContentUnavailableException -> message
 

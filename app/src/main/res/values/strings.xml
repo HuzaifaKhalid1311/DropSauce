@@ -847,6 +847,7 @@
     <string name="plugin_incompatible_with_cause">Plugin error: %s\n Make sure you are using the latest version of the plugin and DropSauce</string>
     <string name="connection_ok">Connection is OK</string>
     <string name="invalid_proxy_configuration">Invalid proxy configuration</string>
+    <string name="webview_proxy_not_supported">Proxy for WebView is not supported</string>
     <string name="show_quick_filters">Show quick filters</string>
     <string name="show_quick_filters_summary">Provides the ability to filter manga lists by certain parameters</string>
     <string name="sfw">SFW</string>
