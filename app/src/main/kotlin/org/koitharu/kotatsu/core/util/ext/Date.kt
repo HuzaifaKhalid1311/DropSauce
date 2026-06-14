@@ -16,7 +16,7 @@ fun calculateTimeAgo(instant: Instant, showMonths: Boolean = false): DateTimeAgo
 	val diffDays = localDate.until(now, ChronoUnit.DAYS)
 
 	return when {
-		diffDays < 0 -> null // in future, probably a bug, not supported
+		diffDays < 0 -> DateTimeAgo.JustNow
 		diffDays == 0L -> {
 			if (instant.until(Instant.now(), ChronoUnit.MINUTES) < 3) DateTimeAgo.JustNow
 			else DateTimeAgo.Today
