@@ -13,6 +13,9 @@ import okhttp3.Response
 import okhttp3.Route
 import okio.IOException
 import org.koitharu.kotatsu.core.exceptions.ProxyConfigException
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.network.CommonHeaders
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -30,6 +33,7 @@ import java.net.Authenticator as JavaAuthenticator
 
 @Singleton
 class ProxyProvider @Inject constructor(
+	@ApplicationContext private val context: Context,
 	private val settings: AppSettings,
 ) {
 
@@ -56,7 +60,7 @@ class ProxyProvider @Inject constructor(
 		val isProxyEnabled = isProxyEnabled()
 		if (!WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
 			if (isProxyEnabled) {
-				throw IllegalArgumentException("Proxy for WebView is not supported") // TODO localize
+				throw IllegalArgumentException(context.getString(R.string.proxy_webview_not_supported))
 			}
 		} else {
 			val controller = ProxyController.getInstance()
