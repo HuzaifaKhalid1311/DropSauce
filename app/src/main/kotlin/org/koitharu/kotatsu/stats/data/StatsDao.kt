@@ -56,6 +56,9 @@ abstract class StatsDao {
 	@Upsert
 	abstract suspend fun upsert(entity: StatsEntity)
 
+	@Upsert
+	abstract suspend fun upsert(entities: List<StatsEntity>)
+
 	suspend fun getDurationStats(
 		fromDate: Long,
 		isNsfw: Boolean?,

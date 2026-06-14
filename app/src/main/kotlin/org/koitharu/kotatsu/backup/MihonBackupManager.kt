@@ -403,7 +403,7 @@ class MihonBackupManager @Inject constructor(
         pending.forEach { item -> item.favourites.forEach { db.getFavouritesDao().upsert(it) } }
         pending.forEach { item -> db.getChaptersDao().replaceAll(item.manga.id, item.chapters) }
         pending.forEach { item -> item.history?.let { db.getHistoryDao().upsert(it) } }
-        pending.forEach { item -> item.stats?.let { db.getStatsDao().upsert(it) } }
+        db.getStatsDao().upsert(pending.mapNotNull { it.stats })
         pending.forEach { item ->
             if (item.bookmarks.isNotEmpty()) {
                 db.getBookmarksDao().upsert(item.bookmarks)
