@@ -400,21 +400,29 @@ class MihonBackupManager @Inject constructor(
             .takeIf { it.isNotEmpty() }
             ?.let { db.getTagsDao().upsert(it.toList()) }
         pending.forEach { item -> db.getMangaDao().upsert(item.manga, item.tags) }
-        pending.forEach { item -> item.favourites.forEach { db.getFavouritesDao().upsert(it) } }
+
+        pending.flatMap { it.favourites }
+            .takeIf { it.isNotEmpty() }
+            ?.let { db.getFavouritesDao().upsert(it) }
+
         pending.forEach { item -> db.getChaptersDao().replaceAll(item.manga.id, item.chapters) }
-        pending.forEach { item -> item.history?.let { db.getHistoryDao().upsert(it) } }
-        pending.forEach { item -> item.stats?.let { db.getStatsDao().upsert(it) } }
-        pending.forEach { item ->
-            if (item.bookmarks.isNotEmpty()) {
-                db.getBookmarksDao().upsert(item.bookmarks)
-            }
-        }
-        pending.forEach { item ->
-            item.scrobblings.forEach {
-                db.getScrobblingDao().upsert(it)
-                diagnostics.restoredTrackingCount += 1
-            }
-        }
+
+        pending.mapNotNull { it.history }
+            .takeIf { it.isNotEmpty() }
+            ?.let { db.getHistoryDao().upsert(it) }
+
+        pending.mapNotNull { it.stats }
+            .takeIf { it.isNotEmpty() }
+            ?.let { db.getStatsDao().upsert(it) }
+
+        pending.flatMap { it.bookmarks }
+            .takeIf { it.isNotEmpty() }
+            ?.let { db.getBookmarksDao().upsert(it) }
+
+        pending.flatMap { it.scrobblings }
+            .also { diagnostics.restoredTrackingCount += it.size }
+            .takeIf { it.isNotEmpty() }
+            ?.let { db.getScrobblingDao().upsert(it) }
 
         diagnostics.restoredMangaCount += pending.size
     }

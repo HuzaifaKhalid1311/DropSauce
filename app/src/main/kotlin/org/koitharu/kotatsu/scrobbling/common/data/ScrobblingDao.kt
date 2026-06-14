@@ -24,6 +24,9 @@ abstract class ScrobblingDao {
 	@Upsert
 	abstract suspend fun upsert(entity: ScrobblingEntity)
 
+	@Upsert
+	abstract suspend fun upsert(entities: Iterable<ScrobblingEntity>)
+
 	@Query("DELETE FROM scrobblings WHERE scrobbler = :scrobbler AND manga_id = :mangaId")
 	abstract suspend fun delete(scrobbler: Int, mangaId: Long)
 
