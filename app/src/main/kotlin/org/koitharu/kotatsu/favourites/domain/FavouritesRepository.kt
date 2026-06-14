@@ -231,8 +231,8 @@ class FavouritesRepository @Inject constructor(
 		db.withTransaction {
 			val dao = db.getFavouriteCategoriesDao()
 			dao.clearNewChaptersDownload()
-			for (id in ids) {
-				dao.updateNewChaptersDownload(id, true)
+			if (ids.isNotEmpty()) {
+				dao.updateNewChaptersDownload(ids, true)
 			}
 		}
 	}

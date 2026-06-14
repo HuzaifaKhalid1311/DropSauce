@@ -54,6 +54,9 @@ abstract class FavouriteCategoriesDao {
 	@Query("UPDATE favourite_categories SET download_new_chapters = :isEnabled WHERE category_id = :id")
 	abstract suspend fun updateNewChaptersDownload(id: Long, isEnabled: Boolean)
 
+	@Query("UPDATE favourite_categories SET download_new_chapters = :isEnabled WHERE category_id IN (:ids)")
+	abstract suspend fun updateNewChaptersDownload(ids: Set<Long>, isEnabled: Boolean)
+
 	@Query("UPDATE favourite_categories SET `show_in_lib` = :isEnabled WHERE category_id = :id")
 	abstract suspend fun updateVisibility(id: Long, isEnabled: Boolean)
 
