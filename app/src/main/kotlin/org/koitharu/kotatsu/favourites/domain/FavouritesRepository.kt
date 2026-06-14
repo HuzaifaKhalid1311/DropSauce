@@ -288,9 +288,10 @@ class FavouritesRepository @Inject constructor(
 	}
 
 	suspend fun removeFromFavourites(ids: Collection<Long>): ReversibleHandle {
+		if (ids.isEmpty()) return ReversibleHandle {}
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().delete(mangaId = id)
+			ids.chunked(900).forEach { chunk ->
+				db.getFavouritesDao().delete(mangaIds = chunk)
 			}
 			db.getChaptersDao().gc()
 		}
@@ -298,9 +299,10 @@ class FavouritesRepository @Inject constructor(
 	}
 
 	suspend fun removeFromCategory(categoryId: Long, ids: Collection<Long>): ReversibleHandle {
+		if (ids.isEmpty()) return ReversibleHandle {}
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().delete(categoryId = categoryId, mangaId = id)
+			ids.chunked(900).forEach { chunk ->
+				db.getFavouritesDao().delete(categoryId = categoryId, mangaIds = chunk)
 			}
 			db.getChaptersDao().gc()
 		}
@@ -321,17 +323,19 @@ class FavouritesRepository @Inject constructor(
 	}
 
 	private suspend fun recoverToFavourites(ids: Collection<Long>) {
+		if (ids.isEmpty()) return
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().recover(mangaId = id)
+			ids.chunked(900).forEach { chunk ->
+				db.getFavouritesDao().recover(mangaIds = chunk)
 			}
 		}
 	}
 
 	private suspend fun recoverToCategory(categoryId: Long, ids: Collection<Long>) {
+		if (ids.isEmpty()) return
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().recover(mangaId = id, categoryId = categoryId)
+			ids.chunked(900).forEach { chunk ->
+				db.getFavouritesDao().recover(categoryId = categoryId, mangaIds = chunk)
 			}
 		}
 	}

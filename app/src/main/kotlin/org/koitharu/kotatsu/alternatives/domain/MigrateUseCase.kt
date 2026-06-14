@@ -48,7 +48,7 @@ constructor(
 			val favoritesDao = database.getFavouritesDao()
 			val oldFavourites = favoritesDao.findAllRaw(oldDetails.id)
 			if (oldFavourites.isNotEmpty()) {
-				favoritesDao.delete(oldManga.id)
+				favoritesDao.delete(listOf(oldManga.id))
 				for (f in oldFavourites) {
 					val e =
 						f.copy(
