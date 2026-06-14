@@ -67,12 +67,11 @@ class TypedListSpacingDecoration(
 			ListItemType.NAV_ITEM,
 			ListItemType.CHAPTER_LIST,
 			ListItemType.INFO,
+			ListItemType.TIP,
 			null,
 				-> outRect.set(0)
 
 			ListItemType.CHAPTER_GRID -> outRect.set(spacingSmall)
-
-			ListItemType.TIP -> outRect.set(0) // TODO
 		}
 		if (addHorizontalPadding && !itemType.isEdgeToEdge()) {
 			outRect.set(
