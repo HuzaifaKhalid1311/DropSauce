@@ -187,9 +187,20 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 		deletedAt = System.currentTimeMillis(),
 	)
 
+	suspend fun delete(mangaIds: Collection<Long>) = setDeletedAt(
+		mangaIds = mangaIds,
+		deletedAt = System.currentTimeMillis(),
+	)
+
 	suspend fun delete(mangaId: Long, categoryId: Long) = setDeletedAt(
 		categoryId = categoryId,
 		mangaId = mangaId,
+		deletedAt = System.currentTimeMillis(),
+	)
+
+	suspend fun delete(mangaIds: Collection<Long>, categoryId: Long) = setDeletedAt(
+		categoryId = categoryId,
+		mangaIds = mangaIds,
 		deletedAt = System.currentTimeMillis(),
 	)
 
@@ -203,9 +214,20 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 		deletedAt = 0L,
 	)
 
+	suspend fun recover(mangaIds: Collection<Long>) = setDeletedAt(
+		mangaIds = mangaIds,
+		deletedAt = 0L,
+	)
+
 	suspend fun recover(categoryId: Long, mangaId: Long) = setDeletedAt(
 		categoryId = categoryId,
 		mangaId = mangaId,
+		deletedAt = 0L,
+	)
+
+	suspend fun recover(categoryId: Long, mangaIds: Collection<Long>) = setDeletedAt(
+		categoryId = categoryId,
+		mangaIds = mangaIds,
 		deletedAt = 0L,
 	)
 
@@ -227,8 +249,14 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE manga_id = :mangaId")
 	protected abstract suspend fun setDeletedAt(mangaId: Long, deletedAt: Long)
 
+	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE manga_id IN (:mangaIds)")
+	protected abstract suspend fun setDeletedAt(mangaIds: Collection<Long>, deletedAt: Long)
+
 	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE manga_id = :mangaId AND category_id = :categoryId")
 	protected abstract suspend fun setDeletedAt(categoryId: Long, mangaId: Long, deletedAt: Long)
+
+	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE manga_id IN (:mangaIds) AND category_id = :categoryId")
+	protected abstract suspend fun setDeletedAt(categoryId: Long, mangaIds: Collection<Long>, deletedAt: Long)
 
 	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE category_id = :categoryId AND deleted_at = 0")
 	protected abstract suspend fun setDeletedAtAll(categoryId: Long, deletedAt: Long)

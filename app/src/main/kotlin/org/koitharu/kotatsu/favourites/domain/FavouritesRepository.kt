@@ -289,9 +289,7 @@ class FavouritesRepository @Inject constructor(
 
 	suspend fun removeFromFavourites(ids: Collection<Long>): ReversibleHandle {
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().delete(mangaId = id)
-			}
+			db.getFavouritesDao().delete(mangaIds = ids)
 			db.getChaptersDao().gc()
 		}
 		return ReversibleHandle { recoverToFavourites(ids) }
@@ -299,9 +297,7 @@ class FavouritesRepository @Inject constructor(
 
 	suspend fun removeFromCategory(categoryId: Long, ids: Collection<Long>): ReversibleHandle {
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().delete(categoryId = categoryId, mangaId = id)
-			}
+			db.getFavouritesDao().delete(categoryId = categoryId, mangaIds = ids)
 			db.getChaptersDao().gc()
 		}
 		return ReversibleHandle { recoverToCategory(categoryId, ids) }
@@ -322,17 +318,13 @@ class FavouritesRepository @Inject constructor(
 
 	private suspend fun recoverToFavourites(ids: Collection<Long>) {
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().recover(mangaId = id)
-			}
+			db.getFavouritesDao().recover(mangaIds = ids)
 		}
 	}
 
 	private suspend fun recoverToCategory(categoryId: Long, ids: Collection<Long>) {
 		db.withTransaction {
-			for (id in ids) {
-				db.getFavouritesDao().recover(mangaId = id, categoryId = categoryId)
-			}
+			db.getFavouritesDao().recover(mangaIds = ids, categoryId = categoryId)
 		}
 	}
 }
