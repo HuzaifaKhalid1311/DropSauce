@@ -25,6 +25,8 @@ import coil3.request.allowConversionToBitmap
 import coil3.request.allowHardware
 import coil3.request.lifecycle
 import coil3.size.Scale
+import coil3.target.ViewTarget
+import coil3.util.CoilUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -39,6 +41,7 @@ import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
+import org.koitharu.kotatsu.core.image.CoilImageView
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.core.model.getTitle
@@ -93,7 +96,18 @@ class CaptchaHandler @Inject constructor(
 						notify = request.extras[suppressCaptchaKey] != true,
 					)
 				) {
-					coilProvider.get().enqueue(request) // TODO check if ok
+					val target = request.target
+					if (target is ViewTarget<*>) {
+						val view = target.view
+						if (CoilUtils.result(view)?.request != request) {
+							return@launch
+						}
+						if (view is CoilImageView) {
+							view.reload()
+							return@launch
+						}
+					}
+					coilProvider.get().enqueue(request)
 				}
 			}
 		}
