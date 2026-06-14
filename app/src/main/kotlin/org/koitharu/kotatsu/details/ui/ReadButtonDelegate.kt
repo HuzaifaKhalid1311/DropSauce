@@ -102,8 +102,9 @@ class ReadButtonDelegate(
 	private fun openReader(isIncognitoMode: Boolean) {
 		val manga = viewModel.getMangaOrNull() ?: return
 		if (viewModel.historyInfo.value.isChapterMissing) {
-			Snackbar.make(buttonRead, R.string.chapter_is_missing, Snackbar.LENGTH_SHORT)
-				.show() // TODO
+			Snackbar.make(buttonRead, R.string.chapter_is_missing, Snackbar.LENGTH_LONG)
+				.setAction(R.string.remove_from_history) { viewModel.removeFromHistory() }
+				.show()
 		} else {
 			val intentBuilder = ReaderIntent.Builder(context)
 				.manga(manga)
