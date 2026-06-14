@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.reader.ui.pager
 
 import android.content.ComponentCallbacks2
 import android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE
+import android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW
 import android.content.Context
 import android.content.res.Configuration
 import android.view.View
@@ -116,8 +117,13 @@ abstract class BasePageHolder<B : ViewBinding>(
 	override fun onResume() {
 		super.onResume()
 		ssiv.applyDownSampling(isForeground = true)
-		if (viewModel.state.value is PageState.Error && !viewModel.isLoading()) {
+		val state = viewModel.state.value
+		if (state is PageState.Empty) {
+			boundData?.let { bind(it) }
+		} else if (state is PageState.Error && !viewModel.isLoading()) {
 			boundData?.let { viewModel.retry(it.toMangaPage(), isFromUser = false) }
+		} else if (state is PageState.Shown && ssiv.getState() == null) {
+			reloadImage()
 		}
 	}
 
@@ -142,7 +148,12 @@ abstract class BasePageHolder<B : ViewBinding>(
 	}
 
 	override fun onTrimMemory(level: Int) {
-		// TODO
+		if (isResumed()) return
+		if (level >= TRIM_MEMORY_COMPLETE) {
+			onRecycled()
+		} else if (level >= TRIM_MEMORY_RUNNING_LOW) {
+			ssiv.recycle()
+		}
 	}
 
 	override fun onConfigurationChanged(newConfig: Configuration) = Unit
