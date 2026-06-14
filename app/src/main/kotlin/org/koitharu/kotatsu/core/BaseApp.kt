@@ -13,7 +13,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import okhttp3.internal.platform.PlatformRegistry
+import okhttp3.OkHttp
 import org.acra.ACRA
 import org.acra.config.dialog
 import org.acra.data.StringFormat
@@ -71,7 +71,7 @@ open class BaseApp : Application(), Configuration.Provider {
 
 	override fun onCreate() {
 		super.onCreate()
-		PlatformRegistry.applicationContext = this // TODO replace with OkHttp.initialize
+		OkHttp.initialize(this)
 		if (ACRA.isACRASenderServiceProcess()) {
 			return
 		}
