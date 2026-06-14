@@ -198,6 +198,11 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 		deletedAt = System.currentTimeMillis(),
 	)
 
+	suspend fun deleteAll(categoryIds: Collection<Long>) = setDeletedAtAll(
+		categoryIds = categoryIds,
+		deletedAt = System.currentTimeMillis(),
+	)
+
 	suspend fun recover(mangaId: Long) = setDeletedAt(
 		mangaId = mangaId,
 		deletedAt = 0L,
@@ -232,6 +237,9 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 
 	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE category_id = :categoryId AND deleted_at = 0")
 	protected abstract suspend fun setDeletedAtAll(categoryId: Long, deletedAt: Long)
+
+	@Query("UPDATE favourites SET deleted_at = :deletedAt WHERE category_id IN (:categoryIds) AND deleted_at = 0")
+	protected abstract suspend fun setDeletedAtAll(categoryIds: Collection<Long>, deletedAt: Long)
 
 	private fun getOrderBy(sortOrder: ListSortOrder) = when (sortOrder) {
 		ListSortOrder.RATING -> "manga.rating DESC"
