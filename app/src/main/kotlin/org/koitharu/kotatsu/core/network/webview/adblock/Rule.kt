@@ -40,6 +40,12 @@ sealed interface Rule {
 			if (!baseRule.invoke(url, baseUrl)) {
 				return false
 			}
+			script?.let {
+				val isScript = url.encodedPath.endsWith(".js")
+				if (isScript != it) {
+					return false
+				}
+			}
 			if (baseUrl == null) {
 				return true
 			}
@@ -50,7 +56,16 @@ sealed interface Rule {
 					return false
 				}
 			}
-			// TODO check other modifiers
+			domainsNot?.let { nots ->
+				if (nots.any { baseUrl.host == it || baseUrl.host.endsWith(".$it") }) {
+					return false
+				}
+			}
+			domains?.let { doms ->
+				if (doms.none { baseUrl.host == it || baseUrl.host.endsWith(".$it") }) {
+					return false
+				}
+			}
 			return true
 		}
 	}
