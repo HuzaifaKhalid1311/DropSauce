@@ -171,7 +171,7 @@ class MangaDataRepository @Inject constructor(
 
 	suspend fun cleanupLocalManga() {
 		val dao = db.getMangaDao()
-		val broken = dao.findAllBySource(LocalMangaSource.name)
+		val broken = dao.findAllBySource(listOf(LocalMangaSource.name))
 			.filter { x -> x.manga.url.toUri().toFileOrNull()?.exists() == false }
 		if (broken.isNotEmpty()) {
 			dao.delete(broken.map { it.manga })

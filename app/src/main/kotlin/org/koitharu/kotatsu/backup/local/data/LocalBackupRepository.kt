@@ -329,19 +329,17 @@ class LocalBackupRepository @Inject constructor(
 		val sources = database.getSourcesDao().findAll().map { it.source }
 		val seen = HashSet<Long>()
 		return kotlinx.coroutines.flow.flow {
-			for (source in sources) {
-				val items = dao.findAllBySource(source)
-				for (item in items) {
-					if (!seen.add(item.manga.id)) continue
-					val chapters = chaptersDao.findAll(item.manga.id)
-					if (chapters.isEmpty()) continue
-					emit(
-						MangaWithChaptersBackup(
-							manga = MangaBackup(item),
-							chapters = chapters.map(::ChapterBackup),
-						),
-					)
-				}
+			val items = dao.findAllBySource(sources)
+			for (item in items) {
+				if (!seen.add(item.manga.id)) continue
+				val chapters = chaptersDao.findAll(item.manga.id)
+				if (chapters.isEmpty()) continue
+				emit(
+					MangaWithChaptersBackup(
+						manga = MangaBackup(item),
+						chapters = chapters.map(::ChapterBackup),
+					),
+				)
 			}
 		}
 	}
