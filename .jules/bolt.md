@@ -1,0 +1,3 @@
+## 2024-05-19 - [Room Batch Insert Optimization]
+**Learning:** In Room DAOs, iterating over a collection and calling a single-item `@Insert` method in a loop causes severe N+1 query performance bottlenecks, especially since each query invocation suspends and resumes a coroutine.
+**Action:** Always define batch insert/upsert methods (e.g., `@Insert abstract suspend fun insertAll(items: List<T>)`) when dealing with collections to execute a single, highly efficient database transaction. Additionally, always use concrete collection types like `List<T>` instead of `Iterable<T>` for these batch methods to guarantee proper Room compiler behavior.
