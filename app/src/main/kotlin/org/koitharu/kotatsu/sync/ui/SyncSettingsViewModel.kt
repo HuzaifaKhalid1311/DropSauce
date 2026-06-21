@@ -83,6 +83,7 @@ class SyncSettingsViewModel @Inject constructor(
 	private suspend fun runSync() {
 		when (val result = repository.sync()) {
 			is SyncResult.Success -> events.call(SyncEvent.Message(R.string.sync_completed))
+			is SyncResult.AlreadyRunning -> events.call(SyncEvent.Message(R.string.sync_in_progress))
 			is SyncResult.SignInRequired -> events.call(SyncEvent.Error(null))
 			is SyncResult.Error -> events.call(SyncEvent.Error(result.message))
 		}
@@ -133,6 +134,7 @@ class SyncSettingsViewModel @Inject constructor(
 		launchLoadingJob(Dispatchers.Default) {
 			when (val result = repository.deleteRemoteData()) {
 				is SyncResult.Success -> events.call(SyncEvent.Message(R.string.sync_data_deleted))
+				is SyncResult.AlreadyRunning -> events.call(SyncEvent.Message(R.string.sync_in_progress))
 				is SyncResult.SignInRequired -> events.call(SyncEvent.Error(null))
 				is SyncResult.Error -> events.call(SyncEvent.Error(result.message))
 			}

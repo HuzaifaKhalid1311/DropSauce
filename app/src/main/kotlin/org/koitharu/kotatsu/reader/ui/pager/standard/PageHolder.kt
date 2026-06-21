@@ -75,9 +75,13 @@ open class PageHolder(
 	}
 
 	override fun onReady() {
+		val sWidth = binding.ssiv.sWidth.toFloat()
+		val sHeight = binding.ssiv.sHeight.toFloat()
+		if (sWidth <= 0f || sHeight <= 0f) return
+
 		binding.ssiv.maxScale = 2f * maxOf(
-			binding.ssiv.width / binding.ssiv.sWidth.toFloat(),
-			binding.ssiv.height / binding.ssiv.sHeight.toFloat(),
+			binding.ssiv.width / sWidth,
+			binding.ssiv.height / sHeight,
 		)
 		binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 		when (settings.zoomMode) {
@@ -88,19 +92,19 @@ open class PageHolder(
 
 			ZoomMode.FIT_HEIGHT -> {
 				binding.ssiv.minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
-				binding.ssiv.minScale = binding.ssiv.height / binding.ssiv.sHeight.toFloat()
+				binding.ssiv.minScale = binding.ssiv.height / sHeight
 				binding.ssiv.setScaleAndCenter(
 					binding.ssiv.minScale,
-					PointF(0f, binding.ssiv.sHeight / 2f),
+					PointF(0f, sHeight / 2f),
 				)
 			}
 
 			ZoomMode.FIT_WIDTH -> {
 				binding.ssiv.minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
-				binding.ssiv.minScale = binding.ssiv.width / binding.ssiv.sWidth.toFloat()
+				binding.ssiv.minScale = binding.ssiv.width / sWidth
 				binding.ssiv.setScaleAndCenter(
 					binding.ssiv.minScale,
-					PointF(binding.ssiv.sWidth / 2f, 0f),
+					PointF(sWidth / 2f, 0f),
 				)
 			}
 

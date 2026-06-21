@@ -593,6 +593,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_SSL_BYPASS, false)
 		set(value) = prefs.edit { putBoolean(KEY_SSL_BYPASS, value) }
 
+	var sslBypassHost: String?
+		get() = prefs.getString(KEY_SSL_BYPASS_HOST, null)
+		set(value) = prefs.edit { putString(KEY_SSL_BYPASS_HOST, value) }
+
+	var lastSslFailedHost: String?
+		get() = prefs.getString(KEY_LAST_SSL_FAILED_HOST, null)
+		set(value) = prefs.edit { putString(KEY_LAST_SSL_FAILED_HOST, value) }
+
 	val proxyType: Proxy.Type
 		get() {
 			val raw = prefs.getString(KEY_PROXY_TYPE, null) ?: return Proxy.Type.DIRECT
@@ -918,6 +926,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_GRID = "sources_grid"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
+		const val KEY_SSL_BYPASS_HOST = "ssl_bypass_host"
+		const val KEY_LAST_SSL_FAILED_HOST = "last_ssl_failed_host"
 		const val KEY_READER_AUTOSCROLL_SPEED = "as_speed"
 		const val KEY_READER_AUTOSCROLL_FAB = "as_fab"
 		const val KEY_MIRROR_SWITCHING = "mirror_switching"

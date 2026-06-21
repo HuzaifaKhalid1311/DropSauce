@@ -57,9 +57,7 @@ class SettingsSearchViewModel @Inject constructor(
 		get() = query.value.orEmpty()
 
 	fun onQueryChanged(value: String) {
-		if (query.value != null) {
-			query.value = value
-		}
+		query.value = value
 	}
 
 	fun discardSearch() {

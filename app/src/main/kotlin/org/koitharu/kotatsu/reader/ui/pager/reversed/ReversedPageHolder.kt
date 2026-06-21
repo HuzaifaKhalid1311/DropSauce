@@ -35,10 +35,14 @@ class ReversedPageHolder(
 	}
 
 	override fun onReady() {
+		val sWidth = binding.ssiv.sWidth.toFloat()
+		val sHeight = binding.ssiv.sHeight.toFloat()
+		if (sWidth <= 0f || sHeight <= 0f) return
+
 		with(binding.ssiv) {
 			maxScale = 2f * maxOf(
-				width / sWidth.toFloat(),
-				height / sHeight.toFloat(),
+				width / sWidth,
+				height / sHeight,
 			)
 			binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 			when (settings.zoomMode) {
@@ -49,16 +53,16 @@ class ReversedPageHolder(
 
 				ZoomMode.FIT_HEIGHT -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
-					minScale = height / sHeight.toFloat()
+					minScale = height / sHeight
 					setScaleAndCenter(
 						minScale,
-						PointF(sWidth.toFloat(), sHeight / 2f),
+						PointF(sWidth, sHeight / 2f),
 					)
 				}
 
 				ZoomMode.FIT_WIDTH -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
-					minScale = width / sWidth.toFloat()
+					minScale = width / sWidth
 					setScaleAndCenter(
 						minScale,
 						PointF(sWidth / 2f, 0f),
@@ -69,7 +73,7 @@ class ReversedPageHolder(
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 					setScaleAndCenter(
 						maxScale,
-						PointF(sWidth.toFloat(), 0f),
+						PointF(sWidth, 0f),
 					)
 				}
 			}

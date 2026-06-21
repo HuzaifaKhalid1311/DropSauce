@@ -3,8 +3,6 @@ package org.koitharu.kotatsu.reader.domain
 import android.util.LongSparseArray
 import androidx.annotation.CheckResult
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -21,12 +19,11 @@ class ChaptersLoader @Inject constructor(
 
 	private val chapters = LongSparseArray<MangaChapter>()
 	private val chapterPages = ChapterPages()
-	private val mutex = Mutex()
 
 	val size: Int
-		get() = chapters.size()
+		get() = synchronized(chapterPages) { chapters.size() }
 
-	suspend fun init(manga: MangaDetails) = mutex.withLock {
+	fun init(manga: MangaDetails) = synchronized(chapterPages) {
 		chapters.clear()
 		manga.allChapters.forEach {
 			chapters.put(it.id, it)
@@ -40,7 +37,7 @@ class ChaptersLoader @Inject constructor(
 		if (index == -1) return false
 		val newChapter = chapters.getOrNull(if (isNext) index + 1 else index - 1) ?: return false
 		val newPages = loadChapter(newChapter.id)
-		mutex.withLock {
+		synchronized(chapterPages) {
 			if (chapterPages.chaptersSize > 1) {
 				// trim pages
 				if (chapterPages.size > PAGES_TRIM_THRESHOLD) {
@@ -63,32 +60,40 @@ class ChaptersLoader @Inject constructor(
 	@CheckResult
 	suspend fun loadSingleChapter(chapterId: Long): Boolean {
 		val pages = loadChapter(chapterId)
-		return mutex.withLock {
+		return synchronized(chapterPages) {
 			chapterPages.clear()
 			chapterPages.addLast(chapterId, pages)
 			pages.isNotEmpty()
 		}
 	}
 
-	fun peekChapter(chapterId: Long): MangaChapter? = chapters[chapterId]
+	fun peekChapter(chapterId: Long): MangaChapter? = synchronized(chapterPages) {
+		chapters[chapterId]
+	}
 
-	fun hasPages(chapterId: Long): Boolean {
-		return chapterId in chapterPages
+	fun hasPages(chapterId: Long): Boolean = synchronized(chapterPages) {
+		chapterId in chapterPages
 	}
 
 	fun getPages(chapterId: Long): List<MangaPage> = synchronized(chapterPages) {
 		return chapterPages.subList(chapterId).map { it.toMangaPage() }
 	}
 
-	fun getPagesCount(chapterId: Long): Int {
+	fun getPagesCount(chapterId: Long): Int = synchronized(chapterPages) {
 		return chapterPages.size(chapterId)
 	}
 
-	fun last() = chapterPages.last()
+	fun last() = synchronized(chapterPages) {
+		chapterPages.last()
+	}
 
-	fun first() = chapterPages.first()
+	fun first() = synchronized(chapterPages) {
+		chapterPages.first()
+	}
 
-	fun snapshot() = chapterPages.toList()
+	fun snapshot(): List<ReaderPage> = synchronized(chapterPages) {
+		chapterPages.toList()
+	}
 
 	private suspend fun loadChapter(chapterId: Long): List<ReaderPage> {
 		val chapter = checkNotNull(chapters[chapterId]) { "Requested chapter not found" }

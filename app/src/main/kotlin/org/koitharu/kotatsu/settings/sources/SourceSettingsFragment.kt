@@ -140,7 +140,10 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 					onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
 					onOpenBrowser = { url -> openBrowser(url) },
 					onUninstall = { pkg -> uninstallExtension(pkg) },
-					onLanguageSelected = { lang -> viewModel.setActiveLanguage(lang) },
+					onLanguageSelected = { lang ->
+						viewModel.setActiveLanguage(lang)
+						requireActivity().recreate()
+					},
 				)
 			}
 		}

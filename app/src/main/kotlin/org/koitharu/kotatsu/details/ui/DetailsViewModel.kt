@@ -141,6 +141,7 @@ class DetailsViewModel @Inject constructor(
 		}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), 0L)
 
 	val cachedSourceTitle = mangaDetails
+		.distinctUntilChanged { a, b -> a?.id == b?.id }
 		.mapLatest { details ->
 			if (details == null) null else database.getMangaDao().findSourceTitle(mangaId)
 		}
@@ -153,16 +154,18 @@ class DetailsViewModel @Inject constructor(
 		.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
 
-	val relatedManga: StateFlow<List<MangaListModel>> = manga.mapLatest {
-		if (it != null && settings.isRelatedMangaEnabled) {
-			mangaListMapper.toListModelList(
-				manga = relatedMangaUseCase(it).orEmpty(),
-				mode = ListMode.GRID,
-			)
-		} else {
-			emptyList()
-		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+	val relatedManga: StateFlow<List<MangaListModel>> = manga
+		.distinctUntilChanged { a, b -> a?.id == b?.id }
+		.mapLatest {
+			if (it != null && settings.isRelatedMangaEnabled) {
+				mangaListMapper.toListModelList(
+					manga = relatedMangaUseCase(it).orEmpty(),
+					mode = ListMode.GRID,
+				)
+			} else {
+				emptyList()
+			}
+		}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
 
 	val tags = manga.mapLatest {
 		mangaListMapper.mapTags(it?.tags.orEmpty())

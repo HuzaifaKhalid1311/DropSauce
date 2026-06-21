@@ -9,6 +9,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -36,7 +37,7 @@ class PageViewModel(
 	private val isWebtoon: Boolean,
 ) : DefaultOnImageEventListener {
 
-	private val scope = loader.loaderScope + Dispatchers.Main.immediate
+	private var currentScope: CoroutineScope? = null
 	private var job: Job? = null
 	private var cachedBounds: Rect? = null
 
@@ -45,6 +46,14 @@ class PageViewModel(
 	fun isLoading() = job?.isActive == true
 
 	fun onBind(page: MangaPage) {
+		currentScope?.cancel()
+		// Parent the per-holder Job to loaderScope's Job so it is also cancelled on reader teardown,
+		// not only on onRecycle(). A bare Job() would be a detached root and leak if a holder is
+		// never recycled before the reader closes.
+		val scope = CoroutineScope(
+			loader.loaderScope.coroutineContext + Job(loader.loaderScope.coroutineContext[Job]) + Dispatchers.Main.immediate,
+		)
+		currentScope = scope
 		val prevJob = job
 		job = scope.launch(Dispatchers.Default) {
 			prevJob?.cancelAndJoin()
@@ -53,6 +62,7 @@ class PageViewModel(
 	}
 
 	fun retry(page: MangaPage, isFromUser: Boolean) {
+		val scope = currentScope ?: return
 		val prevJob = job
 		job = scope.launch {
 			prevJob?.cancelAndJoin()
@@ -74,9 +84,11 @@ class PageViewModel(
 	}
 
 	fun onRecycle() {
+		currentScope?.cancel()
+		currentScope = null
 		state.value = PageState.Empty
 		cachedBounds = null
-		job?.cancel()
+		job = null
 	}
 
 	override fun onImageLoaded() {
@@ -108,6 +120,7 @@ class PageViewModel(
 	}
 
 	private fun tryConvert(uri: Uri, e: Exception) {
+		val scope = currentScope ?: return
 		val prevJob = job
 		job = scope.launch(Dispatchers.Default) {
 			prevJob?.join()

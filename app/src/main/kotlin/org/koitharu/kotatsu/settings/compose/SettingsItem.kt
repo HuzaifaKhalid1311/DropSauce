@@ -64,12 +64,17 @@ fun SettingsItem(
 	onClick: (() -> Unit)? = null,
 	hapticEffect: HapticEffect? = null,
 	trailing: @Composable (() -> Unit)? = null,
+	key: String? = null,
 ) {
 	val haptic = rememberHapticEffect()
 	// One-shot search highlight: scroll this row comfortably into view and flash its background
-	// once when it is the navigation target (matched by title).
-	val pendingHighlight by SettingsSearchHighlight.pendingTitle.collectAsState()
-	val isHighlightTarget = pendingHighlight != null && pendingHighlight == title
+	// once when it is the navigation target (matched by key or title fallback).
+	val pendingKey by SettingsSearchHighlight.pendingKey.collectAsState()
+	val pendingTitle by SettingsSearchHighlight.pendingTitle.collectAsState()
+	val isHighlightTarget = when {
+		key != null -> pendingKey != null && pendingKey == key
+		else -> pendingTitle != null && pendingTitle == title
+	}
 	val scrollToHighlight = LocalSettingsHighlightScroll.current
 	val rowWindowY = remember { mutableFloatStateOf(Float.NaN) }
 	val highlight = remember { Animatable(0f) }
@@ -81,7 +86,7 @@ fun SettingsItem(
 			highlight.snapTo(1f)
 			delay(320)
 			highlight.animateTo(0f, animationSpec = tween(durationMillis = 1100))
-			SettingsSearchHighlight.consume(title)
+			SettingsSearchHighlight.consume(key, title)
 		}
 	}
 	val containerColor = lerp(
@@ -170,6 +175,7 @@ fun SwitchSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	key: String? = null,
 ) {
 	val haptic = rememberHapticEffect()
 	val onCheckedChangeHaptic: (Boolean) -> Unit = { value ->
@@ -193,6 +199,7 @@ fun SwitchSettingsItem(
 		trailing = {
 			Switch(checked = checked, onCheckedChange = onCheckedChangeHaptic, enabled = enabled)
 		},
+		key = key,
 	)
 }
 

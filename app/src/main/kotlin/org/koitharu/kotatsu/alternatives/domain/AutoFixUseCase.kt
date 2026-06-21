@@ -48,13 +48,22 @@ class AutoFixUseCase @Inject constructor(
 		return seed to replacement
 	}
 
-	private suspend fun Manga.isHealthy(): Boolean = runCatchingCancellable {
-		val repo = mangaRepositoryFactory.create(source)
-		val details = if (this.chapters != null) this else repo.getDetails(this)
-		val firstChapter = details.chapters?.firstOrNull() ?: return@runCatchingCancellable false
-		val pageUrl = repo.getPageUrl(repo.getPages(firstChapter).first())
-		pageUrl.toHttpUrlOrNull() != null
-	}.getOrDefault(false)
+	private suspend fun Manga.isHealthy(): Boolean {
+		val result = runCatchingCancellable {
+			val repo = mangaRepositoryFactory.create(source)
+			val details = if (this.chapters != null) this else repo.getDetails(this)
+			val firstChapter = details.chapters?.firstOrNull() ?: return@runCatchingCancellable false
+			val pageUrl = repo.getPageUrl(repo.getPages(firstChapter).first())
+			pageUrl.toHttpUrlOrNull() != null
+		}
+		return result.getOrElse { e ->
+			if (e is java.io.IOException) {
+				true
+			} else {
+				false
+			}
+		}
+	}
 
 	private suspend fun Manga.getDetailsSafe() = runCatchingCancellable {
 		mangaRepositoryFactory.create(source).getDetails(this)

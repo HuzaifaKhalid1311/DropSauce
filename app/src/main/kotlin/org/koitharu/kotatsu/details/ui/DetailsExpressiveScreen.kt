@@ -41,6 +41,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -128,6 +130,7 @@ class DetailsExpressiveActions(
 	val onIncognitoClick: () -> Unit,
 	val onForgetHistoryClick: () -> Unit,
 	val onChaptersClick: () -> Unit,
+	val onRetry: () -> Unit = {},
 )
 
 private val SCREEN_PADDING = 20.dp
@@ -201,7 +204,11 @@ fun DetailsExpressiveScreen(
 			Spacer(Modifier.height(topInset + if (centered) 84.dp else 72.dp))
 
 			if (manga == null) {
-				LoadingHero()
+				if (isLoading) {
+					LoadingHero()
+				} else {
+					ErrorHero(onRetry = actions.onRetry)
+				}
 			} else {
 				val favLabel = favouriteLabel ?: stringResource(R.string.add_to_favourites)
 				val isFavourite = favouriteCount > 0
@@ -1496,6 +1503,36 @@ private fun LoadingHero() {
 			style = MaterialTheme.typography.titleMedium,
 			color = MaterialTheme.colorScheme.onSurfaceVariant,
 		)
+	}
+}
+
+@Composable
+private fun ErrorHero(onRetry: () -> Unit) {
+	Box(
+		modifier = Modifier
+			.fillMaxWidth()
+			.height(240.dp),
+		contentAlignment = Alignment.Center,
+	) {
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			Text(
+				text = stringResource(R.string.error_occurred),
+				style = MaterialTheme.typography.titleMedium,
+				color = MaterialTheme.colorScheme.error,
+			)
+			Button(
+				onClick = onRetry,
+				colors = ButtonDefaults.buttonColors(
+					containerColor = MaterialTheme.colorScheme.errorContainer,
+					contentColor = MaterialTheme.colorScheme.onErrorContainer
+				)
+			) {
+				Text(text = stringResource(R.string.retry))
+			}
+		}
 	}
 }
 

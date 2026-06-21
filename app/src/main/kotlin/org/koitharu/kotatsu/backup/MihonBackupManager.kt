@@ -113,15 +113,15 @@ class MihonBackupManager @Inject constructor(
         return withContext(Dispatchers.IO) {
             val backup = decode(uri)
             val diagnostics = buildDiagnostics(backup, options)
+            val restoredCategories = if (options.libraryEntries) {
+                db.withTransaction { restoreCategories() }
+            } else {
+                null
+            }
+            if (options.libraryEntries) {
+                restoreManga(backup, options, diagnostics, restoredCategories)
+            }
             db.withTransaction {
-                val restoredCategories = if (options.libraryEntries) {
-                    restoreCategories()
-                } else {
-                    null
-                }
-                if (options.libraryEntries) {
-                    restoreManga(backup, options, diagnostics, restoredCategories)
-                }
                 if (options.appSettings) {
                     restorePreferences(backup.backupPreferences)
                 }
@@ -199,19 +199,24 @@ class MihonBackupManager @Inject constructor(
 
     private suspend fun restoreCategories(): CategoryRestoreMapping {
         val dao = db.getFavouriteCategoriesDao()
-        val defaultCategoryId = dao.insert(
-            FavouriteCategoryEntity(
-                categoryId = 0,
-                createdAt = System.currentTimeMillis(),
-                sortKey = dao.getNextSortKey(),
-                title = "mihon",
-                order = "NEWEST",
-                track = true,
-                downloadNewChapters = false,
-                isVisibleInLibrary = true,
-                deletedAt = 0,
-            ),
-        )
+        val existing = dao.findByTitle("mihon")
+        val defaultCategoryId = if (existing != null) {
+            existing.categoryId.toLong()
+        } else {
+            dao.insert(
+                FavouriteCategoryEntity(
+                    categoryId = 0,
+                    createdAt = System.currentTimeMillis(),
+                    sortKey = dao.getNextSortKey(),
+                    title = "mihon",
+                    order = "NEWEST",
+                    track = true,
+                    downloadNewChapters = false,
+                    isVisibleInLibrary = true,
+                    deletedAt = 0,
+                ),
+            )
+        }
         return CategoryRestoreMapping(
             defaultCategoryId = defaultCategoryId,
         )
@@ -227,188 +232,195 @@ class MihonBackupManager @Inject constructor(
         val supportedTrackerIds = setOf(1, 2, 3, 4)
         val now = System.currentTimeMillis()
 
-        val pending = backup.backupManga.map { item ->
-            val sourceName = resolveStoredSourceName(item.source, backup.backupSources)
-            val mangaId = "$sourceName:${item.url}".longHashCode()
-            val tags = item.genre.mapNotNull { title ->
-                val clean = title.trim()
-                if (clean.isBlank()) {
-                    null
-                } else {
-                    TagEntity(
-                        id = "${clean.lowercase(Locale.ROOT)}:$sourceName".longHashCode(),
-                        title = clean,
-                        key = clean.lowercase(Locale.ROOT),
-                        source = sourceName,
-                        isPinned = false,
-                    )
-                }
-            }
-            val chapters = item.chapters.mapIndexed { index, chapter ->
-                ChapterEntity(
-                    chapterId = "$mangaId:${chapter.url}".longHashCode(),
-                    mangaId = mangaId,
-                    title = chapter.name,
-                    number = chapter.chapterNumber,
-                    volume = 0,
-                    url = chapter.url,
-                    scanlator = chapter.scanlator,
-                    uploadDate = chapter.dateUpload,
-                    branch = null,
-                    source = sourceName,
-                    index = chapter.sourceOrder.toInt().takeIf { it >= 0 } ?: index,
-                )
-            }
-            val categoryIds = if (item.favorite) {
-                listOfNotNull(defaultCategoryId)
-            } else {
-                emptyList()
-            }
-            val favourites = categoryIds.mapIndexed { sortIndex, categoryId ->
-                FavouriteEntity(
-                    mangaId = mangaId,
-                    categoryId = categoryId,
-                    sortKey = sortIndex,
-                    isPinned = false,
-                    createdAt = item.dateAdded.takeIf { it > 0 } ?: now,
-                    deletedAt = 0,
-                )
-            }
-            val chapterByUrl = chapters.associateBy { it.url }
-            val bookmarks = item.chapters.asSequence()
-                .filter { it.bookmark }
-                .mapNotNull { chapter ->
-                    val chapterEntity = chapterByUrl[chapter.url] ?: return@mapNotNull null
-                    val page = chapter.lastPageRead.toInt().coerceAtLeast(0)
-                    BookmarkEntity(
-                        mangaId = mangaId,
-                        pageId = "$mangaId:${chapter.url}:$page".longHashCode(),
-                        chapterId = chapterEntity.chapterId,
-                        page = page,
-                        scroll = 0,
-                        imageUrl = "",
-                        createdAt = now,
-                        percent = 0f,
-                    )
-                }
-                .toList()
-
-            val historyItem = item.history.maxByOrNull { it.lastRead }
-            val fallbackReadChapter = item.chapters.withIndex().lastOrNull { it.value.read }
-            val historyChapterUrl = historyItem?.url ?: fallbackReadChapter?.value?.url
-            val historyChapter = historyChapterUrl?.let(chapterByUrl::get)
-                ?: fallbackReadChapter?.let { chapters.getOrNull(it.index) }
-            val history = if (historyChapter != null) {
-                val backupChapter = item.chapters.firstOrNull { it.url == historyChapter.url }
-                val restoredPage = backupChapter?.lastPageRead?.toInt()?.coerceAtLeast(0) ?: 0
-                val chapterIndex = chapters.indexOfFirst { it.chapterId == historyChapter.chapterId }
-                    .takeIf { it >= 0 }
-                    ?: 0
-                val updatedAt = historyItem?.lastRead?.takeIf { it > 0 }
-                    ?: item.dateAdded.takeIf { it > 0 }
-                    ?: now
-                HistoryEntity(
-                    mangaId = mangaId,
-                    createdAt = updatedAt,
-                    updatedAt = updatedAt,
-                    chapterId = historyChapter.chapterId,
-                    page = restoredPage,
-                    scroll = 0f,
-                    percent = computeHistoryPercent(
-                        chapterIndex = chapterIndex,
-                        chaptersCount = chapters.size,
-                    ),
-                    deletedAt = 0,
-                    chaptersCount = chapters.size,
-                )
-            } else {
-                null
-            }
-            val stats = if ((historyItem?.readDuration ?: 0L) > 0L && history != null) {
-                StatsEntity(
-                    mangaId = mangaId,
-                    startedAt = (history.updatedAt - historyItem!!.readDuration).coerceAtLeast(0L),
-                    duration = historyItem.readDuration,
-                    pages = (history.page + 1).coerceAtLeast(1),
-                )
-            } else {
-                null
-            }
-            val scrobblings = if (options.tracking) {
-                item.tracking.mapNotNull { tracking ->
-                    if (tracking.syncId !in supportedTrackerIds) {
-                        diagnostics.missingTrackers += tracking.syncId
-                        return@mapNotNull null
+        backup.backupManga.chunked(50).forEach { batch ->
+            val pendingBatch = batch.map { item ->
+                val sourceName = resolveStoredSourceName(item.source, backup.backupSources)
+                val mangaId = "$sourceName|manga|${item.url}".longHashCode()
+                val tags = item.genre.mapNotNull { title ->
+                    val clean = title.trim()
+                    if (clean.isBlank()) {
+                        null
+                    } else {
+                        TagEntity(
+                            id = "${clean.lowercase(Locale.ROOT)}_${sourceName}".longHashCode(),
+                            title = clean,
+                            key = clean.lowercase(Locale.ROOT),
+                            source = sourceName,
+                            isPinned = false,
+                        )
                     }
-                    val targetId = tracking.mediaId.takeIf { it > 0 }
-                        ?: tracking.mediaIdInt.toLong().takeIf { it > 0 }
-                        ?: return@mapNotNull null
-                    val remoteEntryId = tracking.libraryId.toInt().takeIf { it > 0 }
-                        ?: targetId.toInt().takeIf { it > 0 }
-                        ?: return@mapNotNull null
-                    ScrobblingEntity(
-                        scrobbler = tracking.syncId,
-                        id = remoteEntryId,
+                }
+                val chapters = item.chapters.mapIndexed { index, chapter ->
+                    ChapterEntity(
+                        chapterId = "$sourceName|chapter|${chapter.url}".longHashCode(),
                         mangaId = mangaId,
-                        targetId = targetId,
-                        status = decodeTrackingStatus(tracking.status),
-                        chapter = tracking.lastChapterRead.toInt().coerceAtLeast(0),
-                        comment = null,
-                        rating = tracking.score,
+                        title = chapter.name,
+                        number = chapter.chapterNumber,
+                        volume = 0,
+                        url = chapter.url,
+                        scanlator = chapter.scanlator,
+                        uploadDate = chapter.dateUpload,
+                        branch = null,
+                        source = sourceName,
+                        index = index,
                     )
                 }
-            } else {
-                emptyList()
+                val categoryIds = if (item.favorite) {
+                    listOfNotNull(defaultCategoryId)
+                } else {
+                    emptyList()
+                }
+                val favourites = categoryIds.mapIndexed { sortIndex, categoryId ->
+                    FavouriteEntity(
+                        mangaId = mangaId,
+                        categoryId = categoryId,
+                        sortKey = sortIndex,
+                        isPinned = false,
+                        createdAt = item.dateAdded.takeIf { it > 0 } ?: now,
+                        deletedAt = 0,
+                    )
+                }
+                val chapterByUrl = chapters.associateBy { it.url }
+                val bookmarks = item.chapters.asSequence()
+                    .filter { it.bookmark }
+                    .mapNotNull { chapter ->
+                        val chapterEntity = chapterByUrl[chapter.url] ?: return@mapNotNull null
+                        val page = chapter.lastPageRead.toInt().coerceAtLeast(0)
+                        BookmarkEntity(
+                            mangaId = mangaId,
+                            pageId = "$sourceName|page|${chapter.url}|$page".longHashCode(),
+                            chapterId = chapterEntity.chapterId,
+                            page = page,
+                            scroll = 0,
+                            imageUrl = "",
+                            createdAt = now,
+                            percent = 0f,
+                        )
+                    }
+                    .toList()
+
+                val historyItem = item.history.maxByOrNull { it.lastRead }
+                val fallbackReadChapter = item.chapters.withIndex().lastOrNull { it.value.read }
+                val historyChapterUrl = historyItem?.url ?: fallbackReadChapter?.value?.url
+                val historyChapter = historyChapterUrl?.let(chapterByUrl::get)
+                    ?: fallbackReadChapter?.let { chapters.getOrNull(it.index) }
+                val history = if (historyChapter != null) {
+                    val backupChapter = item.chapters.firstOrNull { it.url == historyChapter.url }
+                    val restoredPage = backupChapter?.lastPageRead?.toInt()?.coerceAtLeast(0) ?: 0
+                    val chapterIndex = chapters.indexOfFirst { it.chapterId == historyChapter.chapterId }
+                        .takeIf { it >= 0 }
+                        ?: 0
+                    val updatedAt = historyItem?.lastRead?.takeIf { it > 0 }
+                        ?: item.dateAdded.takeIf { it > 0 }
+                        ?: now
+                    HistoryEntity(
+                        mangaId = mangaId,
+                        createdAt = updatedAt,
+                        updatedAt = updatedAt,
+                        chapterId = historyChapter.chapterId,
+                        page = restoredPage,
+                        scroll = 0f,
+                        percent = computeHistoryPercent(
+                            chapterIndex = chapterIndex,
+                            chaptersCount = chapters.size,
+                        ),
+                        deletedAt = 0,
+                        chaptersCount = chapters.size,
+                    )
+                } else {
+                    null
+                }
+                val stats = if ((historyItem?.readDuration ?: 0L) > 0L && history != null) {
+                    StatsEntity(
+                        mangaId = mangaId,
+                        startedAt = (history.updatedAt - historyItem!!.readDuration).coerceAtLeast(0L),
+                        duration = historyItem.readDuration,
+                        pages = (history.page + 1).coerceAtLeast(1),
+                    )
+                } else {
+                    null
+                }
+                val scrobblings = if (options.tracking) {
+                    item.tracking.mapNotNull { tracking ->
+                        if (tracking.syncId !in supportedTrackerIds) {
+                            diagnostics.missingTrackers += tracking.syncId
+                            return@mapNotNull null
+                        }
+                        val targetId = tracking.mediaId.takeIf { it > 0 }
+                            ?: tracking.mediaIdInt.toLong().takeIf { it > 0 }
+                            ?: return@mapNotNull null
+                        val remoteEntryId = tracking.libraryId.toInt().takeIf { it > 0 }
+                            ?: targetId.toInt().takeIf { it > 0 }
+                            ?: return@mapNotNull null
+                        ScrobblingEntity(
+                            scrobbler = tracking.syncId,
+                            id = remoteEntryId,
+                            mangaId = mangaId,
+                            targetId = targetId,
+                            status = decodeTrackingStatus(tracking.status),
+                            chapter = tracking.lastChapterRead.toInt().coerceAtLeast(0),
+                            comment = null,
+                            rating = tracking.score,
+                        )
+                    }
+                } else {
+                    emptyList()
+                }
+
+                PendingRestore(
+                    manga = MangaEntity(
+                        id = mangaId,
+                        title = item.title,
+                        altTitles = null,
+                        url = item.url,
+                        publicUrl = item.url,
+                        rating = -1f,
+                        isNsfw = false,
+                        contentRating = null,
+                        coverUrl = item.thumbnailUrl.orEmpty(),
+                        largeCoverUrl = null,
+                        state = null,
+                        authors = item.author,
+                        source = sourceName,
+                        sourceTitle = resolveSourceTitle(item.source, backup.backupSources),
+                    ),
+                    tags = tags,
+                    chapters = chapters,
+                    favourites = favourites,
+                    history = history,
+                    stats = stats,
+                    bookmarks = bookmarks,
+                    scrobblings = scrobblings,
+                )
             }
 
-            PendingRestore(
-                manga = MangaEntity(
-                    id = mangaId,
-                    title = item.title,
-                    altTitles = null,
-                    url = item.url,
-                    publicUrl = item.url,
-                    rating = -1f,
-                    isNsfw = false,
-                    contentRating = null,
-                    coverUrl = item.thumbnailUrl.orEmpty(),
-                    largeCoverUrl = null,
-                    state = null,
-                    authors = item.author,
-                    source = sourceName,
-                    sourceTitle = resolveSourceTitle(item.source, backup.backupSources),
-                ),
-                tags = tags,
-                chapters = chapters,
-                favourites = favourites,
-                history = history,
-                stats = stats,
-                bookmarks = bookmarks,
-                scrobblings = scrobblings,
-            )
-        }
-
-        pending.flatMapTo(linkedSetOf()) { it.tags }
-            .takeIf { it.isNotEmpty() }
-            ?.let { db.getTagsDao().upsert(it.toList()) }
-        pending.forEach { item -> db.getMangaDao().upsert(item.manga, item.tags) }
-        pending.forEach { item -> item.favourites.forEach { db.getFavouritesDao().upsert(it) } }
-        pending.forEach { item -> db.getChaptersDao().replaceAll(item.manga.id, item.chapters) }
-        pending.forEach { item -> item.history?.let { db.getHistoryDao().upsert(it) } }
-        pending.forEach { item -> item.stats?.let { db.getStatsDao().upsert(it) } }
-        pending.forEach { item ->
-            if (item.bookmarks.isNotEmpty()) {
-                db.getBookmarksDao().upsert(item.bookmarks)
+            db.withTransaction {
+                pendingBatch.flatMapTo(linkedSetOf()) { it.tags }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { db.getTagsDao().upsert(it.toList()) }
+                pendingBatch.forEach { item -> db.getMangaDao().upsert(item.manga, item.tags) }
+                pendingBatch.forEach { item -> item.favourites.forEach { db.getFavouritesDao().upsert(it) } }
+                pendingBatch.forEach { item ->
+                    if (item.chapters.isNotEmpty()) {
+                        db.getChaptersDao().replaceAll(item.manga.id, item.chapters)
+                    }
+                }
+                pendingBatch.forEach { item -> item.history?.let { db.getHistoryDao().upsert(it) } }
+                pendingBatch.forEach { item -> item.stats?.let { db.getStatsDao().upsert(it) } }
+                pendingBatch.forEach { item ->
+                    if (item.bookmarks.isNotEmpty()) {
+                        db.getBookmarksDao().upsert(item.bookmarks)
+                    }
+                }
+                pendingBatch.forEach { item ->
+                    item.scrobblings.forEach {
+                        db.getScrobblingDao().upsert(it)
+                        diagnostics.restoredTrackingCount += 1
+                    }
+                }
             }
+            diagnostics.restoredMangaCount += pendingBatch.size
         }
-        pending.forEach { item ->
-            item.scrobblings.forEach {
-                db.getScrobblingDao().upsert(it)
-                diagnostics.restoredTrackingCount += 1
-            }
-        }
-
-        diagnostics.restoredMangaCount += pending.size
     }
 
     private fun restorePreferences(preferences: List<MihonBackupPreference>) {
@@ -455,9 +467,11 @@ class MihonBackupManager @Inject constructor(
     private fun resolveStoredSourceName(sourceId: Long, backupSources: List<MihonBackupSource>): String {
         val source = mihonExtensionManager.getMihonMangaSourceById(sourceId)
         if (source != null) {
-            return source.name
+            return "mihon:${source.pkgName}:${source.catalogueSource.name}"
         }
-        return if (sourceId > 0) "MIHON_$sourceId" else "UNKNOWN"
+        val backupSource = backupSources.firstOrNull { it.sourceId == sourceId }
+        val name = backupSource?.name ?: "UNKNOWN"
+        return "mihon:unknown:$name"
     }
 
 

@@ -112,6 +112,7 @@ class SettingsActivity :
 	}
 
 	fun openFragment(fragmentClass: Class<out Fragment>, args: Bundle?, isFromRoot: Boolean) {
+		org.koitharu.kotatsu.settings.compose.SettingsSearchHighlight.clear()
 		viewModel.discardSearch()
 		val fm = supportFragmentManager
 		val current = fm.findFragmentById(R.id.container)
@@ -201,9 +202,9 @@ class SettingsActivity :
 		val args = buildBundle(1) {
 			putString(ARG_PREF_KEY, item.key)
 		}
-		openFragment(item.fragmentClass, args, true)
-		// Ask the target Compose screen to flash the matching row once (matched by title).
-		org.koitharu.kotatsu.settings.compose.SettingsSearchHighlight.request(item.title.toString())
+		openFragment(item.fragmentClass, args, false)
+		// Ask the target Compose screen to flash the matching row once.
+		org.koitharu.kotatsu.settings.compose.SettingsSearchHighlight.request(item.key, item.title.toString())
 	}
 
 	private fun observeFoldHinge() {

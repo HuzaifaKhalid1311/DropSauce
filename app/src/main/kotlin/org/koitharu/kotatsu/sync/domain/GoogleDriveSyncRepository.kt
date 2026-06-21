@@ -8,9 +8,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import org.koitharu.kotatsu.backup.local.data.model.BackupPrimitive
 import org.koitharu.kotatsu.backup.local.data.model.BookmarkBackup
 import org.koitharu.kotatsu.backup.local.data.model.MangaBackup
@@ -40,6 +42,7 @@ import javax.inject.Singleton
 sealed interface SyncResult {
 	data object Success : SyncResult
 	data object SignInRequired : SyncResult
+	data object AlreadyRunning : SyncResult
 
 	/** [retryable] is false for errors that won't fix themselves (e.g. a newer remote format). */
 	data class Error(val message: String?, val retryable: Boolean = true) : SyncResult
@@ -86,7 +89,7 @@ class GoogleDriveSyncRepository @Inject constructor(
 
 	suspend fun sync(): SyncResult {
 		if (!syncSettings.isSignedIn) return SyncResult.SignInRequired
-		if (!syncMutex.tryLock()) return SyncResult.Success
+		if (!syncMutex.tryLock()) return SyncResult.AlreadyRunning
 		isSyncing.value = true
 		try {
 			var token = auth.requireAccessToken()
@@ -141,8 +144,9 @@ class GoogleDriveSyncRepository @Inject constructor(
 			val remotes = ArrayList<SyncSnapshot>(files.size)
 			val decodedIds = HashSet<String>(files.size)
 			for (file in files) {
-				val bytes = api.download(token, file.id)
-				val snapshot = decodeSnapshot(bytes) // null == same-schema corruption → ignored
+				val snapshot = api.download(token, file.id) { source ->
+					decodeSnapshot(source)
+				}
 				if (snapshot != null) {
 					remotes += snapshot
 					decodedIds += file.id
@@ -175,17 +179,29 @@ class GoogleDriveSyncRepository @Inject constructor(
 			} else {
 				// Concurrency re-check immediately before writing: if the canonical file's version moved
 				// since we read it, another device wrote concurrently → re-merge before overwriting.
-				if (canonical != null && baseVersion != null && attempt < MAX_CONFLICT_RETRIES) {
+				if (canonical != null && baseVersion != null) {
 					val current = api.getFileVersion(token, canonical.id)
-					if (current != null && current != baseVersion) {
-						Log.w(TAG, "remote changed during sync (v$baseVersion → v$current); retrying merge")
+					if (current?.version != null && current.version != baseVersion) {
+						if (attempt < MAX_CONFLICT_RETRIES) {
+							Log.w(TAG, "remote changed during sync (v$baseVersion → v${current.version}); retrying merge")
+							attempt++
+							continue
+						} else {
+							throw SyncApiException(412, "Precondition failed: remote changed during sync on last attempt")
+						}
+					}
+				}
+				val fileId = try {
+					api.upload(token, upload, canonical?.id, canonical?.etag)
+				} catch (e: SyncApiException) {
+					if (e.code == 412 && attempt < MAX_CONFLICT_RETRIES) {
+						Log.w(TAG, "If-Match conflict on upload, retrying merge", e)
 						attempt++
 						continue
 					}
+					throw e
 				}
-				val payload = json.encodeToString(SyncSnapshot.serializer(), upload).encodeToByteArray()
-				val fileId = api.upload(token, payload, canonical?.id)
-				Log.i(TAG, "uploaded ${payload.size} bytes to $fileId")
+				Log.i(TAG, "uploaded snapshot to $fileId")
 				// Collapse first-run duplicates, but ONLY ones we decoded — their data is now merged into
 				// this write. An unreadable duplicate is left untouched rather than risk losing data we
 				// couldn't parse.
@@ -199,7 +215,7 @@ class GoogleDriveSyncRepository @Inject constructor(
 			}
 
 			// Shed old tombstones locally so the next snapshot we build is already trimmed.
-			gcOldTombstones(now)
+			gcOldTombstones(now, enabled)
 
 			syncSettings.lastSyncTimestamp = now
 			syncSettings.lastSyncError = null
@@ -229,25 +245,23 @@ class GoogleDriveSyncRepository @Inject constructor(
 
 	/**
 	 * Decodes a downloaded snapshot. Throws [SyncSchemaException] when the file declares a newer schema
-	 * than this build understands — so we abort rather than overwrite newer data. Returns null for
-	 * same-schema corruption, which the caller safely treats as "no usable remote".
+	 * than this build understands — so we abort rather than overwrite newer data.
 	 */
-	private fun decodeSnapshot(bytes: ByteArray): SyncSnapshot? {
-		val text = bytes.decodeToString()
-		if (text.isBlank()) return null
-		// Probe the schema first: a newer format may also fail the full decode, but we still must
-		// recognise it as "newer" rather than "corrupt" to avoid clobbering it.
+	private fun decodeSnapshot(source: okio.BufferedSource): SyncSnapshot? {
+		if (source.exhausted()) return null
+		val peekSource = source.peek()
 		val version = runCatching {
-			json.decodeFromString(SchemaProbe.serializer(), text).schemaVersion
+			@OptIn(ExperimentalSerializationApi::class)
+			json.decodeFromStream(SchemaProbe.serializer(), peekSource.inputStream()).schemaVersion
 		}.getOrNull()
 		if (version != null && version > SyncSnapshot.SCHEMA_VERSION) {
 			throw SyncSchemaException(version)
 		}
 		return try {
-			json.decodeFromString(SyncSnapshot.serializer(), text)
+			@OptIn(ExperimentalSerializationApi::class)
+			json.decodeFromStream(SyncSnapshot.serializer(), source.inputStream())
 		} catch (e: Exception) {
-			Log.w(TAG, "remote file unreadable (${e.message}); will overwrite with local data")
-			null
+			throw SyncApiException(0, "Remote file is corrupt or unreadable: ${e.message}")
 		}
 	}
 
@@ -297,12 +311,16 @@ class GoogleDriveSyncRepository @Inject constructor(
 		)
 	}
 
-	private suspend fun gcOldTombstones(now: Long) {
+	private suspend fun gcOldTombstones(now: Long, enabled: Set<SyncContent>) {
 		val cutoff = now - TOMBSTONE_TTL_MS
 		runCatchingCancellable {
-			database.getFavouritesDao().gc(cutoff)
-			database.getFavouriteCategoriesDao().gc(cutoff)
-			database.getHistoryDao().gc(cutoff)
+			if (SyncContent.FAVOURITES in enabled) {
+				database.getFavouritesDao().gc(cutoff)
+				database.getFavouriteCategoriesDao().gc(cutoff)
+			}
+			if (SyncContent.HISTORY in enabled) {
+				database.getHistoryDao().gc(cutoff)
+			}
 		}.onFailure { Log.w(TAG, "local tombstone gc failed", it) }
 	}
 
@@ -468,10 +486,18 @@ class GoogleDriveSyncRepository @Inject constructor(
 	) {
 		if (SyncContent.FAVOURITES in enabled) {
 			database.withTransaction {
+				val existingCategoryIds = database.getFavouriteCategoriesDao().findAllForSync()
+					.map { it.categoryId.toLong() }
+					.toMutableSet()
 				for (category in merged.categories) {
 					database.getFavouriteCategoriesDao().upsert(category.toEntity())
+					existingCategoryIds.add(category.categoryId.toLong())
 				}
 				for (favourite in merged.favourites) {
+					if (favourite.categoryId !in existingCategoryIds) {
+						Log.w(TAG, "Skipping orphan favourite for manga ${favourite.mangaId} referencing missing category ${favourite.categoryId}")
+						continue
+					}
 					upsertManga(favourite.manga)
 					database.getFavouritesDao().upsert(favourite.toEntity())
 				}
@@ -525,12 +551,76 @@ class GoogleDriveSyncRepository @Inject constructor(
 		}
 	}
 
+	private fun validateSetting(key: String, value: BackupPrimitive): Boolean {
+		if (key in EXCLUDED_SETTINGS_KEYS) return false
+		return when (key) {
+			AppSettings.KEY_ADBLOCK,
+			AppSettings.KEY_TITLE_OVER_COVER,
+			AppSettings.KEY_GRID_SPACING_INCREASED,
+			AppSettings.KEY_THEME_AMOLED,
+			AppSettings.KEY_HAPTIC_FEEDBACK,
+			AppSettings.KEY_OFFLINE_DISABLED,
+			AppSettings.KEY_READER_DOUBLE_PAGES,
+			AppSettings.KEY_READER_DOUBLE_FOLDABLE,
+			AppSettings.KEY_READER_ZOOM_BUTTONS,
+			AppSettings.KEY_READER_CONTROL_LTR,
+			AppSettings.KEY_READER_NAVIGATION_INVERTED,
+			AppSettings.KEY_READER_FULLSCREEN,
+			AppSettings.KEY_READER_VOLUME_BUTTONS,
+			AppSettings.KEY_READER_MODE_DETECT,
+			AppSettings.KEY_READER_CROP,
+			AppSettings.KEY_READER_SCREEN_ON,
+			AppSettings.KEY_PAGES_NUMBERS,
+			AppSettings.KEY_TRACKER_ENABLED,
+			AppSettings.KEY_TRACKER_WIFI_ONLY,
+			AppSettings.KEY_TRACK_SOURCES,
+			AppSettings.KEY_TRACKER_NOTIFICATIONS,
+			AppSettings.KEY_TRACKER_NO_NSFW,
+			AppSettings.KEY_NOTIFICATIONS_SOUND,
+			AppSettings.KEY_NOTIFICATIONS_VIBRATE,
+			AppSettings.KEY_NOTIFICATIONS_LIGHT,
+			"discord_rpc_enabled" -> value is BackupPrimitive.BoolValue
+
+			AppSettings.KEY_LIST_MODE,
+			AppSettings.KEY_LIST_MODE_HISTORY,
+			AppSettings.KEY_LIST_MODE_FAVORITES,
+			AppSettings.KEY_LIST_MODE_SUGGESTIONS,
+			AppSettings.KEY_THEME,
+			AppSettings.KEY_COLOR_THEME,
+			AppSettings.KEY_READER_ANIMATION,
+			AppSettings.KEY_READER_BACKGROUND,
+			AppSettings.KEY_READER_CONTROLS,
+			AppSettings.KEY_READER_MODE,
+			AppSettings.KEY_TRACKER_FREQUENCY,
+			AppSettings.KEY_TRACKER_DOWNLOAD,
+			AppSettings.KEY_PAGES_PRELOAD,
+			AppSettings.KEY_DOWNLOADS_METERED_NETWORK,
+			AppSettings.KEY_SEARCH_SUGGESTION_TYPES,
+			AppSettings.KEY_MANGA_LIST_BADGES -> value is BackupPrimitive.StringValue
+
+			AppSettings.KEY_GRID_SIZE,
+			AppSettings.KEY_GRID_SIZE_PAGES -> {
+				value is BackupPrimitive.IntValue && value.value in 1..10
+			}
+
+			AppSettings.KEY_READER_DOUBLE_PAGES_SENSITIVITY -> {
+				value is BackupPrimitive.FloatValue && value.value in 0f..1f
+			}
+
+			AppSettings.KEY_READER_ORIENTATION -> {
+				value is BackupPrimitive.IntValue || value is BackupPrimitive.StringValue
+			}
+
+			else -> false
+		}
+	}
+
 	private suspend fun applyConfig(config: SyncConfig, enabled: Set<SyncContent>) {
 		if (SyncContent.SETTINGS in enabled) {
-			val settings = config.settings.toMutableMap()
-			EXCLUDED_SETTINGS_KEYS.forEach { settings.remove(it) }
+			val settings = config.settings.filter { (key, value) -> validateSetting(key, value) }
 			appSettings.upsertAll(settings.mapValues { it.value.rawValue() })
-			tapGridSettings.upsertAll(config.readerGrid.mapValues { it.value.rawValue() })
+			val readerGrid = config.readerGrid.filter { (key, value) -> value is BackupPrimitive.StringValue }
+			tapGridSettings.upsertAll(readerGrid.mapValues { it.value.rawValue() })
 			applySourceSettings(config.sourceSettings)
 		}
 		if (SyncContent.CUSTOM_COVERS in enabled) {
@@ -632,11 +722,14 @@ class GoogleDriveSyncRepository @Inject constructor(
 	private fun dumpAppSettings(): Map<String, BackupPrimitive> {
 		val map = appSettings.getAllValues().toMutableMap()
 		EXCLUDED_SETTINGS_KEYS.forEach { map.remove(it) }
-		return map.toSortedMap().mapNotNullValuesToBackup()
+		val backupMap = map.toSortedMap().mapNotNullValuesToBackup()
+		return backupMap.filter { (key, value) -> validateSetting(key, value) }
 	}
 
-	private fun dumpReaderGrid(): Map<String, BackupPrimitive> =
-		tapGridSettings.getAllValues().toSortedMap().mapNotNullValuesToBackup()
+	private fun dumpReaderGrid(): Map<String, BackupPrimitive> {
+		val backupMap = tapGridSettings.getAllValues().toSortedMap().mapNotNullValuesToBackup()
+		return backupMap.filter { (key, value) -> value is BackupPrimitive.StringValue }
+	}
 
 	private suspend fun dumpSourceSettings(): List<SourceSettingsBackup> {
 		val sources = database.getSourcesDao().findAll()

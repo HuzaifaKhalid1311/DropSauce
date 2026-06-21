@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
@@ -106,6 +108,7 @@ class ReaderViewModel @Inject constructor(
 ) {
     private val intent = MangaIntent(savedStateHandle)
 
+    private val loadingMutex = Mutex()
     private var loadingJob: Job? = null
     private var pageSaveJob: Job? = null
     private var bookmarkJob: Job? = null
@@ -289,50 +292,52 @@ class ReaderViewModel @Inject constructor(
         val state = readingState.value ?: return null
         return content.value.pages.find {
             it.chapterId == state.chapterId && it.index == state.page
-        }?.toMangaPage()
+        }?.toMangaPage() ?: chaptersLoader.getPages(state.chapterId).getOrNull(state.page)
     }
 
     fun switchChapter(id: Long, page: Int) {
-        val prevJob = loadingJob
+        loadingJob?.cancel()
         loadingJob = launchLoadingJob(Dispatchers.Default) {
-            prevJob?.cancelAndJoin()
-            content.value = ReaderContent(emptyList(), null)
-            if (!chaptersLoader.loadSingleChapter(id)) {
-                return@launchLoadingJob
+            loadingMutex.withLock {
+                content.value = ReaderContent(emptyList(), null)
+                if (!chaptersLoader.loadSingleChapter(id)) {
+                    return@withLock
+                }
+                val newState = ReaderState(id, page, 0)
+                content.value = ReaderContent(chaptersLoader.snapshot(), newState)
+                saveCurrentState(newState)
             }
-            val newState = ReaderState(id, page, 0)
-            content.value = ReaderContent(chaptersLoader.snapshot(), newState)
-            saveCurrentState(newState)
         }
     }
 
     fun switchChapterBy(delta: Int) {
-        val prevJob = loadingJob
+        loadingJob?.cancel()
         loadingJob = launchLoadingJob(Dispatchers.Default) {
-            prevJob?.cancelAndJoin()
-            val prevState = readingState.requireValue()
-            val newChapterId = if (delta != 0) {
-                val allChapters = mangaDetails.requireValue().allChapters
-                var index = allChapters.indexOfFirst { x -> x.id == prevState.chapterId }
-                if (index < 0) {
-                    return@launchLoadingJob
+            loadingMutex.withLock {
+                val prevState = readingState.requireValue()
+                val newChapterId = if (delta != 0) {
+                    val allChapters = mangaDetails.requireValue().allChapters
+                    var index = allChapters.indexOfFirst { x -> x.id == prevState.chapterId }
+                    if (index < 0) {
+                        return@withLock
+                    }
+                    index += delta
+                    (allChapters.getOrNull(index) ?: return@withLock).id
+                } else {
+                    prevState.chapterId
                 }
-                index += delta
-                (allChapters.getOrNull(index) ?: return@launchLoadingJob).id
-            } else {
-                prevState.chapterId
+                content.value = ReaderContent(emptyList(), null)
+                if (!chaptersLoader.loadSingleChapter(newChapterId)) {
+                    return@withLock
+                }
+                val newState = ReaderState(
+                    chapterId = newChapterId,
+                    page = if (delta == 0) prevState.page else 0,
+                    scroll = if (delta == 0) prevState.scroll else 0,
+                )
+                content.value = ReaderContent(chaptersLoader.snapshot(), newState)
+                saveCurrentState(newState)
             }
-            content.value = ReaderContent(emptyList(), null)
-            if (!chaptersLoader.loadSingleChapter(newChapterId)) {
-                return@launchLoadingJob
-            }
-            val newState = ReaderState(
-                chapterId = newChapterId,
-                page = if (delta == 0) prevState.page else 0,
-                scroll = if (delta == 0) prevState.scroll else 0,
-            )
-            content.value = ReaderContent(chaptersLoader.snapshot(), newState)
-            saveCurrentState(newState)
         }
     }
 
@@ -342,9 +347,9 @@ class ReaderViewModel @Inject constructor(
         val pages = content.value.pages // capture immediately
         stateChangeJob = launchJob(Dispatchers.Default) {
             prevJob?.cancelAndJoin()
-            loadingJob?.join()
-            if (pages.size != content.value.pages.size) {
-                return@launchJob // TODO
+            loadingMutex.withLock { }
+            if (pages !== content.value.pages) {
+                return@launchJob
             }
             val centerPos = (lowerPos + upperPos) / 2
             pages.getOrNull(centerPos)?.let { page ->
@@ -353,7 +358,7 @@ class ReaderViewModel @Inject constructor(
                 }
             }
             notifyStateChanged()
-            if (pages.isEmpty() || loadingJob?.isActive == true) {
+            if (pages.isEmpty() || loadingMutex.isLocked) {
                 return@launchJob
             }
             ensureActive()
@@ -377,7 +382,7 @@ class ReaderViewModel @Inject constructor(
             return
         }
         bookmarkJob = launchJob(Dispatchers.Default) {
-            loadingJob?.join()
+            loadingMutex.withLock { }
             val state = checkNotNull(getCurrentState())
             if (isBookmarkAdded.value) {
                 val manga = requireManga()
@@ -494,11 +499,14 @@ class ReaderViewModel @Inject constructor(
 
     @AnyThread
     private fun loadPrevNextChapter(currentId: Long, isNext: Boolean) {
-        val prevJob = loadingJob
         loadingJob = launchLoadingJob(Dispatchers.Default) {
-            prevJob?.join()
-            chaptersLoader.loadPrevNextChapter(mangaDetails.requireValue(), currentId, isNext)
-            content.value = ReaderContent(chaptersLoader.snapshot(), null)
+            // Serialize against switchChapter/switchChapterBy via the same mutex (wait for any
+            // in-flight load to finish rather than cancelling it) so chaptersLoader/content stay
+            // consistent.
+            loadingMutex.withLock {
+                chaptersLoader.loadPrevNextChapter(mangaDetails.requireValue(), currentId, isNext)
+                content.value = ReaderContent(chaptersLoader.snapshot(), null)
+            }
         }
     }
 

@@ -10,6 +10,17 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.compose'
 }
 
+Properties properties = new Properties()
+File localPropertiesFile = project.rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+	properties.load(localPropertiesFile.newDataInputStream())
+}
+
+def shikimoriClientId = properties.getProperty("shikimori.clientId") ?: "Mw6F0tPEOgyV7F9U9Twg50Q8SndMY7hzIOfXg0AX_XU"
+def shikimoriClientSecret = properties.getProperty("shikimori.clientSecret") ?: "euBMt1GGRSDpVIFQVPxZrO7Kh6X4gWyv0dABuj4B-M8"
+def anilistClientId = properties.getProperty("anilist.clientId") ?: "9887"
+def anilistClientSecret = properties.getProperty("anilist.clientSecret") ?: "wrMqFosItQWsmB8dtAHfIFPDt15FfQi2ZGiKkJoW"
+
 android {
 	compileSdk {
 		version = release(37) {
@@ -21,7 +32,7 @@ android {
 	defaultConfig {
 		applicationId = 'org.haziffe.dropsauce'
 		minSdk = 23
-		targetSdk = 37
+		targetSdk = 35
 		versionCode = 45
 		versionName = '0.2.2'
 		testInstrumentationRunner = 'org.koitharu.kotatsu.HiltTestRunner'
@@ -32,14 +43,24 @@ android {
 			// https://issuetracker.google.com/issues/408030127
 			generateLocaleConfig = false
 		}
+		buildConfigField "String", "SHIKIMORI_CLIENT_ID", "\"${shikimoriClientId}\""
+		buildConfigField "String", "SHIKIMORI_CLIENT_SECRET", "\"${shikimoriClientSecret}\""
+		buildConfigField "String", "ANILIST_CLIENT_ID", "\"${anilistClientId}\""
+		buildConfigField "String", "ANILIST_CLIENT_SECRET", "\"${anilistClientSecret}\""
 	}
 	signingConfigs {
-		if (project.hasProperty('RELEASE_STORE_FILE')) {
-			release {
+		release {
+			if (project.hasProperty('RELEASE_STORE_FILE')) {
 				storeFile file(project.property('RELEASE_STORE_FILE'))
 				storePassword project.property('RELEASE_STORE_PASSWORD')
 				keyAlias project.property('RELEASE_KEY_ALIAS')
 				keyPassword project.property('RELEASE_KEY_PASSWORD')
+			} else {
+				// Fallback to debug signing config values so release signing configuration is always defined
+				storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
+				storePassword "android"
+				keyAlias "androiddebugkey"
+				keyPassword "android"
 			}
 		}
 	}

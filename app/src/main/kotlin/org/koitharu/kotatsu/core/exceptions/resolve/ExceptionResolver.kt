@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.core.exceptions.resolve
 
+import org.koitharu.kotatsu.BuildConfig
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCaller
@@ -147,14 +148,24 @@ class ExceptionResolver private constructor(
 
     private fun showSslErrorDialog() {
         val ctx = host.context ?: return
+        if (!BuildConfig.DEBUG) {
+            return
+        }
         if (settings.isSSLBypassEnabled) {
             Toast.makeText(ctx, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
             return
         }
+        val targetHost = settings.lastSslFailedHost
         buildAlertDialog(ctx) {
             setTitle(R.string.ignore_ssl_errors)
-            setMessage(R.string.ignore_ssl_errors_summary)
+            val message = if (targetHost != null) {
+                "Ignore SSL errors for $targetHost? This is insecure and should only be used for debugging."
+            } else {
+                ctx.getString(R.string.ignore_ssl_errors_summary)
+            }
+            setMessage(message)
             setPositiveButton(R.string.apply) { _, _ ->
+                settings.sslBypassHost = targetHost
                 settings.isSSLBypassEnabled = true
                 Toast.makeText(ctx, R.string.settings_apply_restart_required, Toast.LENGTH_LONG).show()
                 ctx.restartApplication()

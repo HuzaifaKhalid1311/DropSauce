@@ -16,12 +16,14 @@ class ScrobblingEntity(
 	@ColumnInfo(name = "chapter") val chapter: Int,
 	@ColumnInfo(name = "comment") val comment: String?,
 	@ColumnInfo(name = "rating") val rating: Float,
+	@ColumnInfo(name = "updated_at", defaultValue = "0") val updatedAt: Long = System.currentTimeMillis(),
 ) {
 
 	fun copy(
 		status: String?,
 		comment: String?,
 		rating: Float,
+		updatedAt: Long = System.currentTimeMillis(),
 	) = ScrobblingEntity(
 		scrobbler = scrobbler,
 		id = id,
@@ -31,5 +33,6 @@ class ScrobblingEntity(
 		chapter = chapter,
 		comment = comment,
 		rating = rating,
+		updatedAt = updatedAt,
 	)
 }

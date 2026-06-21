@@ -14,6 +14,9 @@ abstract class FavouriteCategoriesDao {
 	@Query("SELECT * FROM favourite_categories WHERE category_id = :id AND deleted_at = 0")
 	abstract suspend fun find(id: Int): FavouriteCategoryEntity
 
+	@Query("SELECT * FROM favourite_categories WHERE title = :title AND deleted_at = 0 LIMIT 1")
+	abstract suspend fun findByTitle(title: String): FavouriteCategoryEntity?
+
 	@Query("SELECT * FROM favourite_categories WHERE deleted_at = 0 ORDER BY sort_key")
 	abstract suspend fun findAll(): List<FavouriteCategoryEntity>
 

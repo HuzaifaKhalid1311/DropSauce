@@ -15,4 +15,21 @@
 				tools:ignore="AcceptsUserCertificates" />
 		</trust-anchors>
 	</base-config>
+
+	<!-- Secure default config for auth/update/sync domains -->
+	<domain-config cleartextTrafficPermitted="false">
+		<domain includeSubdomains="true">shikimori.one</domain>
+		<domain includeSubdomains="true">shikimori.me</domain>
+		<domain includeSubdomains="true">anilist.co</domain>
+		<domain includeSubdomains="true">myanimelist.net</domain>
+		<domain includeSubdomains="true">github.com</domain>
+		<domain includeSubdomains="true">githubusercontent.com</domain>
+		<domain includeSubdomains="true">googleapis.com</domain>
+		<domain includeSubdomains="true">google.com</domain>
+		<domain includeSubdomains="true">discord.com</domain>
+		<domain includeSubdomains="true">drop-sauce.app</domain>
+		<trust-anchors>
+			<certificates src="system" />
+		</trust-anchors>
+	</domain-config>
 </network-security-config>

@@ -45,13 +45,34 @@ class SyncWorker @AssistedInject constructor(
 		return try {
 			when (val result = repository.sync()) {
 				is SyncResult.Success -> Result.success()
-				is SyncResult.SignInRequired -> Result.failure()
+				is SyncResult.AlreadyRunning -> Result.success()
+				is SyncResult.SignInRequired -> {
+					postReauthNotification()
+					Result.failure()
+				}
 				is SyncResult.Error ->
 					if (result.retryable && runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
 			}
 		} catch (e: Exception) {
 			e.printStackTraceDebug()
 			if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
+		}
+	}
+
+	private fun postReauthNotification() {
+		val context = applicationContext
+		createNotificationChannel(context)
+		val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+			.setContentTitle(context.getString(R.string.google_drive_sync))
+			.setContentText("Re-authentication required")
+			.setSmallIcon(R.drawable.ic_sync)
+			.setAutoCancel(true)
+			.setPriority(NotificationCompat.PRIORITY_HIGH)
+			.build()
+		try {
+			NotificationManagerCompat.from(context).notify(REAUTH_NOTIFICATION_ID, notification)
+		} catch (e: SecurityException) {
+			// Ignore if notification permission is missing
 		}
 	}
 
@@ -112,6 +133,7 @@ class SyncWorker @AssistedInject constructor(
 
 		const val CHANNEL_ID = "sync_status"
 		private const val FOREGROUND_NOTIFICATION_ID = 45
+		private const val REAUTH_NOTIFICATION_ID = 46
 		private const val TAG_PERIODIC = "gdrive_sync_periodic"
 		private const val TAG_MANUAL = "gdrive_sync_manual"
 		private const val MAX_ATTEMPTS = 3

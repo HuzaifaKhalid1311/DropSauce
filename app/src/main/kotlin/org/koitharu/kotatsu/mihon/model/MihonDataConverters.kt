@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.util.longHashCode
 
 private const val TAG = "MihonDataConverters"
 
@@ -48,7 +49,7 @@ fun SManga.toManga(
 	val isContentNsfw = source.isNsfw || safeGenres?.any { it.lowercase() in adultGenres } == true
 
 	return Manga(
-		id = stableId(source.name, "manga", safeUrl),
+		id = stableId(source, "manga", safeUrl),
 		title = safeTitle,
 		altTitles = emptySet(),
 		url = safeUrl,
@@ -132,7 +133,7 @@ fun Manga.toSManga(): SManga {
 fun SChapter.toMangaChapter(source: MihonMangaSource, overrideNumber: Float? = null): MangaChapter {
 	val finalNumber = overrideNumber ?: (if (chapter_number >= 0f) chapter_number else 0f)
 	return MangaChapter(
-		id = stableId(source.name, "chapter", url),
+		id = stableId(source, "chapter", url),
 		title = name.takeIf { it.isNotBlank() },
 		number = finalNumber,
 		volume = 0,
@@ -155,7 +156,7 @@ fun MangaChapter.toSChapter(): SChapter = SChapter.create().apply {
 // ============ Page <-> MangaPage ============
 
 fun Page.toMangaPage(source: MihonMangaSource, chapterUrl: String): MangaPage = MangaPage(
-	id = stableId(source.name, "page", "$chapterUrl|$index"),
+	id = stableId(source, "page", "$chapterUrl|$index"),
 	url = imageUrl ?: url,
 	preview = imageUrl,
 	source = source,
@@ -163,8 +164,9 @@ fun Page.toMangaPage(source: MihonMangaSource, chapterUrl: String): MangaPage = 
 
 // ============ Internal Helpers ============
 
-private fun stableId(sourceName: String, type: String, value: String): Long {
-	return "$sourceName|$type|$value".hashCode().toLong() and Long.MAX_VALUE
+private fun stableId(source: MihonMangaSource, type: String, value: String): Long {
+	val sourceKey = "mihon:${source.pkgName}:${source.catalogueSource.name}"
+	return "$sourceKey|$type|$value".longHashCode()
 }
 
 private fun resolveUrl(baseUrl: String?, value: String?): String? {

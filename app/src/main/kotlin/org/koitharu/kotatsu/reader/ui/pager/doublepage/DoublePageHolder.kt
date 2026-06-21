@@ -54,16 +54,20 @@ class DoublePageHolder(
 	}
 
 	override fun onReady() {
+		val sWidth = binding.ssiv.sWidth.toFloat()
+		val sHeight = binding.ssiv.sHeight.toFloat()
+		if (sWidth <= 0f || sHeight <= 0f) return
+
 		with(binding.ssiv) {
 			maxScale = 2f * maxOf(
-				width / sWidth.toFloat(),
-				height / sHeight.toFloat(),
+				width / sWidth,
+				height / sHeight,
 			)
 			binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 			minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 			setScaleAndCenter(
 				minScale,
-				PointF(if (isEven) 0f else sWidth.toFloat(), sHeight / 2f),
+				PointF(if (isEven) 0f else sWidth, sHeight / 2f),
 			)
 		}
 		alignPageToCenterSeam()

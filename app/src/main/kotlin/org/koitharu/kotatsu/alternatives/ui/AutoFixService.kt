@@ -15,6 +15,7 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.alternatives.domain.AutoFixUseCase
 import org.koitharu.kotatsu.alternatives.domain.AutoFixUseCase.NoAlternativesException
@@ -54,14 +55,37 @@ class AutoFixService : CoroutineIntentService() {
 	override suspend fun IntentJobContext.processIntent(intent: Intent) {
 		val ids = requireNotNull(intent.getLongArrayExtra(DATA_IDS))
 		startForeground(this)
-		for (mangaId in ids) {
+		val total = ids.size
+		for ((index, mangaId) in ids.withIndex()) {
+			if (checkNotificationPermission(CHANNEL_ID)) {
+				val title = getString(R.string.fixing_manga)
+				val progressNotification = NotificationCompat.Builder(this@AutoFixService, CHANNEL_ID)
+					.setContentTitle(title)
+					.setContentText("Processing ${index + 1} of $total")
+					.setPriority(NotificationCompat.PRIORITY_MIN)
+					.setDefaults(0)
+					.setSilent(true)
+					.setOngoing(true)
+					.setProgress(total, index + 1, false)
+					.setSmallIcon(R.drawable.general_notification)
+					.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+					.setCategory(NotificationCompat.CATEGORY_PROGRESS)
+					.addAction(
+						appcompatR.drawable.abc_ic_clear_material,
+						getString(android.R.string.cancel),
+						getCancelIntent(),
+					)
+					.build()
+				notificationManager.notify(FOREGROUND_NOTIFICATION_ID, progressNotification)
+			}
 			powerManager.withPartialWakeLock(TAG) {
 				val result = runCatchingCancellable {
 					autoFixUseCase.invoke(mangaId)
 				}
 				if (checkNotificationPermission(CHANNEL_ID)) {
-					val notification = buildNotification(startId, result)
-					notificationManager.notify(TAG, startId, notification)
+					val notificationId = (mangaId xor (mangaId ushr 32)).toInt()
+					val notification = buildNotification(notificationId, result)
+					notificationManager.notify(TAG, notificationId, notification)
 				}
 			}
 		}
@@ -69,8 +93,10 @@ class AutoFixService : CoroutineIntentService() {
 
 	override fun IntentJobContext.onError(error: Throwable) {
 		if (checkNotificationPermission(CHANNEL_ID)) {
-			val notification = runBlocking { buildNotification(startId, Result.failure(error)) }
-			notificationManager.notify(TAG, startId, notification)
+			launch {
+				val notification = buildNotification(startId, Result.failure(error))
+				notificationManager.notify(TAG, startId, notification)
+			}
 		}
 	}
 

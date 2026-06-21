@@ -23,6 +23,7 @@ class ReversedDoubleReaderFragment : DoubleReaderFragment() {
 	}
 
 	private fun reversed(position: Int): Int {
-		return ((readerAdapter?.itemCount ?: 0) - position - 1).coerceAtLeast(0)
+		val size = viewModel.content.value.pages.size
+		return (size - position - 1).coerceAtLeast(0)
 	}
 }

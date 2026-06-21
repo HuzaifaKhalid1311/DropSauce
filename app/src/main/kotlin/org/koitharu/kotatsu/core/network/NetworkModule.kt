@@ -73,12 +73,25 @@ interface NetworkModule {
 			proxySelector(proxyProvider.selector)
 			proxyAuthenticator(proxyProvider.authenticator)
 			dns(DoHManager(cache, settings))
-			if (settings.isSSLBypassEnabled) {
-				disableCertificateVerification()
+			if (settings.isSSLBypassEnabled && BuildConfig.DEBUG) {
+				disableCertificateVerification(contextProvider.get(), settings.sslBypassHost)
 			} else {
 				installExtraCertificates(contextProvider.get())
 			}
 			cache(cache)
+			addInterceptor { chain ->
+				try {
+					chain.proceed(chain.request())
+				} catch (e: Exception) {
+					if (e is javax.net.ssl.SSLException || e is java.security.cert.CertPathValidatorException ||
+						e.cause is javax.net.ssl.SSLException || e.cause is java.security.cert.CertPathValidatorException) {
+						if (BuildConfig.DEBUG) {
+							settings.lastSslFailedHost = chain.request().url.host
+						}
+					}
+					throw e
+				}
+			}
 			addInterceptor(GZipInterceptor())
 			addInterceptor(CloudFlareInterceptor())
 			addInterceptor(RateLimitInterceptor())

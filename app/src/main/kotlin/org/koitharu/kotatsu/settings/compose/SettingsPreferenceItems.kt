@@ -40,6 +40,7 @@ fun ListSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	key: String? = null,
 ) {
 	var showDialog by remember { mutableStateOf(false) }
 	val selectedIndex = entryValues.indexOf(selectedValue).coerceAtLeast(0)
@@ -54,6 +55,7 @@ fun ListSettingsItem(
 		shape = shape,
 		enabled = enabled,
 		onClick = { showDialog = true },
+		key = key,
 	)
 
 	if (showDialog) {
@@ -80,6 +82,7 @@ fun MultiSelectSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	key: String? = null,
 ) {
 	var showDialog by remember { mutableStateOf(false) }
 	val selectedIndices = entryValues
@@ -96,6 +99,7 @@ fun MultiSelectSettingsItem(
 		shape = shape,
 		enabled = enabled,
 		onClick = { showDialog = true },
+		key = key,
 	)
 
 	if (showDialog) {
@@ -124,6 +128,7 @@ fun EditTextSettingsItem(
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 	mask: ((String) -> String)? = null,
+	key: String? = null,
 ) {
 	var showDialog by remember { mutableStateOf(false) }
 	val displayValue = remember(value, mask) { mask?.invoke(value) ?: value }
@@ -137,6 +142,7 @@ fun EditTextSettingsItem(
 		shape = shape,
 		enabled = enabled,
 		onClick = { showDialog = true },
+		key = key,
 	)
 
 	if (showDialog) {
@@ -195,6 +201,7 @@ fun NavigationSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	key: String? = null,
 ) {
 	SettingsItem(
 		title = title,
@@ -205,6 +212,7 @@ fun NavigationSettingsItem(
 		shape = shape,
 		enabled = enabled,
 		onClick = onClick,
+		key = key,
 	)
 }
 
@@ -220,6 +228,7 @@ fun ActionSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	key: String? = null,
 ) {
 	SettingsItem(
 		title = title,
@@ -230,6 +239,7 @@ fun ActionSettingsItem(
 		shape = shape,
 		enabled = enabled,
 		onClick = onClick,
+		key = key,
 	)
 }
 
@@ -242,6 +252,7 @@ fun InfoSettingsItem(
 	@DrawableRes icon: Int? = null,
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
+	key: String? = null,
 ) {
 	SettingsItem(
 		title = title,
@@ -252,6 +263,7 @@ fun InfoSettingsItem(
 		shape = shape,
 		enabled = true,
 		onClick = null,
+		key = key,
 	)
 }
 

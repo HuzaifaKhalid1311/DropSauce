@@ -353,6 +353,7 @@ class ScrobblingBackup(
 	@SerialName("chapter") val chapter: Int = 0,
 	@SerialName("comment") val comment: String? = null,
 	@SerialName("rating") val rating: Float = 0f,
+	@SerialName("updated_at") val updatedAt: Long = 0L,
 ) {
 
 	constructor(entity: ScrobblingEntity) : this(
@@ -364,6 +365,7 @@ class ScrobblingBackup(
 		chapter = entity.chapter,
 		comment = entity.comment,
 		rating = entity.rating,
+		updatedAt = entity.updatedAt,
 	)
 
 	fun toEntity() = ScrobblingEntity(
@@ -375,6 +377,7 @@ class ScrobblingBackup(
 		chapter = chapter,
 		comment = comment,
 		rating = rating,
+		updatedAt = updatedAt,
 	)
 }
 

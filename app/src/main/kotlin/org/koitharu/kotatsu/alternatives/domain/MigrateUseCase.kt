@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.alternatives.domain
 
+import org.koitharu.kotatsu.parsers.util.longHashCode
 import androidx.room.withTransaction
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.model.getPreferredBranch
@@ -42,19 +43,65 @@ constructor(
 		} else {
 			newManga
 		}
+
 		mangaDataRepository.storeManga(newDetails, replaceExisting = true)
 		database.withTransaction {
 			// replace favorites
 			val favoritesDao = database.getFavouritesDao()
 			val oldFavourites = favoritesDao.findAllRaw(oldDetails.id)
+			val existingFavourites = favoritesDao.findAllRaw(newDetails.id)
+			val existingCategoryIds = existingFavourites.map { it.categoryId }.toSet()
 			if (oldFavourites.isNotEmpty()) {
 				favoritesDao.delete(oldManga.id)
 				for (f in oldFavourites) {
+					if (f.categoryId in existingCategoryIds) {
+						continue
+					}
 					val e =
 						f.copy(
-							mangaId = newManga.id,
+							mangaId = newDetails.id,
 						)
 					favoritesDao.upsert(e)
+				}
+			}
+			// replace bookmarks
+			val bookmarksDao = database.getBookmarksDao()
+			val oldBookmarks = bookmarksDao.findAll(oldDetails.id)
+			if (oldBookmarks.isNotEmpty()) {
+				for (bookmark in oldBookmarks) {
+					val oldChapters = oldDetails.chapters
+					val newChapters = newDetails.chapters
+					val oldChapter = oldChapters?.firstOrNull { it.id == bookmark.chapterId }
+					val newChapter = if (oldChapter != null && newChapters != null) {
+						val branch = oldChapter.branch
+						val newBranch = if (newChapters.any { it.branch == branch }) {
+							branch
+						} else {
+							newDetails.getPreferredBranch(null)
+						}
+						val newBranchChapters = newChapters.filter { it.branch == newBranch }
+						newBranchChapters.firstOrNull { it.volume == oldChapter.volume && it.number == oldChapter.number }
+							?: newBranchChapters.getOrNull(oldChapters.indexOf(oldChapter))
+							?: newBranchChapters.firstOrNull()
+					} else {
+						null
+					}
+					if (newChapter != null) {
+						bookmarksDao.delete(bookmark.pageId)
+						val newPageId = if (newDetails.source is org.koitharu.kotatsu.mihon.model.MihonMangaSource) {
+							val mihonSource = newDetails.source as org.koitharu.kotatsu.mihon.model.MihonMangaSource
+							val sourceKey = "mihon:${mihonSource.pkgName}:${mihonSource.catalogueSource.name}"
+							"$sourceKey|page|${newChapter.url}|${bookmark.page}".longHashCode()
+						} else {
+							"${newDetails.id}|${newChapter.id}|${bookmark.page}".longHashCode()
+						}
+						val newBookmark = bookmark.copy(
+							mangaId = newDetails.id,
+							pageId = newPageId,
+							chapterId = newChapter.id,
+						)
+						bookmarksDao.insert(newBookmark)
+					}
 				}
 			}
 			// replace history
@@ -114,7 +161,7 @@ constructor(
 				}
 			}
 		}
-		progressUpdateUseCase(newManga)
+		progressUpdateUseCase(newDetails)
 	}
 
 	private fun makeNewHistory(
@@ -125,6 +172,19 @@ constructor(
 		if (oldManga.chapters.isNullOrEmpty()) { // probably broken manga/source
 			val branch = newManga.getPreferredBranch(null)
 			val chapters = checkNotNull(newManga.getChapters(branch))
+			if (chapters.isEmpty()) {
+				return HistoryEntity(
+					mangaId = newManga.id,
+					createdAt = history.createdAt,
+					updatedAt = history.updatedAt,
+					chapterId = 0L,
+					page = history.page,
+					scroll = history.scroll,
+					percent = history.percent,
+					deletedAt = 0,
+					chaptersCount = 0,
+				)
+			}
 			val currentChapter =
 				if (history.percent in 0f..1f) {
 					chapters[(chapters.lastIndex * history.percent).toInt()]
@@ -175,7 +235,7 @@ constructor(
 			chapterId = newChapterId,
 			page = history.page,
 			scroll = history.scroll,
-			percent = PROGRESS_NONE,
+			percent = history.percent,
 			deletedAt = 0,
 			chaptersCount = checkNotNull(newChapters[newBranch]).size,
 		)

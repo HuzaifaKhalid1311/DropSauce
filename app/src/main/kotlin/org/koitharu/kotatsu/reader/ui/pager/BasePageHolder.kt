@@ -142,7 +142,11 @@ abstract class BasePageHolder<B : ViewBinding>(
 	}
 
 	override fun onTrimMemory(level: Int) {
-		// TODO
+		if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND ||
+			level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL
+		) {
+			ssiv.recycle()
+		}
 	}
 
 	override fun onConfigurationChanged(newConfig: Configuration) = Unit

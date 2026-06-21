@@ -55,7 +55,7 @@ object SyncMerger {
 			local,
 			remote,
 			key = { Triple(it.scrobbler, it.id, it.mangaId) },
-			timestamp = { it.chapter.toLong() },
+			timestamp = { it.updatedAt },
 		)
 
 	/** Union of bookmark groups by manga, and of items within a group by page (local wins). */

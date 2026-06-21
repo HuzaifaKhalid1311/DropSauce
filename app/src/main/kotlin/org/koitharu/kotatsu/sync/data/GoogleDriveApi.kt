@@ -5,6 +5,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.encodeToStream
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -52,10 +54,14 @@ class GoogleDriveApi @Inject constructor(
 		// as an optimistic-concurrency token to detect a concurrent write from another device. Drive
 		// encodes int64 fields as JSON strings, so this is a String and only ever compared for equality.
 		@SerialName("version") val version: String? = null,
+		@SerialName("etag") val etag: String? = null,
 	)
 
 	@Serializable
-	private class FileVersion(@SerialName("version") val version: String? = null)
+	class FileVersion(
+		@SerialName("version") val version: String? = null,
+		@SerialName("etag") val etag: String? = null,
+	)
 
 	@Serializable
 	class DriveUser(
@@ -65,7 +71,10 @@ class GoogleDriveApi @Inject constructor(
 	)
 
 	@Serializable
-	private class FileList(@SerialName("files") val files: List<DriveFile> = emptyList())
+	private class FileList(
+		@SerialName("files") val files: List<DriveFile> = emptyList(),
+		@SerialName("nextPageToken") val nextPageToken: String? = null,
+	)
 
 	@Serializable
 	private class AboutResponse(@SerialName("user") val user: DriveUser? = null)
@@ -88,54 +97,88 @@ class GoogleDriveApi @Inject constructor(
 	 * them. Trashed files are excluded so a not-yet-purged delete can't shadow the live file.
 	 */
 	suspend fun findSyncFiles(token: String): List<DriveFile> = withContext(Dispatchers.IO) {
-		val url = "$DRIVE_BASE/files".toHttpUrl().newBuilder()
-			.addQueryParameter("spaces", "appDataFolder")
-			.addQueryParameter("q", "name = '$FILE_NAME' and trashed = false")
-			.addQueryParameter("fields", "files(id,name,modifiedTime,createdTime,version)")
-			.addQueryParameter("orderBy", "createdTime")
-			.addQueryParameter("pageSize", "100")
-			.build()
-		val request = Request.Builder().url(url).get().authorize(token).build()
-		httpClient.newCall(request).execute().parse<FileList>()?.files.orEmpty()
+		val files = mutableListOf<DriveFile>()
+		var pageToken: String? = null
+		do {
+			val url = "$DRIVE_BASE/files".toHttpUrl().newBuilder().apply {
+				addQueryParameter("spaces", "appDataFolder")
+				addQueryParameter("q", "name = '$FILE_NAME' and trashed = false")
+				addQueryParameter("fields", "nextPageToken,files(id,name,modifiedTime,createdTime,version,etag)")
+				addQueryParameter("orderBy", "createdTime")
+				addQueryParameter("pageSize", "100")
+				if (pageToken != null) {
+					addQueryParameter("pageToken", pageToken)
+				}
+			}.build()
+			val request = Request.Builder().url(url).get().authorize(token).build()
+			val response = httpClient.newCall(request).execute().parse<FileList>()
+			if (response != null) {
+				files.addAll(response.files)
+				pageToken = response.nextPageToken
+			} else {
+				pageToken = null
+			}
+		} while (pageToken != null)
+		files
 	}
 
 	/** Reads just the current [DriveFile.version] of a file, for a pre-upload concurrency re-check. */
-	suspend fun getFileVersion(token: String, fileId: String): String? = withContext(Dispatchers.IO) {
+	suspend fun getFileVersion(token: String, fileId: String): FileVersion? = withContext(Dispatchers.IO) {
 		val url = "$DRIVE_BASE/files/$fileId".toHttpUrl().newBuilder()
-			.addQueryParameter("fields", "version")
+			.addQueryParameter("fields", "version,etag")
 			.build()
 		val request = Request.Builder().url(url).get().authorize(token).build()
-		httpClient.newCall(request).execute().parse<FileVersion>()?.version
+		httpClient.newCall(request).execute().parse<FileVersion>()
 	}
 
 	/** Downloads the raw sync file content (plain JSON bytes). */
-	suspend fun download(token: String, fileId: String): ByteArray = withContext(Dispatchers.IO) {
+	suspend fun <T> download(token: String, fileId: String, block: (okio.BufferedSource) -> T): T = withContext(Dispatchers.IO) {
 		val url = "$DRIVE_BASE/files/$fileId".toHttpUrl().newBuilder()
 			.addQueryParameter("alt", "media")
 			.build()
 		val request = Request.Builder().url(url).get().authorize(token).build()
 		httpClient.newCall(request).execute().use { response ->
 			if (!response.isSuccessful) throw response.toError()
-			response.body.bytes()
+			block(response.body.source())
 		}
 	}
 
 	/**
-	 * Uploads [content] (plain JSON bytes). Creates the file in appDataFolder when [fileId] is null
+	 * Uploads [snapshot] (plain JSON bytes). Creates the file in appDataFolder when [fileId] is null
 	 * (a metadata-only create followed by a media upload — avoids the fragile multipart path),
 	 * otherwise overwrites the existing file. Returns the file id.
 	 */
-	suspend fun upload(token: String, content: ByteArray, fileId: String?): String =
+	suspend fun upload(
+		token: String,
+		snapshot: org.koitharu.kotatsu.sync.data.model.SyncSnapshot,
+		fileId: String?,
+		expectedEtag: String? = null
+	): String =
 		withContext(Dispatchers.IO) {
 			val targetId = fileId ?: createEmptyFile(token)
 			val url = "$UPLOAD_BASE/files/$targetId".toHttpUrl().newBuilder()
 				.addQueryParameter("uploadType", "media")
 				.addQueryParameter("fields", "id")
 				.build()
+
+			val requestBody = object : okhttp3.RequestBody() {
+				override fun contentType() = JSON_MEDIA_TYPE
+				override fun writeTo(sink: okio.BufferedSink) {
+					@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+					json.encodeToStream(org.koitharu.kotatsu.sync.data.model.SyncSnapshot.serializer(), snapshot, sink.outputStream())
+				}
+			}
+
 			val request = Request.Builder()
 				.url(url)
-				.patch(content.toRequestBody(JSON_MEDIA_TYPE))
+				.patch(requestBody)
 				.authorize(token)
+				.apply {
+					if (expectedEtag != null) {
+						val formattedEtag = if (expectedEtag.startsWith("\"")) expectedEtag else "\"$expectedEtag\""
+						header("If-Match", formattedEtag)
+					}
+				}
 				.build()
 			httpClient.newCall(request).execute().parse<IdResponse>()?.id ?: targetId
 		}

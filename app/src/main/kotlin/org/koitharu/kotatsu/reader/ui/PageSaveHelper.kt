@@ -201,7 +201,7 @@ class PageSaveHelper @AssistedInject constructor(
 			append('-')
 			append(pageNumber)
 			append('_')
-			append(SimpleDateFormat("yyyy-MM-dd_HHmm").format(Date()))
+			append(SimpleDateFormat("yyyy-MM-dd_HHmm", java.util.Locale.ROOT).format(Date()))
 		}
 	}
 

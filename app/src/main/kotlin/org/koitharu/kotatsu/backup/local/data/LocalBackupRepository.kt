@@ -171,7 +171,16 @@ class LocalBackupRepository @Inject constructor(
 
 					BackupSection.HISTORY -> input.readJsonArray<HistoryBackup>(serializer()).restoreToDb {
 						upsertMangaBackup(it.manga)
-						getHistoryDao().upsert(it.toEntity())
+						val backupEntity = it.toEntity()
+						val existing = getHistoryDao().findRaw(backupEntity.mangaId)
+						if (existing == null) {
+							getHistoryDao().upsert(backupEntity)
+						} else {
+							val existingTime = maxOf(existing.updatedAt, existing.deletedAt)
+							if (backupEntity.updatedAt > existingTime) {
+								getHistoryDao().upsert(backupEntity)
+							}
+						}
 					}
 
 					BackupSection.CATEGORIES -> input.readJsonArray<CategoryBackup>(serializer()).restoreToDb {

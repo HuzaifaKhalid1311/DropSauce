@@ -7,6 +7,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.util.ext.toRequestBody
@@ -40,8 +41,8 @@ class ShikimoriRepository @Inject constructor(
 	private val db: MangaDatabase,
 ) : ScrobblerRepository {
 
-	private val clientId = context.getString(R.string.shikimori_clientId)
-	private val clientSecret = context.getString(R.string.shikimori_clientSecret)
+	private val clientId = BuildConfig.SHIKIMORI_CLIENT_ID
+	private val clientSecret = BuildConfig.SHIKIMORI_CLIENT_SECRET
 
 	override val oauthUrl: String
 		get() = "${BASE_URL}oauth/authorize?client_id=$clientId&" +

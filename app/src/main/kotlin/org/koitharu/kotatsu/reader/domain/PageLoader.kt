@@ -97,7 +97,9 @@ class PageLoader @Inject constructor(
 
 	private val tasks = LongSparseArray<ProgressDeferred<Uri, Float>>()
 	private val semaphore = Semaphore(3)
-	private val convertLock = Mutex()
+	private val convertSemaphore = Semaphore(
+		(Runtime.getRuntime().maxMemory() / (1024 * 1024 * 128)).toInt().coerceIn(1, 4)
+	)
 	private val prefetchLock = Mutex()
 
 	@Volatile
@@ -118,7 +120,10 @@ class PageLoader @Inject constructor(
 	fun prefetch(pages: List<ReaderPage>) = loaderScope.launch {
 		prefetchLock.withLock {
 			for (page in pages.asReversed()) {
-				if (tasks.containsKey(page.id)) {
+				val exists = synchronized(tasks) {
+					tasks.containsKey(page.id)
+				}
+				if (exists) {
 					continue
 				}
 				prefetchQueue.offerFirst(page.toMangaPage())
@@ -146,17 +151,17 @@ class PageLoader @Inject constructor(
 	}
 
 	fun loadPageAsync(page: MangaPage, force: Boolean): ProgressDeferred<Uri, Float> {
-		var task = tasks[page.id]?.takeIf { it.isValid() }
-		if (force) {
-			task?.cancel()
-		} else if (task?.isCancelled == false) {
-			return task
-		}
-		task = loadPageAsyncImpl(page, skipCache = force, isPrefetch = false)
-		synchronized(tasks) {
+		return synchronized(tasks) {
+			var task = tasks[page.id]?.takeIf { it.isValid() }
+			if (force) {
+				task?.cancel()
+			} else if (task?.isCancelled == false) {
+				return@synchronized task
+			}
+			task = loadPageAsyncImpl(page, skipCache = force, isPrefetch = false)
 			tasks[page.id] = task
+			task
 		}
-		return task
 	}
 
 	suspend fun loadPage(page: MangaPage, force: Boolean): Uri {
@@ -164,7 +169,7 @@ class PageLoader @Inject constructor(
 	}
 
 	@CheckResult
-	suspend fun convertBimap(uri: Uri): Uri = convertLock.withLock {
+	suspend fun convertBimap(uri: Uri): Uri = convertSemaphore.withPermit {
 		if (uri.isZipUri()) {
 			runInterruptible(Dispatchers.IO) {
 				ZipFile(uri.schemeSpecificPart).use { zip ->
@@ -200,8 +205,20 @@ class PageLoader @Inject constructor(
 	}
 
 	suspend fun invalidate(clearCache: Boolean) {
-		tasks.clear()
+		val tasksToCancel = synchronized(tasks) {
+			val list = ArrayList<ProgressDeferred<Uri, Float>>(tasks.size())
+			for (i in 0 until tasks.size()) {
+				list.add(tasks.valueAt(i))
+			}
+			list
+		}
+		for (task in tasksToCancel) {
+			task.cancel()
+		}
 		loaderScope.cancelChildrenAndJoin()
+		synchronized(tasks) {
+			tasks.clear()
+		}
 		if (clearCache) {
 			cache.clear()
 		}

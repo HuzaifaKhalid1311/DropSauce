@@ -154,6 +154,7 @@ class DetailsExpressiveActivity :
 			onIncognitoClick = { openReader(isIncognitoMode = true) },
 			onForgetHistoryClick = { viewModel.removeFromHistory() },
 			onChaptersClick = { router.showChapterPagesSheet() },
+			onRetry = { viewModel.reload() },
 		)
 		viewBinding.composeView.setViewCompositionStrategy(
 			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
