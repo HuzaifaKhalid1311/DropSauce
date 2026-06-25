@@ -11,9 +11,6 @@ name: Preview Build
 #   2. As a workflow artifact (zipped by GitHub) for anyone who prefers the Actions tab.
 # The SHA-256/SHA-1/MD5 hashes are printed to the run summary and the release notes.
 on:
-  push:
-    branches:
-      - '**'
   workflow_dispatch:
 
 permissions:
