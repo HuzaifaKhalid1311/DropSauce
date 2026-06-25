@@ -37,7 +37,8 @@ class ChapterGridSpanHelper private constructor() : View.OnLayoutChangeListener 
 		override fun getSpanSize(position: Int): Int {
 			return when (recyclerView.adapter?.getItemViewType(position)) {
 				ListItemType.CHAPTER_LIST.ordinal, // for smooth transition
-				ListItemType.HEADER.ordinal -> getTotalSpans()
+				ListItemType.HEADER.ordinal,
+				ListItemType.MISSING_CHAPTERS.ordinal -> getTotalSpans()
 
 				else -> 1
 			}

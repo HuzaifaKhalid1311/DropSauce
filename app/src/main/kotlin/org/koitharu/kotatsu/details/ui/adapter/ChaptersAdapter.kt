@@ -21,6 +21,7 @@ class ChaptersAdapter(
 		addDelegate(ListItemType.HEADER, listHeaderAD(null))
 		addDelegate(ListItemType.CHAPTER_LIST, chapterListItemAD(onItemClickListener, accentColorProvider))
 		addDelegate(ListItemType.CHAPTER_GRID, chapterGridItemAD(onItemClickListener, accentColorProvider))
+		addDelegate(ListItemType.MISSING_CHAPTERS, missingChaptersAD())
 	}
 
 	override suspend fun emit(value: List<ListModel>?) {

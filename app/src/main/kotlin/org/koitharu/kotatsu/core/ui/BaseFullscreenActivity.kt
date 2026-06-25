@@ -18,7 +18,7 @@ abstract class BaseFullscreenActivity<B : ViewBinding> :
 		super.onCreate(savedInstanceState)
 		@Suppress("DEPRECATION")
 		with(window) {
-			systemUiController = SystemUiController(this)
+			systemUiController = SystemUiController(this, entryPoint.settings)
 			statusBarColor = Color.TRANSPARENT
 			navigationBarColor = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
 				ContextCompat.getColor(this@BaseFullscreenActivity, R.color.dim)

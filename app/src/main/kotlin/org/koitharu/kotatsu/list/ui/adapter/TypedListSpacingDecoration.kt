@@ -75,6 +75,7 @@ class TypedListSpacingDecoration(
 			ListItemType.CATEGORY_LARGE,
 			ListItemType.NAV_ITEM,
 			ListItemType.CHAPTER_LIST,
+			ListItemType.MISSING_CHAPTERS,
 			ListItemType.INFO,
 			null,
 				-> outRect.set(0)
@@ -100,4 +101,5 @@ class TypedListSpacingDecoration(
 		|| this == ListItemType.FILTER_TAG
 		|| this == ListItemType.CHAPTER_LIST
 		|| this == ListItemType.CHAPTER_GRID
+		|| this == ListItemType.MISSING_CHAPTERS
 }

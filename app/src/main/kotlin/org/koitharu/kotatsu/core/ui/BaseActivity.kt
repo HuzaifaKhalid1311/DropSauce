@@ -2,7 +2,9 @@ package org.koitharu.kotatsu.core.ui
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -19,6 +21,9 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewbinding.ViewBinding
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.Flow
@@ -51,7 +56,14 @@ abstract class BaseActivity<B : ViewBinding> :
 	@JvmField
 	val actionModeDelegate = ActionModeDelegate()
 
-	private lateinit var entryPoint: BaseActivityEntryPoint
+	protected lateinit var entryPoint: BaseActivityEntryPoint
+
+	private val statusBarPrefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+		if (key == AppSettings.KEY_HIDE_STATUS_BAR) {
+			applyStatusBarVisibility(entryPoint.settings.isStatusBarHidden)
+			ViewCompat.requestApplyInsets(window.decorView)
+		}
+	}
 
 	override fun attachBaseContext(newBase: Context) {
 		entryPoint = EntryPointAccessors.fromApplication<BaseActivityEntryPoint>(newBase.applicationContext)
@@ -73,6 +85,35 @@ abstract class BaseActivity<B : ViewBinding> :
 		enableEdgeToEdge()
 		super.onCreate(savedInstanceState)
 		maybePlayRecreateFadeIn()
+		settings.subscribe(statusBarPrefListener)
+		applyStatusBarVisibility(settings.isStatusBarHidden)
+	}
+
+	override fun onDestroy() {
+		if (::entryPoint.isInitialized) {
+			entryPoint.settings.unsubscribe(statusBarPrefListener)
+		}
+		super.onDestroy()
+	}
+
+	override fun onWindowFocusChanged(hasFocus: Boolean) {
+		super.onWindowFocusChanged(hasFocus)
+		if (hasFocus) {
+			applyStatusBarVisibility(entryPoint.settings.isStatusBarHidden)
+		}
+	}
+
+	private fun applyStatusBarVisibility(hidden: Boolean) {
+		if (this is BaseFullscreenActivity<*>) {
+			return
+		}
+		val controller = WindowCompat.getInsetsController(window, window.decorView)
+		if (hidden) {
+			controller.hide(WindowInsetsCompat.Type.statusBars())
+			controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+		} else {
+			controller.show(WindowInsetsCompat.Type.statusBars())
+		}
 	}
 
 	/**
@@ -113,7 +154,24 @@ abstract class BaseActivity<B : ViewBinding> :
 	protected fun setContentView(binding: B) {
 		this.viewBinding = binding
 		super.setContentView(binding.root)
-		ViewCompat.setOnApplyWindowInsetsListener(binding.root, this)
+		ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+			val modifiedInsets = if (entryPoint.settings.isStatusBarHidden) {
+				val statusBarInsets = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.statusBars())
+				val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+				val newSystemBars = androidx.core.graphics.Insets.of(
+					systemBarsInsets.left,
+					maxOf(systemBarsInsets.top, statusBarInsets.top),
+					systemBarsInsets.right,
+					systemBarsInsets.bottom
+				)
+				WindowInsetsCompat.Builder(insets)
+					.setInsets(WindowInsetsCompat.Type.systemBars(), newSystemBars)
+					.build()
+			} else {
+				insets
+			}
+			onApplyWindowInsets(v, modifiedInsets)
+		}
 		val toolbar = (binding.root.findViewById<View>(R.id.toolbar) as? Toolbar)
 		toolbar?.let {
 			setSupportActionBar(it)

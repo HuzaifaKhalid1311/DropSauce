@@ -8,6 +8,7 @@ import androidx.core.net.toUri
 import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.source.model.FilterList
+import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import okhttp3.Headers
@@ -386,22 +387,33 @@ val details = try {
 
 	override suspend fun getRelatedMangaImpl(seed: Manga): List<Manga> = withContext(Dispatchers.IO) {
 		val httpSource = mihonSource as? HttpSource
-		// Search the same source using the manga's first tag as a query so the
-		// results are genre-adjacent. Fall back to popular if there are no tags.
-		val query = seed.tags.firstOrNull()?.title.orEmpty()
-		val page = if (query.isNotEmpty()) {
-			mihonSource.getSearchManga(1, query, FilterList())
+		val tags = seed.tags
+		val page = if (tags.isNotEmpty()) {
+			val query = tags.take(3).joinToString(" ") { it.title }
+			var result = runCatching { mihonSource.getSearchManga(1, query, FilterList()) }
+				.getOrElse { MangasPage(emptyList(), false) }
+			if (result.mangas.isEmpty() && tags.size > 1) {
+				result = runCatching { mihonSource.getSearchManga(1, tags.first().title, FilterList()) }
+					.getOrElse { MangasPage(emptyList(), false) }
+			}
+			result
 		} else {
-			mihonSource.getPopularManga(1)
+			runCatching { mihonSource.getPopularManga(1) }
+				.getOrElse { MangasPage(emptyList(), false) }
 		}
+
+		val seedTags = tags.map { it.title.lowercase() }.toSet()
 		page.mangas
 			.filter { it.url != seed.url }
-			.take(10)
 			.map { sManga ->
 				sManga.toManga(
 					source = source,
 					publicUrl = httpSource?.getMangaUrl(sManga).orEmpty(),
 				)
 			}
+			.sortedByDescending { manga ->
+				manga.tags.count { it.title.lowercase() in seedTags }
+			}
+			.take(10)
 	}
 }

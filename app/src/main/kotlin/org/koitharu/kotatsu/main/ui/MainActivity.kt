@@ -185,6 +185,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)
 		settings.observe(AppSettings.KEY_NAV_LEGACY).observe(this) { adjustFabVisibility() }
 		viewModel.feedCounter.observe(this, ::onFeedCounterChanged)
+		viewModel.hasExtensionUpdates.observe(this) { hasUpdates ->
+			navigationDelegate.setCounter(NavItem.EXPLORE, if (hasUpdates) -1 else 0)
+		}
 		viewModel.appUpdate.observe(this) { update ->
 			viewBinding.badgeSettingsUpdate.visibility = if (update != null) View.VISIBLE else View.GONE
 		}
