@@ -152,7 +152,7 @@ fun SChapter.toMangaChapter(source: MihonMangaSource, overrideNumber: Float? = n
 		url = url,
 		scanlator = scanlator,
 		uploadDate = date_upload,
-		branch = scanlator,
+		branch = null,
 		source = source,
 	)
 }

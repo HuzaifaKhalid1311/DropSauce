@@ -39,7 +39,7 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	abstract suspend fun insert(entity: TrackLogEntity): Long
 
-	@Query("DELETE FROM track_logs WHERE manga_id NOT IN (SELECT manga_id FROM tracks)")
+	@Query("DELETE FROM track_logs WHERE manga_id NOT IN (SELECT manga_id FROM manga)")
 	abstract suspend fun gc()
 
 	@Query("DELETE FROM track_logs WHERE id IN (SELECT id FROM track_logs ORDER BY created_at DESC LIMIT 0 OFFSET :size)")
