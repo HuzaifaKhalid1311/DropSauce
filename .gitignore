@@ -28,3 +28,4 @@ CLAUDE.md
 *.jks
 *.keystore
 *.b64
+/.vscode
