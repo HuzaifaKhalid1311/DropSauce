@@ -108,8 +108,13 @@ class ChaptersFragment :
 				captureScrollForReverse()
 			}
 		}
-		viewModel.chapters
-			.map { it.withVolumeHeaders(requireContext()) }
+		kotlinx.coroutines.flow.combine(
+			viewModel.chapters,
+			viewModel.chaptersQuery,
+			viewModel.isDownloadedOnly
+		) { list, query, downloadedOnly ->
+			list.withVolumeHeaders(requireContext(), showMissingChapters = query.isEmpty() && !downloadedOnly)
+		}
 			.flowOn(Dispatchers.Default)
 			.observe(viewLifecycleOwner, this::onChaptersChanged)
 		viewModel.quickFilter.observe(viewLifecycleOwner, this::onFilterChanged)
@@ -134,6 +139,7 @@ class ChaptersFragment :
 
 	override fun onItemClick(item: ChapterListItem, view: View) {
 		if (selectionController?.onItemClick(item.chapter.id) == true) {
+			view.clearFocus()
 			return
 		}
 		val listener = findParentCallback(ReaderNavigationCallback::class.java)

@@ -8,5 +8,8 @@ abstract class BaseListSelectionCallback(
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
 		recyclerView.invalidateItemDecorations()
+		recyclerView.focusedChild?.clearFocus()
+		recyclerView.isFocusableInTouchMode = true
+		recyclerView.requestFocus()
 	}
 }

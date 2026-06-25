@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import dagger.hilt.android.EntryPointAccessors
@@ -26,9 +27,11 @@ abstract class BaseFragment<B : ViewBinding> :
 	protected val actionModeDelegate: ActionModeDelegate
 		get() = (requireActivity() as BaseActivity<*>).actionModeDelegate
 
+	private lateinit var entryPoint: BaseActivityEntryPoint
+
 	override fun onAttach(context: Context) {
 		super.onAttach(context)
-		val entryPoint = EntryPointAccessors.fromApplication<BaseActivityEntryPoint>(context)
+		entryPoint = EntryPointAccessors.fromApplication<BaseActivityEntryPoint>(context)
 		exceptionResolver = entryPoint.exceptionResolverFactory.create(this)
 	}
 
@@ -44,7 +47,24 @@ abstract class BaseFragment<B : ViewBinding> :
 
 	final override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
-		ViewCompat.setOnApplyWindowInsetsListener(view, this)
+		ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+			val modifiedInsets = if (entryPoint.settings.isStatusBarHidden) {
+				val statusBarInsets = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.statusBars())
+				val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+				val newSystemBars = androidx.core.graphics.Insets.of(
+					systemBarsInsets.left,
+					maxOf(systemBarsInsets.top, statusBarInsets.top),
+					systemBarsInsets.right,
+					systemBarsInsets.bottom
+				)
+				WindowInsetsCompat.Builder(insets)
+					.setInsets(WindowInsetsCompat.Type.systemBars(), newSystemBars)
+					.build()
+			} else {
+				insets
+			}
+			onApplyWindowInsets(v, modifiedInsets)
+		}
 		onViewBindingCreated(requireViewBinding(), savedInstanceState)
 	}
 

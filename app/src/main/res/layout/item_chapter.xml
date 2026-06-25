@@ -10,7 +10,8 @@
 	android:gravity="center_vertical"
 	android:minHeight="@dimen/chapter_list_item_height"
 	android:orientation="horizontal"
-	android:paddingStart="?android:listPreferredItemPaddingStart">
+	android:paddingStart="?android:listPreferredItemPaddingStart"
+	android:defaultFocusHighlightEnabled="false">
 
 	<View
 		android:id="@+id/viewCurrentIndicator"

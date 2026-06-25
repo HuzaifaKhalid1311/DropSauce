@@ -247,6 +247,7 @@ private fun AppearanceScreen(
 	var theme by rememberStringPref(AppSettings.KEY_THEME, "-1")
 	var amoled by rememberBooleanPref(AppSettings.KEY_THEME_AMOLED, false)
 	var hapticFeedback by rememberBooleanPref(AppSettings.KEY_HAPTIC_FEEDBACK, true)
+	var hideStatusBar by rememberBooleanPref(AppSettings.KEY_HIDE_STATUS_BAR, false)
 	var locale by rememberStringPref(AppSettings.KEY_APP_LOCALE, "")
 	var listMode by rememberStringPref(AppSettings.KEY_LIST_MODE, ListMode.GRID.name)
 	var gridSize by rememberIntPref(AppSettings.KEY_GRID_SIZE, 100)
@@ -349,6 +350,17 @@ private fun AppearanceScreen(
 						checked = hapticFeedback,
 						onCheckedChange = { hapticFeedback = it },
 						icon = R.drawable.ic_haptic,
+
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.hide_status_bar),
+						subtitle = stringResource(R.string.hide_status_bar_summary),
+						checked = hideStatusBar,
+						onCheckedChange = { hideStatusBar = it },
+						icon = R.drawable.ic_eye_off,
 
 						shape = pos.shape,
 					)

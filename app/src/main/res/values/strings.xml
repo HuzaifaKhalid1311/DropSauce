@@ -613,6 +613,10 @@
     <string name="remaining_time_pattern" translatable="false">%1$s %2$s</string>
     <string name="volume_">Volume %d</string>
     <string name="volume_unknown">Unknown volume</string>
+    <plurals name="missing_chapters">
+        <item quantity="one">Missing %d chapter</item>
+        <item quantity="other">Missing %d chapters</item>
+    </plurals>
     <string name="incognito_mode_hint">Your reading progress will not be saved</string>
     <string name="vertical">Vertical</string>
     <string name="last_read">Last read</string>
@@ -638,6 +642,8 @@
     <string name="default_webtoon_zoom_out">Default webtoon zoom out</string>
     <string name="fullscreen_mode">Fullscreen mode</string>
     <string name="reader_fullscreen_summary">Hide system status and navigation bars</string>
+    <string name="hide_status_bar">Hide status bar</string>
+    <string name="hide_status_bar_summary">Hides the Android status bar across the entire app</string>
     <string name="fraction_pattern" translatable="false">%1$d/%2$d</string>
     <string name="reading_time_estimation">Show estimated reading time</string>
     <string name="reading_time_estimation_summary">The time estimation value may be inaccurate</string>
@@ -834,6 +840,12 @@
     <string name="delete_old_backups_summary">Automatically delete old backup files to save storage space</string>
     <string name="handle_links">Handle links</string>
     <string name="handle_links_summary">Handle manga links from external applications (e.g. web browser). You may also need to enable it manually in the application\'s system settings</string>
+    <string name="auto_update">Auto-update</string>
+    <string name="shizuku_title">Shizuku</string>
+    <string name="shizuku_summary">Grant privileged access via Shizuku for silent, no-prompt installs</string>
+    <string name="shizuku_not_running">Shizuku is not running. Start the Shizuku app first.</string>
+    <string name="ext_auto_update_title">Auto-update extensions</string>
+    <string name="ext_auto_update_summary">Automatically check for extension updates once a day and install them silently in the background. Requires Shizuku to be enabled and running.</string>
     <string name="email">Email</string>
     <string name="captcha_required_message">This source requires solving a captcha to continue</string>
     <string name="author">Author</string>

@@ -94,6 +94,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		putBoolean(KEY_THEME_AMOLED, enabled)
 	}
 
+	val isStatusBarHidden: Boolean
+		get() = prefs.getBoolean(KEY_HIDE_STATUS_BAR, false)
+
 	var isOnboardingCompleted: Boolean
 		get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
 			&& prefs.getString(KEY_ONBOARDING_INSTALL_ID, null) == onboardingInstallId
@@ -857,6 +860,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_COLOR_THEME = "color_theme"
 		const val KEY_THEME_AMOLED = "amoled_theme"
 		const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
+		const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
 		const val KEY_OFFLINE_DISABLED = "no_offline"
 		const val KEY_PAGES_CACHE_CLEAR = "pages_cache_clear"
 		const val KEY_HTTP_CACHE_CLEAR = "http_cache_clear"
