@@ -144,18 +144,22 @@ class MihonMangaRepository(
 	private suspend fun getDetailsInner(manga: Manga): Manga {
 		val sManga = manga.toSManga()
 
-		val details = try {
-			mihonSource.getMangaDetails(sManga)
-		} catch (e: Exception) {
-			if ((e is IOException || e.cause is IOException)
-				&& e !is CloudFlareException) {
-				delay(500)
-				mihonSource.getMangaDetails(sManga)
-			} else {
-				throw e
-			}
-		}
-
+val details = try {
+        mihonSource.getMangaDetails(sManga)
+    } catch (e: Exception) {
+        if ((e is IOException || e.cause is IOException) && e !is CloudFlareException) {
+            delay(500)
+            try {
+                mihonSource.getMangaDetails(sManga)
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+                sManga
+            }
+        } else {
+            e.printStackTrace()
+            sManga
+        }
+    }
 		val rawChapters = try {
 			mihonSource.getChapterList(sManga)
 		} catch (e: Exception) {
