@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 private const val PAGE_SIZE = 20
+private const val MAX_FEED_SIZE = 200
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
@@ -99,7 +100,7 @@ class FeedViewModel @Inject constructor(
 
 	fun requestMoreItems() {
 		if (isReady.compareAndSet(true, false)) {
-			limit.value += PAGE_SIZE
+			limit.value = (limit.value + PAGE_SIZE).coerceAtMost(MAX_FEED_SIZE)
 		}
 	}
 
@@ -117,13 +118,9 @@ class FeedViewModel @Inject constructor(
 	private suspend fun List<TrackingLogItem>.mapListTo(destination: MutableList<ListModel>) {
 		var prevDate: DateTimeAgo? = null
 		for (item in this) {
-			val date = calculateTimeAgo(item.createdAt)
+			val date = calculateTimeAgo(item.createdAt) ?: DateTimeAgo.Today
 			if (prevDate != date) {
-				destination += if (date != null) {
-					ListHeader(date)
-				} else {
-					ListHeader(R.string.unknown)
-				}
+				destination += ListHeader(date)
 			}
 			prevDate = date
 			destination += mangaListMapper.toFeedItem(item)

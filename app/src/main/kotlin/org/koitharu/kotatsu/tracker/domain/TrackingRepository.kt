@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 private const val NO_ID = 0L
-private const val MAX_LOG_SIZE = 120
+private const val MAX_LOG_SIZE = 200
 
 @Reusable
 class TrackingRepository @Inject constructor(
