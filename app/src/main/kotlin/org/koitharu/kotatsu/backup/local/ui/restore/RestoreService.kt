@@ -26,6 +26,7 @@ import org.koitharu.kotatsu.core.util.ext.withPartialWakeLock
 import org.koitharu.kotatsu.core.util.progress.Progress
 import org.koitharu.kotatsu.kotatsumigration.domain.KotatsuMigrationUseCase
 import org.koitharu.kotatsu.kotatsumigration.ui.KotatsuMigrationService
+import org.koitharu.kotatsu.tracker.work.TrackWorker
 import java.io.FileNotFoundException
 import java.util.EnumSet
 import java.util.zip.ZipInputStream
@@ -44,6 +45,9 @@ class RestoreService : BaseBackupRestoreService() {
 
 	@Inject
 	lateinit var migrationUseCase: KotatsuMigrationUseCase
+
+	@Inject
+	lateinit var trackWorkerScheduler: TrackWorker.Scheduler
 
 	override suspend fun IntentJobContext.processIntent(intent: Intent) {
 		setForeground(
@@ -83,6 +87,10 @@ class RestoreService : BaseBackupRestoreService() {
 				if (migrationUseCase.scan().isNotEmpty()) {
 					KotatsuMigrationService.start(applicationContext)
 				}
+			}.onFailure { it.printStackTraceDebug() }
+			// Eagerly preload track entries added or restored so the feed only shows new chapters
+			runCatching {
+				trackWorkerScheduler.startNow()
 			}.onFailure { it.printStackTraceDebug() }
 		}
 	}

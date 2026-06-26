@@ -68,6 +68,12 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("UPDATE tracks SET chapters_new = 0 WHERE manga_id = :mangaId")
 	abstract suspend fun clearCounter(mangaId: Long)
 
+	@Query("SELECT manga_id FROM tracks WHERE needs_preload = 1")
+	abstract suspend fun findAllPreloadIds(): LongArray
+
+	@Query("UPDATE tracks SET needs_preload = 0 WHERE manga_id = :mangaId")
+	abstract suspend fun clearPreloadFlag(mangaId: Long)
+
 	@Query("DELETE FROM tracks WHERE manga_id = :mangaId")
 	abstract suspend fun delete(mangaId: Long)
 

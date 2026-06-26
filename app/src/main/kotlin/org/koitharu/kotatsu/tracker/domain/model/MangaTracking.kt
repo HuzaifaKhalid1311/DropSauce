@@ -9,6 +9,7 @@ data class MangaTracking(
 	val lastCheck: Instant?,
 	val lastChapterDate: Instant?,
 	val newChapters: Int,
+	val needsPreload: Boolean = false,
 ) {
 
 	fun isEmpty(): Boolean {

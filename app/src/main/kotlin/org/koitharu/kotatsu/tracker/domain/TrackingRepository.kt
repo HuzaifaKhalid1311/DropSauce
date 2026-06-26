@@ -58,6 +58,7 @@ class TrackingRepository @Inject constructor(
 					lastCheck = it.track.lastCheckTime.toInstantOrNull(),
 					lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
 					newChapters = it.track.newChapters,
+					needsPreload = it.track.needsPreload,
 				)
 			}.distinctUntilChanged()
 			.onStart { gcIfNotCalled() }
@@ -71,6 +72,7 @@ class TrackingRepository @Inject constructor(
 				lastCheck = it.track.lastCheckTime.toInstantOrNull(),
 				lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
 				newChapters = it.track.newChapters,
+				needsPreload = it.track.needsPreload,
 			)
 		}
 	}
@@ -83,6 +85,7 @@ class TrackingRepository @Inject constructor(
 			lastCheck = track.lastCheckTime.toInstantOrNull(),
 			lastChapterDate = track.lastChapterDate.toInstantOrNull(),
 			newChapters = track.newChapters,
+			needsPreload = track.needsPreload,
 		)
 	}
 
@@ -112,6 +115,9 @@ class TrackingRepository @Inject constructor(
 		db.withTransaction {
 			val track = getOrCreateTrack(updates.manga.id).mergeWith(updates)
 			db.getTracksDao().upsert(track)
+			if (updates is MangaUpdates.Success && updates.isValid) {
+				db.getTracksDao().clearPreloadFlag(updates.manga.id)
+			}
 			if (updates is MangaUpdates.Success && updates.newChapters.isNotEmpty()) {
 				progressUpdateUseCase(updates.manga)
 				val logEntity = TrackLogEntity(
@@ -146,6 +152,7 @@ class TrackingRepository @Inject constructor(
 			lastChapterDate = tracking.lastChapterDate?.toEpochMilli() ?: 0L,
 			lastResult = TrackEntity.RESULT_EXTERNAL_MODIFICATION,
 			lastError = null,
+			needsPreload = tracking.lastChapterId == 0L,
 		)
 		db.getTracksDao().upsert(entity)
 	}
@@ -202,6 +209,7 @@ class TrackingRepository @Inject constructor(
 				lastChapterDate = lastChapterDate,
 				lastResult = TrackEntity.RESULT_FAILED,
 				lastError = updates.error?.toString(),
+				needsPreload = needsPreload,
 			)
 
 			is MangaUpdates.Success -> TrackEntity(
@@ -212,6 +220,7 @@ class TrackingRepository @Inject constructor(
 				lastChapterDate = updates.lastChapterDate().ifZero { lastChapterDate },
 				lastResult = if (updates.isNotEmpty()) TrackEntity.RESULT_HAS_UPDATE else TrackEntity.RESULT_NO_UPDATE,
 				lastError = null,
+				needsPreload = needsPreload,
 			)
 		}
 	}

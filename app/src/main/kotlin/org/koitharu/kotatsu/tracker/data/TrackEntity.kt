@@ -28,6 +28,7 @@ class TrackEntity(
 	@TrackerResult
 	@ColumnInfo(name = "last_result") val lastResult: Int,
 	@ColumnInfo(name = "last_error") val lastError: String?,
+	@ColumnInfo(name = "needs_preload") val needsPreload: Boolean,
 ) {
 
 	@IntDef(RESULT_NONE, RESULT_HAS_UPDATE, RESULT_NO_UPDATE, RESULT_FAILED, RESULT_EXTERNAL_MODIFICATION)
@@ -50,6 +51,7 @@ class TrackEntity(
 			lastChapterDate = 0,
 			lastResult = RESULT_NONE,
 			lastError = null,
+			needsPreload = true,
 		)
 	}
 }

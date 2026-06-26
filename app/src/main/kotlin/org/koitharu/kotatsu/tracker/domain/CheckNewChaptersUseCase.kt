@@ -121,8 +121,8 @@ class CheckNewChaptersUseCase @Inject constructor(
 	 * The main functionality of tracker: check new chapters in [manga] comparing to the [track]
 	 */
 	private fun compare(track: MangaTracking, manga: Manga, branch: String?): MangaUpdates.Success {
-		if (track.isEmpty()) {
-			// first check or manga was empty on last check
+		if (track.isEmpty() || track.needsPreload) {
+			// first check, manga was empty on last check, or entry needs preload after restore/add
 			return MangaUpdates.Success(manga, branch, emptyList(), isValid = false)
 		}
 		val chapters = requireNotNull(manga.getChapters(branch))
