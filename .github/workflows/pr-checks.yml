@@ -1,0 +1,57 @@
+name: PR Checks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # Required for reviewdog to comment on PRs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Pre-warm JitPack dependencies
+        run: |
+          PARSERS_VERSION=$(grep 'parsers = ' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          echo "Pre-warming JitPack for kotatsu-parsers:${PARSERS_VERSION}"
+          POM_URL="https://jitpack.io/com/github/YakaTeam/kotatsu-parsers/${PARSERS_VERSION}/kotatsu-parsers-${PARSERS_VERSION}.pom"
+          for i in $(seq 1 10); do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$POM_URL")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "JitPack artifact is ready (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i: JitPack returned HTTP ${HTTP_STATUS}, waiting 30s..."
+            sleep 30
+          done
+          echo "::error::JitPack artifact for kotatsu-parsers:${PARSERS_VERSION} not available after 10 attempts"
+          exit 1
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug
+
+      - name: Run Reviewdog to annotate PR
+        uses: reviewdog/action-android-lint@v0.1.0
+        if: always() # Run even if the previous step failed (though we set abortOnError=false)
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          lint_xml: app/build/reports/lint-results-debug.xml
+          reporter: github-pr-review
+          filter_mode: added # Only annotate lines touched in this PR

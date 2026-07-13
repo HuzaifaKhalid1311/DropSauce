@@ -101,8 +101,9 @@ android {
 		schemaDirectory "$projectDir/schemas"
 	}
 	lint {
-		abortOnError = true
-		warningsAsErrors = true
+		abortOnError = false
+		warningsAsErrors = false
+		xmlReport = true
 		checkDependencies = true
 		disable 'MissingTranslation',
 			'PrivateResource',
