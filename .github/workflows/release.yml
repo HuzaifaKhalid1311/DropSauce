@@ -195,18 +195,18 @@ jobs:
         TAG="v${{ inputs.version_name }}"
         NOTES_FILE="release_notes.md"
 
-        cat > "$NOTES_FILE" <<'EOF'
-        ## DropSauce v${{ inputs.version_name }}
+        cat > "$NOTES_FILE" <<EOF
+## DropSauce v${{ inputs.version_name }}
 
-        ### Installation Instructions
-        1. Download and install the apk file first
-        2. go to the Explore menu> Manage and click the pen icon to add an extension repo
-        3. install and use the extensions, read, add items to the favorites and ENJOY!
-        If this is your first time using the app, I recommend uninstalling any extension you find when opening the app for the first time and then installing latest extensions from your preferred repository"
+### Installation Instructions
+1. Download and install the apk file first
+2. go to the Explore menu> Manage and click the pen icon to add an extension repo
+3. install and use the extensions, read, add items to the favorites and ENJOY!
+If this is your first time using the app, I recommend uninstalling any extension you find when opening the app for the first time and then installing latest extensions from your preferred repository
 
-        ### Changelog
-        ${{ steps.changelog.outputs.changelog }}
-        EOF
+### Changelog
+${{ steps.changelog.outputs.changelog }}
+EOF
 
         gh release create "$TAG" release/*.apk \
           --title "$TAG" \

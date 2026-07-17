@@ -71,14 +71,10 @@ android {
 	}
 	packaging {
 		resources {
-			//noinspection GrDeprecatedAPIUsage
-			exclude 'META-INF/README.md'
-			//noinspection GrDeprecatedAPIUsage
-			exclude 'META-INF/NOTICE.md'
+			excludes += ['META-INF/README.md', 'META-INF/NOTICE.md']
 		}
 		jniLibs {
-			// GitHub releases are universal APKs, so compress native libraries to avoid
-			// shipping every ABI at its full on-disk size. Android extracts them at install.
+			// Keep native libraries uncompressed so they don't need extraction at install.
 			useLegacyPackaging = true
 			keepDebugSymbols += [
 				'**/libandroidx.graphics.path.so',
@@ -168,8 +164,7 @@ kotlin {
 }
 
 dependencies {
-	//noinspection UseTomlInstead
-	implementation("com.github.YakaTeam:kotatsu-parsers:${libs.versions.parsers.get()}") {
+	implementation(libs.kotatsu.parsers) {
 		exclude group: 'org.json', module: 'json'
 	}
 
@@ -241,9 +236,7 @@ dependencies {
 	implementation libs.xmlutil.serialization
 
 	implementation libs.adapterdelegates
-	implementation(libs.adapterdelegates.viewbinding) {
-		exclude group: 'org.jetbrains.kotlin', module: 'kotlin-android-extensions-runtime'
-	}
+	implementation libs.adapterdelegates.viewbinding
 
 	implementation libs.hilt.android
 	ksp libs.hilt.compiler

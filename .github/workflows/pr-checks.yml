@@ -1,0 +1,71 @@
+name: PR Checks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Pre-warm JitPack dependencies
+        run: |
+          PARSERS_VERSION=$(grep 'parsers = ' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          echo "Pre-warming JitPack for kotatsu-parsers:${PARSERS_VERSION}"
+          POM_URL="https://jitpack.io/com/github/YakaTeam/kotatsu-parsers/${PARSERS_VERSION}/kotatsu-parsers-${PARSERS_VERSION}.pom"
+          for i in $(seq 1 10); do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$POM_URL")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "JitPack artifact is ready (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i: JitPack returned HTTP ${HTTP_STATUS}, waiting 30s..."
+            sleep 30
+          done
+          echo "::warning::JitPack artifact for kotatsu-parsers:${PARSERS_VERSION} not available after 10 attempts"
+          exit 0
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug --no-daemon --stacktrace
+        continue-on-error: true
+
+      - name: Upload Lint SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('app/build/reports/lint-results-debug.sarif') != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        continue-on-error: true
+        with:
+          sarif_file: app/build/reports/lint-results-debug.sarif
+          category: android-lint
+
+      - name: Upload Lint SARIF as Workflow Artifact
+        uses: actions/upload-artifact@v5
+        if: always() && hashFiles('app/build/reports/lint-results-debug.sarif') != ''
+        with:
+          name: lint-results-sarif
+          path: app/build/reports/lint-results-debug.sarif

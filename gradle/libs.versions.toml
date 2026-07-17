@@ -125,6 +125,7 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 rxjava = { module = "io.reactivex:rxjava", version.ref = "rxjava" }
 unifile = { module = "com.github.tachiyomiorg:unifile", version.ref = "unifile" }
 injekt-core = { module = "com.github.null2264.injekt:injekt-core", version.ref = "injekt" }
+kotatsu-parsers = { module = "com.github.YakaTeam:kotatsu-parsers", version.ref = "parsers" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 ssiv = { module = "com.github.KotatsuApp:subsampling-scale-image-view", version.ref = "ssiv" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
