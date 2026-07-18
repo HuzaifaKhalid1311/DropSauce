@@ -26,6 +26,7 @@ import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.MangaListMapper
+import org.koitharu.kotatsu.list.domain.PaginationDelegate
 import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
@@ -38,7 +39,6 @@ import org.koitharu.kotatsu.tracker.domain.UpdatesListQuickFilter
 import org.koitharu.kotatsu.tracker.domain.model.TrackingLogItem
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
 import org.koitharu.kotatsu.tracker.work.TrackWorker
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 private const val PAGE_SIZE = 20
@@ -54,8 +54,7 @@ class FeedViewModel @Inject constructor(
 	private val db: MangaDatabase,
 ) : BaseViewModel(), QuickFilterListener by quickFilter {
 
-	private val limit = MutableStateFlow(PAGE_SIZE)
-	private val isReady = AtomicBoolean(false)
+	private val pagination = PaginationDelegate(PAGE_SIZE)
 	private val expandedIds = MutableStateFlow<Set<Long>>(emptySet())
 
 	val isRunning = scheduler.observeIsRunning()
@@ -70,7 +69,7 @@ class FeedViewModel @Inject constructor(
 	@Suppress("USELESS_CAST")
 	val content = combine(
 		quickFilter.appliedOptions,
-		combine(limit, quickFilter.appliedOptions.combineWithSettings(), ::Pair)
+		combine(pagination.limit, quickFilter.appliedOptions.combineWithSettings(), ::Pair)
 			.flatMapLatest { repository.observeTrackingLog(it.first, it.second) },
 		combine(
 			settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_GESTURES) },
@@ -92,7 +91,7 @@ class FeedViewModel @Inject constructor(
 				actionStringRes = 0,
 			)
 		} else {
-			isReady.set(true)
+			pagination.onContentReady()
 			list.mapListTo(result, expanded)
 		}
 		result as List<ListModel>
@@ -117,9 +116,7 @@ class FeedViewModel @Inject constructor(
 	}
 
 	fun requestMoreItems() {
-		if (isReady.compareAndSet(true, false)) {
-			limit.value += PAGE_SIZE
-		}
+		pagination.requestMoreItems()
 	}
 
 	fun update() {

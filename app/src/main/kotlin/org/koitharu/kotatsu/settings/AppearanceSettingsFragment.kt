@@ -6,9 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings as SystemSettings
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
@@ -25,9 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -52,7 +48,6 @@ import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.settings.appearance.PreviewSettingsFragment
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.ColorSchemePickerRow
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
 import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
@@ -101,38 +96,30 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 		}
 	}
 
-	override fun onCreateView(
-		inflater: LayoutInflater,
-		container: ViewGroup?,
-		savedInstanceState: Bundle?,
-	): View = ComposeView(requireContext()).apply {
-		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-		setContent {
-			DropSauceTheme {
-				val authOk by authSupported.asStateFlow().collectAsState()
-				AppearanceScreen(
-					authSupported = authOk,
-					dynamicShortcutsAvailable = appShortcutManager.isDynamicShortcutsAvailable(),
-					onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
-					onOpenLocaleSettings = ::openSystemLocaleSettings,
-					onOpenDetailsAppearance = {
-						(activity as? SettingsActivity)?.openFragment(
-							PreviewSettingsFragment::class.java,
-							null,
-							isFromRoot = false,
-						)
-					},
-					onOpenNavConfig = {
-						(activity as? SettingsActivity)?.openFragment(
-							NavConfigFragment::class.java,
-							null,
-							isFromRoot = false,
-						)
-					},
-					onRequestProtectAuth = ::startProtectionAuthentication,
+	@Composable
+	override fun Content() {
+		val authOk by authSupported.asStateFlow().collectAsState()
+		AppearanceScreen(
+			authSupported = authOk,
+			dynamicShortcutsAvailable = appShortcutManager.isDynamicShortcutsAvailable(),
+			onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
+			onOpenLocaleSettings = ::openSystemLocaleSettings,
+			onOpenDetailsAppearance = {
+				(activity as? SettingsActivity)?.openFragment(
+					PreviewSettingsFragment::class.java,
+					null,
+					isFromRoot = false,
 				)
-			}
-		}
+			},
+			onOpenNavConfig = {
+				(activity as? SettingsActivity)?.openFragment(
+					NavConfigFragment::class.java,
+					null,
+					isFromRoot = false,
+				)
+			},
+			onRequestProtectAuth = ::startProtectionAuthentication,
+		)
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

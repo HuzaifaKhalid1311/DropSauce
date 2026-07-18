@@ -2,9 +2,6 @@ package org.koitharu.kotatsu.settings
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,9 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,7 +29,6 @@ import org.koitharu.kotatsu.parsers.util.names
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
@@ -52,25 +46,13 @@ class ReaderSettingsFragment : BaseComposeSettingsFragment(R.string.reader_setti
 	@Inject
 	lateinit var activityRecreationHandle: ActivityRecreationHandle
 
-	override fun onCreateView(
-		inflater: LayoutInflater,
-		container: ViewGroup?,
-		savedInstanceState: Bundle?,
-	): View = ComposeView(requireContext()).apply {
-		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-		setContent {
-			DropSauceTheme {
-				ReaderScreen(
-					onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
-					onTapActions = router::openReaderTapGridSettings,
-					onTitleTapToReadChanged = { activityRecreationHandle.recreateAll() },
-				)
-			}
-		}
-	}
-
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
+	@Composable
+	override fun Content() {
+		ReaderScreen(
+			onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
+			onTapActions = router::openReaderTapGridSettings,
+			onTitleTapToReadChanged = { activityRecreationHandle.recreateAll() },
+		)
 	}
 
 }

@@ -7,9 +7,8 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings as SystemSettings
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,12 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -53,7 +50,6 @@ import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.parsers.util.names
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
@@ -76,7 +72,6 @@ import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import android.widget.Toast
 import java.io.File
 import org.json.JSONObject
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -129,29 +124,21 @@ class DownloadsSettingsFragment :
 		dozeAvailable.value = isDozeIgnoreAvailable()
 	}
 
-	override fun onCreateView(
-		inflater: LayoutInflater,
-		container: ViewGroup?,
-		savedInstanceState: Bundle?,
-	): View = ComposeView(requireContext()).apply {
-		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-		setContent {
-			DropSauceTheme {
-				DownloadsScreen(
-					storageSummary = storageSummary.asStateFlow(),
-					directoryCount = directoryCount.asStateFlow(),
-					pagesDirSummary = pagesDirSummary.asStateFlow(),
-					dozeAvailable = dozeAvailable.asStateFlow(),
-					onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
-					onPickLocalManga = { router.openDirectoriesSettings() },
-					onPickLocalStorage = { router.showDirectorySelectDialog() },
-					onMeteredChanged = { updateDownloadsConstraints() },
-					onPickPagesDir = ::launchPagesDirPicker,
-					onIgnoreDoze = ::startIgnoreDoseActivity,
-					onRebuildDownloadsIndex = ::rebuildDownloadsIndex,
-				)
-			}
-		}
+	@Composable
+	override fun Content() {
+		DownloadsScreen(
+			storageSummary = storageSummary.asStateFlow(),
+			directoryCount = directoryCount.asStateFlow(),
+			pagesDirSummary = pagesDirSummary.asStateFlow(),
+			dozeAvailable = dozeAvailable.asStateFlow(),
+			onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
+			onPickLocalManga = { router.openDirectoriesSettings() },
+			onPickLocalStorage = { router.showDirectorySelectDialog() },
+			onMeteredChanged = { updateDownloadsConstraints() },
+			onPickPagesDir = ::launchPagesDirPicker,
+			onIgnoreDoze = ::startIgnoreDoseActivity,
+			onRebuildDownloadsIndex = ::rebuildDownloadsIndex,
+		)
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

@@ -31,6 +31,7 @@ import org.koitharu.kotatsu.history.domain.MarkAsReadUseCase
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.list.domain.MangaListMapper
+import org.koitharu.kotatsu.list.domain.PaginationDelegate
 import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.ui.MangaListViewModel
 import org.koitharu.kotatsu.list.ui.model.EmptyState
@@ -42,13 +43,10 @@ import org.koitharu.kotatsu.list.ui.model.MangaListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.toErrorState
 import org.koitharu.kotatsu.parsers.model.Manga
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import kotlinx.coroutines.flow.SharedFlow
-
-private const val PAGE_SIZE = 16
 
 @HiltViewModel
 class FavouritesListViewModel @Inject constructor(
@@ -65,8 +63,7 @@ class FavouritesListViewModel @Inject constructor(
 	val categoryId: Long = savedStateHandle[AppRouter.KEY_ID] ?: NO_ID
 	private val quickFilter = quickFilterFactory.create(categoryId)
 	private val refreshTrigger = MutableStateFlow(Any())
-	private val limit = MutableStateFlow(PAGE_SIZE)
-	private val isPaginationReady = AtomicBoolean(false)
+	private val pagination = PaginationDelegate()
 
 	override val listMode = settings.observeAsFlow(AppSettings.KEY_LIST_MODE_FAVORITES) { favoritesListMode }
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.favoritesListMode)
@@ -100,7 +97,7 @@ class FavouritesListViewModel @Inject constructor(
 	) { list, filters, mode, _, pinned ->
 		list.mapList(mode, filters, pinned.takeIfDefaultState(filters))
 	}.distinctUntilChanged().onEach {
-		isPaginationReady.set(true)
+		pagination.onContentReady()
 	}.catch {
 		emit(listOf(it.toErrorState(canRetry = false)))
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
@@ -149,9 +146,7 @@ class FavouritesListViewModel @Inject constructor(
 	}
 
 	fun requestMoreItems() {
-		if (isPaginationReady.compareAndSet(true, false)) {
-			limit.value += PAGE_SIZE
-		}
+		pagination.requestMoreItems()
 	}
 
 	private suspend fun List<Manga>.mapList(
@@ -201,18 +196,19 @@ class FavouritesListViewModel @Inject constructor(
 		combine(
 			sortOrder.filterNotNull(),
 			quickFilter.appliedOptions.combineWithSettings(),
-			limit,
+			pagination.limit,
 			pinnedIds,
 		) { order, filters, limit, pinned ->
-			isPaginationReady.set(false)
+			pagination.onQueryLaunched()
 			repository.observeAll(order, filters, limit, pinned.takeIfDefaultState(filters))
 		}.flattenLatest()
 	} else {
 		combine(
 			quickFilter.appliedOptions.combineWithSettings(),
-			limit,
+			pagination.limit,
 			pinnedIds,
 		) { filters, limit, pinned ->
+			pagination.onQueryLaunched()
 			repository.observeAll(categoryId, filters, limit, pinned.takeIfDefaultState(filters))
 		}.flattenLatest()
 	}

@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.history.ui
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -30,6 +29,7 @@ import org.koitharu.kotatsu.history.domain.model.MangaWithHistory
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.list.domain.MangaListMapper
+import org.koitharu.kotatsu.list.domain.PaginationDelegate
 import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.domain.ReadingProgress
 import org.koitharu.kotatsu.list.ui.MangaListViewModel
@@ -41,13 +41,10 @@ import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.toErrorState
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import kotlinx.coroutines.flow.SharedFlow
-
-private const val PAGE_SIZE = 16
 
 @HiltViewModel
 class HistoryListViewModel @Inject constructor(
@@ -79,8 +76,7 @@ class HistoryListViewModel @Inject constructor(
 		g && s.isGroupingSupported()
 	}
 
-	private val limit = MutableStateFlow(PAGE_SIZE)
-	private val isPaginationReady = AtomicBoolean(false)
+	private val pagination = PaginationDelegate()
 
 	val isStatsEnabled = settings.observeAsStateFlow(
 		scope = viewModelScope + Dispatchers.Default,
@@ -97,7 +93,7 @@ class HistoryListViewModel @Inject constructor(
 	) { filters, list, grouped, mode, incognito ->
 		mapList(list, grouped, mode, filters, incognito)
 	}.distinctUntilChanged().onEach {
-		isPaginationReady.set(true)
+		pagination.onContentReady()
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
@@ -143,17 +139,15 @@ class HistoryListViewModel @Inject constructor(
 	}
 
 	fun requestMoreItems() {
-		if (isPaginationReady.compareAndSet(true, false)) {
-			limit.value += PAGE_SIZE
-		}
+		pagination.requestMoreItems()
 	}
 
 	private fun observeHistory() = combine(
 		sortOrder,
 		quickFilter.appliedOptions.combineWithSettings(),
-		limit,
+		pagination.limit,
 	) { order, filters, limit ->
-		isPaginationReady.set(false)
+		pagination.onQueryLaunched()
 		repository.observeAllWithHistory(order, filters, limit)
 	}.flattenLatest()
 
