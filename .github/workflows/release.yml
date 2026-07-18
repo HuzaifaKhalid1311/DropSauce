@@ -195,7 +195,7 @@ jobs:
         TAG="v${{ inputs.version_name }}"
         NOTES_FILE="release_notes.md"
 
-        cat > "$NOTES_FILE" <<EOF
+        cat > "$NOTES_FILE" <<'EOF'
 ## DropSauce v${{ inputs.version_name }}
 
 ### Installation Instructions
