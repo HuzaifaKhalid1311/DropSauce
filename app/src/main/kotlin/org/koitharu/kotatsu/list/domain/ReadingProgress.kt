@@ -29,6 +29,27 @@ data class ReadingProgress(
 
 		fun isCompleted(percent: Float) = percent >= PROGRESS_COMPLETED_THRESHOLD
 
+		fun calculatePercent(
+			chapterIndex: Int,
+			chaptersCount: Int,
+			pageIndex: Int,
+			pagesCount: Int,
+		): Float {
+			if (chapterIndex !in 0 until chaptersCount) {
+				return PROGRESS_NONE
+			}
+			if (chaptersCount > 1) {
+				return (chapterIndex + 1) / chaptersCount.toFloat()
+			}
+			if (pagesCount <= 0) {
+				return 0f
+			}
+			if (pagesCount == 1) {
+				return PROGRESS_COMPLETED
+			}
+			return pageIndex.coerceIn(0, pagesCount - 1) / (pagesCount - 1).toFloat()
+		}
+
 		fun percentToString(percent: Float): String = if (isValid(percent)) {
 			if (isCompleted(percent)) "100" else (percent * 100f).toInt().toString()
 		} else {

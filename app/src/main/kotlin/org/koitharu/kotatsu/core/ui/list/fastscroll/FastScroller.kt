@@ -22,7 +22,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.Px
 import androidx.annotation.StyleableRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentContainerView
@@ -43,6 +42,11 @@ import com.google.android.material.R as materialR
 
 private const val SCROLLBAR_HIDE_DELAY = 1000L
 private const val TRACK_SNAP_RANGE = 5
+
+internal fun fastScrollerConstraintTargetId(
+	isRecyclerViewSibling: Boolean,
+	recyclerViewId: Int,
+): Int = if (isRecyclerViewSibling) recyclerViewId else ConstraintLayout.LayoutParams.PARENT_ID
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 class FastScroller @JvmOverloads constructor(
@@ -272,19 +276,15 @@ class FastScroller @JvmOverloads constructor(
 
 		when (viewGroup) {
 			is ConstraintLayout -> {
-				val endId = if (recyclerView?.parent === parent) recyclerViewId else ConstraintSet.PARENT_ID
-				val startId = id
-
-				ConstraintSet().apply {
-					clone(viewGroup)
-					connect(startId, ConstraintSet.TOP, endId, ConstraintSet.TOP)
-					connect(startId, ConstraintSet.BOTTOM, endId, ConstraintSet.BOTTOM)
-					connect(startId, ConstraintSet.END, endId, ConstraintSet.END)
-					applyTo(viewGroup)
-				}
-
+				val targetId = fastScrollerConstraintTargetId(
+					isRecyclerViewSibling = recyclerView?.parent === viewGroup,
+					recyclerViewId = recyclerViewId,
+				)
 				updateLayoutParams<ConstraintLayout.LayoutParams> {
 					height = 0
+					topToTop = targetId
+					bottomToBottom = targetId
+					endToEnd = targetId
 					marginStart = offset
 					marginEnd = offset
 					topMargin = offsetTop

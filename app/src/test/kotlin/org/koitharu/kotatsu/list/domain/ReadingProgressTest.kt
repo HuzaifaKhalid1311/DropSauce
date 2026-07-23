@@ -28,6 +28,84 @@ class ReadingProgressTest {
 		assertEquals("100", ReadingProgress.percentToString(ReadingProgress.PROGRESS_COMPLETED))
 	}
 
+	@Test
+	fun `multi chapter progress remains chapter based`() {
+		assertEquals(
+			0.5f,
+			ReadingProgress.calculatePercent(
+				chapterIndex = 1,
+				chaptersCount = 4,
+				pageIndex = 0,
+				pagesCount = 20,
+			),
+		)
+	}
+
+	@Test
+	fun `single chapter progress starts at zero`() {
+		assertEquals(
+			0f,
+			ReadingProgress.calculatePercent(
+				chapterIndex = 0,
+				chaptersCount = 1,
+				pageIndex = 0,
+				pagesCount = 11,
+			),
+		)
+	}
+
+	@Test
+	fun `single chapter progress follows its pages`() {
+		assertEquals(
+			0.5f,
+			ReadingProgress.calculatePercent(
+				chapterIndex = 0,
+				chaptersCount = 1,
+				pageIndex = 5,
+				pagesCount = 11,
+			),
+		)
+	}
+
+	@Test
+	fun `single chapter progress ends at one hundred percent`() {
+		assertEquals(
+			1f,
+			ReadingProgress.calculatePercent(
+				chapterIndex = 0,
+				chaptersCount = 1,
+				pageIndex = 10,
+				pagesCount = 11,
+			),
+		)
+	}
+
+	@Test
+	fun `one page chapter is complete once displayed`() {
+		assertEquals(
+			1f,
+			ReadingProgress.calculatePercent(
+				chapterIndex = 0,
+				chaptersCount = 1,
+				pageIndex = 0,
+				pagesCount = 1,
+			),
+		)
+	}
+
+	@Test
+	fun `invalid chapter position has no progress`() {
+		assertEquals(
+			ReadingProgress.PROGRESS_NONE,
+			ReadingProgress.calculatePercent(
+				chapterIndex = -1,
+				chaptersCount = 1,
+				pageIndex = 0,
+				pagesCount = 10,
+			),
+		)
+	}
+
 	private fun readingProgress(
 		percent: Float,
 		mode: ProgressIndicatorMode,

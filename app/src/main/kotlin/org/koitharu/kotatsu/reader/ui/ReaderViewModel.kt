@@ -54,6 +54,7 @@ import org.koitharu.kotatsu.details.ui.pager.EmptyMangaReason
 import org.koitharu.kotatsu.download.ui.worker.DownloadWorker
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.history.domain.HistoryUpdateUseCase
+import org.koitharu.kotatsu.list.domain.ReadingProgress
 import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.isEpub
@@ -266,7 +267,7 @@ class ReaderViewModel @Inject constructor(
         historyUpdateUseCase.invokeAsync(
             manga = getMangaOrNull() ?: return,
             readerState = readerState,
-            percent = computePercent(readerState.chapterId),
+            percent = computePercent(readerState),
         )
     }
 
@@ -404,7 +405,7 @@ class ReaderViewModel @Inject constructor(
                     scroll = state.scroll,
                     imageUrl = page.preview.ifNullOrEmpty { page.url },
                     createdAt = Instant.now(),
-                    percent = computePercent(state.chapterId),
+                    percent = computePercent(state),
                 )
                 bookmarksRepository.addBookmark(bookmark)
                 onShowToast.call(R.string.bookmark_added)
@@ -480,7 +481,7 @@ class ReaderViewModel @Inject constructor(
                         // save state
                         if (!isIncognitoMode.firstNotNull() && !isPeekMode.value) {
                             readingState.value?.let {
-                                val percent = computePercent(it.chapterId)
+                                val percent = computePercent(it)
                                 historyUpdateUseCase(manga, it, percent)
                             }
                         }
@@ -611,7 +612,7 @@ class ReaderViewModel @Inject constructor(
                     (prevUi?.currentPage ?: 0).coerceIn(0, EPUB_SLIDER_MAX)
                 else -> state.scroll.coerceIn(0, EPUB_SLIDER_MAX)
             },
-            percent = computePercent(state.chapterId),
+            percent = computePercent(state),
             incognito = isIncognitoMode.value == true,
             isPeek = isPeekMode.value,
             isEpub = isEpub,
@@ -627,15 +628,33 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    private fun computePercent(chapterId: Long): Float {
-        val branch = chaptersLoader.peekChapter(chapterId)?.branch
+    private fun computePercent(state: ReaderState): Float {
+        val branch = chaptersLoader.peekChapter(state.chapterId)?.branch
         val chapters = mangaDetails.value?.chapters?.get(branch) ?: return PROGRESS_NONE
         val chaptersCount = chapters.size
-        val chapterIndex = chapters.indexOfFirst { x -> x.id == chapterId }
-        if (chaptersCount == 0 || chapterIndex < 0) {
-            return PROGRESS_NONE
+        val chapterIndex = chapters.indexOfFirst { x -> x.id == state.chapterId }
+        val (pageIndex, pagesCount) = if (chaptersCount == 1) {
+            getPageProgress(state)
+        } else {
+            0 to 0
         }
-        return (chapterIndex + 1) / chaptersCount.toFloat()
+        return ReadingProgress.calculatePercent(
+            chapterIndex = chapterIndex,
+            chaptersCount = chaptersCount,
+            pageIndex = pageIndex,
+            pagesCount = pagesCount,
+        )
+    }
+
+    private fun getPageProgress(state: ReaderState): Pair<Int, Int> {
+        if (mangaDetails.value?.toManga()?.isEpub != true) {
+            return state.page to chaptersLoader.getPagesCount(state.chapterId)
+        }
+        val progress = uiState.value?.takeIf { it.chapter.id == state.chapterId }
+        if (progress != null) {
+            return progress.currentPage to progress.totalPages
+        }
+        return state.scroll.coerceIn(0, EPUB_SLIDER_MAX) to (EPUB_SLIDER_MAX + 1)
     }
 
     private fun observeIsWebtoonZoomEnabled() = settings.observeAsFlow(
