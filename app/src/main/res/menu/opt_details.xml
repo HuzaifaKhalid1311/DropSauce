@@ -5,10 +5,10 @@
 
 	<item
 		android:id="@+id/action_share"
-		android:icon="?actionModeShareDrawable"
-		android:orderInCategory="15"
+		android:icon="@drawable/ic_share"
+		android:orderInCategory="45"
 		android:title="@string/share"
-		app:showAsAction="never" />
+		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/action_save"

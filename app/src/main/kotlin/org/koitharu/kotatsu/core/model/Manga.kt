@@ -136,14 +136,6 @@ val Manga.isLocal: Boolean
 val Manga.isBroken: Boolean
 	get() = source == UnknownMangaSource
 
-val Manga.appUrl: Uri
-	get() = "https://kotatsu.app/manga".toUri()
-		.buildUpon()
-		.appendQueryParameter("source", source.name)
-		.appendQueryParameter("name", title)
-		.appendQueryParameter("url", url)
-		.build()
-
 fun Manga.chaptersCount(): Int {
 	if (chapters.isNullOrEmpty()) {
 		return 0

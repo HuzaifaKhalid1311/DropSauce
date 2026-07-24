@@ -21,7 +21,6 @@ import kotlinx.coroutines.plus
 import okio.utf8Size
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.LocalizedAppContext
-import org.koitharu.kotatsu.core.model.appUrl
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -107,10 +106,9 @@ class DiscordRpc @Inject constructor(
 						smallImage = appIcon,
 					),
 					buttons = listOf(
-						context.getString(R.string.read_on_s, appName),
 						context.getString(R.string.read_on_s, manga.source.getTitle(context)),
 					),
-					metadata = Metadata(listOf(manga.appUrl.toString(), manga.publicUrl)),
+					metadata = Metadata(listOf(manga.publicUrl)),
 				),
 				idle = false,
 			)

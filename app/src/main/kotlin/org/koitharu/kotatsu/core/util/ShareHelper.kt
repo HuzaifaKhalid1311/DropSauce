@@ -6,7 +6,6 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.appUrl
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.io.File
 
@@ -17,13 +16,7 @@ private const val TYPE_CBZ = "application/x-cbz"
 class ShareHelper(private val context: Context) {
 
 	fun shareMangaLink(manga: Manga) {
-		val text = buildString {
-			append(manga.title)
-			append("\n \n")
-			append(manga.publicUrl)
-			append("\n \n")
-			append(manga.appUrl)
-		}
+		val text = "${manga.title}\n \n${manga.publicUrl}"
 		ShareCompat.IntentBuilder(context)
 			.setText(text)
 			.setType(TYPE_TEXT)
