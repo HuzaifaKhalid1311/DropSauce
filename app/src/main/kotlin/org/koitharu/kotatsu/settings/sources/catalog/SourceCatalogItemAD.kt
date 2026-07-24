@@ -104,13 +104,13 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewIcon.applyExternalSourceStyle(true)
 		val sourceIconName = item.sourceIconName
 		val iconUrl = item.iconUrl
-		if (sourceIconName != null) {
-			binding.imageViewIcon.setImageAsync(MangaSource(sourceIconName))
-		} else if (iconUrl != null) {
+		if (iconUrl != null) {
 			binding.imageViewIcon.setImageFromUrlAsync(
 				url = iconUrl,
-				fallbackName = item.packageName,
+				fallbackName = sourceIconName ?: item.packageName,
 			)
+		} else if (sourceIconName != null) {
+			binding.imageViewIcon.setImageAsync(MangaSource(sourceIconName))
 		} else {
 			// Cancel any pending async load left over from a recycled row first; otherwise a
 			// late-resolving request can clobber this generated favicon with another extension's icon.

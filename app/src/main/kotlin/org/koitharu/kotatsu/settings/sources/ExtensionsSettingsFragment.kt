@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -204,6 +205,16 @@ private fun ExtensionsScreen(
 						onClick = onOpenBrokenSourcesMigration,
 					)
 				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.private_extensions),
+						subtitle = stringResource(R.string.private_extensions_summary),
+						checked = privateEnabled,
+						onCheckedChange = { privateEnabled = it },
+						icon = R.drawable.ic_shield,
+						shape = pos.shape,
+					)
+				}
 			}
 		}
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
@@ -293,33 +304,24 @@ private fun ExtensionsScreen(
 			SettingsGroup(title = stringResource(R.string.auto_update)) {
 				item { pos ->
 					SwitchSettingsItem(
-						title = stringResource(R.string.private_extensions),
-						subtitle = stringResource(R.string.private_extensions_summary),
-						checked = privateEnabled,
-						onCheckedChange = { privateEnabled = it },
-						icon = R.drawable.ic_shield,
-						shape = pos.shape,
-					)
-				}
-				item { pos ->
-					SwitchSettingsItem(
 						title = stringResource(R.string.shizuku_title),
 						subtitle = stringResource(R.string.shizuku_summary),
 						checked = shizukuEnabled,
 						onCheckedChange = onShizukuChanged,
 						icon = R.drawable.ic_auth_key_large,
 						shape = pos.shape,
+						enabled = !privateEnabled,
 					)
 				}
 				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.ext_auto_update_title),
 						subtitle = stringResource(R.string.ext_auto_update_summary),
-						checked = autoUpdateExtensions,
+						checked = if (privateEnabled) true else autoUpdateExtensions,
 						onCheckedChange = { autoUpdateExtensions = it },
 						icon = R.drawable.ic_updated,
 						shape = pos.shape,
-						enabled = shizukuEnabled || privateEnabled,
+						enabled = !privateEnabled && shizukuEnabled,
 					)
 				}
 				item { pos ->
@@ -330,8 +332,17 @@ private fun ExtensionsScreen(
 						onCheckedChange = { updateNotifications = it },
 						icon = R.drawable.ic_updated,
 						shape = pos.shape,
+						enabled = !privateEnabled,
 					)
 				}
+			}
+		}
+		if (privateEnabled) {
+			item {
+				PlainInfoSettingsItem(
+					text = stringResource(R.string.private_mode_auto_update_note),
+					icon = R.drawable.ic_info_outline,
+				)
 			}
 		}
 		item { Spacer(Modifier.height(24.dp).fillMaxWidth()) }

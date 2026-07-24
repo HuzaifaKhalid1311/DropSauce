@@ -300,6 +300,10 @@ class AppRouter private constructor(
         startActivity(downloadsSettingsIntent(contextOrNull() ?: return))
     }
 
+    fun openExtensionsSettings() {
+        startActivity(extensionsSettingsIntent(contextOrNull() ?: return))
+    }
+
     fun openSourceSettings(source: MangaSource) {
         startActivity(sourceSettingsIntent(contextOrNull() ?: return, source))
     }
@@ -773,6 +777,10 @@ class AppRouter private constructor(
         fun downloadsSettingsIntent(context: Context) =
             Intent(context, SettingsActivity::class.java)
                 .setAction(ACTION_MANAGE_DOWNLOADS)
+
+        fun extensionsSettingsIntent(context: Context) =
+            Intent(context, SettingsActivity::class.java)
+                .setAction(ACTION_SOURCES)
 
         fun sourceSettingsIntent(context: Context, source: MangaSource): Intent = when (source) {
             is MangaSourceInfo -> sourceSettingsIntent(context, source.mangaSource)

@@ -11,9 +11,9 @@
 		app:showAsAction="ifRoom|collapseActionView" />
 
 	<item
-		android:id="@+id/action_private_mode"
-		android:icon="@drawable/ic_shield_off"
-		android:title="@string/private_extensions"
+		android:id="@+id/action_extension_settings"
+		android:icon="@drawable/ic_settings"
+		android:title="@string/extensions"
 		app:showAsAction="ifRoom" />
 
 	<item

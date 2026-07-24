@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
+import android.content.pm.PackageManager
 import coil3.ImageLoader
 import coil3.asImage
 import coil3.decode.DataSource
@@ -20,10 +21,12 @@ import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.util.ext.fetch
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import javax.inject.Inject
+import java.io.File
 import coil3.Uri as CoilUri
 
 class FaviconFetcher(
@@ -72,6 +75,19 @@ class FaviconFetcher(
 		val icon = runCatching {
 			runInterruptible {
 				options.context.packageManager.getApplicationIcon(source.pkgName)
+			}
+		}.getOrNull() ?: runCatching {
+			runInterruptible {
+				val ctx = options.context
+				val extFile = File(MihonExtensionLoader.getPrivateExtensionDir(ctx), "${source.pkgName}.ext")
+				if (!extFile.isFile) return@runInterruptible null
+				val pm = ctx.packageManager
+				@Suppress("DEPRECATION")
+				val pkgInfo = pm.getPackageArchiveInfo(extFile.absolutePath, PackageManager.GET_META_DATA) ?: return@runInterruptible null
+				val appInfo = pkgInfo.applicationInfo ?: return@runInterruptible null
+				if (appInfo.sourceDir == null) appInfo.sourceDir = extFile.absolutePath
+				if (appInfo.publicSourceDir == null) appInfo.publicSourceDir = extFile.absolutePath
+				appInfo.loadIcon(pm)
 			}
 		}.getOrNull() ?: return requireNotNull(imageLoader.fetch(R.drawable.ic_manga_source, options))
 

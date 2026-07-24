@@ -583,6 +583,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 		val installed = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode = true)
 			.associateBy { it.pkgName }
+		val availableByPkg = available.associateBy { it.packageName }
 		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
 		val allInstalledSourcesByPkg = allMihonSources.value.groupBy { it.pkgName }
 		val inProgressPackages = installingPackages.value
@@ -612,6 +613,8 @@ class SourcesCatalogViewModel @Inject constructor(
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.DISABLE,
 				isInProgress = local.pkgName in inProgressPackages,
+				iconUrl = availableByPkg[local.pkgName]?.iconUrl
+					?: repoUrl?.let { externalRepoRepository.resolveIconUrl(it, local.pkgName) },
 				sourceIconName = source?.name,
 				sourceName = source?.name,
 				isHidden = settings.isMihonPackageHidden(local.pkgName),
@@ -746,6 +749,16 @@ class SourcesCatalogViewModel @Inject constructor(
 			}
 		}
 		return systemInstalled.size
+	}
+
+	fun onPrivateExtensionChanged() {
+		launchJob(Dispatchers.Default) {
+			try {
+				repository.reloadMihonSources()
+			} finally {
+				refreshTrigger.value++
+			}
+		}
 	}
 
 	fun onPrivateModeEnabled() {

@@ -190,7 +190,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			if (settings.isPrivateInstallEnabled) {
 				MihonExtensionLoader.uninstallPrivateExtension(this, pkg)
 				viewModel.clearExtensionInProgress(pkg)
-				viewModel.refresh()
+				viewModel.onPrivateExtensionChanged()
 				return@observeEvent
 			}
 			val uri = Uri.fromParts("package", pkg, null)
@@ -224,7 +224,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}.observe(this) {
 			updateFilers(it.filter, it.contentTypes, it.locales, it.isNsfwDisabled)
 		}
-		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly, settings))
+		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
 		if (!settings.isShizukuInstallerEnabled && !settings.isPrivateInstallEnabled) {
 			ensureInstallPermissionAccess()
 		}
@@ -404,45 +404,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		viewModel.setExternalRepoUrl(null)
 	}
 
-	fun onPrivateModeToggled() {
-		val newValue = !settings.isPrivateInstallEnabled
-		if (newValue) {
-			lifecycleScope.launch {
-				val hasPrivate = MihonExtensionLoader.hasPrivateExtensions(this@SourcesCatalogActivity)
-				if (!hasPrivate) {
-					val installedCount = viewModel.getMigrationExtensionCount()
-					if (installedCount > 0 && !viewModel.hasExternalRepoConfigured()) {
-						Toast.makeText(this@SourcesCatalogActivity, R.string.private_extensions_no_repo, Toast.LENGTH_LONG).show()
-						settings.isPrivateInstallEnabled = true
-						viewModel.onPrivateModeEnabled()
-						invalidateOptionsMenu()
-					} else if (installedCount > 0) {
-						MaterialAlertDialogBuilder(this@SourcesCatalogActivity)
-							.setTitle(R.string.private_extensions_migration_title)
-							.setMessage(getString(R.string.private_extensions_migration_message, installedCount))
-							.setPositiveButton(android.R.string.ok) { _, _ ->
-								settings.isPrivateInstallEnabled = true
-								viewModel.onPrivateModeEnabled()
-								invalidateOptionsMenu()
-							}
-							.setNegativeButton(android.R.string.cancel, null)
-							.show()
-					} else {
-						settings.isPrivateInstallEnabled = true
-						viewModel.onPrivateModeEnabled()
-						invalidateOptionsMenu()
-					}
-				} else {
-					settings.isPrivateInstallEnabled = true
-					viewModel.onPrivateModeEnabled()
-					invalidateOptionsMenu()
-				}
-			}
-		} else {
-			settings.isPrivateInstallEnabled = false
-			viewModel.onPrivateModeDisabled()
-			invalidateOptionsMenu()
-		}
+	fun onExtensionSettingsRequested() {
+		router.openExtensionsSettings()
 	}
 
 	private fun handleAddRepoDeepLink(intent: Intent?) {
@@ -622,7 +585,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 					this@SourcesCatalogActivity, apkFile,
 				)
 				if (success) {
-					finishActiveInstaller(refresh = true)
+					finishActiveInstaller(refresh = false)
+					viewModel.onPrivateExtensionChanged()
 				} else {
 					Toast.makeText(
 						this@SourcesCatalogActivity,
