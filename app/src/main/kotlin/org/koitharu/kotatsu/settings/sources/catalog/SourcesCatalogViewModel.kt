@@ -58,6 +58,8 @@ class SourcesCatalogViewModel @Inject constructor(
 	val isRefreshing = MutableStateFlow(false)
 	val isNsfwDisabled = settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled }
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isNsfwContentDisabled)
+	val isPrivateMode = settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled }
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isPrivateInstallEnabled)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			types = emptySet(),
@@ -91,15 +93,21 @@ class SourcesCatalogViewModel @Inject constructor(
 		installingPackages,
 		refreshTrigger,
 		settings.observeAsFlow(AppSettings.KEY_MIHON_HIDDEN_PACKAGES) { mihonHiddenPackages },
+		isPrivateMode,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
 		val currentTrigger = args[6] as Int
+		val privateMode = args[8] as Boolean
 		val forceRefresh = currentTrigger > lastRefreshTrigger
 		if (forceRefresh) {
 			lastRefreshTrigger = currentTrigger
 		}
-		val result = buildMixedCatalogList(f, q, forceRefresh)
+		val result = if (privateMode) {
+			buildPrivateExtensionsList(f, q, forceRefresh)
+		} else {
+			buildMixedCatalogList(f, q, forceRefresh)
+		}
 		isRefreshing.value = false
 		result
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
@@ -168,6 +176,27 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 		launchJob(Dispatchers.Default) {
 			when (item.action) {
+				SourceCatalogItem.Extension.Action.ENABLE -> {
+					val repoUrl = externalRepoUrl.value
+					if (repoUrl.isNullOrBlank()) {
+						onShowMessage.call(R.string.extensions_repo_required)
+						return@launchJob
+					}
+					val entry = getAvailableEntries(repoUrl, forceRefresh = false).firstOrNull { it.packageName == item.packageName } ?: run {
+						onShowMessage.call(R.string.nothing_found)
+						return@launchJob
+					}
+					settings.setExtensionRepoUrl(item.packageName, repoUrl)
+					emitInstallRequests(
+						listOf(
+							InstallRequest(
+								packageName = item.packageName,
+								url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
+							),
+						),
+					)
+				}
+				SourceCatalogItem.Extension.Action.DISABLE -> onOpenUninstall.call(item.packageName)
 				SourceCatalogItem.Extension.Action.INSTALL,
 				SourceCatalogItem.Extension.Action.UPDATE -> {
 					val repoUrl = externalRepoUrl.value
@@ -179,7 +208,6 @@ class SourcesCatalogViewModel @Inject constructor(
 						onShowMessage.call(R.string.nothing_found)
 						return@launchJob
 					}
-					// Remember which repo this extension came from so it keeps updating from here.
 					settings.setExtensionRepoUrl(item.packageName, repoUrl)
 					emitInstallRequests(
 						listOf(
@@ -531,6 +559,253 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 		out.sortBy { it.title.lowercase() }
 		return out
+	}
+
+	private suspend fun buildPrivateExtensionsList(
+		filter: SourcesCatalogFilter,
+		query: String?,
+		forceRefresh: Boolean,
+	): List<ListModel> {
+		val repoUrl = externalRepoUrl.value
+		val hasRepo = !repoUrl.isNullOrBlank()
+		val availableResult = if (repoUrl.isNullOrBlank()) {
+			availableRepoEntries.value = emptyList()
+			Result.success(emptyList<ExternalExtensionRepoEntry>())
+		} else {
+			runCatching { getAvailableEntries(repoUrl, forceRefresh) }
+		}
+		val available = availableResult.getOrDefault(emptyList())
+		availableRepoEntries.value = available
+
+		if (!repoUrl.isNullOrBlank() && (forceRefresh || settings.externalRepoInfos.none { it.url == repoUrl })) {
+			runCatching { externalRepoRepository.fetchRepoInfo(repoUrl) }.getOrNull()?.let(settings::putExternalRepoInfo)
+		}
+
+		val installed = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode = true)
+			.associateBy { it.pkgName }
+		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
+		val allInstalledSourcesByPkg = allMihonSources.value.groupBy { it.pkgName }
+		val inProgressPackages = installingPackages.value
+		val locale = filter.locale
+		val q = query?.takeIf { it.isNotBlank() }
+
+		val enabledItems = ArrayList<SourceCatalogItem.Extension>()
+		for (local in installed.values) {
+			if (settings.isNsfwContentDisabled && local.isNsfw) continue
+			val pkgAllSources = allInstalledSourcesByPkg[local.pkgName].orEmpty()
+			if (locale != null && local.lang != locale && pkgAllSources.none { it.language == locale }) continue
+			if (q != null && !local.appName.contains(q, ignoreCase = true) && !local.pkgName.contains(q, ignoreCase = true)) continue
+			val pkgSources = allInstalledSourcesByPkg[local.pkgName] ?: installedSourcesByPkg[local.pkgName]
+			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
+			val repoLabel = settings.findRepoInfoBySignatures(local.signatures)?.displayName
+				?: settings.getExtensionRepoUrl(local.pkgName)?.let { getExternalExtensionRepoDisplayName(it) }
+			val subtitle = buildString {
+				append(getExternalExtensionLanguageDisplayName(local.lang))
+				append(" • ")
+				append(local.versionName)
+				if (local.isNsfw) append(" • 18+")
+				repoLabel?.let { append(" • "); append(it) }
+			}
+			enabledItems += SourceCatalogItem.Extension(
+				packageName = local.pkgName,
+				title = local.appName.removePrefix("Tachiyomi: ").trim(),
+				subtitle = subtitle,
+				action = SourceCatalogItem.Extension.Action.DISABLE,
+				isInProgress = local.pkgName in inProgressPackages,
+				sourceIconName = source?.name,
+				sourceName = source?.name,
+				isHidden = settings.isMihonPackageHidden(local.pkgName),
+				isPrivateMode = true,
+			)
+		}
+
+		val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
+		val repoSourceIndex = HashMap<Long, Pair<String, String>>()
+		for (entry in available) {
+			val fallbackName = entry.name.removePrefix("Tachiyomi: ").trim()
+			for (src in entry.sources) {
+				val sid = src.id.toLongOrNull() ?: continue
+				repoSourceIndex.putIfAbsent(sid, entry.packageName to src.name.ifBlank { fallbackName })
+			}
+		}
+		val recommended = computeRecommendedExtensionsPrivate(
+			installedPkgs = installed.keys,
+			installedIds = installedIds,
+			inProgress = inProgressPackages,
+			query = q,
+			repoUrl = repoUrl,
+			repoSourceIndex = repoSourceIndex,
+		)
+		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
+
+		val disabledItems = ArrayList<SourceCatalogItem.Extension>()
+		for (entry in available) {
+			if (entry.packageName in recommendedPackages) continue
+			if (entry.packageName in installed) continue
+			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
+			if (locale != null && entry.lang != locale) continue
+			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
+			val pkgSources = allInstalledSourcesByPkg[entry.packageName] ?: installedSourcesByPkg[entry.packageName]
+			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
+			val subtitle = buildString {
+				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
+				append(" • ")
+				append(entry.versionName)
+				if (entry.isNsfw != 0) append(" • 18+")
+			}
+			val iconUrl = entry.iconUrl ?: repoUrl?.let { externalRepoRepository.resolveIconUrl(it, entry.packageName) }
+			disabledItems += SourceCatalogItem.Extension(
+				packageName = entry.packageName,
+				title = entry.name.removePrefix("Tachiyomi: ").trim(),
+				subtitle = subtitle,
+				action = SourceCatalogItem.Extension.Action.ENABLE,
+				isInProgress = entry.packageName in inProgressPackages,
+				iconUrl = iconUrl,
+				sourceIconName = source?.name,
+				isPrivateMode = true,
+			)
+		}
+
+		val titleComparator = Comparator<SourceCatalogItem.Extension> { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
+		enabledItems.sortWith(titleComparator)
+		disabledItems.sortWith(titleComparator)
+
+		return buildList {
+			if (!hasRepo) {
+				add(SourceCatalogItem.Hint(R.drawable.ic_empty_common, R.string.no_repo_detected, R.string.click_edit_icon_add_extension_repo))
+			} else if (availableResult.isFailure) {
+				add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.error, R.string.extensions_repo_load_error))
+			}
+			if (enabledItems.isNotEmpty()) {
+				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.enabled))
+				addAll(enabledItems)
+			}
+			if (recommended.isNotEmpty()) {
+				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.recommended_to_install))
+				addAll(recommended)
+			}
+			if (disabledItems.isNotEmpty()) {
+				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.disabled_extensions))
+				addAll(disabledItems)
+			}
+			if (isEmpty()) {
+				add(SourceCatalogItem.Hint(R.drawable.ic_empty_feed, R.string.nothing_found, R.string.no_manga_sources_found))
+			}
+		}
+	}
+
+	private suspend fun computeRecommendedExtensionsPrivate(
+		installedPkgs: Set<String>,
+		installedIds: Set<Long>,
+		inProgress: Set<String>,
+		query: String?,
+		repoUrl: String?,
+		repoSourceIndex: Map<Long, Pair<String, String>>,
+	): List<SourceCatalogItem.Extension> {
+		val sources = runCatching {
+			mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
+		}.getOrDefault(emptyList())
+		if (sources.isEmpty()) return emptyList()
+		val seen = HashSet<String>()
+		val out = ArrayList<SourceCatalogItem.Extension>()
+		for (name in sources) {
+			val id = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: continue
+			if (id in installedIds) continue
+			val ref = repoSourceIndex[id]
+				?: kotatsuSourceMap.resolveById(id)?.let { it.packageName to it.sourceName }
+				?: continue
+			val (pkg, displayName) = ref
+			if (pkg.isBlank() || pkg in installedPkgs || !seen.add(pkg)) continue
+			if (query != null && !displayName.contains(query, ignoreCase = true) && !pkg.contains(query, ignoreCase = true)) continue
+			out += SourceCatalogItem.Extension(
+				packageName = pkg,
+				title = displayName,
+				subtitle = appContext.getString(R.string.recommended_extension_subtitle),
+				action = SourceCatalogItem.Extension.Action.ENABLE,
+				isInProgress = pkg in inProgress,
+				iconUrl = repoUrl?.takeIf { it.isNotBlank() }?.let { externalRepoRepository.resolveIconUrl(it, pkg) },
+				isPrivateMode = true,
+			)
+		}
+		out.sortBy { it.title.lowercase() }
+		return out
+	}
+
+	suspend fun getMigrationExtensionCount(): Int {
+		val systemInstalled = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode = false)
+			.map { it.pkgName }
+			.toMutableSet()
+		runCatching {
+			val sources = mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
+			val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
+			for (name in sources) {
+				val id = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: continue
+				if (id in installedIds) continue
+				val ref = kotatsuSourceMap.resolveById(id) ?: continue
+				systemInstalled.add(ref.packageName)
+			}
+		}
+		return systemInstalled.size
+	}
+
+	fun onPrivateModeEnabled() {
+		isRefreshing.value = true
+		launchJob(Dispatchers.Default) {
+			try {
+				repository.reloadMihonSources()
+				val hasPrivate = MihonExtensionLoader.hasPrivateExtensions(appContext)
+				if (!hasPrivate) {
+					val installedCount = getMigrationExtensionCount()
+					if (installedCount > 0 && hasExternalRepoConfigured()) {
+						emitMigrationInstallRequests()
+					}
+				}
+			} finally {
+				refreshTrigger.value++
+			}
+		}
+	}
+
+	fun onPrivateModeDisabled() {
+		isRefreshing.value = true
+		launchJob(Dispatchers.Default) {
+			try {
+				repository.reloadMihonSources()
+			} finally {
+				refreshTrigger.value++
+			}
+		}
+	}
+
+	private suspend fun emitMigrationInstallRequests() {
+		val repoUrl = externalRepoUrl.value ?: return
+		val entries = getAvailableEntries(repoUrl, forceRefresh = false)
+		val systemInstalled = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode = false)
+			.associateBy { it.pkgName }
+		val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
+		val migrationPkgs = mutableSetOf<String>()
+		migrationPkgs.addAll(systemInstalled.keys)
+		runCatching {
+			val sources = mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
+			for (name in sources) {
+				val id = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: continue
+				if (id in installedIds) continue
+				val ref = kotatsuSourceMap.resolveById(id) ?: continue
+				migrationPkgs.add(ref.packageName)
+			}
+		}
+		val requests = entries
+			.filter { it.packageName in migrationPkgs }
+			.map { entry ->
+				settings.setExtensionRepoUrl(entry.packageName, repoUrl)
+				InstallRequest(
+					packageName = entry.packageName,
+					url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
+				)
+			}
+		if (requests.isNotEmpty()) {
+			emitInstallRequests(requests)
+		}
 	}
 
 	companion object {

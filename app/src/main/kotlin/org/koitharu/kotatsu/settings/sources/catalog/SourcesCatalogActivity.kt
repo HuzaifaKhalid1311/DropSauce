@@ -60,6 +60,7 @@ import org.koitharu.kotatsu.core.ui.dialog.setEditText
 import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.extensions.install.ShizukuExtensionInstaller
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListHeader
@@ -163,12 +164,15 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		viewModel.hasUpdates.observe(this) { hasUpdates ->
 			hasPendingUpdates = hasUpdates
 			applyRecyclerPadding(lastSystemBarsInsets)
-			if (
-				hasUpdates &&
-				settings.isShizukuInstallerEnabled &&
-				settings.isAutoUpdateExtensionsEnabled
-			) {
-				lifecycleScope.launch { extensionUpdateScheduler.startNow() }
+			if (hasUpdates) {
+				if (settings.isPrivateInstallEnabled) {
+					lifecycleScope.launch { extensionUpdateScheduler.startNow() }
+				} else if (
+					settings.isShizukuInstallerEnabled &&
+					settings.isAutoUpdateExtensionsEnabled
+				) {
+					lifecycleScope.launch { extensionUpdateScheduler.startNow() }
+				}
 			}
 		}
 		viewModel.isRefreshing.observe(this) {
@@ -183,6 +187,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			}
 		}
 		viewModel.onOpenUninstall.observeEvent(this) { pkg ->
+			if (settings.isPrivateInstallEnabled) {
+				MihonExtensionLoader.uninstallPrivateExtension(this, pkg)
+				viewModel.clearExtensionInProgress(pkg)
+				viewModel.refresh()
+				return@observeEvent
+			}
 			val uri = Uri.fromParts("package", pkg, null)
 			val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				Intent.ACTION_DELETE
@@ -214,8 +224,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}.observe(this) {
 			updateFilers(it.filter, it.contentTypes, it.locales, it.isNsfwDisabled)
 		}
-		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
-		if (!settings.isShizukuInstallerEnabled) {
+		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly, settings))
+		if (!settings.isShizukuInstallerEnabled && !settings.isPrivateInstallEnabled) {
 			ensureInstallPermissionAccess()
 		}
 		handleAddRepoDeepLink(intent)
@@ -394,6 +404,47 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		viewModel.setExternalRepoUrl(null)
 	}
 
+	fun onPrivateModeToggled() {
+		val newValue = !settings.isPrivateInstallEnabled
+		if (newValue) {
+			lifecycleScope.launch {
+				val hasPrivate = MihonExtensionLoader.hasPrivateExtensions(this@SourcesCatalogActivity)
+				if (!hasPrivate) {
+					val installedCount = viewModel.getMigrationExtensionCount()
+					if (installedCount > 0 && !viewModel.hasExternalRepoConfigured()) {
+						Toast.makeText(this@SourcesCatalogActivity, R.string.private_extensions_no_repo, Toast.LENGTH_LONG).show()
+						settings.isPrivateInstallEnabled = true
+						viewModel.onPrivateModeEnabled()
+						invalidateOptionsMenu()
+					} else if (installedCount > 0) {
+						MaterialAlertDialogBuilder(this@SourcesCatalogActivity)
+							.setTitle(R.string.private_extensions_migration_title)
+							.setMessage(getString(R.string.private_extensions_migration_message, installedCount))
+							.setPositiveButton(android.R.string.ok) { _, _ ->
+								settings.isPrivateInstallEnabled = true
+								viewModel.onPrivateModeEnabled()
+								invalidateOptionsMenu()
+							}
+							.setNegativeButton(android.R.string.cancel, null)
+							.show()
+					} else {
+						settings.isPrivateInstallEnabled = true
+						viewModel.onPrivateModeEnabled()
+						invalidateOptionsMenu()
+					}
+				} else {
+					settings.isPrivateInstallEnabled = true
+					viewModel.onPrivateModeEnabled()
+					invalidateOptionsMenu()
+				}
+			}
+		} else {
+			settings.isPrivateInstallEnabled = false
+			viewModel.onPrivateModeDisabled()
+			invalidateOptionsMenu()
+		}
+	}
+
 	private fun handleAddRepoDeepLink(intent: Intent?) {
 		if (intent?.data?.host != "add-repo") return
 		if (intent.scheme != "kotatsu" && intent.scheme != "tachiyomi") return
@@ -488,7 +539,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun processInstallQueue() {
-		if (!settings.isShizukuInstallerEnabled && !canInstallPackages()) {
+		if (!settings.isPrivateInstallEnabled && !settings.isShizukuInstallerEnabled && !canInstallPackages()) {
 			requestInstallPackagesPermission()
 			return
 		}
@@ -558,6 +609,32 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val pendingDownload = downloadRequestsById.remove(downloadId)
 		val apkFile = getDownloadedApkFile(pendingDownload?.fileName)
 		val expectedPackage = pendingDownload?.packageName ?: apkFile?.let(::getArchivePackageName)
+		if (
+			settings.isPrivateInstallEnabled &&
+			expectedPackage != null &&
+			apkFile?.isFile == true
+		) {
+			activeInstallerPackage = expectedPackage
+			activeInstallerDownloadId = downloadId
+			isInstallerActive = true
+			lifecycleScope.launch {
+				val success = MihonExtensionLoader.installPrivateExtensionFile(
+					this@SourcesCatalogActivity, apkFile,
+				)
+				if (success) {
+					finishActiveInstaller(refresh = true)
+				} else {
+					Toast.makeText(
+						this@SourcesCatalogActivity,
+						getString(R.string.private_extension_install_failed, expectedPackage),
+						Toast.LENGTH_LONG,
+					).show()
+					finishActiveInstaller(refresh = false)
+				}
+				processDownloadedInstallerQueue()
+			}
+			return
+		}
 		if (
 			settings.isShizukuInstallerEnabled &&
 			expectedPackage != null &&

@@ -13,6 +13,7 @@ sealed class MihonLoadResult {
 		val lang: String,
 		val isNsfw: Boolean,
 		val sources: List<Source>,
+		val isShared: Boolean = true,
 	) : MihonLoadResult() {
 		val catalogueSources: List<CatalogueSource>
 			get() = sources.filterIsInstance<CatalogueSource>()
@@ -44,4 +45,5 @@ data class MihonExtensionInfo(
 	val apkPath: String,
 	/** SHA-256 of the APK signing certs, matched against a repo's signingKeyFingerprint to attribute it. */
 	val signatures: List<String> = emptyList(),
+	val isShared: Boolean = true,
 )

@@ -16,11 +16,13 @@ import eu.kanade.tachiyomi.util.system.ChildFirstPathClassLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.mihon.compat.KotoInjektBridge
 import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 import eu.kanade.tachiyomi.util.lang.Hash
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -71,6 +73,95 @@ class MihonExtensionLoader @Inject constructor(
 		const val LIB_VERSION_MIN = 1.4
 		const val LIB_VERSION_MAX = 1.6
 
+		private const val PRIVATE_EXTENSION_DIR = "exts"
+		private const val PRIVATE_EXTENSION_EXT = "ext"
+
+		fun getPrivateExtensionDir(context: Context): File =
+			File(context.filesDir, PRIVATE_EXTENSION_DIR)
+
+		fun isPrivateExtensionInstalled(context: Context, pkgName: String): Boolean =
+			File(getPrivateExtensionDir(context), "$pkgName.$PRIVATE_EXTENSION_EXT").isFile
+
+		fun hasPrivateExtensions(context: Context): Boolean {
+			val dir = getPrivateExtensionDir(context)
+			return dir.listFiles()?.any { it.isFile && it.extension == PRIVATE_EXTENSION_EXT } == true
+		}
+
+		fun installPrivateExtensionFile(context: Context, file: File): Boolean {
+			val pkgManager = context.packageManager
+			@Suppress("DEPRECATION")
+			val flags = PackageManager.GET_META_DATA or
+				PackageManager.GET_CONFIGURATIONS or
+				PackageManager.GET_SIGNATURES or
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES else 0
+			val pkgInfo = pkgManager.getPackageArchiveInfo(file.absolutePath, flags) ?: return false
+			if (!isPackageAnExtensionStatic(pkgInfo)) return false
+
+			val target = File(getPrivateExtensionDir(context), "${pkgInfo.packageName}.$PRIVATE_EXTENSION_EXT")
+			val currentPkgInfo = if (target.exists()) {
+				pkgManager.getPackageArchiveInfo(target.absolutePath, flags)
+			} else null
+
+			if (currentPkgInfo != null) {
+				if (PackageInfoCompat.getLongVersionCode(pkgInfo) < PackageInfoCompat.getLongVersionCode(currentPkgInfo)) {
+					Log.e(TAG, "Installed private extension version is higher. Downgrading is not allowed.")
+					return false
+				}
+				val newSignatures = getSignatures(pkgInfo)
+				if (newSignatures.isEmpty()) {
+					Log.e(TAG, "Extension to be installed is not signed.")
+					return false
+				}
+				val currentSignatures = getSignatures(currentPkgInfo)
+				if (!newSignatures.containsAll(currentSignatures)) {
+					Log.e(TAG, "Installed private extension signature does not match.")
+					return false
+				}
+			}
+
+			return try {
+				target.delete()
+				getPrivateExtensionDir(context).mkdirs()
+				copyAndSetReadOnly(file, target)
+				Log.i(TAG, "Private extension installed: ${pkgInfo.packageName}")
+				true
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to copy private extension file.", e)
+				target.delete()
+				false
+			}
+		}
+
+		fun uninstallPrivateExtension(context: Context, pkgName: String) {
+			File(getPrivateExtensionDir(context), "$pkgName.$PRIVATE_EXTENSION_EXT").delete()
+		}
+
+		private fun copyAndSetReadOnly(source: File, target: File) {
+			target.parentFile?.mkdirs()
+			target.setReadOnly()
+			source.inputStream().use { input ->
+				target.outputStream().use { output ->
+					input.copyTo(output)
+				}
+			}
+		}
+
+		@Suppress("DEPRECATION")
+		private val packageFlags: Int
+			get() = PackageManager.GET_META_DATA or
+				PackageManager.GET_CONFIGURATIONS or
+				PackageManager.GET_SIGNATURES or
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES else 0
+
+		private fun isPackageAnExtensionStatic(pkgInfo: PackageInfo): Boolean {
+			val appInfo = pkgInfo.applicationInfo ?: return false
+			val metaData = appInfo.metaData
+			val hasFeature = pkgInfo.reqFeatures?.any { it.name == EXTENSION_FEATURE } == true
+			val hasSource = metaData?.containsKey(METADATA_SOURCE_CLASS) == true ||
+				metaData?.containsKey(METADATA_SOURCE_FACTORY) == true
+			return hasFeature || hasSource
+		}
+
 		internal fun normalizeSourceClassNames(pkgName: String, sourceClassNames: String): List<String> {
 			return sourceClassNames
 				.split(';', ':', ',')
@@ -115,12 +206,36 @@ class MihonExtensionLoader @Inject constructor(
 		}
 	}
 
-	suspend fun loadExtensions(context: Context): List<MihonLoadResult> = withContext(Dispatchers.IO) {
+	suspend fun loadExtensions(context: Context, privateMode: Boolean = false): List<MihonLoadResult> = withContext(Dispatchers.IO) {
 		injektBridge.get().initialize()
-		getInstalledPackages(context.packageManager)
-			.filter(::isPackageAnExtension)
-			.map { pkgInfo -> async { loadExtension(context, pkgInfo) } }
-			.awaitAll()
+		if (privateMode) {
+			loadPrivateExtensions(context)
+		} else {
+			getInstalledPackages(context.packageManager)
+				.filter(::isPackageAnExtension)
+				.map { pkgInfo -> async { loadExtension(context, pkgInfo, isShared = true) } }
+				.awaitAll()
+		}
+	}
+
+	private suspend fun loadPrivateExtensions(context: Context): List<MihonLoadResult> = coroutineScope {
+		val pkgManager = context.packageManager
+		val privateDir = getPrivateExtensionDir(context)
+		val privateFiles = privateDir.listFiles()
+			?.filter { it.isFile && it.extension == PRIVATE_EXTENSION_EXT }
+			?: emptyList()
+		if (privateFiles.isEmpty()) return@coroutineScope emptyList()
+		privateFiles.map { file ->
+			async {
+				if (file.canWrite()) file.setReadOnly()
+				val pkgInfo = pkgManager.getPackageArchiveInfo(file.absolutePath, packageFlags)
+				if (pkgInfo == null || !isPackageAnExtension(pkgInfo)) {
+					return@async buildLoggedError(file.nameWithoutExtension, "Failed to read private extension APK")
+				}
+				pkgInfo.applicationInfo?.fixBasePaths(file.absolutePath)
+				loadExtension(context, pkgInfo, isShared = false)
+			}
+		}.awaitAll()
 	}
 
 	/**
@@ -151,14 +266,28 @@ class MihonExtensionLoader @Inject constructor(
 	/**
 	 * Get list of installed Mihon extensions (metadata only, without loading).
 	 */
-	fun getInstalledExtensions(context: Context): List<MihonExtensionInfo> {
+	fun getInstalledExtensions(context: Context, privateMode: Boolean = false): List<MihonExtensionInfo> {
 		val pkgManager = context.packageManager
-		return getInstalledPackages(pkgManager)
-			.filter(::isPackageAnExtension)
-			.mapNotNull { pkgInfo -> extractExtensionInfo(pkgInfo, pkgManager) }
+		return if (privateMode) {
+			val privateDir = getPrivateExtensionDir(context)
+			privateDir.listFiles()
+				?.filter { it.isFile && it.extension == PRIVATE_EXTENSION_EXT }
+				?.mapNotNull { file ->
+					if (file.canWrite()) file.setReadOnly()
+					val pkgInfo = pkgManager.getPackageArchiveInfo(file.absolutePath, packageFlags) ?: return@mapNotNull null
+					pkgInfo.applicationInfo?.fixBasePaths(file.absolutePath)
+					if (!isPackageAnExtension(pkgInfo)) return@mapNotNull null
+					extractExtensionInfo(pkgInfo, pkgManager, isShared = false)
+				}
+				.orEmpty()
+		} else {
+			getInstalledPackages(pkgManager)
+				.filter(::isPackageAnExtension)
+				.mapNotNull { pkgInfo -> extractExtensionInfo(pkgInfo, pkgManager, isShared = true) }
+		}
 	}
 
-	private fun extractExtensionInfo(pkgInfo: PackageInfo, pkgManager: PackageManager): MihonExtensionInfo? {
+	private fun extractExtensionInfo(pkgInfo: PackageInfo, pkgManager: PackageManager, isShared: Boolean = true): MihonExtensionInfo? {
 		val appInfo = pkgInfo.applicationInfo ?: return null
 		val metaData = appInfo.metaData ?: return null
 		val versionName = pkgInfo.versionName ?: return null
@@ -183,10 +312,11 @@ class MihonExtensionLoader @Inject constructor(
 			sourceClassName = sourceClassName,
 			apkPath = appInfo.sourceDir ?: return null,
 			signatures = getSignatures(pkgInfo),
+			isShared = isShared,
 		)
 	}
 
-	private fun loadExtension(context: Context, pkgInfo: PackageInfo): MihonLoadResult {
+	private fun loadExtension(context: Context, pkgInfo: PackageInfo, isShared: Boolean = true): MihonLoadResult {
 		val appInfo = pkgInfo.applicationInfo
 			?: return buildLoggedError(pkgInfo.packageName, "No ApplicationInfo")
 		val metaData = appInfo.metaData
@@ -257,6 +387,7 @@ class MihonExtensionLoader @Inject constructor(
 			},
 			isNsfw = readNsfwFlag(metaData),
 			sources = sources,
+			isShared = isShared,
 		)
 	}
 
@@ -348,5 +479,10 @@ class MihonExtensionLoader @Inject constructor(
 		} else {
 			packageManager.getInstalledPackages(flags)
 		}
+	}
+
+	private fun ApplicationInfo.fixBasePaths(apkPath: String) {
+		if (sourceDir == null) sourceDir = apkPath
+		if (publicSourceDir == null) publicSourceDir = apkPath
 	}
 }

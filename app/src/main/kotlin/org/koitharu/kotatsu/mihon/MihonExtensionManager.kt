@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.extensions.runtime.ExternalExtensionManagerFacade
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +23,7 @@ import javax.inject.Singleton
 class MihonExtensionManager @Inject constructor(
 	@ApplicationContext private val context: Context,
 	private val loader: MihonExtensionLoader,
+	private val settings: AppSettings,
 ) {
 
 	companion object {
@@ -46,7 +48,7 @@ class MihonExtensionManager @Inject constructor(
 	>(
 		context = context,
 		scope = scope,
-		loadResults = loader::loadExtensions,
+		loadResults = { ctx -> loader.loadExtensions(ctx, settings.isPrivateInstallEnabled) },
 		successOf = { it as? MihonLoadResult.Success },
 		errorOf = { it as? MihonLoadResult.Error },
 		untrustedPackageNameOf = { (it as? MihonLoadResult.Untrusted)?.pkgName },

@@ -18,6 +18,8 @@ sealed interface SourceCatalogItem : ListModel {
 		val sourceName: String? = null,
 		/** True when this extension is hidden from Explore (installed extensions only). */
 		val isHidden: Boolean = false,
+		/** True when the extension list is in private mode (controls icon layout). */
+		val isPrivateMode: Boolean = false,
 	) : SourceCatalogItem {
 
 		enum class Action(
@@ -27,6 +29,8 @@ sealed interface SourceCatalogItem : ListModel {
 			INSTALL(R.drawable.ic_download, R.string.install),
 			UPDATE(R.drawable.ic_download, R.string.update),
 			UNINSTALL(R.drawable.ic_delete, R.string.uninstall),
+			ENABLE(R.drawable.ic_add, R.string.enable),
+			DISABLE(R.drawable.ic_close, R.string.disable),
 		}
 
 		override fun areItemsTheSame(other: ListModel): Boolean {

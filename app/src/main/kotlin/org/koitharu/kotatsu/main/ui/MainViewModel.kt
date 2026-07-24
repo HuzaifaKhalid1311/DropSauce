@@ -59,12 +59,15 @@ class MainViewModel @Inject constructor(
 			false
 		}
 	}.onEach { hasUpdates ->
-		if (
-			hasUpdates &&
-			settings.isShizukuInstallerEnabled &&
-			settings.isAutoUpdateExtensionsEnabled
-		) {
-			extensionUpdateScheduler.startNow()
+		if (hasUpdates) {
+			if (settings.isPrivateInstallEnabled) {
+				extensionUpdateScheduler.startNow()
+			} else if (
+				settings.isShizukuInstallerEnabled &&
+				settings.isAutoUpdateExtensionsEnabled
+			) {
+				extensionUpdateScheduler.startNow()
+			}
 		}
 	}.flowOn(Dispatchers.IO)
 		.stateIn(

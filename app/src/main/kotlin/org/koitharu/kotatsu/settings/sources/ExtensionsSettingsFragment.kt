@@ -178,6 +178,7 @@ private fun ExtensionsScreen(
 	var tagsWarnings by rememberBooleanPref(AppSettings.KEY_TAGS_WARNINGS, true)
 	var incognitoNsfw by rememberStringPref(AppSettings.KEY_INCOGNITO_NSFW, "ASK")
 	val shizukuEnabled by rememberBooleanPref(AppSettings.KEY_SHIZUKU_INSTALLER, false)
+	var privateEnabled by rememberBooleanPref(AppSettings.KEY_PRIVATE_INSTALLER, false)
 	var autoUpdateExtensions by rememberBooleanPref(AppSettings.KEY_AUTO_UPDATE_EXTENSIONS, false)
 	var updateNotifications by rememberBooleanPref(AppSettings.KEY_EXTENSION_UPDATE_NOTIFICATIONS, true)
 
@@ -292,6 +293,16 @@ private fun ExtensionsScreen(
 			SettingsGroup(title = stringResource(R.string.auto_update)) {
 				item { pos ->
 					SwitchSettingsItem(
+						title = stringResource(R.string.private_extensions),
+						subtitle = stringResource(R.string.private_extensions_summary),
+						checked = privateEnabled,
+						onCheckedChange = { privateEnabled = it },
+						icon = R.drawable.ic_shield,
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
 						title = stringResource(R.string.shizuku_title),
 						subtitle = stringResource(R.string.shizuku_summary),
 						checked = shizukuEnabled,
@@ -308,7 +319,7 @@ private fun ExtensionsScreen(
 						onCheckedChange = { autoUpdateExtensions = it },
 						icon = R.drawable.ic_updated,
 						shape = pos.shape,
-						enabled = shizukuEnabled,
+						enabled = shizukuEnabled || privateEnabled,
 					)
 				}
 				item { pos ->

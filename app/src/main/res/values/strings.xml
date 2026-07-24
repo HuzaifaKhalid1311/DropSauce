@@ -1110,5 +1110,14 @@
 	<string name="developer_status_blocked">Blocked</string>
 	<string name="developer_status_error">Error</string>
 	<string name="developer_status_passed">Passed</string>
-	<string name="developer_status_skipped">Skipped</string>
+    <string name="developer_status_skipped">Skipped</string>
+    <string name="private_extensions">Private extensions</string>
+    <string name="private_extensions_summary">Install extensions inside the app\'s private storage. No system install permissions needed, updates are automatic, and extensions are invisible to other apps.</string>
+    <string name="private_extensions_enabled">Private mode is on</string>
+    <string name="private_extensions_disabled">Private mode is off</string>
+    <string name="private_extensions_migration_title">Switch to private mode?</string>
+    <string name="private_extensions_migration_message">This will download and install %1$d extension(s) as private extensions. A configured extension repo is required.</string>
+    <string name="private_extensions_no_repo">Configure an extension repo to install private extensions.</string>
+    <string name="private_extension_install_failed">Failed to install private extension: %1$s</string>
+    <string name="disabled_extensions">Disabled</string>
 </resources>

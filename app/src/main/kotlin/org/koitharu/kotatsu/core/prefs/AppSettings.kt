@@ -496,6 +496,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		set(value) = prefs.edit {
 			putBoolean(KEY_SHIZUKU_INSTALLER, value)
 			if (!value) putBoolean(KEY_AUTO_UPDATE_EXTENSIONS, false)
+			if (value) putBoolean(KEY_PRIVATE_INSTALLER, false)
+		}
+
+	var isPrivateInstallEnabled: Boolean
+		get() = prefs.getBoolean(KEY_PRIVATE_INSTALLER, false)
+		set(value) = prefs.edit {
+			putBoolean(KEY_PRIVATE_INSTALLER, value)
+			if (value) putBoolean(KEY_SHIZUKU_INSTALLER, false)
 		}
 
 	var isAutoUpdateExtensionsEnabled: Boolean
@@ -1187,6 +1195,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
 		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
 		const val KEY_SHIZUKU_INSTALLER = "shizuku_installer"
+		const val KEY_PRIVATE_INSTALLER = "private_installer"
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"
 		const val KEY_EXTENSION_UPDATE_NOTIFICATIONS = "extension_update_notifications"
 		const val KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME = "last_extension_update_notification_time"

@@ -11,6 +11,12 @@
 		app:showAsAction="ifRoom|collapseActionView" />
 
 	<item
+		android:id="@+id/action_private_mode"
+		android:icon="@drawable/ic_shield_off"
+		android:title="@string/private_extensions"
+		app:showAsAction="ifRoom" />
+
+	<item
 		android:id="@+id/action_repo"
 		android:icon="@drawable/ic_edit"
 		android:title="@string/manage_repo"
