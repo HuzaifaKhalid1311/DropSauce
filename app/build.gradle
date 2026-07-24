@@ -163,6 +163,7 @@ dependencies {
 
 	coreLibraryDesugaring libs.desugar.jdk.libs
 	implementation libs.kotlinx.coroutines.android
+	implementation libs.kotlinx.coroutines.core
 	implementation libs.kotlinx.coroutines.guava
 
 	implementation libs.androidx.appcompat
