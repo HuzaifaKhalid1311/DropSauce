@@ -4,8 +4,8 @@ import android.content.Context
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -14,15 +14,17 @@ import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
+import java.io.FileWriter
 import java.io.InputStreamReader
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.ArrayBlockingQueue
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val MAX_ENTRIES = 10_000
-
-// ponytail: 2MB cap; on overflow the session file is truncated and starts over (ring-buffer spirit).
-private const val MAX_FILE_BYTES = 2L * 1024 * 1024
+private const val MAX_FILE_BYTES = 5L * 1024 * 1024 // 5MB cap per file (10MB total across rolling files)
 
 @Singleton
 class AppLogger @Inject constructor(
@@ -33,8 +35,8 @@ class AppLogger @Inject constructor(
 		get() = File(context.filesDir, "logs")
 	private val sessionFile: File
 		get() = File(logsDir, "session.log")
-	private val previousSessionFile: File
-		get() = File(logsDir, "previous_session.log")
+	private val oldSessionFile: File
+		get() = File(logsDir, "session.log.old")
 
 	@Volatile
 	var isEnabled: Boolean = false
@@ -47,34 +49,17 @@ class AppLogger @Inject constructor(
 	private var logcatProcess: Process? = null
 	private var generation = 0
 
-	/**
-	 * Preserve the log file from the last run so it can be offered on this launch, then let a fresh
-	 * session start. Call once at process start, before [setEnabled].
-	 */
-	fun rollSession() {
-		synchronized(stateLock) {
-			runCatching {
-				val current = sessionFile
-				if (current.exists() && current.length() > 0) {
-					previousSessionFile.delete()
-					if (!current.renameTo(previousSessionFile)) {
-						current.copyTo(previousSessionFile, overwrite = true)
-						current.delete()
-					}
-				} else {
-					current.delete()
-				}
-			}
+	fun getLogContent(): String = runCatching {
+		val sb = StringBuilder()
+		if (oldSessionFile.exists() && oldSessionFile.length() > 0) {
+			sb.append(oldSessionFile.readText())
+			if (!sb.endsWith("\n")) sb.append("\n")
 		}
-	}
-
-	fun hasPreviousSessionLog(): Boolean = previousSessionFile.let { it.exists() && it.length() > 0 }
-
-	fun readPreviousSessionLog(): String = runCatching { previousSessionFile.readText() }.getOrDefault("")
-
-	fun clearPreviousSessionLog() {
-		runCatching { previousSessionFile.delete() }
-	}
+		if (sessionFile.exists() && sessionFile.length() > 0) {
+			sb.append(sessionFile.readText())
+		}
+		sb.toString()
+	}.getOrDefault("")
 
 	fun setEnabled(enabled: Boolean) {
 		synchronized(stateLock) {
@@ -99,7 +84,8 @@ class AppLogger @Inject constructor(
 			stopReadingLocked()
 		}
 		job?.join()
-		return drainToString()
+		val diskLogs = getLogContent()
+		return diskLogs.ifBlank { drainToString() }
 	}
 
 	private fun drainToString(): String {
@@ -112,7 +98,7 @@ class AppLogger @Inject constructor(
 		val job = scope.launch(start = CoroutineStart.LAZY) {
 			var process: Process? = null
 			var writer: BufferedWriter? = null
-			var bytesWritten = 0L
+			var bytesWritten = sessionFile.length()
 			try {
 				val pid = android.os.Process.myPid().toString()
 				val startedProcess = Runtime.getRuntime().exec(arrayOf("logcat", "-v", "threadtime", "--pid", pid))
@@ -126,7 +112,17 @@ class AppLogger @Inject constructor(
 				}
 				writer = runCatching {
 					logsDir.mkdirs()
-					sessionFile.bufferedWriter()
+					// Cleanup deprecated previous_session.log if existing from older builds
+					File(logsDir, "previous_session.log").delete()
+
+					val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(Date())
+					val bw = FileWriter(sessionFile, true).buffered()
+					bw.write("\n================================================================================\n")
+					bw.write("=== SESSION STARTED: $timestamp (PID: $pid) ===\n")
+					bw.write("================================================================================\n")
+					bw.flush()
+					bytesWritten += 180L
+					bw
 				}.getOrNull()
 				BufferedReader(InputStreamReader(startedProcess.inputStream)).use { reader ->
 					while (isActive) {
@@ -139,7 +135,11 @@ class AppLogger @Inject constructor(
 							runCatching {
 								if (bytesWritten >= MAX_FILE_BYTES) {
 									w.flush()
-									writer = sessionFile.bufferedWriter() // truncate & restart
+									w.close()
+									oldSessionFile.delete()
+									sessionFile.renameTo(oldSessionFile)
+									val newWriter = FileWriter(sessionFile, false).buffered()
+									writer = newWriter
 									bytesWritten = 0L
 								}
 								val out = writer ?: w
@@ -182,3 +182,4 @@ class AppLogger @Inject constructor(
 		return job
 	}
 }
+
