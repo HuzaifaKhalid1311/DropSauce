@@ -7,15 +7,18 @@ import eu.kanade.tachiyomi.source.Source
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.extensions.runtime.ExternalExtensionManagerFacade
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -76,6 +79,13 @@ class MihonExtensionManager @Inject constructor(
 
 	init {
 		activeInstance = this
+		scope.launch {
+			settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled }
+				.drop(1)
+				.collect {
+					loadExtensions()
+				}
+		}
 	}
 
 	fun initialize() {
