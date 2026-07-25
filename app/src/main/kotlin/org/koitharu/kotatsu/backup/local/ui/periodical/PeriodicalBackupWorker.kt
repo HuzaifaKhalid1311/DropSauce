@@ -27,7 +27,6 @@ import org.koitharu.kotatsu.backup.local.data.LocalBackupRepository
 import org.koitharu.kotatsu.backup.local.domain.BackupUtils
 import org.koitharu.kotatsu.backup.local.domain.ExternalBackupStorage
 import org.koitharu.kotatsu.backup.local.ui.BaseBackupRestoreService
-import org.koitharu.kotatsu.core.ErrorReporterReceiver
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
@@ -137,14 +136,6 @@ class PeriodicalBackupWorker @AssistedInject constructor(
 			.setPriority(NotificationCompat.PRIORITY_DEFAULT)
 			.setSilent(true)
 			.setAutoCancel(true)
-			.apply {
-				ErrorReporterReceiver.getNotificationAction(
-					context = applicationContext,
-					e = error,
-					notificationId = RESULT_NOTIFICATION_ID,
-					notificationTag = TAG_RESULT,
-				)?.let { addAction(it) }
-			}
 			.build()
 		notificationManager.notify(TAG_RESULT, RESULT_NOTIFICATION_ID, notification)
 	}

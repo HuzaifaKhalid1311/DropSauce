@@ -10,7 +10,6 @@ import androidx.core.app.PendingIntentCompat
 import androidx.core.app.ShareCompat
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.backup.local.domain.BackupUtils
-import org.koitharu.kotatsu.core.ErrorReporterReceiver
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.ui.CoroutineIntentService
 import org.koitharu.kotatsu.core.util.CompositeResult
@@ -80,11 +79,6 @@ abstract class BaseBackupRestoreService : CoroutineIntentService() {
 							.setBigContentTitle(title),
 					)
 					.setSmallIcon(android.R.drawable.stat_notify_error)
-				result.failures.firstNotNullOfOrNull { error ->
-					ErrorReporterReceiver.getNotificationAction(applicationContext, error, startId, notificationTag)
-				}?.let { action ->
-					notification.addAction(action)
-				}
 			}
 
 			else -> {

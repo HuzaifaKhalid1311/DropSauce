@@ -343,14 +343,6 @@
 			</intent-filter>
 		</receiver>
 
-		<receiver
-			android:name="org.koitharu.kotatsu.core.ErrorReporterReceiver"
-			android:exported="false">
-			<intent-filter>
-				<action android:name="${applicationId}.action.REPORT_ERROR" />
-			</intent-filter>
-		</receiver>
-
 		<!-- Home screen widgets -->
 		<receiver
 			android:name="org.koitharu.kotatsu.widget.continuereading.ContinueReadingWidget"
@@ -1158,7 +1150,6 @@
 				<data android:host="m.manganelo.com" />
 				<data android:host="chapmanganelo.com" />
 				<data android:host="h.mangabat.com" />
-				<data android:host="readmangabat.com" />
 				<data android:host="w.mangairo.com" />
 				<data android:host="chap.mangairo.com" />
 				<data android:host="mangakakalot.com" />
@@ -1495,10 +1486,6 @@
 				<data android:host="24.mintmanga.one" />
 				<data android:host="mintmanga.live" />
 				<data android:host="mintmanga.com" />
-				<data android:host="zz.readmanga.io" />
-				<data android:host="readmanga.live" />
-				<data android:host="readmanga.io" />
-				<data android:host="readmanga.me" />
 				<data android:host="seimanga.me" />
 				<data android:host="selfmanga.live" />
 				<data android:host="web.usagi.one" />

@@ -70,11 +70,11 @@
 			android:text="@string/try_again" />
 
 		<com.google.android.material.button.MaterialButton
-			android:id="@+id/button_error_details"
+			android:id="@+id/button_copy"
 			style="?borderlessButtonStyle"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="@string/details" />
+			android:text="@string/copy" />
 
 	</LinearLayout>
 </merge>

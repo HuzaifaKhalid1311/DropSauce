@@ -18,7 +18,6 @@ import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.alternatives.domain.AutoFixUseCase
 import org.koitharu.kotatsu.alternatives.domain.AutoFixUseCase.NoAlternativesException
-import org.koitharu.kotatsu.core.ErrorReporterReceiver
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isNsfw
@@ -180,14 +179,6 @@ class AutoFixService : CoroutineIntentService() {
 						error.getDisplayMessage(resources)
 					},
 				).setSmallIcon(R.drawable.general_notification)
-			ErrorReporterReceiver.getNotificationAction(
-				context = this,
-				e = error,
-				notificationId = notificationId,
-				notificationTag = TAG,
-			)?.let { action ->
-				notification.addAction(action)
-			}
 		}
 		return notification.build()
 	}

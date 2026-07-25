@@ -56,15 +56,6 @@ class DetailsErrorObserver(
 				}
 			}
 
-			value is ParseException -> {
-				val router = router()
-				if (router != null && value.isSerializable()) {
-					snackbar.setAction(R.string.details) {
-						router.showErrorDialog(value)
-					}
-				}
-			}
-
 			value.isNetworkError() -> {
 				snackbar.setAction(R.string.try_again) {
 					viewModel.reload()

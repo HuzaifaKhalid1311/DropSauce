@@ -45,10 +45,10 @@ import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.prefs.TriStateOption
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
 import org.koitharu.kotatsu.core.ui.dialog.DialogAction
-import org.koitharu.kotatsu.core.ui.dialog.ErrorDetailsDialog
 import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.ui.dialog.showActionChoiceDialog
 import org.koitharu.kotatsu.core.util.ext.connectivityManager
+import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.toFileOrNull
@@ -433,10 +433,8 @@ class AppRouter private constructor(
     }
 
     fun showErrorDialog(error: Throwable, url: String? = null) {
-        ErrorDetailsDialog().withArgs(2) {
-            putSerializable(KEY_ERROR, error)
-            putString(KEY_URL, url)
-        }.show()
+        val context = contextOrNull() ?: return
+        context.copyToClipboard(context.getString(R.string.error), error.stackTraceToString())
     }
 
     fun showImportDialog() {

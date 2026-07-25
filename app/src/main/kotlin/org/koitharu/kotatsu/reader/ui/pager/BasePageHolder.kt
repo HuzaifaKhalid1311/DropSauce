@@ -77,11 +77,11 @@ abstract class BasePageHolder<B : ViewBinding>(
 					isFromUser = true,
 				)
 
-				R.id.button_error_details -> viewModel.showErrorDetails(boundData?.url)
+				R.id.button_copy -> viewModel.copyErrorToClipboard(v.context)
 			}
 		}
 		bindingInfo.buttonRetry.setOnClickListener(clickListener)
-		bindingInfo.buttonErrorDetails.setOnClickListener(clickListener)
+		bindingInfo.buttonCopy.setOnClickListener(clickListener)
 	}
 
 	@CallSuper
@@ -186,7 +186,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 				bindingInfo.buttonRetry.setText(
 					ExceptionResolver.getResolveStringId(e).ifZero { R.string.try_again },
 				)
-				bindingInfo.buttonErrorDetails.isVisible = e.isSerializable()
+				bindingInfo.buttonCopy.isVisible = e.isSerializable()
 				bindingInfo.layoutError.isVisible = true
 				bindingInfo.progressBar.hide()
 			}

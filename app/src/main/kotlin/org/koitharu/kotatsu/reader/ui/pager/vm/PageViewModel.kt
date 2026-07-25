@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.reader.ui.pager.vm
 
+import android.content.Context
 import android.graphics.Rect
 import android.net.Uri
 import androidx.annotation.WorkerThread
@@ -20,8 +21,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.IOException
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.os.NetworkState
+import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.throttle
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -68,9 +71,9 @@ class PageViewModel(
 		}
 	}
 
-	fun showErrorDetails(url: String?) {
+	fun copyErrorToClipboard(context: Context) {
 		val e = (state.value as? PageState.Error)?.error ?: return
-		exceptionResolver.showErrorDetails(e, url)
+		context.copyToClipboard(context.getString(R.string.error), e.stackTraceToString())
 	}
 
 	fun onRecycle() {

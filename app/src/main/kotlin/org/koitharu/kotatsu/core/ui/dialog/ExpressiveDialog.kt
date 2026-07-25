@@ -104,6 +104,7 @@ fun ExpressiveDialogCard(
 	icon: Painter,
 	title: String,
 	message: String? = null,
+	messageModifier: Modifier = Modifier,
 	content: @Composable ColumnScope.() -> Unit,
 ) {
 	Box(
@@ -145,12 +146,20 @@ fun ExpressiveDialogCard(
 				)
 				if (message != null) {
 					Spacer(Modifier.height(8.dp))
-					Text(
-						text = message,
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						textAlign = TextAlign.Center,
-					)
+					Box(
+						modifier = messageModifier
+							.heightIn(max = 260.dp)
+							.fillMaxWidth()
+							.verticalScroll(rememberScrollState()),
+						contentAlignment = Alignment.Center,
+					) {
+						Text(
+							text = message,
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							textAlign = TextAlign.Center,
+						)
+					}
 				}
 				Spacer(Modifier.height(24.dp))
 				content()

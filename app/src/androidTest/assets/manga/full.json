@@ -3,35 +3,35 @@
 	"title": "Странствия Эманон",
 	"altTitles": [],
 	"url": "/stranstviia_emanon",
-	"publicUrl": "https://readmanga.io/stranstviia_emanon",
+	"publicUrl": "https://fixture.example/stranstviia_emanon",
 	"rating": 0.9400894,
 	"isNsfw": true,
-	"coverUrl": "https://staticrm.rmr.rocks/uploads/pics/01/12/559_p.jpg",
+	"coverUrl": "https://fixture.example/uploads/pics/01/12/559_p.jpg",
 	"tags": [
 		{
 			"title": "Сверхъестественное",
 			"key": "supernatural",
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"title": "Сэйнэн",
 			"key": "seinen",
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"title": "Повседневность",
 			"key": "slice_of_life",
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"title": "Приключения",
 			"key": "adventure",
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		}
 	],
 	"state": "FINISHED",
 	"authors": [],
-	"largeCoverUrl": "https://staticrm.rmr.rocks/uploads/pics/01/12/559_o.jpg",
+	"largeCoverUrl": "https://fixture.example/uploads/pics/01/12/559_o.jpg",
 	"description": "Продолжение истории о загадочной девушке по имени Эманон, которая помнит всё, что происходило на Земле за последние три миллиарда лет. \n<br>Начало истории читайте в \"Воспоминаниях Эманон\". \n<div class=\"clearfix\"></div>",
 	"chapters": [
 		{
@@ -42,7 +42,7 @@
 			"url": "/stranstviia_emanon/vol1/1",
 			"scanlator": "Sad-Robot",
 			"uploadDate": 1342731600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433540705,
@@ -52,7 +52,7 @@
 			"url": "/stranstviia_emanon/vol1/2",
 			"scanlator": "Sad-Robot",
 			"uploadDate": 1342731600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433540706,
@@ -62,7 +62,7 @@
 			"url": "/stranstviia_emanon/vol1/3",
 			"scanlator": "Sad-Robot",
 			"uploadDate": 1342731600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433540707,
@@ -72,7 +72,7 @@
 			"url": "/stranstviia_emanon/vol1/4",
 			"scanlator": "Sad-Robot",
 			"uploadDate": 1342731600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433540708,
@@ -82,7 +82,7 @@
 			"url": "/stranstviia_emanon/vol1/5",
 			"scanlator": "Sad-Robot",
 			"uploadDate": 1342731600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433541665,
@@ -92,7 +92,7 @@
 			"url": "/stranstviia_emanon/vol2/1",
 			"scanlator": "Sup!",
 			"uploadDate": 1415570400000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433541666,
@@ -102,7 +102,7 @@
 			"url": "/stranstviia_emanon/vol2/2",
 			"scanlator": "Sup!",
 			"uploadDate": 1419976800000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433541667,
@@ -112,7 +112,7 @@
 			"url": "/stranstviia_emanon/vol2/3",
 			"scanlator": "Sup!",
 			"uploadDate": 1427922000000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433541668,
@@ -122,7 +122,7 @@
 			"url": "/stranstviia_emanon/vol2/4",
 			"scanlator": "Sup!",
 			"uploadDate": 1436907600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433541669,
@@ -132,7 +132,7 @@
 			"url": "/stranstviia_emanon/vol2/5",
 			"scanlator": "Sup!",
 			"uploadDate": 1446674400000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433541670,
@@ -142,7 +142,7 @@
 			"url": "/stranstviia_emanon/vol2/6",
 			"scanlator": "Sup!",
 			"uploadDate": 1451512800000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433542626,
@@ -152,7 +152,7 @@
 			"url": "/stranstviia_emanon/vol3/1",
 			"scanlator": "Sup!",
 			"uploadDate": 1461618000000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433542627,
@@ -162,7 +162,7 @@
 			"url": "/stranstviia_emanon/vol3/2",
 			"scanlator": "Sup!",
 			"uploadDate": 1461618000000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		},
 		{
 			"id": 3552943969433542628,
@@ -172,8 +172,8 @@
 			"url": "/stranstviia_emanon/vol3/3",
 			"scanlator": "",
 			"uploadDate": 1465851600000,
-			"source": "READMANGA_RU"
+			"source": "LOCAL"
 		}
 	],
-	"source": "READMANGA_RU"
+	"source": "LOCAL"
 }
