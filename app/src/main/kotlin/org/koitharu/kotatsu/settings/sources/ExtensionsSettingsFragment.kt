@@ -88,6 +88,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 					},
 					onLinksChanged = viewModel::setLinksEnabled,
 					onShizukuChanged = ::setShizukuEnabled,
+					onSandboxEnabled = ::onSandboxEnabled,
 				)
 			}
 		}
@@ -118,6 +119,10 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 		) {
 			settings.isShizukuInstallerEnabled = false
 		}
+	}
+
+	private fun onSandboxEnabled() {
+		router.openSourcesCatalog(isExternalOnly = true, autoMigrate = true)
 	}
 
 	private fun setShizukuEnabled(enabled: Boolean) {
@@ -159,6 +164,7 @@ private fun ExtensionsScreen(
 	onOpenBrokenSourcesMigration: () -> Unit,
 	onLinksChanged: (Boolean) -> Unit,
 	onShizukuChanged: (Boolean) -> Unit,
+	onSandboxEnabled: () -> Unit,
 ) {
 	val ctx = LocalContext.current
 	val colors = CategoryPalette.forKey("extensions")
@@ -210,7 +216,10 @@ private fun ExtensionsScreen(
 						title = stringResource(R.string.private_extensions),
 						subtitle = stringResource(R.string.private_extensions_summary),
 						checked = privateEnabled,
-						onCheckedChange = { privateEnabled = it },
+						onCheckedChange = {
+							privateEnabled = it
+							if (it) onSandboxEnabled()
+						},
 						icon = R.drawable.ic_shield,
 						shape = pos.shape,
 					)

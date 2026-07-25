@@ -219,11 +219,13 @@ class AppRouter private constructor(
 
     fun openSourcesCatalog(
         isExternalOnly: Boolean = false,
+        autoMigrate: Boolean = false,
     ) {
         val context = contextOrNull() ?: return
         startActivity(
             Intent(context, SourcesCatalogActivity::class.java).apply {
                 putExtra(KEY_SOURCE_CATALOG_EXTERNAL_ONLY, isExternalOnly)
+                if (autoMigrate) putExtra(KEY_SOURCE_CATALOG_AUTO_MIGRATE, true)
             },
         )
     }
@@ -832,6 +834,7 @@ class AppRouter private constructor(
         const val KEY_READER_MODE = "reader_mode"
         const val KEY_SORT_ORDER = "sort_order"
         const val KEY_SOURCE_CATALOG_EXTERNAL_ONLY = "source_catalog_external_only"
+        const val KEY_SOURCE_CATALOG_AUTO_MIGRATE = "source_catalog_auto_migrate"
         const val KEY_SOURCE = "source"
         const val KEY_TAB = "tab"
         const val KEY_TITLE = "title"

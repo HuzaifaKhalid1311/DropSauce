@@ -99,6 +99,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private val isExternalOnly by lazy(LazyThreadSafetyMode.NONE) {
 		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, false) == true
 	}
+	private val isAutoMigrate by lazy(LazyThreadSafetyMode.NONE) {
+		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_AUTO_MIGRATE, false) == true
+	}
 	private var isScrollToTopShown = false
 	private var hasPendingUpdates = false
 	private var lastSystemBarsInsets = Insets.NONE
@@ -229,6 +232,32 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			ensureInstallPermissionAccess()
 		}
 		handleAddRepoDeepLink(intent)
+		if (isAutoMigrate && settings.isPrivateInstallEnabled) {
+			lifecycleScope.launch {
+				viewModel.isRefreshing.value = true
+				val count = withContext(Dispatchers.IO) {
+					viewModel.reloadAndCheckMigration()
+				}
+				viewModel.isRefreshing.value = false
+				if (count <= 0) return@launch
+				if (!viewModel.hasExternalRepoConfigured()) {
+					Toast.makeText(
+						this@SourcesCatalogActivity,
+						R.string.private_extensions_no_repo,
+						Toast.LENGTH_LONG,
+					).show()
+					return@launch
+				}
+				MaterialAlertDialogBuilder(this@SourcesCatalogActivity)
+					.setTitle(R.string.private_extensions_migration_title)
+					.setMessage(getString(R.string.private_extensions_migration_message, count))
+					.setPositiveButton(android.R.string.ok) { _, _ ->
+						viewModel.performMigration()
+					}
+					.setNegativeButton(android.R.string.cancel, null)
+					.show()
+			}
+		}
 		viewBinding.buttonScrollToTop.setOnClickListener {
 			viewBinding.recyclerView.smoothScrollToTop()
 		}

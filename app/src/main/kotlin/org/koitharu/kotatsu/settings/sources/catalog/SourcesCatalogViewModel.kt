@@ -761,21 +761,16 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	fun onPrivateModeEnabled() {
-		isRefreshing.value = true
+	suspend fun reloadAndCheckMigration(): Int {
+		repository.reloadMihonSources()
+		val hasPrivate = MihonExtensionLoader.hasPrivateExtensions(appContext)
+		if (hasPrivate) return 0
+		return getMigrationExtensionCount()
+	}
+
+	fun performMigration() {
 		launchJob(Dispatchers.Default) {
-			try {
-				repository.reloadMihonSources()
-				val hasPrivate = MihonExtensionLoader.hasPrivateExtensions(appContext)
-				if (!hasPrivate) {
-					val installedCount = getMigrationExtensionCount()
-					if (installedCount > 0 && hasExternalRepoConfigured()) {
-						emitMigrationInstallRequests()
-					}
-				}
-			} finally {
-				refreshTrigger.value++
-			}
+			emitMigrationInstallRequests()
 		}
 	}
 
