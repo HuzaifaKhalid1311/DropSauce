@@ -147,10 +147,14 @@ jobs:
         PREVIOUS_SUCCESS_SHA="${{ steps.previous_success.outputs.sha }}"
         CURRENT_SHA="${{ steps.version_commit.outputs.commit_sha }}"
 
-        if [ -z "$PREVIOUS_SUCCESS_SHA" ]; then
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-        else
+        if [ -n "$PREVIOUS_SUCCESS_SHA" ]; then
+          git fetch origin "$PREVIOUS_SUCCESS_SHA" 2>/dev/null || true
+        fi
+
+        if [ -n "$PREVIOUS_SUCCESS_SHA" ] && git cat-file -e "$PREVIOUS_SUCCESS_SHA" 2>/dev/null; then
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_SUCCESS_SHA..$CURRENT_SHA" --no-merges --invert-grep --grep='^chore(release): set versionName ')
+        else
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges -n 20)
         fi
 
         if [ -z "$CHANGELOG" ]; then
