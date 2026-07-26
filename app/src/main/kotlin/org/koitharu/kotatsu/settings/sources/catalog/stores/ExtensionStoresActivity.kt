@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.settings.sources.catalog.stores
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -61,6 +62,13 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 				viewModel.stores.collect(adapter::submitList)
 			}
 		}
+		handleAddStoreIntent(intent)
+	}
+
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		setIntent(intent)
+		handleAddStoreIntent(intent)
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -112,7 +120,7 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 		return true
 	}
 
-	private fun showStoreDialog(existing: ExtensionStoreState?) {
+	private fun showStoreDialog(existing: ExtensionStoreState?, initialUrl: String? = null) {
 		val builder = MaterialAlertDialogBuilder(this)
 			.setTitle(if (existing == null) R.string.add_store else R.string.edit_store)
 		val editor = builder.setEditText(
@@ -120,7 +128,7 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 			singleLine = true,
 		)
 		editor.hint = getString(R.string.add_repo_hint)
-		editor.setText(existing?.store?.indexUrl.orEmpty())
+		editor.setText(initialUrl ?: existing?.store?.indexUrl.orEmpty())
 		builder.setNegativeButton(android.R.string.cancel, null)
 			.setPositiveButton(android.R.string.ok, null)
 		val dialog = builder.create()
@@ -129,6 +137,10 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 				val url = editor.text?.toString()?.trim().orEmpty()
 				if (!url.startsWith("https://")) {
 					editor.error = getString(R.string.invalid_url)
+					return@setOnClickListener
+				}
+				if (existing == null && viewModel.containsStoreUrl(url)) {
+					editor.error = getString(R.string.store_already_added)
 					return@setOnClickListener
 				}
 				setDialogBusy(dialog, true)
@@ -149,6 +161,26 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 			}
 		}
 		dialog.show()
+	}
+
+	private fun handleAddStoreIntent(intent: Intent?) {
+		val data = intent?.data ?: return
+		val isAddStore = when {
+			data.scheme == "mihon" && data.host == "extension-store" -> true
+			data.host == "add-repo" && data.scheme in setOf("kotatsu", "tachiyomi") -> true
+			else -> false
+		}
+		if (!isAddStore) return
+		val url = data.getQueryParameter("url")?.trim().orEmpty()
+		if (!url.startsWith("https://")) {
+			Toast.makeText(this, R.string.invalid_url, Toast.LENGTH_SHORT).show()
+			return
+		}
+		if (viewModel.containsStoreUrl(url)) {
+			Toast.makeText(this, R.string.store_already_added, Toast.LENGTH_LONG).show()
+			return
+		}
+		showStoreDialog(existing = null, initialUrl = url)
 	}
 
 	private fun confirmRemove(item: ExtensionStoreState) {

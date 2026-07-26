@@ -24,6 +24,7 @@ import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.list.ui.model.ButtonFooter
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.parsers.model.ContentType
 import java.util.Comparator
@@ -54,6 +55,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val activePageId = MutableStateFlow(ExtensionCatalogPage.Updates.id)
 	private val hasNoSourceExtensions = MutableStateFlow(false)
+	private val hasInstalledExtensions = MutableStateFlow(false)
 	private val installingPackages = MutableStateFlow<Set<String>>(emptySet())
 	private val refreshTrigger = MutableStateFlow(0)
 	val isRefreshing = MutableStateFlow(false)
@@ -75,13 +77,18 @@ class SourcesCatalogViewModel @Inject constructor(
 	val pages: StateFlow<List<ExtensionCatalogPage>> = combine(
 		storeManager.states,
 		hasNoSourceExtensions,
+		hasInstalledExtensions,
 		showUpdatesTab,
-	) { states, includeNoSource, includeUpdates ->
-		buildExtensionCatalogPages(states.map { it.store }, includeNoSource, includeUpdates)
+	) { states, includeNoSource, hasInstalled, showUpdates ->
+		buildExtensionCatalogPages(
+			states.map { it.store },
+			includeNoSource,
+			includeUpdates = showUpdates && hasInstalled && states.isNotEmpty(),
+		)
 	}.stateIn(
 		viewModelScope + Dispatchers.Default,
 		SharingStarted.Eagerly,
-		listOf(ExtensionCatalogPage.Updates),
+		listOf(ExtensionCatalogPage.Empty),
 	)
 
 	val locales: StateFlow<Set<String?>> = combine(
@@ -178,17 +185,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	fun hasExternalRepoConfigured(): Boolean = storeManager.stores().isNotEmpty()
-
-	fun addExternalStore(url: String) {
-		launchJob(Dispatchers.Default) {
-			val result = storeManager.validateAndAdd(url)
-			if (result.isFailure) {
-				onShowMessage.call(R.string.extensions_repo_load_error)
-			} else {
-				refreshTrigger.value++
-			}
-		}
-	}
 
 	fun setNsfwDisabled(value: Boolean) {
 		settings.isNsfwContentDisabled = value
@@ -318,6 +314,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			appContext,
 			privateMode = mode == ExtensionInstallMode.SANDBOX,
 		)
+		hasInstalledExtensions.value = installed.isNotEmpty()
 		hasNoSourceExtensions.value = installed.any { storeManager.owner(mode, it) == null }
 	}
 
@@ -372,15 +369,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				isPrivateMode = mode == ExtensionInstallMode.SANDBOX,
 			)
 		}.sortedBy { it.title.lowercase() }
-		return if (updates.isEmpty()) {
-			listOf(
-				SourceCatalogItem.Hint(
-					R.drawable.ic_empty_feed,
-					R.string.nothing_found,
-					R.string.no_extension_updates,
-				),
-			)
-		} else updates
+		return buildUpdatesPageItems(updates)
 	}
 
 	private fun buildNoSourcePage(
@@ -446,6 +435,13 @@ class SourcesCatalogViewModel @Inject constructor(
 	): List<ListModel> = when (pageId) {
 		ExtensionCatalogPage.Updates.id -> buildUpdatesPage(storeStates, mode, filter, query)
 		ExtensionCatalogPage.NoSource.id -> buildNoSourcePage(mode, filter, query)
+		ExtensionCatalogPage.Empty.id -> listOf(
+			SourceCatalogItem.Hint(
+				R.drawable.ic_empty_feed,
+				R.string.no_extension_store_found,
+				R.string.no_extension_store_found_summary,
+			),
+		)
 		else -> {
 			val storeState = storeStates.firstOrNull { it.store.id == pageId }
 				?: return listOf(LoadingState)
@@ -916,4 +912,18 @@ class SourcesCatalogViewModel @Inject constructor(
 		val pageId: String,
 		val items: List<ListModel>,
 	)
+}
+
+internal fun buildUpdatesPageItems(
+	updates: List<SourceCatalogItem.Extension>,
+): List<ListModel> = if (updates.isEmpty()) {
+	listOf(
+		SourceCatalogItem.Hint(
+			R.drawable.ic_empty_feed,
+			R.string.nothing_found,
+			R.string.no_extension_updates,
+		),
+	)
+} else {
+	updates + ButtonFooter(R.string.update_all)
 }

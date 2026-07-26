@@ -23,6 +23,7 @@ import androidx.core.content.FileProvider
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
@@ -184,6 +185,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			listener = object : SourcesCatalogPagesAdapter.Listener {
 				override fun onRefresh() = viewModel.refresh()
 				override fun onPageScrolled() = updateScrollToTopVisibility()
+				override fun onUpdateAll() = viewModel.updateAllExtensions()
 			},
 		)
 		viewBinding.pager.adapter = pagesAdapter
@@ -202,6 +204,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			tab.text = when (val page = pagesAdapter.pageAt(position)) {
 				ExtensionCatalogPage.Updates -> getString(R.string.updates)
 				ExtensionCatalogPage.NoSource -> getString(R.string.no_source)
+				ExtensionCatalogPage.Empty -> ""
 				is ExtensionCatalogPage.Store -> page.title
 				null -> ""
 			}
@@ -213,6 +216,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		viewBinding.chipsFilter.onChipClickListener = this
 		viewModel.pages.observe(this) { pages ->
 			pagesAdapter.submitPages(pages)
+			viewBinding.tabs.isVisible = pages.none { it == ExtensionCatalogPage.Empty }
 			val selected = pages.indexOfFirst { it.id == selectedPageId }.let { if (it >= 0) it else 0 }
 			pages.getOrNull(selected)?.let { page ->
 				selectedPageId = page.id
@@ -286,11 +290,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}.observe(this) {
 			updateFilers(it.filter, it.contentTypes, it.locales, it.isNsfwDisabled)
 		}
-		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this, isExternalOnly))
+		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this))
 		if (!settings.isShizukuInstallerEnabled && !settings.isPrivateInstallEnabled) {
 			ensureInstallPermissionAccess()
 		}
-		handleAddRepoDeepLink(intent)
 		if (isAutoMigrate && settings.isPrivateInstallEnabled) {
 			lifecycleScope.launch {
 				viewModel.isRefreshing.value = true
@@ -444,35 +447,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	fun onManageRepoRequested() {
 		router.openExtensionStores()
-	}
-
-	fun onExtensionSettingsRequested() {
-		router.openExtensionsSettings()
-	}
-
-	fun onUpdateAllRequested() {
-		viewModel.updateAllExtensions()
-	}
-
-	fun isUpdatesPageSelected(): Boolean = selectedPageId == ExtensionCatalogPage.Updates.id
-
-	private fun handleAddRepoDeepLink(intent: Intent?) {
-		if (intent?.data?.host != "add-repo") return
-		if (intent.scheme != "kotatsu" && intent.scheme != "tachiyomi") return
-		val url = intent.data?.getQueryParameter("url")?.trim() ?: return
-		if (url.isBlank()) return
-		if (!url.startsWith("https://")) {
-			Toast.makeText(this, R.string.invalid_url, Toast.LENGTH_SHORT).show()
-			return
-		}
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.add_repo)
-			.setMessage(getString(R.string.add_repo_confirmation, url))
-			.setPositiveButton(android.R.string.ok) { _, _ ->
-				viewModel.addExternalStore(url)
-			}
-			.setNegativeButton(android.R.string.cancel, null)
-			.show()
 	}
 
 	private data class CatalogUiState(

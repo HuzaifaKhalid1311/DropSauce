@@ -72,6 +72,8 @@ class ExtensionStoreRegistry @Inject constructor(
 
 	fun findStore(storeId: String): ExtensionStoreRecord? = state.stores.firstOrNull { it.id == storeId }
 
+	fun containsStoreUrl(indexUrl: String): Boolean = state.containsStoreUrl(indexUrl)
+
 	fun owner(
 		mode: ExtensionInstallMode,
 		packageName: String,

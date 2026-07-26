@@ -48,6 +48,10 @@ sealed interface ExtensionCatalogPage {
 	data object NoSource : ExtensionCatalogPage {
 		override val id: String = "no_source"
 	}
+
+	data object Empty : ExtensionCatalogPage {
+		override val id: String = "empty"
+	}
 }
 
 fun buildExtensionCatalogPages(
@@ -58,10 +62,11 @@ fun buildExtensionCatalogPages(
 	val labels = extensionStoreDisplayLabels(stores)
 	return buildList {
 		if (includeUpdates) add(ExtensionCatalogPage.Updates)
+		if (includeNoSource) add(ExtensionCatalogPage.NoSource)
 		stores.mapTo(this) { store ->
 			ExtensionCatalogPage.Store(store.id, labels[store.id] ?: store.displayName)
 		}
-		if (includeNoSource) add(ExtensionCatalogPage.NoSource)
+		if (isEmpty()) add(ExtensionCatalogPage.Empty)
 	}
 }
 
@@ -70,6 +75,11 @@ data class ExtensionStoreRegistryState(
 	val stores: List<ExtensionStoreRecord> = emptyList(),
 	val ownerships: List<ExtensionStoreOwnership> = emptyList(),
 ) {
+
+	fun containsStoreUrl(indexUrl: String): Boolean {
+		val normalizedUrl = normalizeExtensionStoreUrl(indexUrl)
+		return stores.any { normalizeExtensionStoreUrl(it.indexUrl).equals(normalizedUrl, ignoreCase = true) }
+	}
 
 	fun add(store: ExtensionStoreRecord): Result<ExtensionStoreRegistryState> {
 		val normalizedUrl = normalizeExtensionStoreUrl(store.indexUrl)

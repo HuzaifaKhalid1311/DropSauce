@@ -26,6 +26,8 @@ class ExtensionStoresViewModel @Inject constructor(
 	suspend fun editStore(storeId: String, indexUrl: String): Result<ExtensionStoreRecord> =
 		manager.editStore(storeId, indexUrl)
 
+	fun containsStoreUrl(indexUrl: String): Boolean = manager.containsStoreUrl(indexUrl)
+
 	fun removeStore(storeId: String) = manager.removeStore(storeId)
 
 	suspend fun retry() = manager.refresh(forceRefresh = true)

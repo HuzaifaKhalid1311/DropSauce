@@ -13,6 +13,7 @@ class ExtensionStoreRegistryTest {
 		val first = store(id = "one", url = "https://example.com/repo/index.min.json", fingerprint = "abc")
 		val state = ExtensionStoreRegistryState(stores = listOf(first))
 
+		assertTrue(state.containsStoreUrl("https://example.com/repo/"))
 		assertTrue(
 			state.add(store(id = "two", url = "https://example.com/repo/", fingerprint = "def")).isFailure,
 		)

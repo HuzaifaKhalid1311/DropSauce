@@ -95,6 +95,8 @@ class ExtensionStoreManager @Inject constructor(
 
 	fun stores(): List<ExtensionStoreRecord> = registry.state.stores
 
+	fun containsStoreUrl(indexUrl: String): Boolean = registry.containsStoreUrl(indexUrl)
+
 	fun state(storeId: String): ExtensionStoreState? = states.value.firstOrNull { it.store.id == storeId }
 
 	fun owner(
@@ -131,14 +133,23 @@ class ExtensionStoreManager @Inject constructor(
 		}
 		mutableStates.value = registry.state.stores.map { store ->
 			val previous = previousById[store.id]
-			val fresh = runCatching { repository.getExtensions(store.indexUrl, forceRefresh) }
+			val fresh = runCatching { repository.validateStore(store.indexUrl, forceRefresh) }
 			val fallbackPrevious = if (fresh.isFailure) {
 				val cached = runCatching { repository.getCachedExtensions(store.indexUrl) }.getOrNull()
 				if (cached != null) ExtensionStoreState(store, StoreHealth.AVAILABLE, cached) else previous
 			} else {
 				previous
 			}
-			storeStateAfterRefresh(store, fallbackPrevious, fresh)
+			fresh.fold(
+				onSuccess = { validated ->
+					val refreshedStore = validated.store.copy(id = store.id)
+					registry.replace(refreshedStore)
+					ExtensionStoreState(refreshedStore, StoreHealth.AVAILABLE, validated.catalog)
+				},
+				onFailure = { error ->
+					storeStateAfterRefresh(store, fallbackPrevious, Result.failure(error))
+				},
+			)
 		}
 	}
 

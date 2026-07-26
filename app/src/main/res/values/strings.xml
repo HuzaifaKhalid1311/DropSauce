@@ -387,6 +387,7 @@
     <string name="remove_store">Remove store</string>
     <string name="copy_store_url">Copy store index URL</string>
     <string name="store_index_url">Store index URL</string>
+    <string name="store_already_added">This store is already added</string>
     <string name="remove_store_warning">Extensions installed from this store will remain installed, but they will not receive updates until you re-add the store or replace their store.</string>
     <string name="no_extension_updates">All installed extensions are up to date.</string>
     <string name="replace_extension_store_title">Replace extension store?</string>
@@ -400,9 +401,10 @@
     <string name="website">Website</string>
     <string name="no_source">No source</string>
     <string name="no_source_summary">These installed extensions could not be matched to an added store.</string>
+    <string name="no_extension_store_found">No store found</string>
+    <string name="no_extension_store_found_summary">Tap the edit icon to add an extension store.</string>
     <string name="add_repo">Add store index</string>
     <string name="add_repo_hint">Add store index url (index.min.json or index.pb)</string>
-    <string name="add_repo_confirmation">Add this store index url?\n\n%s</string>
     <string name="change_repo">Change store index</string>
     <string name="remove_repo">Remove store index</string>
     <string name="no_bookmarks_yet">No bookmarks yet</string>

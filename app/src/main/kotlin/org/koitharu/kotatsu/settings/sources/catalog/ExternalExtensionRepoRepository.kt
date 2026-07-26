@@ -42,11 +42,11 @@ class ExternalExtensionRepoRepository @Inject constructor(
 				.filterNot { it.lang in MihonExtensionLoader.HIDDEN_LANGUAGES }
 		}
 
-	suspend fun validateStore(repoUrl: String): ValidatedExtensionStore {
+	suspend fun validateStore(repoUrl: String, forceRefresh: Boolean = true): ValidatedExtensionStore {
 		val normalizedUrl = normalizeExtensionStoreUrl(repoUrl)
 		require(normalizedUrl.startsWith("https://")) { "Store index URL must use HTTPS" }
-		val catalog = getExtensions(normalizedUrl, forceRefresh = true)
-		val info = fetchIndexRepoInfo(normalizedUrl) ?: fetchRepoInfo(normalizedUrl)
+		val catalog = getExtensions(normalizedUrl, forceRefresh)
+		val info = fetchIndexRepoInfo(normalizedUrl, forceRefresh) ?: fetchRepoInfo(normalizedUrl, forceRefresh)
 		return ValidatedExtensionStore(
 			store = ExtensionStoreRecord(
 				id = stableExtensionStoreId(normalizedUrl),
@@ -143,16 +143,22 @@ class ExternalExtensionRepoRepository @Inject constructor(
 	 * if the repo doesn't publish one (or it's unreachable) — callers then fall back to URL-derived
 	 * naming and install-time provenance.
 	 */
-	suspend fun fetchRepoInfo(repoUrl: String): ExternalRepoInfo? = withContext(Dispatchers.IO) {
+	suspend fun fetchRepoInfo(
+		repoUrl: String,
+		forceRefresh: Boolean = false,
+	): ExternalRepoInfo? = withContext(Dispatchers.IO) {
 		runCatching {
-			val bytes = fetchBytes("${getBaseUrl(repoUrl)}/repo.json", forceRefresh = false) ?: return@runCatching null
+			val bytes = fetchBytes("${getBaseUrl(repoUrl)}/repo.json", forceRefresh) ?: return@runCatching null
 			parseRepoInfo(repoUrl, bytes.decodeToString())
 		}.getOrNull()
 	}
 
-	private suspend fun fetchIndexRepoInfo(repoUrl: String): ExternalRepoInfo? = withContext(Dispatchers.IO) {
+	private suspend fun fetchIndexRepoInfo(
+		repoUrl: String,
+		forceRefresh: Boolean,
+	): ExternalRepoInfo? = withContext(Dispatchers.IO) {
 		runCatching {
-			val bytes = fetchBytes(buildIndexUrl(repoUrl), forceRefresh = false) ?: return@runCatching null
+			val bytes = fetchBytes(buildIndexUrl(repoUrl), forceRefresh) ?: return@runCatching null
 			val store = when (bytes.firstOrNull()) {
 				OPEN_BRACE -> {
 					parseRepoInfo(repoUrl, bytes.decodeToString())?.let { return@runCatching it }

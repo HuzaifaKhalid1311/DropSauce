@@ -41,7 +41,6 @@
 			android:layout_height="wrap_content"
 			android:layout_marginHorizontal="12dp"
 			android:layout_marginTop="@dimen/margin_small"
-			android:background="@drawable/bg_settings_tile"
 			android:paddingHorizontal="@dimen/margin_normal"
 			android:paddingVertical="@dimen/margin_small"
 			android:text="@string/show_updates_tab"

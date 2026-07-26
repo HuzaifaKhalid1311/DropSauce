@@ -100,7 +100,11 @@ class SourcesCatalogPagesAdapter(
 		val binding: ItemExtensionCatalogPageBinding,
 	) : RecyclerView.ViewHolder(binding.root) {
 
-		private val catalogAdapter = SourcesCatalogAdapter(extensionActionListener, headerClickListener)
+		private val catalogAdapter = SourcesCatalogAdapter(
+			extensionActionListener,
+			headerClickListener,
+			listener::onUpdateAll,
+		)
 
 		init {
 			binding.recyclerView.apply {
@@ -135,6 +139,7 @@ class SourcesCatalogPagesAdapter(
 	interface Listener {
 		fun onRefresh()
 		fun onPageScrolled()
+		fun onUpdateAll()
 	}
 
 	private fun dispatchUpdate(update: () -> Unit) {
