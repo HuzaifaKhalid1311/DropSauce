@@ -118,7 +118,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private var pendingUninstallPackage: String? = null
 	private var pendingReplacementDownloadId: Long? = null
 	private lateinit var pagesAdapter: SourcesCatalogPagesAdapter
-	private var selectedPageId = ExtensionCatalogPage.Updates.id
+	private var selectedPageId = ExtensionCatalogPage.Available.id
 	private val appBarOffsetListener = AppBarLayout.OnOffsetChangedListener { _, _ ->
 		syncFastScrollerOffset()
 	}
@@ -202,8 +202,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		})
 		TabLayoutMediator(viewBinding.tabs, viewBinding.pager) { tab, position ->
 			tab.text = when (val page = pagesAdapter.pageAt(position)) {
-				ExtensionCatalogPage.Updates -> getString(R.string.updates)
-				ExtensionCatalogPage.NoSource -> getString(R.string.no_source)
+				ExtensionCatalogPage.Available -> getString(R.string.available)
 				ExtensionCatalogPage.Empty -> ""
 				is ExtensionCatalogPage.Store -> page.title
 				null -> ""

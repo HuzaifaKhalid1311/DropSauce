@@ -23,13 +23,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.dialog.setEditText
 import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.databinding.ActivityExtensionStoresBinding
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreState
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
@@ -38,9 +36,6 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 	private val viewModel by viewModels<ExtensionStoresViewModel>()
 	private lateinit var adapter: ExtensionStoresAdapter
 	private lateinit var reorderHelper: ItemTouchHelper
-
-	@Inject
-	lateinit var settings: AppSettings
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -53,10 +48,6 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 			it.attachToRecyclerView(viewBinding.recyclerView)
 		}
 		viewBinding.fabAdd.setOnClickListener { showStoreDialog(null) }
-		viewBinding.switchUpdatesTab.isChecked = settings.isExtensionUpdatesTabEnabled
-		viewBinding.switchUpdatesTab.setOnCheckedChangeListener { _, checked ->
-			settings.isExtensionUpdatesTabEnabled = checked
-		}
 		lifecycleScope.launch {
 			repeatOnLifecycle(Lifecycle.State.STARTED) {
 				viewModel.stores.collect(adapter::submitList)

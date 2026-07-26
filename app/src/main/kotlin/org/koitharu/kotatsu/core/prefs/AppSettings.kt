@@ -647,10 +647,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_EXTENSION_STORE_MIGRATED, false)
 		set(value) = prefs.edit { putBoolean(KEY_EXTENSION_STORE_MIGRATED, value) }
 
-	var isExtensionUpdatesTabEnabled: Boolean
-		get() = prefs.getBoolean(KEY_EXTENSION_UPDATES_TAB, true)
-		set(value) = prefs.edit { putBoolean(KEY_EXTENSION_UPDATES_TAB, value) }
-
 	fun getExtensionStoreLabel(packageName: String, signatures: Collection<String>): String? {
 		val state = extensionStoreRegistryState
 		val mode = if (isPrivateInstallEnabled) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
@@ -1184,7 +1180,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_MIHON_REPO_INFOS = "mihon_repo_infos"
 		const val KEY_EXTENSION_STORE_REGISTRY = "extension_store_registry"
 		const val KEY_EXTENSION_STORE_MIGRATED = "extension_store_migrated"
-		const val KEY_EXTENSION_UPDATES_TAB = "extension_updates_tab"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
 		const val KEY_CF_CONTRAST = "cf_contrast"
 		const val KEY_CF_INVERTED = "cf_inverted"

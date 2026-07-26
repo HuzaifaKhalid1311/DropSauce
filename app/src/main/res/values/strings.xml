@@ -126,6 +126,7 @@
     <string name="favourites_category_empty">Empty category</string>
     <string name="read_later">Read later</string>
     <string name="updates">Updates</string>
+    <string name="updates_available">Updates available</string>
     <string name="text_feed_holder">New chapters of what you are reading are shown here</string>
     <string name="search_results">Search results</string>
     <string name="new_version_s">New version: %s</string>
@@ -396,11 +397,9 @@
     <string name="replace_store">Replace</string>
     <string name="store_unavailable">This store could not be refreshed. Showing its last available catalog.</string>
     <string name="store_available">Store available</string>
-    <string name="show_updates_tab">Show Updates tab</string>
     <string name="refresh_stores">Refresh stores</string>
     <string name="website">Website</string>
     <string name="no_source">No source</string>
-    <string name="no_source_summary">These installed extensions could not be matched to an added store.</string>
     <string name="no_extension_store_found">No store found</string>
     <string name="no_extension_store_found_summary">Tap the edit icon to add an extension store.</string>
     <string name="add_repo">Add store index</string>
@@ -649,7 +648,6 @@
     <string name="no_repo_detected">No store index url detected</string>
     <string name="click_edit_icon_add_extension_repo">Click on the edit icon to add a store index url</string>
     <string name="extensions_repo_load_error">Failed to load store index. Check URL and try again.</string>
-    <string name="updates_pending">Updates pending</string>
     <string name="extension_install_permission_required_title">Allow app installs</string>
     <string name="extension_install_permission_required_message">Enable \"Install unknown apps\" for this app to install or update extensions.</string>
     <string name="installed">Installed</string>

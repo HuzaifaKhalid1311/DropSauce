@@ -35,17 +35,6 @@
 		android:orientation="vertical"
 		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
-		<com.google.android.material.materialswitch.MaterialSwitch
-			android:id="@+id/switch_updates_tab"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginHorizontal="12dp"
-			android:layout_marginTop="@dimen/margin_small"
-			android:paddingHorizontal="@dimen/margin_normal"
-			android:paddingVertical="@dimen/margin_small"
-			android:text="@string/show_updates_tab"
-			android:textAppearance="?attr/textAppearanceBodyLarge" />
-
 		<androidx.recyclerview.widget.RecyclerView
 			android:id="@+id/recyclerView"
 			android:layout_width="match_parent"

@@ -1,14 +1,17 @@
 package org.koitharu.kotatsu.settings.sources.catalog
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.list.ui.model.ButtonFooter
+import org.koitharu.kotatsu.list.ui.model.ListHeader
 
 class ExtensionCatalogPagesTest {
 
 	@Test
-	fun `updates stay first and stores retain their configured order`() {
+	fun `available stays first and stores retain their configured order`() {
 		val stores = listOf(
 			store("second", "Second"),
 			store("first", "First"),
@@ -16,68 +19,57 @@ class ExtensionCatalogPagesTest {
 
 		assertEquals(
 			listOf(
-				ExtensionCatalogPage.Updates,
-				ExtensionCatalogPage.NoSource,
+				ExtensionCatalogPage.Available,
 				ExtensionCatalogPage.Store("second", "Second"),
 				ExtensionCatalogPage.Store("first", "First"),
 			),
-			buildExtensionCatalogPages(stores, includeNoSource = true),
+			buildExtensionCatalogPages(stores, hasInstalledExtensions = true),
 		)
-	}
-
-	@Test
-	fun `no source page is appended only when required`() {
-		val stores = listOf(store("known", "Known"))
-
-		assertEquals(
-			ExtensionCatalogPage.NoSource,
-			buildExtensionCatalogPages(stores, includeNoSource = true)[1],
-		)
-		assertEquals(2, buildExtensionCatalogPages(stores, includeNoSource = false).size)
 	}
 
 	@Test
 	fun `fresh install without stores or extensions has no tabs`() {
 		assertEquals(
 			listOf(ExtensionCatalogPage.Empty),
-			buildExtensionCatalogPages(emptyList(), includeNoSource = false, includeUpdates = false),
+			buildExtensionCatalogPages(emptyList(), hasInstalledExtensions = false),
 		)
 	}
 
 	@Test
-	fun `installed extensions without stores show only no source`() {
+	fun `installed extensions without stores show only available`() {
 		assertEquals(
-			listOf(ExtensionCatalogPage.NoSource),
-			buildExtensionCatalogPages(emptyList(), includeNoSource = true, includeUpdates = false),
+			listOf(ExtensionCatalogPage.Available),
+			buildExtensionCatalogPages(emptyList(), hasInstalledExtensions = true),
 		)
 	}
 
 	@Test
-	fun `updates page ends with update all when updates exist`() {
+	fun `available page shows updates before every installed extension`() {
 		val update = SourceCatalogItem.Extension(
 			packageName = "example.extension",
 			title = "Example",
 			subtitle = "English",
 			action = SourceCatalogItem.Extension.Action.UPDATE,
 		)
+		val installed = update.copy(action = SourceCatalogItem.Extension.Action.UNINSTALL)
 
 		assertEquals(
-			listOf(update, ButtonFooter(R.string.update_all)),
-			buildUpdatesPageItems(listOf(update)),
+			listOf(
+				ListHeader(R.string.updates_available),
+				update,
+				ButtonFooter(R.string.update_all),
+				ListHeader(R.string.installed),
+				installed,
+			),
+			buildAvailablePageItems(listOf(update), listOf(installed), isPrivateMode = false),
 		)
 	}
 
 	@Test
-	fun `updates page can be hidden without changing store order`() {
-		val stores = listOf(store("second", "Second"), store("first", "First"))
-
-		assertEquals(
-			listOf(
-				ExtensionCatalogPage.Store("second", "Second"),
-				ExtensionCatalogPage.Store("first", "First"),
-			),
-			buildExtensionCatalogPages(stores, includeNoSource = false, includeUpdates = false),
-		)
+	fun `store tabs exclude extensions already installed from that store`() {
+		assertFalse(isStoreInstallCandidate(isInstalled = true, ownerStoreId = "current", currentStoreId = "current"))
+		assertTrue(isStoreInstallCandidate(isInstalled = true, ownerStoreId = "other", currentStoreId = "current"))
+		assertTrue(isStoreInstallCandidate(isInstalled = false, ownerStoreId = null, currentStoreId = "current"))
 	}
 
 	@Test

@@ -25,25 +25,6 @@ class ExtensionStoreManagerTest {
 	}
 
 	@Test
-	fun `store update is routed into its own tab only when the updates tab is hidden`() {
-		val local = org.koitharu.kotatsu.mihon.model.MihonExtensionInfo(
-			pkgName = "example.extension",
-			appName = "Example",
-			versionCode = 1,
-			versionName = "1.4.1",
-			libVersion = 1.4,
-			lang = "en",
-			isNsfw = false,
-			sourceClassName = "Example",
-			apkPath = "/example.apk",
-		)
-		val update = entry("example.extension").copy(versionCode = 2)
-
-		assertEquals(update, findStoreTabUpdate(local, listOf(update), showUpdatesTab = false))
-		assertEquals(null, findStoreTabUpdate(local, listOf(update), showUpdatesTab = true))
-	}
-
-	@Test
 	fun `colliding original names are disambiguated only in labels`() {
 		val stores = listOf(
 			record("one", "Community", "https://one.example/repo"),

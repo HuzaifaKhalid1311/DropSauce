@@ -36,18 +36,14 @@ data class ExtensionStoreOwnership(
 sealed interface ExtensionCatalogPage {
 	val id: String
 
-	data object Updates : ExtensionCatalogPage {
-		override val id: String = "updates"
+	data object Available : ExtensionCatalogPage {
+		override val id: String = "available"
 	}
 
 	data class Store(
 		override val id: String,
 		val title: String,
 	) : ExtensionCatalogPage
-
-	data object NoSource : ExtensionCatalogPage {
-		override val id: String = "no_source"
-	}
 
 	data object Empty : ExtensionCatalogPage {
 		override val id: String = "empty"
@@ -56,13 +52,11 @@ sealed interface ExtensionCatalogPage {
 
 fun buildExtensionCatalogPages(
 	stores: List<ExtensionStoreRecord>,
-	includeNoSource: Boolean,
-	includeUpdates: Boolean = true,
+	hasInstalledExtensions: Boolean,
 ): List<ExtensionCatalogPage> {
 	val labels = extensionStoreDisplayLabels(stores)
 	return buildList {
-		if (includeUpdates) add(ExtensionCatalogPage.Updates)
-		if (includeNoSource) add(ExtensionCatalogPage.NoSource)
+		if (stores.isNotEmpty() || hasInstalledExtensions) add(ExtensionCatalogPage.Available)
 		stores.mapTo(this) { store ->
 			ExtensionCatalogPage.Store(store.id, labels[store.id] ?: store.displayName)
 		}

@@ -192,13 +192,6 @@ fun storeStateAfterRefresh(
 fun shouldForceStoreRefresh(forceRefresh: Boolean, migrationPerformed: Boolean): Boolean =
 	forceRefresh || migrationPerformed
 
-fun findStoreTabUpdate(
-	local: MihonExtensionInfo,
-	catalog: List<ExternalExtensionRepoEntry>,
-	showUpdatesTab: Boolean,
-): ExternalExtensionRepoEntry? =
-	if (showUpdatesTab) null else catalog.firstOrNull { it.packageName == local.pkgName && it.isNewerThan(local) }
-
 fun extensionStoreDisplayLabels(stores: List<ExtensionStoreRecord>): Map<String, String> {
 	val duplicateNames = stores.groupingBy { it.displayName.lowercase() }.eachCount()
 	return stores.associate { store ->
