@@ -64,6 +64,12 @@ fun buildExtensionCatalogPages(
 	}
 }
 
+internal fun shouldShowCatalogFilters(pages: List<ExtensionCatalogPage>): Boolean =
+	pages.any { it != ExtensionCatalogPage.Empty }
+
+internal fun canUseStoreCatalogForUpdates(health: StoreHealth): Boolean =
+	health != StoreHealth.UNAVAILABLE
+
 @Serializable
 data class ExtensionStoreRegistryState(
 	val stores: List<ExtensionStoreRecord> = emptyList(),

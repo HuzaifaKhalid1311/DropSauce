@@ -22,7 +22,6 @@ import androidx.core.graphics.Insets
 import androidx.core.content.FileProvider
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
@@ -119,9 +118,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private var pendingReplacementDownloadId: Long? = null
 	private lateinit var pagesAdapter: SourcesCatalogPagesAdapter
 	private var selectedPageId = ExtensionCatalogPage.Available.id
-	private val appBarOffsetListener = AppBarLayout.OnOffsetChangedListener { _, _ ->
-		syncFastScrollerOffset()
-	}
 	private val storagePermissionRequest = registerForActivityResult(
 		ActivityResultContracts.RequestPermission(),
 	) { granted ->
@@ -197,7 +193,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 				viewModel.selectPage(page.id)
 				invalidateOptionsMenu()
 				updateScrollToTopVisibility()
-				viewBinding.pager.post(::syncFastScrollerOffset)
 			}
 		})
 		TabLayoutMediator(viewBinding.tabs, viewBinding.pager) { tab, position ->
@@ -208,14 +203,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 				null -> ""
 			}
 		}.attach()
-		viewBinding.appbar.addOnOffsetChangedListener(appBarOffsetListener)
-		viewBinding.pager.doOnLayout {
-			syncFastScrollerOffset()
-		}
 		viewBinding.chipsFilter.onChipClickListener = this
 		viewModel.pages.observe(this) { pages ->
 			pagesAdapter.submitPages(pages)
 			viewBinding.tabs.isVisible = pages.none { it == ExtensionCatalogPage.Empty }
+			viewBinding.scrollViewChips.isVisible = shouldShowCatalogFilters(pages)
 			val selected = pages.indexOfFirst { it.id == selectedPageId }.let { if (it >= 0) it else 0 }
 			pages.getOrNull(selected)?.let { page ->
 				selectedPageId = page.id
@@ -323,11 +315,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			currentRecyclerView()?.smoothScrollToTop()
 		}
 		updateScrollToTopVisibility()
-	}
-
-	override fun onDestroy() {
-		viewBinding.appbar.removeOnOffsetChangedListener(appBarOffsetListener)
-		super.onDestroy()
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -483,22 +470,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 					viewBinding.buttonScrollToTop.visibility = View.GONE
 				}
 				.start()
-		}
-	}
-
-	private fun syncFastScrollerOffset() {
-		val fastScroller = currentRecyclerView()?.fastScroller ?: return
-		val baseTopMargin = resources.getDimensionPixelOffset(R.dimen.fastscroll_scrollbar_margin_top)
-		val appBarBottom = viewBinding.appbar.bottom
-		val layoutParams = fastScroller.layoutParams
-		if (layoutParams is androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) {
-			val desiredTop = appBarBottom + baseTopMargin
-			if (layoutParams.topMargin != desiredTop) {
-				layoutParams.topMargin = desiredTop
-				fastScroller.layoutParams = layoutParams
-			}
-		} else {
-			fastScroller.translationY = appBarBottom.toFloat()
 		}
 	}
 

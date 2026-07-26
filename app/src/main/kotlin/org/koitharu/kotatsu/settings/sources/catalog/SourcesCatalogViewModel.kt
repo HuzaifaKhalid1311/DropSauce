@@ -329,7 +329,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			val owner = storeManager.owner(mode, local)
 			val state = owner?.let { statesById[it.id] }
 			val entry = state
-				?.takeIf { it.health == StoreHealth.AVAILABLE }
+				?.takeIf { canUseStoreCatalogForUpdates(it.health) }
 				?.catalog
 				?.firstOrNull { it.packageName == local.pkgName && it.isNewerThan(local) }
 			val source = installedSourcesByPackage[local.pkgName]

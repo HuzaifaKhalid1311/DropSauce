@@ -73,6 +73,19 @@ class ExtensionCatalogPagesTest {
 	}
 
 	@Test
+	fun `updates remain visible while a store refresh is checking`() {
+		assertTrue(canUseStoreCatalogForUpdates(StoreHealth.AVAILABLE))
+		assertTrue(canUseStoreCatalogForUpdates(StoreHealth.CHECKING))
+		assertFalse(canUseStoreCatalogForUpdates(StoreHealth.UNAVAILABLE))
+	}
+
+	@Test
+	fun `catalog filters are hidden for the completely empty state`() {
+		assertFalse(shouldShowCatalogFilters(listOf(ExtensionCatalogPage.Empty)))
+		assertTrue(shouldShowCatalogFilters(listOf(ExtensionCatalogPage.Available)))
+	}
+
+	@Test
 	fun `recommendations only come from the current store catalog`() {
 		val references = collectRecommendedExtensionRefs(
 			externalSourceNames = listOf("MIHON_42:Known", "MIHON_99:Other"),

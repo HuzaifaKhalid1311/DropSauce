@@ -47,16 +47,6 @@
 		app:layout_constraintTop_toBottomOf="@id/text_title">
 
 		<ImageButton
-			android:id="@+id/button_edit"
-			android:layout_width="40dp"
-			android:layout_height="40dp"
-			android:background="?selectableItemBackgroundBorderless"
-			android:contentDescription="@string/edit_store"
-			android:padding="10dp"
-			app:srcCompat="@drawable/ic_edit"
-			app:tint="?attr/colorOnSurfaceVariant" />
-
-		<ImageButton
 			android:id="@+id/button_copy"
 			android:layout_width="40dp"
 			android:layout_height="40dp"
@@ -64,6 +54,16 @@
 			android:contentDescription="@string/copy_store_url"
 			android:padding="10dp"
 			app:srcCompat="@drawable/ic_content_copy"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_edit"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/edit_store"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_edit"
 			app:tint="?attr/colorOnSurfaceVariant" />
 
 		<ImageButton
