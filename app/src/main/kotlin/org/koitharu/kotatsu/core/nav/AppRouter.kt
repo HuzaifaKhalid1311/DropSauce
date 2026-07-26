@@ -98,6 +98,7 @@ import org.koitharu.kotatsu.settings.override.OverrideConfigActivity
 import org.koitharu.kotatsu.settings.reader.ReaderTapGridConfigActivity
 import org.koitharu.kotatsu.settings.sources.auth.SourceAuthActivity
 import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogActivity
+import org.koitharu.kotatsu.settings.sources.catalog.stores.ExtensionStoresActivity
 import org.koitharu.kotatsu.settings.storage.MangaDirectorySelectDialog
 import org.koitharu.kotatsu.settings.storage.directories.MangaDirectoriesActivity
 import org.koitharu.kotatsu.settings.tracker.categories.TrackerCategoriesConfigSheet
@@ -229,6 +230,8 @@ class AppRouter private constructor(
             },
         )
     }
+
+    fun openExtensionStores() = startActivity(ExtensionStoresActivity::class.java)
 
     fun openDownloads() = startActivity(DownloadsActivity::class.java)
 

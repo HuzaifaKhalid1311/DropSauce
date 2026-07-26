@@ -137,6 +137,7 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, "Catalog") { crumbs ->
 				addItem("sources_catalog", R.string.manage_extensions, R.string.manage_extensions_summary, crumbs, ExtensionsSettingsFragment::class.java)
+				addItem("extension_stores", R.string.manage_stores, R.string.manage_stores_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem("migrate_broken_sources", R.string.migrate_broken_sources, R.string.migrate_broken_sources_summary, crumbs, ExtensionsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.appearance)) { crumbs ->

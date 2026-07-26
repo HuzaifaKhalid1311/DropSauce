@@ -40,10 +40,15 @@ import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
 import org.koitharu.kotatsu.favourites.data.FavouriteEntity
 import org.koitharu.kotatsu.history.data.HistoryEntity
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.model.mihonChapterId
 import org.koitharu.kotatsu.mihon.model.mihonMangaId
 import org.koitharu.kotatsu.parsers.util.longHashCode
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRecord
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistry
+import org.koitharu.kotatsu.settings.sources.catalog.normalizeExtensionStoreUrl
+import org.koitharu.kotatsu.settings.sources.catalog.stableExtensionStoreId
 import org.koitharu.kotatsu.stats.data.StatsEntity
 import org.koitharu.kotatsu.tracker.data.TrackEntity
 import java.util.Locale
@@ -57,6 +62,8 @@ class MihonBackupManager @Inject constructor(
     private val db: MangaDatabase,
     private val settings: AppSettings,
     private val mihonExtensionManager: MihonExtensionManager,
+    private val mihonExtensionLoader: MihonExtensionLoader,
+    private val extensionStoreRegistry: ExtensionStoreRegistry,
 ) {
 
   data class Options(
@@ -529,7 +536,24 @@ class MihonBackupManager @Inject constructor(
     }
 
     private fun restoreExtensionRepo(repos: List<MihonBackupExtensionRepo>) {
-        settings.externalExtensionsRepoUrl = repos.firstOrNull()?.baseUrl
+        extensionStoreRegistry.ensureMigrated(
+            systemPackages = mihonExtensionLoader.getInstalledExtensions(context, privateMode = false)
+                .mapTo(HashSet()) { it.pkgName },
+            sandboxPackages = mihonExtensionLoader.getInstalledExtensions(context, privateMode = true)
+                .mapTo(HashSet()) { it.pkgName },
+        )
+        extensionStoreRegistry.importStores(
+            repos.map { repo ->
+                val url = normalizeExtensionStoreUrl(repo.baseUrl)
+                ExtensionStoreRecord(
+                    id = stableExtensionStoreId(url),
+                    indexUrl = url,
+                    name = repo.name.ifBlank { repo.baseUrl },
+                    shortName = repo.shortName,
+                    fingerprint = repo.signingKeyFingerprint.takeIf(String::isNotBlank),
+                )
+            },
+        )
     }
 
     private fun resolveStoredSourceName(sourceId: Long, backupSources: List<MihonBackupSource>): String {

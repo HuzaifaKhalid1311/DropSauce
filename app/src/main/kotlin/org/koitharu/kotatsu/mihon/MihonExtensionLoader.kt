@@ -87,7 +87,12 @@ class MihonExtensionLoader @Inject constructor(
 			return dir.listFiles()?.any { it.isFile && it.extension == PRIVATE_EXTENSION_EXT } == true
 		}
 
-		fun installPrivateExtensionFile(context: Context, file: File): Boolean {
+		fun installPrivateExtensionFile(
+			context: Context,
+			file: File,
+			replaceExistingProvider: Boolean = false,
+			expectedPackageName: String? = null,
+		): Boolean {
 			val pkgManager = context.packageManager
 			@Suppress("DEPRECATION")
 			val flags = PackageManager.GET_META_DATA or
@@ -95,21 +100,29 @@ class MihonExtensionLoader @Inject constructor(
 				PackageManager.GET_SIGNATURES or
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES else 0
 			val pkgInfo = pkgManager.getPackageArchiveInfo(file.absolutePath, flags) ?: return false
+			if (expectedPackageName != null && pkgInfo.packageName != expectedPackageName) return false
 			if (!isPackageAnExtensionStatic(pkgInfo)) return false
 
-			val target = File(getPrivateExtensionDir(context), "${pkgInfo.packageName}.$PRIVATE_EXTENSION_EXT")
+			val targetDir = getPrivateExtensionDir(context)
+			val target = File(targetDir, "${pkgInfo.packageName}.$PRIVATE_EXTENSION_EXT")
+			val staged = File(targetDir, "${pkgInfo.packageName}.new")
+			val backup = File(targetDir, "${pkgInfo.packageName}.bak")
+			if (!target.exists() && backup.exists() && !backup.renameTo(target)) {
+				Log.e(TAG, "Failed to restore the previous private extension.")
+				return false
+			}
 			val currentPkgInfo = if (target.exists()) {
 				pkgManager.getPackageArchiveInfo(target.absolutePath, flags)
 			} else null
 
-			if (currentPkgInfo != null) {
+			val newSignatures = getSignatures(pkgInfo)
+			if (newSignatures.isEmpty()) {
+				Log.e(TAG, "Extension to be installed is not signed.")
+				return false
+			}
+			if (currentPkgInfo != null && !replaceExistingProvider) {
 				if (PackageInfoCompat.getLongVersionCode(pkgInfo) < PackageInfoCompat.getLongVersionCode(currentPkgInfo)) {
 					Log.e(TAG, "Installed private extension version is higher. Downgrading is not allowed.")
-					return false
-				}
-				val newSignatures = getSignatures(pkgInfo)
-				if (newSignatures.isEmpty()) {
-					Log.e(TAG, "Extension to be installed is not signed.")
 					return false
 				}
 				val currentSignatures = getSignatures(currentPkgInfo)
@@ -119,16 +132,42 @@ class MihonExtensionLoader @Inject constructor(
 				}
 			}
 
+			var currentPreserved = false
 			return try {
-				target.delete()
-				getPrivateExtensionDir(context).mkdirs()
-				copyAndSetReadOnly(file, target)
+				targetDir.mkdirs()
+				staged.delete()
+				backup.delete()
+				copyAndSetReadOnly(file, staged)
+				val stagedInfo = pkgManager.getPackageArchiveInfo(staged.absolutePath, flags)
+				if (
+					stagedInfo == null ||
+					stagedInfo.packageName != pkgInfo.packageName ||
+					!isPackageAnExtensionStatic(stagedInfo) ||
+					getSignatures(stagedInfo).isEmpty()
+				) {
+					throw IllegalArgumentException("Staged extension validation failed")
+				}
+				if (target.exists() && !target.renameTo(backup)) {
+					throw IllegalStateException("Failed to preserve installed extension")
+				}
+				currentPreserved = backup.exists()
+				if (!staged.renameTo(target)) {
+					throw IllegalStateException("Failed to activate staged extension")
+				}
+				target.setReadOnly()
+				backup.delete()
 				Log.i(TAG, "Private extension installed: ${pkgInfo.packageName}")
 				true
 			} catch (e: Exception) {
 				Log.e(TAG, "Failed to copy private extension file.", e)
-				target.delete()
+				if (currentPreserved) {
+					target.delete()
+					backup.renameTo(target)
+					target.setReadOnly()
+				}
 				false
+			} finally {
+				staged.delete()
 			}
 		}
 
@@ -153,7 +192,7 @@ class MihonExtensionLoader @Inject constructor(
 				PackageManager.GET_SIGNATURES or
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES else 0
 
-		private fun isPackageAnExtensionStatic(pkgInfo: PackageInfo): Boolean {
+		internal fun isPackageAnExtensionStatic(pkgInfo: PackageInfo): Boolean {
 			val appInfo = pkgInfo.applicationInfo ?: return false
 			val metaData = appInfo.metaData
 			val hasFeature = pkgInfo.reqFeatures?.any { it.name == EXTENSION_FEATURE } == true

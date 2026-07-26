@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<com.google.android.material.appbar.AppBarLayout
+		android:id="@+id/appbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:fitsSystemWindows="false">
+
+		<com.google.android.material.appbar.CollapsingToolbarLayout
+			style="?attr/collapsingToolbarLayoutMediumStyle"
+			android:layout_width="match_parent"
+			android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
+			app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+			app:toolbarId="@id/toolbar">
+
+			<com.google.android.material.appbar.MaterialToolbar
+				android:id="@id/toolbar"
+				android:layout_width="match_parent"
+				android:layout_height="?attr/actionBarSize"
+				app:layout_collapseMode="pin" />
+
+		</com.google.android.material.appbar.CollapsingToolbarLayout>
+
+	</com.google.android.material.appbar.AppBarLayout>
+
+	<LinearLayout
+		android:id="@+id/content"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:orientation="vertical"
+		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+
+		<com.google.android.material.materialswitch.MaterialSwitch
+			android:id="@+id/switch_updates_tab"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="12dp"
+			android:layout_marginTop="@dimen/margin_small"
+			android:background="@drawable/bg_settings_tile"
+			android:paddingHorizontal="@dimen/margin_normal"
+			android:paddingVertical="@dimen/margin_small"
+			android:text="@string/show_updates_tab"
+			android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+		<androidx.recyclerview.widget.RecyclerView
+			android:id="@+id/recyclerView"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			android:clipToPadding="false"
+			android:paddingVertical="@dimen/margin_small"
+			app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="12dp"
+			android:layout_marginBottom="@dimen/margin_small"
+			android:background="@drawable/bg_settings_tile"
+			android:gravity="center_vertical"
+			android:orientation="horizontal"
+			android:padding="@dimen/margin_normal">
+
+			<ImageView
+				android:layout_width="24dp"
+				android:layout_height="24dp"
+				android:contentDescription="@null"
+				app:srcCompat="@drawable/ic_info_outline"
+				app:tint="?attr/colorOnSurfaceVariant" />
+
+			<TextView
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="@dimen/margin_normal"
+				android:layout_weight="1"
+				android:text="@string/removed_stores_info"
+				android:textAppearance="?attr/textAppearanceBodySmall"
+				android:textColor="?attr/colorOnSurfaceVariant" />
+
+		</LinearLayout>
+
+	</LinearLayout>
+
+	<com.google.android.material.floatingactionbutton.FloatingActionButton
+		android:id="@+id/fab_add"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="16dp"
+		android:contentDescription="@string/add_store"
+		app:layout_anchor="@id/recyclerView"
+		app:layout_anchorGravity="bottom|end"
+		app:srcCompat="@drawable/ic_add" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

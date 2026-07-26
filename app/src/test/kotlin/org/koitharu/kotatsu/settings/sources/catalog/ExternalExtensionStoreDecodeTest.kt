@@ -84,10 +84,15 @@ class ExternalExtensionStoreDecodeTest {
 
 	@Test
 	fun `parseRepoInfo reads new top-level store shape`() {
-		val info = parseRepoInfo("https://repo.example", """{"name":"NewRepo","badgeLabel":"NR","signingKey":"abcd"}""")!!
+		val info = parseRepoInfo(
+			"https://repo.example",
+			"""{"name":"NewRepo","badgeLabel":"NR","signingKey":"abcd","contact":{"website":"https://site.example","discord":"https://discord.gg/example"}}""",
+		)!!
 		assertEquals("NewRepo", info.name)
 		assertEquals("abcd", info.fingerprint)
 		assertEquals("NR", info.shortName)
+		assertEquals("https://site.example", info.website)
+		assertEquals("https://discord.gg/example", info.discord)
 	}
 
 	@Test

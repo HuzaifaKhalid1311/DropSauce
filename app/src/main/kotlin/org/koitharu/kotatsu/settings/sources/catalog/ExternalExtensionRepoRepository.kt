@@ -32,13 +32,43 @@ class ExternalExtensionRepoRepository @Inject constructor(
 	 */
 	suspend fun getExtensions(repoUrl: String, forceRefresh: Boolean = false): List<ExternalExtensionRepoEntry> =
 		withContext(Dispatchers.IO) {
-			loadEntries(buildIndexUrl(repoUrl), forceRefresh, depth = 0)
+			loadEntries(buildIndexUrl(repoUrl), forceRefresh, cacheOnly = false, depth = 0)
 				.filterNot { it.lang in MihonExtensionLoader.HIDDEN_LANGUAGES }
 		}
 
-	private fun loadEntries(url: String, forceRefresh: Boolean, depth: Int): List<ExternalExtensionRepoEntry> {
+	suspend fun getCachedExtensions(repoUrl: String): List<ExternalExtensionRepoEntry> =
+		withContext(Dispatchers.IO) {
+			loadEntries(buildIndexUrl(repoUrl), forceRefresh = false, cacheOnly = true, depth = 0)
+				.filterNot { it.lang in MihonExtensionLoader.HIDDEN_LANGUAGES }
+		}
+
+	suspend fun validateStore(repoUrl: String): ValidatedExtensionStore {
+		val normalizedUrl = normalizeExtensionStoreUrl(repoUrl)
+		require(normalizedUrl.startsWith("https://")) { "Store index URL must use HTTPS" }
+		val catalog = getExtensions(normalizedUrl, forceRefresh = true)
+		val info = fetchIndexRepoInfo(normalizedUrl) ?: fetchRepoInfo(normalizedUrl)
+		return ValidatedExtensionStore(
+			store = ExtensionStoreRecord(
+				id = stableExtensionStoreId(normalizedUrl),
+				indexUrl = normalizedUrl,
+				name = info?.name ?: extensionStoreUrlLabel(normalizedUrl),
+				shortName = info?.shortName,
+				fingerprint = info?.fingerprint,
+				website = info?.website,
+				discord = info?.discord,
+			),
+			catalog = catalog,
+		)
+	}
+
+	private fun loadEntries(
+		url: String,
+		forceRefresh: Boolean,
+		cacheOnly: Boolean,
+		depth: Int,
+	): List<ExternalExtensionRepoEntry> {
 		if (depth > MAX_INDEX_HOPS) return emptyList() // guard against index_v2 / list-url cycles
-		val bytes = fetchBytes(url, forceRefresh) ?: return emptyList()
+		val bytes = fetchBytes(url, forceRefresh, cacheOnly) ?: return emptyList()
 		return when (bytes.firstOrNull()) {
 			OPEN_BRACKET -> json.decodeFromString<List<ExternalExtensionRepoEntry>>(bytes.decodeToString())
 			OPEN_BRACE -> {
@@ -46,30 +76,40 @@ class ExternalExtensionRepoRepository @Inject constructor(
 				val repoJson = runCatching { json.decodeFromString<ExternalRepoJson>(text) }.getOrNull()
 				// A '{' body is either a repo.json (meta / index_v2 pointer) or a store object.
 				if (repoJson != null && (repoJson.indexV2 != null || repoJson.meta.signingKeyFingerprint.isNotBlank())) {
-					loadEntries(repoJson.indexV2 ?: "${getBaseUrl(url)}/index.min.json", forceRefresh, depth + 1)
+					loadEntries(
+						repoJson.indexV2 ?: "${getBaseUrl(url)}/index.min.json",
+						forceRefresh,
+						cacheOnly,
+						depth + 1,
+					)
 				} else {
-					storeEntries(json.decodeFromString<NetworkExtensionStore>(text), forceRefresh, depth)
+					storeEntries(json.decodeFromString<NetworkExtensionStore>(text), forceRefresh, cacheOnly, depth)
 				}
 			}
 			null -> emptyList()
 			else -> {
 				val store = runCatching { protoBuf.decodeFromByteArray<NetworkExtensionStore>(bytes) }.getOrNull()
 				if (store != null && (store.extensionList != null || store.extensionListUrl != null)) {
-					storeEntries(store, forceRefresh, depth)
+					storeEntries(store, forceRefresh, cacheOnly, depth)
 				} else {
 					val list = runCatching { protoBuf.decodeFromByteArray<NetworkExtensionStore.ExtensionList>(bytes) }.getOrNull()
 					list?.extensions?.map(NetworkExtensionStore.Extension::toRepoEntry)
-						?: storeEntries(store ?: NetworkExtensionStore(), forceRefresh, depth)
+						?: storeEntries(store ?: NetworkExtensionStore(), forceRefresh, cacheOnly, depth)
 				}
 			}
 		}
 	}
 
-	private fun storeEntries(store: NetworkExtensionStore, forceRefresh: Boolean, depth: Int): List<ExternalExtensionRepoEntry> {
+	private fun storeEntries(
+		store: NetworkExtensionStore,
+		forceRefresh: Boolean,
+		cacheOnly: Boolean,
+		depth: Int,
+	): List<ExternalExtensionRepoEntry> {
 		store.extensionList?.let { return it.extensions.map(NetworkExtensionStore.Extension::toRepoEntry) }
 		val listUrl = store.extensionListUrl?.takeIf { it.isNotBlank() } ?: return emptyList()
 		if (depth > MAX_INDEX_HOPS) return emptyList()
-		val bytes = fetchBytes(listUrl, forceRefresh) ?: return emptyList()
+		val bytes = fetchBytes(listUrl, forceRefresh, cacheOnly) ?: return emptyList()
 		val list = when (bytes.firstOrNull()) {
 			OPEN_BRACE -> json.decodeFromString<NetworkExtensionStore.ExtensionList>(bytes.decodeToString())
 			null -> null
@@ -79,11 +119,10 @@ class ExternalExtensionRepoRepository @Inject constructor(
 	}
 
 	/** Fetches [url], throwing on HTTP error; returns decompressed bytes, or null if the body is empty. */
-	private fun fetchBytes(url: String, forceRefresh: Boolean): ByteArray? {
+	private fun fetchBytes(url: String, forceRefresh: Boolean, cacheOnly: Boolean = false): ByteArray? {
 		val builder = Request.Builder().url(url).get()
-		if (forceRefresh) {
-			builder.cacheControl(okhttp3.CacheControl.FORCE_NETWORK)
-		}
+		if (cacheOnly) builder.cacheControl(okhttp3.CacheControl.FORCE_CACHE)
+		else if (forceRefresh) builder.cacheControl(okhttp3.CacheControl.FORCE_NETWORK)
 		okHttpClient.newCall(builder.build()).execute().use { response ->
 			if (!response.isSuccessful) {
 				throw IllegalStateException("Unable to load repo: HTTP ${response.code}")
@@ -108,6 +147,30 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		runCatching {
 			val bytes = fetchBytes("${getBaseUrl(repoUrl)}/repo.json", forceRefresh = false) ?: return@runCatching null
 			parseRepoInfo(repoUrl, bytes.decodeToString())
+		}.getOrNull()
+	}
+
+	private suspend fun fetchIndexRepoInfo(repoUrl: String): ExternalRepoInfo? = withContext(Dispatchers.IO) {
+		runCatching {
+			val bytes = fetchBytes(buildIndexUrl(repoUrl), forceRefresh = false) ?: return@runCatching null
+			val store = when (bytes.firstOrNull()) {
+				OPEN_BRACE -> {
+					parseRepoInfo(repoUrl, bytes.decodeToString())?.let { return@runCatching it }
+					json.decodeFromString<NetworkExtensionStore>(bytes.decodeToString())
+				}
+				OPEN_BRACKET, null -> return@runCatching null
+				else -> protoBuf.decodeFromByteArray<NetworkExtensionStore>(bytes)
+			}
+			store.takeIf { it.name.isNotBlank() && it.signingKey.isNotBlank() }?.let {
+				ExternalRepoInfo(
+					url = repoUrl,
+					name = it.name,
+					shortName = it.badgeLabel.ifBlank { null },
+					fingerprint = it.signingKey,
+					website = it.contact?.website?.takeIf(String::isNotBlank),
+					discord = it.contact?.discord?.takeIf(String::isNotBlank),
+				)
+			}
 		}.getOrNull()
 	}
 
@@ -162,3 +225,8 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		const val MAX_INDEX_HOPS = 3
 	}
 }
+
+data class ValidatedExtensionStore(
+	val store: ExtensionStoreRecord,
+	val catalog: List<ExternalExtensionRepoEntry>,
+)

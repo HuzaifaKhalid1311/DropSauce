@@ -38,6 +38,9 @@ import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.settings.sources.catalog.ExternalExtensionRepoEntry
 import org.koitharu.kotatsu.settings.sources.catalog.ExternalExtensionRepoRepository
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
+import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
 import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogActivity
 import org.koitharu.kotatsu.settings.sources.catalog.isNewerThan
 import org.koitharu.kotatsu.settings.work.PeriodicWorkScheduler
@@ -52,6 +55,7 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 	@Assisted params: WorkerParameters,
 	private val settings: AppSettings,
 	private val repoRepository: ExternalExtensionRepoRepository,
+	private val storeManager: ExtensionStoreManager,
 	private val extensionLoader: MihonExtensionLoader,
 	private val extensionManager: MihonExtensionManager,
 	private val shizukuInstaller: ShizukuExtensionInstaller,
@@ -77,44 +81,29 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 			val installed = extensionLoader.getInstalledExtensions(applicationContext)
 				.associateBy { it.pkgName }
 			if (installed.isEmpty()) return@withContext Result.success()
-
-			// Update each extension from the repo it was installed from, not just the active one, so
-			// extensions from every repo the user has used keep updating. Un-attributed packages
-			// (installed before provenance tracking, or restored from backup) fall back to the active repo.
-			val provenance = settings.getExtensionRepoUrls()
-			val activeRepo = settings.externalExtensionsRepoUrl
-			val pkgsByRepo = installed.values
-				.groupBy { info ->
-					// Attribute by signing fingerprint first (authoritative, survives reinstalls),
-					// then install-time provenance, then the active repo as a last resort.
-					settings.findRepoInfoBySignatures(info.signatures)?.url
-						?: provenance[info.pkgName]
-						?: activeRepo
-				}
-				.filterKeys { !it.isNullOrBlank() }
-				.mapValues { (_, infos) -> infos.map { it.pkgName } }
-			if (pkgsByRepo.isEmpty()) return@withContext Result.success()
+			storeManager.refresh(forceRefresh = true)
+			val allStoreStates = storeManager.states.value
+			val storeStates = allStoreStates.filter {
+				it.store.enabled && it.health == StoreHealth.AVAILABLE
+			}
+			if (storeStates.isEmpty()) {
+				return@withContext if (allStoreStates.any { it.store.enabled }) Result.retry() else Result.success()
+			}
 
 			val downloadDir = File(applicationContext.cacheDir, "extension_updates").apply { mkdirs() }
 			var installedAny = false
-			var retryNeeded = false
+			var retryNeeded = allStoreStates.any {
+				it.store.enabled && it.health == StoreHealth.UNAVAILABLE
+			}
 			var permanentFailure = false
 			val pendingUpdates = ArrayList<ExternalExtensionRepoEntry>()
-			repoLoop@ for ((repoUrl, pkgNames) in pkgsByRepo) {
-				val nonNullRepoUrl = repoUrl ?: continue@repoLoop
-				val wanted = pkgNames.toHashSet()
-				val updates = try {
-					repoRepository.getExtensions(nonNullRepoUrl, forceRefresh = true)
-						.filter { entry ->
-							entry.packageName in wanted &&
-								installed[entry.packageName]?.let(entry::isNewerThan) == true
-						}
-						.sortedBy { it.name.lowercase() }
-				} catch (_: IOException) {
-					// One unreachable repo shouldn't block updates for the others.
-					retryNeeded = true
-					continue@repoLoop
-				}
+			repoLoop@ for (state in storeStates) {
+				val owned = installed.values.filter {
+					storeManager.owner(ExtensionInstallMode.SYSTEM, it)?.id == state.store.id
+				}.associateBy { it.pkgName }
+				val updates = state.catalog.filter { entry ->
+					owned[entry.packageName]?.let(entry::isNewerThan) == true
+				}.sortedBy { it.name.lowercase() }
 				if (!autoInstall) {
 					// Not auto-installing this run (Shizuku/auto-update off) — just collect what's
 					// available so we can tell the user, instead of silently doing nothing.
@@ -125,7 +114,7 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 					if (isStopped) break@repoLoop
 					val apk = File(downloadDir, "${entry.packageName}-${entry.versionCode}.apk")
 					try {
-						download(repoRepository.resolveApkUrl(nonNullRepoUrl, entry.apkName), apk)
+						download(repoRepository.resolveApkUrl(state.store.indexUrl, entry.apkName), apk)
 						when (val installResult = shizukuInstaller.install(apk, entry.packageName)) {
 							ShizukuExtensionInstaller.InstallResult.Success -> installedAny = true
 							ShizukuExtensionInstaller.InstallResult.Unavailable -> {
@@ -241,42 +230,37 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 			val installed = extensionLoader.getInstalledExtensions(applicationContext, privateMode = true)
 				.associateBy { it.pkgName }
 			if (installed.isEmpty()) return Result.success()
-
-			val provenance = settings.getExtensionRepoUrls()
-			val activeRepo = settings.externalExtensionsRepoUrl
-			val pkgsByRepo = installed.values
-				.groupBy { info ->
-					settings.findRepoInfoBySignatures(info.signatures)?.url
-						?: provenance[info.pkgName]
-						?: activeRepo
-				}
-				.filterKeys { !it.isNullOrBlank() }
-				.mapValues { (_, infos) -> infos.map { it.pkgName } }
-			if (pkgsByRepo.isEmpty()) return Result.success()
+			storeManager.refresh(forceRefresh = true)
+			val allStoreStates = storeManager.states.value
+			val storeStates = allStoreStates.filter {
+				it.store.enabled && it.health == StoreHealth.AVAILABLE
+			}
+			if (storeStates.isEmpty()) {
+				return if (allStoreStates.any { it.store.enabled }) Result.retry() else Result.success()
+			}
 
 			val downloadDir = File(applicationContext.cacheDir, "extension_updates").apply { mkdirs() }
 			var installedAny = false
-			var retryNeeded = false
-			repoLoop@ for ((repoUrl, pkgNames) in pkgsByRepo) {
-				val nonNullRepoUrl = repoUrl ?: continue@repoLoop
-				val wanted = pkgNames.toHashSet()
-				val updates = try {
-					repoRepository.getExtensions(nonNullRepoUrl, forceRefresh = true)
-						.filter { entry ->
-							entry.packageName in wanted &&
-								installed[entry.packageName]?.let(entry::isNewerThan) == true
-						}
-						.sortedBy { it.name.lowercase() }
-				} catch (_: IOException) {
-					retryNeeded = true
-					continue@repoLoop
-				}
+			var retryNeeded = allStoreStates.any {
+				it.store.enabled && it.health == StoreHealth.UNAVAILABLE
+			}
+			repoLoop@ for (state in storeStates) {
+				val owned = installed.values.filter {
+					storeManager.owner(ExtensionInstallMode.SANDBOX, it)?.id == state.store.id
+				}.associateBy { it.pkgName }
+				val updates = state.catalog.filter { entry ->
+					owned[entry.packageName]?.let(entry::isNewerThan) == true
+				}.sortedBy { it.name.lowercase() }
 				for (entry in updates) {
 					if (isStopped) break@repoLoop
 					val apk = File(downloadDir, "${entry.packageName}-${entry.versionCode}.apk")
 					try {
-						download(repoRepository.resolveApkUrl(nonNullRepoUrl, entry.apkName), apk)
-						val success = MihonExtensionLoader.installPrivateExtensionFile(applicationContext, apk)
+						download(repoRepository.resolveApkUrl(state.store.indexUrl, entry.apkName), apk)
+						val success = MihonExtensionLoader.installPrivateExtensionFile(
+							context = applicationContext,
+							file = apk,
+							expectedPackageName = entry.packageName,
+						)
 						if (success) {
 							installedAny = true
 						} else {

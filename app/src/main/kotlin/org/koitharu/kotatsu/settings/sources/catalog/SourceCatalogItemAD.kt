@@ -61,7 +61,8 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewAdd.alpha = if (isInProgress) 0.45f else 1f
 		binding.progressIcon.isVisible = isInProgress
 		if (isPrivateMode) {
-			val isEnabled = item.action == SourceCatalogItem.Extension.Action.DISABLE
+			val isEnabled = item.action == SourceCatalogItem.Extension.Action.DISABLE ||
+				item.action == SourceCatalogItem.Extension.Action.UPDATE
 			val isSettingsVisible = isEnabled && item.sourceName != null
 			binding.imageViewSettings.isVisible = isSettingsVisible
 			binding.imageViewSettings.isEnabled = !isInProgress

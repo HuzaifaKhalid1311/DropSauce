@@ -79,6 +79,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 				ExtensionsScreen(
 					linksEnabled = linksEnabled,
 					onOpenCatalog = { router.openSourcesCatalog(isExternalOnly = true) },
+					onOpenStores = router::openExtensionStores,
 					onOpenBrokenSourcesMigration = {
 						(requireActivity() as SettingsActivity).openFragment(
 							BrokenSourcesMigrationFragment::class.java,
@@ -161,6 +162,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 private fun ExtensionsScreen(
 	linksEnabled: Boolean,
 	onOpenCatalog: () -> Unit,
+	onOpenStores: () -> Unit,
 	onOpenBrokenSourcesMigration: () -> Unit,
 	onLinksChanged: (Boolean) -> Unit,
 	onShizukuChanged: (Boolean) -> Unit,
@@ -200,6 +202,15 @@ private fun ExtensionsScreen(
 						
 						shape = pos.shape,
 						onClick = onOpenCatalog,
+					)
+				}
+				item { pos ->
+					ActionSettingsItem(
+						title = stringResource(R.string.manage_stores),
+						subtitle = stringResource(R.string.manage_stores_summary),
+						icon = R.drawable.ic_storefront,
+						shape = pos.shape,
+						onClick = onOpenStores,
 					)
 				}
 				item { pos ->

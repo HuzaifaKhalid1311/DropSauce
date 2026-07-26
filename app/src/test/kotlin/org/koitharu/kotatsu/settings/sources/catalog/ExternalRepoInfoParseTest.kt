@@ -18,6 +18,7 @@ class ExternalRepoInfoParseTest {
 		assertEquals("KY", info.shortName)
 		assertEquals("9add655a", info.fingerprint)
 		assertEquals("KY", info.displayName)
+		assertEquals("https://keiyoushi.github.io", info.website)
 	}
 
 	@Test

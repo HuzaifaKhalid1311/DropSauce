@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
@@ -26,7 +27,6 @@ import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.core.util.ext.combine
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.domain.ExploreRepository
 import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
@@ -41,7 +41,10 @@ import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.settings.sources.catalog.ExternalExtensionRepoRepository
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
+import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
+import org.koitharu.kotatsu.settings.sources.catalog.isNewerThan
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
 
@@ -54,7 +57,7 @@ class ExploreViewModel @Inject constructor(
 	private val sourcesRepository: MangaSourcesRepository,
 	private val shortcutManager: AppShortcutManager,
 	private val mihonExtensionLoader: MihonExtensionLoader,
-	private val externalRepoRepository: ExternalExtensionRepoRepository,
+	private val extensionStoreManager: ExtensionStoreManager,
 ) : BaseViewModel() {
 
 	val isGrid = settings.observeAsStateFlow(
@@ -74,18 +77,17 @@ class ExploreViewModel @Inject constructor(
 	private val mutableRandomLoading = MutableStateFlow(false)
 	val isRandomLoading = mutableRandomLoading.asStateFlow()
 
-	private val hasExtensionUpdates: StateFlow<Boolean> = flow {
-		emit(false)
-		val url = settings.externalExtensionsRepoUrl?.takeIf { it.isNotBlank() } ?: return@flow
-		try {
-			val available = externalRepoRepository.getExtensions(url)
-			val installedByPkg = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
-			emit(available.any { entry ->
-				val local = installedByPkg[entry.packageName] ?: return@any false
-				entry.versionCode > local.versionCode
-			})
-		} catch (_: Exception) {
-			// Network failure — leave badge hidden
+	private val hasExtensionUpdates: StateFlow<Boolean> = combine(
+		extensionStoreManager.states,
+		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
+	) { stores, privateMode ->
+		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		mihonExtensionLoader.getInstalledExtensions(appContext, privateMode).any { local ->
+			val owner = extensionStoreManager.owner(mode, local) ?: return@any false
+			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
+			owner.enabled &&
+				state.health == StoreHealth.AVAILABLE &&
+				state.catalog.any { it.packageName == local.pkgName && it.isNewerThan(local) }
 		}
 	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
@@ -98,6 +100,9 @@ class ExploreViewModel @Inject constructor(
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, getLoadingStateList())
 
 	init {
+		launchJob(Dispatchers.IO) {
+			extensionStoreManager.initialize()
+		}
 		launchJob(Dispatchers.Default) {
 			// Ensure extensions are loaded so the source list is populated.
 			// This is a no-op if extensions are already loading or ready.

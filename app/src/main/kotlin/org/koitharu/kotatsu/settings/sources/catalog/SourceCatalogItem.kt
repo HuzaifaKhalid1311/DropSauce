@@ -16,6 +16,8 @@ sealed interface SourceCatalogItem : ListModel {
 		val iconUrl: String? = null,
 		val sourceIconName: String? = null,
 		val sourceName: String? = null,
+		/** Store that supplied this row. Required for deterministic installs and updates. */
+		val storeId: String? = null,
 		/** True when this extension is hidden from Explore (installed extensions only). */
 		val isHidden: Boolean = false,
 		/** True when the extension list is in private mode (controls icon layout). */

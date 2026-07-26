@@ -12,7 +12,6 @@ import androidx.core.text.inSpans
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionRepoDisplayName
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
@@ -127,12 +126,10 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 			.getOrNull()
 			?.let { append(" • ").append(it) }
 		val settings = AppSettings(context.applicationContext)
-		// Repo attribution mirrors the extension manager: signing fingerprint first (works for
-		// extensions installed before provenance was tracked), install-time repo URL as fallback.
-		val repoLabel = settings.findRepoInfoBySignatures(
+		val repoLabel = settings.getExtensionStoreLabel(
+			source.pkgName,
 			MihonExtensionLoader.getPackageSignatures(context, source.pkgName),
-		)?.displayName
-			?: settings.getExtensionRepoUrl(source.pkgName)?.let { getExternalExtensionRepoDisplayName(it) }
+		)
 		repoLabel?.let { append(" • ").append(it) }
 	}
 	is MissingMangaSource -> {

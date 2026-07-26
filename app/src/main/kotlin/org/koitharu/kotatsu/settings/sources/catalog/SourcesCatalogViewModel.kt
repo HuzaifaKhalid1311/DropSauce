@@ -20,9 +20,9 @@ import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionRepoDisplayName
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.parsers.model.ContentType
@@ -36,6 +36,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	@LocalizedAppContext context: android.content.Context,
 	private val repository: MangaSourcesRepository,
 	private val externalRepoRepository: ExternalExtensionRepoRepository,
+	private val storeManager: ExtensionStoreManager,
 	private val mihonExtensionLoader: MihonExtensionLoader,
 	private val settings: AppSettings,
 	private val kotatsuSourceMap: KotatsuSourceMap,
@@ -51,15 +52,17 @@ class SourcesCatalogViewModel @Inject constructor(
 	private val availableRepoEntries = MutableStateFlow<List<ExternalExtensionRepoEntry>>(emptyList())
 
 	private val searchQuery = MutableStateFlow<String?>(null)
-	private val externalRepoUrl = MutableStateFlow(settings.externalExtensionsRepoUrl)
+	private val activePageId = MutableStateFlow(ExtensionCatalogPage.Updates.id)
+	private val hasUnknownStore = MutableStateFlow(false)
 	private val installingPackages = MutableStateFlow<Set<String>>(emptySet())
 	private val refreshTrigger = MutableStateFlow(0)
-	private var lastRefreshTrigger = 0
 	val isRefreshing = MutableStateFlow(false)
 	val isNsfwDisabled = settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled }
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isNsfwContentDisabled)
 	val isPrivateMode = settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled }
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isPrivateInstallEnabled)
+	val showUpdatesTab = settings.observeAsFlow(AppSettings.KEY_EXTENSION_UPDATES_TAB) { isExtensionUpdatesTabEnabled }
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isExtensionUpdatesTabEnabled)
 	val appliedFilter = MutableStateFlow(
 		SourcesCatalogFilter(
 			types = emptySet(),
@@ -69,6 +72,17 @@ class SourcesCatalogViewModel @Inject constructor(
 	val onOpenPackageInstaller = MutableEventFlow<List<InstallRequest>>()
 	val onOpenUninstall = MutableEventFlow<String>()
 	val onShowMessage = MutableEventFlow<Int>()
+	val pages: StateFlow<List<ExtensionCatalogPage>> = combine(
+		storeManager.states,
+		hasUnknownStore,
+		showUpdatesTab,
+	) { states, includeUnknown, includeUpdates ->
+		buildExtensionCatalogPages(states.map { it.store }, includeUnknown, includeUpdates)
+	}.stateIn(
+		viewModelScope + Dispatchers.Default,
+		SharingStarted.Eagerly,
+		listOf(ExtensionCatalogPage.Updates),
+	)
 
 	val locales: StateFlow<Set<String?>> = combine(
 		appliedFilter,
@@ -84,37 +98,51 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	val contentTypes: StateFlow<List<ContentType>> = MutableStateFlow(emptyList())
 
-	val content: StateFlow<List<ListModel>> = combine(
+	val content: StateFlow<CatalogPageContent> = combine(
 		searchQuery,
 		appliedFilter,
 		mihonSources,
 		allMihonSources,
-		externalRepoUrl,
 		installingPackages,
 		refreshTrigger,
 		settings.observeAsFlow(AppSettings.KEY_MIHON_HIDDEN_PACKAGES) { mihonHiddenPackages },
 		isPrivateMode,
+		activePageId,
+		storeManager.states,
+		showUpdatesTab,
 	) { args ->
 		val q = args[0] as String?
 		val f = args[1] as SourcesCatalogFilter
-		val currentTrigger = args[6] as Int
-		val privateMode = args[8] as Boolean
-		val forceRefresh = currentTrigger > lastRefreshTrigger
-		if (forceRefresh) {
-			lastRefreshTrigger = currentTrigger
-		}
-		val result = if (privateMode) {
-			buildPrivateExtensionsList(f, q, forceRefresh)
-		} else {
-			buildMixedCatalogList(f, q, forceRefresh)
-		}
+		val privateMode = args[7] as Boolean
+		val pageId = args[8] as String
+		@Suppress("UNCHECKED_CAST")
+		val storeStates = args[9] as List<ExtensionStoreState>
+		val includeUpdates = args[10] as Boolean
+		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		refreshUnknownStoreState()
+		val result = buildPage(pageId, storeStates, mode, f, q, includeUpdates)
 		isRefreshing.value = false
-		result
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
+		CatalogPageContent(pageId, result)
+	}.stateIn(
+		viewModelScope + Dispatchers.Default,
+		SharingStarted.Eagerly,
+		CatalogPageContent(ExtensionCatalogPage.Updates.id, listOf(LoadingState)),
+	)
 
-	val hasUpdates = content.map { items ->
-		items.any { it is SourceCatalogItem.Extension && it.action == SourceCatalogItem.Extension.Action.UPDATE }
+	val hasUpdates = content.map { page ->
+		page.items.any { it is SourceCatalogItem.Extension && it.action == SourceCatalogItem.Extension.Action.UPDATE }
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+
+	init {
+		launchJob(Dispatchers.Default) {
+			storeManager.initialize()
+			refreshUnknownStoreState()
+		}
+	}
+
+	fun selectPage(pageId: String) {
+		activePageId.value = pageId
+	}
 
 	fun performSearch(query: String?) {
 		searchQuery.value = query?.trim()
@@ -125,11 +153,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			try {
 				repository.reloadMihonSources()
-				externalRepoUrl.value?.takeIf { it.isNotBlank() }?.let { repoUrl ->
-					runCatching {
-						getAvailableEntries(repoUrl, forceRefresh = true)
-					}
-				}
+				storeManager.refresh(forceRefresh = true)
+				refreshUnknownStoreState()
 			} finally {
 				refreshTrigger.value++
 			}
@@ -152,13 +177,17 @@ class SourcesCatalogViewModel @Inject constructor(
 		appliedFilter.value = filter.copy(types = types)
 	}
 
-	fun hasExternalRepoConfigured(): Boolean = !externalRepoUrl.value.isNullOrBlank()
+	fun hasExternalRepoConfigured(): Boolean = storeManager.stores().any { it.enabled }
 
-	fun getExternalRepoUrl(): String? = externalRepoUrl.value
-
-	fun setExternalRepoUrl(url: String?) {
-		settings.externalExtensionsRepoUrl = url
-		externalRepoUrl.value = settings.externalExtensionsRepoUrl
+	fun addExternalStore(url: String) {
+		launchJob(Dispatchers.Default) {
+			val result = storeManager.validateAndAdd(url)
+			if (result.isFailure) {
+				onShowMessage.call(R.string.extensions_repo_load_error)
+			} else {
+				refreshTrigger.value++
+			}
+		}
 	}
 
 	fun setNsfwDisabled(value: Boolean) {
@@ -177,46 +206,12 @@ class SourcesCatalogViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			when (item.action) {
 				SourceCatalogItem.Extension.Action.ENABLE -> {
-					val repoUrl = externalRepoUrl.value
-					if (repoUrl.isNullOrBlank()) {
-						onShowMessage.call(R.string.extensions_repo_required)
-						return@launchJob
-					}
-					val entry = getAvailableEntries(repoUrl, forceRefresh = false).firstOrNull { it.packageName == item.packageName } ?: run {
-						onShowMessage.call(R.string.nothing_found)
-						return@launchJob
-					}
-					settings.setExtensionRepoUrl(item.packageName, repoUrl)
-					emitInstallRequests(
-						listOf(
-							InstallRequest(
-								packageName = item.packageName,
-								url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
-							),
-						),
-					)
+					createInstallRequest(item)?.let { emitInstallRequests(listOf(it)) }
 				}
 				SourceCatalogItem.Extension.Action.DISABLE -> onOpenUninstall.call(item.packageName)
 				SourceCatalogItem.Extension.Action.INSTALL,
 				SourceCatalogItem.Extension.Action.UPDATE -> {
-					val repoUrl = externalRepoUrl.value
-					if (repoUrl.isNullOrBlank()) {
-						onShowMessage.call(R.string.extensions_repo_required)
-						return@launchJob
-					}
-					val entry = getAvailableEntries(repoUrl, forceRefresh = false).firstOrNull { it.packageName == item.packageName } ?: run {
-						onShowMessage.call(R.string.nothing_found)
-						return@launchJob
-					}
-					settings.setExtensionRepoUrl(item.packageName, repoUrl)
-					emitInstallRequests(
-						listOf(
-							InstallRequest(
-								packageName = item.packageName,
-								url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
-							),
-						),
-					)
+					createInstallRequest(item)?.let { emitInstallRequests(listOf(it)) }
 				}
 				SourceCatalogItem.Extension.Action.UNINSTALL -> onOpenUninstall.call(item.packageName)
 			}
@@ -225,26 +220,69 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	fun updateAllExtensions() {
 		launchJob(Dispatchers.Default) {
-			val repoUrl = externalRepoUrl.value
-			if (repoUrl.isNullOrBlank()) {
-				onShowMessage.call(R.string.extensions_repo_required)
-				return@launchJob
+			val mode = if (settings.isPrivateInstallEnabled) {
+				ExtensionInstallMode.SANDBOX
+			} else {
+				ExtensionInstallMode.SYSTEM
 			}
-			val updateEntries = getUpdatableEntries(repoUrl)
-			if (updateEntries.isEmpty()) {
+			val statesById = storeManager.states.value.associateBy { it.store.id }
+			val requests = mihonExtensionLoader.getInstalledExtensions(
+				appContext,
+				privateMode = mode == ExtensionInstallMode.SANDBOX,
+			).mapNotNull { local ->
+				val owner = storeManager.owner(mode, local) ?: return@mapNotNull null
+				val state = statesById[owner.id] ?: return@mapNotNull null
+				if (!owner.enabled || state.health != StoreHealth.AVAILABLE) return@mapNotNull null
+				val entry = state.catalog.firstOrNull {
+					it.packageName == local.pkgName && it.isNewerThan(local)
+				} ?: return@mapNotNull null
+				InstallRequest(
+					packageName = entry.packageName,
+					url = externalRepoRepository.resolveApkUrl(owner.indexUrl, entry.apkName),
+					storeId = owner.id,
+					mode = mode,
+				)
+			}
+			if (requests.isEmpty()) {
 				onShowMessage.call(R.string.nothing_found)
 				return@launchJob
 			}
-			emitInstallRequests(
-				updateEntries.map { entry ->
-					settings.setExtensionRepoUrl(entry.packageName, repoUrl)
-					InstallRequest(
-						packageName = entry.packageName,
-						url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
+			emitInstallRequests(requests)
+		}
+	}
+
+	private fun createInstallRequest(item: SourceCatalogItem.Extension): InstallRequest? {
+		val store = item.storeId?.let { id -> storeManager.stores().firstOrNull { it.id == id } }
+		if (store == null || !store.enabled) {
+			onShowMessage.call(R.string.extensions_repo_required)
+			return null
+		}
+		val entry = storeManager.state(store.id)?.catalog
+			?.firstOrNull { it.packageName == item.packageName }
+		if (entry == null) {
+			onShowMessage.call(R.string.nothing_found)
+			return null
+		}
+		val mode = if (item.isPrivateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		val local = mihonExtensionLoader.getInstalledExtensions(
+			appContext,
+			privateMode = mode == ExtensionInstallMode.SANDBOX,
+		).firstOrNull { it.pkgName == item.packageName }
+		val currentOwner = local?.let { storeManager.owner(mode, it) }
+		return InstallRequest(
+			packageName = item.packageName,
+			url = externalRepoRepository.resolveApkUrl(store.indexUrl, entry.apkName),
+			storeId = store.id,
+			mode = mode,
+			replacement = local
+				?.takeIf { currentOwner?.id != store.id }
+				?.let {
+					ProviderReplacement(
+						currentOwner?.displayName ?: appContext.getString(R.string.unknown_store),
+						store.displayName,
 					)
 				},
-			)
-		}
+		)
 	}
 
 	fun setExtensionInProgress(packageName: String, isInProgress: Boolean) {
@@ -270,72 +308,178 @@ class SourcesCatalogViewModel @Inject constructor(
 		onOpenPackageInstaller.call(requests)
 	}
 
-	private suspend fun getUpdatableEntries(repoUrl: String): List<ExternalExtensionRepoEntry> {
-		val installedByPkg = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
-		val activeRepoFingerprint = settings.findRepoInfoByUrl(repoUrl)?.fingerprint
-		return getAvailableEntries(repoUrl, forceRefresh = false)
-			.filter { entry ->
-				val local = installedByPkg[entry.packageName] ?: return@filter false
-				// Only update extensions this repo actually signed — skip same-package extensions
-				// installed from a different repo (different signer, uninstallable update).
-				if (activeRepoFingerprint != null && activeRepoFingerprint !in local.signatures) return@filter false
-				entry.isNewerThan(local)
-			}
-			.sortedBy { it.name.lowercase() }
+	private fun refreshUnknownStoreState() {
+		val mode = if (settings.isPrivateInstallEnabled) {
+			ExtensionInstallMode.SANDBOX
+		} else {
+			ExtensionInstallMode.SYSTEM
+		}
+		val installed = mihonExtensionLoader.getInstalledExtensions(
+			appContext,
+			privateMode = mode == ExtensionInstallMode.SANDBOX,
+		)
+		hasUnknownStore.value = installed.any { storeManager.owner(mode, it) == null }
 	}
 
-	private suspend fun buildMixedCatalogList(filter: SourcesCatalogFilter, query: String?, forceRefresh: Boolean): List<ListModel> {
-		return buildExtensionsList(filter, query, forceRefresh)
+	private fun buildUpdatesPage(
+		storeStates: List<ExtensionStoreState>,
+		mode: ExtensionInstallMode,
+		filter: SourcesCatalogFilter,
+		query: String?,
+	): List<ListModel> {
+		val statesById = storeStates.associateBy { it.store.id }
+		val q = query?.takeIf(String::isNotBlank)
+		val inProgress = installingPackages.value
+		val installed = mihonExtensionLoader.getInstalledExtensions(
+			appContext,
+			privateMode = mode == ExtensionInstallMode.SANDBOX,
+		)
+		val installedSourcesByPackage = allMihonSources.value.groupBy { it.pkgName }
+		val updates = installed.mapNotNull { local ->
+			val owner = storeManager.owner(mode, local) ?: return@mapNotNull null
+			val state = statesById[owner.id] ?: return@mapNotNull null
+			if (!owner.enabled || state.health != StoreHealth.AVAILABLE) return@mapNotNull null
+			val entry = state.catalog.firstOrNull { it.packageName == local.pkgName && it.isNewerThan(local) }
+				?: return@mapNotNull null
+			val source = installedSourcesByPackage[local.pkgName]
+				?.firstOrNull { it.language == local.lang }
+				?: installedSourcesByPackage[local.pkgName]?.firstOrNull()
+			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) return@mapNotNull null
+			if (filter.locale != null && entry.lang != filter.locale) return@mapNotNull null
+			if (q != null &&
+				!entry.name.contains(q, ignoreCase = true) &&
+				!entry.packageName.contains(q, ignoreCase = true)
+			) {
+				return@mapNotNull null
+			}
+			SourceCatalogItem.Extension(
+				packageName = entry.packageName,
+				title = entry.name.removePrefix("Tachiyomi: ").trim(),
+				subtitle = buildString {
+					append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
+					append(" • ")
+					append(entry.versionName)
+					append(" • ")
+					append(owner.displayName)
+				},
+				action = SourceCatalogItem.Extension.Action.UPDATE,
+				isInProgress = entry.packageName in inProgress,
+				iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(owner.indexUrl, entry.packageName),
+				sourceIconName = source?.name,
+				sourceName = source?.name,
+				storeId = owner.id,
+				isHidden = settings.isMihonPackageHidden(local.pkgName),
+				isPrivateMode = mode == ExtensionInstallMode.SANDBOX,
+			)
+		}.sortedBy { it.title.lowercase() }
+		return if (updates.isEmpty()) {
+			listOf(
+				SourceCatalogItem.Hint(
+					R.drawable.ic_empty_feed,
+					R.string.nothing_found,
+					R.string.no_extension_updates,
+				),
+			)
+		} else updates
+	}
+
+	private fun buildUnknownPage(
+		mode: ExtensionInstallMode,
+		filter: SourcesCatalogFilter,
+		query: String?,
+	): List<ListModel> {
+		val q = query?.takeIf(String::isNotBlank)
+		val installedSourcesByPkg = allMihonSources.value.groupBy { it.pkgName }
+		val items = mihonExtensionLoader.getInstalledExtensions(
+			appContext,
+			privateMode = mode == ExtensionInstallMode.SANDBOX,
+		).mapNotNull { local ->
+			if (storeManager.owner(mode, local) != null) return@mapNotNull null
+			if (settings.isNsfwContentDisabled && local.isNsfw) return@mapNotNull null
+			if (filter.locale != null && local.lang != filter.locale) return@mapNotNull null
+			if (q != null &&
+				!local.appName.contains(q, ignoreCase = true) &&
+				!local.pkgName.contains(q, ignoreCase = true)
+			) {
+				return@mapNotNull null
+			}
+			val source = installedSourcesByPkg[local.pkgName]
+				?.firstOrNull { it.language == local.lang }
+				?: installedSourcesByPkg[local.pkgName]?.firstOrNull()
+			SourceCatalogItem.Extension(
+				packageName = local.pkgName,
+				title = local.appName.removePrefix("Tachiyomi: ").trim(),
+				subtitle = buildString {
+					append(getExternalExtensionLanguageDisplayName(local.lang))
+					append(" • ")
+					append(local.versionName)
+					if (local.isNsfw) append(" • 18+")
+				},
+				action = if (mode == ExtensionInstallMode.SANDBOX) {
+					SourceCatalogItem.Extension.Action.DISABLE
+				} else {
+					SourceCatalogItem.Extension.Action.UNINSTALL
+				},
+				isInProgress = local.pkgName in installingPackages.value,
+				sourceIconName = source?.name,
+				sourceName = source?.name,
+				isHidden = settings.isMihonPackageHidden(local.pkgName),
+				isPrivateMode = mode == ExtensionInstallMode.SANDBOX,
+			)
+		}.sortedBy { it.title.lowercase() }
+		return buildList {
+			add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.unknown_store, R.string.unknown_store_summary))
+			if (items.isNotEmpty()) {
+				add(ListHeader(if (mode == ExtensionInstallMode.SANDBOX) R.string.enabled else R.string.installed))
+				addAll(items)
+			}
+		}
+	}
+
+	private suspend fun buildPage(
+		pageId: String,
+		storeStates: List<ExtensionStoreState>,
+		mode: ExtensionInstallMode,
+		filter: SourcesCatalogFilter,
+		query: String?,
+		showUpdatesTab: Boolean,
+	): List<ListModel> = when (pageId) {
+		ExtensionCatalogPage.Updates.id -> buildUpdatesPage(storeStates, mode, filter, query)
+		ExtensionCatalogPage.Unknown.id -> buildUnknownPage(mode, filter, query)
+		else -> {
+			val storeState = storeStates.firstOrNull { it.store.id == pageId }
+				?: return listOf(LoadingState)
+			if (mode == ExtensionInstallMode.SANDBOX) {
+				buildPrivateExtensionsList(filter, query, storeState, showUpdatesTab)
+			} else {
+				buildExtensionsList(filter, query, storeState, showUpdatesTab)
+			}
+		}
 	}
 
 	private suspend fun buildExtensionsList(
 		filter: SourcesCatalogFilter,
 		query: String?,
-		forceRefresh: Boolean,
+		storeState: ExtensionStoreState,
+		showUpdatesTab: Boolean,
 	): List<ListModel> {
-		val repoUrl = externalRepoUrl.value
-		val hasRepo = !repoUrl.isNullOrBlank()
-		val availableResult = if (repoUrl.isNullOrBlank()) {
-			availableRepoEntries.value = emptyList()
-			Result.success(emptyList<ExternalExtensionRepoEntry>())
-		} else {
-			runCatching {
-				getAvailableEntries(repoUrl, forceRefresh)
-			}
-		}
-		
-		val available = availableResult.getOrDefault(emptyList())
+		val repoUrl = storeState.store.indexUrl
+		val available = storeState.catalog
 		availableRepoEntries.value = available
-
-		// Pull the active repo's authoritative name + signing fingerprint once (or on refresh) so
-		// installed extensions can be attributed to it by signature. Best-effort — repos without a
-		// repo.json just fall back to URL-derived naming below.
-		if (!repoUrl.isNullOrBlank() && (forceRefresh || settings.externalRepoInfos.none { it.url == repoUrl })) {
-			runCatching { externalRepoRepository.fetchRepoInfo(repoUrl) }.getOrNull()?.let(settings::putExternalRepoInfo)
-		}
-
-		// The active repo's signing fingerprint. An entry from this repo can only update/replace an
-		// installed extension that this repo actually signed — a same-package extension from a different
-		// repo has a different signer, so Android would reject the install. Null = fingerprint unknown
-		// (repo has no repo.json), in which case we fall back to package-name matching as before.
-		val activeRepoFingerprint = repoUrl?.let { settings.findRepoInfoByUrl(it)?.fingerprint }
-
 		val installed = mihonExtensionLoader.getInstalledExtensions(appContext).associateBy { it.pkgName }
-		// Backfill provenance for extensions installed before it was tracked: if the active repo lists
-		// the package, attribute it here — a valid update source (OS enforces same-signer) and a name to show.
-		val availablePkgs = available.mapTo(HashSet(available.size)) { it.packageName }
 		val installedSourcesByPkg = mihonSources.value.groupBy { it.pkgName }
 		val allInstalledSourcesByPkg = allMihonSources.value.groupBy { it.pkgName }
 
-		val pending = ArrayList<SourceCatalogItem.Extension>()
 		val installedItems = linkedMapOf<String, SourceCatalogItem.Extension>()
+		val updateItems = ArrayList<SourceCatalogItem.Extension>()
 		val availableItems = ArrayList<SourceCatalogItem.Extension>()
-		val packagesWithUpdates = HashSet<String>()
 		val locale = filter.locale
 		val q = query?.takeIf { it.isNotBlank() }
 		val inProgressPackages = installingPackages.value
 
 		for (local in installed.values) {
+			val owner = storeManager.owner(ExtensionInstallMode.SYSTEM, local) ?: continue
+			if (owner.id != storeState.store.id) continue
 			if (settings.isNsfwContentDisabled && local.isNsfw) continue
 			val pkgAllSources = allInstalledSourcesByPkg[local.pkgName].orEmpty()
 			if (locale != null && local.lang != locale && pkgAllSources.none { it.language == locale }) continue
@@ -343,38 +487,31 @@ class SourcesCatalogViewModel @Inject constructor(
 
 			val pkgSources = allInstalledSourcesByPkg[local.pkgName] ?: installedSourcesByPkg[local.pkgName]
 			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
-			// Prefer the repo's real name matched by signing fingerprint (works even for extensions
-			// installed before tracking); fall back to install-time provenance / active-repo backfill
-			// with a URL-derived name for repos that don't publish a repo.json.
-			val repoLabel = settings.findRepoInfoBySignatures(local.signatures)?.displayName
-				?: (
-					settings.getExtensionRepoUrl(local.pkgName)
-						?: repoUrl?.takeIf { local.pkgName in availablePkgs }
-							?.also { settings.setExtensionRepoUrl(local.pkgName, it) }
-					)?.let { getExternalExtensionRepoDisplayName(it) }
+			val update = findStoreTabUpdate(local, available, showUpdatesTab)
+			val repoLabel = owner.displayName
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(local.lang))
 				append(" • ")
-				append(local.versionName)
+				append(update?.versionName ?: local.versionName)
 				if (local.isNsfw) {
 					append(" • 18+")
 				}
-				repoLabel?.let {
-					append(" • ")
-					append(it)
-				}
+				append(" • ")
+				append(repoLabel)
 			}
-			installedItems[local.pkgName] = SourceCatalogItem.Extension(
+			val item = SourceCatalogItem.Extension(
 				packageName = local.pkgName,
-				title = local.appName.removePrefix("Tachiyomi: ").trim(),
+				title = (update?.name ?: local.appName).removePrefix("Tachiyomi: ").trim(),
 				subtitle = subtitle,
-				action = SourceCatalogItem.Extension.Action.UNINSTALL,
+				action = if (update == null) SourceCatalogItem.Extension.Action.UNINSTALL else SourceCatalogItem.Extension.Action.UPDATE,
 				isInProgress = local.pkgName in inProgressPackages,
-				iconUrl = null,
+				iconUrl = update?.let { it.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, it.packageName) },
 				sourceIconName = source?.name,
 				sourceName = source?.name,
+				storeId = owner.id,
 				isHidden = settings.isMihonPackageHidden(local.pkgName),
 			)
+			if (update == null) installedItems[local.pkgName] = item else updateItems += item
 		}
 
 		val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
@@ -396,6 +533,9 @@ class SourcesCatalogViewModel @Inject constructor(
 			query = q,
 			repoUrl = repoUrl,
 			repoSourceIndex = repoSourceIndex,
+			storeId = storeState.store.id,
+			action = SourceCatalogItem.Extension.Action.INSTALL,
+			isPrivateMode = false,
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
 
@@ -406,6 +546,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
 
 			val local = installed[entry.packageName]
+			val localOwner = local?.let { storeManager.owner(ExtensionInstallMode.SYSTEM, it) }
 			val pkgSources = allInstalledSourcesByPkg[entry.packageName] ?: installedSourcesByPkg[entry.packageName]
 			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
@@ -416,7 +557,7 @@ class SourcesCatalogViewModel @Inject constructor(
 					append(" • 18+")
 				}
 			}
-			val iconUrl = entry.iconUrl ?: repoUrl?.let { externalRepoRepository.resolveIconUrl(it, entry.packageName) }
+			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			when {
 				local == null -> availableItems += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
@@ -426,45 +567,38 @@ class SourcesCatalogViewModel @Inject constructor(
 					isInProgress = entry.packageName in inProgressPackages,
 					iconUrl = iconUrl,
 					sourceIconName = source?.name,
+					storeId = storeState.store.id,
 				)
-				// Installed, but by a different repo (different signer): this repo can't update or
-				// replace it, so don't offer a phantom update that Android would reject forever.
-				activeRepoFingerprint != null && activeRepoFingerprint !in local.signatures -> Unit
-				entry.isNewerThan(local) -> pending += SourceCatalogItem.Extension(
+				localOwner?.id != storeState.store.id -> availableItems += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
 					title = entry.name.removePrefix("Tachiyomi: ").trim(),
 					subtitle = subtitle,
-					action = SourceCatalogItem.Extension.Action.UPDATE,
+					action = SourceCatalogItem.Extension.Action.INSTALL,
 					isInProgress = entry.packageName in inProgressPackages,
 					iconUrl = iconUrl,
 					sourceIconName = source?.name,
-					sourceName = source?.name,
-					isHidden = settings.isMihonPackageHidden(entry.packageName),
-				).also {
-					packagesWithUpdates += entry.packageName
-				}
+					storeId = storeState.store.id,
+				)
 				else -> Unit
 			}
 		}
 
 		val titleComparator = Comparator<SourceCatalogItem.Extension> { a, b -> a.title.compareTo(b.title, ignoreCase = true) }
-		pending.sortWith(titleComparator)
 		val installedSorted = installedItems.values
-			.filterNot { it.packageName in packagesWithUpdates }
 			.sortedWith(titleComparator)
 		availableItems.sortWith(titleComparator)
 
 		return buildList {
 			// The "no repository" / error hint always stays pinned at the very top.
-			if (!hasRepo) {
+			if (storeState.health == StoreHealth.REMOVED) {
 				add(
 					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_empty_common,
-						title = R.string.no_repo_detected,
-						text = R.string.click_edit_icon_add_extension_repo,
+						icon = R.drawable.ic_error_large,
+						title = R.string.store_removed,
+						text = R.string.store_removed_catalog_warning,
 					),
 				)
-			} else if (availableResult.isFailure) {
+			} else if (storeState.health == StoreHealth.UNAVAILABLE) {
 				add(
 					SourceCatalogItem.Hint(
 						icon = R.drawable.ic_error_large,
@@ -473,15 +607,9 @@ class SourcesCatalogViewModel @Inject constructor(
 					),
 				)
 			}
-			if (pending.isNotEmpty()) {
-				add(
-					org.koitharu.kotatsu.list.ui.model.ListHeader(
-						textRes = R.string.updates_pending,
-						buttonTextRes = R.string.update_all,
-						payload = HEADER_ACTION_UPDATE_ALL,
-					),
-				)
-				addAll(pending)
+			if (updateItems.isNotEmpty()) {
+				add(ListHeader(R.string.updates_pending))
+				addAll(updateItems.sortedWith(titleComparator))
 			}
 			if (installedSorted.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.installed))
@@ -507,14 +635,9 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun getAvailableEntries(repoUrl: String, forceRefresh: Boolean): List<ExternalExtensionRepoEntry> {
-		return externalRepoRepository.getExtensions(repoUrl, forceRefresh)
-	}
-
 	/**
 	 * Extensions the user's library needs but that aren't installed: derived from `MIHON_<id>`
-	 * sources referenced by favourites/history whose id is in the migration map (so we know the
-	 * package + name) and isn't currently installed. Shown even when no repository is configured.
+	 * sources referenced by favourites/history and offered by the current store.
 	 */
 	private suspend fun computeRecommendedExtensions(
 		installedPkgs: Set<String>,
@@ -523,23 +646,16 @@ class SourcesCatalogViewModel @Inject constructor(
 		query: String?,
 		repoUrl: String?,
 		repoSourceIndex: Map<Long, Pair<String, String>>,
+		storeId: String,
+		action: SourceCatalogItem.Extension.Action,
+		isPrivateMode: Boolean,
 	): List<SourceCatalogItem.Extension> {
 		val sources = runCatching {
 			mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
 		}.getOrDefault(emptyList())
 		if (sources.isEmpty()) return emptyList()
-		val seen = HashSet<String>()
 		val out = ArrayList<SourceCatalogItem.Extension>()
-		for (name in sources) {
-			val id = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: continue
-			if (id in installedIds) continue
-			// Prefer the live repo index (complete for the configured repo); fall back to the baked
-			// migration map so popular sources are still recommended with no repo configured.
-			val ref = repoSourceIndex[id]
-				?: kotatsuSourceMap.resolveById(id)?.let { it.packageName to it.sourceName }
-				?: continue
-			val (pkg, displayName) = ref
-			if (pkg.isBlank() || pkg in installedPkgs || !seen.add(pkg)) continue
+		for ((pkg, displayName) in collectRecommendedExtensionRefs(sources, installedIds, installedPkgs, repoSourceIndex)) {
 			if (query != null &&
 				!displayName.contains(query, ignoreCase = true) &&
 				!pkg.contains(query, ignoreCase = true)
@@ -550,11 +666,13 @@ class SourcesCatalogViewModel @Inject constructor(
 				packageName = pkg,
 				title = displayName,
 				subtitle = appContext.getString(R.string.recommended_extension_subtitle),
-				action = SourceCatalogItem.Extension.Action.INSTALL,
+				action = action,
 				isInProgress = pkg in inProgress,
 				// Real extension icon when a repo is configured; otherwise the row falls back to a
 				// generated favicon (handled in the adapter).
 				iconUrl = repoUrl?.takeIf { it.isNotBlank() }?.let { externalRepoRepository.resolveIconUrl(it, pkg) },
+				storeId = storeId,
+				isPrivateMode = isPrivateMode,
 			)
 		}
 		out.sortBy { it.title.lowercase() }
@@ -564,22 +682,12 @@ class SourcesCatalogViewModel @Inject constructor(
 	private suspend fun buildPrivateExtensionsList(
 		filter: SourcesCatalogFilter,
 		query: String?,
-		forceRefresh: Boolean,
+		storeState: ExtensionStoreState,
+		showUpdatesTab: Boolean,
 	): List<ListModel> {
-		val repoUrl = externalRepoUrl.value
-		val hasRepo = !repoUrl.isNullOrBlank()
-		val availableResult = if (repoUrl.isNullOrBlank()) {
-			availableRepoEntries.value = emptyList()
-			Result.success(emptyList<ExternalExtensionRepoEntry>())
-		} else {
-			runCatching { getAvailableEntries(repoUrl, forceRefresh) }
-		}
-		val available = availableResult.getOrDefault(emptyList())
+		val repoUrl = storeState.store.indexUrl
+		val available = storeState.catalog
 		availableRepoEntries.value = available
-
-		if (!repoUrl.isNullOrBlank() && (forceRefresh || settings.externalRepoInfos.none { it.url == repoUrl })) {
-			runCatching { externalRepoRepository.fetchRepoInfo(repoUrl) }.getOrNull()?.let(settings::putExternalRepoInfo)
-		}
 
 		val installed = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode = true)
 			.associateBy { it.pkgName }
@@ -591,35 +699,41 @@ class SourcesCatalogViewModel @Inject constructor(
 		val q = query?.takeIf { it.isNotBlank() }
 
 		val enabledItems = ArrayList<SourceCatalogItem.Extension>()
+		val updateItems = ArrayList<SourceCatalogItem.Extension>()
 		for (local in installed.values) {
+			val owner = storeManager.owner(ExtensionInstallMode.SANDBOX, local) ?: continue
+			if (owner.id != storeState.store.id) continue
 			if (settings.isNsfwContentDisabled && local.isNsfw) continue
 			val pkgAllSources = allInstalledSourcesByPkg[local.pkgName].orEmpty()
 			if (locale != null && local.lang != locale && pkgAllSources.none { it.language == locale }) continue
 			if (q != null && !local.appName.contains(q, ignoreCase = true) && !local.pkgName.contains(q, ignoreCase = true)) continue
 			val pkgSources = allInstalledSourcesByPkg[local.pkgName] ?: installedSourcesByPkg[local.pkgName]
 			val source = pkgSources?.firstOrNull { it.language == local.lang } ?: pkgSources?.firstOrNull()
-			val repoLabel = settings.findRepoInfoBySignatures(local.signatures)?.displayName
-				?: settings.getExtensionRepoUrl(local.pkgName)?.let { getExternalExtensionRepoDisplayName(it) }
+			val update = findStoreTabUpdate(local, available, showUpdatesTab)
+			val repoLabel = owner.displayName
 			val subtitle = buildString {
 				append(getExternalExtensionLanguageDisplayName(local.lang))
 				append(" • ")
-				append(local.versionName)
+				append(update?.versionName ?: local.versionName)
 				if (local.isNsfw) append(" • 18+")
-				repoLabel?.let { append(" • "); append(it) }
+				append(" • ")
+				append(repoLabel)
 			}
-			enabledItems += SourceCatalogItem.Extension(
+			val item = SourceCatalogItem.Extension(
 				packageName = local.pkgName,
-				title = local.appName.removePrefix("Tachiyomi: ").trim(),
+				title = (update?.name ?: local.appName).removePrefix("Tachiyomi: ").trim(),
 				subtitle = subtitle,
-				action = SourceCatalogItem.Extension.Action.DISABLE,
+				action = if (update == null) SourceCatalogItem.Extension.Action.DISABLE else SourceCatalogItem.Extension.Action.UPDATE,
 				isInProgress = local.pkgName in inProgressPackages,
-				iconUrl = availableByPkg[local.pkgName]?.iconUrl
-					?: repoUrl?.let { externalRepoRepository.resolveIconUrl(it, local.pkgName) },
+				iconUrl = update?.iconUrl ?: availableByPkg[local.pkgName]?.iconUrl
+					?: externalRepoRepository.resolveIconUrl(repoUrl, local.pkgName),
 				sourceIconName = source?.name,
 				sourceName = source?.name,
+				storeId = owner.id,
 				isHidden = settings.isMihonPackageHidden(local.pkgName),
 				isPrivateMode = true,
 			)
+			if (update == null) enabledItems += item else updateItems += item
 		}
 
 		val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
@@ -631,20 +745,26 @@ class SourcesCatalogViewModel @Inject constructor(
 				repoSourceIndex.putIfAbsent(sid, entry.packageName to src.name.ifBlank { fallbackName })
 			}
 		}
-		val recommended = computeRecommendedExtensionsPrivate(
+		val recommended = computeRecommendedExtensions(
 			installedPkgs = installed.keys,
 			installedIds = installedIds,
 			inProgress = inProgressPackages,
 			query = q,
 			repoUrl = repoUrl,
 			repoSourceIndex = repoSourceIndex,
+			storeId = storeState.store.id,
+			action = SourceCatalogItem.Extension.Action.ENABLE,
+			isPrivateMode = true,
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
 
 		val disabledItems = ArrayList<SourceCatalogItem.Extension>()
 		for (entry in available) {
 			if (entry.packageName in recommendedPackages) continue
-			if (entry.packageName in installed) continue
+			val installedOwner = installed[entry.packageName]?.let {
+				storeManager.owner(ExtensionInstallMode.SANDBOX, it)
+			}
+			if (installedOwner?.id == storeState.store.id) continue
 			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
 			if (locale != null && entry.lang != locale) continue
 			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
@@ -656,7 +776,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				append(entry.versionName)
 				if (entry.isNsfw != 0) append(" • 18+")
 			}
-			val iconUrl = entry.iconUrl ?: repoUrl?.let { externalRepoRepository.resolveIconUrl(it, entry.packageName) }
+			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			disabledItems += SourceCatalogItem.Extension(
 				packageName = entry.packageName,
 				title = entry.name.removePrefix("Tachiyomi: ").trim(),
@@ -665,6 +785,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				isInProgress = entry.packageName in inProgressPackages,
 				iconUrl = iconUrl,
 				sourceIconName = source?.name,
+				storeId = storeState.store.id,
 				isPrivateMode = true,
 			)
 		}
@@ -674,10 +795,14 @@ class SourcesCatalogViewModel @Inject constructor(
 		disabledItems.sortWith(titleComparator)
 
 		return buildList {
-			if (!hasRepo) {
-				add(SourceCatalogItem.Hint(R.drawable.ic_empty_common, R.string.no_repo_detected, R.string.click_edit_icon_add_extension_repo))
-			} else if (availableResult.isFailure) {
+			if (storeState.health == StoreHealth.REMOVED) {
+				add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.store_removed, R.string.store_removed_catalog_warning))
+			} else if (storeState.health == StoreHealth.UNAVAILABLE) {
 				add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.error, R.string.extensions_repo_load_error))
+			}
+			if (updateItems.isNotEmpty()) {
+				add(ListHeader(R.string.updates_pending))
+				addAll(updateItems.sortedWith(titleComparator))
 			}
 			if (enabledItems.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.enabled))
@@ -695,43 +820,6 @@ class SourcesCatalogViewModel @Inject constructor(
 				add(SourceCatalogItem.Hint(R.drawable.ic_empty_feed, R.string.nothing_found, R.string.no_manga_sources_found))
 			}
 		}
-	}
-
-	private suspend fun computeRecommendedExtensionsPrivate(
-		installedPkgs: Set<String>,
-		installedIds: Set<Long>,
-		inProgress: Set<String>,
-		query: String?,
-		repoUrl: String?,
-		repoSourceIndex: Map<Long, Pair<String, String>>,
-	): List<SourceCatalogItem.Extension> {
-		val sources = runCatching {
-			mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
-		}.getOrDefault(emptyList())
-		if (sources.isEmpty()) return emptyList()
-		val seen = HashSet<String>()
-		val out = ArrayList<SourceCatalogItem.Extension>()
-		for (name in sources) {
-			val id = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull() ?: continue
-			if (id in installedIds) continue
-			val ref = repoSourceIndex[id]
-				?: kotatsuSourceMap.resolveById(id)?.let { it.packageName to it.sourceName }
-				?: continue
-			val (pkg, displayName) = ref
-			if (pkg.isBlank() || pkg in installedPkgs || !seen.add(pkg)) continue
-			if (query != null && !displayName.contains(query, ignoreCase = true) && !pkg.contains(query, ignoreCase = true)) continue
-			out += SourceCatalogItem.Extension(
-				packageName = pkg,
-				title = displayName,
-				subtitle = appContext.getString(R.string.recommended_extension_subtitle),
-				action = SourceCatalogItem.Extension.Action.ENABLE,
-				isInProgress = pkg in inProgress,
-				iconUrl = repoUrl?.takeIf { it.isNotBlank() }?.let { externalRepoRepository.resolveIconUrl(it, pkg) },
-				isPrivateMode = true,
-			)
-		}
-		out.sortBy { it.title.lowercase() }
-		return out
 	}
 
 	suspend fun getMigrationExtensionCount(): Int {
@@ -786,8 +874,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	private suspend fun emitMigrationInstallRequests() {
-		val repoUrl = externalRepoUrl.value ?: return
-		val entries = getAvailableEntries(repoUrl, forceRefresh = false)
 		val systemInstalled = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode = false)
 			.associateBy { it.pkgName }
 		val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
@@ -802,26 +888,42 @@ class SourcesCatalogViewModel @Inject constructor(
 				migrationPkgs.add(ref.packageName)
 			}
 		}
-		val requests = entries
-			.filter { it.packageName in migrationPkgs }
-			.map { entry ->
-				settings.setExtensionRepoUrl(entry.packageName, repoUrl)
-				InstallRequest(
-					packageName = entry.packageName,
-					url = externalRepoRepository.resolveApkUrl(repoUrl, entry.apkName),
-				)
-			}
+		val statesById = storeManager.states.value.associateBy { it.store.id }
+		val requests = migrationPkgs.mapNotNull { packageName ->
+			val owner = systemInstalled[packageName]
+				?.let { storeManager.owner(ExtensionInstallMode.SYSTEM, it) }
+				?: storeManager.owner(ExtensionInstallMode.SYSTEM, packageName)
+				?: return@mapNotNull null
+			val state = statesById[owner.id] ?: return@mapNotNull null
+			if (!owner.enabled || state.health != StoreHealth.AVAILABLE) return@mapNotNull null
+			val entry = state.catalog.firstOrNull { it.packageName == packageName } ?: return@mapNotNull null
+			InstallRequest(
+				packageName = packageName,
+				url = externalRepoRepository.resolveApkUrl(owner.indexUrl, entry.apkName),
+				storeId = owner.id,
+				mode = ExtensionInstallMode.SANDBOX,
+			)
+		}
 		if (requests.isNotEmpty()) {
 			emitInstallRequests(requests)
 		}
 	}
 
-	companion object {
-		const val HEADER_ACTION_UPDATE_ALL = "update_all"
-	}
-
 	data class InstallRequest(
 		val packageName: String,
 		val url: String,
+		val storeId: String,
+		val mode: ExtensionInstallMode,
+		val replacement: ProviderReplacement? = null,
+	)
+
+	data class ProviderReplacement(
+		val currentStoreName: String,
+		val newStoreName: String,
+	)
+
+	data class CatalogPageContent(
+		val pageId: String,
+		val items: List<ListModel>,
 	)
 }

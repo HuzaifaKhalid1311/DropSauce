@@ -25,7 +25,9 @@ import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.main.domain.ReadingResumeEnabledUseCase
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.settings.sources.catalog.ExternalExtensionRepoRepository
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
+import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
 import org.koitharu.kotatsu.settings.sources.catalog.isNewerThan
 import org.koitharu.kotatsu.tracker.domain.TrackingRepository
 import javax.inject.Inject
@@ -39,24 +41,22 @@ class MainViewModel @Inject constructor(
 	private val settings: AppSettings,
 	readingResumeEnabledUseCase: ReadingResumeEnabledUseCase,
 	private val mihonExtensionManager: MihonExtensionManager,
-	private val externalRepoRepository: ExternalExtensionRepoRepository,
+	private val extensionStoreManager: ExtensionStoreManager,
 	private val extensionUpdateScheduler: ExtensionUpdateWorker.Scheduler,
 ) : BaseViewModel() {
 
 	val hasExtensionUpdates: StateFlow<Boolean> = combine(
 		mihonExtensionManager.installedExtensions,
-		settings.observeAsFlow(AppSettings.KEY_EXTERNAL_EXTENSIONS_REPO_URL) { externalExtensionsRepoUrl }
-	) { installed, repoUrl ->
-		if (repoUrl.isNullOrBlank()) return@combine false
-		try {
-			val available = externalRepoRepository.getExtensions(repoUrl)
-			val installedByPkg = installed.associateBy { it.pkgName }
-			available.any { entry ->
-				val local = installedByPkg[entry.packageName] ?: return@any false
-				entry.isNewerThan(local)
-			}
-		} catch (_: Exception) {
-			false
+		extensionStoreManager.states,
+		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
+	) { installed, stores, privateMode ->
+		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		installed.any { local ->
+			val owner = extensionStoreManager.owner(mode, local.pkgName) ?: return@any false
+			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
+			owner.enabled &&
+				state.health == StoreHealth.AVAILABLE &&
+				state.catalog.any { it.packageName == local.pkgName && it.isNewerThan(local) }
 		}
 	}.onEach { hasUpdates ->
 		if (hasUpdates) {
@@ -75,6 +75,12 @@ class MainViewModel @Inject constructor(
 			started = SharingStarted.WhileSubscribed(5000),
 			initialValue = false
 		)
+
+	init {
+		launchJob(Dispatchers.IO) {
+			extensionStoreManager.initialize()
+		}
+	}
 
 	val onOpenReader = MutableEventFlow<Manga>()
 

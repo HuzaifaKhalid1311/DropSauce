@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginHorizontal="12dp"
+	android:layout_marginVertical="3dp"
+	android:background="@drawable/bg_settings_tile"
+	android:minHeight="?attr/listPreferredItemHeightSmall"
+	android:paddingStart="16dp"
+	android:paddingEnd="8dp"
+	android:paddingVertical="@dimen/margin_small">
+
+	<View
+		android:id="@+id/store_status"
+		android:layout_width="10dp"
+		android:layout_height="10dp"
+		android:background="@drawable/bg_store_status"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="@id/text_title"
+		app:layout_constraintBottom_toBottomOf="@id/text_title" />
+
+	<TextView
+		android:id="@+id/text_title"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="@dimen/margin_normal"
+		android:ellipsize="end"
+		android:maxLines="1"
+		android:textAppearance="?attr/textAppearanceBodyLarge"
+		app:layout_constraintEnd_toStartOf="@id/drag_handle"
+		app:layout_constraintStart_toEndOf="@id/store_status"
+		app:layout_constraintTop_toTopOf="parent"
+		tools:text="Community store" />
+
+	<LinearLayout
+		android:id="@+id/store_actions"
+		android:layout_width="0dp"
+		android:layout_height="40dp"
+		android:layout_marginStart="@dimen/margin_normal"
+		android:gravity="center_vertical"
+		android:orientation="horizontal"
+		app:layout_constraintEnd_toStartOf="@id/drag_handle"
+		app:layout_constraintStart_toEndOf="@id/store_status"
+		app:layout_constraintTop_toBottomOf="@id/text_title">
+
+		<ImageButton
+			android:id="@+id/button_edit"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/edit_store"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_edit"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_copy"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/copy_store_url"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_content_copy"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_retry"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/retry"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_sync"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_website"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/website"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_language"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_discord"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/discord"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_discord"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_remove"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/remove_store"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_delete"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+		<ImageButton
+			android:id="@+id/button_readd"
+			android:layout_width="40dp"
+			android:layout_height="40dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/readd_store"
+			android:padding="10dp"
+			app:srcCompat="@drawable/ic_add"
+			app:tint="?attr/colorOnSurfaceVariant" />
+
+	</LinearLayout>
+
+	<ImageView
+		android:id="@+id/drag_handle"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:background="?selectableItemBackgroundBorderless"
+		android:contentDescription="@string/reorder"
+		android:padding="@dimen/margin_normal"
+		android:pointerIcon="grab"
+		android:src="@drawable/ic_reorder_handle"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

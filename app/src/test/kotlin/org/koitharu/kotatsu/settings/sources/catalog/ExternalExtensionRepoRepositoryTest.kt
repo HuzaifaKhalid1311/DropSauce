@@ -1,6 +1,9 @@
 package org.koitharu.kotatsu.settings.sources.catalog
 
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -9,6 +12,64 @@ import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 
 class ExternalExtensionRepoRepositoryTest {
+
+	@Test
+	fun `validation reads original store metadata and catalog`() {
+		val client = clientReturning { path ->
+			when {
+				path.endsWith("/repo.json") ->
+					"""{"meta":{"name":"Original Store","shortName":"OS","signingKeyFingerprint":"abc123"}}"""
+				else ->
+					"""[{"name":"MangaFire","pkg":"example.mangafire","apk":"mangafire.apk","code":10,"version":"1.4.10"}]"""
+			}
+		}
+
+		val result = kotlinx.coroutines.runBlocking {
+			ExternalExtensionRepoRepository(client).validateStore("https://example.com/extensions")
+		}
+
+		assertEquals("Original Store", result.store.name)
+		assertEquals("OS", result.store.shortName)
+		assertEquals("abc123", result.store.fingerprint)
+		assertEquals("example.mangafire", result.catalog.single().packageName)
+	}
+
+	@Test
+	fun `validation gives metadata free legacy store a neutral url label`() {
+		val client = clientReturning { path ->
+			if (path.endsWith("/repo.json")) null else "[]"
+		}
+
+		val result = kotlinx.coroutines.runBlocking {
+			ExternalExtensionRepoRepository(client).validateStore("https://example.com/community/extensions/")
+		}
+
+		assertEquals("example.com/community/extensions", result.store.name)
+		assertEquals(null, result.store.fingerprint)
+		assertTrue(result.catalog.isEmpty())
+	}
+
+	@Test
+	fun `validation reads metadata from a new format index`() {
+		val client = clientReturning {
+			"""
+				{
+				  "name":"Community Store",
+				  "badgeLabel":"CS",
+				  "signingKey":"feed1234",
+				  "extensionList":{"extensions":[]}
+				}
+			""".trimIndent()
+		}
+
+		val result = kotlinx.coroutines.runBlocking {
+			ExternalExtensionRepoRepository(client).validateStore("https://example.com/index.min.json")
+		}
+
+		assertEquals("Community Store", result.store.name)
+		assertEquals("CS", result.store.shortName)
+		assertEquals("feed1234", result.store.fingerprint)
+	}
 
 	@Test
 	fun `resolveApkUrl places apk in apk subdirectory relative to repo base`() {
@@ -118,4 +179,19 @@ class ExternalExtensionRepoRepositoryTest {
 		sourceClassName = "ExampleSource",
 		apkPath = "/example.apk",
 	)
+
+	private fun clientReturning(body: (String) -> String?): OkHttpClient =
+		OkHttpClient.Builder()
+			.addInterceptor { chain ->
+				val request = chain.request()
+				val responseBody = body(request.url.encodedPath)
+				Response.Builder()
+					.request(request)
+					.protocol(Protocol.HTTP_1_1)
+					.code(if (responseBody == null) 404 else 200)
+					.message(if (responseBody == null) "Not Found" else "OK")
+					.body((responseBody ?: "").toResponseBody())
+					.build()
+			}
+			.build()
 }

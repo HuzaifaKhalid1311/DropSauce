@@ -40,26 +40,6 @@ fun getExternalExtensionLanguageAutonym(langCode: String): String {
 	}
 }
 
-/**
- * Short, human-readable name for an extension repo URL — never the full link. E.g.
- * `https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.min.json` -> `keiyoushi/extensions`,
- * `https://user.github.io/repo/index.min.json` -> `user/repo`. Falls back to the host so any repo
- * still shows something readable.
- */
-fun getExternalExtensionRepoDisplayName(repoUrl: String): String {
-	val uri = runCatching { java.net.URI(repoUrl.trim()) }.getOrNull()
-	val host = uri?.host?.removePrefix("www.") ?: return repoUrl.trim()
-	val segments = uri.path.orEmpty().split('/').filter { it.isNotBlank() && !it.endsWith(".json") && !it.endsWith(".pb") }
-	return when {
-		host.endsWith("githubusercontent.com") -> segments.take(2).joinToString("/").ifEmpty { host }
-		host.endsWith("github.io") -> {
-			val user = host.substringBefore(".github.io")
-			segments.firstOrNull()?.let { "$user/$it" } ?: user
-		}
-		else -> segments.firstOrNull()?.let { "$host/$it" } ?: host
-	}
-}
-
 fun registerExternalExtensionPackageObserver(
 	context: Context,
 	scope: CoroutineScope,

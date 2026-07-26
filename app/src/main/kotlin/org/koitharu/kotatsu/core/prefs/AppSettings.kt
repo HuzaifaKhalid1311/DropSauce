@@ -25,6 +25,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koitharu.kotatsu.mihon.model.ExternalRepoInfo
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistryState
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.ZoomMode
 import org.koitharu.kotatsu.core.network.DoHProvider
@@ -617,45 +619,51 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			}
 		}
 
-	// Which repo each installed extension came from, so updates are fetched from that repo even
-	// after the active repo is switched. Stored as "pkg\turl" entries in a StringSet.
-	private var extensionRepoMap: Map<String, String>
+	// Legacy single-store ownership, read once by ExtensionStoreRegistry migration.
+	private val extensionRepoMap: Map<String, String>
 		get() = prefs.getStringSet(KEY_MIHON_EXTENSION_REPOS, emptySet()).orEmpty()
 			.mapNotNull { entry ->
 				val sep = entry.indexOf('\t')
 				if (sep <= 0) null else entry.substring(0, sep) to entry.substring(sep + 1)
 			}.toMap()
-		set(value) = prefs.edit {
-			putStringSet(KEY_MIHON_EXTENSION_REPOS, value.mapTo(HashSet(value.size)) { "${it.key}\t${it.value}" })
-		}
-
-	fun getExtensionRepoUrl(pkgName: String): String? = extensionRepoMap[pkgName]
 
 	fun getExtensionRepoUrls(): Map<String, String> = extensionRepoMap
 
-	fun setExtensionRepoUrl(pkgName: String, repoUrl: String) {
-		if (repoUrl.isBlank()) return
-		extensionRepoMap = extensionRepoMap.toMutableMap().apply { put(pkgName, repoUrl.trim()) }
-	}
-
-	// Authoritative repo metadata (name + signing fingerprint) from each repo's repo.json, so an
-	// installed extension can be attributed to its repo by signature — even ones installed earlier.
-	var externalRepoInfos: List<ExternalRepoInfo>
+	// Legacy repo metadata, read once by ExtensionStoreRegistry migration.
+	val externalRepoInfos: List<ExternalRepoInfo>
 		get() = prefs.getString(KEY_MIHON_REPO_INFOS, null)
 			?.let { runCatching { json.decodeFromString<List<ExternalRepoInfo>>(it) }.getOrNull() }
 			?: emptyList()
-		set(value) = prefs.edit { putString(KEY_MIHON_REPO_INFOS, json.encodeToString(value)) }
 
-	fun putExternalRepoInfo(info: ExternalRepoInfo) {
-		externalRepoInfos = externalRepoInfos.filterNot { it.url == info.url } + info
+	var extensionStoreRegistryState: ExtensionStoreRegistryState
+		get() = prefs.getString(KEY_EXTENSION_STORE_REGISTRY, null)
+			?.let { runCatching { json.decodeFromString<ExtensionStoreRegistryState>(it) }.getOrNull() }
+			?: ExtensionStoreRegistryState()
+		set(value) = prefs.edit {
+			putString(KEY_EXTENSION_STORE_REGISTRY, json.encodeToString(value))
+		}
+
+	var isExtensionStoreMigrationComplete: Boolean
+		get() = prefs.getBoolean(KEY_EXTENSION_STORE_MIGRATED, false)
+		set(value) = prefs.edit { putBoolean(KEY_EXTENSION_STORE_MIGRATED, value) }
+
+	var isExtensionUpdatesTabEnabled: Boolean
+		get() = prefs.getBoolean(KEY_EXTENSION_UPDATES_TAB, true)
+		set(value) = prefs.edit { putBoolean(KEY_EXTENSION_UPDATES_TAB, value) }
+
+	fun getExtensionStoreLabel(packageName: String, signatures: Collection<String>): String? {
+		val state = extensionStoreRegistryState
+		val mode = if (isPrivateInstallEnabled) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		state.ownerships.firstOrNull { it.mode == mode && it.packageName == packageName }
+			?.storeId
+			?.let { id -> state.stores.firstOrNull { it.id == id } }
+			?.let { return it.displayName }
+		return state.stores.filter { store ->
+			store.fingerprint?.let { fingerprint ->
+				signatures.any { it.equals(fingerprint, ignoreCase = true) }
+			} == true
+		}.singleOrNull()?.displayName
 	}
-
-	// Stored repos (from repo.json) take precedence; built-ins recognise canonical repos out of the box.
-	fun findRepoInfoBySignatures(signatures: Collection<String>): ExternalRepoInfo? =
-		(externalRepoInfos + ExternalRepoInfo.BUILT_IN).firstOrNull { it.fingerprint in signatures }
-
-	fun findRepoInfoByUrl(url: String): ExternalRepoInfo? =
-		(externalRepoInfos + ExternalRepoInfo.BUILT_IN).firstOrNull { it.url == url }
 
 
 	val isPagesNumbersEnabled: Boolean
@@ -1174,6 +1182,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_MIHON_EXTENSION_REPOS = "mihon_extension_repos"
 		const val KEY_MIHON_REPO_INFOS = "mihon_repo_infos"
+		const val KEY_EXTENSION_STORE_REGISTRY = "extension_store_registry"
+		const val KEY_EXTENSION_STORE_MIGRATED = "extension_store_migrated"
+		const val KEY_EXTENSION_UPDATES_TAB = "extension_updates_tab"
 		const val KEY_CF_BRIGHTNESS = "cf_brightness"
 		const val KEY_CF_CONTRAST = "cf_contrast"
 		const val KEY_CF_INVERTED = "cf_inverted"

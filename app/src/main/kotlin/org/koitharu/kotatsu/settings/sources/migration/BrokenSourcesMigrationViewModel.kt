@@ -17,18 +17,18 @@ import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.getStoredTitleOrNull
 import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.kotatsumigration.data.KotatsuSourceMap
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.settings.sources.catalog.ExternalExtensionRepoRepository
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import javax.inject.Inject
 
 @HiltViewModel
 class BrokenSourcesMigrationViewModel @Inject constructor(
 	private val database: MangaDatabase,
-	private val settings: AppSettings,
 	private val extensionManager: MihonExtensionManager,
 	private val extensionRepoRepository: ExternalExtensionRepoRepository,
+	private val extensionStoreManager: ExtensionStoreManager,
 	private val kotatsuSourceMap: KotatsuSourceMap,
 	@ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -45,20 +45,21 @@ class BrokenSourcesMigrationViewModel @Inject constructor(
 			_state.update { it.copy(isLoading = true) }
 			val metadata = withContext(Dispatchers.IO) {
 				extensionManager.ensureReady()
+				extensionStoreManager.initialize()
 				val installedIds = extensionManager.getMihonMangaSources()
 					.mapTo(hashSetOf()) { it.sourceId }
-				val repoUrl = settings.externalExtensionsRepoUrl
-				val repositoryExtensions = repoUrl
-					?.let { runCatching { extensionRepoRepository.getExtensions(it) }.getOrDefault(emptyList()) }
-					.orEmpty()
 				val repositoryIcons = buildMap {
-					for (extension in repositoryExtensions) {
-						val iconUrl = repoUrl?.let {
-							extensionRepoRepository.resolveIconUrl(it, extension.packageName)
-						}
-						for (source in extension.sources) {
-							val id = source.id.toLongOrNull() ?: continue
-							if (iconUrl != null) putIfAbsent(id, iconUrl)
+					for (storeState in extensionStoreManager.states.value) {
+						if (!storeState.store.enabled) continue
+						for (extension in storeState.catalog) {
+							val iconUrl = extension.iconUrl ?: extensionRepoRepository.resolveIconUrl(
+								storeState.store.indexUrl,
+								extension.packageName,
+							)
+							for (source in extension.sources) {
+								val id = source.id.toLongOrNull() ?: continue
+								putIfAbsent(id, iconUrl)
+							}
 						}
 					}
 				}

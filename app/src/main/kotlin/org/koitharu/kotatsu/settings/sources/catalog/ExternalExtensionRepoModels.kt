@@ -118,6 +118,8 @@ internal data class ExternalRepoJson(
 	data class Meta(
 		@SerialName("name") val name: String = "",
 		@SerialName("shortName") val shortName: String? = null,
+		@SerialName("website") val website: String? = null,
+		@SerialName("discord") val discord: String? = null,
 		@SerialName("signingKeyFingerprint") val signingKeyFingerprint: String = "",
 	)
 }
@@ -133,11 +135,29 @@ internal fun parseRepoInfo(repoUrl: String, body: String): ExternalRepoInfo? {
 	// Legacy: { "meta": { "name", "shortName", "signingKeyFingerprint" } }
 	runCatching { repoJsonParser.decodeFromString<ExternalRepoJson>(body) }.getOrNull()?.meta
 		?.takeIf { it.name.isNotBlank() && it.signingKeyFingerprint.isNotBlank() }
-		?.let { return ExternalRepoInfo(repoUrl, it.name, it.shortName, it.signingKeyFingerprint) }
+		?.let {
+			return ExternalRepoInfo(
+				url = repoUrl,
+				name = it.name,
+				shortName = it.shortName,
+				fingerprint = it.signingKeyFingerprint,
+				website = it.website,
+				discord = it.discord,
+			)
+		}
 	// Newer store: { "name", "badgeLabel", "signingKey", ... }
 	runCatching { repoJsonParser.decodeFromString<NetworkExtensionStore>(body) }.getOrNull()
 		?.takeIf { it.name.isNotBlank() && it.signingKey.isNotBlank() }
-		?.let { return ExternalRepoInfo(repoUrl, it.name, it.badgeLabel.ifBlank { null }, it.signingKey) }
+		?.let {
+			return ExternalRepoInfo(
+				url = repoUrl,
+				name = it.name,
+				shortName = it.badgeLabel.ifBlank { null },
+				fingerprint = it.signingKey,
+				website = it.contact?.website?.takeIf(String::isNotBlank),
+				discord = it.contact?.discord?.takeIf(String::isNotBlank),
+			)
+		}
 	return null
 }
 

@@ -223,6 +223,9 @@
 			</intent-filter>
 		</activity>
 		<activity
+			android:name="org.koitharu.kotatsu.settings.sources.catalog.stores.ExtensionStoresActivity"
+			android:label="@string/manage_stores" />
+		<activity
 			android:name="org.koitharu.kotatsu.scrobbling.kitsu.ui.KitsuAuthActivity"
 			android:exported="false"
 			android:label="@string/kitsu"

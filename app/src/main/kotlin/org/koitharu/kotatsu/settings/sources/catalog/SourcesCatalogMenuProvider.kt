@@ -33,12 +33,12 @@ class SourcesCatalogMenuProvider(
 			(activity as? SourcesCatalogActivity)?.onManageRepoRequested()
 			true
 		}
-		R.id.action_repo_remove -> {
-			(activity as? SourcesCatalogActivity)?.onRemoveRepoRequested()
-			true
-		}
 		R.id.action_extension_settings -> {
 			(activity as? SourcesCatalogActivity)?.onExtensionSettingsRequested()
+			true
+		}
+		R.id.action_update_all -> {
+			(activity as? SourcesCatalogActivity)?.onUpdateAllRequested()
 			true
 		}
 		else -> false
@@ -46,14 +46,15 @@ class SourcesCatalogMenuProvider(
 
 	override fun onPrepareMenu(menu: Menu) {
 		menu.findItem(R.id.action_extension_settings).apply {
-			isVisible = isExternalOnly || viewModel.content.value.isNotEmpty()
+			isVisible = isExternalOnly || viewModel.content.value.items.isNotEmpty()
 			icon = ContextCompat.getDrawable(activity, R.drawable.ic_settings)
 		}
 		menu.findItem(R.id.action_repo).apply {
-			isVisible = isExternalOnly || viewModel.content.value.isNotEmpty()
+			isVisible = isExternalOnly || viewModel.content.value.items.isNotEmpty()
 			icon = ContextCompat.getDrawable(activity, R.drawable.ic_edit)
 		}
-		menu.findItem(R.id.action_repo_remove).isVisible = false
+		menu.findItem(R.id.action_update_all).isVisible =
+			(activity as? SourcesCatalogActivity)?.isUpdatesPageSelected() == true && viewModel.hasUpdates.value
 	}
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {

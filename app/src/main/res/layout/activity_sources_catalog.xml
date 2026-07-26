@@ -72,25 +72,21 @@
 
 		</HorizontalScrollView>
 
+		<com.google.android.material.tabs.TabLayout
+			android:id="@+id/tabs"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="@null"
+			app:tabGravity="start"
+			app:tabMode="scrollable" />
+
 	</com.google.android.material.appbar.AppBarLayout>
 
-	<org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout
-		android:id="@+id/swipeRefreshLayout"
+	<androidx.viewpager2.widget.ViewPager2
+		android:id="@+id/pager"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
-
-		<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
-			android:id="@+id/recyclerView"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:clipToPadding="false"
-			android:paddingTop="@dimen/margin_normal"
-			app:hideScrollbar="false"
-			app:bubbleSize="normal"
-			app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-	</org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout>
+		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
 	<com.google.android.material.floatingactionbutton.FloatingActionButton
 		android:id="@+id/button_scroll_to_top"
