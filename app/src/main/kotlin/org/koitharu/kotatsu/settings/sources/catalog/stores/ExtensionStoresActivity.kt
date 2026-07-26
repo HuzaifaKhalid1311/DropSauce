@@ -107,8 +107,6 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 
 	override fun onRemove(item: ExtensionStoreState) = confirmRemove(item)
 
-	override fun onReAdd(item: ExtensionStoreState) = reAddStore(item)
-
 	override fun onDrag(holder: RecyclerView.ViewHolder): Boolean {
 		reorderHelper.startDrag(holder)
 		return true
@@ -160,18 +158,6 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 			.setPositiveButton(R.string.remove) { _, _ -> viewModel.removeStore(item.store.id) }
 			.setNegativeButton(android.R.string.cancel, null)
 			.show()
-	}
-
-	private fun reAddStore(item: ExtensionStoreState) {
-		lifecycleScope.launch {
-			viewModel.reAddStore(item.store.id).onFailure {
-				Toast.makeText(
-					this@ExtensionStoresActivity,
-					it.message ?: getString(R.string.extensions_repo_load_error),
-					Toast.LENGTH_LONG,
-				).show()
-			}
-		}
 	}
 
 	private fun setDialogBusy(dialog: AlertDialog, busy: Boolean) {

@@ -53,7 +53,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val activePageId = MutableStateFlow(ExtensionCatalogPage.Updates.id)
-	private val hasUnknownStore = MutableStateFlow(false)
+	private val hasNoSourceExtensions = MutableStateFlow(false)
 	private val installingPackages = MutableStateFlow<Set<String>>(emptySet())
 	private val refreshTrigger = MutableStateFlow(0)
 	val isRefreshing = MutableStateFlow(false)
@@ -74,10 +74,10 @@ class SourcesCatalogViewModel @Inject constructor(
 	val onShowMessage = MutableEventFlow<Int>()
 	val pages: StateFlow<List<ExtensionCatalogPage>> = combine(
 		storeManager.states,
-		hasUnknownStore,
+		hasNoSourceExtensions,
 		showUpdatesTab,
-	) { states, includeUnknown, includeUpdates ->
-		buildExtensionCatalogPages(states.map { it.store }, includeUnknown, includeUpdates)
+	) { states, includeNoSource, includeUpdates ->
+		buildExtensionCatalogPages(states.map { it.store }, includeNoSource, includeUpdates)
 	}.stateIn(
 		viewModelScope + Dispatchers.Default,
 		SharingStarted.Eagerly,
@@ -119,7 +119,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val storeStates = args[9] as List<ExtensionStoreState>
 		val includeUpdates = args[10] as Boolean
 		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
-		refreshUnknownStoreState()
+		refreshNoSourceState()
 		val result = buildPage(pageId, storeStates, mode, f, q, includeUpdates)
 		isRefreshing.value = false
 		CatalogPageContent(pageId, result)
@@ -136,7 +136,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	init {
 		launchJob(Dispatchers.Default) {
 			storeManager.initialize()
-			refreshUnknownStoreState()
+			refreshNoSourceState()
 		}
 	}
 
@@ -154,7 +154,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			try {
 				repository.reloadMihonSources()
 				storeManager.refresh(forceRefresh = true)
-				refreshUnknownStoreState()
+				refreshNoSourceState()
 			} finally {
 				refreshTrigger.value++
 			}
@@ -177,7 +177,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		appliedFilter.value = filter.copy(types = types)
 	}
 
-	fun hasExternalRepoConfigured(): Boolean = storeManager.stores().any { it.enabled }
+	fun hasExternalRepoConfigured(): Boolean = storeManager.stores().isNotEmpty()
 
 	fun addExternalStore(url: String) {
 		launchJob(Dispatchers.Default) {
@@ -232,7 +232,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			).mapNotNull { local ->
 				val owner = storeManager.owner(mode, local) ?: return@mapNotNull null
 				val state = statesById[owner.id] ?: return@mapNotNull null
-				if (!owner.enabled || state.health != StoreHealth.AVAILABLE) return@mapNotNull null
+				if (state.health != StoreHealth.AVAILABLE) return@mapNotNull null
 				val entry = state.catalog.firstOrNull {
 					it.packageName == local.pkgName && it.isNewerThan(local)
 				} ?: return@mapNotNull null
@@ -253,7 +253,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private fun createInstallRequest(item: SourceCatalogItem.Extension): InstallRequest? {
 		val store = item.storeId?.let { id -> storeManager.stores().firstOrNull { it.id == id } }
-		if (store == null || !store.enabled) {
+		if (store == null) {
 			onShowMessage.call(R.string.extensions_repo_required)
 			return null
 		}
@@ -278,7 +278,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				?.takeIf { currentOwner?.id != store.id }
 				?.let {
 					ProviderReplacement(
-						currentOwner?.displayName ?: appContext.getString(R.string.unknown_store),
+						currentOwner?.displayName ?: appContext.getString(R.string.no_source),
 						store.displayName,
 					)
 				},
@@ -308,7 +308,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		onOpenPackageInstaller.call(requests)
 	}
 
-	private fun refreshUnknownStoreState() {
+	private fun refreshNoSourceState() {
 		val mode = if (settings.isPrivateInstallEnabled) {
 			ExtensionInstallMode.SANDBOX
 		} else {
@@ -318,7 +318,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			appContext,
 			privateMode = mode == ExtensionInstallMode.SANDBOX,
 		)
-		hasUnknownStore.value = installed.any { storeManager.owner(mode, it) == null }
+		hasNoSourceExtensions.value = installed.any { storeManager.owner(mode, it) == null }
 	}
 
 	private fun buildUpdatesPage(
@@ -338,7 +338,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val updates = installed.mapNotNull { local ->
 			val owner = storeManager.owner(mode, local) ?: return@mapNotNull null
 			val state = statesById[owner.id] ?: return@mapNotNull null
-			if (!owner.enabled || state.health != StoreHealth.AVAILABLE) return@mapNotNull null
+			if (state.health != StoreHealth.AVAILABLE) return@mapNotNull null
 			val entry = state.catalog.firstOrNull { it.packageName == local.pkgName && it.isNewerThan(local) }
 				?: return@mapNotNull null
 			val source = installedSourcesByPackage[local.pkgName]
@@ -383,7 +383,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		} else updates
 	}
 
-	private fun buildUnknownPage(
+	private fun buildNoSourcePage(
 		mode: ExtensionInstallMode,
 		filter: SourcesCatalogFilter,
 		query: String?,
@@ -428,7 +428,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			)
 		}.sortedBy { it.title.lowercase() }
 		return buildList {
-			add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.unknown_store, R.string.unknown_store_summary))
+			add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.no_source, R.string.no_source_summary))
 			if (items.isNotEmpty()) {
 				add(ListHeader(if (mode == ExtensionInstallMode.SANDBOX) R.string.enabled else R.string.installed))
 				addAll(items)
@@ -445,7 +445,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		showUpdatesTab: Boolean,
 	): List<ListModel> = when (pageId) {
 		ExtensionCatalogPage.Updates.id -> buildUpdatesPage(storeStates, mode, filter, query)
-		ExtensionCatalogPage.Unknown.id -> buildUnknownPage(mode, filter, query)
+		ExtensionCatalogPage.NoSource.id -> buildNoSourcePage(mode, filter, query)
 		else -> {
 			val storeState = storeStates.firstOrNull { it.store.id == pageId }
 				?: return listOf(LoadingState)
@@ -590,15 +590,7 @@ class SourcesCatalogViewModel @Inject constructor(
 
 		return buildList {
 			// The "no repository" / error hint always stays pinned at the very top.
-			if (storeState.health == StoreHealth.REMOVED) {
-				add(
-					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_error_large,
-						title = R.string.store_removed,
-						text = R.string.store_removed_catalog_warning,
-					),
-				)
-			} else if (storeState.health == StoreHealth.UNAVAILABLE) {
+			if (storeState.health == StoreHealth.UNAVAILABLE) {
 				add(
 					SourceCatalogItem.Hint(
 						icon = R.drawable.ic_error_large,
@@ -795,9 +787,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		disabledItems.sortWith(titleComparator)
 
 		return buildList {
-			if (storeState.health == StoreHealth.REMOVED) {
-				add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.store_removed, R.string.store_removed_catalog_warning))
-			} else if (storeState.health == StoreHealth.UNAVAILABLE) {
+			if (storeState.health == StoreHealth.UNAVAILABLE) {
 				add(SourceCatalogItem.Hint(R.drawable.ic_error_large, R.string.error, R.string.extensions_repo_load_error))
 			}
 			if (updateItems.isNotEmpty()) {
@@ -895,7 +885,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				?: storeManager.owner(ExtensionInstallMode.SYSTEM, packageName)
 				?: return@mapNotNull null
 			val state = statesById[owner.id] ?: return@mapNotNull null
-			if (!owner.enabled || state.health != StoreHealth.AVAILABLE) return@mapNotNull null
+			if (state.health != StoreHealth.AVAILABLE) return@mapNotNull null
 			val entry = state.catalog.firstOrNull { it.packageName == packageName } ?: return@mapNotNull null
 			InstallRequest(
 				packageName = packageName,

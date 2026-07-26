@@ -32,16 +32,27 @@ class ExtensionStoreRegistryTest {
 	}
 
 	@Test
-	fun `disabled store is retained while owned and removed after ownership leaves`() {
+	fun `removing a store also removes its ownerships`() {
 		val owned = ExtensionStoreRegistryState(stores = listOf(store("one")))
 			.setOwner(ExtensionInstallMode.SYSTEM, PACKAGE, "one")
-			.disable("one")
-			.cleanupDisabledStores()
+			.setOwner(ExtensionInstallMode.SANDBOX, PACKAGE, "one")
 
-		assertFalse(owned.stores.single().enabled)
+		val removed = owned.removeStore("one")
 
-		val cleaned = owned.removeOwner(ExtensionInstallMode.SYSTEM, PACKAGE).cleanupDisabledStores()
+		assertTrue(removed.stores.isEmpty())
+		assertNull(removed.ownerId(ExtensionInstallMode.SYSTEM, PACKAGE))
+		assertNull(removed.ownerId(ExtensionInstallMode.SANDBOX, PACKAGE))
+	}
+
+	@Test
+	fun `legacy disabled stores and their ownerships are discarded`() {
+		val legacy = ExtensionStoreRegistryState(stores = listOf(store("one").copy(enabled = false)))
+			.setOwner(ExtensionInstallMode.SYSTEM, PACKAGE, "one")
+
+		val cleaned = legacy.cleanupDisabledStores()
+
 		assertTrue(cleaned.stores.isEmpty())
+		assertTrue(cleaned.ownerships.isEmpty())
 	}
 
 	@Test
@@ -114,17 +125,14 @@ class ExtensionStoreRegistryTest {
 			repoInfos = emptyList(),
 		)
 
-		assertEquals(2, state.stores.size)
-		assertTrue(state.stores.first { it.indexUrl == normalizeExtensionStoreUrl(activeUrl) }.enabled)
-		assertFalse(state.stores.first { it.indexUrl == normalizeExtensionStoreUrl(historicalUrl) }.enabled)
+		assertEquals(1, state.stores.size)
+		assertEquals(normalizeExtensionStoreUrl(activeUrl), state.stores.single().indexUrl)
 		assertEquals(
 			state.stores.first { it.indexUrl == normalizeExtensionStoreUrl(activeUrl) }.id,
 			state.ownerId(ExtensionInstallMode.SYSTEM, PACKAGE),
 		)
-		assertEquals(
-			state.stores.first { it.indexUrl == normalizeExtensionStoreUrl(activeUrl) }.id,
-			state.ownerId(ExtensionInstallMode.SANDBOX, PACKAGE),
-		)
+		assertEquals(state.stores.single().id, state.ownerId(ExtensionInstallMode.SANDBOX, PACKAGE))
+		assertNull(state.ownerId(ExtensionInstallMode.SYSTEM, "old.extension"))
 		assertNull(state.ownerId(ExtensionInstallMode.SYSTEM, "missing.extension"))
 	}
 

@@ -106,16 +106,6 @@
 			app:srcCompat="@drawable/ic_delete"
 			app:tint="?attr/colorOnSurfaceVariant" />
 
-		<ImageButton
-			android:id="@+id/button_readd"
-			android:layout_width="40dp"
-			android:layout_height="40dp"
-			android:background="?selectableItemBackgroundBorderless"
-			android:contentDescription="@string/readd_store"
-			android:padding="10dp"
-			app:srcCompat="@drawable/ic_add"
-			app:tint="?attr/colorOnSurfaceVariant" />
-
 	</LinearLayout>
 
 	<ImageView

@@ -28,9 +28,6 @@ class ExtensionStoresViewModel @Inject constructor(
 
 	fun removeStore(storeId: String) = manager.removeStore(storeId)
 
-	suspend fun reAddStore(storeId: String): Result<ExtensionStoreRecord> =
-		manager.reAddStore(storeId)
-
 	suspend fun retry() = manager.refresh(forceRefresh = true)
 
 	fun moveStore(fromIndex: Int, toIndex: Int) = manager.moveStore(fromIndex, toIndex)

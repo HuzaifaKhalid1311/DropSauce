@@ -201,7 +201,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		TabLayoutMediator(viewBinding.tabs, viewBinding.pager) { tab, position ->
 			tab.text = when (val page = pagesAdapter.pageAt(position)) {
 				ExtensionCatalogPage.Updates -> getString(R.string.updates)
-				ExtensionCatalogPage.Unknown -> getString(R.string.unknown_store)
+				ExtensionCatalogPage.NoSource -> getString(R.string.no_source)
 				is ExtensionCatalogPage.Store -> page.title
 				null -> ""
 			}

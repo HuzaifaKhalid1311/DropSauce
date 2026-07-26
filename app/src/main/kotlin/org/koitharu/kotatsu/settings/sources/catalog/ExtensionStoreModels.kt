@@ -45,14 +45,14 @@ sealed interface ExtensionCatalogPage {
 		val title: String,
 	) : ExtensionCatalogPage
 
-	data object Unknown : ExtensionCatalogPage {
-		override val id: String = "unknown"
+	data object NoSource : ExtensionCatalogPage {
+		override val id: String = "no_source"
 	}
 }
 
 fun buildExtensionCatalogPages(
 	stores: List<ExtensionStoreRecord>,
-	includeUnknown: Boolean,
+	includeNoSource: Boolean,
 	includeUpdates: Boolean = true,
 ): List<ExtensionCatalogPage> {
 	val labels = extensionStoreDisplayLabels(stores)
@@ -61,7 +61,7 @@ fun buildExtensionCatalogPages(
 		stores.mapTo(this) { store ->
 			ExtensionCatalogPage.Store(store.id, labels[store.id] ?: store.displayName)
 		}
-		if (includeUnknown) add(ExtensionCatalogPage.Unknown)
+		if (includeNoSource) add(ExtensionCatalogPage.NoSource)
 	}
 }
 
@@ -111,8 +111,9 @@ data class ExtensionStoreRegistryState(
 		)
 	}
 
-	fun disable(storeId: String): ExtensionStoreRegistryState = copy(
-		stores = stores.map { store -> if (store.id == storeId) store.copy(enabled = false) else store },
+	fun removeStore(storeId: String): ExtensionStoreRegistryState = copy(
+		stores = stores.filterNot { it.id == storeId },
+		ownerships = ownerships.filterNot { it.storeId == storeId },
 	)
 
 	fun move(fromIndex: Int, toIndex: Int): ExtensionStoreRegistryState {
@@ -142,8 +143,12 @@ data class ExtensionStoreRegistryState(
 		ownerships.firstOrNull { it.mode == mode && it.packageName == packageName }?.storeId
 
 	fun cleanupDisabledStores(): ExtensionStoreRegistryState {
-		val referencedStoreIds = ownerships.mapTo(HashSet()) { it.storeId }
-		return copy(stores = stores.filter { it.enabled || it.id in referencedStoreIds })
+		val enabledStores = stores.filter { it.enabled }
+		val enabledStoreIds = enabledStores.mapTo(HashSet()) { it.id }
+		return copy(
+			stores = enabledStores,
+			ownerships = ownerships.filter { it.storeId in enabledStoreIds },
+		)
 	}
 
 	fun reconcileOwnerships(

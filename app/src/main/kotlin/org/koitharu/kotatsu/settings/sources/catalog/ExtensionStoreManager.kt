@@ -19,7 +19,6 @@ enum class StoreHealth {
 	CHECKING,
 	AVAILABLE,
 	UNAVAILABLE,
-	REMOVED,
 }
 
 data class ExtensionStoreState(
@@ -85,21 +84,8 @@ class ExtensionStoreManager @Inject constructor(
 	}
 
 	fun removeStore(storeId: String) {
-		registry.disable(storeId)
+		registry.removeStore(storeId)
 		syncRecords()
-	}
-
-	suspend fun reAddStore(storeId: String): Result<ExtensionStoreRecord> = mutex.withLock {
-		withContext(Dispatchers.IO) {
-			runCatching {
-				val current = registry.findStore(storeId) ?: error("Store not found")
-				val validated = repository.validateStore(current.indexUrl)
-				val replacement = validated.store.copy(id = current.id, enabled = true)
-				registry.replace(replacement)
-				publishState(ExtensionStoreState(replacement, StoreHealth.AVAILABLE, validated.catalog))
-				replacement
-			}
-		}
 	}
 
 	fun moveStore(fromIndex: Int, toIndex: Int) {
@@ -140,27 +126,19 @@ class ExtensionStoreManager @Inject constructor(
 	private suspend fun refreshLocked(forceRefresh: Boolean) {
 		val previousById = mutableStates.value.associateBy { it.store.id }
 		mutableStates.value = registry.state.stores.map { store ->
-			if (store.enabled) {
-				previousById[store.id]?.copy(store = store, health = StoreHealth.CHECKING, error = null)
-					?: ExtensionStoreState(store, StoreHealth.CHECKING)
-			} else {
-				ExtensionStoreState(store, StoreHealth.REMOVED)
-			}
+			previousById[store.id]?.copy(store = store, health = StoreHealth.CHECKING, error = null)
+				?: ExtensionStoreState(store, StoreHealth.CHECKING)
 		}
 		mutableStates.value = registry.state.stores.map { store ->
 			val previous = previousById[store.id]
-			if (!store.enabled) {
-				storeStateAfterRefresh(store, previous, Result.success(emptyList()))
+			val fresh = runCatching { repository.getExtensions(store.indexUrl, forceRefresh) }
+			val fallbackPrevious = if (fresh.isFailure) {
+				val cached = runCatching { repository.getCachedExtensions(store.indexUrl) }.getOrNull()
+				if (cached != null) ExtensionStoreState(store, StoreHealth.AVAILABLE, cached) else previous
 			} else {
-				val fresh = runCatching { repository.getExtensions(store.indexUrl, forceRefresh) }
-				val fallbackPrevious = if (fresh.isFailure) {
-					val cached = runCatching { repository.getCachedExtensions(store.indexUrl) }.getOrNull()
-					if (cached != null) ExtensionStoreState(store, StoreHealth.AVAILABLE, cached) else previous
-				} else {
-					previous
-				}
-				storeStateAfterRefresh(store, fallbackPrevious, fresh)
+				previous
 			}
+			storeStateAfterRefresh(store, fallbackPrevious, fresh)
 		}
 	}
 
@@ -176,11 +154,11 @@ class ExtensionStoreManager @Inject constructor(
 		mutableStates.value = registry.state.stores.map { record ->
 			previous[record.id]?.copy(
 				store = record,
-				health = if (record.enabled) previous[record.id]?.health ?: StoreHealth.CHECKING else StoreHealth.REMOVED,
-				catalog = if (record.enabled) previous[record.id]?.catalog.orEmpty() else emptyList(),
+				health = previous[record.id]?.health ?: StoreHealth.CHECKING,
+				catalog = previous[record.id]?.catalog.orEmpty(),
 			) ?: ExtensionStoreState(
 				store = record,
-				health = if (record.enabled) StoreHealth.CHECKING else StoreHealth.REMOVED,
+				health = StoreHealth.CHECKING,
 			)
 		}
 	}
@@ -191,7 +169,6 @@ fun storeStateAfterRefresh(
 	previous: ExtensionStoreState?,
 	result: Result<List<ExternalExtensionRepoEntry>>,
 ): ExtensionStoreState = when {
-	!store.enabled -> ExtensionStoreState(store, StoreHealth.REMOVED)
 	result.isSuccess -> ExtensionStoreState(store, StoreHealth.AVAILABLE, result.getOrThrow())
 	else -> ExtensionStoreState(
 		store = store,

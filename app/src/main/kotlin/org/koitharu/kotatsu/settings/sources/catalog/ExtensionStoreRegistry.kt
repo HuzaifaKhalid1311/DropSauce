@@ -57,7 +57,7 @@ class ExtensionStoreRegistry @Inject constructor(
 		}
 	}
 
-	fun disable(storeId: String) = update { it.disable(storeId).cleanupDisabledStores() }
+	fun removeStore(storeId: String) = update { it.removeStore(storeId) }
 
 	fun move(fromIndex: Int, toIndex: Int) = update { it.move(fromIndex, toIndex) }
 

@@ -18,19 +18,19 @@ class ExtensionCatalogPagesTest {
 				ExtensionCatalogPage.Store("second", "Second"),
 				ExtensionCatalogPage.Store("first", "First"),
 			),
-			buildExtensionCatalogPages(stores, includeUnknown = false),
+			buildExtensionCatalogPages(stores, includeNoSource = false),
 		)
 	}
 
 	@Test
-	fun `unknown page is appended only when required`() {
+	fun `no source page is appended only when required`() {
 		val stores = listOf(store("known", "Known"))
 
 		assertEquals(
-			ExtensionCatalogPage.Unknown,
-			buildExtensionCatalogPages(stores, includeUnknown = true).last(),
+			ExtensionCatalogPage.NoSource,
+			buildExtensionCatalogPages(stores, includeNoSource = true).last(),
 		)
-		assertEquals(2, buildExtensionCatalogPages(stores, includeUnknown = false).size)
+		assertEquals(2, buildExtensionCatalogPages(stores, includeNoSource = false).size)
 	}
 
 	@Test
@@ -42,7 +42,7 @@ class ExtensionCatalogPagesTest {
 				ExtensionCatalogPage.Store("second", "Second"),
 				ExtensionCatalogPage.Store("first", "First"),
 			),
-			buildExtensionCatalogPages(stores, includeUnknown = false, includeUpdates = false),
+			buildExtensionCatalogPages(stores, includeNoSource = false, includeUpdates = false),
 		)
 	}
 

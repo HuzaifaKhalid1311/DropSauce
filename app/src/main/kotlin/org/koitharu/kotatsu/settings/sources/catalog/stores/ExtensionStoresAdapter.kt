@@ -60,45 +60,35 @@ class ExtensionStoresAdapter(
 		@SuppressLint("ClickableViewAccessibility")
 		fun bind(item: ExtensionStoreState) {
 			binding.textTitle.text = labels[item.store.id] ?: item.store.displayName
-			val removed = item.health == StoreHealth.REMOVED
-			binding.root.alpha = if (removed) 0.55f else 1f
-			binding.storeStatus.isVisible = !removed
-			if (!removed) {
-				val color = when (item.health) {
-					StoreHealth.AVAILABLE -> ContextCompat.getColor(binding.root.context, R.color.common_green)
-					StoreHealth.UNAVAILABLE -> com.google.android.material.color.MaterialColors.getColor(
-						binding.root,
-						androidx.appcompat.R.attr.colorError,
-					)
-					StoreHealth.CHECKING -> com.google.android.material.color.MaterialColors.getColor(
-						binding.root,
-						com.google.android.material.R.attr.colorOnSurfaceVariant,
-					)
-					StoreHealth.REMOVED -> error("Handled above")
-				}
-				binding.storeStatus.backgroundTintList = ColorStateList.valueOf(color)
+			val color = when (item.health) {
+				StoreHealth.AVAILABLE -> ContextCompat.getColor(binding.root.context, R.color.common_green)
+				StoreHealth.UNAVAILABLE -> com.google.android.material.color.MaterialColors.getColor(
+					binding.root,
+					androidx.appcompat.R.attr.colorError,
+				)
+				StoreHealth.CHECKING -> com.google.android.material.color.MaterialColors.getColor(
+					binding.root,
+					com.google.android.material.R.attr.colorOnSurfaceVariant,
+				)
 			}
+			binding.storeStatus.backgroundTintList = ColorStateList.valueOf(color)
 			binding.storeStatus.contentDescription = binding.root.context.getString(
 				when (item.health) {
 					StoreHealth.AVAILABLE -> R.string.store_available
 					StoreHealth.UNAVAILABLE -> R.string.store_unavailable
-					StoreHealth.REMOVED -> R.string.store_removed
 					StoreHealth.CHECKING -> R.string.loading_
 				},
 			)
-			binding.buttonEdit.isVisible = item.store.enabled
+			binding.buttonEdit.isVisible = true
 			binding.buttonRetry.isVisible = item.health == StoreHealth.UNAVAILABLE
 			binding.buttonWebsite.isVisible = !item.store.website.isNullOrBlank()
 			binding.buttonDiscord.isVisible = !item.store.discord.isNullOrBlank()
-			binding.buttonRemove.isVisible = item.store.enabled
-			binding.buttonReadd.isVisible = !item.store.enabled
 			binding.buttonEdit.setOnClickListener { listener.onEdit(item) }
 			binding.buttonCopy.setOnClickListener { listener.onCopy(item) }
 			binding.buttonRetry.setOnClickListener { listener.onRetry() }
 			binding.buttonWebsite.setOnClickListener { item.store.website?.let(listener::onOpenLink) }
 			binding.buttonDiscord.setOnClickListener { item.store.discord?.let(listener::onOpenLink) }
 			binding.buttonRemove.setOnClickListener { listener.onRemove(item) }
-			binding.buttonReadd.setOnClickListener { listener.onReAdd(item) }
 			binding.dragHandle.setOnTouchListener { _, event ->
 				event.actionMasked == MotionEvent.ACTION_DOWN && listener.onDrag(this)
 			}
@@ -111,7 +101,6 @@ class ExtensionStoresAdapter(
 		fun onRetry()
 		fun onOpenLink(url: String)
 		fun onRemove(item: ExtensionStoreState)
-		fun onReAdd(item: ExtensionStoreState)
 		fun onDrag(holder: RecyclerView.ViewHolder): Boolean
 	}
 }

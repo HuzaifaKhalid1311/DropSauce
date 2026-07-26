@@ -20,17 +20,6 @@ class ExtensionStoreManagerTest {
 	}
 
 	@Test
-	fun `removed store keeps no available catalog`() {
-		val removed = record("one", "Store").copy(enabled = false)
-		val previous = ExtensionStoreState(removed.copy(enabled = true), StoreHealth.AVAILABLE, listOf(entry("cached.extension")))
-
-		val next = storeStateAfterRefresh(removed, previous, Result.success(listOf(entry("new.extension"))))
-
-		assertEquals(StoreHealth.REMOVED, next.health)
-		assertTrue(next.catalog.isEmpty())
-	}
-
-	@Test
 	fun `first load after legacy migration bypasses the stale http cache`() {
 		assertTrue(shouldForceStoreRefresh(forceRefresh = false, migrationPerformed = true))
 	}
