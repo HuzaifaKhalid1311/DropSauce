@@ -49,48 +49,6 @@
                 app:tabMode="scrollable"
                 app:tabRippleColor="@android:color/transparent" />
 
-            <com.google.android.material.button.MaterialSplitButton
-                android:id="@+id/split_button_read"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                android:layout_marginStart="8dp"
-                android:paddingTop="0dp"
-                android:paddingBottom="0dp">
-
-                        <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_read"
-                    style="?materialSplitButtonLeadingFilledStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="92dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="@string/read"
-                    android:textSize="14sp"
-                    app:iconSize="20dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_read_menu"
-                    style="?materialSplitButtonIconFilledStyle"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:contentDescription="@string/show_menu"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:gravity="center"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:padding="0dp"
-                    app:icon="?expandCollapseIndicator"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:toggleCheckedStateOnClick="false" />
-
-            </com.google.android.material.button.MaterialSplitButton>
-
         </LinearLayout>
 
     </com.google.android.material.appbar.MaterialToolbar>

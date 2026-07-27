@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.ReaderMode
+import org.koitharu.kotatsu.core.ui.sheet.SheetSegment
+import org.koitharu.kotatsu.core.ui.sheet.SheetSegmentedSelector
 import kotlin.math.roundToInt
 
 @Composable
@@ -61,86 +63,13 @@ internal fun ReadModeSection(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(112.dp)
-                    .padding(8.dp),
-            ) {
-                val targetBias = when (selectedIndex) {
-                    0 -> -1f
-                    1 -> -1f / 3f
-                    2 -> 1f / 3f
-                    3 -> 1f
-                    else -> -1f
-                }
-                val animatedBias by animateFloatAsState(
-                    targetValue = targetBias,
-                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-                    label = "mode_highlighter",
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.25f)
-                        .align(BiasAlignment(horizontalBias = animatedBias, verticalBias = 0f))
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    modes.forEachIndexed { index, (mode, pair) ->
-                        val (labelRes, iconRes) = pair
-                        val isSelected = selectedMode == mode
-                        val contentColor by animateColorAsState(
-                            targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            label = "segment_fg_$index",
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .clickable(
-                                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                                    indication = null,
-                                ) { onModeSelected(mode) },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                            ) {
-                                Icon(
-                                    painter = painterResource(iconRes),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(34.dp),
-                                    tint = contentColor,
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = stringResource(labelRes),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = contentColor,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        SheetSegmentedSelector(
+            options = modes.map { (_, pair) ->
+                SheetSegment(label = stringResource(pair.first), icon = painterResource(pair.second))
+            },
+            selectedIndex = selectedIndex,
+            onSelect = { index -> onModeSelected(modes[index].first) },
+        )
 
         Text(
             text = stringResource(R.string.reader_mode_hint),

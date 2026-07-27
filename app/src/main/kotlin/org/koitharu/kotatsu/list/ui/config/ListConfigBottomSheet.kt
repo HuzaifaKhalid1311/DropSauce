@@ -4,34 +4,46 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.CompoundButton
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Slider
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
-import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.slider.Slider
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
+import org.koitharu.kotatsu.core.ui.sheet.SheetContentPadding
+import org.koitharu.kotatsu.core.ui.sheet.SheetSection
+import org.koitharu.kotatsu.core.ui.sheet.SheetSegment
+import org.koitharu.kotatsu.core.ui.sheet.SheetSegmentedSelector
+import org.koitharu.kotatsu.core.ui.sheet.SheetSelectorField
+import org.koitharu.kotatsu.core.ui.sheet.SheetSwitchRow
 import org.koitharu.kotatsu.core.util.ext.consume
-import org.koitharu.kotatsu.core.util.ext.setValueRounded
-import org.koitharu.kotatsu.core.util.progress.IntPercentLabelFormatter
 import org.koitharu.kotatsu.databinding.SheetListModeBinding
-import com.google.android.material.R as materialR
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-class ListConfigBottomSheet :
-	BaseAdaptiveSheet<SheetListModeBinding>(),
-	Slider.OnChangeListener,
-	MaterialButtonToggleGroup.OnButtonCheckedListener, CompoundButton.OnCheckedChangeListener,
-	AdapterView.OnItemSelectedListener {
+class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 
 	private val viewModel by viewModels<ListConfigViewModel>()
 
@@ -42,45 +54,11 @@ class ListConfigBottomSheet :
 
 	override fun onViewBindingCreated(binding: SheetListModeBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
-		val mode = viewModel.listMode
-		binding.buttonList.isChecked = mode == ListMode.LIST
-		binding.buttonListDetailed.isChecked = mode == ListMode.DETAILED_LIST
-		binding.buttonGrid.isChecked = mode == ListMode.GRID
-		binding.buttonCoverOnly.isChecked = mode == ListMode.COVER_ONLY
-		binding.adjustGridOptions(mode, withAnimation = false)
-		binding.switchTitleOverCover.isChecked = viewModel.isTitleOverCover
-		binding.switchTitleOverCover.setOnCheckedChangeListener(this)
-		binding.switchGridSpacing.isChecked = viewModel.isGridSpacingIncreased
-		binding.switchGridSpacing.setOnCheckedChangeListener(this)
-
-		binding.sliderGrid.setLabelFormatter(IntPercentLabelFormatter(binding.root.context))
-		binding.sliderGrid.setValueRounded(viewModel.gridSize.toFloat())
-		binding.sliderGrid.addOnChangeListener(this)
-
-		binding.checkableGroup.addOnButtonCheckedListener(this)
-
-		binding.switchGrouping.isVisible = viewModel.isGroupingSupported
-		if (viewModel.isGroupingSupported) {
-			binding.switchGrouping.isEnabled = viewModel.isGroupingAvailable
-		}
-		binding.switchGrouping.isChecked = viewModel.isGroupingEnabled
-		binding.switchGrouping.setOnCheckedChangeListener(this)
-
-		val sortOrders = viewModel.getSortOrders()
-		if (sortOrders != null) {
-			binding.textViewOrderTitle.isVisible = true
-			binding.spinnerOrder.adapter = ArrayAdapter(
-				binding.spinnerOrder.context,
-				android.R.layout.simple_spinner_dropdown_item,
-				android.R.id.text1,
-				sortOrders.map { binding.spinnerOrder.context.getString(it.titleResId) },
-			)
-			val selected = sortOrders.indexOf(viewModel.getSelectedSortOrder())
-			if (selected >= 0) {
-				binding.spinnerOrder.setSelection(selected, false)
+		binding.composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+		binding.composeView.setContent {
+			DropSauceTheme {
+				Content()
 			}
-			binding.spinnerOrder.onItemSelectedListener = this
-			binding.cardOrder.isVisible = true
 		}
 	}
 
@@ -92,65 +70,129 @@ class ListConfigBottomSheet :
 		return insets.consume(v, typeMask, bottom = true)
 	}
 
-	override fun onButtonChecked(group: MaterialButtonToggleGroup?, checkedId: Int, isChecked: Boolean) {
-		if (!isChecked) {
-			return
-		}
-		val mode = when (checkedId) {
-			R.id.button_list -> ListMode.LIST
-			R.id.button_list_detailed -> ListMode.DETAILED_LIST
-			R.id.button_grid -> ListMode.GRID
-			R.id.button_cover_only -> ListMode.COVER_ONLY
-			else -> return
-		}
-		requireViewBinding().adjustGridOptions(mode, withAnimation = true)
-		viewModel.listMode = mode
-	}
-
-	private fun SheetListModeBinding.adjustGridOptions(mode: ListMode, withAnimation: Boolean) {
-		val isGridMode = mode == ListMode.GRID || mode == ListMode.COVER_ONLY
-		val needTransition = withAnimation && (
-			isGridMode != textViewGridTitle.isVisible ||
-				isGridMode != sliderGrid.isVisible
+	@Composable
+	private fun Content() {
+		// The view model exposes plain settings-backed properties rather than flows, so the sheet holds
+		// its own state and writes straight through on change — exactly what the old listeners did.
+		var mode by remember { mutableStateOf(viewModel.listMode) }
+		var isTitleOverCover by remember { mutableStateOf(viewModel.isTitleOverCover) }
+		var isGridSpacingIncreased by remember { mutableStateOf(viewModel.isGridSpacingIncreased) }
+		var gridSize by remember { mutableFloatStateOf(viewModel.gridSize.toFloat()) }
+		var isGroupingEnabled by remember { mutableStateOf(viewModel.isGroupingEnabled) }
+		var isGroupingAvailable by remember { mutableStateOf(viewModel.isGroupingAvailable) }
+		val sortOrders = remember { viewModel.getSortOrders() }
+		var sortOrderIndex by remember {
+			mutableIntStateOf(
+				sortOrders?.indexOf(viewModel.getSelectedSortOrder())?.coerceAtLeast(0) ?: 0,
 			)
-		if (needTransition) {
-			val transition = AutoTransition().apply {
-				duration = 250L
-				interpolator = AccelerateDecelerateInterpolator()
+		}
+		val isGridMode = mode == ListMode.GRID || mode == ListMode.COVER_ONLY
+
+		Column(modifier = Modifier.padding(bottom = 16.dp)) {
+			SheetSection(title = stringResource(R.string.list_mode)) {
+				SheetSegmentedSelector(
+					options = LIST_MODES.map { (_, labelRes, iconRes) ->
+						SheetSegment(label = stringResource(labelRes), icon = painterResource(iconRes))
+					},
+					selectedIndex = LIST_MODES.indexOfFirst { it.first == mode }.coerceAtLeast(0),
+					onSelect = { index ->
+						val value = LIST_MODES[index].first
+						mode = value
+						viewModel.listMode = value
+					},
+					modifier = Modifier.padding(horizontal = SheetContentPadding),
+				)
 			}
-			val sceneRoot = dialog?.findViewById<ViewGroup>(materialR.id.coordinator)
-				?: dialog?.findViewById<ViewGroup>(materialR.id.design_bottom_sheet)
-				?: root
-			TransitionManager.beginDelayedTransition(sceneRoot, transition)
-		}
-		textViewGridTitle.isVisible = isGridMode
-		sliderGrid.isVisible = isGridMode
-		switchTitleOverCover.isEnabled = isGridMode
-		switchGridSpacing.isEnabled = isGridMode
-	}
 
-	override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-		when (buttonView.id) {
-			R.id.switch_grouping -> viewModel.isGroupingEnabled = isChecked
-			R.id.switch_title_over_cover -> viewModel.isTitleOverCover = isChecked
-			R.id.switch_grid_spacing -> viewModel.isGridSpacingIncreased = isChecked
-		}
-	}
+			SheetSwitchRow(
+				icon = painterResource(R.drawable.ic_title),
+				title = stringResource(R.string.title_over_cover),
+				checked = isTitleOverCover,
+				enabled = isGridMode,
+				onCheckedChange = {
+					isTitleOverCover = it
+					viewModel.isTitleOverCover = it
+				},
+				modifier = Modifier.padding(top = 8.dp),
+			)
+			SheetSwitchRow(
+				icon = painterResource(R.drawable.ic_grid),
+				title = stringResource(R.string.increase_cover_spacing),
+				checked = isGridSpacingIncreased,
+				enabled = isGridMode,
+				onCheckedChange = {
+					isGridSpacingIncreased = it
+					viewModel.isGridSpacingIncreased = it
+				},
+			)
 
-	override fun onValueChange(slider: Slider, value: Float, fromUser: Boolean) {
-		if (fromUser) {
-			viewModel.gridSize = value.toInt()
-		}
-	}
+			// Grid sizing only means something in the two cover-based modes, so it slides in and out
+			// with the mode choice instead of sitting there permanently disabled.
+			AnimatedVisibility(
+				visible = isGridMode,
+				enter = expandVertically() + fadeIn(),
+				exit = shrinkVertically() + fadeOut(),
+			) {
+				SheetSection(
+					title = stringResource(R.string.grid_size),
+					value = "${gridSize.roundToInt()}%",
+				) {
+					Slider(
+						value = gridSize,
+						valueRange = GRID_SIZE_MIN..GRID_SIZE_MAX,
+						onValueChange = {
+							gridSize = it
+							viewModel.gridSize = it.roundToInt()
+						},
+						modifier = Modifier.padding(horizontal = SheetContentPadding),
+					)
+				}
+			}
 
-	override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-		when (parent.id) {
-			R.id.spinner_order -> {
-				viewModel.setSortOrder(position)
-				viewBinding?.switchGrouping?.isEnabled = viewModel.isGroupingAvailable
+			if (sortOrders != null) {
+				SheetSection(title = stringResource(R.string.sort_order)) {
+					SheetSelectorField(
+						current = sortOrders.getOrNull(sortOrderIndex)
+							?.let { stringResource(it.titleResId) }
+							.orEmpty(),
+						items = sortOrders.map { stringResource(it.titleResId) },
+						onSelect = { index ->
+							sortOrderIndex = index
+							viewModel.setSortOrder(index)
+							isGroupingAvailable = viewModel.isGroupingAvailable
+						},
+						modifier = Modifier.padding(horizontal = SheetContentPadding),
+					)
+				}
+			}
+
+			if (viewModel.isGroupingSupported) {
+				SheetSwitchRow(
+					icon = painterResource(R.drawable.ic_list_group),
+					title = stringResource(R.string.group),
+					checked = isGroupingEnabled,
+					enabled = isGroupingAvailable,
+					onCheckedChange = {
+						isGroupingEnabled = it
+						viewModel.isGroupingEnabled = it
+					},
+					modifier = Modifier.padding(top = 8.dp),
+				)
 			}
 		}
 	}
 
-	override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+	private companion object {
+
+		const val GRID_SIZE_MIN = 50f
+		const val GRID_SIZE_MAX = 150f
+
+		/** Mode tiles in display order: the mode, its label and its icon. */
+		val LIST_MODES = listOf(
+			Triple(ListMode.LIST, R.string.compact, R.drawable.ic_list),
+			Triple(ListMode.DETAILED_LIST, R.string.details, R.drawable.ic_list_detailed),
+			Triple(ListMode.GRID, R.string.grid, R.drawable.ic_grid),
+			Triple(ListMode.COVER_ONLY, R.string.cover_only, R.drawable.ic_images),
+		)
+	}
 }

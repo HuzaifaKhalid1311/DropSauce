@@ -6,6 +6,7 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -47,8 +48,6 @@ import org.koitharu.kotatsu.databinding.ActivityMangaListBinding
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
 import org.koitharu.kotatsu.filter.ui.FilterHeaderFragment
-import org.koitharu.kotatsu.filter.ui.mihon.MihonFilterSheetFragment
-import org.koitharu.kotatsu.filter.ui.sheet.FilterSheetFragment
 import org.koitharu.kotatsu.mihon.MihonFilterMapper
 import org.koitharu.kotatsu.list.ui.preview.PreviewFragment
 import org.koitharu.kotatsu.local.ui.LocalListFragment
@@ -223,10 +222,6 @@ class MangaListActivity :
 			if (viewBinding.containerFilterHeader != null) {
 				replace(R.id.container_filter_header, FilterHeaderFragment::class.java, null)
 			}
-			if (viewBinding.containerSide != null) {
-				// reloadList only fires for remote (Mihon) multi-language sources, which are dynamic.
-				replace(R.id.container_side, MihonFilterSheetFragment::class.java, null)
-			}
 			runOnCommit { findFilterOwner()?.let { initFilter(it) } }
 		}
 	}
@@ -242,8 +237,10 @@ class MangaListActivity :
 		}
 		// The collapsing appbar is pinned (exitUntilCollapsed), so it owns the status bar area via
 		// top padding, same as the Downloads screen. The landscape layout has no collapsing bar.
+		// The side card only appears while previewing; whenever it's away the list spans the full width,
+		// so the top bar has to carry the end inset itself.
 		viewBinding.appbar.updatePaddingRelative(
-			end = if (viewBinding.cardSide == null) barsInsets.end(v) else 0,
+			end = if (viewBinding.cardSide?.isVisible != true) barsInsets.end(v) else 0,
 			start = barsInsets.start(v),
 			top = if (viewBinding.collapsingToolbarLayout != null) barsInsets.top else viewBinding.appbar.paddingTop,
 		)
@@ -263,14 +260,22 @@ class MangaListActivity :
 		},
 	)
 
-	fun hidePreview() = setSideFragment(filterSheetClass(findFilterOwner()), null)
-
-	private fun filterSheetClass(owner: FilterCoordinator.Owner?): Class<out Fragment> =
-		if (owner?.filterCoordinator?.isDynamicFilter == true) {
-			MihonFilterSheetFragment::class.java
-		} else {
-			FilterSheetFragment::class.java
+	/**
+	 * Empties the side card and hides it, giving the list the full width back. The card is only for
+	 * previews now — the filter opens as a sheet from the top bar, so nothing stays docked there.
+	 */
+	fun hidePreview() {
+		val card = viewBinding.cardSide ?: return
+		supportFragmentManager.findFragmentById(R.id.container_side)?.let { fragment ->
+			supportFragmentManager.commit {
+				setReorderingAllowed(true)
+				remove(fragment)
+			}
 		}
+		card.isVisible = false
+		// The top bar's end inset depends on whether the card is showing.
+		ViewCompat.requestApplyInsets(viewBinding.root)
+	}
 
 	private fun initList(source: MangaSource, filter: MangaListFilter?, sortOrder: SortOrder?) {
 		val fm = supportFragmentManager
@@ -295,11 +300,7 @@ class MangaListActivity :
 	}
 
 	private fun initFilter(filterOwner: FilterCoordinator.Owner) {
-		if (viewBinding.containerSide != null) {
-			if (supportFragmentManager.findFragmentById(R.id.container_side) == null) {
-				setSideFragment(filterSheetClass(filterOwner), null)
-			}
-		} else if (viewBinding.containerFilterHeader != null) {
+		if (viewBinding.containerFilterHeader != null) {
 			if (supportFragmentManager.findFragmentById(R.id.container_filter_header) == null) {
 				supportFragmentManager.commit {
 					setReorderingAllowed(true)
@@ -347,6 +348,8 @@ class MangaListActivity :
 			setReorderingAllowed(true)
 			replace(R.id.container_side, cls, args)
 		}
+		viewBinding.cardSide?.isVisible = true
+		ViewCompat.requestApplyInsets(viewBinding.root)
 		true
 	} else {
 		false

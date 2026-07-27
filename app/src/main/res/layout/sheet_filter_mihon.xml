@@ -19,34 +19,10 @@
 		android:layout_height="0dp"
 		android:layout_weight="1">
 
-		<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
-			android:id="@+id/recyclerView"
+		<androidx.compose.ui.platform.ComposeView
+			android:id="@+id/composeView"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:clipToPadding="false"
-			android:paddingBottom="@dimen/margin_small"
-			tools:listitem="@layout/item_filter_checkbox" />
-
-		<TextView
-			android:id="@+id/textView_holder"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:gravity="center"
-			android:padding="@dimen/margin_normal"
-			android:text="@string/no_filters_available"
-			android:textAppearance="?attr/textAppearanceBodyLarge"
-			android:textColor="?attr/colorOnSurfaceVariant"
-			android:visibility="gone"
-			tools:visibility="gone" />
-
-		<com.google.android.material.progressindicator.CircularProgressIndicator
-			android:id="@+id/progressBar"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_gravity="center"
-			android:indeterminate="true"
-			android:visibility="gone"
-			tools:visibility="gone" />
+			android:layout_height="match_parent" />
 
 	</FrameLayout>
 

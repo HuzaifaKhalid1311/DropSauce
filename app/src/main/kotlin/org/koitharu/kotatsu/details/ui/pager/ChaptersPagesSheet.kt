@@ -84,9 +84,6 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		} else if (!adapter.isPagesTabEnabled) {
 			defaultTab = (defaultTab - 1).coerceAtLeast(TAB_CHAPTERS)
 		}
-		// The read/continue action now lives in the details page's floating FAB, so the sheet's own
-		// split button is retired here to avoid a duplicate control.
-		binding.splitButtonRead.isVisible = false
 		binding.pager.offscreenPageLimit = adapter.itemCount
 		binding.pager.recyclerView?.isNestedScrollingEnabled = false
 		binding.pager.adapter = adapter

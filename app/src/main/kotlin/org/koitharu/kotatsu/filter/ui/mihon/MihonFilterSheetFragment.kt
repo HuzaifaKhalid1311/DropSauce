@@ -5,14 +5,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.doOnLayout
+import android.view.ViewTreeObserver
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
+import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.R as materialR
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -30,6 +34,8 @@ import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.databinding.SheetFilterMihonBinding
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
 import org.koitharu.kotatsu.filter.ui.showSaveFilterDialog
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import com.google.android.material.R as materialR
 
 @AndroidEntryPoint
 class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), AdaptiveSheetCallback {
@@ -42,6 +48,23 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 		},
 	)
 
+	// Insets and sheet-offset driven padding for the Compose list, in pixels.
+	private val listPaddingLeft = mutableIntStateOf(0)
+	private val listPaddingRight = mutableIntStateOf(0)
+	private val listPaddingBottom = mutableIntStateOf(0)
+
+	// Height the filter list needs when it fits on screen, reported by the Compose list; null when
+	// the content is taller than the viewport (or isn't measurable yet).
+	private val listContentHeight = mutableStateOf<Int?>(null)
+
+	// The pinned button row is positioned from the sheet's live top offset. Sheet callbacks alone
+	// don't cover every frame that offset can change (first layout, settle, the row's own height
+	// arriving late), which left the row sitting low or entirely off-screen — so it re-syncs before
+	// each draw and the work is skipped when nothing moved.
+	private var offsetSyncListener: ViewTreeObserver.OnPreDrawListener? = null
+	private var syncedSheetTop = Int.MIN_VALUE
+	private var syncedBarHeight = -1
+
 	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetFilterMihonBinding {
 		return SheetFilterMihonBinding.inflate(inflater, container, false)
 	}
@@ -51,35 +74,35 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 		if (dialog == null) {
 			binding.adjustForEmbeddedLayout()
 		}
-		val adapter = MihonFilterAdapter(viewModel)
-		binding.recyclerView.layoutManager = LinearLayoutManager(binding.root.context)
-		binding.recyclerView.adapter = adapter
 		val filter = FilterCoordinator.require(this)
+		binding.composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+		binding.composeView.setContent {
+			DropSauceTheme {
+				val items by viewModel.items.collectAsState()
+				val isLoading by viewModel.isLoading.collectAsState()
+				val isEmpty by viewModel.isEmptyState.collectAsState()
+				val density = LocalDensity.current
+				MihonFilterContent(
+					items = items,
+					isLoading = isLoading,
+					isEmpty = isEmpty,
+					listener = viewModel,
+					contentPadding = with(density) {
+						PaddingValues(
+							start = listPaddingLeft.intValue.toDp(),
+							end = listPaddingRight.intValue.toDp(),
+							bottom = listPaddingBottom.intValue.toDp(),
+						)
+					},
+					onContentHeight = ::onContentHeightChanged,
+				)
+			}
+		}
 		binding.buttonSave.setOnClickListener { showSaveFilterDialog(filter) }
 		binding.buttonReset.setOnClickListener { viewModel.reset() }
 		filter.canSaveFilter.observe(viewLifecycleOwner) {
 			binding.buttonSave.isEnabled = it
 			binding.buttonReset.isEnabled = it
-		}
-		viewModel.items.observe(viewLifecycleOwner, adapter)
-		// The adapter diffs asynchronously, so listen for the actual data dispatch and re-measure
-		// after the RecyclerView lays the new items out.
-		adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-			override fun onChanged() = onUpdated()
-			override fun onItemRangeChanged(positionStart: Int, itemCount: Int) = onUpdated()
-			override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = onUpdated()
-			override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = onUpdated()
-			override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) = onUpdated()
-
-			private fun onUpdated() {
-				viewBinding?.recyclerView?.doOnLayout { adjustHeightToContent() }
-			}
-		})
-		viewModel.isLoading.observe(viewLifecycleOwner) {
-			binding.progressBar.isVisible = it
-		}
-		viewModel.isEmptyState.observe(viewLifecycleOwner) {
-			binding.textViewHolder.isVisible = it
 		}
 		addSheetCallback(this, viewLifecycleOwner)
 		binding.layoutBottom.doOnLayout {
@@ -92,7 +115,43 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 	override fun onStart() {
 		super.onStart()
 		setHalfExpanded()
+		attachOffsetSync()
 		viewBinding?.root?.doOnLayout { adjustHeightToContent() }
+	}
+
+	override fun onStop() {
+		detachOffsetSync()
+		super.onStop()
+	}
+
+	private fun attachOffsetSync() {
+		if (offsetSyncListener != null) {
+			return
+		}
+		val sheet = dialog?.findViewById<View>(materialR.id.design_bottom_sheet) ?: return
+		val listener = ViewTreeObserver.OnPreDrawListener {
+			updateLayoutForOffset(sheet)
+			true
+		}
+		offsetSyncListener = listener
+		sheet.viewTreeObserver.addOnPreDrawListener(listener)
+	}
+
+	private fun detachOffsetSync() {
+		val listener = offsetSyncListener ?: return
+		offsetSyncListener = null
+		dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+			?.viewTreeObserver
+			?.removeOnPreDrawListener(listener)
+	}
+
+	/** Re-fits the sheet whenever the list reports a different content height. */
+	private fun onContentHeightChanged(height: Int?) {
+		if (listContentHeight.value == height) {
+			return
+		}
+		listContentHeight.value = height
+		adjustHeightToContent()
 	}
 
 	/**
@@ -125,21 +184,10 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 	 */
 	private fun wrappedContentHeight(): Int? {
 		val binding = viewBinding ?: return null
-		if (binding.progressBar.isVisible || binding.textViewHolder.isVisible) {
+		if (viewModel.isLoading.value || viewModel.isEmptyState.value) {
 			return null
 		}
-		val rv = binding.recyclerView
-		val lm = rv.layoutManager as? LinearLayoutManager ?: return null
-		val itemCount = rv.adapter?.itemCount ?: return null
-		if (itemCount == 0 || lm.findLastVisibleItemPosition() < itemCount - 1) {
-			return null
-		}
-		var content = 0
-		for (i in 0 until rv.childCount) {
-			val child = rv.getChildAt(i)
-			val lp = child.layoutParams as ViewGroup.MarginLayoutParams
-			content += lm.getDecoratedMeasuredHeight(child) + lp.topMargin + lp.bottomMargin
-		}
+		val content = listContentHeight.value ?: return null
 		val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
 		// layoutBottom already carries the navigation-bar inset in its own padding
 		return binding.headerBar.height + content + basePadding + binding.layoutBottom.height
@@ -169,6 +217,13 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 	private fun updateLayoutForOffset(sheet: View) {
 		val binding = viewBinding ?: return
 		val top = sheet.top
+		val barHeight = binding.layoutBottom.height
+		// Called before every draw, so bail out unless something that feeds the layout actually moved.
+		if (top == syncedSheetTop && barHeight == syncedBarHeight) {
+			return
+		}
+		syncedSheetTop = top
+		syncedBarHeight = barHeight
 		binding.layoutBottom.translationY = -top.toFloat()
 
 		val surfaceColor = getSheetSurfaceColor(sheet)
@@ -179,9 +234,7 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 		// exactly what lets the last item scroll clear of the pinned buttons, with no dead
 		// scroll range left over.
 		val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
-		binding.recyclerView.updatePadding(
-			bottom = basePadding + top
-		)
+		listPaddingBottom.intValue = basePadding + top
 	}
 
 	private fun getSheetSurfaceColor(sheet: View): Int {
@@ -200,10 +253,8 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val typeMask = WindowInsetsCompat.Type.systemBars()
 		val barsInsets = insets.getInsets(typeMask)
-		viewBinding?.recyclerView?.updatePadding(
-			left = barsInsets.left,
-			right = barsInsets.right,
-		)
+		listPaddingLeft.intValue = barsInsets.left
+		listPaddingRight.intValue = barsInsets.right
 		// The action buttons now sit at the bottom, so the navigation-bar inset must keep them clear.
 		// Preserve the layout's own vertical breathing room on top of the system inset.
 		val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
@@ -215,7 +266,7 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 			viewBinding?.run {
 				val surfaceColor = requireContext().getThemeColor(android.R.attr.colorBackground)
 				layoutBottom.setBackgroundColor(surfaceColor)
-				recyclerView.updatePadding(bottom = basePadding + barsInsets.bottom + layoutBottom.height)
+				listPaddingBottom.intValue = basePadding + barsInsets.bottom + layoutBottom.height
 			}
 		}
 		return insets.consume(v, typeMask, bottom = true)

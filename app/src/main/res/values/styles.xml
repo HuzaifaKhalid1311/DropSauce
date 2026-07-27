@@ -31,7 +31,18 @@
 		<item name="bottomSheetStyle">@style/Widget.Kotatsu.BottomSheet.Details</item>
 	</style>
 
-	<style name="ThemeOverlay.Kotatsu.SideSheetDialog" parent="ThemeOverlay.Material3.SideSheetDialog" />
+	<style name="ThemeOverlay.Kotatsu.SideSheetDialog" parent="ThemeOverlay.Material3.SideSheetDialog">
+		<item name="sideSheetModalStyle">@style/Widget.Kotatsu.SideSheet.Modal</item>
+	</style>
+
+	<!-- Material's default side sheet is 256dp wide, far too narrow for what this app puts there: the
+	     same segmented pickers, chip rows and sliders the bottom sheets show in portrait. -->
+	<!-- Detached (floating) rather than docked: content taller than the screen would otherwise run past
+	     the bottom edge and lose its rounded corner there. Floating keeps a margin on every side, so
+	     all four corners stay visible however tall the content is. -->
+	<style name="Widget.Kotatsu.SideSheet.Modal" parent="Widget.Material3.SideSheet.Modal.Detached">
+		<item name="android:layout_width">@dimen/side_sheet_width</item>
+	</style>
 
 	<style name="Widget.Kotatsu.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
 		<item name="paddingBottomSystemWindowInsets">false</item>

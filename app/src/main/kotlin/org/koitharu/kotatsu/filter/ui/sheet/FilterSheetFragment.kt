@@ -1,20 +1,29 @@
 package org.koitharu.kotatsu.filter.ui.sheet
 
-import android.os.Bundle
 import android.graphics.drawable.ColorDrawable
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import androidx.core.view.doOnLayout
+import android.view.ViewTreeObserver
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isGone
+import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
-import com.google.android.material.R as materialR
-import com.google.android.material.chip.Chip
-import com.google.android.material.slider.RangeSlider
-import com.google.android.material.slider.Slider
 import com.google.android.material.shape.MaterialShapeDrawable
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.titleResId
@@ -25,459 +34,392 @@ import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_SETTLING
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetCallback
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
-import org.koitharu.kotatsu.core.ui.widgets.ChipsView
+import org.koitharu.kotatsu.core.ui.sheet.SheetChip
+import org.koitharu.kotatsu.core.ui.sheet.SheetChips
+import org.koitharu.kotatsu.core.ui.sheet.SheetContentPadding
+import org.koitharu.kotatsu.core.ui.sheet.SheetSection
+import org.koitharu.kotatsu.core.ui.sheet.SheetSelectorField
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getDisplayName
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.core.util.ext.parentView
-import org.koitharu.kotatsu.core.util.ext.setValueRounded
-import org.koitharu.kotatsu.core.util.ext.setValuesRounded
 import org.koitharu.kotatsu.databinding.SheetFilterBinding
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
-import org.koitharu.kotatsu.filter.ui.showSaveFilterDialog
 import org.koitharu.kotatsu.filter.ui.model.FilterProperty
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Demographic
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.filter.ui.showSaveFilterDialog
 import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
-import org.koitharu.kotatsu.parsers.util.toIntUp
-import java.util.Locale
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import kotlin.math.roundToInt
+import com.google.android.material.R as materialR
 
-class FilterSheetFragment : BaseAdaptiveSheet<SheetFilterBinding>(),
-    AdapterView.OnItemSelectedListener,
-    View.OnClickListener,
-    AdaptiveSheetCallback,
-    ChipsView.OnChipClickListener {
+class FilterSheetFragment : BaseAdaptiveSheet<SheetFilterBinding>(), AdaptiveSheetCallback {
 
-    private var systemBarsBottom = 0
+	private var systemBarsBottom = 0
 
-    override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetFilterBinding {
-        return SheetFilterBinding.inflate(inflater, container, false)
-    }
+	// The pinned button row is positioned from the sheet's live top offset. Sheet callbacks alone
+	// don't cover every frame that offset can change (first layout, settle, the row's own height
+	// arriving late), which left the row sitting low or entirely off-screen — so it re-syncs before
+	// each draw and the work is skipped when nothing moved.
+	private var offsetSyncListener: ViewTreeObserver.OnPreDrawListener? = null
+	private var syncedSheetTop = Int.MIN_VALUE
+	private var syncedBarHeight = -1
+	private var syncedBarsBottom = -1
 
-    override fun onViewBindingCreated(binding: SheetFilterBinding, savedInstanceState: Bundle?) {
-        super.onViewBindingCreated(binding, savedInstanceState)
-        if (dialog == null) {
-            binding.adjustForEmbeddedLayout()
-        }
-        val filter = FilterCoordinator.require(this)
-        filter.sortOrder.observe(viewLifecycleOwner, this::onSortOrderChanged)
-        filter.locale.observe(viewLifecycleOwner, this::onLocaleChanged)
-        filter.originalLocale.observe(viewLifecycleOwner, this::onOriginalLocaleChanged)
-        filter.tags.observe(viewLifecycleOwner, this::onTagsChanged)
-        filter.tagsExcluded.observe(viewLifecycleOwner, this::onTagsExcludedChanged)
-        filter.authors.observe(viewLifecycleOwner, this::onAuthorsChanged)
-        filter.states.observe(viewLifecycleOwner, this::onStateChanged)
-        filter.contentTypes.observe(viewLifecycleOwner, this::onContentTypesChanged)
-        filter.contentRating.observe(viewLifecycleOwner, this::onContentRatingChanged)
-        filter.demographics.observe(viewLifecycleOwner, this::onDemographicsChanged)
-        filter.year.observe(viewLifecycleOwner, this::onYearChanged)
-        filter.yearRange.observe(viewLifecycleOwner, this::onYearRangeChanged)
-        binding.layoutGenres.setTitle(
-            if (filter.capabilities.isMultipleTagsSupported) {
-                R.string.genres
-            } else {
-                R.string.genre
-            },
-        )
-        binding.spinnerLocale.onItemSelectedListener = this
-        binding.spinnerOriginalLocale.onItemSelectedListener = this
-        binding.spinnerOrder.onItemSelectedListener = this
-        binding.chipsState.onChipClickListener = this
-        binding.chipsTypes.onChipClickListener = this
-        binding.chipsContentRating.onChipClickListener = this
-        binding.chipsDemographics.onChipClickListener = this
-        binding.chipsGenres.onChipClickListener = this
-        binding.chipsGenresExclude.onChipClickListener = this
-        binding.chipsAuthor.onChipClickListener = this
-        binding.sliderYear.addOnChangeListener(this::onSliderValueChange)
-        binding.sliderYearsRange.addOnChangeListener(this::onRangeSliderValueChange)
-        binding.layoutGenres.setOnMoreButtonClickListener {
-            router.showTagsCatalogSheet(excludeMode = false)
-        }
-        binding.layoutGenresExclude.setOnMoreButtonClickListener {
-            router.showTagsCatalogSheet(excludeMode = true)
-        }
-        filter.canSaveFilter.observe(viewLifecycleOwner) {
-            binding.buttonSave.isEnabled = it
-            binding.buttonReset.isEnabled = it
-        }
-        binding.buttonSave.setOnClickListener(this)
-        binding.buttonReset.setOnClickListener(this)
-        addSheetCallback(this, viewLifecycleOwner)
-        binding.layoutBottom.doOnLayout {
-            dialog?.findViewById<View>(materialR.id.design_bottom_sheet)?.let { sheet ->
-                updateLayoutForOffset(sheet)
-            }
-        }
-    }
+	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetFilterBinding {
+		return SheetFilterBinding.inflate(inflater, container, false)
+	}
 
-    override fun onStart() {
-        super.onStart()
-        setHalfExpanded()
-    }
+	override fun onViewBindingCreated(binding: SheetFilterBinding, savedInstanceState: Bundle?) {
+		super.onViewBindingCreated(binding, savedInstanceState)
+		if (dialog == null) {
+			binding.adjustForEmbeddedLayout()
+		}
+		val filter = FilterCoordinator.require(this)
+		binding.composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+		binding.composeView.setContent {
+			DropSauceTheme {
+				Content(filter)
+			}
+		}
+		filter.canSaveFilter.observe(viewLifecycleOwner) {
+			binding.buttonSave.isEnabled = it
+			binding.buttonReset.isEnabled = it
+		}
+		binding.buttonSave.setOnClickListener { showSaveFilterDialog(filter) }
+		binding.buttonReset.setOnClickListener { filter.clearSavedFilter() }
+		addSheetCallback(this, viewLifecycleOwner)
+		binding.layoutBottom.doOnLayout {
+			dialog?.findViewById<View>(materialR.id.design_bottom_sheet)?.let { sheet ->
+				updateLayoutForOffset(sheet)
+			}
+		}
+	}
 
-    override fun onStateChanged(sheet: View, newState: Int) {
-        updateLayoutForOffset(sheet)
-        if (newState == STATE_DRAGGING || newState == STATE_SETTLING) {
-            return
-        }
-        // Snap the drag handle to its resting state for programmatic moves; manual drags drive it via onSlide.
-        viewBinding?.headerBar?.setDragHandleCollapseProgress(if (newState == STATE_EXPANDED) 1f else 0f)
-    }
+	override fun onStart() {
+		super.onStart()
+		setHalfExpanded()
+		attachOffsetSync()
+	}
 
-    override fun onSlide(sheet: View, slideOffset: Float) {
-        updateLayoutForOffset(sheet)
-        // Melt the drag handle away over the top stretch of the drag so reaching full screen is one
-        // seamless motion rather than the handle snapping out once expanded.
-        val binding = viewBinding ?: return
-        val progress = (slideOffset - DRAG_HANDLE_COLLAPSE_START) / (1f - DRAG_HANDLE_COLLAPSE_START)
-        binding.headerBar.setDragHandleCollapseProgress(progress)
-    }
+	override fun onStop() {
+		detachOffsetSync()
+		super.onStop()
+	}
 
-    private fun updateLayoutForOffset(sheet: View) {
-        val binding = viewBinding ?: return
-        val top = sheet.top
-        binding.layoutBottom.translationY = -top.toFloat()
+	private fun attachOffsetSync() {
+		if (offsetSyncListener != null) {
+			return
+		}
+		val sheet = dialog?.findViewById<View>(materialR.id.design_bottom_sheet) ?: return
+		val listener = ViewTreeObserver.OnPreDrawListener {
+			updateLayoutForOffset(sheet)
+			true
+		}
+		offsetSyncListener = listener
+		sheet.viewTreeObserver.addOnPreDrawListener(listener)
+	}
 
-        val surfaceColor = getSheetSurfaceColor(sheet)
-        binding.layoutBottom.setBackgroundColor(surfaceColor)
+	private fun detachOffsetSync() {
+		val listener = offsetSyncListener ?: return
+		offsetSyncListener = null
+		dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+			?.viewTreeObserver
+			?.removeOnPreDrawListener(listener)
+	}
 
-        val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
-        val buttonsHeight = binding.layoutBottom.height
-        binding.scrollView.updatePadding(
-            bottom = basePadding + systemBarsBottom + buttonsHeight + top
-        )
-    }
+	override fun onStateChanged(sheet: View, newState: Int) {
+		updateLayoutForOffset(sheet)
+		if (newState == STATE_DRAGGING || newState == STATE_SETTLING) {
+			return
+		}
+		// Snap the drag handle to its resting state for programmatic moves; manual drags drive it via onSlide.
+		viewBinding?.headerBar?.setDragHandleCollapseProgress(if (newState == STATE_EXPANDED) 1f else 0f)
+	}
 
-    private fun getSheetSurfaceColor(sheet: View): Int {
-        val color = when (val background = sheet.background) {
-            is MaterialShapeDrawable -> background.fillColor?.defaultColor
-            is ColorDrawable -> background.color
-            else -> null
-        }
-        return color ?: requireContext().getThemeColor(android.R.attr.colorBackground)
-    }
+	override fun onSlide(sheet: View, slideOffset: Float) {
+		updateLayoutForOffset(sheet)
+		// Melt the drag handle away over the top stretch of the drag so reaching full screen is one
+		// seamless motion rather than the handle snapping out once expanded.
+		val binding = viewBinding ?: return
+		val progress = (slideOffset - DRAG_HANDLE_COLLAPSE_START) / (1f - DRAG_HANDLE_COLLAPSE_START)
+		binding.headerBar.setDragHandleCollapseProgress(progress)
+	}
 
-    private fun SheetFilterBinding.adjustForEmbeddedLayout() {
-        layoutBody.updatePadding(top = layoutBody.paddingBottom)
-        scrollView.scrollIndicators = 0
-        this.root.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
-    }
+	private fun updateLayoutForOffset(sheet: View) {
+		val binding = viewBinding ?: return
+		val top = sheet.top
+		val barHeight = binding.layoutBottom.height
+		// Called before every draw, so bail out unless something that feeds the layout actually moved.
+		if (top == syncedSheetTop && barHeight == syncedBarHeight && systemBarsBottom == syncedBarsBottom) {
+			return
+		}
+		syncedSheetTop = top
+		syncedBarHeight = barHeight
+		syncedBarsBottom = systemBarsBottom
+		binding.layoutBottom.translationY = -top.toFloat()
 
-    override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
-        val typeMask = WindowInsetsCompat.Type.systemBars()
-        val barsInsets = insets.getInsets(typeMask)
-        systemBarsBottom = barsInsets.bottom
-        // The action buttons now sit at the bottom, so the navigation-bar inset must keep them clear.
-        // Preserve the layout's own vertical breathing room on top of the system inset.
-        val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
-        viewBinding?.layoutBottom?.updatePadding(bottom = basePadding + barsInsets.bottom)
-        dialog?.findViewById<View>(materialR.id.design_bottom_sheet)?.let { sheet ->
-            updateLayoutForOffset(sheet)
-        } ?: run {
-            // Embedded layout fallback
-            viewBinding?.run {
-                val surfaceColor = requireContext().getThemeColor(android.R.attr.colorBackground)
-                layoutBottom.setBackgroundColor(surfaceColor)
-                scrollView.updatePadding(bottom = basePadding + barsInsets.bottom + layoutBottom.height)
-            }
-        }
-        return insets.consume(v, typeMask, bottom = true)
-    }
+		val surfaceColor = getSheetSurfaceColor(sheet)
+		binding.layoutBottom.setBackgroundColor(surfaceColor)
 
-    override fun onClick(v: View) {
-        val filter = FilterCoordinator.require(this)
-        when (v.id) {
-            R.id.button_save -> showSaveFilterDialog(filter)
-            R.id.button_reset -> filter.clearSavedFilter()
-        }
-    }
+		val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
+		binding.scrollView.updatePadding(
+			bottom = basePadding + systemBarsBottom + barHeight + top,
+		)
+	}
 
-    override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-        val filter = FilterCoordinator.require(this)
-        when (parent.id) {
-            R.id.spinner_order -> filter.setSortOrder(filter.sortOrder.value.availableItems[position])
-            R.id.spinner_locale -> filter.setLocale(filter.locale.value.availableItems[position])
-            R.id.spinner_original_locale -> filter.setOriginalLocale(filter.originalLocale.value.availableItems[position])
-        }
-    }
+	private fun getSheetSurfaceColor(sheet: View): Int {
+		val color = when (val background = sheet.background) {
+			is MaterialShapeDrawable -> background.fillColor?.defaultColor
+			is ColorDrawable -> background.color
+			else -> null
+		}
+		return color ?: requireContext().getThemeColor(android.R.attr.colorBackground)
+	}
 
-    override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+	private fun SheetFilterBinding.adjustForEmbeddedLayout() {
+		layoutBody.updatePadding(top = layoutBody.paddingBottom)
+		scrollView.scrollIndicators = 0
+		this.root.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
+	}
 
-    private fun onSliderValueChange(slider: Slider, value: Float, fromUser: Boolean) {
-        if (!fromUser) {
-            return
-        }
-        val intValue = value.toInt()
-        val filter = FilterCoordinator.require(this)
-        when (slider.id) {
-            R.id.slider_year -> filter.setYear(
-                if (intValue <= slider.valueFrom.toIntUp()) {
-                    YEAR_UNKNOWN
-                } else {
-                    intValue
-                },
-            )
-        }
-    }
+	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
+		val typeMask = WindowInsetsCompat.Type.systemBars()
+		val barsInsets = insets.getInsets(typeMask)
+		systemBarsBottom = barsInsets.bottom
+		// The action buttons now sit at the bottom, so the navigation-bar inset must keep them clear.
+		// Preserve the layout's own vertical breathing room on top of the system inset.
+		val basePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
+		viewBinding?.layoutBottom?.updatePadding(bottom = basePadding + barsInsets.bottom)
+		dialog?.findViewById<View>(materialR.id.design_bottom_sheet)?.let { sheet ->
+			updateLayoutForOffset(sheet)
+		} ?: run {
+			// Embedded layout fallback
+			viewBinding?.run {
+				val surfaceColor = requireContext().getThemeColor(android.R.attr.colorBackground)
+				layoutBottom.setBackgroundColor(surfaceColor)
+				scrollView.updatePadding(bottom = basePadding + barsInsets.bottom + layoutBottom.height)
+			}
+		}
+		return insets.consume(v, typeMask, bottom = true)
+	}
 
-    private fun onRangeSliderValueChange(slider: RangeSlider, value: Float, fromUser: Boolean) {
-        if (!fromUser) {
-            return
-        }
-        val filter = FilterCoordinator.require(this)
-        when (slider.id) {
-            R.id.slider_yearsRange -> filter.setYearRange(
-                valueFrom = slider.values.firstOrNull()?.let {
-                    if (it <= slider.valueFrom) YEAR_UNKNOWN else it.toInt()
-                } ?: YEAR_UNKNOWN,
-                valueTo = slider.values.lastOrNull()?.let {
-                    if (it >= slider.valueTo) YEAR_UNKNOWN else it.toInt()
-                } ?: YEAR_UNKNOWN,
-            )
-        }
-    }
+	@Composable
+	private fun Content(filter: FilterCoordinator) {
+		val context = LocalContext.current
+		val sortOrder by filter.sortOrder.collectAsState()
+		val locale by filter.locale.collectAsState()
+		val originalLocale by filter.originalLocale.collectAsState()
+		val tags by filter.tags.collectAsState()
+		val tagsExcluded by filter.tagsExcluded.collectAsState()
+		val authors by filter.authors.collectAsState()
+		val states by filter.states.collectAsState()
+		val contentTypes by filter.contentTypes.collectAsState()
+		val contentRating by filter.contentRating.collectAsState()
+		val demographics by filter.demographics.collectAsState()
+		val year by filter.year.collectAsState()
+		val yearRange by filter.yearRange.collectAsState()
+		val isMultipleTagsSupported = remember { filter.capabilities.isMultipleTagsSupported }
 
-    override fun onChipClick(chip: Chip, data: Any?) {
-        val filter = FilterCoordinator.require(this)
-        when (data) {
-            is MangaState -> filter.toggleState(data, !chip.isChecked)
-            is MangaTag -> if (chip.parentView?.id == R.id.chips_genresExclude) {
-                filter.toggleTagExclude(data, !chip.isChecked)
-            } else {
-                filter.toggleTag(data, !chip.isChecked)
-            }
+		Column(modifier = Modifier.padding(bottom = 8.dp)) {
+			// Single-choice properties keep the "pick one" affordance of the spinners they replace.
+			if (!sortOrder.isEmpty()) {
+				SheetSection(title = stringResource(R.string.sort_order)) {
+					SingleChoiceField(
+						property = sortOrder,
+						label = { stringResource(it.titleRes) },
+						onSelect = filter::setSortOrder,
+					)
+				}
+			}
+			if (!locale.isEmpty()) {
+				SheetSection(title = stringResource(R.string.language)) {
+					SingleChoiceField(
+						property = locale,
+						label = { it.getDisplayName(context) },
+						onSelect = filter::setLocale,
+					)
+				}
+			}
+			if (!originalLocale.isEmpty()) {
+				SheetSection(title = stringResource(R.string.original_language)) {
+					SingleChoiceField(
+						property = originalLocale,
+						label = { it.getDisplayName(context) },
+						onSelect = filter::setOriginalLocale,
+					)
+				}
+			}
 
-            is ContentType -> filter.toggleContentType(data, !chip.isChecked)
-            is ContentRating -> filter.toggleContentRating(data, !chip.isChecked)
-            is Demographic -> filter.toggleDemographic(data, !chip.isChecked)
-            is String -> if (chip.isChecked) {
-                filter.setAuthor(null)
-            } else {
-                filter.setAuthor(data)
-            }
-            null -> router.showTagsCatalogSheet(excludeMode = chip.parentView?.id == R.id.chips_genresExclude)
-        }
-    }
+			// Genres can fail to load on their own, so this section stays visible to carry the error.
+			if (!tags.isEmptyAndSuccess()) {
+				SheetSection(
+					title = stringResource(if (isMultipleTagsSupported) R.string.genres else R.string.genre),
+					moreLabel = stringResource(R.string.show_all),
+					onMore = { router.showTagsCatalogSheet(excludeMode = false) },
+				) {
+					val error = tags.error
+					if (error != null) {
+						Text(
+							text = error.getDisplayMessage(resources),
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.error,
+							modifier = Modifier.padding(horizontal = SheetContentPadding),
+						)
+					}
+					ChipsField(
+						property = tags,
+						label = { it.title },
+						onToggle = { tag, isSelected -> filter.toggleTag(tag, isSelected) },
+					)
+				}
+			}
+			if (!tagsExcluded.isEmpty()) {
+				SheetSection(
+					title = stringResource(R.string.genres_exclude),
+					moreLabel = stringResource(R.string.show_all),
+					onMore = { router.showTagsCatalogSheet(excludeMode = true) },
+				) {
+					ChipsField(
+						property = tagsExcluded,
+						label = { it.title },
+						onToggle = { tag, isSelected -> filter.toggleTagExclude(tag, isSelected) },
+					)
+				}
+			}
+			if (!authors.isEmpty()) {
+				SheetSection(title = stringResource(R.string.author)) {
+					ChipsField(
+						property = authors,
+						label = { it },
+						// One author at a time: tapping the active chip clears the filter.
+						onToggle = { author, isSelected -> filter.setAuthor(author.takeIf { isSelected }) },
+					)
+				}
+			}
+			if (!contentTypes.isEmpty()) {
+				SheetSection(title = stringResource(R.string.type)) {
+					ChipsField(
+						property = contentTypes,
+						label = { stringResource(it.titleResId) },
+						onToggle = { type, isSelected -> filter.toggleContentType(type, isSelected) },
+					)
+				}
+			}
+			if (!states.isEmpty()) {
+				SheetSection(title = stringResource(R.string.state)) {
+					ChipsField(
+						property = states,
+						label = { stringResource(it.titleResId) },
+						onToggle = { state, isSelected -> filter.toggleState(state, isSelected) },
+					)
+				}
+			}
+			if (!contentRating.isEmpty()) {
+				SheetSection(title = stringResource(R.string.content_rating)) {
+					ChipsField(
+						property = contentRating,
+						label = { stringResource(it.titleResId) },
+						onToggle = { rating, isSelected -> filter.toggleContentRating(rating, isSelected) },
+					)
+				}
+			}
+			if (!demographics.isEmpty()) {
+				SheetSection(title = stringResource(R.string.demographics)) {
+					ChipsField(
+						property = demographics,
+						label = { stringResource(it.titleResId) },
+						onToggle = { demographic, isSelected -> filter.toggleDemographic(demographic, isSelected) },
+					)
+				}
+			}
 
-    private fun onSortOrderChanged(value: FilterProperty<SortOrder>) {
-        val b = viewBinding ?: return
-        b.layoutOrder.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val selected = value.selectedItems.single()
-        b.spinnerOrder.adapter = ArrayAdapter(
-            b.spinnerOrder.context,
-            android.R.layout.simple_spinner_dropdown_item,
-            android.R.id.text1,
-            value.availableItems.map { b.spinnerOrder.context.getString(it.titleRes) },
-        )
-        val selectedIndex = value.availableItems.indexOf(selected)
-        if (selectedIndex >= 0) {
-            b.spinnerOrder.setSelection(selectedIndex, false)
-        }
-    }
+			if (!year.isEmpty()) {
+				val from = year.availableItems.first().toFloat()
+				val to = year.availableItems.last().toFloat()
+				val selected = year.selectedItems.singleOrNull() ?: YEAR_UNKNOWN
+				SheetSection(
+					title = stringResource(R.string.year),
+					value = if (selected == YEAR_UNKNOWN) stringResource(R.string.any) else selected.toString(),
+				) {
+					Slider(
+						value = if (selected == YEAR_UNKNOWN) from else selected.toFloat().coerceIn(from, to),
+						valueRange = from..to,
+						onValueChange = { value ->
+							// The low end of the track means "any year", as on the slider it replaces.
+							filter.setYear(if (value <= from) YEAR_UNKNOWN else value.roundToInt())
+						},
+						modifier = Modifier.padding(horizontal = SheetContentPadding),
+					)
+				}
+			}
+			if (!yearRange.isEmpty()) {
+				val from = yearRange.availableItems.first().toFloat()
+				val to = yearRange.availableItems.last().toFloat()
+				val selectedFrom = (yearRange.selectedItems.firstOrNull()?.toFloat() ?: from).coerceIn(from, to)
+				val selectedTo = (yearRange.selectedItems.lastOrNull()?.toFloat() ?: to).coerceIn(selectedFrom, to)
+				SheetSection(
+					title = stringResource(R.string.years),
+					value = stringResource(
+						R.string.memory_usage_pattern,
+						selectedFrom.roundToInt().toString(),
+						selectedTo.roundToInt().toString(),
+					),
+				) {
+					RangeSlider(
+						value = selectedFrom..selectedTo,
+						valueRange = from..to,
+						onValueChange = { range ->
+							// Either handle parked against the track edge means "unbounded" on that side.
+							filter.setYearRange(
+								valueFrom = if (range.start <= from) YEAR_UNKNOWN else range.start.roundToInt(),
+								valueTo = if (range.endInclusive >= to) YEAR_UNKNOWN else range.endInclusive.roundToInt(),
+							)
+						},
+						modifier = Modifier.padding(horizontal = SheetContentPadding, vertical = 8.dp),
+					)
+				}
+			}
+		}
+	}
 
-    private fun onLocaleChanged(value: FilterProperty<Locale?>) {
-        val b = viewBinding ?: return
-        b.layoutLocale.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val selected = value.selectedItems.singleOrNull()
-        b.spinnerLocale.adapter = ArrayAdapter(
-            b.spinnerLocale.context,
-            android.R.layout.simple_spinner_dropdown_item,
-            android.R.id.text1,
-            value.availableItems.map { it.getDisplayName(b.spinnerLocale.context) },
-        )
-        val selectedIndex = value.availableItems.indexOf(selected)
-        if (selectedIndex >= 0) {
-            b.spinnerLocale.setSelection(selectedIndex, false)
-        }
-    }
+	/** Dropdown over a property's available items, showing the selected one. */
+	@Composable
+	private fun <T> SingleChoiceField(
+		property: FilterProperty<T>,
+		label: @Composable (T) -> String,
+		onSelect: (T) -> Unit,
+	) {
+		val selected = property.selectedItems.singleOrNull()
+		SheetSelectorField(
+			current = selected?.let { label(it) }.orEmpty(),
+			items = property.availableItems.map { label(it) },
+			onSelect = { index -> property.availableItems.getOrNull(index)?.let(onSelect) },
+			modifier = Modifier.padding(horizontal = SheetContentPadding),
+		)
+	}
 
-    private fun onOriginalLocaleChanged(value: FilterProperty<Locale?>) {
-        val b = viewBinding ?: return
-        b.layoutOriginalLocale.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val selected = value.selectedItems.singleOrNull()
-        b.spinnerOriginalLocale.adapter = ArrayAdapter(
-            b.spinnerOriginalLocale.context,
-            android.R.layout.simple_spinner_dropdown_item,
-            android.R.id.text1,
-            value.availableItems.map { it.getDisplayName(b.spinnerOriginalLocale.context) },
-        )
-        val selectedIndex = value.availableItems.indexOf(selected)
-        if (selectedIndex >= 0) {
-            b.spinnerOriginalLocale.setSelection(selectedIndex, false)
-        }
-    }
+	/** Wrapping chip row over a property; [onToggle] receives the item and its new selected state. */
+	@Composable
+	private fun <T> ChipsField(
+		property: FilterProperty<T>,
+		label: @Composable (T) -> String,
+		onToggle: (T, Boolean) -> Unit,
+	) {
+		val items = property.availableItems
+		SheetChips(
+			chips = items.map { SheetChip(title = label(it), isChecked = it in property.selectedItems) },
+			onClick = { index ->
+				val item = items.getOrNull(index) ?: return@SheetChips
+				onToggle(item, item !in property.selectedItems)
+			},
+			modifier = Modifier.padding(horizontal = SheetContentPadding),
+		)
+	}
 
-    private fun onTagsChanged(value: FilterProperty<MangaTag>) {
-        val b = viewBinding ?: return
-        b.layoutGenres.isGone = value.isEmptyAndSuccess()
-        b.layoutGenres.setError(value.error?.getDisplayMessage(resources))
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { tag ->
-            ChipsView.ChipModel(
-                title = tag.title,
-                isChecked = tag in value.selectedItems,
-                data = tag,
-            )
-        }
-        b.chipsGenres.setChips(chips)
-    }
-
-    private fun onTagsExcludedChanged(value: FilterProperty<MangaTag>) {
-        val b = viewBinding ?: return
-        b.layoutGenresExclude.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { tag ->
-            ChipsView.ChipModel(
-                title = tag.title,
-                isChecked = tag in value.selectedItems,
-                data = tag,
-            )
-        }
-        b.chipsGenresExclude.setChips(chips)
-    }
-
-    private fun onAuthorsChanged(value: FilterProperty<String>) {
-        val b = viewBinding ?: return
-        b.layoutAuthor.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { author ->
-            ChipsView.ChipModel(
-                title = author,
-                isChecked = author in value.selectedItems,
-                data = author,
-            )
-        }
-        b.chipsAuthor.setChips(chips)
-    }
-
-    private fun onStateChanged(value: FilterProperty<MangaState>) {
-        val b = viewBinding ?: return
-        b.layoutState.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { state ->
-            ChipsView.ChipModel(
-                title = getString(state.titleResId),
-                isChecked = state in value.selectedItems,
-                data = state,
-            )
-        }
-        b.chipsState.setChips(chips)
-    }
-
-    private fun onContentTypesChanged(value: FilterProperty<ContentType>) {
-        val b = viewBinding ?: return
-        b.layoutTypes.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { type ->
-            ChipsView.ChipModel(
-                title = getString(type.titleResId),
-                isChecked = type in value.selectedItems,
-                data = type,
-            )
-        }
-        b.chipsTypes.setChips(chips)
-    }
-
-    private fun onContentRatingChanged(value: FilterProperty<ContentRating>) {
-        val b = viewBinding ?: return
-        b.layoutContentRating.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { contentRating ->
-            ChipsView.ChipModel(
-                title = getString(contentRating.titleResId),
-                isChecked = contentRating in value.selectedItems,
-                data = contentRating,
-            )
-        }
-        b.chipsContentRating.setChips(chips)
-    }
-
-    private fun onDemographicsChanged(value: FilterProperty<Demographic>) {
-        val b = viewBinding ?: return
-        b.layoutDemographics.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val chips = value.availableItems.map { demographic ->
-            ChipsView.ChipModel(
-                title = getString(demographic.titleResId),
-                isChecked = demographic in value.selectedItems,
-                data = demographic,
-            )
-        }
-        b.chipsDemographics.setChips(chips)
-    }
-
-    private fun onYearChanged(value: FilterProperty<Int>) {
-        val b = viewBinding ?: return
-        b.layoutYear.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        val currentValue = value.selectedItems.singleOrNull() ?: YEAR_UNKNOWN
-        b.layoutYear.setValueText(
-            if (currentValue == YEAR_UNKNOWN) {
-                getString(R.string.any)
-            } else {
-                currentValue.toString()
-            },
-        )
-        b.sliderYear.valueFrom = value.availableItems.first().toFloat()
-        b.sliderYear.valueTo = value.availableItems.last().toFloat()
-        b.sliderYear.setValueRounded(currentValue.toFloat())
-    }
-
-    private fun onYearRangeChanged(value: FilterProperty<Int>) {
-        val b = viewBinding ?: return
-        b.layoutYearsRange.isGone = value.isEmpty()
-        if (value.isEmpty()) {
-            return
-        }
-        b.sliderYearsRange.valueFrom = value.availableItems.first().toFloat()
-        b.sliderYearsRange.valueTo = value.availableItems.last().toFloat()
-        val currentValueFrom = value.selectedItems.firstOrNull()?.toFloat() ?: b.sliderYearsRange.valueFrom
-        val currentValueTo = value.selectedItems.lastOrNull()?.toFloat() ?: b.sliderYearsRange.valueTo
-        b.layoutYearsRange.setValueText(
-            getString(
-                R.string.memory_usage_pattern,
-                currentValueFrom.toInt().toString(),
-                currentValueTo.toInt().toString(),
-            ),
-        )
-        b.sliderYearsRange.setValuesRounded(currentValueFrom, currentValueTo)
-    }
-
-    private companion object {
-        // Slide offset (0 = half, 1 = full screen) at which the drag handle starts collapsing. Kept above
-        // the half-expanded resting offset so the handle stays full at the centre position.
-        const val DRAG_HANDLE_COLLAPSE_START = 0.65f
-    }
+	private companion object {
+		// Slide offset (0 = half, 1 = full screen) at which the drag handle starts collapsing. Kept above
+		// the half-expanded resting offset so the handle stays full at the centre position.
+		const val DRAG_HANDLE_COLLAPSE_START = 0.65f
+	}
 }

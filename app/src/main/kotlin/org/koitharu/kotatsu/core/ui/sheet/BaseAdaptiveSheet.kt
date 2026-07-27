@@ -89,6 +89,16 @@ abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
 		onViewBindingCreated(binding, savedInstanceState)
 	}
 
+	@CallSuper
+	override fun onStart() {
+		super.onStart()
+		// Children with an opaque background — such as the filter sheets' pinned button row — paint
+		// right over the sheet's rounded corners and square them off, so clip them to its outline.
+		val sheetView = dialog?.findViewById<View>(materialR.id.m3_side_sheet)
+			?: dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+		sheetView?.clipToOutline = true
+	}
+
 	override fun onDestroyView() {
 		viewBinding = null
 		actionModeDelegate = null

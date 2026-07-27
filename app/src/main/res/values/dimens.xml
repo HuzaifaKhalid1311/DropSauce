@@ -40,6 +40,9 @@
 	<dimen name="explore_grid_width">135dp</dimen>
 	<dimen name="chapter_grid_width">80dp</dimen>
 	<dimen name="side_card_offset">8dp</dimen>
+	<!-- Side sheets host the same forms as the bottom sheets (segmented pickers, chip rows, sliders),
+	     which Material's 256dp default squeezes until labels truncate. -->
+	<dimen name="side_sheet_width">400dp</dimen>
 	<dimen name="webtoon_pages_gap">24dp</dimen>
 	<dimen name="spinner_height">56dp</dimen>
 	<dimen name="category_covers_height">86dp</dimen>

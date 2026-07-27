@@ -32,15 +32,6 @@ class TypedListSpacingDecoration(
 			ListItemType.FILTER_STATE,
 			ListItemType.FILTER_LANGUAGE,
 			ListItemType.QUICK_FILTER,
-			ListItemType.MIHON_FILTER_HEADER,
-			ListItemType.MIHON_FILTER_SEPARATOR,
-			ListItemType.MIHON_FILTER_CHECKBOX,
-			ListItemType.MIHON_FILTER_CHIPS,
-			ListItemType.MIHON_FILTER_TRISTATE,
-			ListItemType.MIHON_FILTER_TEXT,
-			ListItemType.MIHON_FILTER_SELECT,
-			ListItemType.MIHON_FILTER_EXPANDABLE,
-			ListItemType.MIHON_FILTER_SORT_OPTION,
 			ListItemType.MIHON_SORT_OPTION,
 				-> outRect.set(0)
 
