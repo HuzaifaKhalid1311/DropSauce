@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.text.method.LinkMovementMethodCompat
@@ -19,6 +18,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
+import org.koitharu.kotatsu.core.ui.widgets.StarRatingView
 import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
@@ -34,7 +34,6 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
 @AndroidEntryPoint
 class ScrobblingInfoSheet :
 	BaseAdaptiveSheet<SheetScrobblingBinding>(),
-	RatingBar.OnRatingBarChangeListener,
 	View.OnClickListener,
 	PopupMenu.OnMenuItemClickListener {
 
@@ -64,7 +63,7 @@ class ScrobblingInfoSheet :
 		}
 
 		buildStatusChips(binding)
-		binding.ratingBar.onRatingBarChangeListener = this
+		binding.ratingBar.onRatingChangeListener = ::onRatingChanged
 		binding.buttonMenu.setOnClickListener(this)
 		binding.imageViewCover.setOnClickListener(this)
 		binding.textViewDescription.movementMethod = LinkMovementMethodCompat.getInstance()
@@ -91,15 +90,13 @@ class ScrobblingInfoSheet :
 		return insets.consume(v, typeMask, bottom = true)
 	}
 
-	override fun onRatingChanged(ratingBar: RatingBar, rating: Float, fromUser: Boolean) {
+	private fun onRatingChanged(rating: Float) {
 		viewBinding?.textViewRatingValue?.text = formatRating(rating)
-		if (fromUser) {
-			viewModel.updateScrobbling(
-				index = scrobblerIndex,
-				rating = rating / ratingBar.numStars,
-				status = currentStatus(),
-			)
-		}
+		viewModel.updateScrobbling(
+			index = scrobblerIndex,
+			rating = rating / StarRatingView.MAX_RATING,
+			status = currentStatus(),
+		)
 	}
 
 	override fun onClick(v: View) {
@@ -134,7 +131,7 @@ class ScrobblingInfoSheet :
 			val status = checkedIds.firstOrNull()?.let { ScrobblingStatus.entries.getOrNull(it - 1) } ?: return@setOnCheckedStateChangeListener
 			viewModel.updateScrobbling(
 				index = scrobblerIndex,
-				rating = binding.ratingBar.rating / binding.ratingBar.numStars,
+				rating = binding.ratingBar.rating / StarRatingView.MAX_RATING,
 				status = status,
 			)
 		}
@@ -154,7 +151,7 @@ class ScrobblingInfoSheet :
 		val binding = viewBinding ?: return
 		binding.textViewTitle.text = scrobbling.title
 		binding.textViewService.setText(scrobbling.scrobbler.titleResId)
-		binding.ratingBar.rating = scrobbling.rating * binding.ratingBar.numStars
+		binding.ratingBar.rating = scrobbling.rating * StarRatingView.MAX_RATING
 		binding.textViewRatingValue.text = formatRating(binding.ratingBar.rating)
 		binding.textViewDescription.text = scrobbling.description?.sanitize()
 		isBindingStatus = true

@@ -113,20 +113,14 @@
 			app:layout_constraintStart_toEndOf="@id/imageView_cover"
 			app:layout_constraintTop_toBottomOf="@id/textView_service" />
 
-		<RatingBar
+		<org.koitharu.kotatsu.core.ui.widgets.StarRatingView
 			android:id="@+id/ratingBar"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_marginStart="16dp"
 			android:layout_marginTop="4dp"
-			android:numStars="5"
-			android:progressBackgroundTint="?attr/colorOutlineVariant"
-			android:progressTint="@color/common_yellow"
-			android:secondaryProgressTint="@color/common_yellow"
-			android:stepSize="0.5"
 			app:layout_constraintStart_toEndOf="@id/imageView_cover"
-			app:layout_constraintTop_toBottomOf="@id/textView_rating_label"
-			tools:rating="3.5" />
+			app:layout_constraintTop_toBottomOf="@id/textView_rating_label" />
 
 		<TextView
 			android:id="@+id/textView_rating_value"

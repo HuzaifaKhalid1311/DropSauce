@@ -53,6 +53,8 @@
 	<dimen name="card_indicator_size">32dp</dimen>
 	<dimen name="card_indicator_offset">4dp</dimen>
 
+	<dimen name="rating_star_size">36dp</dimen>
+
 	<dimen name="chapter_check_size">16dp</dimen>
 	<dimen name="chapter_check_offset">6dp</dimen>
 
