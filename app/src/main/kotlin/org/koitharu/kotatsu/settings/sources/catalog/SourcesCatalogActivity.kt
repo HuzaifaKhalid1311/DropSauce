@@ -60,6 +60,7 @@ import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.extensions.install.ShizukuExtensionInstaller
+import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
 import org.koitharu.kotatsu.list.ui.model.ListHeader
@@ -91,6 +92,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	@Inject
 	lateinit var storeManager: ExtensionStoreManager
+
+	@Inject
+	lateinit var lnPluginManager: LnPluginManager
 
 	@Inject
 	@BaseHttpClient
@@ -518,12 +522,17 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun processInstallQueue() {
-		if (!settings.isPrivateInstallEnabled && !settings.isShizukuInstallerEnabled && !canInstallPackages()) {
+		// A novel plugin is written into our own filesDir, so neither the install-packages permission
+		// nor legacy external storage applies — asking for either would be a prompt for nothing.
+		val isNovelNext = pendingInstallQueue.firstOrNull()?.isNovelPlugin == true
+		if (!isNovelNext && !settings.isPrivateInstallEnabled && !settings.isShizukuInstallerEnabled &&
+			!canInstallPackages()
+		) {
 			requestInstallPackagesPermission()
 			return
 		}
 		val nextRequest = pendingInstallQueue.removeFirstOrNull() ?: return
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+		if (!nextRequest.isNovelPlugin && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			storagePermissionRequest.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 			pendingInstallQueue.addFirst(nextRequest)
 		} else {
@@ -532,6 +541,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun downloadAndInstallExtension(requestModel: SourcesCatalogViewModel.InstallRequest) {
+		// A novel plugin is plain javascript we evaluate and store ourselves — no apk, no installer.
+		if (requestModel.isNovelPlugin) {
+			installNovelPlugin(requestModel)
+			return
+		}
 		val uri = Uri.parse(requestModel.url)
 		val downloadId = nextDownloadId++
 		val sourceFileName = uri.lastPathSegment?.takeIf { it.isNotBlank() } ?: "extension.apk"
@@ -561,6 +575,37 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			}
 		}
 		processInstallQueue()
+	}
+
+	private fun installNovelPlugin(requestModel: SourcesCatalogViewModel.InstallRequest) {
+		Toast.makeText(this, R.string.download_started, Toast.LENGTH_SHORT).show()
+		lifecycleScope.launch {
+			val result = runCatching {
+				val code = withContext(Dispatchers.IO) { downloadText(requestModel.url) }
+				lnPluginManager.install(
+					pluginId = requestModel.packageName,
+					rawCode = code,
+					iconUrl = requestModel.iconUrl.orEmpty(),
+					lang = requestModel.lang.orEmpty(),
+					storeId = requestModel.storeId,
+				)
+			}
+			viewModel.clearExtensionInProgress(requestModel.packageName)
+			if (result.isSuccess) {
+				viewModel.onPrivateExtensionChanged()
+			} else {
+				Toast.makeText(this@SourcesCatalogActivity, R.string.extension_download_failed, Toast.LENGTH_LONG).show()
+			}
+		}
+		processInstallQueue()
+	}
+
+	private fun downloadText(url: String): String {
+		val request = Request.Builder().url(url).get().build()
+		return httpClient.newCall(request).execute().use { response ->
+			if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+			response.body.string()
+		}
 	}
 
 	private fun downloadApk(url: String, fileName: String) {
@@ -951,5 +996,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	private companion object {
 		const val STALE_APK_AGE_MS = 24L * 60L * 60L * 1000L
+
+		/** Novel plugins are the requests whose download url is raw javascript rather than an apk. */
+		val SourcesCatalogViewModel.InstallRequest.isNovelPlugin: Boolean
+			get() = url.substringBefore('?').endsWith(".js", ignoreCase = true)
 	}
 }

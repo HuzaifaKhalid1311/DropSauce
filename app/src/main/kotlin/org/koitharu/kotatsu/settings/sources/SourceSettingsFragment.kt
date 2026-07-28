@@ -43,6 +43,9 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.unwrap
+import org.koitharu.kotatsu.lnreader.LnPluginSettings
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
@@ -163,9 +166,25 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 	private fun buildVariant(catalogueSource: CatalogueSource?, sourceName: String): SourceVariant {
 		val prefsName = SourceSettings.getStorageName(sourceName)
 		val prefs = requireContext().getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-		val sections = buildMihonSections(catalogueSource, prefsName)
-		val browserUrl = (catalogueSource as? HttpSource)?.baseUrl?.takeIf { it.isNotBlank() }
+		val novelSource = viewModel.source.unwrap() as? LnMangaSource
+		val sections = if (novelSource != null) {
+			buildNovelSections(novelSource)
+		} else {
+			buildMihonSections(catalogueSource, prefsName)
+		}
+		val browserUrl = novelSource?.plugin?.site?.takeIf { it.isNotBlank() }
+			?: (catalogueSource as? HttpSource)?.baseUrl?.takeIf { it.isNotBlank() }
 		return SourceVariant(sections = sections, sourcePrefs = prefs, openBrowserUrl = browserUrl)
+	}
+
+	/**
+	 * A novel plugin declares its settings as data instead of building a PreferenceScreen, so only the
+	 * ones it actually declares get a row — nothing is synthesised.
+	 */
+	private fun buildNovelSections(source: LnMangaSource): List<PreferenceSection> {
+		val preferences = LnPluginSettings.buildPreferences(requireContext(), source.plugin)
+		if (preferences.isEmpty()) return emptyList()
+		return listOf(PreferenceSection(null, preferences))
 	}
 
 	@SuppressLint("RestrictedApi")
@@ -194,8 +213,9 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 	}
 
 	private fun openBrowser(url: String) {
-		val repo = viewModel.repository as? MihonMangaRepository ?: return
-		router.openBrowser(url = url, source = repo.source, title = repo.source.displayName)
+		val source = viewModel.source
+		// Not gated on MihonMangaRepository any more: novel plugins have a site to open too.
+		router.openBrowser(url = url, source = source, title = source.getTitle(requireContext()))
 	}
 
 	private fun uninstallExtension(packageName: String) {

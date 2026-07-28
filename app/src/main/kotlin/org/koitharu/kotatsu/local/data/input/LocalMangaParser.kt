@@ -156,8 +156,44 @@ class LocalMangaParser(private val uri: Uri) {
 		}
 	}
 
+	/**
+	 * A novel downloaded by the app writes the same `index.json` a cbz download does. Reading it back
+	 * keeps the remote manga id and the original chapter ids, which is what links the download to the
+	 * source's chapter list, reading history and bookmarks. An imported book has no index and falls
+	 * through to the spine-derived path below.
+	 */
+	@Blocking
+	private fun getIndexedEpubManga(file: File, withDetails: Boolean): LocalManga? {
+		val index = uri.resolveFsAndPath().use { (fileSystem, rootPath) ->
+			MangaIndex.read(fileSystem, rootPath / ENTRY_NAME_INDEX)
+		} ?: return null
+		val info = index.getMangaInfo() ?: return null
+		return LocalManga(
+			info.copy(
+				source = LocalMangaSource,
+				url = file.toUri().toString(),
+				publicUrl = file.toUri().toString(),
+				coverUrl = index.getCoverEntry()?.let { file.toZipUri(it).toString() },
+				largeCoverUrl = null,
+				chapters = if (withDetails) {
+					info.chapters?.mapNotNull { chapter ->
+						index.getChapterFileName(chapter.id)?.let { entry ->
+							chapter.copy(url = file.toZipUri(entry).toString(), source = LocalMangaSource)
+						}
+					}
+				} else {
+					null
+				},
+			),
+			file,
+		)
+	}
+
 	@Blocking
 	private fun getEpubManga(epubFiles: List<File>, withDetails: Boolean): LocalManga {
+		if (epubFiles.size == 1 && !rootFile.isDirectory) {
+			getIndexedEpubManga(epubFiles.single(), withDetails)?.let { return it }
+		}
 		val isCollection = epubFiles.size > 1 || rootFile.isDirectory
 		val books = epubFiles.map { it to EpubParser.parse(it) }
 		val (firstFile, firstBook) = books.first()
@@ -383,7 +419,10 @@ class LocalMangaParser(private val uri: Uri) {
 
 				isFileUri() -> {
 					val file = toFile()
-					if (file.isZipArchive) {
+					// An epub IS a zip. Without this, reading index.json out of a downloaded novel
+					// resolved against the real filesystem and always came back empty, so every
+					// download landed in a fresh "Title_N.epub" instead of merging.
+					if (file.isZipArchive || file.isEpubFile) {
 						FsAndPath(
 							FileSystem.SYSTEM.openZip(schemeSpecificPart.toPath()),
 							fragment.orEmpty().toRootedPath(),

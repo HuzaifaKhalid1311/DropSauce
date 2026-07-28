@@ -26,6 +26,40 @@ data class ExternalExtensionRepoEntry(
 	@SerialName("iconUrl") val iconUrl: String? = null,
 )
 
+/**
+ * An entry in an LNReader plugin index — a plain JSON array of these. It is told apart from a legacy
+ * Mihon array by the absence of `pkg`/`apk`/`code`, which makes the Mihon decode fail outright.
+ */
+@Serializable
+data class LnStoreEntry(
+	val id: String,
+	val name: String,
+	val site: String = "",
+	val lang: String = "",
+	val version: String = "0",
+	/** Absolute url of the raw plugin code. */
+	val url: String,
+	val iconUrl: String = "",
+)
+
+/**
+ * Presents a novel plugin as an ordinary store entry so the whole catalog UI, store health, download
+ * and update machinery works unchanged. `apkName` carries the absolute `.js` url, which is both what
+ * `resolveApkUrl` passes through untouched and how [isLnPlugin] recognises the row later.
+ */
+fun LnStoreEntry.toRepoEntry() = ExternalExtensionRepoEntry(
+	name = name,
+	packageName = id,
+	apkName = url,
+	lang = lang,
+	versionCode = 0L,
+	versionName = version,
+	iconUrl = iconUrl.takeIf { it.isNotEmpty() },
+)
+
+val ExternalExtensionRepoEntry.isLnPlugin: Boolean
+	get() = apkName.substringBefore('?').endsWith(".js", ignoreCase = true)
+
 // --- Newer "extension store" index format (Mihon #3349+): a single object, served either as JSON or
 // protobuf (index.pb), optionally gzip-compressed, optionally with its extension list in a separate
 // file (extensionListUrl). We decode it and map it back onto ExternalExtensionRepoEntry so nothing

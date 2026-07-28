@@ -9,4 +9,13 @@
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 
+	<!-- Shown while a chapter's text is being fetched. Remote novel chapters arrive over the network,
+	     so without this the reader just sits blank until the request lands. -->
+	<com.google.android.material.loadingindicator.LoadingIndicator
+		android:id="@+id/loadingIndicator"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:visibility="gone" />
+
 </FrameLayout>

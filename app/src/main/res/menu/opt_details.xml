@@ -27,6 +27,14 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_export_epub"
+		android:icon="@drawable/ic_save_alt"
+		android:orderInCategory="40"
+		android:title="@string/export_epub"
+		android:visible="false"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_edit_override"
 		android:icon="@drawable/ic_edit"
 		android:orderInCategory="40"

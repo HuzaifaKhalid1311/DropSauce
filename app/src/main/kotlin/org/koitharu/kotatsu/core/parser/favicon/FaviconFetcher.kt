@@ -20,6 +20,7 @@ import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.util.ext.fetch
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
@@ -39,6 +40,11 @@ class FaviconFetcher(
 
 	override suspend fun fetch(): FetchResult? {
 		val mangaSource = MangaSource(uri.schemeSpecificPart)
+		// A novel plugin ships its icon as a plain url, so coil fetches it like any other image.
+		(mangaSource as? LnMangaSource)?.let { ln ->
+			val icon = ln.plugin.iconUrl.takeIf { it.isNotEmpty() } ?: R.drawable.ic_manga_source
+			return imageLoader.fetch(icon, options)
+		}
 		resolveMihonSource(uri.schemeSpecificPart)?.let { return fetchMihonIcon(it) }
 
 		return when (val repo = mangaRepositoryFactory.create(mangaSource)) {

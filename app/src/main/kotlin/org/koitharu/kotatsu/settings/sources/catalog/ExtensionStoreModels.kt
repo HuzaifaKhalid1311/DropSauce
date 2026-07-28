@@ -244,13 +244,21 @@ fun migrateLegacyExtensionStores(
 fun stableExtensionStoreId(indexUrl: String): String =
 	UUID.nameUUIDFromBytes(normalizeExtensionStoreUrl(indexUrl).lowercase().toByteArray()).toString()
 
+/**
+ * Human label for a store that publishes no `repo.json` — every LNReader plugin index, plus legacy
+ * Mihon repos served straight off a raw file host. Naming these by host + path printed most of the
+ * url back, because the index usually sits several directories deep.
+ */
 fun extensionStoreUrlLabel(indexUrl: String): String = runCatching {
 	val uri = URI(normalizeExtensionStoreUrl(indexUrl))
-	val path = uri.path.orEmpty()
-		.substringBeforeLast('/')
-		.trim('/')
-		.takeIf(String::isNotBlank)
-	uri.host?.let { host -> path?.let { "$host/$it" } ?: host }
+	val host = uri.host ?: return@runCatching null
+	val segments = uri.path.orEmpty().split('/').filter(String::isNotBlank)
+	when {
+		// raw.githubusercontent.com/<owner>/<repo>/… and github.com/<owner>/<repo>/…
+		host.endsWith("githubusercontent.com") || host == "github.com" -> segments.getOrNull(1)
+		host.endsWith("github.io") -> host.substringBefore('.')
+		else -> null
+	}?.takeIf(String::isNotBlank) ?: host
 }.getOrNull() ?: indexUrl
 
 data class RecommendedExtensionRef(

@@ -21,7 +21,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
+import androidx.core.net.toUri
+import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.getPreferredBranch
+import org.koitharu.kotatsu.local.data.isEpubFile
+import java.io.File
 import org.koitharu.kotatsu.core.nav.MangaIntent
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
@@ -222,6 +226,21 @@ class DetailsViewModel @Inject constructor(
 	override fun reload() {
 		loadingJob.cancel()
 		loadingJob = doLoad(force = true)
+	}
+
+	/**
+	 * The EPUB backing this entry, or null when there is nothing to export. A downloaded novel already
+	 * *is* an epub, so exporting is a copy rather than a rebuild — and like LNReader, only downloaded
+	 * chapters can be exported.
+	 */
+	fun getLocalEpubFile(): File? {
+		mangaDetails.value?.local?.file?.takeIf { it.isEpubFile }?.let { return it }
+		// A book opened straight from local storage has no separate "local" copy to look up.
+		val manga = getMangaOrNull() ?: return null
+		if (manga.source != LocalMangaSource) return null
+		return runCatching { File(manga.url.toUri().schemeSpecificPart) }
+			.getOrNull()
+			?.takeIf { it.isEpubFile }
 	}
 
 	fun updateScrobbling(index: Int, rating: Float, status: ScrobblingStatus?) {

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.details.ui
 
 import android.app.Activity
+import android.net.Uri
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -13,7 +14,9 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
@@ -21,6 +24,8 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
+import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
+import org.koitharu.kotatsu.local.data.isEpub
 
 class DetailsMenuProvider(
 	private val activity: FragmentActivity,
@@ -33,6 +38,11 @@ class DetailsMenuProvider(
 		ActivityResultContracts.StartActivityForResult(),
 		this,
 	)
+
+	/** Registered eagerly alongside [activityForResultLauncher] — both must exist before STARTED. */
+	private val exportEpubLauncher = activity.registerForActivityResult(
+		ActivityResultContracts.CreateDocument(MIME_EPUB),
+	) { uri -> if (uri != null) exportEpubTo(uri) }
 
 	private val router: AppRouter
 		get() = activity.router
@@ -52,6 +62,8 @@ class DetailsMenuProvider(
 		menu.findItem(R.id.action_scrobbling).isVisible = viewModel.isScrobblingAvailable
 		menu.findItem(R.id.action_online).isVisible = viewModel.remoteManga.value != null
 		menu.findItem(R.id.action_stats).isVisible = viewModel.isStatsAvailable.value
+		// Novels and local books only — there is nothing to put in an epub for an image manga.
+		menu.findItem(R.id.action_export_epub).isVisible = manga?.isEpub == true
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -107,6 +119,14 @@ class DetailsMenuProvider(
 				}
 			}
 
+			R.id.action_export_epub -> {
+				if (viewModel.getLocalEpubFile() == null) {
+					Snackbar.make(snackbarHost, R.string.export_epub_nothing, Snackbar.LENGTH_LONG).show()
+				} else {
+					exportEpubLauncher.launch("${manga.title.toFileNameSafe()}.epub")
+				}
+			}
+
 			R.id.action_edit_override -> {
 				// Pass the pristine source manga so the editor always shows the true original
 				// title/cover, independent of any previously saved override.
@@ -120,9 +140,32 @@ class DetailsMenuProvider(
 		return true
 	}
 
+	/**
+	 * A downloaded novel is already a valid EPUB (written by `LocalNovelEpubOutput`), so exporting is a
+	 * stream copy into whatever the user picked — no rebuild, and nothing is re-fetched.
+	 */
+	private fun exportEpubTo(destination: Uri) {
+		val source = viewModel.getLocalEpubFile() ?: return
+		activity.lifecycleScope.launch {
+			val result = runCatching {
+				withContext(Dispatchers.IO) {
+					checkNotNull(activity.contentResolver.openOutputStream(destination)) {
+						"Cannot open $destination for writing"
+					}.use { output -> source.inputStream().use { it.copyTo(output) } }
+				}
+			}
+			val message = if (result.isSuccess) R.string.export_epub_done else R.string.export_epub_failed
+			Snackbar.make(snackbarHost, message, Snackbar.LENGTH_SHORT).show()
+		}
+	}
+
 	override fun onActivityResult(result: ActivityResult) {
 		if (result.resultCode == Activity.RESULT_OK) {
 			viewModel.reload()
 		}
+	}
+
+	private companion object {
+		const val MIME_EPUB = "application/epub+zip"
 	}
 }

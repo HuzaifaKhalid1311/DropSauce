@@ -54,6 +54,7 @@ abstract class MangaDao {
 		"""
 		SELECT * FROM manga
 		WHERE source NOT LIKE 'MIHON\_%' ESCAPE '\'
+			AND source NOT LIKE 'LN\_%' ESCAPE '\'
 			AND source NOT IN ('LOCAL', 'UNKNOWN')
 			AND manga_id IN (
 				SELECT manga_id FROM favourites WHERE deleted_at = 0
@@ -74,7 +75,7 @@ abstract class MangaDao {
 	@Query(
 		"""
 		SELECT DISTINCT source FROM manga
-		WHERE source LIKE 'MIHON\_%' ESCAPE '\'
+		WHERE (source LIKE 'MIHON\_%' ESCAPE '\' OR source LIKE 'LN\_%' ESCAPE '\')
 			AND manga_id IN (
 				SELECT manga_id FROM favourites WHERE deleted_at = 0
 				UNION SELECT manga_id FROM history WHERE deleted_at = 0

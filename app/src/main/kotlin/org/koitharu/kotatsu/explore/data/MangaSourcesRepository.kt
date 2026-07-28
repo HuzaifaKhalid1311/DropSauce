@@ -14,6 +14,8 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
+import org.koitharu.kotatsu.lnreader.LnPluginManager
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.resolveActiveMihonLanguage
@@ -32,17 +34,18 @@ class MangaSourcesRepository @Inject constructor(
 	@LocalizedAppContext private val context: Context,
 	private val settings: AppSettings,
 	private val mihonExtensionManager: MihonExtensionManager? = null,
+	private val lnPluginManager: LnPluginManager? = null,
 ) {
 
 	private val usageRefresh = MutableStateFlow(0)
 	private val pinnedRefresh = MutableStateFlow(0)
 
 	fun getEnabledSources(): List<MangaSource> {
-		return buildSortedSourceInfoList(getMihonSources()).map { it.mangaSource }
+		return buildSortedSourceInfoList(getAllEnabledSources()).map { it.mangaSource }
 	}
 
 	fun getPinnedSources(): Set<MangaSource> {
-		val sourcesByKey = getMihonSources().associateBy(::sourceKeyOf)
+		val sourcesByKey = getAllEnabledSources().associateBy(::sourceKeyOf)
 		return getPinnedSourceKeys()
 			.mapNotNull { sourcesByKey[it] }
 			.toSet()
@@ -54,16 +57,18 @@ class MangaSourcesRepository @Inject constructor(
 
 	fun observeEnabledSources(): Flow<List<MangaSourceInfo>> = combine(
 		observeMihonSources(),
+		observeLnSources(),
 		settings.observeAsFlow(AppSettings.KEY_SOURCES_ORDER) { sourcesSortOrder },
 		usageRefresh,
 		pinnedRefresh,
-	) { sources, _, _, _ ->
-		buildSortedSourceInfoList(sources)
+	) { mihon, ln, _, _, _ ->
+		buildSortedSourceInfoList(mihon + ln)
 	}.distinctUntilChanged()
 
-	fun observeAll(): Flow<List<Pair<MangaSource, Boolean>>> = observeMihonSources().map { mihon ->
-		mihon.map { it to true }
-	}
+	fun observeAll(): Flow<List<Pair<MangaSource, Boolean>>> =
+		combine(observeMihonSources(), observeLnSources()) { mihon, ln ->
+			(mihon + ln).map { it to true }
+		}
 
 	fun setIsPinned(sources: Collection<MangaSource>, isPinned: Boolean): ReversibleHandle {
 		val before = getPinnedSourceKeys()
@@ -91,10 +96,14 @@ class MangaSourcesRepository @Inject constructor(
 	 */
 	fun setSourcesHidden(sources: Collection<MangaSource>, hidden: Boolean): ReversibleHandle {
 		val packages = sources.mapNotNullTo(HashSet()) { it.unwrapMihon()?.pkgName }
+		val plugins = sources.mapNotNullTo(HashSet()) { it.unwrapLn()?.pluginId }
 		val before = settings.mihonHiddenPackages
+		val beforeLn = settings.lnHiddenPlugins
 		settings.mihonHiddenPackages = if (hidden) before + packages else before - packages
+		settings.lnHiddenPlugins = if (hidden) beforeLn + plugins else beforeLn - plugins
 		return ReversibleHandle {
 			settings.mihonHiddenPackages = before
+			settings.lnHiddenPlugins = beforeLn
 		}
 	}
 
@@ -121,6 +130,7 @@ class MangaSourcesRepository @Inject constructor(
 		is MangaSourceInfo -> sourceKeyOf(source.mangaSource)
 		// Key by package + source name (NOT language) so pins and last-used survive a language switch.
 		is MihonMangaSource -> "mihon:${source.pkgName}:${source.catalogueSource.name}"
+		is LnMangaSource -> "ln:${source.pluginId}"
 		else -> {
 			val matched = getMihonSources().firstOrNull { it.name == source.name }
 			if (matched != null) {
@@ -141,7 +151,7 @@ class MangaSourcesRepository @Inject constructor(
 		sourceStatePrefs.edit().putString(KEY_PINNED_ORDER, keys.joinToString(PIN_SEPARATOR)).apply()
 	}
 
-	private fun buildSortedSourceInfoList(sources: List<MihonMangaSource>): List<MangaSourceInfo> {
+	private fun buildSortedSourceInfoList(sources: List<MangaSource>): List<MangaSourceInfo> {
 		if (sources.isEmpty()) return emptyList()
 		val pinnedOrder = getPinnedSourceKeys()
 		val pinnedIndex = HashMap<String, Int>(pinnedOrder.size)
@@ -212,6 +222,33 @@ class MangaSourcesRepository @Inject constructor(
 		val activeLang = resolveActiveMihonLanguage(siblings.map { it.language }, stored, appLanguage)
 		val active = siblings.firstOrNull { it.language == activeLang } ?: mihon
 		return ResolvedSource(active, active.languageDisplayName)
+	}
+
+	/** Novel plugins mixed straight into Explore alongside manga sources. */
+	fun getLnSources(): List<LnMangaSource> {
+		val manager = lnPluginManager ?: return emptyList()
+		manager.initialize()
+		val hidden = settings.lnHiddenPlugins
+		return manager.getAll().filterNot { it.pluginId in hidden }
+	}
+
+	fun observeLnSources(): Flow<List<LnMangaSource>> {
+		val manager = lnPluginManager ?: return kotlinx.coroutines.flow.flowOf(emptyList())
+		manager.initialize()
+		return combine(
+			manager.sources,
+			settings.observeAsFlow(AppSettings.KEY_LN_HIDDEN_PLUGINS) { lnHiddenPlugins },
+		) { _: Any?, _: Any? ->
+			getLnSources()
+		}.distinctUntilChanged()
+	}
+
+	private fun getAllEnabledSources(): List<MangaSource> = getMihonSources() + getLnSources()
+
+	private fun MangaSource.unwrapLn(): LnMangaSource? = when (this) {
+		is LnMangaSource -> this
+		is MangaSourceInfo -> mangaSource as? LnMangaSource
+		else -> null
 	}
 
 	private fun MangaSource.unwrapMihon(): MihonMangaSource? = when (this) {

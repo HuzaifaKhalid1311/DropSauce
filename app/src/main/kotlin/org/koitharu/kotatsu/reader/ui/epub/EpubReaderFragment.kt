@@ -88,7 +88,11 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
 import org.koitharu.kotatsu.bookmarks.domain.epubHighlight
 import org.koitharu.kotatsu.bookmarks.domain.epubHighlightUrl
+import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.network.BaseHttpClient
+import org.koitharu.kotatsu.core.parser.MangaRepository
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
+import org.koitharu.kotatsu.lnreader.model.absoluteUrl
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
@@ -103,6 +107,7 @@ import org.koitharu.kotatsu.reader.ui.ReaderState
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderAdapter
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderFragment
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import java.io.Closeable
 import java.io.File
 import java.net.URI
 import java.time.Instant
@@ -130,6 +135,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	@Inject
 	lateinit var imageLoader: ImageLoader
 
+	@Inject
+	lateinit var mangaRepositoryFactory: MangaRepository.Factory
+
 	private var chapters: List<NativeChapter> = emptyList()
 	private val chapterDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 	private val chapterDividerDecoration = object : RecyclerView.ItemDecoration() {
@@ -143,8 +151,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			}
 		}
 	}
-	private var archiveFiles: Map<File, ZipFile> = emptyMap()
-	private val archiveLock = Any()
+	private var chapterContent: ChapterContent? = null
 	private val loadingChapters = HashSet<Int>()
 	private var verticalView: RecyclerView? = null
 	private var pagerView: ViewPager2? = null
@@ -236,10 +243,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		pageRange = null
 		reflowLocator = null
 		loadingChapters.clear()
-		synchronized(archiveLock) {
-			archiveFiles.values.forEach(ZipFile::close)
-			archiveFiles = emptyMap()
-		}
+		runCatching { chapterContent?.close() }
+		chapterContent = null
 		super.onDestroyView()
 	}
 
@@ -289,23 +294,34 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		observeHighlights(manga)
 		val mangaChapters = manga.chapters.orEmpty()
 		if (mangaChapters.isEmpty()) return
-		if (chapters.isEmpty() && !loading) {
-			loading = true
-			try {
-				val prepared = withContext(Dispatchers.IO) { prepareBook(mangaChapters) }
-				chapters = prepared.chapters
-				archiveFiles = prepared.archives
-			} finally {
-				loading = false
+		// A local book opens straight from disk, but a novel chapter is a network fetch — the indicator
+		// covers the gap. `finally` also clears it on the early returns below.
+		setChapterLoading(true)
+		try {
+			if (chapters.isEmpty() && !loading) {
+				loading = true
+				try {
+					val prepared = withContext(Dispatchers.IO) { prepareBook(manga, mangaChapters) }
+					chapters = prepared.chapters
+					chapterContent = prepared.content
+				} finally {
+					loading = false
+				}
 			}
+			if (chapters.isEmpty()) return
+			val chapter = chapters.indexOfFirst { it.id == state.chapterId }
+				.takeIf { it >= 0 } ?: return
+			withContext(Dispatchers.IO) { ensureChaptersLoaded(chapter.preloadRange()) }
+			val offset = ReaderState.decodeEpubOffset(state.scroll)
+				?: (chapters[chapter].text.length.toLong() * state.scroll.coerceIn(0, 1000) / 1000).toInt()
+			renderMode(Locator(chapter, offset), state.page.takeIf { isPagedMode })
+		} finally {
+			setChapterLoading(false)
 		}
-		if (chapters.isEmpty()) return
-		val chapter = chapters.indexOfFirst { it.id == state.chapterId }
-			.takeIf { it >= 0 } ?: return
-		withContext(Dispatchers.IO) { ensureChaptersLoaded(chapter.preloadRange()) }
-		val offset = ReaderState.decodeEpubOffset(state.scroll)
-			?: (chapters[chapter].text.length.toLong() * state.scroll.coerceIn(0, 1000) / 1000).toInt()
-		renderMode(Locator(chapter, offset), state.page.takeIf { isPagedMode })
+	}
+
+	private fun setChapterLoading(value: Boolean) {
+		viewBinding?.loadingIndicator?.isVisible = value
 	}
 
 	private fun observeHighlights(manga: Manga) {
@@ -321,24 +337,27 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		}
 	}
 
-	private fun prepareBook(source: List<MangaChapter>): PreparedBook {
+	private fun prepareBook(manga: Manga, source: List<MangaChapter>): PreparedBook {
 		val items = source.map { chapter ->
-				val uri = chapter.url.toUri()
-				NativeChapter(
-					id = chapter.id,
-					title = chapter.title.orEmpty(),
-					file = File(uri.schemeSpecificPart),
-					entryName = uri.fragment.orEmpty(),
-				)
-			}
+			NativeChapter(
+				id = chapter.id,
+				title = chapter.title.orEmpty(),
+				url = chapter.url,
+			)
+		}
+		if (manga.source.unwrap() is LnMangaSource) {
+			return PreparedBook(items, RemoteContentSource(mangaRepositoryFactory.create(manga.source), source))
+		}
 		val archives = HashMap<File, ZipFile>()
 		try {
-			items.map(NativeChapter::file).distinct().forEach { archives[it] = ZipFile(it) }
+			items.map { File(it.url.toUri().schemeSpecificPart) }
+				.distinct()
+				.forEach { archives[it] = ZipFile(it) }
 		} catch (error: Throwable) {
 			archives.values.forEach(ZipFile::close)
 			throw error
 		}
-		return PreparedBook(items, archives)
+		return PreparedBook(items, ZipContentSource(archives))
 	}
 
 	private fun ensureChaptersLoaded(range: IntRange) {
@@ -350,11 +369,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		if (chapter.content != null) return
 		synchronized(chapter) {
 			if (chapter.content != null) return
-			val raw = synchronized(archiveLock) {
-				val zip = archiveFiles[chapter.file] ?: return
-				val entry = zip.getEntry(chapter.entryName) ?: zip.getEntry(chapter.entryName.removePrefix("/"))
-				entry?.let { zip.getInputStream(it).bufferedReader().use { reader -> reader.readText() } }.orEmpty()
-			}
+			// Leave content null on failure so the next bind retries. Caching a blank chapter would
+			// permanently blank it for remote sources, where one flaky request is expected.
+			val raw = runCatching { chapterContent?.loadHtml(chapter.url) }.getOrNull() ?: return
 			chapter.content = parseChapter(chapter, raw)
 		}
 	}
@@ -379,16 +396,13 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private fun loadEpubImage(chapter: NativeChapter, source: String): Drawable? = runCatching {
-		val entryName = resolveEpubEntry(chapter.entryName, source)
-		val bytes = synchronized(archiveLock) {
-			val archive = archiveFiles[chapter.file] ?: return null
-			val entry = archive.getEntry(entryName) ?: archive.getEntry(entryName.removePrefix("/")) ?: return null
-			archive.getInputStream(entry).use { it.readBytes() }
-		}
-		val drawable = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+		// ByteArray for an embedded epub resource, absolute url for a remote one - coil takes either.
+		val data = chapterContent?.imageData(chapter.url, source) ?: return null
+		val drawable = (data as? ByteArray)
+			?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
 			?.let { BitmapDrawable(resources, it) }
 			?: runBlocking {
-				imageLoader.execute(ImageRequest.Builder(requireContext()).data(bytes).build()).getDrawableOrThrow()
+				imageLoader.execute(ImageRequest.Builder(requireContext()).data(data).build()).getDrawableOrThrow()
 			}
 		val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: return null
 		val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: return null
@@ -399,11 +413,6 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		drawable.setBounds(0, 0, (width * scale).toInt().coerceAtLeast(1), (height * scale).toInt().coerceAtLeast(1))
 		drawable
 	}.getOrNull()
-
-	private fun resolveEpubEntry(chapterEntry: String, source: String): String {
-		val cleanSource = source.substringBefore('#').substringBefore('?').replace(" ", "%20")
-		return URI("/${chapterEntry.replace('\\', '/')}").resolve(cleanSource).normalize().path.removePrefix("/")
-	}
 
 	private fun Spanned.trimmed(): CharSequence {
 		var start = 0
@@ -616,6 +625,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		val range = (locator.chapter - PAGE_LOOKAHEAD).coerceAtLeast(0)..
 			(locator.chapter + PAGE_LOOKAHEAD).coerceAtMost(chapters.lastIndex)
 		viewLifecycleOwner.lifecycleScope.launch {
+			// Load on IO before laying out on Default: remote text sources fetch here, and a network
+			// call must never run on a CPU dispatcher.
+			withContext(Dispatchers.IO) { ensureChaptersLoaded(range) }
 			val newPages = withContext(Dispatchers.Default) { paginate(container.width, container.height, range) }
 			if (generation != renderGeneration || !isPagedMode || viewBinding?.readerContainer !== container) return@launch
 			pages = newPages
@@ -689,6 +701,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		val generation = renderGeneration
 		extendingPages = true
 		viewLifecycleOwner.lifecycleScope.launch {
+			withContext(Dispatchers.IO) { ensureChaptersLoaded(target..target) }
 			val added = withContext(Dispatchers.Default) { paginate(pager.width, pager.height, target..target) }
 			if (generation == renderGeneration && pagerView === pager) {
 				val adapter = pager.adapter ?: run { extendingPages = false; return@launch }
@@ -711,7 +724,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private fun paginate(viewWidth: Int, viewHeight: Int, range: IntRange): List<NativePage> {
-		ensureChaptersLoaded(range)
+		// Callers load [range] on IO first - see renderPaged/extendPageWindow.
 		val density = resources.displayMetrics.density
 		val horizontal = (effectiveHorizontalPadding * density).toInt().coerceAtLeast(1)
 		val verticalTop = verticalTopPaddingPx
@@ -1221,12 +1234,17 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			.setPositiveButton(R.string.search) { _, _ -> searchBook(input.text.toString().trim()) }.show()
 	}
 
+	/**
+	 * Remote sources search only what is already loaded: fetching every chapter of a 2000-chapter web
+	 * novel to grep it would hammer the site and take minutes.
+	 */
 	private fun searchBook(query: String) {
 		if (query.isEmpty() || chapters.isEmpty()) return
+		val isRemote = chapterContent is RemoteContentSource
 		Toast.makeText(requireContext(), R.string.loading_, Toast.LENGTH_SHORT).show()
 		viewLifecycleOwner.lifecycleScope.launch {
 			val results = withContext(Dispatchers.IO) {
-				ensureChaptersLoaded(chapters.indices)
+				if (!isRemote) ensureChaptersLoaded(chapters.indices)
 				chapters.mapIndexedNotNull { index, chapter ->
 					val match = chapter.text.indexOf(query, ignoreCase = true).takeIf { it >= 0 } ?: return@mapIndexedNotNull null
 					val start = (match - 45).coerceAtLeast(0)
@@ -1499,14 +1517,92 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	private class NativeChapter(
 		val id: Long,
 		val title: String,
-		val file: File,
-		val entryName: String,
+		/** Local EPUB: `file:/path/book.epub#OEBPS/ch01.xhtml`. Remote text source: the chapter path. */
+		val url: String,
 	) {
 		@Volatile
 		var content: Spanned? = null
 		val text: Spanned get() = content ?: EMPTY_CHAPTER_TEXT
 	}
-	private data class PreparedBook(val chapters: List<NativeChapter>, val archives: Map<File, ZipFile>)
+
+	/**
+	 * Where a chapter's raw HTML and its inline images come from. Local EPUBs read them out of a zip;
+	 * remote text sources fetch them. Everything else in this reader — pagination, locators, highlights,
+	 * search, progress — only ever touches [NativeChapter.text], so it stays content-agnostic.
+	 */
+	private interface ChapterContent : Closeable {
+		/** Blocking. Throws on failure; a failed load must not be cached. */
+		fun loadHtml(url: String): String
+
+		/** [ByteArray] for an embedded resource, absolute-url [String] for a remote one, or null. */
+		fun imageData(chapterUrl: String, source: String): Any?
+	}
+
+	private class ZipContentSource(private val archives: Map<File, ZipFile>) : ChapterContent {
+
+		private val lock = Any()
+
+		override fun loadHtml(url: String): String {
+			val uri = url.toUri()
+			val entryName = uri.fragment.orEmpty()
+			return synchronized(lock) {
+				val zip = archives[File(uri.schemeSpecificPart)] ?: return ""
+				val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
+				entry?.let { zip.getInputStream(it).bufferedReader().use { reader -> reader.readText() } }.orEmpty()
+			}
+		}
+
+		override fun imageData(chapterUrl: String, source: String): Any? {
+			// A downloaded novel keeps its illustrations as absolute urls; let coil fetch those.
+			if (source.startsWith("http://", true) || source.startsWith("https://", true)) return source
+			val uri = chapterUrl.toUri()
+			val entryName = resolveEpubEntry(uri.fragment.orEmpty(), source)
+			return synchronized(lock) {
+				val archive = archives[File(uri.schemeSpecificPart)] ?: return null
+				val entry = archive.getEntry(entryName)
+					?: archive.getEntry(entryName.removePrefix("/"))
+					?: return null
+				archive.getInputStream(entry).use { it.readBytes() }
+			}
+		}
+
+		override fun close() {
+			synchronized(lock) { archives.values.forEach(ZipFile::close) }
+		}
+
+		private fun resolveEpubEntry(chapterEntry: String, source: String): String {
+			val cleanSource = source.substringBefore('#').substringBefore('?').replace(" ", "%20")
+			return URI("/${chapterEntry.replace('\\', '/')}").resolve(cleanSource).normalize().path.removePrefix("/")
+		}
+	}
+
+	/**
+	 * Chapters fetched from a novel plugin. Images are never downloaded here — the src is handed back
+	 * as an absolute url so coil loads it through the source's own headers, exactly like a cover.
+	 */
+	private class RemoteContentSource(
+		private val repository: MangaRepository,
+		chapters: List<MangaChapter>,
+	) : ChapterContent {
+
+		private val byUrl = chapters.associateBy { it.url }
+
+		// runBlocking is safe: ChapterContent.loadHtml is documented blocking and every caller
+		// already hops to Dispatchers.IO first.
+		override fun loadHtml(url: String): String = runBlocking {
+			val chapter = byUrl[url] ?: return@runBlocking ""
+			repository.getChapterHtml(chapter).orEmpty()
+		}
+
+		override fun imageData(chapterUrl: String, source: String): Any? {
+			val site = (repository.source.unwrap() as? LnMangaSource) ?: return null
+			return site.absoluteUrl(source)
+		}
+
+		override fun close() = Unit
+	}
+
+	private data class PreparedBook(val chapters: List<NativeChapter>, val content: ChapterContent)
 	private data class NativePage(val chapter: Int, val start: Int, val end: Int)
 	private data class SearchResult(val chapter: Int, val title: String, val snippet: String, val offset: Int)
 	private data class Locator(val chapter: Int, val offset: Int)

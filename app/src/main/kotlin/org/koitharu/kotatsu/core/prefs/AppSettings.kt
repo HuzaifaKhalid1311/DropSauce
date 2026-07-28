@@ -601,6 +601,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getStringSet(KEY_MIHON_HIDDEN_PACKAGES, emptySet()).orEmpty()
 		set(value) = prefs.edit { putStringSet(KEY_MIHON_HIDDEN_PACKAGES, value) }
 
+	/** LNReader plugin ids hidden from Explore. Mirrors [mihonHiddenPackages] for novel plugins. */
+	var lnHiddenPlugins: Set<String>
+		get() = prefs.getStringSet(KEY_LN_HIDDEN_PLUGINS, emptySet()).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_LN_HIDDEN_PLUGINS, value) }
+
 	fun isMihonPackageHidden(pkgName: String): Boolean = pkgName in mihonHiddenPackages
 
 	fun setMihonPackageHidden(pkgName: String, hidden: Boolean) {
@@ -1175,6 +1180,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_MIHON_PER_EXT_ACTIVE_LANG = "mihon_per_ext_active_lang"
 		const val KEY_MIHON_HIDDEN_PACKAGES = "mihon_hidden_packages"
+		const val KEY_LN_HIDDEN_PLUGINS = "ln_hidden_plugins"
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_MIHON_EXTENSION_REPOS = "mihon_extension_repos"
 		const val KEY_MIHON_REPO_INFOS = "mihon_repo_infos"

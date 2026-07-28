@@ -506,6 +506,10 @@
 	<string name="epub_align_justified">Justified</string>
 	<string name="epub_publisher_style">Use book formatting</string>
 	<string name="epub_search_book">Search book</string>
+	<string name="export_epub">Export as EPUB</string>
+	<string name="export_epub_done">Exported as EPUB</string>
+	<string name="export_epub_nothing">Download the chapters first — only downloaded chapters can be exported</string>
+	<string name="export_epub_failed">Export failed</string>
 	<string name="epub_paged_tap_gestures">Paged tap zones</string>
 	<string name="epub_paged_tap_gestures_summary">Left: previous · Center: controls · Right: next</string>
 	<string name="epub_theme_light">White</string>

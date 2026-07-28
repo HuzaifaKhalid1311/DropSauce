@@ -70,7 +70,13 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		if (depth > MAX_INDEX_HOPS) return emptyList() // guard against index_v2 / list-url cycles
 		val bytes = fetchBytes(url, forceRefresh, cacheOnly) ?: return emptyList()
 		return when (bytes.firstOrNull()) {
-			OPEN_BRACKET -> json.decodeFromString<List<ExternalExtensionRepoEntry>>(bytes.decodeToString())
+			OPEN_BRACKET -> {
+				val text = bytes.decodeToString()
+				// A '[' body is either a legacy Mihon index or an LNReader plugin index. The shapes are
+				// disjoint (no pkg/apk/code in the latter), so a failed decode IS the discriminator.
+				runCatching { json.decodeFromString<List<ExternalExtensionRepoEntry>>(text) }.getOrNull()
+					?: json.decodeFromString<List<LnStoreEntry>>(text).map(LnStoreEntry::toRepoEntry)
+			}
 			OPEN_BRACE -> {
 				val text = bytes.decodeToString()
 				val repoJson = runCatching { json.decodeFromString<ExternalRepoJson>(text) }.getOrNull()

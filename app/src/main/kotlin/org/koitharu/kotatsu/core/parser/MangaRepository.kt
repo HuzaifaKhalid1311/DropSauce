@@ -11,6 +11,10 @@ import org.koitharu.kotatsu.core.model.MissingMangaSource
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
+import org.koitharu.kotatsu.lnreader.LnMangaRepository
+import org.koitharu.kotatsu.lnreader.LnPluginManager
+import org.koitharu.kotatsu.lnreader.js.JsHost
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.mihon.LazyMihonMangaRepository
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
@@ -50,6 +54,12 @@ interface MangaRepository {
 	/** Public web URL for a single [chapter], or null for sources without a browsable chapter page. */
 	suspend fun getChapterUrl(chapter: MangaChapter): String? = null
 
+	/**
+	 * Returns [chapter]'s content as html for text sources (web novels), or null for image sources.
+	 * Consumed by the native epub reader, which renders the html into a Spanned.
+	 */
+	suspend fun getChapterHtml(chapter: MangaChapter): String? = null
+
 	/** Returns extension-specific HTTP headers for the image at [imageUrl], or null for non-extension sources. */
 	suspend fun getImageRequestHeaders(imageUrl: String, page: MangaPage): Headers? = null
 
@@ -83,6 +93,8 @@ interface MangaRepository {
 		private val localMangaRepository: LocalMangaRepository,
 		private val contentCache: MemoryContentCache,
 		private val mihonExtensionManager: MihonExtensionManager,
+		private val lnPluginManager: LnPluginManager,
+		private val jsHost: JsHost,
 		@ApplicationContext private val context: Context,
 	) {
 
@@ -96,6 +108,7 @@ interface MangaRepository {
 				LocalMangaSource -> return localMangaRepository
 				UnknownMangaSource -> return EmptyMangaRepository(unwrapped)
 				is MihonMangaSource -> mihonExtensionManager.initialize()
+				is LnMangaSource -> lnPluginManager.initialize()
 			}
 			if (isExternalMissing) {
 				// Don't reuse a stale `EmptyMangaRepository`: it would throw forever. The
@@ -143,6 +156,12 @@ interface MangaRepository {
 				mihonExtensionManager.initialize()
 				return ResolveMangaSource(source.name)
 			}
+			// Novel plugins are a plain directory scan, so there is no "not loaded yet" window to
+			// bridge with a lazy proxy the way LazyMihonMangaRepository does.
+			if (source is MissingMangaSource && source.name.startsWith("LN_")) {
+				lnPluginManager.initialize()
+				return ResolveMangaSource(source.name)
+			}
 			return source
 		}
 
@@ -151,6 +170,13 @@ interface MangaRepository {
 				source = source,
 				cache = contentCache,
 				context = context,
+			)
+
+			is LnMangaSource -> LnMangaRepository(
+				source = source,
+				cache = contentCache,
+				jsHost = jsHost,
+				pluginManager = lnPluginManager,
 			)
 
 			else -> null
