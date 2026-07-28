@@ -1,13 +1,16 @@
 package org.koitharu.kotatsu.settings.work
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.work.WorkManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.backup.local.ui.periodical.PeriodicalBackupWorker
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
+import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
 import org.koitharu.kotatsu.sync.data.SyncSettings
 import org.koitharu.kotatsu.sync.work.SyncWorker
@@ -25,6 +28,7 @@ class WorkScheduleManager @Inject constructor(
 	private val backupScheduler: PeriodicalBackupWorker.Scheduler,
 	private val syncScheduler: SyncWorker.Scheduler,
 	private val extensionUpdateScheduler: ExtensionUpdateWorker.Scheduler,
+	@ApplicationContext private val context: Context,
 ) : SharedPreferences.OnSharedPreferenceChangeListener {
 
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
@@ -96,11 +100,13 @@ class WorkScheduleManager @Inject constructor(
 	}
 
 	// The worker checks for updates when either auto-install (Shizuku) or the update notification
-	// is turned on — either one needs the periodic repo check to run.
+	// is turned on — either one needs the periodic repo check to run. Installed novel plugins need it
+	// unconditionally: updating them is just writing a file, so there is nothing to opt into.
 	private fun isExtensionUpdateWorkerNeeded(): Boolean =
 		settings.isPrivateInstallEnabled ||
 			(settings.isAutoUpdateExtensionsEnabled && settings.isShizukuInstallerEnabled) ||
-			settings.isExtensionUpdateNotificationsEnabled
+			settings.isExtensionUpdateNotificationsEnabled ||
+			LnPluginManager.hasInstalledPlugins(context)
 
 	private fun updateWorker(scheduler: PeriodicWorkScheduler, isEnabled: Boolean, force: Boolean) {
 		processLifecycleScope.launch(Dispatchers.Default) {

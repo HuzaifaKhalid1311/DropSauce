@@ -225,6 +225,8 @@
 				<data android:scheme="kotatsu" android:host="add-repo" />
 				<data android:scheme="tachiyomi" android:host="add-repo" />
 				<data android:scheme="mihon" android:host="extension-store" />
+				<!-- lnreader.app's "Add to LNReader" button: lnreader://repo/add?url=... -->
+				<data android:scheme="lnreader" android:host="repo" android:path="/add" />
 			</intent-filter>
 		</activity>
 		<activity

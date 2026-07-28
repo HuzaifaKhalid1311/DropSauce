@@ -1,8 +1,10 @@
 package org.koitharu.kotatsu.explore.ui
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.koitharu.kotatsu.explore.ui.adapter.sourceIconInsetPx
 import java.io.File
 
 class ExploreSourceKindSelectorTest {
@@ -33,6 +35,22 @@ class ExploreSourceKindSelectorTest {
 		val source = source("org/koitharu/kotatsu/explore/ui/ExploreViewModel.kt")
 
 		assertTrue(source.contains("isExtensionsLoading&&!isNovelShown->result+=LoadingState"))
+	}
+
+	@Test
+	fun `novel icons receive adaptive safe zone inset`() {
+		assertEquals(8, sourceIconInsetPx(iconSizePx = 80, isNovel = true))
+		assertEquals(4, sourceIconInsetPx(iconSizePx = 40, isNovel = true))
+		assertEquals(0, sourceIconInsetPx(iconSizePx = 80, isNovel = false))
+	}
+
+	@Test
+	fun `manage action uses text and balanced header slots`() {
+		val layout = layout("item_explore_extensions_header.xml")
+
+		assertTrue(layout.contains("""android:text="@string/manage""""))
+		assertFalse(layout.contains("""app:icon="@drawable/ic_extension_manage""""))
+		assertEquals(2, Regex("""android:layout_width="@dimen/explore_header_side_width"""").findAll(layout).count())
 	}
 
 	private fun layout(name: String): String {

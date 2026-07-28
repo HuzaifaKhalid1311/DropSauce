@@ -60,30 +60,27 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewAdd.isEnabled = !isInProgress
 		binding.imageViewAdd.alpha = if (isInProgress) 0.45f else 1f
 		binding.progressIcon.isVisible = isInProgress
-		if (isPrivateMode) {
-			val isEnabled = item.action == SourceCatalogItem.Extension.Action.DISABLE ||
-				item.action == SourceCatalogItem.Extension.Action.UPDATE
-			val isSettingsVisible = isEnabled && item.sourceName != null
-			binding.imageViewSettings.isVisible = isSettingsVisible
-			binding.imageViewSettings.isEnabled = !isInProgress
-			binding.imageViewSettings.alpha = if (isInProgress) 0.45f else 1f
-			binding.imageViewHide.isVisible = false
+		// An enabled sandbox extension is as installed as a system one, so it gets the same
+		// settings + hide actions; only the INSTALL/ENABLE rows (nothing there yet) go without.
+		val isInstalled = if (isPrivateMode) {
+			item.action == SourceCatalogItem.Extension.Action.DISABLE ||
+				item.action == SourceCatalogItem.Extension.Action.UPDATE ||
+				item.action == SourceCatalogItem.Extension.Action.UNINSTALL
 		} else {
-			val isSettingsVisible = item.action != SourceCatalogItem.Extension.Action.INSTALL && item.sourceName != null
-			binding.imageViewSettings.isVisible = isSettingsVisible
-			binding.imageViewSettings.isEnabled = !isInProgress
-			binding.imageViewSettings.alpha = if (isInProgress) 0.45f else 1f
-			val isInstalled = item.action != SourceCatalogItem.Extension.Action.INSTALL
-			binding.imageViewHide.isVisible = isInstalled
-			binding.imageViewHide.isEnabled = !isInProgress
-			binding.imageViewHide.alpha = if (isInProgress) 0.45f else 1f
-			if (isInstalled) {
-				val hideButton = binding.imageViewHide
-				hideButton.setIconResource(if (item.isHidden) R.drawable.ic_eye_off else R.drawable.ic_eye)
-				val hideDescription = context.getString(if (item.isHidden) R.string.unhide else R.string.hide)
-				hideButton.contentDescription = hideDescription
-				TooltipCompat.setTooltipText(hideButton, hideDescription)
-			}
+			item.action != SourceCatalogItem.Extension.Action.INSTALL
+		}
+		binding.imageViewSettings.isVisible = isInstalled && item.sourceName != null
+		binding.imageViewSettings.isEnabled = !isInProgress
+		binding.imageViewSettings.alpha = if (isInProgress) 0.45f else 1f
+		binding.imageViewHide.isVisible = isInstalled
+		binding.imageViewHide.isEnabled = !isInProgress
+		binding.imageViewHide.alpha = if (isInProgress) 0.45f else 1f
+		if (isInstalled) {
+			val hideButton = binding.imageViewHide
+			hideButton.setIconResource(if (item.isHidden) R.drawable.ic_eye_off else R.drawable.ic_eye)
+			val hideDescription = context.getString(if (item.isHidden) R.string.unhide else R.string.hide)
+			hideButton.contentDescription = hideDescription
+			TooltipCompat.setTooltipText(hideButton, hideDescription)
 		}
 		binding.buttonGroupActions.isVisible = true
 		binding.buttonGroupActions.applyConnectedActionShapes(outerCornerSize, innerCornerSize)

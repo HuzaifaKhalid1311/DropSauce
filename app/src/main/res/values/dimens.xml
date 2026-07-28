@@ -104,6 +104,7 @@
 	<dimen name="menu_popup_item_min_height">40dp</dimen>
 	<dimen name="menu_popup_icon_size">32dp</dimen>
 	<dimen name="explore_extension_menu_icon_size">40dp</dimen>
+	<dimen name="explore_header_side_width">104dp</dimen>
 	<dimen name="menu_popup_item_padding_horizontal">12dp</dimen>
 	<dimen name="menu_popup_selector_inset_horizontal">4dp</dimen>
 	<dimen name="menu_popup_selector_inset_vertical">4dp</dimen>

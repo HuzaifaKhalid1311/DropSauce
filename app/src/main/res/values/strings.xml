@@ -660,6 +660,8 @@
     <string name="extension_install_permission_required_title">Allow app installs</string>
     <string name="extension_install_permission_required_message">Enable \"Install unknown apps\" for this app to install or update extensions.</string>
     <string name="installed">Installed</string>
+    <string name="extension_installed">Extension installed</string>
+    <string name="action_open">Open</string>
     <string name="available_to_install">Available to install</string>
     <string name="no_manga_sources_found">No available manga extensions found by your query</string>
     <string name="manual">Manual</string>

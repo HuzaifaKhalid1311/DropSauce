@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
@@ -57,7 +58,6 @@ class SourcesCatalogViewModel @Inject constructor(
 
 	private val searchQuery = MutableStateFlow<String?>(null)
 	private val activePageId = MutableStateFlow(ExtensionCatalogPage.Available.id)
-	private val hasInstalledExtensions = MutableStateFlow(false)
 	private val installingPackages = MutableStateFlow<Set<String>>(emptySet())
 	private val refreshTrigger = MutableStateFlow(0)
 	val isRefreshing = MutableStateFlow(false)
@@ -74,18 +74,15 @@ class SourcesCatalogViewModel @Inject constructor(
 	val onOpenPackageInstaller = MutableEventFlow<List<InstallRequest>>()
 	val onOpenUninstall = MutableEventFlow<String>()
 	val onShowMessage = MutableEventFlow<Int>()
-	val pages: StateFlow<List<ExtensionCatalogPage>> = combine(
-		storeManager.states,
-		hasInstalledExtensions,
-	) { states, hasInstalled ->
-		buildExtensionCatalogPages(
-			states.map { it.store },
-			hasInstalledExtensions = hasInstalled,
-		)
+
+	/** Source name of a freshly installed extension, so the caller can offer to open it. */
+	val onExtensionInstalled = MutableEventFlow<String>()
+	val pages: StateFlow<List<ExtensionCatalogPage>> = storeManager.states.map { states ->
+		buildExtensionCatalogPages(states.map { it.store })
 	}.stateIn(
 		viewModelScope + Dispatchers.Default,
 		SharingStarted.Eagerly,
-		listOf(ExtensionCatalogPage.Empty),
+		listOf(ExtensionCatalogPage.Available),
 	)
 
 	val locales: StateFlow<Set<String?>> = combine(
@@ -121,7 +118,6 @@ class SourcesCatalogViewModel @Inject constructor(
 		@Suppress("UNCHECKED_CAST")
 		val storeStates = args[9] as List<ExtensionStoreState>
 		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
-		refreshInstalledState()
 		val result = buildPage(pageId, storeStates, mode, f, q)
 		isRefreshing.value = false
 		CatalogPageContent(pageId, result)
@@ -138,7 +134,6 @@ class SourcesCatalogViewModel @Inject constructor(
 	init {
 		launchJob(Dispatchers.Default) {
 			storeManager.initialize()
-			refreshInstalledState()
 		}
 	}
 
@@ -156,7 +151,6 @@ class SourcesCatalogViewModel @Inject constructor(
 			try {
 				repository.reloadMihonSources()
 				storeManager.refresh(forceRefresh = true)
-				refreshInstalledState()
 			} finally {
 				refreshTrigger.value++
 			}
@@ -332,6 +326,26 @@ class SourcesCatalogViewModel @Inject constructor(
 		)
 	}
 
+	/**
+	 * Resolves the source a just-installed extension provides and announces it. An extension with no
+	 * usable source (failed load, or a package whose sources are all filtered out) announces nothing.
+	 */
+	fun notifyExtensionInstalled(packageName: String) {
+		launchJob(Dispatchers.Default) {
+			val plugin = lnPluginManager.getById(packageName)
+			val sourceName = if (plugin != null) {
+				plugin.name
+			} else {
+				// The install finished a moment ago; the extension list may not have been re-read yet.
+				repository.reloadMihonSources()
+				repository.observeAllMihonSources().first()
+					.firstOrNull { it.pkgName == packageName }
+					?.name
+			}
+			onExtensionInstalled.call(sourceName ?: return@launchJob)
+		}
+	}
+
 	fun setExtensionInProgress(packageName: String, isInProgress: Boolean) {
 		val current = installingPackages.value
 		installingPackages.value = if (isInProgress) {
@@ -353,19 +367,6 @@ class SourcesCatalogViewModel @Inject constructor(
 		}
 		installingPackages.value = installingPackages.value + requests.mapTo(HashSet(requests.size)) { it.packageName }
 		onOpenPackageInstaller.call(requests)
-	}
-
-	private fun refreshInstalledState() {
-		val mode = if (settings.isPrivateInstallEnabled) {
-			ExtensionInstallMode.SANDBOX
-		} else {
-			ExtensionInstallMode.SYSTEM
-		}
-		val installed = mihonExtensionLoader.getInstalledExtensions(
-			appContext,
-			privateMode = mode == ExtensionInstallMode.SANDBOX,
-		)
-		hasInstalledExtensions.value = installed.isNotEmpty()
 	}
 
 	private fun buildAvailablePage(
@@ -396,12 +397,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				?: installedSourcesByPackage[local.pkgName]?.firstOrNull()
 			if (settings.isNsfwContentDisabled && local.isNsfw) continue
 			if (filter.locale != null && local.lang != filter.locale) continue
-			if (q != null &&
-				!local.appName.contains(q, ignoreCase = true) &&
-				!local.pkgName.contains(q, ignoreCase = true)
-			) {
-				continue
-			}
+			if (!matchesExtensionQuery(q, local.appName, local.pkgName)) continue
 			val ownerSuffix = owner?.displayName?.let { " • $it" }.orEmpty()
 			if (entry != null) {
 				updates += SourceCatalogItem.Extension(
@@ -455,9 +451,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		for (source in lnPluginManager.getAll()) {
 			val plugin = source.plugin
 			if (filter.locale != null && plugin.lang != filter.locale) continue
-			if (q != null && !plugin.name.contains(q, ignoreCase = true) && !plugin.id.contains(q, ignoreCase = true)) {
-				continue
-			}
+			if (!matchesExtensionQuery(q, plugin.name, plugin.id)) continue
 			val newer = lnCatalog.firstOrNull {
 				it.packageName == plugin.id && isNewerPluginVersion(it.versionName, plugin.version)
 			}
@@ -497,6 +491,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			updates.sortedWith(byTitle),
 			installedItems.sortedWith(byTitle),
 			isPrivateMode = mode == ExtensionInstallMode.SANDBOX,
+			hasStores = storeStates.isNotEmpty(),
 		)
 	}
 
@@ -565,6 +560,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			storeId = storeState.store.id,
 			action = SourceCatalogItem.Extension.Action.INSTALL,
 			isPrivateMode = false,
+			lnCatalog = available.filter { it.isLnPlugin },
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
 
@@ -572,7 +568,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (entry.packageName in recommendedPackages) continue // surfaced in the Recommended section
 			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
 			if (locale != null && entry.lang != locale) continue
-			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
+			if (!matchesExtensionQuery(q, entry.name, entry.packageName)) continue
 
 			if (entry.isLnPlugin) {
 				val installedVersion = lnPluginManager.getById(entry.packageName)?.plugin?.version
@@ -650,8 +646,8 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	/**
-	 * Extensions the user's library needs but that aren't installed: derived from `MIHON_<id>`
-	 * sources referenced by favourites/history and offered by the current store.
+	 * Extensions the user's library needs but that aren't installed: derived from `MIHON_<id>` and
+	 * `LN_<pluginId>` sources referenced by favourites/history and offered by the current store.
 	 */
 	private suspend fun computeRecommendedExtensions(
 		installedPkgs: Set<String>,
@@ -663,19 +659,34 @@ class SourcesCatalogViewModel @Inject constructor(
 		storeId: String,
 		action: SourceCatalogItem.Extension.Action,
 		isPrivateMode: Boolean,
+		lnCatalog: List<ExternalExtensionRepoEntry>,
 	): List<SourceCatalogItem.Extension> {
 		val sources = runCatching {
 			mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
 		}.getOrDefault(emptyList())
 		if (sources.isEmpty()) return emptyList()
 		val out = ArrayList<SourceCatalogItem.Extension>()
+		// A novel plugin is never a package install, so it can't go through the id-based Mihon mapping
+		// below: the library stores the plugin id itself, which is exactly what the index is keyed by.
+		val wantedPlugins = sources.filter { it.startsWith(LN_SOURCE_PREFIX) }
+			.mapTo(HashSet()) { it.removePrefix(LN_SOURCE_PREFIX) }
+		for (entry in lnCatalog) {
+			if (entry.packageName !in wantedPlugins) continue
+			if (lnPluginManager.isInstalled(entry.packageName)) continue
+			if (!matchesExtensionQuery(query, entry.name, entry.packageName)) continue
+			out += SourceCatalogItem.Extension(
+				packageName = entry.packageName,
+				title = entry.name,
+				subtitle = appContext.getString(R.string.recommended_extension_subtitle),
+				action = SourceCatalogItem.Extension.Action.INSTALL,
+				isInProgress = entry.packageName in inProgress,
+				iconUrl = entry.iconUrl,
+				storeId = storeId,
+				isPrivateMode = isPrivateMode,
+			)
+		}
 		for ((pkg, displayName) in collectRecommendedExtensionRefs(sources, installedIds, installedPkgs, repoSourceIndex)) {
-			if (query != null &&
-				!displayName.contains(query, ignoreCase = true) &&
-				!pkg.contains(query, ignoreCase = true)
-			) {
-				continue
-			}
+			if (!matchesExtensionQuery(query, displayName, pkg)) continue
 			out += SourceCatalogItem.Extension(
 				packageName = pkg,
 				title = displayName,
@@ -729,6 +740,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			storeId = storeState.store.id,
 			action = SourceCatalogItem.Extension.Action.ENABLE,
 			isPrivateMode = true,
+			lnCatalog = available.filter { it.isLnPlugin },
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
 
@@ -740,12 +752,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				val installedVersion = lnPluginManager.getById(entry.packageName)?.plugin?.version
 				if (installedVersion != null && !isNewerPluginVersion(entry.versionName, installedVersion)) continue
 				if (locale != null && entry.lang != locale) continue
-				if (q != null &&
-					!entry.name.contains(q, ignoreCase = true) &&
-					!entry.packageName.contains(q, ignoreCase = true)
-				) {
-					continue
-				}
+				if (!matchesExtensionQuery(q, entry.name, entry.packageName)) continue
 				disabledItems += entry.toLnCatalogItem(
 					storeId = storeState.store.id,
 					action = if (installedVersion == null) {
@@ -770,7 +777,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			}
 			if (settings.isNsfwContentDisabled && entry.isNsfw != 0) continue
 			if (locale != null && entry.lang != locale) continue
-			if (q != null && !entry.name.contains(q, ignoreCase = true) && !entry.packageName.contains(q, ignoreCase = true)) continue
+			if (!matchesExtensionQuery(q, entry.name, entry.packageName)) continue
 			val pkgSources = allInstalledSourcesByPkg[entry.packageName] ?: installedSourcesByPkg[entry.packageName]
 			val source = pkgSources?.firstOrNull { it.language == entry.lang } ?: pkgSources?.firstOrNull()
 			val subtitle = buildString {
@@ -923,11 +930,24 @@ class SourcesCatalogViewModel @Inject constructor(
 	)
 }
 
+/** Library rows for novel plugins are stored as `LN_<pluginId>`. */
+private const val LN_SOURCE_PREFIX = "LN_"
+
 internal fun buildAvailablePageItems(
 	updates: List<SourceCatalogItem.Extension>,
 	installed: List<SourceCatalogItem.Extension>,
 	isPrivateMode: Boolean,
+	hasStores: Boolean = true,
 ): List<ListModel> = buildList {
+	if (!hasStores) {
+		add(
+			SourceCatalogItem.Hint(
+				R.drawable.ic_empty_feed,
+				R.string.no_extension_store_found,
+				R.string.no_extension_store_found_summary,
+			),
+		)
+	}
 	if (updates.isNotEmpty()) {
 		add(ListHeader(R.string.updates_available))
 		addAll(updates)

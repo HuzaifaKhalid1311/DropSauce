@@ -100,6 +100,13 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		val isValidSource = repo !is EmptyMangaRepository
 		val mihonSource = (repo as? MihonMangaRepository)?.source
 		val uninstallPkg = mihonSource?.pkgName
+		val novelSource = viewModel.source.unwrap() as? LnMangaSource
+		val novelPluginId = novelSource?.pluginId
+		// Mirrors the Mihon row, which is subtitled with its package name — a plugin's id is its
+		// equivalent identity, and the version is what tells two builds apart.
+		val novelPluginLabel = novelSource?.plugin?.let { plugin ->
+			listOfNotNull(plugin.id, plugin.version.takeIf { it.isNotBlank() }).joinToString(" • ")
+		}
 
 		// Language variants of this logical source (same package + name). >1 => show radio picker.
 		val siblings = viewModel.getSiblingMihonSources()
@@ -141,9 +148,12 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 					initialLang = initialLang,
 					variantProvider = variantProvider,
 					uninstallPkg = uninstallPkg,
+					novelPluginId = novelPluginId,
+					novelPluginLabel = novelPluginLabel,
 					onOpenBrowser = { url -> openBrowser(url) },
 					onClearCookies = { url -> confirmClearCookies(url) },
 					onUninstall = { pkg -> uninstallExtension(pkg) },
+					onDeletePlugin = { id -> confirmDeletePlugin(id) },
 					onLanguageSelected = { lang -> viewModel.setActiveLanguage(lang) },
 				)
 			}
@@ -154,6 +164,10 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		super.onViewCreated(view, savedInstanceState)
 		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(view, this))
 		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(view))
+		viewModel.onPluginDeleted.observeEvent(viewLifecycleOwner) {
+			// The source is gone, so this screen has nothing left to show.
+			activity?.onBackPressedDispatcher?.onBackPressed()
+		}
 	}
 
 	override fun onDestroyView() {
@@ -209,6 +223,15 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 			setMessage(url)
 			setNegativeButton(android.R.string.cancel, null)
 			setPositiveButton(R.string.clear) { _, _ -> viewModel.clearCookies(url) }
+		}.show()
+	}
+
+	private fun confirmDeletePlugin(pluginId: String) {
+		buildAlertDialog(context ?: return) {
+			setTitle(R.string.uninstall)
+			setMessage(viewModel.source.getTitle(context))
+			setNegativeButton(android.R.string.cancel, null)
+			setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteNovelPlugin(pluginId) }
 		}.show()
 	}
 
@@ -287,9 +310,12 @@ private fun SourceSettingsScreen(
 	initialLang: String?,
 	variantProvider: (String?) -> SourceVariant,
 	uninstallPkg: String?,
+	novelPluginId: String?,
+	novelPluginLabel: String?,
 	onOpenBrowser: (String) -> Unit,
 	onClearCookies: (String) -> Unit,
 	onUninstall: (String) -> Unit,
+	onDeletePlugin: (String) -> Unit,
 	onLanguageSelected: (String) -> Unit,
 ) {
 	// The active language drives an in-place reload of the whole screen.
@@ -351,21 +377,24 @@ private fun SourceSettingsScreen(
 			}
 		}
 
-		if (isValidSource || variant.openBrowserUrl != null || uninstallPkg != null) {
+		if (isValidSource || variant.openBrowserUrl != null || uninstallPkg != null || novelPluginId != null) {
 			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 			item {
 				SettingsGroup(title = stringResource(R.string.source_settings_app)) {
 					if (isValidSource) {
-						item { pos ->
-							var slowdown by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_SLOWDOWN, false)
-							SwitchSettingsItem(
-								title = stringResource(R.string.download_slowdown),
-								subtitle = stringResource(R.string.download_slowdown_summary),
-								checked = slowdown,
-								onCheckedChange = { slowdown = it },
-								icon = R.drawable.ic_timelapse,
-								shape = pos.shape,
-							)
+						// Slowdown paces page-image downloads, which novels have none of.
+						if (novelPluginId == null) {
+							item { pos ->
+								var slowdown by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_SLOWDOWN, false)
+								SwitchSettingsItem(
+									title = stringResource(R.string.download_slowdown),
+									subtitle = stringResource(R.string.download_slowdown_summary),
+									checked = slowdown,
+									onCheckedChange = { slowdown = it },
+									icon = R.drawable.ic_timelapse,
+									shape = pos.shape,
+								)
+							}
 						}
 						item { pos ->
 							var intercept by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_INTERCEPT_CLOUDFLARE, false)
@@ -397,6 +426,18 @@ private fun SourceSettingsScreen(
 								icon = R.drawable.ic_open_external,
 								shape = pos.shape,
 								onClick = { onOpenBrowser(browserUrl) },
+							)
+						}
+					}
+					if (novelPluginId != null) {
+						item { pos ->
+							ActionSettingsItem(
+								title = stringResource(R.string.uninstall),
+								subtitle = novelPluginLabel ?: novelPluginId,
+								icon = R.drawable.ic_delete,
+								accentColor = androidx.compose.material3.MaterialTheme.colorScheme.error,
+								shape = pos.shape,
+								onClick = { onDeletePlugin(novelPluginId) },
 							)
 						}
 					}

@@ -16,6 +16,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,7 +24,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.network.MangaHttpClient
+import org.koitharu.kotatsu.lnreader.LnPluginManager
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -55,6 +59,13 @@ class JsHost @Inject constructor(
 
 	@Volatile
 	private var webView: WebView? = null
+
+	// The bridge can only carry an error string, so a Cloudflare failure would reach the UI as a plain
+	// JsException and never trigger the captcha flow. Remember the real exception and rethrow it.
+	// ponytail: one slot, not one per call — the plugin id is unknown at fetch time anyway, and two
+	// plugins failing on the same tick would only mean the captcha prompt names the other site.
+	@Volatile
+	private var lastCloudFlareError: CloudFlareException? = null
 
 	@SuppressLint("SetJavaScriptEnabled")
 	private suspend fun ensureReady(): WebView {
@@ -143,7 +154,15 @@ class JsHost @Inject constructor(
 			}
 			val reply = withTimeout(timeoutMs) { deferred.await() }
 			val json = JSONObject(reply)
-			json.optString("err").takeIf { it.isNotEmpty() }?.let { throw JsException("$pluginId.$fn: $it") }
+			json.optString("err").takeIf { it.isNotEmpty() }?.let { err ->
+				lastCloudFlareError?.let { cf ->
+					lastCloudFlareError = null
+					throw cf
+				}
+				throw JsException("$pluginId.$fn: $err")
+			}
+			// A call that came back fine means the challenge is gone — don't hold a stale one.
+			lastCloudFlareError = null
 			return json.opt("ok").takeUnless { it == JSONObject.NULL }
 		} finally {
 			pending.remove(id)
@@ -206,9 +225,24 @@ class JsHost @Inject constructor(
 			}
 			bytes.toRequestBody(headers?.optString("Content-Type")?.toMediaTypeOrNull())
 		}
-		val builder = Request.Builder().url(spec.getString("url")).method(method, body)
+		val url = spec.getString("url").toHttpUrl()
+		val builder = Request.Builder().url(url).method(method, body)
 		headers?.let { h -> h.keys().forEach { key -> builder.header(key, h.optString(key)) } }
-		okHttpClient.newCall(builder.build()).execute().use { response ->
+		// Tagging the source is what makes the shared interceptors work for novels: CommonHeaders can
+		// resolve the repository, and a CloudFlareException carries the source the captcha flow keys on.
+		LnPluginManager.findBySiteHost(url.host)?.let { source ->
+			builder.tag(MangaSource::class.java, source)
+		}
+		try {
+			return performRequest(builder.build(), spec)
+		} catch (e: CloudFlareException) {
+			lastCloudFlareError = e
+			throw e
+		}
+	}
+
+	private fun performRequest(request: Request, spec: JSONObject): JSONObject {
+		okHttpClient.newCall(request).execute().use { response ->
 			val responseHeaders = JSONObject()
 			response.headers.forEach { (name, value) -> responseHeaders.put(name, value) }
 			val result = JSONObject()

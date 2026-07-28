@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONObject
 import org.koitharu.kotatsu.lnreader.js.JsHost
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
@@ -154,6 +155,32 @@ class LnPluginManager @Inject constructor(
 
 		@Volatile
 		private var activeInstance: LnPluginManager? = null
+
+		/**
+		 * Whether any plugin is installed, as a plain directory check. Deliberately static: injecting the
+		 * manager into a main-thread caller (e.g. WorkScheduleManager during app startup) would build
+		 * JsHost and its OkHttp client there, which the network module asserts against.
+		 */
+		fun hasInstalledPlugins(context: Context): Boolean =
+			File(context.filesDir, DIR_PLUGINS).listFiles { file: File -> file.isDirectory }
+				?.any { File(it, FILE_CODE).isFile } == true
+
+		/**
+		 * The plugin that serves [host], for tagging its network requests with a source. Static for the
+		 * same reason as [hasInstalledPlugins]: an OkHttp interceptor must not build the DI graph.
+		 *
+		 * By host because the plugin realm shares one global `fetch`, so a request carries no plugin id.
+		 */
+		fun findBySiteHost(host: String): LnMangaSource? = activeInstance?.run {
+			initialize()
+			val target = host.removePrefix("www.")
+			getAll().firstOrNull { source ->
+				val site = source.plugin.site.toHttpUrlOrNull()?.host?.removePrefix("www.") ?: return@firstOrNull false
+				// Either direction: plugins list either the bare domain or a www/subdomain of it, while
+				// requests go to both that and sibling hosts (cdn, api).
+				target == site || target.endsWith(".$site") || site.endsWith(".$target")
+			}
+		}
 
 		/** Resolves a stored `"LN_<id>"` source name without DI. Null when nothing is installed yet. */
 		fun getByName(name: String): LnMangaSource? = activeInstance?.run {

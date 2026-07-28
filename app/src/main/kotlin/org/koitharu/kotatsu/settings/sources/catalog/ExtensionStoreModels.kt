@@ -52,20 +52,21 @@ sealed interface ExtensionCatalogPage {
 
 fun buildExtensionCatalogPages(
 	stores: List<ExtensionStoreRecord>,
-	hasInstalledExtensions: Boolean,
 ): List<ExtensionCatalogPage> {
 	val labels = extensionStoreDisplayLabels(stores)
 	return buildList {
-		if (stores.isNotEmpty() || hasInstalledExtensions) add(ExtensionCatalogPage.Available)
+		add(ExtensionCatalogPage.Available)
 		stores.mapTo(this) { store ->
 			ExtensionCatalogPage.Store(store.id, labels[store.id] ?: store.displayName)
 		}
-		if (isEmpty()) add(ExtensionCatalogPage.Empty)
 	}
 }
 
 internal fun shouldShowCatalogFilters(pages: List<ExtensionCatalogPage>): Boolean =
 	pages.any { it != ExtensionCatalogPage.Empty }
+
+internal fun shouldShowStoreTabDivider(position: Int, page: ExtensionCatalogPage): Boolean =
+	position == 1 && page is ExtensionCatalogPage.Store
 
 internal fun canUseStoreCatalogForUpdates(health: StoreHealth): Boolean =
 	health != StoreHealth.UNAVAILABLE
@@ -260,6 +261,25 @@ fun extensionStoreUrlLabel(indexUrl: String): String = runCatching {
 		else -> null
 	}?.takeIf(String::isNotBlank) ?: host
 }.getOrNull() ?: indexUrl
+
+/**
+ * Whether any of [fields] matches [query], ignoring case, spacing and punctuation on both sides —
+ * "manga fire" has to find "MangaFire", and "mangafire" has to find "Manga Fire".
+ *
+ * ponytail: normalise-and-substring, not fuzzy scoring. It fixes the whole class of separator
+ * mismatches; typo tolerance would need ranked results, which this flat list has no place for.
+ */
+fun matchesExtensionQuery(query: String?, vararg fields: String?): Boolean {
+	if (query.isNullOrBlank()) return true
+	val normalizedQuery = query.normalizeForExtensionSearch()
+	if (normalizedQuery.isEmpty()) return true
+	return fields.any { field ->
+		!field.isNullOrEmpty() && field.normalizeForExtensionSearch().contains(normalizedQuery)
+	}
+}
+
+private fun String.normalizeForExtensionSearch(): String =
+	filter(Char::isLetterOrDigit).lowercase()
 
 data class RecommendedExtensionRef(
 	val packageName: String,

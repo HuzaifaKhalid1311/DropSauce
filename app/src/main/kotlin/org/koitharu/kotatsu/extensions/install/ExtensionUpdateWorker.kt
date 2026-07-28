@@ -34,6 +34,7 @@ import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
+import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.settings.sources.catalog.ExternalExtensionRepoEntry
@@ -42,6 +43,8 @@ import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
 import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogActivity
+import org.koitharu.kotatsu.settings.sources.catalog.isLnPlugin
+import org.koitharu.kotatsu.settings.sources.catalog.isNewerPluginVersion
 import org.koitharu.kotatsu.settings.sources.catalog.isNewerThan
 import org.koitharu.kotatsu.settings.work.PeriodicWorkScheduler
 import java.io.File
@@ -59,35 +62,89 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 	private val extensionLoader: MihonExtensionLoader,
 	private val extensionManager: MihonExtensionManager,
 	private val shizukuInstaller: ShizukuExtensionInstaller,
+	private val lnPluginManager: LnPluginManager,
 	@BaseHttpClient private val httpClient: OkHttpClient,
 ) : CoroutineWorker(appContext, params) {
 
 	override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+		// Novel plugins are files in our own filesDir: no PackageManager, no Shizuku, no user prompt.
+		// So they update on every run, whatever the APK installer settings below say.
+		val novelRetryNeeded = updateNovelPlugins()
+		val apkResult = doApkWork()
+		// A transient plugin download failure must not turn a permanent APK failure into a retry.
+		if (novelRetryNeeded && apkResult == Result.success()) Result.retry() else apkResult
+	}
+
+	/**
+	 * Installs the newest build of every installed plugin a store carries. A plugin can be updated from
+	 * any store that has a newer version, not just the one it came from, since there is no signature to
+	 * keep consistent — mirrors what "Update all" does in the catalog.
+	 *
+	 * @return true if an update failed transiently and the run is worth retrying.
+	 */
+	private suspend fun updateNovelPlugins(): Boolean {
+		lnPluginManager.initialize()
+		val plugins = lnPluginManager.getAll()
+		if (plugins.isEmpty()) return false
+		storeManager.refresh(forceRefresh = true)
+		val candidates = storeManager.states.value
+			.filter { it.store.enabled && it.health == StoreHealth.AVAILABLE }
+			.flatMap { state -> state.catalog.filter { it.isLnPlugin }.map { state to it } }
+		if (candidates.isEmpty()) return false
+		var retryNeeded = false
+		for (source in plugins) {
+			if (isStopped) break
+			val plugin = source.plugin
+			val (state, entry) = candidates
+				.filter { (_, e) ->
+					e.packageName == plugin.id && isNewerPluginVersion(e.versionName, plugin.version)
+				}
+				.minByOrNull { (s, _) -> if (s.store.id == plugin.storeId) 0 else 1 }
+				?: continue
+			try {
+				lnPluginManager.install(
+					pluginId = entry.packageName,
+					rawCode = downloadText(entry.apkName),
+					iconUrl = entry.iconUrl.orEmpty(),
+					lang = entry.lang.orEmpty(),
+					storeId = state.store.id,
+				)
+			} catch (e: Exception) {
+				// A broken plugin build throws on evaluation and is never written to disk, so the old
+				// one keeps working; only network failures are worth another run.
+				if (e is IOException) retryNeeded = true
+				Log.e(TAG, "Failed to update novel plugin ${entry.packageName}", e)
+			}
+		}
+		return retryNeeded
+	}
+
+	private suspend fun doApkWork(): Result {
 		if (settings.isPrivateInstallEnabled) {
-			return@withContext doPrivateModeWork()
+			return doPrivateModeWork()
 		}
 		// Auto-install requires both Shizuku and the setting; the notification only needs its own
 		// toggle. Either one alone is enough reason to run the periodic repo check below.
 		val autoInstall = settings.isAutoUpdateExtensionsEnabled && settings.isShizukuInstallerEnabled
 		val shouldNotify = settings.isExtensionUpdateNotificationsEnabled
 		if (!autoInstall && !shouldNotify) {
-			return@withContext Result.success()
+			return Result.success()
 		}
 		if (autoInstall && !shizukuInstaller.awaitReady()) {
-			return@withContext Result.retry()
+			return Result.retry()
 		}
 
-		try {
+		return try {
 			val installed = extensionLoader.getInstalledExtensions(applicationContext)
 				.associateBy { it.pkgName }
-			if (installed.isEmpty()) return@withContext Result.success()
+			if (installed.isEmpty()) return Result.success()
 			storeManager.refresh(forceRefresh = true)
 			val allStoreStates = storeManager.states.value
 			val storeStates = allStoreStates.filter {
 				it.store.enabled && it.health == StoreHealth.AVAILABLE
 			}
 			if (storeStates.isEmpty()) {
-				return@withContext if (allStoreStates.any { it.store.enabled }) Result.retry() else Result.success()
+				return if (allStoreStates.any { it.store.enabled }) Result.retry() else Result.success()
 			}
 
 			val downloadDir = File(applicationContext.cacheDir, "extension_updates").apply { mkdirs() }
@@ -153,7 +210,7 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 						settings.lastExtensionUpdateNotificationTime = now
 					}
 				}
-				return@withContext Result.success()
+				return Result.success()
 			}
 			when {
 				isStopped -> Result.retry()
@@ -222,6 +279,17 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 					}
 				}
 			}
+		}
+	}
+
+	/** Plugin code is a small text file, so it goes straight to memory instead of via the cache dir. */
+	private fun downloadText(url: String): String {
+		val request = Request.Builder().url(url).get().build()
+		return httpClient.newCall(request).execute().use { response ->
+			if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+			val body = response.body
+			if (body.contentLength() > MAX_PLUGIN_BYTES) throw IOException("Plugin is too large")
+			body.string()
 		}
 	}
 
@@ -340,5 +408,6 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 		const val PERIODIC_WORK_NAME = "extension_auto_updates"
 		const val IMMEDIATE_WORK_NAME = "extension_auto_updates_now"
 		const val MAX_APK_BYTES = 100L * 1024L * 1024L
+		const val MAX_PLUGIN_BYTES = 4L * 1024L * 1024L
 	}
 }

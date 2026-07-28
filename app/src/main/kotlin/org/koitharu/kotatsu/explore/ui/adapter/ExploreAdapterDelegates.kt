@@ -14,6 +14,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isExternalSource
+import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -29,6 +30,7 @@ import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.ExtensionsHeaderItem
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.list.ui.adapter.bindBadge
 import org.koitharu.kotatsu.list.ui.model.ListModel
@@ -143,6 +145,11 @@ fun exploreSourceListItemAD(
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.textViewSubtitle.text = item.source.getSummary(context)
 		binding.imageViewIcon.applyExternalSourceStyle(item.source.mangaSource.isExternalSource())
+		val inset = sourceIconInsetPx(
+			binding.imageViewIcon.layoutParams.width,
+			item.source.mangaSource.unwrap() is LnMangaSource,
+		)
+		binding.imageViewIcon.setPadding(inset, inset, inset, inset)
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }
@@ -177,6 +184,14 @@ fun exploreSourceGridItemAD(
 		binding.textViewTitle.text = title
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.imageViewIcon.applyExternalSourceStyle(item.source.mangaSource.isExternalSource())
+		val inset = sourceIconInsetPx(
+			binding.imageViewIcon.layoutParams.width,
+			item.source.mangaSource.unwrap() is LnMangaSource,
+		)
+		binding.imageViewIcon.setPadding(inset, inset, inset, inset)
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }
+
+internal fun sourceIconInsetPx(iconSizePx: Int, isNovel: Boolean): Int =
+	if (isNovel) iconSizePx / 10 else 0

@@ -11,19 +11,25 @@
 	android:paddingHorizontal="@dimen/grid_spacing"
 	android:paddingVertical="@dimen/grid_spacing">
 
-	<TextView
-		android:id="@+id/textView_title"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:ellipsize="end"
-		android:singleLine="true"
-		android:text="@string/extensions"
-		android:textAppearance="?textAppearanceTitleSmall" />
+	<FrameLayout
+		android:layout_width="@dimen/explore_header_side_width"
+		android:layout_height="48dp">
+
+		<TextView
+			android:id="@+id/textView_title"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="start|center_vertical"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:text="@string/extensions"
+			android:textAppearance="?textAppearanceTitleSmall" />
+
+	</FrameLayout>
 
 	<FrameLayout
 		android:layout_width="0dp"
 		android:layout_height="48dp"
-		android:layout_marginHorizontal="@dimen/margin_normal"
 		android:layout_weight="1"
 		android:background="@drawable/bg_explore_kind_rail">
 
@@ -52,14 +58,21 @@
 
 	</FrameLayout>
 
-	<com.google.android.material.button.MaterialButton
-		android:id="@+id/button_more"
-		style="@style/Widget.Kotatsu.Button.More.Small"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:minWidth="40dp"
-		android:minHeight="32dp"
-		android:text="@string/manage"
-		tools:text="@string/manage" />
+	<FrameLayout
+		android:layout_width="@dimen/explore_header_side_width"
+		android:layout_height="48dp">
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_more"
+			style="@style/Widget.Kotatsu.Button.More.Small"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="end|center_vertical"
+			android:minWidth="40dp"
+			android:minHeight="32dp"
+			android:text="@string/manage"
+			tools:text="@string/manage" />
+
+	</FrameLayout>
 
 </LinearLayout>

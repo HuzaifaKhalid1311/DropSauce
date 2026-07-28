@@ -30,6 +30,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.chip.Chip
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -200,11 +201,16 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			}
 		})
 		TabLayoutMediator(viewBinding.tabs, viewBinding.pager) { tab, position ->
-			tab.text = when (val page = pagesAdapter.pageAt(position)) {
-				ExtensionCatalogPage.Available -> getString(R.string.installed)
-				ExtensionCatalogPage.Empty -> ""
-				is ExtensionCatalogPage.Store -> page.title
-				null -> ""
+			when (val page = pagesAdapter.pageAt(position)) {
+				ExtensionCatalogPage.Available -> tab.text = getString(R.string.installed)
+				ExtensionCatalogPage.Empty -> tab.text = ""
+				is ExtensionCatalogPage.Store -> {
+					tab.text = page.title
+					if (shouldShowStoreTabDivider(position, page)) {
+						tab.view.setBackgroundResource(R.drawable.bg_extension_store_tab_separator)
+					}
+				}
+				null -> tab.text = ""
 			}
 		}.attach()
 		viewBinding.chipsFilter.onChipClickListener = this
@@ -226,7 +232,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			pagesAdapter.submitContent(page.pageId, page.items)
 		}
 		viewModel.hasUpdates.observe(this) { hasUpdates ->
-			invalidateOptionsMenu()
+			// No menu item depends on this. Invalidating here rebuilt the menu whenever a search
+			// filtered the update rows away, which destroyed the expanded SearchView mid-typing.
 			if (hasUpdates) {
 				if (settings.isPrivateInstallEnabled) {
 					lifecycleScope.launch { extensionUpdateScheduler.startNow() }
@@ -274,6 +281,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 		viewModel.onShowMessage.observeEvent(this) { msg ->
 			Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+		}
+		viewModel.onExtensionInstalled.observeEvent(this) { sourceName ->
+			val source = MangaSource(sourceName)
+			Snackbar.make(viewBinding.pager, R.string.extension_installed, Snackbar.LENGTH_LONG)
+				.setAction(R.string.action_open) { router.openList(source, null, null) }
+				.show()
 		}
 		combine(
 			viewModel.appliedFilter,
@@ -372,6 +385,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
 		setSearchTitleExpanded(true)
+		// The title inset that keeps a toolbar title clear of the back button also pushed the search
+		// field 16dp past it, leaving dead space. The field starts right after the button instead.
+		viewBinding.toolbar.contentInsetStartWithNavigation =
+			resources.getDimensionPixelSize(R.dimen.top_bar_navigation_button_margin_start) +
+			resources.getDimensionPixelSize(R.dimen.top_bar_navigation_button_size)
 		val sq = (item.actionView as? SearchView)?.query?.trim()?.toString().orEmpty()
 		viewModel.performSearch(sq)
 		return true
@@ -379,6 +397,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
 		setSearchTitleExpanded(false)
+		viewBinding.toolbar.contentInsetStartWithNavigation =
+			resources.getDimensionPixelSize(R.dimen.top_bar_title_inset_with_navigation)
 		viewModel.performSearch(null)
 		return true
 	}
@@ -593,6 +613,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			viewModel.clearExtensionInProgress(requestModel.packageName)
 			if (result.isSuccess) {
 				viewModel.onPrivateExtensionChanged()
+				viewModel.notifyExtensionInstalled(requestModel.packageName)
+				// Plugins update themselves in the background, but with no APK-installer setting turned
+				// on the periodic check may never have been scheduled — the first plugin enables it.
+				extensionUpdateScheduler.schedule()
 			} else {
 				Toast.makeText(this@SourcesCatalogActivity, R.string.extension_download_failed, Toast.LENGTH_LONG).show()
 			}
@@ -898,6 +922,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		viewModel.clearExtensionInProgress(packageName)
 		if (installSucceeded && packageName != null && activeInstallerStoreId != null && activeInstallerMode != null) {
 			storeManager.setOwner(activeInstallerMode!!, packageName, activeInstallerStoreId!!)
+		}
+		if (installSucceeded && packageName != null) {
+			viewModel.notifyExtensionInstalled(packageName)
 		}
 		removeDownloadedApk(activeInstallerFileName)
 		if (isCurrentInstaller) {

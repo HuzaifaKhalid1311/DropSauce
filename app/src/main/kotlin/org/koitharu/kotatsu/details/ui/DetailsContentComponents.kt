@@ -58,7 +58,9 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
+import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
 import org.koitharu.kotatsu.core.util.FileSize
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.details.data.MangaDetails
@@ -78,7 +80,10 @@ internal fun DescriptionCard(
 	accent: Color,
 ) {
 	val text = description?.toString()?.trim().orEmpty()
-	var expanded by rememberSaveable { mutableStateOf(false) }
+	// The appearance setting only decides how a long description *starts*; tapping still toggles it
+	// either way, so turning collapsing off doesn't cost you the ability to fold a wall of text away.
+	val collapseEnabled by rememberBooleanPref(AppSettings.KEY_COLLAPSE_DESCRIPTION, true)
+	var expanded by rememberSaveable(collapseEnabled) { mutableStateOf(!collapseEnabled) }
 	var hasOverflow by remember { mutableStateOf(false) }
 	val cardColor = MaterialTheme.colorScheme.surfaceContainerHigh
 	SectionCard {

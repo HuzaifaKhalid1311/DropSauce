@@ -23,23 +23,15 @@ class ExtensionCatalogPagesTest {
 				ExtensionCatalogPage.Store("second", "Second"),
 				ExtensionCatalogPage.Store("first", "First"),
 			),
-			buildExtensionCatalogPages(stores, hasInstalledExtensions = true),
+			buildExtensionCatalogPages(stores),
 		)
 	}
 
 	@Test
-	fun `fresh install without stores or extensions has no tabs`() {
-		assertEquals(
-			listOf(ExtensionCatalogPage.Empty),
-			buildExtensionCatalogPages(emptyList(), hasInstalledExtensions = false),
-		)
-	}
-
-	@Test
-	fun `installed extensions without stores show only available`() {
+	fun `installed page always exists without stores or extensions`() {
 		assertEquals(
 			listOf(ExtensionCatalogPage.Available),
-			buildExtensionCatalogPages(emptyList(), hasInstalledExtensions = true),
+			buildExtensionCatalogPages(emptyList()),
 		)
 	}
 
@@ -66,6 +58,41 @@ class ExtensionCatalogPagesTest {
 	}
 
 	@Test
+	fun `no store warning appears before installed extensions`() {
+		val installed = SourceCatalogItem.Extension(
+			packageName = "example.extension",
+			title = "Example",
+			subtitle = "English",
+			action = SourceCatalogItem.Extension.Action.UNINSTALL,
+		)
+
+		assertEquals(
+			listOf(
+				SourceCatalogItem.Hint(
+					R.drawable.ic_empty_feed,
+					R.string.no_extension_store_found,
+					R.string.no_extension_store_found_summary,
+				),
+				ListHeader(R.string.installed),
+				installed,
+			),
+			buildAvailablePageItems(
+				updates = emptyList(),
+				installed = listOf(installed),
+				isPrivateMode = false,
+				hasStores = false,
+			),
+		)
+	}
+
+	@Test
+	fun `divider appears only before the first store tab`() {
+		assertFalse(shouldShowStoreTabDivider(0, ExtensionCatalogPage.Available))
+		assertTrue(shouldShowStoreTabDivider(1, ExtensionCatalogPage.Store("first", "First")))
+		assertFalse(shouldShowStoreTabDivider(2, ExtensionCatalogPage.Store("second", "Second")))
+	}
+
+	@Test
 	fun `store tabs exclude extensions already installed from that store`() {
 		assertFalse(isStoreInstallCandidate(isInstalled = true, ownerStoreId = "current", currentStoreId = "current"))
 		assertTrue(isStoreInstallCandidate(isInstalled = true, ownerStoreId = "other", currentStoreId = "current"))
@@ -81,8 +108,16 @@ class ExtensionCatalogPagesTest {
 
 	@Test
 	fun `catalog filters are hidden for the completely empty state`() {
-		assertFalse(shouldShowCatalogFilters(listOf(ExtensionCatalogPage.Empty)))
 		assertTrue(shouldShowCatalogFilters(listOf(ExtensionCatalogPage.Available)))
+	}
+
+	@Test
+	fun `search ignores spacing and punctuation on both sides`() {
+		assertTrue(matchesExtensionQuery("manga fire", "MangaFire"))
+		assertTrue(matchesExtensionQuery("mangafire", "Manga Fire"))
+		assertTrue(matchesExtensionQuery("mangafire", null, "eu.kanade.extension.manga-fire"))
+		assertTrue(matchesExtensionQuery("  ", "Anything"))
+		assertFalse(matchesExtensionQuery("mangadex", "MangaFire"))
 	}
 
 	@Test

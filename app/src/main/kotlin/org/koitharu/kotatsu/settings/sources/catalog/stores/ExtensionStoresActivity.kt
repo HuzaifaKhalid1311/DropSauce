@@ -159,6 +159,8 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 		val isAddStore = when {
 			data.scheme == "mihon" && data.host == "extension-store" -> true
 			data.host == "add-repo" && data.scheme in setOf("kotatsu", "tachiyomi") -> true
+			// lnreader.app's "Add to LNReader" button; the index it points at is sniffed as a plugin repo.
+			data.scheme == "lnreader" && data.host == "repo" && data.path == "/add" -> true
 			else -> false
 		}
 		if (!isAddStore) return

@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
+import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
@@ -31,12 +32,14 @@ class SourceSettingsViewModel @Inject constructor(
 	private val settings: AppSettings,
 	private val mihonExtensionManager: MihonExtensionManager,
 	private val cookieJar: MutableCookieJar,
+	private val lnPluginManager: LnPluginManager,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
 
 	val source = MangaSource(savedStateHandle.get<String>(AppRouter.KEY_SOURCE))
 	val repository = mangaRepositoryFactory.create(source)
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
+	val onPluginDeleted = MutableEventFlow<Unit>()
 
 	/** The opened source as a Mihon source, or null if it isn't one. */
 	private val mihonSource: MihonMangaSource? = (repository as? MihonMangaRepository)?.source
@@ -73,6 +76,14 @@ class SourceSettingsViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			cookieJar.removeCookies(url, null)
 			onActionDone.call(ReversibleAction(R.string.cookies_cleared, null))
+		}
+	}
+
+	/** Deletes an installed novel plugin. Unlike an APK there is no system uninstaller to hand off to. */
+	fun deleteNovelPlugin(pluginId: String) {
+		launchJob(Dispatchers.Default) {
+			lnPluginManager.uninstall(pluginId)
+			onPluginDeleted.call(Unit)
 		}
 	}
 
