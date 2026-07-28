@@ -228,7 +228,7 @@ class ExploreViewModel @Inject constructor(
 		val shown = sources.filter { (it.unwrap() is LnMangaSource) == isNovelShown }
 		when {
 			shown.isNotEmpty() -> shown.mapTo(result) { MangaSourceItem(it, isGrid) }
-			isExtensionsLoading -> result += LoadingState  // still loading — don't show "not installed"
+			isExtensionsLoading && !isNovelShown -> result += LoadingState
 			else -> result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
 				textPrimary = if (isNovelShown) {

@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.MultiBrowseCarouselStrategy
+import com.google.android.material.tabs.TabLayout
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
@@ -53,18 +54,27 @@ fun extensionsHeaderAD(
 ) {
 
 	var badge: BadgeDrawable? = null
-	// check() below fires the listener too, so bind must not be mistaken for a user tap.
 	var isBinding = false
 	binding.buttonMore.setOnClickListener { onManageClick() }
-	binding.chipsKind.setOnCheckedStateChangeListener { _, checkedIds ->
-		if (!isBinding) {
-			onKindSelected(checkedIds.firstOrNull() == R.id.chip_kind_novel)
-		}
+	binding.tabsKind.apply {
+		addTab(newTab().setText(R.string.store_kind_manga))
+		addTab(newTab().setText(R.string.store_kind_novel))
+		addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+			override fun onTabSelected(tab: TabLayout.Tab) {
+				if (!isBinding) {
+					onKindSelected(tab.position == 1)
+				}
+			}
+
+			override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+
+			override fun onTabReselected(tab: TabLayout.Tab) = Unit
+		})
 	}
 
 	bind {
 		isBinding = true
-		binding.chipsKind.check(if (item.isNovel) R.id.chip_kind_novel else R.id.chip_kind_manga)
+		binding.tabsKind.getTabAt(if (item.isNovel) 1 else 0)?.select()
 		isBinding = false
 		// Mirrors the update indicator the shared ListHeader used to draw on its button.
 		badge = binding.buttonMore.bindBadge(badge, if (item.hasUpdates) "" else null)
