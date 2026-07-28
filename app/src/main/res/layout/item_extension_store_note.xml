@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+	Persistent footer note for the store list. Mirrors PlainInfoSettingsItem so it reads exactly like
+	the small info notes in settings.
+-->
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal"
+	android:paddingHorizontal="24dp"
+	android:paddingVertical="8dp">
+
+	<ImageView
+		android:layout_width="18dp"
+		android:layout_height="18dp"
+		android:layout_marginTop="1dp"
+		android:contentDescription="@null"
+		app:srcCompat="@drawable/ic_info_outline"
+		app:tint="?attr/colorOnSurfaceVariant" />
+
+	<TextView
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="12dp"
+		android:layout_weight="1"
+		android:text="@string/stores_supported_kinds_note"
+		android:textAppearance="?attr/textAppearanceBodySmall"
+		android:textColor="?attr/colorOnSurfaceVariant" />
+
+</LinearLayout>

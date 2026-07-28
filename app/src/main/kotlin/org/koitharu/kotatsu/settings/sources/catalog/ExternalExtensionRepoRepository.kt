@@ -74,8 +74,14 @@ class ExternalExtensionRepoRepository @Inject constructor(
 				val text = bytes.decodeToString()
 				// A '[' body is either a legacy Mihon index or an LNReader plugin index. The shapes are
 				// disjoint (no pkg/apk/code in the latter), so a failed decode IS the discriminator.
-				runCatching { json.decodeFromString<List<ExternalExtensionRepoEntry>>(text) }.getOrNull()
-					?: json.decodeFromString<List<LnStoreEntry>>(text).map(LnStoreEntry::toRepoEntry)
+				val asMihon = runCatching { json.decodeFromString<List<ExternalExtensionRepoEntry>>(text) }
+				asMihon.getOrNull() ?: runCatching {
+					json.decodeFromString<List<LnStoreEntry>>(text).map(LnStoreEntry::toRepoEntry)
+				}.getOrElse { lnError ->
+					// Neither shape fits, so the index is simply malformed. Surface the Mihon error: it
+					// names the missing apk/pkg field, which is the actionable one for the common case.
+					throw asMihon.exceptionOrNull() ?: lnError
+				}
 			}
 			OPEN_BRACE -> {
 				val text = bytes.decodeToString()

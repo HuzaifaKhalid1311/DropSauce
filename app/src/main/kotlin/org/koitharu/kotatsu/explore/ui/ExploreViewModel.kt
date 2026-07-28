@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
+import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
@@ -31,7 +32,9 @@ import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.domain.ExploreRepository
 import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
+import org.koitharu.kotatsu.explore.ui.model.ExtensionsHeaderItem
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.list.ui.model.EmptyHint
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
@@ -76,6 +79,9 @@ class ExploreViewModel @Inject constructor(
 	val onShowSuggestionsTip = MutableEventFlow<Unit>()
 	private val mutableRandomLoading = MutableStateFlow(false)
 	val isRandomLoading = mutableRandomLoading.asStateFlow()
+
+	/** Which half of the extension list the manga/novel switch is showing. Not persisted. */
+	private val isNovelSourcesShown = MutableStateFlow(false)
 
 	private val hasExtensionUpdates: StateFlow<Boolean> = combine(
 		extensionStoreManager.states,
@@ -166,6 +172,10 @@ class ExploreViewModel @Inject constructor(
 		settings.closeTip(TIP_LANGUAGES)
 	}
 
+	fun setNovelSourcesShown(value: Boolean) {
+		isNovelSourcesShown.value = value
+	}
+
 	fun sourcesSnapshot(ids: LongSet): List<MangaSourceInfo> {
 		return content.value.mapNotNull {
 			(it as? MangaSourceItem)?.takeIf { x -> x.id in ids }?.source
@@ -181,6 +191,7 @@ class ExploreViewModel @Inject constructor(
 		sourcesRepository.observeHasMultiLanguageSources(),
 		settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_LANGUAGES) },
 		hasExtensionUpdates,
+		isNovelSourcesShown,
 	) { args ->
 		buildList(
 			sources = args[0] as List<MangaSourceInfo>,
@@ -190,6 +201,7 @@ class ExploreViewModel @Inject constructor(
 			hasMultiLanguageSources = args[4] as Boolean,
 			isLanguageTipEnabled = args[5] as Boolean,
 			hasExtensionUpdates = args[6] as Boolean,
+			isNovelShown = args[7] as Boolean,
 		)
 	}.withErrorHandling()
 
@@ -201,32 +213,35 @@ class ExploreViewModel @Inject constructor(
 		hasMultiLanguageSources: Boolean,
 		isLanguageTipEnabled: Boolean,
 		hasExtensionUpdates: Boolean,
+		isNovelShown: Boolean,
 	): List<ListModel> {
-		val result = ArrayList<ListModel>(sources.size + 4)
+		val result = ArrayList<ListModel>(sources.size + 5)
 		result += ExploreButtons
 		if (recommendation.isNotEmpty()) {
 			result += ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions)
 			result += RecommendationsItem(recommendation.toRecommendationList())
 		}
 
-		result += ListHeader(
-			textRes = R.string.remote_sources,
-			buttonTextRes = R.string.manage,
-			buttonStyle = ListHeader.ButtonStyle.TEXT,
-			badge = if (hasExtensionUpdates) "" else null,
-		)
+		// Header, manga/novel chips and the manage button are one row. The chips stay put on the empty
+		// branch too, otherwise there is no way back to the other half.
+		result += ExtensionsHeaderItem(isNovel = isNovelShown, hasUpdates = hasExtensionUpdates)
+		val shown = sources.filter { (it.unwrap() is LnMangaSource) == isNovelShown }
 		when {
-			sources.isNotEmpty() -> sources.mapTo(result) { MangaSourceItem(it, isGrid) }
+			shown.isNotEmpty() -> shown.mapTo(result) { MangaSourceItem(it, isGrid) }
 			isExtensionsLoading -> result += LoadingState  // still loading — don't show "not installed"
 			else -> result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
-				textPrimary = R.string.no_external_source_installed,
+				textPrimary = if (isNovelShown) {
+					R.string.no_novel_extension_installed
+				} else {
+					R.string.no_external_source_installed
+				},
 				textSecondary = R.string.manage_manga_extensions_from_settings_icon,
 				actionStringRes = NO_ACTION_STRING_RES,
 			)
 		}
 		// Footer note: only relevant when a multi-language source is installed and not dismissed.
-		if (sources.isNotEmpty() && hasMultiLanguageSources && isLanguageTipEnabled) {
+		if (shown.isNotEmpty() && hasMultiLanguageSources && isLanguageTipEnabled) {
 			result += TipModel(
 				key = TIP_LANGUAGES,
 				title = R.string.multi_language_sources,

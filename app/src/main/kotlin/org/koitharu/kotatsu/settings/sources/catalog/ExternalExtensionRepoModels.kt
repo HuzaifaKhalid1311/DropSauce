@@ -60,6 +60,16 @@ fun LnStoreEntry.toRepoEntry() = ExternalExtensionRepoEntry(
 val ExternalExtensionRepoEntry.isLnPlugin: Boolean
 	get() = apkName.substringBefore('?').endsWith(".js", ignoreCase = true)
 
+/** What a store publishes. Derived from its catalog — no index format declares this. */
+enum class ExtensionStoreKind { MANGA, NOVEL, MIXED }
+
+/** Null while the catalog is empty, i.e. the store is still being checked or is unreachable. */
+fun List<ExternalExtensionRepoEntry>.extensionStoreKind(): ExtensionStoreKind? = when (count { it.isLnPlugin }) {
+	0 -> if (isEmpty()) null else ExtensionStoreKind.MANGA
+	size -> ExtensionStoreKind.NOVEL
+	else -> ExtensionStoreKind.MIXED
+}
+
 // --- Newer "extension store" index format (Mihon #3349+): a single object, served either as JSON or
 // protobuf (index.pb), optionally gzip-compressed, optionally with its extension list in a separate
 // file (extensionListUrl). We decode it and map it back onto ExternalExtensionRepoEntry so nothing

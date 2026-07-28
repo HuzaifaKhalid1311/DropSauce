@@ -10,13 +10,16 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.databinding.ItemExtensionStoreBinding
+import org.koitharu.kotatsu.databinding.ItemExtensionStoreNoteBinding
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreKind
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreState
 import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
 import org.koitharu.kotatsu.settings.sources.catalog.extensionStoreDisplayLabels
+import org.koitharu.kotatsu.settings.sources.catalog.extensionStoreKind
 
 class ExtensionStoresAdapter(
 	private val listener: Listener,
-) : RecyclerView.Adapter<ExtensionStoresAdapter.Holder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
 	private val items = ArrayList<ExtensionStoreState>()
 	private var labels = emptyMap<String, String>()
@@ -42,16 +45,28 @@ class ExtensionStoresAdapter(
 
 	fun itemAt(position: Int): ExtensionStoreState? = items.getOrNull(position)
 
-	override fun getItemId(position: Int): Long = items[position].store.id.hashCode().toLong()
+	override fun getItemId(position: Int): Long =
+		if (position == items.size) NOTE_ITEM_ID else items[position].store.id.hashCode().toLong()
 
-	override fun getItemCount(): Int = items.size
+	// The note is always the last row, so with no stores at all it lands at the top by itself.
+	override fun getItemCount(): Int = items.size + 1
 
-	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
-		Holder(ItemExtensionStoreBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+	override fun getItemViewType(position: Int): Int = if (position == items.size) TYPE_NOTE else TYPE_STORE
 
-	override fun onBindViewHolder(holder: Holder, position: Int) {
-		holder.bind(items[position])
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+		val inflater = LayoutInflater.from(parent.context)
+		return if (viewType == TYPE_NOTE) {
+			NoteHolder(ItemExtensionStoreNoteBinding.inflate(inflater, parent, false))
+		} else {
+			Holder(ItemExtensionStoreBinding.inflate(inflater, parent, false))
+		}
 	}
+
+	override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+		(holder as? Holder)?.bind(items[position])
+	}
+
+	class NoteHolder(binding: ItemExtensionStoreNoteBinding) : RecyclerView.ViewHolder(binding.root)
 
 	inner class Holder(
 		private val binding: ItemExtensionStoreBinding,
@@ -60,6 +75,17 @@ class ExtensionStoresAdapter(
 		@SuppressLint("ClickableViewAccessibility")
 		fun bind(item: ExtensionStoreState) {
 			binding.textTitle.text = labels[item.store.id] ?: item.store.displayName
+			val kind = item.catalog.extensionStoreKind()
+			binding.textKind.isVisible = kind != null
+			if (kind != null) {
+				binding.textKind.setText(
+					when (kind) {
+						ExtensionStoreKind.MANGA -> R.string.store_kind_manga
+						ExtensionStoreKind.NOVEL -> R.string.store_kind_novel
+						ExtensionStoreKind.MIXED -> R.string.store_kind_mixed
+					},
+				)
+			}
 			val color = when (item.health) {
 				StoreHealth.AVAILABLE -> ContextCompat.getColor(binding.root.context, R.color.common_green)
 				StoreHealth.UNAVAILABLE -> com.google.android.material.color.MaterialColors.getColor(
@@ -93,6 +119,12 @@ class ExtensionStoresAdapter(
 				event.actionMasked == MotionEvent.ACTION_DOWN && listener.onDrag(this)
 			}
 		}
+	}
+
+	private companion object {
+		const val TYPE_STORE = 0
+		const val TYPE_NOTE = 1
+		const val NOTE_ITEM_ID = -1L
 	}
 
 	interface Listener {

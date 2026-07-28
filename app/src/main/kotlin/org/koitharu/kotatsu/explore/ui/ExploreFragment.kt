@@ -67,6 +67,8 @@ class ExploreFragment :
 				router.openDetails(manga)
 			},
 			onTipClose = { viewModel.dismissLanguageTip() },
+			onManageExtensionsClick = { router.openSourcesCatalog(isExternalOnly = true) },
+			onSourceKindSelected = viewModel::setNovelSourcesShown,
 		)
 		sourceSelectionController = ListSelectionController(
 			appCompatDelegate = checkNotNull(findAppCompatDelegate()),

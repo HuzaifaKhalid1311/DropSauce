@@ -18,10 +18,16 @@ class ExploreAdapter(
 	clickListener: OnListItemClickListener<MangaSourceItem>,
 	mangaClickListener: OnListItemClickListener<Manga>,
 	onTipClose: (TipModel) -> Unit,
+	onManageExtensionsClick: () -> Unit,
+	onSourceKindSelected: (Boolean) -> Unit,
 ) : BaseListAdapter<ListModel>() {
 
 	init {
 		addDelegate(ListItemType.EXPLORE_BUTTONS, exploreButtonsAD(listener))
+		addDelegate(
+			ListItemType.EXPLORE_SOURCE_KIND,
+			extensionsHeaderAD(onManageExtensionsClick, onSourceKindSelected),
+		)
 		addDelegate(
 			ListItemType.EXPLORE_SUGGESTION,
 			exploreRecommendationItemAD(mangaClickListener),

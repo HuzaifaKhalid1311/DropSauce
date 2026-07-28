@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+	Explore's extension header: title, the manga/novel filter chips, then the manage button. A single
+	row rather than a ListHeader plus a separate filter item, so the chips sit inside the header.
+-->
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:gravity="center_vertical"
+	android:orientation="horizontal"
+	android:paddingHorizontal="@dimen/grid_spacing"
+	android:paddingVertical="@dimen/grid_spacing">
+
+	<TextView
+		android:id="@+id/textView_title"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:ellipsize="end"
+		android:singleLine="true"
+		android:text="@string/extensions"
+		android:textAppearance="?textAppearanceTitleSmall" />
+
+	<com.google.android.material.chip.ChipGroup
+		android:id="@+id/chips_kind"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="@dimen/margin_normal"
+		app:chipSpacingHorizontal="@dimen/grid_spacing_outer_double"
+		app:selectionRequired="true"
+		app:singleLine="true"
+		app:singleSelection="true">
+
+		<com.google.android.material.chip.Chip
+			android:id="@+id/chip_kind_manga"
+			style="@style/Widget.Material3.Chip.Filter"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/store_kind_manga"
+			app:checkedIconVisible="false" />
+
+		<com.google.android.material.chip.Chip
+			android:id="@+id/chip_kind_novel"
+			style="@style/Widget.Material3.Chip.Filter"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/store_kind_novel"
+			app:checkedIconVisible="false" />
+
+	</com.google.android.material.chip.ChipGroup>
+
+	<Space
+		android:layout_width="0dp"
+		android:layout_height="1dp"
+		android:layout_weight="1" />
+
+	<com.google.android.material.button.MaterialButton
+		android:id="@+id/button_more"
+		style="@style/Widget.Kotatsu.Button.More.Small"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:minWidth="40dp"
+		android:minHeight="32dp"
+		android:text="@string/manage"
+		tools:text="@string/manage" />
+
+</LinearLayout>
