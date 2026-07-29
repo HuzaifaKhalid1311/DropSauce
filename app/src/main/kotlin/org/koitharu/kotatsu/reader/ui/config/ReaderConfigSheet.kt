@@ -642,6 +642,15 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         EpubThemeCard(modifier = Modifier.weight(1f).height(96.dp))
                     }
                 }
+                if (publisherStyleEnabled) {
+                    Text(
+                        text = stringResource(R.string.epub_publisher_style_disabled_note),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
         Box(

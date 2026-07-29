@@ -11,6 +11,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.text.Html
@@ -1406,6 +1407,15 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			setHighlightColor(Color.TRANSPARENT)
 		}
 
+		override fun onAttachedToWindow() {
+			super.onAttachedToWindow()
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				setTextSelectHandleLeft(createSelectionHandle())
+				setTextSelectHandleRight(createSelectionHandle())
+				setTextSelectHandle(createSelectionHandle())
+			}
+		}
+
 		override fun onTouchEvent(event: MotionEvent): Boolean {
 			doubleTapDetector.onTouchEvent(event)
 			if (suppressDoubleTap) {
@@ -1415,6 +1425,15 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				return true
 			}
 			return super.onTouchEvent(event)
+		}
+
+		private fun createSelectionHandle(): Drawable {
+			val size = (14 * resources.displayMetrics.density).toInt()
+			return GradientDrawable().apply {
+				shape = GradientDrawable.OVAL
+				setColor(context.getThemeColor(androidx.appcompat.R.attr.colorPrimary))
+				setSize(size, size)
+			}
 		}
 
 		override fun onSelectionChanged(selStart: Int, selEnd: Int) {

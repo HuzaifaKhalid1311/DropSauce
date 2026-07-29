@@ -510,6 +510,7 @@
 	<string name="epub_align_right">Right</string>
 	<string name="epub_align_justified">Justified</string>
 	<string name="epub_publisher_style">Use book formatting</string>
+	<string name="epub_publisher_style_disabled_note">Turn off book formatting to use the disabled text options.</string>
 	<string name="epub_search_book">Search book</string>
 	<string name="export_epub">Export as EPUB</string>
 	<string name="export_epub_done">Exported as EPUB</string>

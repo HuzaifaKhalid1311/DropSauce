@@ -9,8 +9,10 @@ import android.view.ScaleGestureDetector
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import androidx.core.animation.doOnEnd
+import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.core.util.ext.getAnimationDuration
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class EpubZoomFrame @JvmOverloads constructor(
 	context: Context,
@@ -76,7 +78,8 @@ class EpubZoomFrame @JvmOverloads constructor(
 	private fun setScale(target: Float, focusX: Float, focusY: Float) {
 		val newScale = target.coerceIn(MIN_SCALE, MAX_SCALE)
 		if (newScale == zoomScale) return
-		val ratio = newScale / zoomScale
+		val oldScale = zoomScale
+		val ratio = newScale / oldScale
 		translationXValue = focusX - (focusX - translationXValue) * ratio
 		translationYValue = if (isVerticalReadingMode) {
 			0f
@@ -84,6 +87,10 @@ class EpubZoomFrame @JvmOverloads constructor(
 			focusY - (focusY - translationYValue) * ratio
 		}
 		zoomScale = newScale
+		if (isVerticalReadingMode) {
+			val scrollDelta = focusY / oldScale - focusY / newScale
+			(getChildAt(0) as? RecyclerView)?.scrollBy(0, scrollDelta.roundToInt())
+		}
 		constrainTranslation()
 		applyTransform()
 	}
