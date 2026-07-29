@@ -4,6 +4,9 @@ import eu.kanade.tachiyomi.source.CatalogueSource
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageAutonym
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
+/** Every novel-extension package is named `…novelextension.<lang>.<site>`, whichever repo built it. */
+private const val NOVEL_PACKAGE_MARKER = "novelextension."
+
 data class MihonMangaSource(
 	val catalogueSource: CatalogueSource,
 	val pkgName: String,
@@ -34,6 +37,15 @@ data class MihonMangaSource(
 
 	val supportsLatest: Boolean
 		get() = catalogueSource.supportsLatest
+
+	/**
+	 * True for a Tsundoku novel extension. Read from the source itself rather than from the APK's
+	 * manifest flag: a package may ship several sources, and it is the source that knows whether its
+	 * chapters are prose. The package name is a fallback for a source that ships in a novel package
+	 * but forgets to declare the flag, which would otherwise land it in the image reader.
+	 */
+	val isNovel: Boolean
+		get() = catalogueSource.isNovelSource || pkgName.contains(NOVEL_PACKAGE_MARKER)
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true

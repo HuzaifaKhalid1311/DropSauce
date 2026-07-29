@@ -121,6 +121,28 @@ class ExtensionCatalogPagesTest {
 	}
 
 	@Test
+	fun `novel extensions are recognised by flag, package prefix or js plugin`() {
+		val manga = repoEntry(pkg = "eu.kanade.tachiyomi.extension.en.example", apk = "example.apk")
+		val novelFlag = repoEntry(pkg = "com.example.novels", apk = "novels.apk", isNovel = true)
+		val novelPrefix = repoEntry(
+			pkg = "eu.kanade.tachiyomi.novelextension.en.allnovelfull",
+			apk = "tsundoku-en.allnovelfull-v1.4.11.apk",
+		)
+		val plugin = repoEntry(pkg = "somePlugin", apk = "https://example.com/somePlugin.js")
+
+		assertFalse(manga.isNovelExtension)
+		assertTrue(novelFlag.isNovelExtension)
+		assertTrue(novelPrefix.isNovelExtension)
+		assertTrue(plugin.isNovelExtension)
+		// Only real plugin code installs as a plugin; a novel APK installs like any other extension.
+		assertFalse(novelPrefix.isLnPlugin)
+
+		assertEquals(ExtensionStoreKind.MANGA, listOf(manga).extensionStoreKind())
+		assertEquals(ExtensionStoreKind.NOVEL, listOf(novelPrefix, novelFlag, plugin).extensionStoreKind())
+		assertEquals(ExtensionStoreKind.MIXED, listOf(manga, novelPrefix).extensionStoreKind())
+	}
+
+	@Test
 	fun `recommendations only come from the current store catalog`() {
 		val references = collectRecommendedExtensionRefs(
 			externalSourceNames = listOf("MIHON_42:Known", "MIHON_99:Other"),
@@ -147,6 +169,15 @@ class ExtensionCatalogPagesTest {
 		deferredUpdate?.invoke()
 		assertEquals(true, updated)
 	}
+
+	private fun repoEntry(pkg: String, apk: String, isNovel: Boolean = false) = ExternalExtensionRepoEntry(
+		name = pkg.substringAfterLast('.'),
+		packageName = pkg,
+		apkName = apk,
+		versionCode = 1L,
+		versionName = "1.4.1",
+		isNovel = isNovel,
+	)
 
 	private fun store(id: String, name: String) = ExtensionStoreRecord(
 		id = id,

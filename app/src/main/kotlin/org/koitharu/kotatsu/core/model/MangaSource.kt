@@ -98,6 +98,23 @@ val MangaSource.isBroken: Boolean
 val MangaSource.isLocal: Boolean
 	get() = unwrap() == LocalMangaSource
 
+/**
+ * True for text sources, whichever kind: an LNReader JS plugin or a Tsundoku novel extension APK.
+ * Single chokepoint for everything that has to behave differently for prose — the text reader, epub
+ * downloads/export, the Explore novels tab — so the two kinds never drift apart.
+ */
+val MangaSource.isNovelSource: Boolean
+	get() = when (val source = unwrap()) {
+		is LnMangaSource -> true
+		is MihonMangaSource -> source.isNovel
+		// Extension not loaded yet (or uninstalled): fall back to the remembered novel source ids.
+		is MissingMangaSource -> source.name.startsWith("MIHON_") &&
+			source.name.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
+				?.let { MihonExtensionManager.isNovelSourceId(it) } == true
+
+		else -> false
+	}
+
 @get:StringRes
 val ContentType.titleResId
 	get() = when (this) {

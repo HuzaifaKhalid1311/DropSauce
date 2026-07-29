@@ -34,9 +34,20 @@ class MihonExtensionLoader @Inject constructor(
 	companion object {
 		private const val TAG = "MihonExtensionLoader"
 		private const val EXTENSION_FEATURE = "tachiyomi.extension"
-		private const val METADATA_SOURCE_CLASS = "tachiyomi.extension.class"
-		private const val METADATA_SOURCE_FACTORY = "tachiyomi.extension.factory"
-		private const val METADATA_NSFW = "tachiyomi.extension.nsfw"
+
+		/**
+		 * Tsundoku's novel extensions are ordinary Tachiyomi extension APKs that declare a different
+		 * feature and put their manifest metadata under a matching namespace. Everything after
+		 * discovery is identical — the source itself declares `isNovelSource`.
+		 */
+		private const val EXTENSION_FEATURE_NOVEL = "tachiyomi.novelextension"
+		private val EXTENSION_FEATURES = setOf(EXTENSION_FEATURE, EXTENSION_FEATURE_NOVEL)
+
+		/** `<namespace>.class` / `.factory` / `.nsfw`, in the order they're tried. */
+		private val METADATA_NAMESPACES = listOf(EXTENSION_FEATURE, EXTENSION_FEATURE_NOVEL)
+		private val METADATA_SOURCE_CLASS_KEYS = METADATA_NAMESPACES.map { "$it.class" }
+		private val METADATA_SOURCE_FACTORY_KEYS = METADATA_NAMESPACES.map { "$it.factory" }
+		private val METADATA_NSFW_KEYS = METADATA_NAMESPACES.map { "$it.nsfw" }
 		private const val METADATA_EXTENSION_LIB = "tachiyomix.extensionLib"
 		private const val METADATA_CONTENT_WARNING = "tachiyomix.contentWarning"
 		/** Languages hidden from the whole app: their source variants are never loaded. */
@@ -194,11 +205,15 @@ class MihonExtensionLoader @Inject constructor(
 
 		internal fun isPackageAnExtensionStatic(pkgInfo: PackageInfo): Boolean {
 			val appInfo = pkgInfo.applicationInfo ?: return false
-			val metaData = appInfo.metaData
-			val hasFeature = pkgInfo.reqFeatures?.any { it.name == EXTENSION_FEATURE } == true
-			val hasSource = metaData?.containsKey(METADATA_SOURCE_CLASS) == true ||
-				metaData?.containsKey(METADATA_SOURCE_FACTORY) == true
-			return hasFeature || hasSource
+			val hasFeature = pkgInfo.reqFeatures?.any { it.name in EXTENSION_FEATURES } == true
+			return hasFeature || readSourceClassNames(appInfo.metaData) != null
+		}
+
+		/** The `;`-separated source class list, from whichever namespace the APK declares it under. */
+		internal fun readSourceClassNames(metaData: Bundle?): String? {
+			metaData ?: return null
+			return METADATA_SOURCE_CLASS_KEYS.firstNotNullOfOrNull { metaData.getString(it) }
+				?: METADATA_SOURCE_FACTORY_KEYS.firstNotNullOfOrNull { metaData.getString(it) }
 		}
 
 		internal fun normalizeSourceClassNames(pkgName: String, sourceClassNames: String): List<String> {
@@ -215,18 +230,29 @@ class MihonExtensionLoader @Inject constructor(
 				}
 		}
 
+		/**
+		 * Names to try for one declared source class, in order. Some novel-extension repos declare
+		 * their classes under the fork's own package while the compiled class kept the upstream
+		 * name, so the upstream spelling is tried as a fallback — same shim Tsundoku's loader has.
+		 */
+		internal fun sourceClassCandidates(className: String): List<String> {
+			val upstream = className.replace(TSUNDOKU_CLASS_PREFIX, MIHON_CLASS_PREFIX)
+			return if (upstream == className) listOf(className) else listOf(className, upstream)
+		}
+
+		private const val TSUNDOKU_CLASS_PREFIX = "app.tsundoku.extension."
+		private const val MIHON_CLASS_PREFIX = "eu.kanade.tachiyomi.extension."
+
 		internal fun readNsfwFlag(metaData: Bundle): Boolean {
 			if (metaData.getInt(METADATA_CONTENT_WARNING, 0) > 0) return true
-			if (!metaData.containsKey(METADATA_NSFW)) {
-				return false
-			}
+			val key = METADATA_NSFW_KEYS.firstOrNull { metaData.containsKey(it) } ?: return false
 			return runCatching {
-				parseNsfwFlag(metaData.getInt(METADATA_NSFW))
+				parseNsfwFlag(metaData.getInt(key))
 			}.getOrElse {
 				runCatching {
-					parseNsfwFlag(metaData.getBoolean(METADATA_NSFW))
+					parseNsfwFlag(metaData.getBoolean(key))
 				}.getOrElse {
-					parseNsfwFlag(metaData.getString(METADATA_NSFW))
+					parseNsfwFlag(metaData.getString(key))
 				}
 			}
 		}
@@ -331,9 +357,7 @@ class MihonExtensionLoader @Inject constructor(
 		val metaData = appInfo.metaData ?: return null
 		val versionName = pkgInfo.versionName ?: return null
 		val libVersion = readLibVersion(metaData, versionName) ?: return null
-		val sourceClassName = metaData.getString(METADATA_SOURCE_CLASS)
-			?: metaData.getString(METADATA_SOURCE_FACTORY)
-			?: return null
+		val sourceClassName = readSourceClassNames(metaData) ?: return null
 		val lang = extractLanguage(pkgInfo.packageName)
 		val appName = try {
 			appInfo.loadLabel(pkgManager).toString()
@@ -370,8 +394,7 @@ class MihonExtensionLoader @Inject constructor(
 				message = "Incompatible lib version: $libVersion",
 			)
 		}
-		val sourceClassNames = metaData.getString(METADATA_SOURCE_CLASS)
-			?: metaData.getString(METADATA_SOURCE_FACTORY)
+		val sourceClassNames = readSourceClassNames(metaData)
 			?: return buildLoggedError(pkgInfo.packageName, "No source class metadata")
 		val appName = runCatching {
 			appInfo.loadLabel(context.packageManager).toString()
@@ -430,10 +453,24 @@ class MihonExtensionLoader @Inject constructor(
 		)
 	}
 
+	private fun instantiateSource(className: String, classLoader: ClassLoader): Any {
+		val candidates = sourceClassCandidates(className)
+		candidates.forEachIndexed { index, candidate ->
+			try {
+				return classLoader.loadClass(candidate).getDeclaredConstructor().newInstance()
+			} catch (e: ClassNotFoundException) {
+				// Only a missing class is worth retrying under the other name; anything else is a
+				// real failure of this class and must not be masked by trying the alternative.
+				if (index == candidates.lastIndex) throw e
+			}
+		}
+		error("No source class candidates for $className")
+	}
+
 	private fun loadSources(pkgName: String, sourceClassNames: String, classLoader: ClassLoader): List<Source> {
 		return normalizeSourceClassNames(pkgName, sourceClassNames)
 			.flatMap { className ->
-				val instance = classLoader.loadClass(className).getDeclaredConstructor().newInstance()
+				val instance = instantiateSource(className, classLoader)
 				when (instance) {
 					is Source -> listOf(instance)
 					is SourceFactory -> {
@@ -475,15 +512,7 @@ class MihonExtensionLoader @Inject constructor(
 		Log.i(TAG, "Loaded extension $pkgName with ${sources.size} source(s): $summary")
 	}
 
-	private fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean {
-		val appInfo = pkgInfo.applicationInfo ?: return false
-		val metaData = appInfo.metaData
-		val pkgName = pkgInfo.packageName
-		val hasFeature = pkgInfo.reqFeatures?.any { it.name == EXTENSION_FEATURE } == true
-		val hasSource = metaData?.containsKey(METADATA_SOURCE_CLASS) == true ||
-			metaData?.containsKey(METADATA_SOURCE_FACTORY) == true
-		return hasFeature || hasSource
-	}
+	private fun isPackageAnExtension(pkgInfo: PackageInfo): Boolean = isPackageAnExtensionStatic(pkgInfo)
 
 	private fun parseLibVersion(versionName: String): Double? {
 		return versionName.substringBeforeLast('.').toDoubleOrNull()
@@ -497,7 +526,8 @@ class MihonExtensionLoader @Inject constructor(
 
 	private fun extractLanguage(packageName: String): String {
 		val parts = packageName.split('.')
-		val extIndex = parts.indexOfLast { it == "extension" }
+		// Novel extensions live under `…tachiyomi.novelextension.<lang>.<site>`.
+		val extIndex = parts.indexOfLast { it == "extension" || it == "novelextension" }
 		return parts.getOrNull(extIndex + 1)
 			?.takeIf { it.isNotBlank() }
 			?: parts.lastOrNull()

@@ -66,9 +66,11 @@ import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageLabel
 import org.koitharu.kotatsu.parsers.model.ContentType
 import java.io.File
 import java.io.IOException
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -417,7 +419,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
 		if (locales.size > 1) {
 			chips += ChipModel(
-				title = appliedFilter.locale?.toLocale().getDisplayName(this),
+				title = appliedFilter.locale?.let(::getExternalExtensionLanguageLabel)
+					?: (null as Locale?).getDisplayName(this),
 				icon = R.drawable.ic_language,
 				isDropdown = true,
 				data = FilterChip.LOCALE,
@@ -446,7 +449,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		locales.sortWith(compareBy(nullsFirst(LocaleComparator())) { it.second })
 		val menu = PopupMenu(this, anchor)
 		for ((i, lc) in locales.withIndex()) {
-			menu.menu.add(Menu.NONE, Menu.NONE, i, lc.second.getDisplayName(this))
+			// Labelled through the extension helper, not the Locale: a plugin index declares its language
+			// as a name, and an unresolvable one must show as written rather than as "Various languages".
+			menu.menu.add(Menu.NONE, Menu.NONE, i, lc.first?.let(::getExternalExtensionLanguageLabel) ?: lc.second.getDisplayName(this))
 		}
 		menu.setOnMenuItemClickListener {
 			viewModel.setLocale(locales.getOrNull(it.order)?.first)

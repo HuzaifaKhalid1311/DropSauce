@@ -6,6 +6,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNames
 import kotlinx.serialization.protobuf.ProtoNumber
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLangCode
 import org.koitharu.kotatsu.mihon.model.ExternalRepoInfo
 import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
@@ -24,6 +25,8 @@ data class ExternalExtensionRepoEntry(
 	@SerialName("sources") val sources: List<ExternalExtensionRepoSource> = emptyList(),
 	/** Absolute icon URL supplied by newer stores; null for legacy repos (icon resolved by convention). */
 	@SerialName("iconUrl") val iconUrl: String? = null,
+	/** Set by novel-extension stores (Tsundoku's index). Manga repos omit it. */
+	@SerialName("isNovel") val isNovel: Boolean = false,
 )
 
 /**
@@ -51,7 +54,9 @@ fun LnStoreEntry.toRepoEntry() = ExternalExtensionRepoEntry(
 	name = name,
 	packageName = id,
 	apkName = url,
-	lang = lang,
+	// Normalized to a code here so the catalog's language filter and its chips, which are code-based,
+	// work for plugin indexes that declare a language name instead.
+	lang = getExternalExtensionLangCode(lang),
 	versionCode = 0L,
 	versionName = version,
 	iconUrl = iconUrl.takeIf { it.isNotEmpty() },
@@ -60,11 +65,34 @@ fun LnStoreEntry.toRepoEntry() = ExternalExtensionRepoEntry(
 val ExternalExtensionRepoEntry.isLnPlugin: Boolean
 	get() = apkName.substringBefore('?').endsWith(".js", ignoreCase = true)
 
-/** What a store publishes. Derived from its catalog — no index format declares this. */
+/**
+ * Extension apps name themselves after the app they were built for ("Tachiyomi: MangaDex",
+ * "Tsundoku: …"); the store lists the source, so the vendor prefix is noise.
+ */
+fun extensionDisplayName(name: String): String {
+	var result = name.trim()
+	for (prefix in VENDOR_NAME_PREFIXES) result = result.removePrefix(prefix)
+	return result.trim()
+}
+
+private val VENDOR_NAME_PREFIXES = listOf("Tachiyomi: ", "Tsundoku: ", "Mihon: ")
+
+/** Package prefix every Tsundoku novel extension uses; the marker for indexes without `isNovel`. */
+private const val NOVEL_EXTENSION_PACKAGE_PREFIX = "eu.kanade.tachiyomi.novelextension"
+
+/**
+ * Whether this entry is a text source, of either kind — an LNReader JS plugin or a novel extension
+ * APK. Note this is NOT the install-path switch: only [isLnPlugin] rows install as plugin code, a
+ * novel APK installs exactly like any other extension.
+ */
+val ExternalExtensionRepoEntry.isNovelExtension: Boolean
+	get() = isLnPlugin || isNovel || packageName.startsWith(NOVEL_EXTENSION_PACKAGE_PREFIX)
+
+/** What a store publishes. Derived from its catalog. */
 enum class ExtensionStoreKind { MANGA, NOVEL, MIXED }
 
 /** Null while the catalog is empty, i.e. the store is still being checked or is unreachable. */
-fun List<ExternalExtensionRepoEntry>.extensionStoreKind(): ExtensionStoreKind? = when (count { it.isLnPlugin }) {
+fun List<ExternalExtensionRepoEntry>.extensionStoreKind(): ExtensionStoreKind? = when (count { it.isNovelExtension }) {
 	0 -> if (isEmpty()) null else ExtensionStoreKind.MANGA
 	size -> ExtensionStoreKind.NOVEL
 	else -> ExtensionStoreKind.MIXED
@@ -103,6 +131,8 @@ internal data class NetworkExtensionStore(
 		@ProtoNumber(6) val versionName: String = "",
 		@ProtoNumber(7) val contentWarning: ContentWarning = ContentWarning.UNSPECIFIED,
 		@ProtoNumber(8) val sources: List<Source> = emptyList(),
+		/** Tsundoku's fork field, at a reserved number so it can't collide with upstream. */
+		@ProtoNumber(8000) val isNovel: Boolean = false,
 	)
 
 	@Serializable
@@ -148,6 +178,7 @@ internal fun NetworkExtensionStore.Extension.toRepoEntry(): ExternalExtensionRep
 		isNsfw = if (contentWarning >= NetworkExtensionStore.ContentWarning.MIXED) 1 else 0,
 		sources = sources.map { ExternalExtensionRepoSource(id = it.id.toString(), name = it.name, lang = it.language) },
 		iconUrl = resources.iconUrl.ifBlank { null },
+		isNovel = isNovel,
 	)
 }
 

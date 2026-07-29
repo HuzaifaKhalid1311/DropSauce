@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.core.util.ext
 
 import android.animation.ValueAnimator
-import androidx.core.view.doOnNextLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.view.isEmpty
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -82,18 +82,11 @@ fun RecyclerView.smoothScrollToTop() {
 		return
 	}
 
-	val jumpBeforeScroll = layoutManager.findFirstVisibleItemPosition() > DEFAULT_JUMP_THRESHOLD
-	if (jumpBeforeScroll) {
-		layoutManager.scrollToPositionWithOffset(DEFAULT_JUMP_THRESHOLD, 0)
-		doOnNextLayout {
-			animateScrollOffsetToTop(DEFAULT_SCROLL_DURATION_MS)
-		}
-	} else {
-		animateScrollOffsetToTop(DEFAULT_SCROLL_DURATION_MS)
-	}
+	// ponytail: no jump-to-position-N shortcut first — past that threshold it teleported the list and
+	// only animated the tail end. Animating the whole offset just scrolls faster on a long list.
+	animateScrollOffsetToTop(DEFAULT_SCROLL_DURATION_MS)
 }
 
-private const val DEFAULT_JUMP_THRESHOLD = 30
 private const val DEFAULT_SCROLL_DURATION_MS = 1000L
 
 private fun RecyclerView.animateScrollOffsetToTop(durationMs: Long) {
@@ -112,6 +105,8 @@ private fun RecyclerView.animateScrollOffsetToTop(durationMs: Long) {
 				previousOffset = currentOffset
 			}
 		}
+		// The offset is an estimate from average item height, so land on the first item exactly.
+		doOnEnd { (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(0, 0) }
 		start()
 	}
 }

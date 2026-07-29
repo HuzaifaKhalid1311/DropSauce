@@ -493,6 +493,19 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			putStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, value.mapToSet { it.toString() })
 		}
 
+	/**
+	 * Ids of installed novel (text) extension sources, remembered from the last extension scan.
+	 * Loading extensions needs a classloader pass, so right after launch a novel already in the
+	 * library would otherwise look like a manga source and open in the image reader.
+	 */
+	var novelSourceIds: Set<Long>
+		get() = prefs.getStringSet(KEY_NOVEL_SOURCE_IDS, emptySet())
+			.orEmpty()
+			.mapNotNullToSet { it.toLongOrNull() }
+		set(value) = prefs.edit {
+			putStringSet(KEY_NOVEL_SOURCE_IDS, value.mapToSet { it.toString() })
+		}
+
 	var isShizukuInstallerEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SHIZUKU_INSTALLER, false)
 		set(value) = prefs.edit {
@@ -1206,6 +1219,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
 		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
+		const val KEY_NOVEL_SOURCE_IDS = "novel_source_ids"
 		const val KEY_SHIZUKU_INSTALLER = "shizuku_installer"
 		const val KEY_PRIVATE_INSTALLER = "private_installer"
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"

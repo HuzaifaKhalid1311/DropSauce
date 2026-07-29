@@ -34,6 +34,7 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.settings.sources.catalog.extensionDisplayName
 import org.jsoup.HttpStatusException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
@@ -73,8 +74,6 @@ internal fun <T> selectLanguageVariant(
 	language: String?,
 	languageOf: (T) -> String,
 ): T? = variants.firstOrNull { languageOf(it) == language } ?: variants.firstOrNull()
-
-internal fun extensionDisplayName(name: String): String = name.removePrefix("Tachiyomi: ").trim()
 
 internal fun searchQueryForTitle(title: String): String {
 	val words = Regex("[\\p{L}\\p{N}]+").findAll(title).map { it.value }.toList()

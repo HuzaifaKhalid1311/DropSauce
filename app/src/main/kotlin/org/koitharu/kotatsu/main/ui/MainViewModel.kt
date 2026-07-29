@@ -23,6 +23,7 @@ import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.main.domain.ReadingResumeEnabledUseCase
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
@@ -41,6 +42,7 @@ class MainViewModel @Inject constructor(
 	private val settings: AppSettings,
 	readingResumeEnabledUseCase: ReadingResumeEnabledUseCase,
 	private val mihonExtensionManager: MihonExtensionManager,
+	private val mihonExtensionLoader: MihonExtensionLoader,
 	private val extensionStoreManager: ExtensionStoreManager,
 	private val extensionUpdateScheduler: ExtensionUpdateWorker.Scheduler,
 ) : BaseViewModel() {
@@ -51,8 +53,11 @@ class MainViewModel @Inject constructor(
 		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
 	) { installed, stores, privateMode ->
 		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
-		installed.any { local ->
-			val owner = extensionStoreManager.owner(mode, local.pkgName) ?: return@any false
+		// Read the installed list through the loader, not the load results: attributing an extension
+		// to its store needs the APK's signing fingerprints, which only this list carries. Without
+		// them a sideloaded extension had no nav-bar dot while Explore showed one for it.
+		installed.isNotEmpty() && mihonExtensionLoader.getInstalledExtensions(appContext, privateMode).any { local ->
+			val owner = extensionStoreManager.owner(mode, local) ?: return@any false
 			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
 			owner.enabled &&
 				state.health == StoreHealth.AVAILABLE &&

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
-import org.koitharu.kotatsu.core.model.unwrap
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
@@ -34,7 +34,6 @@ import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.ExtensionsHeaderItem
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
-import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.list.ui.model.EmptyHint
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
@@ -225,10 +224,12 @@ class ExploreViewModel @Inject constructor(
 		// Header, manga/novel chips and the manage button are one row. The chips stay put on the empty
 		// branch too, otherwise there is no way back to the other half.
 		result += ExtensionsHeaderItem(isNovel = isNovelShown, hasUpdates = hasExtensionUpdates)
-		val shown = sources.filter { (it.unwrap() is LnMangaSource) == isNovelShown }
+		val shown = sources.filter { it.isNovelSource == isNovelShown }
 		when {
 			shown.isNotEmpty() -> shown.mapTo(result) { MangaSourceItem(it, isGrid) }
-			isExtensionsLoading && !isNovelShown -> result += LoadingState
+			// Novels can also come from extension APKs now, so the spinner belongs on both tabs —
+			// otherwise the novels tab claims nothing is installed while the scan is still running.
+			isExtensionsLoading -> result += LoadingState
 			else -> result += EmptyHint(
 				icon = R.drawable.ic_empty_common,
 				textPrimary = if (isNovelShown) {

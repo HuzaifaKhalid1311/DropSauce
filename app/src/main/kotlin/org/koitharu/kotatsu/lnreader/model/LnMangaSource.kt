@@ -1,7 +1,8 @@
 package org.koitharu.kotatsu.lnreader.model
 
 import org.json.JSONObject
-import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLangCode
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageLabel
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
 /**
@@ -92,13 +93,12 @@ data class LnMangaSource(val plugin: LnPlugin) : MangaSource {
 }
 
 /**
- * LNReader plugins declare `lang` inconsistently — some a BCP-47 code ("en"), some the autonym
- * ("English"). Running an autonym through the locale lookup just uppercases it, so only codes go
- * through it and anything longer is shown as the plugin wrote it.
+ * LNReader plugins declare `lang` inconsistently — some a BCP-47 code ("en"), some a name
+ * ("English"). Both resolve to a translated label; anything unrecognised shows as the plugin wrote it.
  */
 val LnPlugin.languageLabel: String
-	get() = when {
-		lang.isEmpty() -> ""
-		lang.length <= 3 -> getExternalExtensionLanguageDisplayName(lang)
-		else -> lang
-	}
+	get() = getExternalExtensionLanguageLabel(lang)
+
+/** The plugin's language as a BCP-47 code, for comparing against the catalog's language filter. */
+val LnPlugin.langCode: String
+	get() = getExternalExtensionLangCode(lang)

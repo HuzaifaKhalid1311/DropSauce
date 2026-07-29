@@ -113,6 +113,18 @@ abstract class HttpSource : CatalogueSource {
 
 	protected open fun chapterListRequest(manga: SManga): Request = GET(baseUrl + manga.url, headers)
 
+	/**
+	 * A novel chapter is one page whose content is fetched later by `fetchPageText`, so there is
+	 * nothing to request here. Mirrors Tsundoku: without this, a novel source that doesn't override
+	 * getPageList would fall through to the html page parser and fetch the chapter twice.
+	 */
+	override suspend fun getPageList(chapter: SChapter): List<Page> {
+		if (isNovelSource) {
+			return listOf(Page(0, chapter.url))
+		}
+		return super<CatalogueSource>.getPageList(chapter)
+	}
+
 	@Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPageList"))
 	override fun fetchPageList(chapter: SChapter): Observable<List<Page>> {
 		return client.newCall(pageListRequest(chapter)).asObservableSuccess().map(::pageListParse)

@@ -18,6 +18,14 @@ open class Page(
 	val number: Int
 		get() = index + 1
 
+	/**
+	 * A novel chapter's text. A body property rather than a constructor parameter, exactly as in
+	 * Tsundoku, so the four-argument constructor every existing extension compiles against stays
+	 * binary-compatible.
+	 */
+	@Transient
+	var text: String? = null
+
 	@Transient
 	private val _statusFlow = MutableStateFlow<State>(State.Queue)
 	@Transient

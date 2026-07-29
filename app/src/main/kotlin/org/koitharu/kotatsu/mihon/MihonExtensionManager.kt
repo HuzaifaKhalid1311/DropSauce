@@ -36,7 +36,21 @@ class MihonExtensionManager @Inject constructor(
 		fun getById(sourceId: Long): MihonMangaSource? = activeInstance?.getMihonMangaSourceById(sourceId)
 
 		fun getByName(name: String): MihonMangaSource? = activeInstance?.getMihonMangaSourceByName(name)
+
+		/**
+		 * Whether a source id belongs to a novel extension, answerable before extensions finish
+		 * loading. Falls back to the remembered ids from the previous scan.
+		 */
+		fun isNovelSourceId(sourceId: Long): Boolean {
+			val instance = activeInstance ?: return false
+			instance.getMihonMangaSourceById(sourceId)?.let { return it.isNovel }
+			return sourceId in instance.knownNovelSourceIds
+		}
 	}
+
+	/** Snapshot of [AppSettings.novelSourceIds], refreshed after every extension scan. */
+	@Volatile
+	private var knownNovelSourceIds: Set<Long> = settings.novelSourceIds
 
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private val refreshMutex = Mutex()
@@ -95,6 +109,15 @@ class MihonExtensionManager @Inject constructor(
 	suspend fun loadExtensions() {
 		refreshMutex.withLock {
 			facade.loadExtensions()
+			rememberNovelSources()
+		}
+	}
+
+	private fun rememberNovelSources() {
+		val ids = facade.getWrappedSources().filter { it.isNovel }.mapTo(HashSet()) { it.sourceId }
+		knownNovelSourceIds = ids
+		if (settings.novelSourceIds != ids) {
+			settings.novelSourceIds = ids
 		}
 	}
 

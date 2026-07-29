@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.koitharu.kotatsu.core.model.chaptersCount
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -27,7 +28,10 @@ class AlternativesUseCase @Inject constructor(
 ) {
 
 	suspend operator fun invoke(manga: Manga): Flow<Manga> {
-		val sources = getSources().filter { it != manga.source }
+		// Same kind only. A manga migrated onto a novel source (or the reverse) lands in the wrong
+		// reader with content it cannot load, so those are never offered as alternatives.
+		val isNovel = manga.source.isNovelSource
+		val sources = getSources().filter { it != manga.source && it.isNovelSource == isNovel }
 		if (sources.isEmpty()) {
 			return emptyFlow()
 		}

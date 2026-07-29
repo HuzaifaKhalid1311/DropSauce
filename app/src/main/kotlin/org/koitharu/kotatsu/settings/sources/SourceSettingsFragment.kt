@@ -43,6 +43,7 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.lnreader.LnPluginSettings
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
@@ -102,6 +103,8 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		val uninstallPkg = mihonSource?.pkgName
 		val novelSource = viewModel.source.unwrap() as? LnMangaSource
 		val novelPluginId = novelSource?.pluginId
+		// Prose either way — an LNReader plugin or a novel extension APK.
+		val isNovelSource = viewModel.source.isNovelSource
 		// Mirrors the Mihon row, which is subtitled with its package name — a plugin's id is its
 		// equivalent identity, and the version is what tells two builds apart.
 		val novelPluginLabel = novelSource?.plugin?.let { plugin ->
@@ -150,6 +153,7 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 					uninstallPkg = uninstallPkg,
 					novelPluginId = novelPluginId,
 					novelPluginLabel = novelPluginLabel,
+					isNovelSource = isNovelSource,
 					onOpenBrowser = { url -> openBrowser(url) },
 					onClearCookies = { url -> confirmClearCookies(url) },
 					onUninstall = { pkg -> uninstallExtension(pkg) },
@@ -312,6 +316,7 @@ private fun SourceSettingsScreen(
 	uninstallPkg: String?,
 	novelPluginId: String?,
 	novelPluginLabel: String?,
+	isNovelSource: Boolean,
 	onOpenBrowser: (String) -> Unit,
 	onClearCookies: (String) -> Unit,
 	onUninstall: (String) -> Unit,
@@ -382,8 +387,9 @@ private fun SourceSettingsScreen(
 			item {
 				SettingsGroup(title = stringResource(R.string.source_settings_app)) {
 					if (isValidSource) {
-						// Slowdown paces page-image downloads, which novels have none of.
-						if (novelPluginId == null) {
+						// Slowdown paces page-image downloads, which novels have none of. Asks the source,
+						// not the plugin id: a novel extension APK has no pages either.
+						if (!isNovelSource) {
 							item { pos ->
 								var slowdown by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_SLOWDOWN, false)
 								SwitchSettingsItem(

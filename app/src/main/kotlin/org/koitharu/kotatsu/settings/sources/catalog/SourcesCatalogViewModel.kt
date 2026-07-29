@@ -27,6 +27,8 @@ import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.ButtonFooter
 import org.koitharu.kotatsu.lnreader.LnPluginManager
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageLabel
+import org.koitharu.kotatsu.lnreader.model.langCode
 import org.koitharu.kotatsu.lnreader.model.languageLabel
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.parsers.model.ContentType
@@ -402,7 +404,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (entry != null) {
 				updates += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
-					title = entry.name.removePrefix("Tachiyomi: ").trim(),
+					title = extensionDisplayName(entry.name),
 					subtitle = buildString {
 						append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 						append(" • ")
@@ -421,7 +423,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			}
 			installedItems += SourceCatalogItem.Extension(
 				packageName = local.pkgName,
-				title = local.appName.removePrefix("Tachiyomi: ").trim(),
+				title = extensionDisplayName(local.appName),
 				subtitle = buildString {
 					append(getExternalExtensionLanguageDisplayName(local.lang))
 					append(" • ")
@@ -450,7 +452,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val lnCatalog = storeStates.flatMap { it.catalog }.filter { it.isLnPlugin }
 		for (source in lnPluginManager.getAll()) {
 			val plugin = source.plugin
-			if (filter.locale != null && plugin.lang != filter.locale) continue
+			if (filter.locale != null && plugin.langCode != filter.locale) continue
 			if (!matchesExtensionQuery(q, plugin.name, plugin.id)) continue
 			val newer = lnCatalog.firstOrNull {
 				it.packageName == plugin.id && isNewerPluginVersion(it.versionName, plugin.version)
@@ -544,7 +546,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		// recommended even if it isn't in the baked migration map.
 		val repoSourceIndex = HashMap<Long, Pair<String, String>>()
 		for (entry in available) {
-			val fallbackName = entry.name.removePrefix("Tachiyomi: ").trim()
+			val fallbackName = extensionDisplayName(entry.name)
 			for (src in entry.sources) {
 				val sid = src.id.toLongOrNull() ?: continue
 				repoSourceIndex.putIfAbsent(sid, entry.packageName to src.name.ifBlank { fallbackName })
@@ -601,7 +603,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			availableItems += SourceCatalogItem.Extension(
 				packageName = entry.packageName,
-				title = entry.name.removePrefix("Tachiyomi: ").trim(),
+				title = extensionDisplayName(entry.name),
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.INSTALL,
 				isInProgress = entry.packageName in inProgressPackages,
@@ -724,7 +726,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		val installedIds = allMihonSources.value.mapTo(HashSet()) { it.sourceId }
 		val repoSourceIndex = HashMap<Long, Pair<String, String>>()
 		for (entry in available) {
-			val fallbackName = entry.name.removePrefix("Tachiyomi: ").trim()
+			val fallbackName = extensionDisplayName(entry.name)
 			for (src in entry.sources) {
 				val sid = src.id.toLongOrNull() ?: continue
 				repoSourceIndex.putIfAbsent(sid, entry.packageName to src.name.ifBlank { fallbackName })
@@ -789,7 +791,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			disabledItems += SourceCatalogItem.Extension(
 				packageName = entry.packageName,
-				title = entry.name.removePrefix("Tachiyomi: ").trim(),
+				title = extensionDisplayName(entry.name),
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.ENABLE,
 				isInProgress = entry.packageName in inProgressPackages,
@@ -970,12 +972,9 @@ private fun ExternalExtensionRepoEntry.toLnCatalogItem(
 	sourceName: String? = null,
 ) = SourceCatalogItem.Extension(
 	packageName = packageName,
-	title = name,
+	title = extensionDisplayName(name),
 	subtitle = buildString {
-		// LNReader indexes give lang as either a code or an autonym; only codes resolve to a locale.
-		lang?.takeIf { it.isNotEmpty() }?.let {
-			append(if (it.length <= 3) getExternalExtensionLanguageDisplayName(it) else it).append(" • ")
-		}
+		lang?.takeIf { it.isNotEmpty() }?.let { append(getExternalExtensionLanguageLabel(it)).append(" • ") }
 		append(versionName)
 	},
 	action = action,

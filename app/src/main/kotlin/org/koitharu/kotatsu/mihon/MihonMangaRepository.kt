@@ -12,8 +12,11 @@ import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
 import okhttp3.Headers
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
 import org.koitharu.kotatsu.core.exceptions.InteractiveActionRequiredException
 import kotlinx.coroutines.Dispatchers
@@ -267,6 +270,14 @@ class MihonMangaRepository(
 	}
 
 	override suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage> = withContext(Dispatchers.IO) {
+		// A novel chapter is one "page" of prose, fetched later by getChapterHtml. Same shape as the
+		// LNReader repository so the text reader treats both kinds of novel identically, and no
+		// network call happens here.
+		if (source.isNovel) {
+			return@withContext listOf(
+				MangaPage(id = chapter.id, url = chapter.url, preview = null, source = source),
+			)
+		}
 		val sChapter = chapter.toSourceChapter()
 		// Match Mihon and delegate retry policy to the source's own OkHttp client.
 		val rawPages = try {
@@ -305,7 +316,20 @@ class MihonMangaRepository(
 		}
 	}
 
+	/** A novel chapter's body. Null for a manga source, which is what the text reader checks. */
+	override suspend fun getChapterHtml(chapter: MangaChapter): String? {
+		if (!source.isNovel) return null
+		return withContext(Dispatchers.IO) { fetchChapterText(chapter.url) }
+	}
+
+	private suspend fun fetchChapterText(chapterUrl: String): String = try {
+		mihonSource.fetchPageText(Page(index = 0, url = chapterUrl))
+	} catch (e: Exception) {
+		throw translateExtensionException(e)
+	}
+
 	override suspend fun getPageUrl(page: MangaPage): String = withContext(Dispatchers.IO) {
+		if (source.isNovel) return@withContext page.url
 		val httpSource = mihonSource as? HttpSource ?: return@withContext page.url
 		val ref = page.url.toMihonPageRef() ?: return@withContext page.url
 		when (ref.host) {
@@ -333,9 +357,29 @@ class MihonMangaRepository(
 	 */
 	override suspend fun getImageStream(pageUrl: String, page: MangaPage): Response? =
 		withContext(Dispatchers.IO) {
+			// The download worker treats this as "the source fetches this itself", so handing it a
+			// synthetic response carrying the chapter html downloads a novel with no changes to the
+			// worker — same trick as the LNReader repository.
+			if (source.isNovel) {
+				val html = fetchChapterText(page.url)
+				return@withContext Response.Builder()
+					.request(Request.Builder().url(novelRequestUrl(page.url)).build())
+					.protocol(Protocol.HTTP_1_1)
+					.code(200)
+					.message("OK")
+					.body(html.toResponseBody("application/xhtml+xml".toMediaType()))
+					.build()
+			}
 			val httpSource = mihonSource as? HttpSource ?: return@withContext null
 			httpSource.getImage(page.toMihonPage(pageUrl))
 		}
+
+	/** OkHttp requires an absolute url on the synthetic response above; chapter paths are relative. */
+	private fun novelRequestUrl(chapterUrl: String): String = when {
+		chapterUrl.startsWith("http://") || chapterUrl.startsWith("https://") -> chapterUrl
+		else -> (mihonSource as? HttpSource)?.baseUrl?.trimEnd('/')?.plus("/" + chapterUrl.trimStart('/'))
+			?: "https://localhost/" + chapterUrl.trimStart('/')
+	}
 
 	/**
 	 * Fetches a cover/thumbnail through the extension's own client + headers — identical to Mihon's

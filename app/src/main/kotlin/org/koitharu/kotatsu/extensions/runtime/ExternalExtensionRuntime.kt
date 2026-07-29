@@ -13,6 +13,76 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import java.util.Locale
 
+/**
+ * The BCP-47 code for an extension's declared language, or null if it isn't one we can resolve.
+ *
+ * Mihon indexes declare codes ("en", "pt-BR"); LNReader indexes declare names, either English
+ * ("English") or the autonym ("português (Brasil)"). Everything downstream — the catalog's language
+ * filter above all — compares codes, so names have to be looked back up.
+ */
+fun getExternalExtensionLangCodeOrNull(lang: String): String? {
+	val value = lang.trim().trim('‎', '‏')
+	return when {
+		value.isEmpty() -> null
+		// A code has to look like one. Length alone isn't enough: "ไทย" is three chars and Android turns
+		// any unknown 2-8 letter subtag into the label "Various languages" instead of failing.
+		LANG_CODE_REGEX matches value -> value
+		else -> langCodesByName[value.lowercase(Locale.ROOT)]
+	}
+}
+
+private val LANG_CODE_REGEX = Regex("[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*")
+
+/** Same, falling back to the declared value so an unknown language still filters consistently. */
+fun getExternalExtensionLangCode(lang: String): String = getExternalExtensionLangCodeOrNull(lang) ?: lang
+
+/** Display label for a language declared as either a code or a name. */
+fun getExternalExtensionLanguageLabel(lang: String): String =
+	getExternalExtensionLangCodeOrNull(lang)?.let(::getExternalExtensionLanguageDisplayName) ?: lang
+
+/**
+ * The exact set of names LNReader plugins can declare, from its `languagesMapping` table
+ * (`src/utils/constants/languages.ts`). Most are autonyms Android's own locale data does not produce
+ * verbatim — comma-separated lists ("中文, 汉语, 漢語"), or a different wording ("Bahasa Indonesia" vs
+ * Android's "Indonesia") — so they are matched from this table first and the locale sweep below only
+ * covers names from other index formats.
+ *
+ * Note LNReader keys Arabic as "ab" (Abkhazian) in that file; the name is what plugins ship, and it
+ * maps to the correct code here.
+ */
+private val LNREADER_LANG_CODES = mapOf(
+	"bahasa indonesia" to "id",
+	"english" to "en",
+	"español" to "es",
+	"français" to "fr",
+	"polski" to "pl",
+	"português" to "pt",
+	"tiếng việt" to "vi",
+	"türkçe" to "tr",
+	"русский" to "ru",
+	"українська" to "uk",
+	"العربية" to "ar",
+	"ไทย" to "th",
+	"中文, 汉语, 漢語" to "zh",
+	"日本語" to "ja",
+	"조선말, 한국어" to "ko",
+	"multi" to "all",
+)
+
+private val langCodesByName: Map<String, String> by lazy {
+	val map = HashMap<String, String>(LNREADER_LANG_CODES)
+	for (locale in Locale.getAvailableLocales()) {
+		if (locale.language.isEmpty()) continue
+		// Language-only names first ("Portuguese"), then the country-qualified ones ("Portuguese
+		// (Brazil)"), whose value has to keep the region so it matches Mihon's "pt-BR".
+		map.putIfAbsent(locale.getDisplayLanguage(Locale.ENGLISH).lowercase(Locale.ROOT), locale.language)
+		map.putIfAbsent(locale.getDisplayLanguage(locale).lowercase(Locale.ROOT), locale.language)
+		map.putIfAbsent(locale.getDisplayName(Locale.ENGLISH).lowercase(Locale.ROOT), locale.toLanguageTag())
+		map.putIfAbsent(locale.getDisplayName(locale).lowercase(Locale.ROOT), locale.toLanguageTag())
+	}
+	map
+}
+
 fun getExternalExtensionLanguageDisplayName(langCode: String): String {
 	return when (langCode.lowercase(Locale.ROOT)) {
 		"all" -> "Multi"

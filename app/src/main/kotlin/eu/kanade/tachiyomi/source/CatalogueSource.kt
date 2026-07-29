@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.source
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
+import eu.kanade.tachiyomi.source.model.RefreshContext
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
@@ -46,7 +47,23 @@ interface CatalogueSource : Source {
 		// Route through the lib-1.5 suspend API (whose defaults bridge to the Rx calls) so
 		// extensions overriding getMangaDetails / getChapterList are honoured too.
 		val asyncManga = if (fetchDetails) async { getMangaDetails(manga) } else null
-		val asyncChapters = if (fetchChapters) async { getChapterList(manga) } else null
+		// Through the RefreshContext form: sources with paginated chapter lists override only that
+		// one, and its default delegates to getChapterList(manga) for everything else.
+		val asyncChapters = if (fetchChapters) {
+			async {
+				getChapterList(
+					manga,
+					RefreshContext(
+						mangaId = 0L,
+						existingChapters = chapters,
+						lastFetchTime = 0L,
+						forceRefresh = chapters.isEmpty(),
+					),
+				)
+			}
+		} else {
+			null
+		}
 		SMangaUpdate(asyncManga?.await() ?: manga, asyncChapters?.await() ?: chapters)
 	}
 

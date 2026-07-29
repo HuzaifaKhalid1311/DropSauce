@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.local.data
 
-import org.koitharu.kotatsu.core.model.unwrap
-import org.koitharu.kotatsu.lnreader.model.LnMangaSource
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.io.File
 
@@ -45,10 +44,10 @@ val File.isEpubFile: Boolean
 
 /**
  * True for anything the text reader handles: a local EPUB book (the manga is a single .epub file or
- * its chapters point inside one) or an LNReader novel source, whose "pages" are prose fetched over
- * the network rather than images.
+ * its chapters point inside one) or a novel source, whose "pages" are prose fetched over the network
+ * rather than images.
  */
 val Manga.isEpub: Boolean
-	get() = source.unwrap() is LnMangaSource ||
+	get() = source.isNovelSource ||
 		hasEpubExtension(url.substringBefore('#')) ||
 		chapters?.firstOrNull()?.let { hasEpubExtension(it.url.substringBefore('#')) } == true

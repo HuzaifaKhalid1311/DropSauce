@@ -414,7 +414,7 @@
     <string name="store_kind_manga">Manga</string>
     <string name="store_kind_novel">Novels</string>
     <string name="store_kind_mixed">Manga &amp; novels</string>
-    <string name="stores_supported_kinds_note">This app supports both Mihon manga extensions and LNReader novel extensions. Add a store index url and the type is detected automatically.</string>
+    <string name="stores_supported_kinds_note">This app supports Mihon manga extensions, Tsundoku novel extensions and LNReader novel plugins. Add a store index url and the type is detected automatically.</string>
     <string name="no_novel_extension_installed">No novel extension found</string>
     <string name="random">Random</string>
     <string name="categories_delete_confirm">Are you sure you want to delete the selected favorite categories?\nAll manga in it will be lost and this cannot be undone.</string>
@@ -592,7 +592,7 @@
     <string name="local_manga_directories">Local manga directories</string>
     <string name="description">Description</string>
     <string name="this_month">This month</string>
-    <string name="related_manga">Related manga</string>
+    <string name="related_manga">Related titles</string>
     <string name="color_light">Light</string>
     <string name="color_dark">Dark</string>
     <string name="color_white">White</string>
@@ -613,7 +613,7 @@
     <string name="disable_nsfw">Disable NSFW</string>
     <string name="too_many_requests_message">Too many requests. Try again later</string>
     <string name="too_many_requests_message_retry">Too many requests. Try again after %s</string>
-    <string name="related_manga_summary">Show a list of related manga. In some cases it may be inaccurate or missing</string>
+    <string name="related_manga_summary">Show a list of related titles. In some cases it may be inaccurate or missing</string>
     <string name="advanced">Advanced</string>
     <string name="manga_list">Manga list</string>
     <string name="error_corrupted_file">Invalid data is returned or file is corrupted</string>

@@ -74,7 +74,9 @@ class ExtensionStoresAdapter(
 
 		@SuppressLint("ClickableViewAccessibility")
 		fun bind(item: ExtensionStoreState) {
-			binding.textTitle.text = labels[item.store.id] ?: item.store.displayName
+			val name = labels[item.store.id] ?: item.store.displayName
+			// Empty while the store is still being checked or is unreachable — no "(0)" in that case.
+			binding.textTitle.text = if (item.catalog.isEmpty()) name else "$name (${item.catalog.size})"
 			val kind = item.catalog.extensionStoreKind()
 			binding.textKind.isVisible = kind != null
 			if (kind != null) {

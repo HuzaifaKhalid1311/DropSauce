@@ -88,14 +88,18 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
 import org.koitharu.kotatsu.bookmarks.domain.epubHighlight
 import org.koitharu.kotatsu.bookmarks.domain.epubHighlightUrl
+import eu.kanade.tachiyomi.source.online.HttpSource
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.lnreader.model.absoluteUrl
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
+import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isNightMode
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -345,7 +349,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				url = chapter.url,
 			)
 		}
-		if (manga.source.unwrap() is LnMangaSource) {
+		// A novel source has no archive on disk: its chapters are fetched from the source itself.
+		if (manga.source.isNovelSource) {
 			return PreparedBook(items, RemoteContentSource(mangaRepositoryFactory.create(manga.source), source))
 		}
 		val archives = HashMap<File, ZipFile>()
@@ -402,7 +407,14 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
 			?.let { BitmapDrawable(resources, it) }
 			?: runBlocking {
-				imageLoader.execute(ImageRequest.Builder(requireContext()).data(data).build()).getDrawableOrThrow()
+				// Tag the request with the source so it goes out with that source's headers/client:
+				// illustrations on Referer-checking hosts 403 on a bare request.
+				imageLoader.execute(
+					ImageRequest.Builder(requireContext())
+						.data(data)
+						.mangaSourceExtra(viewModel.getMangaOrNull()?.source)
+						.build(),
+				).getDrawableOrThrow()
 			}
 		val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: return null
 		val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: return null
@@ -1594,9 +1606,21 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			repository.getChapterHtml(chapter).orEmpty()
 		}
 
-		override fun imageData(chapterUrl: String, source: String): Any? {
-			val site = (repository.source.unwrap() as? LnMangaSource) ?: return null
-			return site.absoluteUrl(source)
+		// Inline images in prose are often site-relative, so they get resolved against the source's
+		// own site — the plugin's for an LNReader novel, the extension's base url for a Tsundoku one.
+		override fun imageData(chapterUrl: String, source: String): Any? =
+			when (val novelSource = repository.source.unwrap()) {
+				is LnMangaSource -> novelSource.absoluteUrl(source)
+				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
+					?.let { resolveAgainst(it.baseUrl, source) }
+
+				else -> null
+			}
+
+		private fun resolveAgainst(baseUrl: String, value: String): String = when {
+			value.startsWith("http://") || value.startsWith("https://") -> value
+			value.startsWith("//") -> "https:$value"
+			else -> baseUrl.trimEnd('/') + "/" + value.trimStart('/')
 		}
 
 		override fun close() = Unit
