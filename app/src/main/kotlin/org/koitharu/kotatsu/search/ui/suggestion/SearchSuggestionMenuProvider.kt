@@ -20,6 +20,12 @@ class SearchSuggestionMenuProvider(
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
 		return when (menuItem.itemId) {
+			R.id.action_search_scope -> {
+				viewModel.toggleSearchScope()
+				updateSearchScopeItem(menuItem)
+				true
+			}
+
 			R.id.action_clear -> {
 				clearSearchHistory()
 				true
@@ -31,7 +37,14 @@ class SearchSuggestionMenuProvider(
 
 	override fun onPrepareMenu(menu: Menu) {
 		super.onPrepareMenu(menu)
+		menu.findItem(R.id.action_search_scope)?.let(::updateSearchScopeItem)
 		menu.setOptionalIconsVisibleCompat(true)
+	}
+
+	private fun updateSearchScopeItem(item: MenuItem) {
+		item.setTitle(
+			if (viewModel.isNovelSearchScope) R.string.content_type_novel else R.string.content_type_manga,
+		)
 	}
 
 	private fun clearSearchHistory() {

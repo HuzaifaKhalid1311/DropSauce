@@ -22,7 +22,9 @@ import kotlinx.coroutines.sync.withPermit
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.nav.AppRouter
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.append
@@ -52,10 +54,12 @@ class SearchViewModel @Inject constructor(
 	private val sourcesRepository: MangaSourcesRepository,
 	private val historyRepository: HistoryRepository,
 	private val favouritesRepository: FavouritesRepository,
+	settings: AppSettings,
 ) : BaseViewModel() {
 
 	val query = savedStateHandle.get<String>(AppRouter.KEY_QUERY).orEmpty()
 	val kind = savedStateHandle.get<SearchKind>(AppRouter.KEY_KIND) ?: SearchKind.SIMPLE
+	private val isNovelScope = settings.isGlobalSearchNovelScope
 
 	private var pinnedOnly = MutableStateFlow(false)
 	private var hideEmpty = MutableStateFlow(false)
@@ -136,7 +140,7 @@ class SearchViewModel @Inject constructor(
 				sourcesRepository.getPinnedSources().toList()
 			} else {
 				sourcesRepository.getEnabledSources()
-			}
+			}.filter { it.isNovelSource == isNovelScope }
 			val semaphore = Semaphore(MAX_PARALLELISM)
 			sources.map { source ->
 				launch {
@@ -180,6 +184,7 @@ class SearchViewModel @Inject constructor(
 
 	private suspend fun searchHistory(): SearchResultsListModel? = runCatchingCancellable {
 		historyRepository.search(query, kind, Int.MAX_VALUE)
+			.filter { it.source.isNovelSource == isNovelScope }
 	}.fold(
 		onSuccess = { result ->
 			if (result.isNotEmpty()) {
@@ -209,6 +214,7 @@ class SearchViewModel @Inject constructor(
 
 	private suspend fun searchFavorites(): SearchResultsListModel? = runCatchingCancellable {
 		favouritesRepository.search(query, kind, Int.MAX_VALUE)
+			.filter { it.source.isNovelSource == isNovelScope }
 	}.fold(
 		onSuccess = { result ->
 			if (result.isNotEmpty()) {
@@ -240,7 +246,9 @@ class SearchViewModel @Inject constructor(
 		},
 	)
 
-	private suspend fun searchLocal(): SearchResultsListModel? = runCatchingCancellable {
+	private suspend fun searchLocal(): SearchResultsListModel? = if (isNovelScope) {
+		null
+	} else runCatchingCancellable {
 		searchHelperFactory.create(LocalMangaSource).invoke(query, kind)
 	}.fold(
 		onSuccess = { result ->

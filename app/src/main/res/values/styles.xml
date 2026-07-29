@@ -678,6 +678,15 @@
 		<item name="android:widgetLayout">@layout/preference_widget_material_switch</item>
 	</style>
 
+	<style name="ThemeOverlay.Kotatsu.EpubSelectableText" parent="">
+		<item name="android:textSelectHandleWindowStyle">@style/Widget.Kotatsu.EpubTextSelectHandle</item>
+	</style>
+
+	<style name="Widget.Kotatsu.EpubTextSelectHandle" parent="">
+		<item name="android:popupBackground">@android:color/transparent</item>
+		<item name="android:popupElevation">0dp</item>
+	</style>
+
 	<!-- Drawable -->
 
 	<style name="FaviconDrawable">

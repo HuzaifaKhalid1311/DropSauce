@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SearchSuggestionType
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -34,6 +35,7 @@ private const val MAX_AUTHORS_ITEMS = 2
 private const val MAX_TAGS_ITEMS = 8
 private const val MAX_SOURCES_ITEMS = 6
 private const val MAX_SOURCES_TIPS_ITEMS = 2
+private const val SEARCH_SCOPE_CANDIDATE_MULTIPLIER = 4
 
 @HiltViewModel
 class SearchSuggestionViewModel @Inject constructor(
@@ -50,16 +52,20 @@ class SearchSuggestionViewModel @Inject constructor(
 		valueProducer = { isIncognitoModeEnabled },
 	)
 
+	val isNovelSearchScope: Boolean
+		get() = settings.isGlobalSearchNovelScope
+
 	val suggestion: Flow<List<SearchSuggestionItem>> = combine(
 		query.debounce(DEBOUNCE_TIMEOUT),
 		settings.observeAsFlow(AppSettings.KEY_SEARCH_SUGGESTION_TYPES) { searchSuggestionTypes },
 		settings.observeAsFlow(AppSettings.KEY_QUICK_FILTER) { isQuickFilterEnabled },
 		invalidationTrigger,
+		settings.observeAsFlow(AppSettings.KEY_GLOBAL_SEARCH_NOVEL_SCOPE) { isGlobalSearchNovelScope },
 	)
-	{ searchQuery, types, isQuickFilterEnabled, _ ->
-		Triple(searchQuery, types, isQuickFilterEnabled)
-	}.mapLatest { (searchQuery, types, isQuickFilterEnabled) ->
-		buildSearchSuggestion(searchQuery, types, isQuickFilterEnabled)
+	{ searchQuery, types, isQuickFilterEnabled, _, isNovelScope ->
+		SearchSuggestionRequest(searchQuery, types, isQuickFilterEnabled, isNovelScope)
+	}.mapLatest { request ->
+		buildSearchSuggestion(request)
 	}.distinctUntilChanged()
 		.withErrorHandling()
 		.flowOn(Dispatchers.Default)
@@ -89,47 +95,49 @@ class SearchSuggestionViewModel @Inject constructor(
 		}
 	}
 
+	fun toggleSearchScope() {
+		settings.isGlobalSearchNovelScope = !settings.isGlobalSearchNovelScope
+	}
+
 	private suspend fun buildSearchSuggestion(
-		searchQuery: String,
-		types: Set<SearchSuggestionType>,
-		isQuickFilterEnabled: Boolean,
+		request: SearchSuggestionRequest,
 	): List<SearchSuggestionItem> = coroutineScope {
 		listOfNotNull(
 			// The genre chip row under the search bar acts as a quick filter, so it follows the
 			// "Show quick filters" appearance setting in addition to the genre suggestion type.
-			if (isQuickFilterEnabled && SearchSuggestionType.GENRES in types) {
-				async { getTags(searchQuery) }
+			if (request.isQuickFilterEnabled && SearchSuggestionType.GENRES in request.types) {
+				async { getTags(request.query) }
 			} else {
 				null
 			},
-			if (SearchSuggestionType.MANGA in types) {
-				async { getManga(searchQuery) }
+			if (SearchSuggestionType.MANGA in request.types) {
+				async { getManga(request.query, request.isNovelScope) }
 			} else {
 				null
 			},
-			if (SearchSuggestionType.QUERIES_RECENT in types) {
-				async { getRecentQueries(searchQuery) }
+			if (SearchSuggestionType.QUERIES_RECENT in request.types) {
+				async { getRecentQueries(request.query) }
 			} else {
 				null
 			},
-			if (SearchSuggestionType.QUERIES_SUGGEST in types) {
-				async { getQueryHints(searchQuery) }
+			if (SearchSuggestionType.QUERIES_SUGGEST in request.types) {
+				async { getQueryHints(request.query) }
 			} else {
 				null
 			},
-			if (SearchSuggestionType.SOURCES in types) {
-				async { getSources(searchQuery) }
+			if (SearchSuggestionType.SOURCES in request.types) {
+				async { getSources(request.query, request.isNovelScope) }
 			} else {
 				null
 			},
-			if (SearchSuggestionType.RECENT_SOURCES in types) {
-				async { getRecentSources(searchQuery) }
+			if (SearchSuggestionType.RECENT_SOURCES in request.types) {
+				async { getRecentSources(request.query, request.isNovelScope) }
 			} else {
 				null
 			},
-			if (SearchSuggestionType.AUTHORS in types) {
+			if (SearchSuggestionType.AUTHORS in request.types) {
 				async {
-					getAuthors(searchQuery)
+					getAuthors(request.query)
 				}
 			} else {
 				null
@@ -173,8 +181,17 @@ class SearchSuggestionViewModel @Inject constructor(
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
-	private suspend fun getManga(searchQuery: String): List<SearchSuggestionItem> = runCatchingCancellable {
-		val manga = repository.getMangaSuggestion(searchQuery, MAX_MANGA_ITEMS, null)
+	private suspend fun getManga(
+		searchQuery: String,
+		isNovelScope: Boolean,
+	): List<SearchSuggestionItem> = runCatchingCancellable {
+		val manga = repository.getMangaSuggestion(
+			searchQuery,
+			MAX_MANGA_ITEMS * SEARCH_SCOPE_CANDIDATE_MULTIPLIER,
+			null,
+		)
+			.filter { it.source.isNovelSource == isNovelScope }
+			.take(MAX_MANGA_ITEMS)
 		if (manga.isEmpty()) {
 			emptyList()
 		} else {
@@ -185,18 +202,25 @@ class SearchSuggestionViewModel @Inject constructor(
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
-	private fun getSources(searchQuery: String): List<SearchSuggestionItem> =
+	private fun getSources(searchQuery: String, isNovelScope: Boolean): List<SearchSuggestionItem> =
 		runCatchingCancellable {
-			repository.getSourcesSuggestion(searchQuery, MAX_SOURCES_ITEMS)
+			repository.getSourcesSuggestion(searchQuery, Int.MAX_VALUE)
+				.filter { it.isNovelSource == isNovelScope }
+				.take(MAX_SOURCES_ITEMS)
 				.map { SearchSuggestionItem.Source(it) }
 		}.getOrElse { e ->
 			e.printStackTraceDebug()
 			listOf(SearchSuggestionItem.Text(0, e))
 		}
 
-	private suspend fun getRecentSources(searchQuery: String): List<SearchSuggestionItem> = if (searchQuery.isEmpty()) {
+	private suspend fun getRecentSources(
+		searchQuery: String,
+		isNovelScope: Boolean,
+	): List<SearchSuggestionItem> = if (searchQuery.isEmpty()) {
 		runCatchingCancellable {
-			repository.getSourcesSuggestion(MAX_SOURCES_TIPS_ITEMS)
+			repository.getSourcesSuggestion(Int.MAX_VALUE)
+				.filter { it.isNovelSource == isNovelScope }
+				.take(MAX_SOURCES_TIPS_ITEMS)
 				.map { SearchSuggestionItem.SourceTip(it) }
 		}.getOrElse { e ->
 			e.printStackTraceDebug()
@@ -212,4 +236,11 @@ class SearchSuggestionViewModel @Inject constructor(
 			data = tag,
 		)
 	}
+
+	private data class SearchSuggestionRequest(
+		val query: String,
+		val types: Set<SearchSuggestionType>,
+		val isQuickFilterEnabled: Boolean,
+		val isNovelScope: Boolean,
+	)
 }

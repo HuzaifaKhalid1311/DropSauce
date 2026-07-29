@@ -1390,7 +1390,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		}
 	}
 
-	private class EpubSelectableTextView(context: Context) : AppCompatTextView(context) {
+	private class EpubSelectableTextView(context: Context) : AppCompatTextView(
+		ContextThemeWrapper(context, R.style.ThemeOverlay_Kotatsu_EpubSelectableText),
+	) {
 		private val selectionBackgroundColor = highlightColor
 		private var selectionBackgroundSpan: SelectionBackgroundSpan? = null
 		private var suppressDoubleTap = false
@@ -1431,7 +1433,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			val size = (14 * resources.displayMetrics.density).toInt()
 			return GradientDrawable().apply {
 				shape = GradientDrawable.OVAL
-				setColor(context.getThemeColor(androidx.appcompat.R.attr.colorPrimary))
+				setColor(ColorUtils.setAlphaComponent(selectionBackgroundColor, 255))
 				setSize(size, size)
 			}
 		}
