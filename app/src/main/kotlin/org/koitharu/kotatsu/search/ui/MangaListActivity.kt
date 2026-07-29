@@ -226,7 +226,8 @@ class MangaListActivity :
 		}
 	}
 
-	override fun isNsfwContent(): Flow<Boolean> = flowOf(source.isNsfw())
+	override fun isNsfwContent(): Flow<Boolean> =
+		flowOf(MangaSource(intent.getStringExtra(AppRouter.KEY_SOURCE)).isNsfw())
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val barsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
