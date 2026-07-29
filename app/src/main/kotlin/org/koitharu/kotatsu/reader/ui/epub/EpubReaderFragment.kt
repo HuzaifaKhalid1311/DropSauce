@@ -593,6 +593,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private fun renderVertical(container: FrameLayout, locator: Locator) {
+		viewBinding?.readerContainer?.isVerticalReadingMode = true
 		chapterDividerPaint.color = foregroundColor
 		val recycler = RecyclerView(requireContext()).apply {
 			layoutParams = FrameLayout.LayoutParams(-1, -1)
@@ -650,6 +651,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private fun renderPagedReady(container: FrameLayout, locator: Locator, pageInChapter: Int? = null) {
+		viewBinding?.readerContainer?.isVerticalReadingMode = false
 		restoring = true
 		container.removeAllViews()
 		verticalView = null
@@ -987,24 +989,18 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private fun installHighlightTapHandler(textView: TextView) {
-		var consumeHighlightGesture = false
 		val detector = GestureDetector(textView.context, object : GestureDetector.SimpleOnGestureListener() {
 			override fun onDown(e: MotionEvent): Boolean = true
 
-			override fun onDoubleTap(e: MotionEvent): Boolean {
+			override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
 				val marker = findHighlightAt(textView, e) ?: return false
-				consumeHighlightGesture = true
 				showRemoveHighlight(marker.bookmarkId)
 				return true
 			}
 		})
 		textView.setOnTouchListener { _, event ->
 			detector.onTouchEvent(event)
-			val consumed = consumeHighlightGesture
-			if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-				consumeHighlightGesture = false
-			}
-			consumed
+			false
 		}
 	}
 
@@ -1224,8 +1220,13 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		manager.scrollToPositionWithOffset(target.chapter, 0)
 	}
 
-	override fun onZoomIn() = Unit
-	override fun onZoomOut() = Unit
+	override fun onZoomIn() {
+		viewBinding?.readerContainer?.zoomIn()
+	}
+
+	override fun onZoomOut() {
+		viewBinding?.readerContainer?.zoomOut()
+	}
 
 	fun showBookSearch() {
 		val input = TextInputEditText(requireContext()).apply { setSingleLine() }
@@ -1391,22 +1392,29 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	private class EpubSelectableTextView(context: Context) : AppCompatTextView(context) {
 		private val selectionBackgroundColor = highlightColor
 		private var selectionBackgroundSpan: SelectionBackgroundSpan? = null
-		private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
-		private val handleRadius = 9f * resources.displayMetrics.density
-		private val handleStemWidth = 2f * resources.displayMetrics.density
+		private var suppressDoubleTap = false
+		private val doubleTapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+			override fun onDown(e: MotionEvent): Boolean = true
+
+			override fun onDoubleTap(e: MotionEvent): Boolean {
+				suppressDoubleTap = true
+				return true
+			}
+		})
 
 		init {
-			handlePaint.color = ColorUtils.setAlphaComponent(selectionBackgroundColor, 255)
 			setHighlightColor(Color.TRANSPARENT)
 		}
 
-		override fun onAttachedToWindow() {
-			super.onAttachedToWindow()
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				textSelectHandleLeft?.mutate()?.apply { alpha = 0 }?.let(::setTextSelectHandleLeft)
-				textSelectHandleRight?.mutate()?.apply { alpha = 0 }?.let(::setTextSelectHandleRight)
-				textSelectHandle?.mutate()?.apply { alpha = 0 }?.let(::setTextSelectHandle)
+		override fun onTouchEvent(event: MotionEvent): Boolean {
+			doubleTapDetector.onTouchEvent(event)
+			if (suppressDoubleTap) {
+				if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+					suppressDoubleTap = false
+				}
+				return true
 			}
+			return super.onTouchEvent(event)
 		}
 
 		override fun onSelectionChanged(selStart: Int, selEnd: Int) {
@@ -1423,25 +1431,6 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				maxOf(selStart, selEnd),
 				Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
 			)
-		}
-
-		override fun onDraw(canvas: Canvas) {
-			super.onDraw(canvas)
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !hasSelection() || !isFocused) return
-			val start = minOf(selectionStart, selectionEnd)
-			val end = maxOf(selectionStart, selectionEnd)
-			drawHandle(canvas, start)
-			drawHandle(canvas, end)
-		}
-
-		private fun drawHandle(canvas: Canvas, offset: Int) {
-			val textLayout = layout ?: return
-			val line = textLayout.getLineForOffset(offset)
-			val x = compoundPaddingLeft - scrollX + correctedHorizontal(offset, line)
-			val metrics = paint.fontMetrics
-			val y = extendedPaddingTop - scrollY + textLayout.getLineBaseline(line) + metrics.descent
-			canvas.drawRect(x - handleStemWidth / 2f, y, x + handleStemWidth / 2f, y + handleRadius, handlePaint)
-			canvas.drawCircle(x, y + handleRadius, handleRadius, handlePaint)
 		}
 
 		fun correctedHorizontal(offset: Int, line: Int): Float {

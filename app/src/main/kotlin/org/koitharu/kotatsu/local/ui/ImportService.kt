@@ -56,6 +56,7 @@ class ImportService : CoroutineIntentService() {
 			val result = runCatchingCancellable {
 				importer.import(uri).manga
 			}
+			result.exceptionOrNull()?.printStackTraceDebug()
 			if (applicationContext.checkNotificationPermission(CHANNEL_ID)) {
 				val notification = buildNotification(startId, result)
 				notificationManager.notify(TAG, startId, notification)

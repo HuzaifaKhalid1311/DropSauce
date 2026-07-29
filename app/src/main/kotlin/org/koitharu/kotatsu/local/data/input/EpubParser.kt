@@ -112,9 +112,11 @@ object EpubParser {
 	private fun newParser(xml: String): XmlPullParser {
 		val parser = Xml.newPullParser()
 		runCatching { parser.setFeature(RELAXED, true) }
-		parser.setInput(xml.reader())
+		parser.setInput(normalizeXmlInput(xml).reader())
 		return parser
 	}
+
+	internal fun normalizeXmlInput(xml: String): String = xml.removePrefix("\uFEFF")
 
 	private fun XmlPullParser.tag(): String = name.orEmpty().substringAfterLast(':').lowercase()
 

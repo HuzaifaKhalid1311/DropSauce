@@ -63,6 +63,9 @@ class SingleMangaImporter @Inject constructor(
 			importPdfAsCbz(uri, name)
 		} else {
 			File(getOutputDir(), name).also { outputFile ->
+				if (outputFile.isDirectory && outputFile.listFiles()?.isEmpty() == true && !outputFile.delete()) {
+					throw IOException("Cannot remove empty import directory: $outputFile")
+				}
 				runInterruptible {
 					contentResolver.openSource(uri)
 				}.use { source ->
@@ -181,8 +184,8 @@ class SingleMangaImporter @Inject constructor(
 
 	private fun isDirectory(uri: Uri): Boolean {
 		return runCatching {
-			DocumentFile.fromTreeUri(context, uri)
-		}.isSuccess
+			DocumentFile.fromTreeUri(context, uri)?.isDirectory == true
+		}.getOrDefault(false)
 	}
 
 	private companion object {
