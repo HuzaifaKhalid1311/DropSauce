@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.FlowRowOverflow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -163,6 +162,7 @@ internal fun DescriptionCard(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+@Suppress("DEPRECATION")
 internal fun TagsSection(tags: List<ChipsView.ChipModel>, accent: Color, onTagClick: (MangaTag) -> Unit) {
 	if (tags.isEmpty()) return
 	var expanded by rememberSaveable { mutableStateOf(false) }
@@ -203,7 +203,7 @@ internal fun TagsSection(tags: List<ChipsView.ChipModel>, accent: Color, onTagCl
 			verticalArrangement = Arrangement.spacedBy(8.dp),
 			maxLines = if (needsToggle && !expanded) TAGS_COLLAPSED_ROWS else Int.MAX_VALUE,
 			overflow = if (needsToggle) {
-				FlowRowOverflow.expandOrCollapseIndicator(
+				androidx.compose.foundation.layout.FlowRowOverflow.expandOrCollapseIndicator(
 					expandIndicator = {
 						TagToggleChip(text = stringResource(R.string.more), accent = accent, expanded = false) { expanded = true }
 					},
@@ -212,7 +212,7 @@ internal fun TagsSection(tags: List<ChipsView.ChipModel>, accent: Color, onTagCl
 					},
 				)
 			} else {
-				FlowRowOverflow.Visible
+				androidx.compose.foundation.layout.FlowRowOverflow.Visible
 			},
 		) {
 			tags.forEach { tag ->

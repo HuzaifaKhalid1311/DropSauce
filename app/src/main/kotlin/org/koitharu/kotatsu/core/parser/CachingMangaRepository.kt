@@ -18,6 +18,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import kotlin.coroutines.ContinuationInterceptor
 
 abstract class CachingMangaRepository(
 	private val cache: MemoryContentCache,
@@ -73,7 +74,7 @@ abstract class CachingMangaRepository(
 	protected abstract suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage>
 
 	private suspend fun <T> asyncSafe(block: suspend CoroutineScope.() -> T): SafeDeferred<T> {
-		var dispatcher = currentCoroutineContext()[CoroutineDispatcher.Key]
+		var dispatcher = currentCoroutineContext()[ContinuationInterceptor] as? CoroutineDispatcher
 		if (dispatcher == null || dispatcher is MainCoroutineDispatcher) {
 			dispatcher = Dispatchers.Default
 		}

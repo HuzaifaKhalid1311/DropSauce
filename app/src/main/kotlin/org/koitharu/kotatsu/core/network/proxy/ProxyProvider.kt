@@ -24,6 +24,7 @@ import java.net.SocketAddress
 import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import java.net.Authenticator as JavaAuthenticator
@@ -63,7 +64,7 @@ class ProxyProvider @Inject constructor(
 			if (settings.proxyType == Proxy.Type.DIRECT) {
 				suspendCoroutine { cont ->
 					controller.clearProxyOverride(
-						(cont.context[CoroutineDispatcher] ?: Dispatchers.Main).asExecutor(),
+						(cont.context[ContinuationInterceptor] as? CoroutineDispatcher ?: Dispatchers.Main).asExecutor(),
 					) {
 						cont.resume(Unit)
 					}
@@ -90,7 +91,7 @@ class ProxyProvider @Inject constructor(
 				suspendCoroutine { cont ->
 					controller.setProxyOverride(
 						proxyConfig,
-						(cont.context[CoroutineDispatcher] ?: Dispatchers.Main).asExecutor(),
+						(cont.context[ContinuationInterceptor] as? CoroutineDispatcher ?: Dispatchers.Main).asExecutor(),
 					) {
 						cont.resume(Unit)
 					}

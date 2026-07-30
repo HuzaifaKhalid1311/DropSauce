@@ -102,15 +102,15 @@ class AvifCapableRegionDecoder(
 		return newDelegate().also { delegate = it }.init(context, source)
 	}
 
-	override fun decodeRegion(rect: Rect, sampleSize: Int): Bitmap {
+	override fun decodeRegion(sRect: Rect, sampleSize: Int): Bitmap {
 		full?.let { src ->
-			val w = (rect.width() / sampleSize).coerceAtLeast(1)
-			val h = (rect.height() / sampleSize).coerceAtLeast(1)
+			val w = (sRect.width() / sampleSize).coerceAtLeast(1)
+			val h = (sRect.height() / sampleSize).coerceAtLeast(1)
 			val out = Bitmap.createBitmap(w, h, src.config ?: bitmapConfig)
-			Canvas(out).drawBitmap(src, rect, Rect(0, 0, w, h), null)
+			Canvas(out).drawBitmap(src, sRect, Rect(0, 0, w, h), null)
 			return out
 		}
-		return requireNotNull(delegate).decodeRegion(rect, sampleSize)
+		return requireNotNull(delegate).decodeRegion(sRect, sampleSize)
 	}
 
 	override val isReady: Boolean
