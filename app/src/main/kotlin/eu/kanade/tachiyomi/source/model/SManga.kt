@@ -16,6 +16,9 @@ interface SManga : Serializable {
 	var genre: String?
 	var update_strategy: UpdateStrategy
 	var initialized: Boolean
+	var altTitles: List<String>
+		get() = emptyList()
+		set(_) {}
 	var memo: JsonObject
 
 	fun getGenres(): List<String>? {
@@ -34,6 +37,7 @@ interface SManga : Serializable {
 		it.thumbnail_url = thumbnail_url
 		it.update_strategy = update_strategy
 		it.initialized = initialized
+		it.altTitles = altTitles
 		it.memo = memo
 	}
 

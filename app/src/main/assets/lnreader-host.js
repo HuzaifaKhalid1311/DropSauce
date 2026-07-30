@@ -31,6 +31,11 @@
     return out;
   }
 
+  function hasHeader(headers, name) {
+    name = String(name).toLowerCase();
+    return Object.keys(headers).some(function (key) { return key.toLowerCase() === name; });
+  }
+
   function b64ToBytes(b64) {
     var bin = atob(b64);
     var bytes = new Uint8Array(bin.length);
@@ -69,13 +74,29 @@
     };
   }
 
-  function nativeFetch(url, init) {
+  function nativeFetch(url, init, pluginId) {
     return new Promise(function (resolve, reject) {
       var id = ++httpSeq;
       httpPending[id] = { resolve: resolve, reject: reject };
       var body = init && init.body;
       var bodyIsBase64 = false;
-      if (body !== undefined && body !== null && typeof body !== 'string') {
+      var formData = null;
+      var headers = normHeaders(init);
+      if (typeof FormData !== 'undefined' && body instanceof FormData) {
+        formData = [];
+        body.forEach(function (value, key) {
+          if (typeof value !== 'string') {
+            throw new TypeError('File and Blob FormData values are not supported');
+          }
+          formData.push([key, value]);
+        });
+        body = null;
+      } else if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) {
+        body = body.toString();
+        if (!hasHeader(headers, 'Content-Type')) {
+          headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
+        }
+      } else if (body !== undefined && body !== null && typeof body !== 'string') {
         if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
           var u8 = body instanceof ArrayBuffer ? new Uint8Array(body) : body;
           var s = '';
@@ -86,14 +107,23 @@
           body = String(body);
         }
       }
+      if (init && init.referrer && !hasHeader(headers, 'Referer')) {
+        var referrer = String(init.referrer);
+        if (init.referrerPolicy === 'origin') {
+          try { referrer = new URL(referrer).origin + '/'; } catch (e) { /* keep original */ }
+        }
+        headers.Referer = referrer;
+      }
       try {
         Native.httpRequest(String(id), JSON.stringify({
           url: String(url),
           method: (init && init.method) || 'GET',
-          headers: normHeaders(init),
+          headers: headers,
           body: body === undefined ? null : body,
           bodyIsBase64: bodyIsBase64,
+          formData: formData,
           wantBase64: !!(init && init.__binary),
+          pluginId: pluginId || null,
         }));
       } catch (e) {
         delete httpPending[id];
@@ -108,8 +138,11 @@
     if (!p) return;
     var r;
     try { r = JSON.parse(json); } catch (e) { p.reject(e); return; }
-    if (r.err) p.reject(new Error(r.err));
-    else p.resolve(mkResponse(r));
+    if (r.err) {
+      var error = new Error(r.err);
+      error.isCloudFlare = !!r.isCloudFlare;
+      p.reject(error);
+    } else p.resolve(mkResponse(r));
   };
 
   globalThis.fetch = nativeFetch;
@@ -136,25 +169,31 @@
     return out;
   }
 
-  function fetchApi(url, init) {
-    return nativeFetch(url, makeInit(init));
+  function fetchApi(url, init, pluginId) {
+    return nativeFetch(url, makeInit(init), pluginId);
   }
 
-  function fetchText(url, init, encoding) {
+  function fetchText(url, init, encoding, pluginId) {
     var i = makeInit(init);
     if (encoding && !/^utf-?8$/i.test(encoding)) {
       i.__binary = true;
-      return nativeFetch(url, i).then(function (res) {
+      return nativeFetch(url, i, pluginId).then(function (res) {
         if (!res.ok) return '';
         return res.arrayBuffer().then(function (buf) {
           try { return new TextDecoder(encoding).decode(buf); }
           catch (e) { return new TextDecoder('utf-8').decode(buf); }
         });
-      }).catch(function () { return ''; });
+      }).catch(function (e) {
+        if (e && e.isCloudFlare) throw e;
+        return '';
+      });
     }
-    return nativeFetch(url, i)
+    return nativeFetch(url, i, pluginId)
       .then(function (res) { return res.ok ? res.text() : ''; })
-      .catch(function () { return ''; });
+      .catch(function (e) {
+        if (e && e.isCloudFlare) throw e;
+        return '';
+      });
   }
 
   function fetchProto() {
@@ -221,7 +260,11 @@
     return function (name) {
       switch (name) {
         case '@libs/fetch':
-          return { fetchApi: fetchApi, fetchText: fetchText, fetchProto: fetchProto };
+          return {
+            fetchApi: function (url, init) { return fetchApi(url, init, pluginId); },
+            fetchText: function (url, init, encoding) { return fetchText(url, init, encoding, pluginId); },
+            fetchProto: fetchProto,
+          };
         case '@libs/novelStatus':
           return { NovelStatus: NovelStatus };
         case '@libs/filterInputs':
@@ -252,8 +295,13 @@
       var plugin = Function(
         'require',
         'module',
+        'fetch',
         'const exports = module.exports = {};\n' + rawCode + '\n;return exports.default'
-      )(mkRequire(pluginId), mod);
+      )(
+        mkRequire(pluginId),
+        mod,
+        function (url, init) { return nativeFetch(url, init, pluginId); }
+      );
       if (!plugin) throw new Error('plugin did not export a default');
       plugins[pluginId] = plugin;
       return JSON.stringify({

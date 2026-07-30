@@ -10,6 +10,9 @@ class SChapterImpl : SChapter {
 	override var chapter_number: Float = -1f
 	override var scanlator: String? = null
 	override var date_upload: Long = 0
+	override var locked: Boolean = false
+	override var read: Boolean = false
+	override var last_page_read: Int = 0
 	override var memo: JsonObject = JsonObject(emptyMap())
 
 	override fun equals(other: Any?): Boolean =

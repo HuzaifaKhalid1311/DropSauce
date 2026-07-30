@@ -11,6 +11,22 @@ interface SChapter : Serializable {
 	var chapter_number: Float
 	var scanlator: String?
 	var date_upload: Long
+	var locked: Boolean
+		get() = false
+		set(_) {}
+
+	/**
+	 * Local state accessors required by Tsundoku source-api 1.6. Sources normally leave these alone;
+	 * defaults keep older extension implementations binary-compatible.
+	 */
+	var read: Boolean
+		get() = false
+		set(_) {}
+
+	var last_page_read: Int
+		get() = 0
+		set(_) {}
+
 	var memo: JsonObject
 
 	fun copyFrom(other: SChapter) {

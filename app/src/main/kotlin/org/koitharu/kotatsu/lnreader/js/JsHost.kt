@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -25,9 +26,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import org.koitharu.kotatsu.core.exceptions.CloudFlareException
+import org.koitharu.kotatsu.core.network.CommonHeaders
 import org.koitharu.kotatsu.core.network.MangaHttpClient
+import org.koitharu.kotatsu.core.network.webview.WebViewExecutor
 import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -50,22 +54,25 @@ import javax.inject.Singleton
 class JsHost @Inject constructor(
 	@ApplicationContext private val context: Context,
 	@MangaHttpClient private val okHttpClient: OkHttpClient,
+	private val webViewExecutor: WebViewExecutor,
 ) {
 
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private val bootMutex = Mutex()
 	private val seq = AtomicLong()
 	private val pending = ConcurrentHashMap<Long, CompletableDeferred<String>>()
+	private val userAgent: String by lazy {
+		(webViewExecutor.defaultUserAgent ?: UserAgents.FIREFOX_MOBILE)
+			.replace(Regex("; Android .*?\\)"), "; Android 10; K)")
+			.replace(Regex("Version/.* Chrome/"), "Chrome/")
+	}
 
 	@Volatile
 	private var webView: WebView? = null
 
-	// The bridge can only carry an error string, so a Cloudflare failure would reach the UI as a plain
-	// JsException and never trigger the captcha flow. Remember the real exception and rethrow it.
-	// ponytail: one slot, not one per call — the plugin id is unknown at fetch time anyway, and two
-	// plugins failing on the same tick would only mean the captcha prompt names the other site.
-	@Volatile
-	private var lastCloudFlareError: CloudFlareException? = null
+	// fetch is plugin-scoped, so concurrent failures cannot make one plugin open another site's
+	// resolver. The real exception is retained because the JS bridge can only return plain JSON.
+	private val cloudFlareErrors = ConcurrentHashMap<String, CloudFlareException>()
 
 	@SuppressLint("SetJavaScriptEnabled")
 	private suspend fun ensureReady(): WebView {
@@ -155,14 +162,18 @@ class JsHost @Inject constructor(
 			val reply = withTimeout(timeoutMs) { deferred.await() }
 			val json = JSONObject(reply)
 			json.optString("err").takeIf { it.isNotEmpty() }?.let { err ->
-				lastCloudFlareError?.let { cf ->
-					lastCloudFlareError = null
+				cloudFlareErrors.remove(pluginId)?.let { cf ->
 					throw cf
 				}
-				throw JsException("$pluginId.$fn: $err")
+				val message = if (err.contains(GENERIC_PLUGIN_CAPTCHA_ERROR, ignoreCase = true)) {
+					"The extension could not load the website. It may be offline, changed, or require browser verification."
+				} else {
+					err
+				}
+				throw JsException("$pluginId.$fn: $message")
 			}
-			// A call that came back fine means the challenge is gone — don't hold a stale one.
-			lastCloudFlareError = null
+			// A call that came back fine means the plugin handled its request — don't retain an error.
+			cloudFlareErrors.remove(pluginId)
 			return json.opt("ok").takeUnless { it == JSONObject.NULL }
 		} finally {
 			pending.remove(id)
@@ -180,8 +191,15 @@ class JsHost @Inject constructor(
 		fun httpRequest(id: String, spec: String) {
 			// Arrives on a JavaBridge thread, so the reply has to be posted back to Main.
 			scope.launch {
-				val reply = runCatching { performRequest(JSONObject(spec)) }
-					.getOrElse { JSONObject().put("err", it.toString()) }
+				val reply = try {
+					performRequest(JSONObject(spec))
+				} catch (e: CloudFlareException) {
+					JSONObject()
+						.put("err", e.toString())
+						.put("isCloudFlare", true)
+				} catch (e: Exception) {
+					JSONObject().put("err", e.toString())
+				}
 				val view = webView ?: return@launch
 				withContext(Dispatchers.Main) {
 					view.evaluateJavascript(
@@ -216,27 +234,57 @@ class JsHost @Inject constructor(
 	private fun performRequest(spec: JSONObject): JSONObject {
 		val method = spec.optString("method", "GET").ifEmpty { "GET" }
 		val headers = spec.optJSONObject("headers")
-		val rawBody = spec.optString("body").takeIf { !spec.isNull("body") && it.isNotEmpty() }
-		val body = rawBody?.let {
-			val bytes = if (spec.optBoolean("bodyIsBase64")) {
-				Base64.decode(it, Base64.DEFAULT)
-			} else {
-				it.encodeToByteArray()
+		val formData = spec.optJSONArray("formData")
+		val body = when {
+			formData != null -> MultipartBody.Builder()
+				.setType(MultipartBody.FORM)
+				.apply {
+					for (i in 0 until formData.length()) {
+						val entry = formData.getJSONArray(i)
+						addFormDataPart(entry.getString(0), entry.getString(1))
+					}
+				}
+				.build()
+
+			!spec.isNull("body") -> {
+				val rawBody = spec.optString("body")
+				val bytes = if (spec.optBoolean("bodyIsBase64")) {
+					Base64.decode(rawBody, Base64.DEFAULT)
+				} else {
+					rawBody.encodeToByteArray()
+				}
+				bytes.toRequestBody(headers?.optString("Content-Type")?.toMediaTypeOrNull())
 			}
-			bytes.toRequestBody(headers?.optString("Content-Type")?.toMediaTypeOrNull())
+
+			method in METHODS_REQUIRING_BODY -> byteArrayOf().toRequestBody()
+			else -> null
 		}
 		val url = spec.getString("url").toHttpUrl()
 		val builder = Request.Builder().url(url).method(method, body)
-		headers?.let { h -> h.keys().forEach { key -> builder.header(key, h.optString(key)) } }
+		var hasUserAgent = false
+		headers?.let { h ->
+			h.keys().forEach { key ->
+				hasUserAgent = hasUserAgent || key.equals(CommonHeaders.USER_AGENT, ignoreCase = true)
+				builder.header(key, h.optString(key))
+			}
+		}
+		if (!hasUserAgent) {
+			// Cloudflare binds cf_clearance to this value. Add it before CloudFlareInterceptor so
+			// the exception can hand the exact same UA to the resolver WebView.
+			builder.header(CommonHeaders.USER_AGENT, userAgent)
+		}
 		// Tagging the source is what makes the shared interceptors work for novels: CommonHeaders can
 		// resolve the repository, and a CloudFlareException carries the source the captcha flow keys on.
-		LnPluginManager.findBySiteHost(url.host)?.let { source ->
+		val pluginId = spec.optString("pluginId").takeIf { it.isNotEmpty() }
+		val source = pluginId?.let(LnPluginManager::findByPluginId)
+			?: LnPluginManager.findBySiteHost(url.host)
+		source?.let {
 			builder.tag(MangaSource::class.java, source)
 		}
 		try {
 			return performRequest(builder.build(), spec)
 		} catch (e: CloudFlareException) {
-			lastCloudFlareError = e
+			(pluginId ?: source?.pluginId)?.let { cloudFlareErrors[it] = e }
 			throw e
 		}
 	}
@@ -268,6 +316,8 @@ class JsHost @Inject constructor(
 		const val ASSET_LIBS = "lnreader-libs.js"
 		const val BASE_URL = "https://lnreader.localhost/"
 		const val DEFAULT_TIMEOUT_MS = 60_000L
+		const val GENERIC_PLUGIN_CAPTCHA_ERROR = "Captcha error, please open in webview"
+		private val METHODS_REQUIRING_BODY = setOf("POST", "PUT", "PATCH", "PROPPATCH", "REPORT")
 	}
 }
 

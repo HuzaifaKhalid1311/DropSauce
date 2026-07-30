@@ -692,7 +692,10 @@ class AppRouter private constructor(
                 }
 
         fun cloudFlareResolveIntent(context: Context, exception: CloudFlareProtectedException, hidden: Boolean = false): Intent {
-            val challengeUrl = getChallengeUrl(exception.url)
+            val challengeUrl = getChallengeUrl(
+                exception.url,
+                preservePage = exception.source.name.startsWith("LN_"),
+            )
             return Intent(context, CloudFlareActivity::class.java).apply {
                 data = challengeUrl.toUri()
                 putExtra(KEY_SOURCE, exception.source.name)
@@ -704,13 +707,17 @@ class AppRouter private constructor(
             }
         }
 
-        private fun getChallengeUrl(url: String): String {
+        private fun getChallengeUrl(url: String, preservePage: Boolean): String {
             val httpUrl = url.toHttpUrlOrNull() ?: return url
             val host = httpUrl.host.lowercase()
             val path = httpUrl.encodedPath
             val ext = path.substringAfterLast('.', "").lowercase()
             val isAsset = ext in setOf("jpg", "jpeg", "png", "webp", "gif", "svg") ||
                     host.startsWith("imagenes.") || host.startsWith("images.") || host.startsWith("cdn.") || host.startsWith("img.") || host.startsWith("static.")
+            // Some novel sites protect list/detail paths while leaving the homepage open.
+            if (preservePage && !isAsset) {
+                return httpUrl.toString()
+            }
             if (isAsset) {
                 val rootDomain = getRootDomain(host)
                 if (rootDomain.isNotBlank()) {

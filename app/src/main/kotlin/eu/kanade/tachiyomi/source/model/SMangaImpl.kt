@@ -15,6 +15,7 @@ class SMangaImpl : SManga {
 	override var genre: String? = null
 	override var update_strategy: UpdateStrategy = UpdateStrategy.ALWAYS_UPDATE
 	override var initialized: Boolean = false
+	override var altTitles: List<String> = emptyList()
 	// Exact Mihon 1.6 type. A Map here changes getMemo/setMemo JVM descriptors and crashes APKs.
 	override var memo: JsonObject = JsonObject(emptyMap())
 

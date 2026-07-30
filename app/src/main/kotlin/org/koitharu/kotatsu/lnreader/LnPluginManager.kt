@@ -182,6 +182,12 @@ class LnPluginManager @Inject constructor(
 			}
 		}
 
+		/** Exact source ownership for requests routed through a plugin-scoped fetch shim. */
+		fun findByPluginId(pluginId: String): LnMangaSource? = activeInstance?.run {
+			initialize()
+			getById(pluginId)
+		}
+
 		/** Resolves a stored `"LN_<id>"` source name without DI. Null when nothing is installed yet. */
 		fun getByName(name: String): LnMangaSource? = activeInstance?.run {
 			// The resolver can run before anything called initialize() (e.g. a DB row mapped during

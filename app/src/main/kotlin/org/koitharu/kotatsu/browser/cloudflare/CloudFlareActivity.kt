@@ -49,6 +49,9 @@ class CloudFlareActivity : BaseBrowserActivity() {
 	private var pendingResult = RESULT_CANCELED
 	private val isHidden: Boolean by lazy { intent?.getBooleanExtra(EXTRA_HIDDEN, false) == true }
 	private val isAutoResolve: Boolean by lazy { intent?.getBooleanExtra(EXTRA_AUTO_RESOLVE, false) == true }
+	private val isLnReaderSource: Boolean by lazy {
+		intent?.getStringExtra(AppRouter.KEY_SOURCE)?.startsWith(LN_SOURCE_PREFIX) == true
+	}
 	private var resultNotified = false
 	private var hiddenTimeoutJob: Job? = null
 	private var clearanceVerificationJob: Job? = null
@@ -157,6 +160,14 @@ class CloudFlareActivity : BaseBrowserActivity() {
 	fun onPageLoaded() {
 		if (!isHidden) {
 			viewBinding.progressBar.isInvisible = true
+		}
+		// LNReader considers a usable WebView session enough. A valid existing cf_clearance cookie
+		// does not change, so CloudFlareClient's cookie-change check cannot detect that case.
+		if (
+			isLnReaderSource &&
+			intent?.dataString?.let { CloudFlareHelper.getClearanceCookie(cookieJar, it) } != null
+		) {
+			onCheckPassed()
 		}
 	}
 
@@ -271,6 +282,7 @@ class CloudFlareActivity : BaseBrowserActivity() {
 		const val EXTRA_HIDDEN = "hidden"
 		const val EXTRA_AUTO_RESOLVE = "auto_resolve"
 		const val EXTRA_ORIGINAL_URL = "original_url"
+		private const val LN_SOURCE_PREFIX = "LN_"
 		private const val HIDDEN_TIMEOUT_MS = 45_000L
 	}
 }

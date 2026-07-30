@@ -39,6 +39,7 @@ import org.koitharu.kotatsu.core.image.MangaSourceHeaderInterceptor
 import org.koitharu.kotatsu.core.image.MihonImageFetcher
 import org.koitharu.kotatsu.core.network.MangaHttpClient
 import org.koitharu.kotatsu.core.network.imageproxy.ImageProxyInterceptor
+import org.koitharu.kotatsu.core.network.webview.WebViewExecutor
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.os.NetworkState
 import org.koitharu.kotatsu.core.parser.favicon.FaviconFetcher
@@ -103,6 +104,7 @@ interface AppModule {
 			pageFetcherFactory: MangaPageFetcher.Factory,
 			coverRestoreInterceptor: CoverRestoreInterceptor,
 			networkStateProvider: Provider<NetworkState>,
+			webViewExecutorProvider: Provider<WebViewExecutor>,
 			captchaHandler: CaptchaHandler,
 		): ImageLoader {
 			val diskCacheFactory = {
@@ -144,7 +146,7 @@ interface AppModule {
 					add(pageFetcherFactory)
 					add(imageProxyInterceptor)
 					add(coverRestoreInterceptor)
-					add(MangaSourceHeaderInterceptor())
+					add(MangaSourceHeaderInterceptor(webViewExecutorProvider))
 				}.build()
 		}
 
