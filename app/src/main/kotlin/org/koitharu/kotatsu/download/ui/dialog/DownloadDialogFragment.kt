@@ -101,7 +101,7 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_download),
-			title = stringResource(R.string.save_manga),
+			title = stringResource(R.string.download),
 			message = summary,
 		) {
 			Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -263,7 +263,7 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 
 			Spacer(Modifier.size(16.dp))
 			ExpressivePillButton(
-				text = stringResource(R.string.save),
+				text = stringResource(R.string.download),
 				primary = true,
 				enabled = !isLoading,
 			) {

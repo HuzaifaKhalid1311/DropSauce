@@ -510,6 +510,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_GLOBAL_SEARCH_NOVEL_SCOPE, false)
 		set(value) = prefs.edit { putBoolean(KEY_GLOBAL_SEARCH_NOVEL_SCOPE, value) }
 
+	var isSearchHideEmpty: Boolean
+		get() = prefs.getBoolean(KEY_SEARCH_HIDE_EMPTY, true)
+		set(value) = prefs.edit { putBoolean(KEY_SEARCH_HIDE_EMPTY, value) }
+
 	var isShizukuInstallerEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SHIZUKU_INSTALLER, false)
 		set(value) = prefs.edit {
@@ -1225,6 +1229,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
 		const val KEY_NOVEL_SOURCE_IDS = "novel_source_ids"
 		const val KEY_GLOBAL_SEARCH_NOVEL_SCOPE = "global_search_novel_scope"
+		const val KEY_SEARCH_HIDE_EMPTY = "search_hide_empty"
 		const val KEY_SHIZUKU_INSTALLER = "shizuku_installer"
 		const val KEY_PRIVATE_INSTALLER = "private_installer"
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"

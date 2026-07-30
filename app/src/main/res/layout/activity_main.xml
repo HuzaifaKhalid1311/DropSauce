@@ -139,6 +139,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:hint="@string/search_hint"
+		android:theme="@style/ThemeOverlay.Kotatsu.SearchText"
 		app:hideNavigationIcon="false"
 		app:layout_anchor="@id/search_bar">
 

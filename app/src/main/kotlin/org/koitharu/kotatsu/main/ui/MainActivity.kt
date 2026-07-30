@@ -1,10 +1,19 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.content.Intent
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.Layout
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
 import androidx.activity.result.contract.ActivityResultContracts
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.LinearLayout
@@ -34,6 +43,7 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.search.SearchView
 import androidx.window.layout.FoldingFeature
@@ -510,6 +520,28 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.searchView.editText.addTextChangedListener(listener)
 		viewBinding.recyclerViewSearch.adapter = adapter
 		viewBinding.searchView.editText.setOnEditorActionListener(listener)
+		viewBinding.searchView.editText.setOnTouchListener { view, event ->
+			if (event.action != MotionEvent.ACTION_UP || viewBinding.searchView.editText.text.isNotEmpty()) {
+				return@setOnTouchListener false
+			}
+			val hint = viewBinding.searchView.editText.hint as? Spanned
+				?: return@setOnTouchListener false
+			val scopeSpan = hint.getSpans(0, hint.length, ClickableSpan::class.java).firstOrNull()
+				?: return@setOnTouchListener false
+			val scopeStart = hint.getSpanStart(scopeSpan)
+			val scopeEnd = hint.getSpanEnd(scopeSpan)
+			val textPaint = viewBinding.searchView.editText.paint
+			val textStart = viewBinding.searchView.editText.compoundPaddingLeft.toFloat()
+			val scopeStartX = textStart + Layout.getDesiredWidth(hint, 0, scopeStart, textPaint)
+			val scopeEndX = textStart + Layout.getDesiredWidth(hint, 0, scopeEnd, textPaint)
+			if (event.x !in scopeStartX..scopeEndX) {
+				return@setOnTouchListener false
+			}
+			scopeSpan.onClick(view)
+			view.performClick()
+			true
+		}
+		updateSearchScopeHint()
 
 		viewBinding.searchView.observeState()
 			.map { it >= SearchView.TransitionState.SHOWING }
@@ -527,6 +559,56 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		)
 		ItemTouchHelper(SearchSuggestionItemCallback(this))
 			.attachToRecyclerView(viewBinding.recyclerViewSearch)
+	}
+
+	private fun updateSearchScopeHint() {
+		val searchView = viewBinding.searchView
+		val originalHint = getString(R.string.search_hint)
+		val mangaLabel = getString(R.string.content_type_manga)
+		val scopeLabel = getString(
+			if (searchSuggestionViewModel.isNovelSearchScope) {
+				R.string.content_type_novel
+			} else {
+				R.string.content_type_manga
+			},
+		).uppercase()
+		val mangaStart = originalHint.indexOf(mangaLabel, ignoreCase = true)
+		val hintText: String
+		val scopeStart: Int
+		if (mangaStart >= 0) {
+			hintText = originalHint.replaceRange(mangaStart, mangaStart + mangaLabel.length, scopeLabel)
+			scopeStart = mangaStart
+		} else {
+			hintText = "$scopeLabel · $originalHint"
+			scopeStart = 0
+		}
+		searchView.hint = SpannableString(hintText).apply {
+			setSpan(
+				object : ClickableSpan() {
+					override fun onClick(widget: View) {
+						searchSuggestionViewModel.toggleSearchScope()
+						updateSearchScopeHint()
+					}
+
+					override fun updateDrawState(ds: TextPaint) {
+						ds.color = MaterialColors.getColor(
+							searchView.editText,
+							androidx.appcompat.R.attr.colorPrimary,
+						)
+						ds.isUnderlineText = false
+					}
+				},
+				scopeStart,
+				scopeStart + scopeLabel.length,
+				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+			)
+			setSpan(
+				StyleSpan(Typeface.BOLD),
+				scopeStart,
+				scopeStart + scopeLabel.length,
+				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+			)
+		}
 	}
 
 

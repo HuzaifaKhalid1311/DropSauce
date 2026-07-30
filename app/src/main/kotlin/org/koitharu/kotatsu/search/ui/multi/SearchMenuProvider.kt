@@ -29,6 +29,7 @@ class SearchMenuProvider(
 				SearchKind.TAG -> R.id.action_kind_tag
 			},
 		)?.isChecked = true
+		menu.findItem(R.id.action_filter_hide_empty)?.isChecked = viewModel.isHideEmpty
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

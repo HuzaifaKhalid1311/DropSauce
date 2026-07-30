@@ -54,7 +54,7 @@ class SearchViewModel @Inject constructor(
 	private val sourcesRepository: MangaSourcesRepository,
 	private val historyRepository: HistoryRepository,
 	private val favouritesRepository: FavouritesRepository,
-	settings: AppSettings,
+	private val settings: AppSettings,
 ) : BaseViewModel() {
 
 	val query = savedStateHandle.get<String>(AppRouter.KEY_QUERY).orEmpty()
@@ -62,7 +62,7 @@ class SearchViewModel @Inject constructor(
 	private val isNovelScope = settings.isGlobalSearchNovelScope
 
 	private var pinnedOnly = MutableStateFlow(false)
-	private var hideEmpty = MutableStateFlow(false)
+	private val hideEmpty = MutableStateFlow(settings.isSearchHideEmpty)
 	private val results = MutableStateFlow<List<SearchResultsListModel>>(emptyList())
 
 	private var searchJob: Job? = null
@@ -126,8 +126,14 @@ class SearchViewModel @Inject constructor(
 	}
 
 	fun setHideEmpty(value: Boolean) {
-		hideEmpty.value = value
+		if (hideEmpty.value != value) {
+			settings.isSearchHideEmpty = value
+			hideEmpty.value = value
+		}
 	}
+
+	val isHideEmpty: Boolean
+		get() = hideEmpty.value
 
 	private fun doSearch() {
 		val prevJob = searchJob
