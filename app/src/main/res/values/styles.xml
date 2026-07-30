@@ -97,6 +97,8 @@
 		<item name="android:dropDownHorizontalOffset">0dp</item>
 		<item name="android:dropDownVerticalOffset">0dp</item>
 		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu</item>
+		<item name="android:popupEnterTransition">@transition/m3_popup_menu_reveal</item>
+		<item name="android:popupExitTransition">@null</item>
 	</style>
 
 	<style name="Widget.Kotatsu.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
@@ -115,6 +117,8 @@
 		<item name="android:dropDownHorizontalOffset">0dp</item>
 		<item name="android:dropDownVerticalOffset">0dp</item>
 		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu</item>
+		<item name="android:popupEnterTransition">@transition/m3_popup_menu_reveal</item>
+		<item name="android:popupExitTransition">@null</item>
 	</style>
 
 	<style name="Widget.Kotatsu.PopupMenu.ListView" parent="Widget.AppCompat.ListView.DropDown">
@@ -135,17 +139,30 @@
 	<style name="Widget.Kotatsu.PopupMenu.ListPopupWindow" parent="Widget.Material3.PopupMenu.ListPopupWindow">
 		<item name="android:popupBackground">@drawable/m3_menu_background</item>
 		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu</item>
+		<item name="android:popupEnterTransition">@transition/m3_popup_menu_reveal</item>
+		<item name="android:popupExitTransition">@null</item>
 		<item name="android:listSelector">@drawable/popup_menu_no_selector</item>
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 		<item name="android:dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 	</style>
 
-	<!-- Fade (with gentle 0.92->1 scale) instead of the platform grow animation, whose
-	     small-scale frames recompute the elevation-shadow outline as a rectangle and flash
-	     square corners before the rounded background settles. -->
+	<!-- Opening is handled by the popup enter transition. Keeping the window itself at full scale
+	     prevents its rounded outline and elevation shadow from ever being flattened. -->
 	<style name="Animation.Kotatsu.PopupMenu" parent="@android:style/Animation">
-		<item name="android:windowEnterAnimation">@anim/m3_fade_through_enter</item>
+		<item name="android:windowEnterAnimation">@null</item>
 		<item name="android:windowExitAnimation">@anim/m3_fade_through_exit</item>
+	</style>
+
+	<!-- AppCompat measures an overflow menu by showing it once empty, then updating it with its
+	     adapter. Avoid exposing that intermediate position on tall contextual-action menus. -->
+	<style name="Animation.Kotatsu.PopupMenu.ActionMode" parent="@android:style/Animation" />
+
+	<style name="Widget.Kotatsu.PopupMenu.ActionMode" parent="Widget.Kotatsu.PopupMenu">
+		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu.ActionMode</item>
+	</style>
+
+	<style name="Widget.Kotatsu.PopupMenu.Overflow.ActionMode" parent="Widget.Kotatsu.PopupMenu.Overflow">
+		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu.ActionMode</item>
 	</style>
 
 	<style name="Animation.Kotatsu.BottomSheetDialog" parent="Animation.AppCompat.Dialog">
@@ -409,8 +426,8 @@
 	     inherits the app's colors instead of the default ThemeOverlay.Material3.Light palette,
 	     matching the regular toolbar overflow menu. -->
 	<style name="ThemeOverlay.Kotatsu.ActionMode.Popup" parent="">
-		<item name="popupMenuStyle">@style/Widget.Kotatsu.PopupMenu</item>
-		<item name="actionOverflowMenuStyle">@style/Widget.Kotatsu.PopupMenu.Overflow</item>
+		<item name="popupMenuStyle">@style/Widget.Kotatsu.PopupMenu.ActionMode</item>
+		<item name="actionOverflowMenuStyle">@style/Widget.Kotatsu.PopupMenu.Overflow.ActionMode</item>
 		<item name="listPopupWindowStyle">@style/Widget.Kotatsu.PopupMenu.ListPopupWindow</item>
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 		<item name="android:dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
