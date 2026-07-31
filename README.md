@@ -5,7 +5,7 @@
 <h1 align="center">DropSauce</h1>
 
 <p align="center">
-  A lightweight, modern manga reader for Android with a beautiful Material 3 Expressive design.
+  A lightweight, modern manga and novel reader for Android with a beautiful Material 3 Expressive design. Supports Mihon and LNReader extensions.
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://developer.android.com/"><img alt="Made for Android" src="https://img.shields.io/badge/Made%20for-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white"></a>
+  <a href="https://developer.android.com/"><img alt="Android 8.0+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white"></a>
   <a href="https://kotlinlang.org/"><img alt="Kotlin" src="https://img.shields.io/github/languages/top/HuzaifaKhalid1311/DropSauce?style=for-the-badge&logo=kotlin&logoColor=white"></a>
   <a href="https://developer.android.com/compose"><img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white"></a>
   <a href="https://m3.material.io/"><img alt="Material 3 Expressive" src="https://img.shields.io/badge/Material%203-Expressive-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white"></a>
@@ -36,41 +36,46 @@
 
 ## About
 
-DropSauce is a free and open-source manga reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
+DropSauce is a free and open-source manga and novel reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
 
 ⭐Please give the repo a star if you like the project. It helps more people find it.🌟
 
 ## Screenshots
 
 <p align="center">
-  <img src="assets/main_favorites-preview.jpg" alt="DropSauce favorites screen" width="38%" />
-  <img src="assets/manga_details_page-preview.jpg" alt="DropSauce manga details screen" width="38%" />
-  <img src="assets/reading_ui-preview.jpg" alt="DropSauce reading screen" width="38%" />
-  <img src="assets/extension_page-preview.jpg" alt="DropSauce extensions screen" width="38%" />
-  <img src="assets/settings-preview.jpg" alt="DropSauce settings screen" width="38%" />
+  <img src="assets/main_favorites-preview.webp" alt="DropSauce favorites screen" width="31%" />
+  <img src="assets/manga_details_page-preview.webp" alt="DropSauce details screen" width="31%" />
+  <img src="assets/reading_ui-preview.webp" alt="DropSauce manga reading screen" width="31%" />
+  <img src="assets/novel_reading_ui-preview.webp" alt="DropSauce novel reading screen" width="31%" />
+  <img src="assets/extension_page-preview.webp" alt="DropSauce extensions screen" width="31%" />
+  <img src="assets/settings-preview.webp" alt="DropSauce settings screen" width="31%" />
 </p>
 
 <p align="center">
-  <sub>Favorites | Details | Reader | Extensions | Settings</sub>
+  <sub>Favorites | Details | Manga Reader | Novel Reader | Extensions | Settings</sub>
 </p>
 
 ## Highlights
-- NEW: FULL EPUB READING SUPPORT (OFFLINE ONLY)
+- Full novel reading support alongside manga, including offline EPUB file importing.
+- Multi-source extension engine supporting LNReader JS plugins and Tsundoku APK extensions.
 - Lightweight Android-first experience with a modern, polished interface.
-- Full extension support with library, reading, history, bookmarks, tracking, stats, and settings tools.
+- Rich extension support with library, reading, history, bookmarks, tracking, stats, and settings tools.
 - Google Drive sync, local backup/restore, and in-app updates to keep your setup moving with you.
-- New animations, cleaner reader controls, and Material 3 Expressive screens built with Jetpack Compose.
+- Supports Kotatsu and Mihon backup restoration alongside google drive sync
 - Free and open-source under the GPLv3 license.
 
 <details>
 <summary><strong>Features</strong></summary>
 
-- Comfortable manga reading with configurable reader behavior.
-- Full extension support powered by the open-source manga reader ecosystem.
+- Comfortable manga and novel reading experience with configurable reader behavior, haptics, and zoom gestures.
+- EPUB novel importing for offline reading.
+- Extensive extension ecosystem supporting native extensions, LNReader JS plugins, and Tsundoku APK extensions.
+- Global search toggle to easily filter between Manga and Novel sources.
+- Reverse tracking integration with a redesigned tracking menu.
 - Favorites, history, bookmarks, tracking, stats, and categories to keep your library organized.
 - Google Drive sync for library, history, bookmarks, tracking, stats, settings, and covers.
 - Local backup and restore system for moving or protecting your setup.
-- New Material 3 Expressive manga details page.
+- Material 3 Expressive details page for both manga and novels.
 - New onboarding/welcome flow with sync and restore setup.
 - Android widgets for continue reading, favorites, and reading stats.
 - PDF import support, converting PDFs into readable CBZ chapters.
@@ -83,13 +88,14 @@ DropSauce is a free and open-source manga reader for Android, built to feel quic
 <details>
 <summary><strong>Recent improvements</strong></summary>
 
-- Cleaner reader controls and haptics.
-- Better manga details page with Material 3 Expressive polish.
-- New animations across newer app flows.
-- Better reading progress tracking.
-- Improved library and category filtering.
-- Fewer crashes and UI bugs.
-- Better build and release workflows.
+- Full novel support with offline EPUB file importing.
+- LNReader JS plugin and Tsundoku APK extension support.
+- Quick Manga / Novel toggle in the global search bar.
+- Interactive zoom gestures in novel reading mode.
+- Added reverse tracking and refreshed tracking menu design.
+- New popup animations across app flows.
+- Redesigned list options, filter menu, and progress tracking.
+- Minor UI improvements, edge-case crash fixes, and release build cleanups.
 
 </details>
 
@@ -114,8 +120,8 @@ Android may ask you to allow installs from your browser or file manager. That is
 
 ## FAQ
 
-### Does DropSauce include manga?
-> No. DropSauce does not include built-in content. Sources are provided through external libraries or repositories added by users.
+### Does DropSauce include manga or novels?
+> No. DropSauce does not include built-in content. Sources are provided through external libraries, JS plugins, or repositories added by users.
 
 ### Is DropSauce free?
 > Yes. DropSauce is free and open source under the GPLv3 license.
@@ -133,17 +139,19 @@ app/src/main/
 ├── kotlin/org/koitharu/kotatsu/
 │   ├── core/          # Shared database, network, parser, preferences, UI, and utility code
 │   ├── main/          # App entry points, main activity, and app-level screens
-│   ├── reader/        # Manga reader UI and reading behavior
-│   ├── details/       # Manga details, chapters, metadata, and related services
+│   ├── reader/        # Manga and novel reader UI and reading behavior
+│   ├── details/       # Manga and novel details, chapters, metadata, and related services
 │   ├── explore/       # Browse and discovery screens
-│   ├── search/        # Search screens and search flows
+│   ├── search/        # Search screens and search flows (with Manga/Novel toggle)
 │   ├── favourites/    # Favorites and library-facing flows
 │   ├── history/       # Reading history and progress
 │   ├── download/      # Offline downloads and download queue
-│   ├── extensions/    # Extension browsing and management
+│   ├── extensions/    # Extension browsing, JS plugins, and APK extension management
+│   ├── lnreader/      # LNReader JS plugin integration
+│   ├── mihon/         # Mihon & Tsundoku APK extension integration
 │   ├── backup/        # Local backup and restore
 │   ├── sync/          # Sync data, domain, UI, and workers
-│   ├── tracker/       # Tracking integrations
+│   ├── tracker/       # Tracking integrations and reverse tracking
 │   ├── widget/        # Android home screen widgets
 │   └── settings/      # Settings screens and preferences
 └── res/
@@ -169,7 +177,7 @@ Small fixes are welcome. Clear screenshots or short screen recordings are extra 
 
 DropSauce exists because of the work already done by the open-source Android manga reader community.
 
-Special thanks to the original [Kotatsu](https://github.com/KotatsuApp/Kotatsu) developers and the [Mihon](https://github.com/mihonapp/mihon) developers/community for the ideas, code, source ecosystem, and long-running maintenance work that helped shape projects like this.
+Special thanks to the original [Kotatsu](https://github.com/KotatsuApp/Kotatsu) developers, [LNReader](https://github.com/LNReader/lnreader) developers, and the [Mihon](https://github.com/mihonapp/mihon) developers/community for the ideas, code, source ecosystem, and long-running maintenance work that helped shape projects like this.
 
 ## Certificate fingerprints
 
