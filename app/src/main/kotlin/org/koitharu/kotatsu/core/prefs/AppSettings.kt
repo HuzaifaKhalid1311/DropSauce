@@ -860,6 +860,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isRelatedMangaEnabled: Boolean
 		get() = prefs.getBoolean(KEY_RELATED_MANGA, true)
 
+	val isScrobblingProgressSyncEnabled: Boolean
+		get() = prefs.getBoolean(KEY_SCROBBLING_PROGRESS_SYNC, true)
+
 	val isWebtoonZoomEnabled: Boolean
 		get() = prefs.getBoolean(KEY_WEBTOON_ZOOM, true)
 
@@ -1192,6 +1195,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_LOCAL_MANGA_DIRS = "local_manga_dirs"
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
+		const val KEY_SCROBBLING_PROGRESS_SYNC = "scrobbling_progress_sync"
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"

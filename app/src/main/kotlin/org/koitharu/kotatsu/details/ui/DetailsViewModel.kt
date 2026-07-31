@@ -34,6 +34,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.prefs.TriStateOption
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
+import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.computeSize
 import org.koitharu.kotatsu.details.data.MangaDetails
@@ -58,6 +59,7 @@ import org.koitharu.kotatsu.parsers.util.findById
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.reader.ui.ReaderState
 import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
+import org.koitharu.kotatsu.scrobbling.common.domain.SyncProgressFromScrobblersUseCase
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
 import org.koitharu.kotatsu.stats.data.StatsRepository
@@ -78,6 +80,7 @@ class DetailsViewModel @Inject constructor(
 	private val mangaListMapper: MangaListMapper,
 	private val detailsLoadUseCase: DetailsLoadUseCase,
 	private val progressUpdateUseCase: ProgressUpdateUseCase,
+	private val syncProgressFromScrobblersUseCase: SyncProgressFromScrobblersUseCase,
 	private val readingTimeUseCase: ReadingTimeUseCase,
 	statsRepository: StatsRepository,
 	private val database: MangaDatabase,
@@ -98,6 +101,7 @@ class DetailsViewModel @Inject constructor(
 	private val intent = MangaIntent(savedStateHandle)
 	private var loadingJob: Job
 	val mangaId = intent.mangaId
+	val onTrackingProgressSynced = MutableEventFlow<Int>()
 
 	init {
 		mangaDetails.value = intent.manga?.let { MangaDetails(it) }
@@ -272,6 +276,7 @@ class DetailsViewModel @Inject constructor(
 	}
 
 	private fun doLoad(force: Boolean) = launchLoadingJob(Dispatchers.Default) {
+		var scrobblingSynced = false
 		detailsLoadUseCase.invoke(intent, force)
 			.withErrorHandling()
 			.collect {
@@ -296,6 +301,14 @@ class DetailsViewModel @Inject constructor(
 					}
 				}
 				mangaDetails.value = it
+				if (force && it.isLoaded && !scrobblingSynced) {
+					scrobblingSynced = true
+					launchJob(Dispatchers.Default + SkipErrors) {
+						syncProgressFromScrobblersUseCase(it.toManga(), selectedBranch.value)?.let { chapter ->
+							onTrackingProgressSynced.call(chapter)
+						}
+					}
+				}
 			}
 	}
 

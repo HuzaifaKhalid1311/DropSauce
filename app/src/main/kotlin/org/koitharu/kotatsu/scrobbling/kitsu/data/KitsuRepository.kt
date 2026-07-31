@@ -158,6 +158,14 @@ class KitsuRepository(
 		saveRate(response, mangaId)
 	}
 
+	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
+		val request = Request.Builder()
+			.get()
+			.url("$BASE_WEB_URL/api/edge/library-entries/${entity.id}?include=manga")
+		val response = okHttp.newCall(request.build()).await().parseJson().ensureSuccess().getJSONObject("data")
+		return saveRate(response, entity.mangaId)
+	}
+
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
 		val payload = JSONObject()
 		payload.putJO("data") {
@@ -215,7 +223,7 @@ class KitsuRepository(
 		return data.optJSONObject(0)
 	}
 
-	private suspend fun saveRate(json: JSONObject, mangaId: Long) {
+	private suspend fun saveRate(json: JSONObject, mangaId: Long): ScrobblingEntity {
 		val attrs = json.getJSONObject("attributes")
 		val manga = json.getJSONObject("relationships").getJSONObject("manga").getJSONObject("data")
 		val entity = ScrobblingEntity(
@@ -229,6 +237,7 @@ class KitsuRepository(
 			rating = (attrs.getFloatOrDefault("ratingTwenty", 0f) / 20f).coerceIn(0f, 1f),
 		)
 		db.getScrobblingDao().upsert(entity)
+		return entity
 	}
 
 	private fun JSONObject.ensureSuccess(): JSONObject {

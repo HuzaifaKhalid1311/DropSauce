@@ -324,6 +324,9 @@
     <string name="sync_content_bookmarks">Bookmarks</string>
     <string name="sync_content_feed">Feed (new chapters)</string>
     <string name="sync_content_tracking">Tracking (MAL, AniList…)</string>
+    <string name="sync_progress_from_tracking">Sync progress from tracking services</string>
+    <string name="sync_progress_from_tracking_summary">When refreshing manga, advance local reading progress to match linked services</string>
+    <string name="tracking_progress_synced">Reading progress synced up to chapter %1$d</string>
     <string name="sync_content_stats">Reading statistics</string>
     <string name="sync_content_settings">App settings</string>
     <string name="sync_content_covers">Custom covers &amp; overrides</string>

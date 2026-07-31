@@ -25,6 +25,7 @@ import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.list.domain.ReadingProgress
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.util.findById
@@ -117,43 +118,82 @@ class HistoryRepository @Inject constructor(
 		}
 		assert(manga.chapters != null)
 		db.withTransaction {
-			// The reader passes a branch-filtered manga: persisting its chapter list would replace
-			// the cached chapters table with only the selected scanlator's chapters (or an empty
-			// list on a branch mismatch), permanently erasing the other branches. History never has
-			// fresher chapters than the details pipeline, so store metadata only.
-			mangaRepository.storeManga(manga.copy(chapters = null), replaceExisting = true)
-			val branch = manga.chapters?.findById(chapterId)?.branch
-			db.getHistoryDao().upsert(
-				HistoryEntity(
-					mangaId = manga.id,
-					createdAt = System.currentTimeMillis(),
-					updatedAt = System.currentTimeMillis(),
-					chapterId = chapterId,
-					page = page,
-					scroll = scroll.toFloat(), // we migrate to int, but decide to not update database
-					percent = percent,
-					chaptersCount = manga.chapters?.count { it.branch == branch } ?: 0,
-					deletedAt = 0L,
-				),
+			addOrUpdateLocked(manga, chapterId, page, scroll, percent, updateScrobblers = true)
+		}
+	}
+
+	suspend fun advanceFromTracking(
+		manga: Manga,
+		chapters: List<MangaChapter>,
+		targetIndex: Int,
+	): Boolean {
+		if (shouldSkip(manga) || targetIndex !in chapters.indices) {
+			return false
+		}
+		return db.withTransaction {
+			val history = db.getHistoryDao().findIncludingDeleted(manga.id)
+			if (!canAdvanceFromTracking(history, chapters, targetIndex)) {
+				return@withTransaction false
+			}
+			val target = chapters[targetIndex]
+			addOrUpdateLocked(
+				manga = manga,
+				chapterId = target.id,
+				page = 0,
+				scroll = 0,
+				percent = (targetIndex + 1) / chapters.size.toFloat(),
+				updateScrobblers = false,
 			)
-			val unreadLogs = db.getTrackLogsDao().findUnreadByManga(manga.id)
-			if (unreadLogs.isNotEmpty()) {
-				val allChapters = db.getChaptersDao().findAll(manga.id)
-				val lastReadChapterIndex = allChapters.indexOfFirst { it.chapterId == chapterId }
-				if (lastReadChapterIndex != -1) {
-					for (log in unreadLogs) {
-						val logChapterIds = log.chapterIds.split('\n').mapNotNull { it.toLongOrNull() }
-						val allLogChaptersRead = logChapterIds.all { chId ->
-							val chIndex = allChapters.indexOfFirst { it.chapterId == chId }
-							chIndex != -1 && chIndex <= lastReadChapterIndex
-						}
-						if (allLogChaptersRead) {
-							db.getTrackLogsDao().markLogAsRead(log.id)
-						}
+			true
+		}
+	}
+
+	private suspend fun addOrUpdateLocked(
+		manga: Manga,
+		chapterId: Long,
+		page: Int,
+		scroll: Int,
+		percent: Float,
+		updateScrobblers: Boolean,
+	) {
+		// The reader passes a branch-filtered manga: persisting its chapter list would replace
+		// the cached chapters table with only the selected scanlator's chapters (or an empty
+		// list on a branch mismatch), permanently erasing the other branches. History never has
+		// fresher chapters than the details pipeline, so store metadata only.
+		mangaRepository.storeManga(manga.copy(chapters = null), replaceExisting = true)
+		val branch = manga.chapters?.findById(chapterId)?.branch
+		db.getHistoryDao().upsert(
+			HistoryEntity(
+				mangaId = manga.id,
+				createdAt = System.currentTimeMillis(),
+				updatedAt = System.currentTimeMillis(),
+				chapterId = chapterId,
+				page = page,
+				scroll = scroll.toFloat(), // we migrate to int, but decide to not update database
+				percent = percent,
+				chaptersCount = manga.chapters?.count { it.branch == branch } ?: 0,
+				deletedAt = 0L,
+			),
+		)
+		val unreadLogs = db.getTrackLogsDao().findUnreadByManga(manga.id)
+		if (unreadLogs.isNotEmpty()) {
+			val allChapters = db.getChaptersDao().findAll(manga.id)
+			val lastReadChapterIndex = allChapters.indexOfFirst { it.chapterId == chapterId }
+			if (lastReadChapterIndex != -1) {
+				for (log in unreadLogs) {
+					val logChapterIds = log.chapterIds.split('\n').mapNotNull { it.toLongOrNull() }
+					val allLogChaptersRead = logChapterIds.all { chId ->
+						val chIndex = allChapters.indexOfFirst { it.chapterId == chId }
+						chIndex != -1 && chIndex <= lastReadChapterIndex
+					}
+					if (allLogChaptersRead) {
+						db.getTrackLogsDao().markLogAsRead(log.id)
 					}
 				}
 			}
-			newChaptersUseCaseProvider.get()(manga, chapterId)
+		}
+		newChaptersUseCaseProvider.get()(manga, chapterId)
+		if (updateScrobblers) {
 			scrobblers.forEach { it.tryScrobble(manga, chapterId) }
 		}
 	}
@@ -250,4 +290,16 @@ class HistoryRepository @Inject constructor(
 	}
 
 	private fun HistoryWithManga.toManga() = manga.toManga(tags.toMangaTags(), null)
+}
+
+internal fun canAdvanceFromTracking(
+	history: HistoryEntity?,
+	chapters: List<MangaChapter>,
+	targetIndex: Int,
+): Boolean {
+	if (targetIndex !in chapters.indices || history?.deletedAt?.let { it != 0L } == true) {
+		return false
+	}
+	val currentIndex = history?.let { item -> chapters.indexOfFirst { it.id == item.chapterId } } ?: -1
+	return history == null || currentIndex >= 0 && targetIndex > currentIndex
 }

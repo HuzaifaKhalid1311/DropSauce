@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -175,6 +176,7 @@ private fun ServicesScreen(
 	var relatedManga by rememberBooleanPref(AppSettings.KEY_RELATED_MANGA, true)
 	var statsEnabled by rememberBooleanPref(AppSettings.KEY_STATS_ENABLED, true)
 	var readingTime by rememberBooleanPref(AppSettings.KEY_READING_TIME, true)
+	var syncTrackingProgress by rememberBooleanPref(AppSettings.KEY_SCROBBLING_PROGRESS_SYNC, true)
 
 	val enabledLabel = stringResource(R.string.enabled)
 	val disabledLabel = stringResource(R.string.disabled)
@@ -239,23 +241,37 @@ private fun ServicesScreen(
 		}
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 		item {
-			SettingsGroup(title = stringResource(R.string.tracking)) {
+			Column {
+				SettingsGroup(title = stringResource(R.string.tracking)) {
+					item { pos ->
+						SwitchSettingsItem(
+							title = stringResource(R.string.sync_progress_from_tracking),
+							subtitle = stringResource(R.string.sync_progress_from_tracking_summary),
+							checked = syncTrackingProgress,
+							onCheckedChange = { syncTrackingProgress = it },
+							icon = R.drawable.ic_sync_alt,
+							shape = pos.shape,
+						)
+					}
+				}
+				Spacer(Modifier.height(8.dp).fillMaxWidth())
 				val services = listOf(
 					ScrobblerService.ANILIST to R.drawable.ic_anilist,
 					ScrobblerService.KITSU to R.drawable.ic_kitsu,
 					ScrobblerService.MAL to R.drawable.ic_mal,
 					ScrobblerService.SHIKIMORI to R.drawable.ic_shikimori,
 				)
-				services.forEach { (svc, icon) ->
-					item { pos ->
-						ActionSettingsItem(
-							title = stringResource(svc.titleResId),
-							subtitle = scrobblerSummaries[svc],
-							icon = icon,
-							
-							shape = pos.shape,
-							onClick = { onScrobblerClick(svc) },
-						)
+				SettingsGroup {
+					services.forEach { (svc, icon) ->
+						item { pos ->
+							ActionSettingsItem(
+								title = stringResource(svc.titleResId),
+								subtitle = scrobblerSummaries[svc],
+								icon = icon,
+								shape = pos.shape,
+								onClick = { onScrobblerClick(svc) },
+							)
+						}
 					}
 				}
 			}

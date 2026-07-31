@@ -95,6 +95,13 @@ abstract class Scrobbler(
 		return entity.toScrobblingInfo()
 	}
 
+	suspend fun refreshScrobblingOrNull(mangaId: Long): ScrobblingEntity? {
+		val entity = db.getScrobblingDao().find(scrobblerService.id, mangaId) ?: return null
+		return repository.refreshRate(entity)
+	}
+
+	fun isNotStarted(status: String?): Boolean = status == statuses[ScrobblingStatus.PLANNED]
+
 	abstract suspend fun updateScrobblingInfo(
 		mangaId: Long,
 		@FloatRange(from = 0.0, to = 1.0) rating: Float,

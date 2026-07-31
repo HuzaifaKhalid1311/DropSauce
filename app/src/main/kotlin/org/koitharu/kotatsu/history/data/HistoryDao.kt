@@ -97,6 +97,9 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT * FROM history WHERE manga_id = :id AND deleted_at = 0")
 	abstract suspend fun find(id: Long): HistoryEntity?
 
+	@Query("SELECT * FROM history WHERE manga_id = :id")
+	abstract suspend fun findIncludingDeleted(id: Long): HistoryEntity?
+
 	@Query("SELECT * FROM history WHERE manga_id = :id AND deleted_at = 0")
 	abstract fun observe(id: Long): Flow<HistoryEntity?>
 

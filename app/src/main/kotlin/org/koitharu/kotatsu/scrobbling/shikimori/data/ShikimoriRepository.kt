@@ -129,6 +129,21 @@ class ShikimoriRepository @Inject constructor(
 		saveRate(response, mangaId)
 	}
 
+	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
+		val user = cachedUser ?: loadUser()
+		val url = BASE_URL.toHttpUrl().newBuilder()
+			.addPathSegment("api")
+			.addPathSegment("v2")
+			.addPathSegment("user_rates")
+			.addQueryParameter("user_id", user.id.toString())
+			.addQueryParameter("target_id", entity.targetId.toString())
+			.addQueryParameter("target_type", "Manga")
+			.build()
+		val response = okHttp.newCall(Request.Builder().url(url).get().build()).await().parseJsonArray()
+		check(response.length() == 1) { "Expected one Shikimori user rate, got ${response.length()}" }
+		return saveRate(response.getJSONObject(0), entity.mangaId)
+	}
+
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
 		val payload = JSONObject()
 		payload.put(
@@ -181,7 +196,7 @@ class ShikimoriRepository @Inject constructor(
 		return ScrobblerMangaInfo(response)
 	}
 
-	private suspend fun saveRate(json: JSONObject, mangaId: Long) {
+	private suspend fun saveRate(json: JSONObject, mangaId: Long): ScrobblingEntity {
 		val entity = ScrobblingEntity(
 			scrobbler = ScrobblerService.SHIKIMORI.id,
 			id = json.getInt("id"),
@@ -193,6 +208,7 @@ class ShikimoriRepository @Inject constructor(
 			rating = (json.getDouble("score").toFloat() / 10f).coerceIn(0f, 1f),
 		)
 		db.getScrobblingDao().upsert(entity)
+		return entity
 	}
 
 	private fun ScrobblerManga(json: JSONObject, sourceTitle: String) = ScrobblerManga(

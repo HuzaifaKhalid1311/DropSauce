@@ -97,6 +97,13 @@ class DetailsExpressiveActivity :
 			it?.let { d -> title = d.toManga().title }
 			invalidateOptionsMenu()
 		}
+		viewModel.onTrackingProgressSynced.observeEvent(this) { chapter ->
+			Toast.makeText(
+				this,
+				getString(R.string.tracking_progress_synced, chapter),
+				Toast.LENGTH_SHORT,
+			).show()
+		}
 		viewModel.onActionDone
 			.filterNot { router.isChapterPagesSheetShown() }
 			.observeEvent(this, ReversibleActionObserver(viewBinding.composeView))

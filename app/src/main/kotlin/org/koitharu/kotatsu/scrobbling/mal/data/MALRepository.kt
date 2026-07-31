@@ -131,6 +131,16 @@ class MALRepository @Inject constructor(
 		saveRate(response, mangaId, scrobblerMangaId)
 	}
 
+	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
+		val url = BASE_API_URL.toHttpUrl().newBuilder()
+			.addPathSegment("manga")
+			.addPathSegment(entity.targetId.toString())
+			.addQueryParameter("fields", "my_list_status")
+			.build()
+		val response = okHttp.newCall(Request.Builder().url(url).get().build()).await().parseJson()
+		return saveRate(response.getJSONObject("my_list_status"), entity.mangaId, entity.targetId)
+	}
+
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
 		val body = FormBody.Builder()
 			.add("num_chapters_read", chapter.toString())
@@ -165,7 +175,11 @@ class MALRepository @Inject constructor(
 		saveRate(response, mangaId, rateId.toLong())
 	}
 
-	private suspend fun saveRate(json: JSONObject, mangaId: Long, scrobblerMangaId: Long) {
+	private suspend fun saveRate(
+		json: JSONObject,
+		mangaId: Long,
+		scrobblerMangaId: Long,
+	): ScrobblingEntity {
 		val entity = ScrobblingEntity(
 			scrobbler = ScrobblerService.MAL.id,
 			id = scrobblerMangaId.toInt(),
@@ -177,6 +191,7 @@ class MALRepository @Inject constructor(
 			rating = (json.getDouble("score").toFloat() / 10f).coerceIn(0f, 1f),
 		)
 		db.getScrobblingDao().upsert(entity)
+		return entity
 	}
 
 	override fun logout() {

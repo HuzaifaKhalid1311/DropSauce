@@ -155,6 +155,23 @@ class AniListRepository @Inject constructor(
 		saveRate(response.getJSONObject("data").getJSONObject("SaveMediaListEntry"), mangaId)
 	}
 
+	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
+		val response = doRequest(
+			REQUEST_QUERY,
+			"""
+				MediaList(id: ${entity.id}) {
+					id
+					mediaId
+					status
+					notes
+					score
+					progress
+				}
+			""",
+		)
+		return saveRate(response.getJSONObject("data").getJSONObject("MediaList"), entity.mangaId)
+	}
+
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
 		val response = doRequest(
 			REQUEST_MUTATION,
@@ -212,7 +229,7 @@ class AniListRepository @Inject constructor(
 		return ScrobblerMangaInfo(response.getJSONObject("data").getJSONObject("Media"))
 	}
 
-	private suspend fun saveRate(json: JSONObject, mangaId: Long) {
+	private suspend fun saveRate(json: JSONObject, mangaId: Long): ScrobblingEntity {
 		val scoreFormat = ScoreFormat.of(storage[KEY_SCORE_FORMAT])
 		val entity = ScrobblingEntity(
 			scrobbler = ScrobblerService.ANILIST.id,
@@ -225,6 +242,7 @@ class AniListRepository @Inject constructor(
 			rating = scoreFormat.normalize(json.getDouble("score").toFloat()),
 		)
 		db.getScrobblingDao().upsert(entity)
+		return entity
 	}
 
 	private fun ScrobblerManga(json: JSONObject, sourceTitle: String): ScrobblerManga {

@@ -26,6 +26,8 @@ interface ScrobblerRepository {
 
 	suspend fun createRate(mangaId: Long, scrobblerMangaId: Long)
 
+	suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity
+
 	suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int)
 
 	suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?)
