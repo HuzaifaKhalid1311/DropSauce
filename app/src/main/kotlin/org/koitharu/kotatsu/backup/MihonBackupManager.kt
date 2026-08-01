@@ -353,8 +353,8 @@ class MihonBackupManager @Inject constructor(
                 }
                 .toList()
 
-            // `chapters` is sorted oldest-first, so explicit chapter progress wins. Positive history
-            // remains a fallback for history-only backups; reset rows use lastRead = 0 and are ignored.
+            // Mihon's positive history is its Continue Reading position. Chapter flags are only a
+            // fallback for backups without history, so sampling a later chapter does not jump progress.
             val progressedChapter = chapters.lastOrNull { chapterEntity ->
                 val backupChapter = backupChapterByUrl[chapterEntity.url]
                 backupChapter?.let { it.read || it.lastPageRead > 0 } == true
@@ -362,7 +362,7 @@ class MihonBackupManager @Inject constructor(
             val latestHistory = item.history
                 .filter { it.lastRead > 0 }
                 .maxByOrNull { it.lastRead }
-            val currentChapter = progressedChapter ?: latestHistory?.url?.let(chapterByUrl::get)
+            val currentChapter = latestHistory?.url?.let(chapterByUrl::get) ?: progressedChapter
             val currentHistory = currentChapter?.url?.let { url ->
                 item.history.filter { it.url == url && it.lastRead > 0 }.maxByOrNull { it.lastRead }
             }

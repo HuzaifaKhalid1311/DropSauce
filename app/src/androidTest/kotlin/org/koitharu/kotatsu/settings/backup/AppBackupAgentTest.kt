@@ -172,7 +172,7 @@ class AppBackupAgentTest {
 	}
 
 	@Test
-	fun restoreMihonFixture_usesFurthestChapterWithRealProgress() = runTest {
+	fun restoreMihonFixture_prefersHistoryOverLaterSampledChapter() = runTest {
 		val mangaUrl = "https://fixture.example/manga/1"
 		val chapters = listOf(
 			MihonBackupChapter(
@@ -192,6 +192,7 @@ class AppBackupAgentTest {
 			MihonBackupChapter(
 				url = "$mangaUrl/chapter-3",
 				name = "Chapter 3",
+				lastPageRead = 3,
 				chapterNumber = 3f,
 				sourceOrder = 0,
 			),
@@ -199,7 +200,7 @@ class AppBackupAgentTest {
 		val fixture = createFixture(
 			trackerItems = emptyList(),
 			chapters = chapters,
-			history = listOf(MihonBackupHistory(chapters.last().url, lastRead = 1_000)),
+			history = listOf(MihonBackupHistory(chapters[1].url, lastRead = 1_000)),
 		)
 
 		backupManager.restoreBackup(writeFixture(fixture))
