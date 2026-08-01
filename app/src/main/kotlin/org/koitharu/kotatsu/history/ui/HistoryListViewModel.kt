@@ -229,7 +229,9 @@ class HistoryListViewModel @Inject constructor(
 		ListSortOrder.RELEVANCE,
 		ListSortOrder.NEW_CHAPTERS,
 		ListSortOrder.UPDATED,
-		ListSortOrder.RATING -> null
+		ListSortOrder.RATING,
+		ListSortOrder.TOTAL_CHAPTERS,
+		ListSortOrder.LATEST_CHAPTER -> null
 	}
 
 	private fun getEmptyState(hasFilters: Boolean) = if (hasFilters) {
