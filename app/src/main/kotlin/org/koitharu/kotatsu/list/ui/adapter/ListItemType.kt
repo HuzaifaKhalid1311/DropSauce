@@ -37,7 +37,4 @@ enum class ListItemType {
 	CHAPTER_LIST,
 	CHAPTER_GRID,
 	MISSING_CHAPTERS,
-
-	// Appended, never inserted: the ordinal is the RecyclerView view type.
-	EXPLORE_SOURCE_KIND,
 }

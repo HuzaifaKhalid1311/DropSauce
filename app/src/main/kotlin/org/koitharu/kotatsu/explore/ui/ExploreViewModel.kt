@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
@@ -32,7 +33,7 @@ import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.domain.ExploreRepository
 import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
-import org.koitharu.kotatsu.explore.ui.model.ExtensionsHeaderItem
+import org.koitharu.kotatsu.explore.ui.model.ExploreSources
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
 import org.koitharu.kotatsu.list.ui.model.EmptyHint
 import org.koitharu.kotatsu.list.ui.model.ListHeader
@@ -79,10 +80,7 @@ class ExploreViewModel @Inject constructor(
 	private val mutableRandomLoading = MutableStateFlow(false)
 	val isRandomLoading = mutableRandomLoading.asStateFlow()
 
-	/** Which half of the extension list the manga/novel switch is showing. Not persisted. */
-	private val isNovelSourcesShown = MutableStateFlow(false)
-
-	private val hasExtensionUpdates: StateFlow<Boolean> = combine(
+	val hasExtensionUpdates: StateFlow<Boolean> = combine(
 		extensionStoreManager.states,
 		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
 	) { stores, privateMode ->
@@ -96,13 +94,20 @@ class ExploreViewModel @Inject constructor(
 		}
 	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
-	val content: StateFlow<List<ListModel>> = isLoading.flatMapLatest { loading ->
-		if (loading) {
-			flowOf(getLoadingStateList())
-		} else {
-			createContentFlow()
+	/** Everything above the extension list: quick buttons and the suggestions carousel. */
+	val headerContent: StateFlow<List<ListModel>> = getSuggestionFlow().map { recommendation ->
+		buildList(3) {
+			add(ExploreButtons)
+			if (recommendation.isNotEmpty()) {
+				add(ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions))
+				add(RecommendationsItem(recommendation.toRecommendationList()))
+			}
 		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, getLoadingStateList())
+	}.withErrorHandling()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(ExploreButtons))
+
+	val sources: StateFlow<ExploreSources> = createSourcesFlow()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, loadingSources)
 
 	init {
 		launchJob(Dispatchers.IO) {
@@ -171,59 +176,45 @@ class ExploreViewModel @Inject constructor(
 		settings.closeTip(TIP_LANGUAGES)
 	}
 
-	fun setNovelSourcesShown(value: Boolean) {
-		isNovelSourcesShown.value = value
-	}
-
 	fun sourcesSnapshot(ids: LongSet): List<MangaSourceInfo> {
-		return content.value.mapNotNull {
+		val content = sources.value
+		return (content.manga + content.novel).mapNotNull {
 			(it as? MangaSourceItem)?.takeIf { x -> x.id in ids }?.source
 		}
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	private fun createContentFlow() = kotlinx.coroutines.flow.combine(
+	private fun createSourcesFlow() = kotlinx.coroutines.flow.combine(
 		sourcesRepository.observeEnabledSources(),
 		sourcesRepository.observeMihonLoadingState(),
-		getSuggestionFlow(),
 		isGrid,
 		sourcesRepository.observeHasMultiLanguageSources(),
 		settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_LANGUAGES) },
-		hasExtensionUpdates,
-		isNovelSourcesShown,
 	) { args ->
-		buildList(
-			sources = args[0] as List<MangaSourceInfo>,
-			isExtensionsLoading = args[1] as Boolean,
-			recommendation = args[2] as List<Manga>,
-			isGrid = args[3] as Boolean,
-			hasMultiLanguageSources = args[4] as Boolean,
-			isLanguageTipEnabled = args[5] as Boolean,
-			hasExtensionUpdates = args[6] as Boolean,
-			isNovelShown = args[7] as Boolean,
+		val allSources = args[0] as List<MangaSourceInfo>
+		val isExtensionsLoading = args[1] as Boolean
+		val isGrid = args[2] as Boolean
+		val hasMultiLanguageSources = args[3] as Boolean
+		val isLanguageTipEnabled = args[4] as Boolean
+		ExploreSources(
+			manga = buildSourcesPage(
+				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, false,
+			),
+			novel = buildSourcesPage(
+				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, true,
+			),
 		)
 	}.withErrorHandling()
 
-	private fun buildList(
+	private fun buildSourcesPage(
 		sources: List<MangaSourceInfo>,
 		isExtensionsLoading: Boolean,
-		recommendation: List<Manga>,
 		isGrid: Boolean,
 		hasMultiLanguageSources: Boolean,
 		isLanguageTipEnabled: Boolean,
-		hasExtensionUpdates: Boolean,
 		isNovelShown: Boolean,
 	): List<ListModel> {
-		val result = ArrayList<ListModel>(sources.size + 5)
-		result += ExploreButtons
-		if (recommendation.isNotEmpty()) {
-			result += ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions)
-			result += RecommendationsItem(recommendation.toRecommendationList())
-		}
-
-		// Header, manga/novel chips and the manage button are one row. The chips stay put on the empty
-		// branch too, otherwise there is no way back to the other half.
-		result += ExtensionsHeaderItem(isNovel = isNovelShown, hasUpdates = hasExtensionUpdates)
+		val result = ArrayList<ListModel>(sources.size + 2)
 		val shown = sources.filter { it.isNovelSource == isNovelShown }
 		when {
 			shown.isNotEmpty() -> shown.mapTo(result) { MangaSourceItem(it, isGrid) }
@@ -256,11 +247,6 @@ class ExploreViewModel @Inject constructor(
 		return result
 	}
 
-	private fun getLoadingStateList() = listOf(
-		ExploreButtons,
-		LoadingState,
-	)
-
 	private fun getSuggestionFlow() = isSuggestionsEnabled.flatMapLatest { isEnabled ->
 		if (isEnabled) {
 			// Observe the suggestions reactively so the carousel refreshes in place when suggestions
@@ -287,5 +273,7 @@ class ExploreViewModel @Inject constructor(
 		private const val TIP_LANGUAGES = "languages_note"
 		private const val SUGGESTIONS_COUNT = 8
 		private const val NO_ACTION_STRING_RES = 0
+
+		private val loadingSources = ExploreSources(listOf(LoadingState), listOf(LoadingState))
 	}
 }

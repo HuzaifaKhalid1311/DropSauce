@@ -76,5 +76,6 @@ class HistoryListFragment : MangaListFragment() {
 		this,
 		DynamicItemSizeResolver(resources, viewLifecycleOwner, settings, adjustWidth = false),
 		titleTapToRead = settings.isTitleTapToReadEnabled,
+		onTipClose = { viewModel.dismissScalingTip() },
 	)
 }

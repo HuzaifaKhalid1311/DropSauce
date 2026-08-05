@@ -144,6 +144,8 @@
     <string name="feed_gestures_tip">Swipe an entry right to remove it from the feed, or left to mark it as read. You can turn these gestures off in Settings › Check for new chapters.</string>
     <string name="feed_swipe_gestures">Feed swipe gestures</string>
     <string name="feed_swipe_gestures_summary">Swipe feed entries to mark them as read or remove them</string>
+    <string name="ui_scaling_tip_title">Sizing has changed</string>
+    <string name="ui_scaling_tip">The app now sizes itself to your screen instead of using one fixed size for every phone. If it doesn\'t feel right, adjust it with the UI scale slider in Settings › Appearance.</string>
     <string name="feed_counter_dot">Dot instead of a count</string>
     <string name="feed_counter_dot_summary">Mark the Feed tab with a plain dot instead of the number of unread updates</string>
     <string name="update_all">Update all</string>

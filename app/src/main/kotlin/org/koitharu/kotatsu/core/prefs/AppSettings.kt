@@ -1043,6 +1043,23 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 	}
 
+	/**
+	 * The UI scale slider used to be the only way to cure the oversized layout on a narrow screen, and
+	 * it now multiplies with the automatic baseline that cures it for everyone — so an old value would
+	 * stack on top of the baseline and render about a third too small. Hand the slider back to its
+	 * default exactly once, on every screen, so what everyone sees after updating is the scaling the
+	 * layouts are actually designed around.
+	 */
+	private fun migrateUiScale() {
+		if (prefs.contains(KEY_UI_SCALE_RESET)) {
+			return
+		}
+		prefs.edit {
+			putBoolean(KEY_UI_SCALE_RESET, true)
+			remove(KEY_UI_SCALE)
+		}
+	}
+
 	private fun migrateBackdropBlur() {
 		val oldKey = "details_backdrop_blur"
 		if (!prefs.contains(oldKey)) return
@@ -1055,6 +1072,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	init {
 		migrateBackdropBlur()
+		migrateUiScale()
 	}
 
 	companion object {
@@ -1093,6 +1111,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_UPDATES_FEED_CLEAR = "updates_feed_clear"
 		const val KEY_GRID_SIZE = "grid_size"
 		const val KEY_UI_SCALE = "ui_scale"
+		// Bumped from "ui_scale_migrated": that pass skipped wide screens, so the reset has to run once
+		// more to reach the phones it left alone.
+		const val KEY_UI_SCALE_RESET = "ui_scale_reset_v2"
 		const val KEY_GRID_SIZE_PAGES = "grid_size_pages"
 		const val KEY_LOCAL_STORAGE = "local_storage"
 		const val KEY_READER_DOUBLE_PAGES = "reader_double_pages"

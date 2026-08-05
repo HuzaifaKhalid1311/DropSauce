@@ -4,12 +4,15 @@ import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.MangaListModel
+import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.list.ui.size.ItemSizeResolver
 
 open class MangaListAdapter(
 	listener: MangaListListener,
 	sizeResolver: ItemSizeResolver,
 	titleTapToRead: Boolean = false,
+	/** Required for a tip to show its close button at all — see [tipAD]. */
+	onTipClose: ((TipModel) -> Unit)? = null,
 ) : BaseListAdapter<ListModel>() {
 
 	init {
@@ -31,7 +34,7 @@ open class MangaListAdapter(
 		addDelegate(ListItemType.HINT_EMPTY, emptyHintAD(listener))
 		addDelegate(ListItemType.HEADER, listHeaderAD(listener))
 		addDelegate(ListItemType.QUICK_FILTER, quickFilterAD(listener))
-		addDelegate(ListItemType.TIP, tipAD(listener))
+		addDelegate(ListItemType.TIP, tipAD(listener, onTipClose))
 		addDelegate(ListItemType.INFO, infoAD())
 		addDelegate(ListItemType.FOOTER_BUTTON, buttonFooterAD(listener))
 	}

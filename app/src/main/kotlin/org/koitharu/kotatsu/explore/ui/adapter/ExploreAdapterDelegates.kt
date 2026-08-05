@@ -5,10 +5,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
-import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.MultiBrowseCarouselStrategy
-import com.google.android.material.tabs.TabLayout
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getSummary
@@ -24,14 +22,11 @@ import org.koitharu.kotatsu.databinding.ItemExploreButtonsBinding
 import org.koitharu.kotatsu.databinding.ItemExploreSourceGridBinding
 import org.koitharu.kotatsu.databinding.ItemExploreSourceListBinding
 import org.koitharu.kotatsu.databinding.ItemMangaCarouselBinding
-import org.koitharu.kotatsu.databinding.ItemExploreExtensionsHeaderBinding
 import org.koitharu.kotatsu.databinding.ItemRecommendationBinding
 import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
-import org.koitharu.kotatsu.explore.ui.model.ExtensionsHeaderItem
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
-import org.koitharu.kotatsu.list.ui.adapter.bindBadge
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -45,41 +40,6 @@ fun exploreButtonsAD(
 	binding.buttonBookmarks.setOnClickListener(clickListener)
 	binding.buttonDownloads.setOnClickListener(clickListener)
 	binding.buttonLocal.setOnClickListener(clickListener)
-}
-
-fun extensionsHeaderAD(
-	onManageClick: () -> Unit,
-	onKindSelected: (isNovel: Boolean) -> Unit,
-) = adapterDelegateViewBinding<ExtensionsHeaderItem, ListModel, ItemExploreExtensionsHeaderBinding>(
-	{ layoutInflater, parent -> ItemExploreExtensionsHeaderBinding.inflate(layoutInflater, parent, false) },
-) {
-
-	var badge: BadgeDrawable? = null
-	var isBinding = false
-	binding.buttonMore.setOnClickListener { onManageClick() }
-	binding.tabsKind.apply {
-		addTab(newTab().setText(R.string.store_kind_manga))
-		addTab(newTab().setText(R.string.store_kind_novel))
-		addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-			override fun onTabSelected(tab: TabLayout.Tab) {
-				if (!isBinding) {
-					onKindSelected(tab.position == 1)
-				}
-			}
-
-			override fun onTabUnselected(tab: TabLayout.Tab) = Unit
-
-			override fun onTabReselected(tab: TabLayout.Tab) = Unit
-		})
-	}
-
-	bind {
-		isBinding = true
-		binding.tabsKind.getTabAt(if (item.isNovel) 1 else 0)?.select()
-		isBinding = false
-		// Mirrors the update indicator the shared ListHeader used to draw on its button.
-		badge = binding.buttonMore.bindBadge(badge, if (item.hasUpdates) "" else null)
-	}
 }
 
 fun exploreRecommendationItemAD(

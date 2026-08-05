@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One Explore pager page (manga or novel extensions). The root must fill the pager, while the list
+     itself is wrap_content: the page is as tall as the taller of the two lists, so the shorter one ends in
+     empty space instead of changing the scroll height when you switch. -->
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<androidx.recyclerview.widget.RecyclerView
+		android:id="@+id/recyclerView"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:clipToPadding="false"
+		android:nestedScrollingEnabled="false"
+		android:orientation="vertical"
+		tools:listitem="@layout/item_explore_source_list" />
+
+</FrameLayout>

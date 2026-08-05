@@ -35,6 +35,8 @@ import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.ui.MangaListViewModel
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.koitharu.kotatsu.list.ui.model.TIP_UI_SCALING
+import org.koitharu.kotatsu.list.ui.model.uiScalingTip
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
 import org.koitharu.kotatsu.list.ui.model.MangaDetailedListModel
 import org.koitharu.kotatsu.list.ui.model.MangaGridModel
@@ -95,10 +97,14 @@ class FavouritesListViewModel @Inject constructor(
 		observeFavorites(),
 		quickFilter.appliedOptions,
 		observeListModeWithTriggers(),
-		refreshTrigger,
+		// Folded into the refresh trigger to stay inside combine's five-flow overload.
+		combine(
+			refreshTrigger,
+			settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_UI_SCALING) },
+		) { _, isScalingTipVisible -> isScalingTipVisible },
 		pinnedIds,
-	) { list, filters, mode, _, pinned ->
-		list.mapList(mode, filters, pinned.takeIfDefaultState(filters))
+	) { list, filters, mode, isScalingTipVisible, pinned ->
+		list.mapList(mode, filters, pinned.takeIfDefaultState(filters), isScalingTipVisible)
 	}.distinctUntilChanged().onEach {
 		isPaginationReady.set(true)
 	}.catch {
@@ -117,6 +123,11 @@ class FavouritesListViewModel @Inject constructor(
 	override fun toggleFilterOption(option: ListFilterOption) = quickFilter.toggleFilterOption(option)
 
 	override fun clearFilter() = quickFilter.clearFilter()
+
+	/** Shared with History: dismissing it on either screen dismisses it on both. */
+	fun dismissScalingTip() {
+		settings.closeTip(TIP_UI_SCALING)
+	}
 
 	fun markAsRead(items: Set<Manga>) {
 		launchLoadingJob(Dispatchers.Default) {
@@ -158,6 +169,7 @@ class FavouritesListViewModel @Inject constructor(
 		mode: ListMode,
 		filters: Set<ListFilterOption>,
 		pinned: List<Long>,
+		isScalingTipVisible: Boolean,
 	): List<ListModel> {
 		if (isEmpty()) {
 			return if (filters.isEmpty()) {
@@ -166,7 +178,10 @@ class FavouritesListViewModel @Inject constructor(
 				listOfNotNull(quickFilter.filterItem(filters), getEmptyState(hasFilters = true))
 			}
 		}
-		val result = ArrayList<ListModel>(size + 1)
+		val result = ArrayList<ListModel>(size + 2)
+		if (isScalingTipVisible) {
+			result += uiScalingTip
+		}
 		quickFilter.filterItem(filters)?.let(result::add)
 		mangaListMapper.toListModelList(result, this, mode, MangaListMapper.NO_FAVORITE)
 		if (pinned.isNotEmpty()) {

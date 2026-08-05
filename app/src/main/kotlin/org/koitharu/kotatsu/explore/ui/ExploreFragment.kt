@@ -9,11 +9,15 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ActionMode
+import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
@@ -23,7 +27,7 @@ import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
+import org.koitharu.kotatsu.core.ui.util.ActionModeListener
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.ui.util.SpanSizeResolver
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
@@ -31,28 +35,31 @@ import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.core.util.ext.setTabsEnabled
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.FragmentExploreBinding
 import org.koitharu.kotatsu.explore.ui.adapter.ExploreAdapter
 import org.koitharu.kotatsu.explore.ui.adapter.ExploreListEventListener
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
+import org.koitharu.kotatsu.list.ui.adapter.bindBadge
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.parsers.model.Manga
 
 @AndroidEntryPoint
 class ExploreFragment :
 	BaseFragment<FragmentExploreBinding>(),
-	RecyclerViewOwner,
+	ActionModeListener,
 	ExploreListEventListener,
 	OnListItemClickListener<MangaSourceItem>, ListSelectionController.Callback {
 
 	private val viewModel by viewModels<ExploreViewModel>()
-	private var exploreAdapter: ExploreAdapter? = null
 	private var sourceSelectionController: ListSelectionController? = null
+	private var manageBadge: BadgeDrawable? = null
 
-	override val recyclerView: RecyclerView?
-		get() = viewBinding?.recyclerView
+	/** Page lists, indexed by page position. Both are created up-front by the pager. */
+	private val pages = arrayOfNulls<RecyclerView>(2)
+	private var barsInsets: Insets = Insets.NONE
 
 	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentExploreBinding {
 		return FragmentExploreBinding.inflate(inflater, container, false)
@@ -60,44 +67,87 @@ class ExploreFragment :
 
 	override fun onViewBindingCreated(binding: FragmentExploreBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
-		exploreAdapter = ExploreAdapter(
-			this,
-			this,
-			mangaClickListener = { manga, _ ->
-				router.openDetails(manga)
-			},
-			onTipClose = { viewModel.dismissLanguageTip() },
-			onManageExtensionsClick = { router.openSourcesCatalog(isExternalOnly = true) },
-			onSourceKindSelected = viewModel::setNovelSourcesShown,
-		)
 		sourceSelectionController = ListSelectionController(
 			appCompatDelegate = checkNotNull(findAppCompatDelegate()),
 			decoration = SourceSelectionDecoration(binding.root.context),
 			registryOwner = this,
 			callback = this,
 		)
-		with(binding.recyclerView) {
-			adapter = exploreAdapter
-			setHasFixedSize(true)
-			SpanSizeResolver(this, resources.getDimensionPixelSize(R.dimen.explore_grid_width)).attach()
+		val header = binding.header
+		val headerAdapter = ExploreAdapter(
+			this,
+			this,
+			mangaClickListener = { manga, _ -> router.openDetails(manga) },
+			onTipClose = { viewModel.dismissLanguageTip() },
+		)
+		with(header.recyclerViewHeader) {
+			adapter = headerAdapter
+			layoutManager = LinearLayoutManager(context)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
-			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
 		}
+		header.buttonManage.setOnClickListener { router.openSourcesCatalog(isExternalOnly = true) }
+
+		binding.pager.adapter = ExploreSourcesPagerAdapter(::onPageCreated)
+		binding.pager.offscreenPageLimit = 1
+		// A zero-height pager lays out no pages at all, so nothing would ever be measured. Start at one
+		// screen and let updatePagerHeight replace it with the real content height.
+		binding.pager.updateLayoutParams { height = resources.displayMetrics.heightPixels }
+		TabLayoutMediator(header.tabsKind, binding.pager) { tab, position ->
+			tab.setText(if (position == 1) R.string.store_kind_novel else R.string.store_kind_manga)
+		}.attach()
+		actionModeDelegate.addListener(this)
 		addMenuProvider(ExploreMenuProvider(router))
-		viewModel.content.observe(viewLifecycleOwner, checkNotNull(exploreAdapter))
-		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.recyclerView, this))
+		viewModel.headerContent.observe(viewLifecycleOwner, headerAdapter)
+		viewModel.hasExtensionUpdates.observe(viewLifecycleOwner) { hasUpdates ->
+			manageBadge = header.buttonManage.bindBadge(manageBadge, if (hasUpdates) "" else null)
+		}
+		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.pager, this))
 		viewModel.onOpenManga.observeEvent(viewLifecycleOwner, ::onOpenManga)
-		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(binding.recyclerView))
-		viewModel.isGrid.observe(viewLifecycleOwner, ::onGridModeChanged)
+		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(binding.pager))
+		viewModel.isGrid.observe(viewLifecycleOwner) { isGrid ->
+			pages.forEach { it?.applyLayoutManager(isGrid) }
+		}
 		viewModel.onShowSuggestionsTip.observeEvent(viewLifecycleOwner) {
 			showSuggestionsTip()
 		}
 	}
 
+	private fun onPageCreated(recyclerView: RecyclerView, isNovel: Boolean) {
+		val adapter = ExploreAdapter(
+			this,
+			this,
+			mangaClickListener = { manga, _ -> router.openDetails(manga) },
+			onTipClose = { viewModel.dismissLanguageTip() },
+		)
+		with(recyclerView) {
+			this.adapter = adapter
+			SpanSizeResolver(this, resources.getDimensionPixelSize(R.dimen.explore_grid_width)).attach()
+			addItemDecoration(TypedListSpacingDecoration(context, false))
+			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
+			applyLayoutManager(viewModel.isGrid.value)
+		}
+		pages[if (isNovel) 1 else 0] = recyclerView
+		viewModel.sources.observe(viewLifecycleOwner) { content ->
+			adapter.emit(content[isNovel])
+			recyclerView.post(::updatePagerHeight)
+		}
+	}
+
+	private fun RecyclerView.applyLayoutManager(isGrid: Boolean) {
+		val adapter = adapter as? ExploreAdapter ?: return
+		layoutManager = if (isGrid) {
+			GridLayoutManager(context, 4).also { lm ->
+				lm.spanSizeLookup = ExploreGridSpanSizeLookup(adapter, lm)
+			}
+		} else {
+			LinearLayoutManager(context)
+		}
+	}
+
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
-		val barsInsets = insets.systemBarsInsets
+		barsInsets = insets.systemBarsInsets
 		val basePadding = v.resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
-		viewBinding?.recyclerView?.setPadding(
+		viewBinding?.layoutContent?.setPadding(
 			/* left = */ barsInsets.left + basePadding,
 			/* top = */ basePadding,
 			/* right = */ barsInsets.right + basePadding,
@@ -106,10 +156,48 @@ class ExploreFragment :
 		return insets.consumeAllSystemBarsInsets()
 	}
 
+	/**
+	 * ViewPager2 cannot wrap its content, so the pager is given the height of the taller page. Both pages
+	 * then keep that height, which is what makes switching tabs a no-op for the scroll position: the
+	 * shorter list just ends in empty space. Measured with an unspecified height so the value is the real
+	 * content height rather than an estimate.
+	 */
+	private fun updatePagerHeight() {
+		val binding = viewBinding ?: return
+		val width = binding.pager.width
+		if (width == 0) {
+			binding.pager.post(::updatePagerHeight)
+			return
+		}
+		val widthSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
+		val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+		val height = pages.maxOf { page ->
+			page?.let {
+				it.measure(widthSpec, heightSpec)
+				it.measuredHeight
+			} ?: 0
+		}
+		if (height > 0 && binding.pager.layoutParams.height != height) {
+			binding.pager.updateLayoutParams { this.height = height }
+		}
+	}
+
 	override fun onDestroyView() {
-		super.onDestroyView()
+		actionModeDelegate.removeListener(this)
+		pages.fill(null)
+		manageBadge = null
 		sourceSelectionController = null
-		exploreAdapter = null
+		super.onDestroyView()
+	}
+
+	override fun onActionModeStarted(mode: ActionMode) {
+		viewBinding?.pager?.isUserInputEnabled = false
+		viewBinding?.header?.tabsKind?.setTabsEnabled(false)
+	}
+
+	override fun onActionModeFinished(mode: ActionMode) {
+		viewBinding?.pager?.isUserInputEnabled = true
+		viewBinding?.header?.tabsKind?.setTabsEnabled(true)
 	}
 
 	override fun onListHeaderClick(item: ListHeader, view: View) {
@@ -124,7 +212,6 @@ class ExploreFragment :
 		when (v.id) {
 			R.id.button_local -> router.openList(LocalMangaSource, null, null)
 			R.id.button_bookmarks -> router.openBookmarks()
-			R.id.button_more -> router.openSuggestions()
 			R.id.button_downloads -> router.openDownloads()
 		}
 	}
@@ -151,7 +238,7 @@ class ExploreFragment :
 	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
-		viewBinding?.recyclerView?.invalidateItemDecorations()
+		pages.forEach { it?.invalidateItemDecorations() }
 	}
 
 	override fun onCreateActionMode(
@@ -217,16 +304,6 @@ class ExploreFragment :
 		router.openDetails(manga)
 	}
 
-	private fun onGridModeChanged(isGrid: Boolean) {
-		requireViewBinding().recyclerView.layoutManager = if (isGrid) {
-			GridLayoutManager(requireContext(), 4).also { lm ->
-				lm.spanSizeLookup = ExploreGridSpanSizeLookup(checkNotNull(exploreAdapter), lm)
-			}
-		} else {
-			LinearLayoutManager(requireContext())
-		}
-	}
-
 	private fun showSuggestionsTip() {
 		val listener = DialogInterface.OnClickListener { _, which ->
 			viewModel.respondSuggestionTip(which == DialogInterface.BUTTON_POSITIVE)
@@ -239,4 +316,5 @@ class ExploreFragment :
 			.create()
 			.show()
 	}
+
 }

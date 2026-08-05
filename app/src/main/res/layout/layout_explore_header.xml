@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Explore's header: the quick buttons + suggestions carousel (a non-scrolling RecyclerView reusing
+     ExploreAdapter) followed by the "Extensions" row with the manga/novel tabs and Manage button.
+     Overlays the top of Explore's pager and is translated with the pages' scroll — see fragment_explore. -->
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/layout_explore_header"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:background="?android:attr/colorBackground"
+	android:orientation="vertical">
+
+	<androidx.recyclerview.widget.RecyclerView
+		android:id="@+id/recyclerView_header"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:clipChildren="false"
+		android:clipToPadding="false"
+		android:nestedScrollingEnabled="false"
+		android:orientation="vertical"
+		tools:listitem="@layout/item_explore_buttons" />
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center_vertical"
+		android:orientation="horizontal"
+		android:paddingHorizontal="@dimen/grid_spacing"
+		android:paddingVertical="@dimen/grid_spacing">
+
+		<FrameLayout
+			android:layout_width="@dimen/explore_header_side_width"
+			android:layout_height="48dp">
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="start|center_vertical"
+				android:ellipsize="end"
+				android:singleLine="true"
+				android:text="@string/extensions"
+				android:textAppearance="?textAppearanceTitleSmall" />
+
+		</FrameLayout>
+
+		<FrameLayout
+			android:layout_width="0dp"
+			android:layout_height="48dp"
+			android:layout_weight="1"
+			android:background="@drawable/bg_explore_kind_rail">
+
+			<com.google.android.material.tabs.TabLayout
+				android:id="@+id/tabs_kind"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:background="@null"
+				app:tabGravity="fill"
+				app:tabIndicatorAnimationMode="elastic"
+				app:tabIndicatorColor="?attr/colorPrimary"
+				app:tabIndicatorFullWidth="false"
+				app:tabIndicatorHeight="3dp"
+				app:tabMode="fixed"
+				app:tabRippleColor="@null"
+				app:tabSelectedTextColor="?attr/colorPrimary"
+				app:tabTextAppearance="?textAppearanceLabelLarge"
+				app:tabTextColor="?attr/colorOnSurfaceVariant" />
+
+			<View
+				android:layout_width="1dp"
+				android:layout_height="20dp"
+				android:layout_gravity="center"
+				android:background="?attr/colorOutlineVariant"
+				android:importantForAccessibility="no" />
+
+		</FrameLayout>
+
+		<FrameLayout
+			android:layout_width="@dimen/explore_header_side_width"
+			android:layout_height="48dp">
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_manage"
+				style="@style/Widget.Kotatsu.Button.More.Small"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="end|center_vertical"
+				android:minWidth="40dp"
+				android:minHeight="32dp"
+				android:text="@string/manage"
+				tools:text="@string/manage" />
+
+		</FrameLayout>
+
+	</LinearLayout>
+
+</LinearLayout>

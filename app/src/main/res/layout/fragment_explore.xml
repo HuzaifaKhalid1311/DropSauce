@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The FastScroller adds itself to the RecyclerView's parent, and a FragmentContainerView
-     rejects non-fragment children — hence this wrapper. -->
-<FrameLayout
+<!-- Explore is one scrolling surface: the header (buttons, suggestions, the "Extensions" row with the
+     tabs) and below it a pager whose pages hold the manga / novel extensions. The pager is given the
+     height of the taller page (see ExploreFragment.updatePagerHeight), so the shorter list simply ends in
+     empty space and switching tabs never moves anything. The pages don't scroll themselves — this
+     NestedScrollView is the only scroller, which is what keeps the two sides in lockstep. -->
+<androidx.core.widget.NestedScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/scrollView"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+	android:layout_height="match_parent"
+	android:clipToPadding="false">
 
-	<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
-		android:id="@+id/recyclerView"
+	<LinearLayout
+		android:id="@+id/layout_content"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:clipToPadding="false"
-		android:padding="@dimen/list_spacing_normal"
-		android:orientation="vertical"
-		tools:listitem="@layout/item_explore_source_list" />
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
 
-</FrameLayout>
+		<include
+			android:id="@+id/header"
+			layout="@layout/layout_explore_header"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" />
+
+		<androidx.viewpager2.widget.ViewPager2
+			android:id="@+id/pager"
+			android:layout_width="match_parent"
+			android:layout_height="0dp" />
+
+	</LinearLayout>
+
+</androidx.core.widget.NestedScrollView>
