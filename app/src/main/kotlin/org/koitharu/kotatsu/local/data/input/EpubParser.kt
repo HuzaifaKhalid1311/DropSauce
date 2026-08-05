@@ -296,7 +296,8 @@ object EpubParser {
 		return result
 	}
 
-	private fun resolveHref(baseDir: String, href: String): String {
+	/** Resolves a content href against [baseDir], yielding a zip entry path with no leading slash. */
+	internal fun resolveHref(baseDir: String, href: String): String {
 		val decoded = runCatching { java.net.URLDecoder.decode(href, "UTF-8") }.getOrDefault(href)
 		val segments = ArrayList<String>()
 		if (baseDir.isNotEmpty() && !decoded.startsWith('/')) {

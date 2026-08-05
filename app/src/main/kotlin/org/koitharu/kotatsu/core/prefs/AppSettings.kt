@@ -149,8 +149,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_GRID_SIZE, 100)
 		set(value) = prefs.edit { putInt(KEY_GRID_SIZE, value) }
 
-	// Global UI scale as a percent (85 = smaller, 100 = default, 115 = larger). Applied by
-	// overriding densityDpi in BaseActivity.attachBaseContext, so it scales everything.
+	// Global UI scale as a percent (85 = smaller, 100 = default, 115 = larger). Applied by overriding
+	// densityDpi in BaseActivity.attachBaseContext, so it scales everything. It sits on top of the
+	// automatic per-screen baseline there, so 100 means "the reference look" on every device.
 	var uiScalePercent: Int
 		get() = prefs.getInt(KEY_UI_SCALE, 100)
 		set(value) = prefs.edit { putInt(KEY_UI_SCALE, value) }

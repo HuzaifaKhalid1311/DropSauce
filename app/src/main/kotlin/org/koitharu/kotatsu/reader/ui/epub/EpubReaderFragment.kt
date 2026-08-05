@@ -106,6 +106,8 @@ import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isNightMode
 import org.koitharu.kotatsu.core.util.ext.observe
+import org.koitharu.kotatsu.core.util.ext.URI_SCHEME_ZIP
+import org.koitharu.kotatsu.local.data.input.EpubParser
 import org.koitharu.kotatsu.databinding.FragmentReaderEpubBinding
 import org.koitharu.kotatsu.databinding.SheetEpubDictionaryBinding
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -1743,18 +1745,22 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 internal fun resolveChapterLink(currentUrl: String, href: String, chapterUrls: List<String>): Int? {
 	if (href.isBlank()) return null
 	if (href.startsWith("#")) return chapterUrls.indexOf(currentUrl).takeIf { it >= 0 }
-	val current = runCatching { URI(currentUrl) }.getOrNull() ?: return null
-	if (current.scheme == "file") {
-		val currentEntry = current.fragment.orEmpty()
-		val rawTarget = href.substringBefore('#').substringBefore('?').replace(" ", "%20")
+	// An epub chapter is addressed as `file+zip:///path/book.epub#OEBPS/ch1.xhtml`. Both halves come
+	// straight off disk, so they may contain spaces or non-ascii that java.net.URI rejects — match on
+	// plain strings, and only within the same archive so a link can't jump into another book.
+	val scheme = currentUrl.substringBefore(':').lowercase()
+	if (scheme == URI_SCHEME_ZIP || scheme == "file") {
+		val archive = currentUrl.substringBeforeLast('#')
+		val currentEntry = normalizeEpubEntry(currentUrl.substringAfterLast('#', ""))
+		val rawTarget = href.substringBefore('#').substringBefore('?')
 		val targetEntries = setOf(
-			URI("/${currentEntry.replace('\\', '/')}").resolve(rawTarget).normalize().path,
-			URI("/").resolve(rawTarget).normalize().path,
-		).map(::normalizeEpubEntry)
+			EpubParser.resolveHref(currentEntry.substringBeforeLast('/', ""), rawTarget),
+			EpubParser.resolveHref("", rawTarget),
+		)
 		return chapterUrls.indexOfFirst {
-			runCatching { normalizeEpubEntry(URI(it).fragment.orEmpty()) in targetEntries }.getOrDefault(false)
-		}
-			.takeIf { it >= 0 }
+			it.substringBeforeLast('#') == archive &&
+				normalizeEpubEntry(it.substringAfterLast('#', "")) in targetEntries
+		}.takeIf { it >= 0 }
 	}
 	val target = runCatching { URI(currentUrl).resolve(href).normalize().toString().substringBefore('#') }.getOrNull()
 		?: return null

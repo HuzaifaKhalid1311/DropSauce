@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -297,13 +298,54 @@ abstract class BaseActivity<B : ViewBinding> :
 }
 
 /**
- * Scale the whole UI by overriding the display density. [scalePercent] is 100 for the default
- * (no-op); smaller/larger values shrink/grow every dp, sp and image across the app, mirroring the
- * system "Display size" setting.
+ * Smallest width, in dp, that the layouts are designed against — the reference device. Deliberately
+ * a couple of dp below its real width so rounding can never scale the reference device itself.
+ */
+private const val REFERENCE_WIDTH_DP = 424
+
+/** Roughly the system's smallest "Display size" step; shrinking further makes text uncomfortable. */
+private const val MIN_AUTO_SCALE = 0.85f
+
+private var isUiScaleLogged = false
+
+/**
+ * The automatic baseline scale for a screen [smallestScreenWidthDp] dp wide: 1f on the reference
+ * device and on anything wider, and progressively smaller on narrower phones so they get the same
+ * usable canvas the UI was designed for. Without it, rows and top bars that just fit on the
+ * reference device overflow on a common 360dp phone.
+ */
+internal fun autoUiScale(smallestScreenWidthDp: Int): Float {
+	if (smallestScreenWidthDp <= 0) return 1f // unknown configuration - don't guess
+	return (smallestScreenWidthDp / REFERENCE_WIDTH_DP.toFloat()).coerceIn(MIN_AUTO_SCALE, 1f)
+}
+
+/**
+ * Scale the whole UI by overriding the display density, mirroring the system "Display size" setting:
+ * every dp, sp and image across the app shrinks or grows with it. [scalePercent] is the Appearance >
+ * UI scale slider and applies on top of [autoUiScale], so its default of 100 means "looks like the
+ * reference device" on every screen rather than "no scaling".
  */
 private fun Context.withUiScale(scalePercent: Int): Context {
-	if (scalePercent == 100) return this
-	val config = Configuration(resources.configuration)
-	config.densityDpi = (config.densityDpi * scalePercent / 100f).roundToInt()
+	val current = resources.configuration
+	val scale = autoUiScale(current.smallestScreenWidthDp) * scalePercent / 100f
+	val densityDpi = (current.densityDpi * scale).roundToInt().coerceAtLeast(1)
+	if (!isUiScaleLogged) {
+		// Sizing reports are the one thing a screenshot can't diagnose - this line names the canvas.
+		isUiScaleLogged = true
+		Log.i(
+			"UiScale",
+			"sw=${current.smallestScreenWidthDp}dp dpi=${current.densityDpi} " +
+				"slider=$scalePercent% -> scale=$scale dpi=$densityDpi",
+		)
+	}
+	if (densityDpi == current.densityDpi) return this
+	// The dp measurements have to follow the density, or resource qualifiers (sw600dp, w840dp) and
+	// Compose's LocalConfiguration keep reporting the pre-scale canvas.
+	val dpRatio = current.densityDpi / densityDpi.toFloat()
+	val config = Configuration(current)
+	config.densityDpi = densityDpi
+	config.screenWidthDp = (current.screenWidthDp * dpRatio).roundToInt()
+	config.screenHeightDp = (current.screenHeightDp * dpRatio).roundToInt()
+	config.smallestScreenWidthDp = (current.smallestScreenWidthDp * dpRatio).roundToInt()
 	return createConfigurationContext(config)
 }

@@ -31,6 +31,7 @@ import org.koitharu.kotatsu.core.util.ext.toZipUri
 import org.koitharu.kotatsu.local.data.MangaIndex
 import org.koitharu.kotatsu.local.data.hasEpubExtension
 import org.koitharu.kotatsu.local.data.hasZipExtension
+import org.koitharu.kotatsu.local.data.hasMangaContent
 import org.koitharu.kotatsu.local.data.isEpubFile
 import org.koitharu.kotatsu.local.data.isZipArchive
 import org.koitharu.kotatsu.local.data.output.LocalMangaOutput.Companion.ENTRY_NAME_INDEX
@@ -369,7 +370,10 @@ class LocalMangaParser(private val uri: Uri) {
 		private val REGEX_PARENT_PATH_PREFIX = Regex("^(/\\.\\.)+")
 
 		@Blocking
-		fun getOrNull(file: File): LocalMangaParser? = if ((file.isDirectory || file.isZipArchive || file.isEpubFile) && file.canRead()) {
+		fun getOrNull(file: File): LocalMangaParser? = if (
+			file.canRead() &&
+			(file.isZipArchive || file.isEpubFile || (file.isDirectory && file.hasMangaContent()))
+		) {
 			LocalMangaParser(file)
 		} else {
 			null
