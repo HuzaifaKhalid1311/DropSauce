@@ -187,6 +187,7 @@ class SettingsActivity :
 			AppRouter.ACTION_MANAGE_DOWNLOADS -> DownloadsSettingsFragment()
 			AppRouter.ACTION_SOURCE -> SourceSettingsFragment.newInstance(
 				MangaSource(intent.getStringExtra(AppRouter.KEY_SOURCE)),
+				intent.getBooleanExtra(AppRouter.KEY_SCROLL_TO_LANGUAGE, false),
 			)
 
 			Intent.ACTION_VIEW -> {

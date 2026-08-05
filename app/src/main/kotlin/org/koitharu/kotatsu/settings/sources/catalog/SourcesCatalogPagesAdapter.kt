@@ -26,6 +26,8 @@ class SourcesCatalogPagesAdapter(
 
 	private var pages = listOf<ExtensionCatalogPage>()
 	private val content = HashMap<String, List<ListModel>>()
+	private val normalContent = HashMap<String, List<ListModel>>()
+	private var isSearching = false
 	private var refreshing = false
 	private var insets = Insets.NONE
 	private var recyclerView: RecyclerView? = null
@@ -48,8 +50,17 @@ class SourcesCatalogPagesAdapter(
 	fun submitContent(pageId: String, value: List<ListModel>) {
 		dispatchUpdate {
 			content[pageId] = value
+			if (!isSearching) normalContent[pageId] = value
 			val position = indexOf(pageId)
 			if (position >= 0) notifyItemChanged(position, PAYLOAD_CONTENT)
+		}
+	}
+
+	fun setSearching(value: Boolean) {
+		if (isSearching == value) return
+		dispatchUpdate {
+			isSearching = value
+			notifyItemRangeChanged(0, itemCount, PAYLOAD_CONTENT)
 		}
 	}
 
@@ -126,7 +137,7 @@ class SourcesCatalogPagesAdapter(
 		}
 
 		fun update(page: ExtensionCatalogPage) {
-			catalogAdapter.items = content[page.id].orEmpty()
+			catalogAdapter.items = (if (isSearching) content else normalContent)[page.id].orEmpty()
 			binding.swipeRefreshLayout.isRefreshing = refreshing
 			binding.recyclerView.updatePadding(
 				left = insets.left,

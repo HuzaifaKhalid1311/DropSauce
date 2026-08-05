@@ -43,6 +43,11 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import coil3.ImageLoader
@@ -59,6 +64,7 @@ import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
+import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
@@ -103,6 +109,10 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 					onContentChange = viewModel::setEnabledContent,
 					onToggleEmailHidden = viewModel::setEmailHidden,
 					onDeleteData = viewModel::deleteAllData,
+					onOpenLocalBackup = {
+						(requireActivity() as org.koitharu.kotatsu.settings.SettingsActivity)
+							.openFragment(org.koitharu.kotatsu.settings.BackupSettingsFragment::class.java, null, false)
+					},
 				)
 			}
 		}
@@ -151,6 +161,7 @@ private fun SyncScreen(
 	onContentChange: (Set<String>) -> Unit,
 	onToggleEmailHidden: (Boolean) -> Unit,
 	onDeleteData: () -> Unit,
+	onOpenLocalBackup: () -> Unit,
 ) {
 	val colors = CategoryPalette.forKey("sync")
 	var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -206,6 +217,10 @@ private fun SyncScreen(
 		}
 
 		if (state.isSignedIn) {
+			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+			item {
+				LocalBackupSafetyNote(onOpenLocalBackup)
+			}
 			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 			// Sync now + status
 			item {
@@ -322,6 +337,27 @@ private fun SyncScreen(
 			onDismiss = { showDeleteConfirm = false },
 		)
 	}
+}
+
+@Composable
+private fun LocalBackupSafetyNote(onOpenLocalBackup: () -> Unit) {
+	val message = stringResource(R.string.sync_local_backup_note)
+	val link = stringResource(R.string.local_backup)
+	val linkStart = message.indexOf(link).coerceAtLeast(0)
+	PlainInfoSettingsItem(
+		text = buildAnnotatedString {
+			append(message.substring(0, linkStart))
+			withLink(
+				LinkAnnotation.Clickable(
+					tag = "local_backup",
+					styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+					linkInteractionListener = { onOpenLocalBackup() },
+				),
+			) { append(link) }
+			append(message.substring((linkStart + link.length).coerceAtMost(message.length)))
+		},
+		icon = R.drawable.ic_info_outline,
+	)
 }
 
 @Composable

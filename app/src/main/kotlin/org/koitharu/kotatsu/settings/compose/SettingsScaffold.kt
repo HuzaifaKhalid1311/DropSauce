@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.settings.SettingsActivity
  * comfortably into view. (We do NOT use bringIntoViewRequester — it proved unreliable here.)
  */
 val LocalSettingsHighlightScroll = compositionLocalOf<(Float) -> Unit> { {} }
+val LocalSettingsScrollToTop = compositionLocalOf<(Float) -> Unit> { {} }
 
 /**
  * Top-level container for every redesigned settings screen.
@@ -67,6 +68,14 @@ fun SettingsScaffold(
 			Unit
 		}
 	}
+	val scrollToTop = remember(scrollState, coroutineScope) {
+		{ windowY: Float ->
+			val target = (scrollState.value + windowY - viewportTop.floatValue)
+				.toInt().coerceIn(0, scrollState.maxValue)
+			coroutineScope.launch { scrollState.animateScrollTo(target) }
+			Unit
+		}
+	}
 
 	Box(
 		modifier = modifier
@@ -77,7 +86,10 @@ fun SettingsScaffold(
 				viewportHeight.intValue = it.size.height
 			},
 	) {
-		CompositionLocalProvider(LocalSettingsHighlightScroll provides scrollTo) {
+		CompositionLocalProvider(
+			LocalSettingsHighlightScroll provides scrollTo,
+			LocalSettingsScrollToTop provides scrollToTop,
+		) {
 			Column(
 				modifier = Modifier
 					.fillMaxSize()

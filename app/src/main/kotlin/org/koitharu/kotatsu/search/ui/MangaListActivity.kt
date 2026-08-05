@@ -1,12 +1,14 @@
 package org.koitharu.kotatsu.search.ui
 
 import android.graphics.Color
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
+import androidx.appcompat.R as appcompatR
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -41,6 +43,7 @@ import org.koitharu.kotatsu.core.util.ext.consumeSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.end
 import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
 import org.koitharu.kotatsu.core.util.ext.getSerializableExtraCompat
+import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.core.util.ext.start
@@ -100,6 +103,10 @@ class MangaListActivity :
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		viewBinding.statusBarScrim?.blurTarget = viewBinding.container
 		viewBinding.buttonOrder?.setOnClickListener(this)
+		viewBinding.textLanguage?.apply {
+			setTextColor(context.getThemeColor(appcompatR.attr.colorPrimary))
+			setOnClickListener { router.openSourceSettings(source, scrollToLanguage = true) }
+		}
 		configureSortButton()
 		applyTitle()
 		initList(source, filter, sortOrder)
@@ -139,9 +146,12 @@ class MangaListActivity :
 		ctl.setCollapsedSubtitleTextSize(1f)
 		if (lang.isNullOrEmpty()) {
 			ctl.subtitle = null
+			ctl.setOnClickListener(null)
 			viewBinding.textLanguage?.isVisible = false
 			applyExpandedHeight(ctl, extra = 0)
 		} else {
+			ctl.setExpandedSubtitleTextColor(ColorStateList.valueOf(getThemeColor(appcompatR.attr.colorPrimary)))
+			ctl.setOnClickListener { router.openSourceSettings(source, scrollToLanguage = true) }
 			viewBinding.root.doOnLayout { applyLanguage(ctl, name, lang) }
 		}
 	}

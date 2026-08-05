@@ -565,6 +565,12 @@ class SourcesCatalogViewModel @Inject constructor(
 			lnCatalog = available.filter { it.isLnPlugin },
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
+		val installedItems = buildStoreInstalledItems(
+			mode = ExtensionInstallMode.SYSTEM,
+			storeState = storeState,
+			filter = filter,
+			query = q,
+		)
 
 		for (entry in available) {
 			if (entry.packageName in recommendedPackages) continue // surfaced in the Recommended section
@@ -630,6 +636,10 @@ class SourcesCatalogViewModel @Inject constructor(
 			if (recommended.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.recommended_to_install))
 				addAll(recommended)
+			}
+			if (installedItems.isNotEmpty()) {
+				add(ListHeader(R.string.installed))
+				addAll(installedItems)
 			}
 			if (availableItems.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
@@ -745,6 +755,12 @@ class SourcesCatalogViewModel @Inject constructor(
 			lnCatalog = available.filter { it.isLnPlugin },
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
+		val installedItems = buildStoreInstalledItems(
+			mode = ExtensionInstallMode.SANDBOX,
+			storeState = storeState,
+			filter = filter,
+			query = q,
+		)
 
 		val disabledItems = ArrayList<SourceCatalogItem.Extension>()
 		for (entry in available) {
@@ -813,6 +829,10 @@ class SourcesCatalogViewModel @Inject constructor(
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.recommended_to_install))
 				addAll(recommended)
 			}
+			if (installedItems.isNotEmpty()) {
+				add(ListHeader(R.string.installed))
+				addAll(installedItems)
+			}
 			if (disabledItems.isNotEmpty()) {
 				add(org.koitharu.kotatsu.list.ui.model.ListHeader(R.string.available_to_install))
 				addAll(disabledItems)
@@ -821,6 +841,71 @@ class SourcesCatalogViewModel @Inject constructor(
 				add(SourceCatalogItem.Hint(R.drawable.ic_empty_feed, R.string.nothing_found, R.string.no_manga_sources_found))
 			}
 		}
+	}
+
+	private fun buildStoreInstalledItems(
+		mode: ExtensionInstallMode,
+		storeState: ExtensionStoreState,
+		filter: SourcesCatalogFilter,
+		query: String?,
+	): List<SourceCatalogItem.Extension> {
+		val privateMode = mode == ExtensionInstallMode.SANDBOX
+		val sourcesByPackage = allMihonSources.value.groupBy { it.pkgName }
+		val items = mihonExtensionLoader.getInstalledExtensions(appContext, privateMode)
+			.mapNotNull { local ->
+				val owner = storeManager.owner(mode, local) ?: return@mapNotNull null
+				if (owner.id != storeState.store.id) return@mapNotNull null
+				if (settings.isNsfwContentDisabled && local.isNsfw) return@mapNotNull null
+				if (filter.locale != null && local.lang != filter.locale) return@mapNotNull null
+				if (!matchesExtensionQuery(query, local.appName, local.pkgName)) return@mapNotNull null
+				val entry = storeState.catalog.firstOrNull { it.packageName == local.pkgName }
+				val source = sourcesByPackage[local.pkgName]
+					?.firstOrNull { it.language == local.lang }
+					?: sourcesByPackage[local.pkgName]?.firstOrNull()
+				SourceCatalogItem.Extension(
+					packageName = local.pkgName,
+					title = extensionDisplayName(local.appName),
+					subtitle = buildString {
+						append(getExternalExtensionLanguageDisplayName(local.lang))
+						append(" • ").append(local.versionName)
+						if (local.isNsfw) append(" • 18+")
+						append(" • ").append(owner.displayName)
+					},
+					action = if (privateMode) SourceCatalogItem.Extension.Action.DISABLE
+					else SourceCatalogItem.Extension.Action.UNINSTALL,
+					isInProgress = local.pkgName in installingPackages.value,
+					iconUrl = entry?.iconUrl ?: externalRepoRepository.resolveIconUrl(owner.indexUrl, local.pkgName),
+					sourceIconName = source?.name,
+					sourceName = source?.name,
+					storeId = owner.id,
+					isHidden = settings.isMihonPackageHidden(local.pkgName),
+					isPrivateMode = privateMode,
+				)
+			}.toMutableList()
+		for (source in lnPluginManager.getAll()) {
+			val plugin = source.plugin
+			if (plugin.storeId != storeState.store.id) continue
+			if (filter.locale != null && plugin.langCode != filter.locale) continue
+			if (!matchesExtensionQuery(query, plugin.name, plugin.id)) continue
+			val entry = storeState.catalog.firstOrNull { it.packageName == plugin.id }
+			items += SourceCatalogItem.Extension(
+				packageName = plugin.id,
+				title = plugin.name,
+				subtitle = buildString {
+					plugin.languageLabel.takeIf { it.isNotEmpty() }?.let { append(it).append(" • ") }
+					append(plugin.version).append(" • ").append(storeState.store.displayName)
+				},
+				action = SourceCatalogItem.Extension.Action.UNINSTALL,
+				isInProgress = plugin.id in installingPackages.value,
+				iconUrl = plugin.iconUrl.takeIf { it.isNotEmpty() } ?: entry?.iconUrl,
+				sourceIconName = source.name,
+				sourceName = source.name,
+				storeId = plugin.storeId,
+				isHidden = plugin.id in settings.lnHiddenPlugins,
+				isPrivateMode = privateMode,
+			)
+		}
+		return items.sortedBy { it.title.lowercase() }
 	}
 
 	suspend fun getMigrationExtensionCount(): Int {

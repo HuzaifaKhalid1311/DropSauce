@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 
@@ -263,6 +264,13 @@ fun InfoSettingsItem(
 @Composable
 fun PlainInfoSettingsItem(
 	text: String,
+	modifier: Modifier = Modifier,
+	@DrawableRes icon: Int,
+) = PlainInfoSettingsItem(AnnotatedString(text), modifier, icon)
+
+@Composable
+fun PlainInfoSettingsItem(
+	text: AnnotatedString,
 	modifier: Modifier = Modifier,
 	@DrawableRes icon: Int,
 ) {

@@ -23,6 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
@@ -67,6 +69,7 @@ import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
+import org.koitharu.kotatsu.settings.compose.LocalSettingsScrollToTop
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 
 @AndroidEntryPoint
@@ -159,6 +162,7 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 					onUninstall = { pkg -> uninstallExtension(pkg) },
 					onDeletePlugin = { id -> confirmDeletePlugin(id) },
 					onLanguageSelected = { lang -> viewModel.setActiveLanguage(lang) },
+					scrollToLanguage = requireArguments().getBoolean(ARG_SCROLL_TO_LANGUAGE),
 				)
 			}
 		}
@@ -289,9 +293,12 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 	companion object {
 		private const val DEFAULT_VARIANT_KEY = " default"
 
-		fun newInstance(source: MangaSource) = SourceSettingsFragment().withArgs(1) {
+		fun newInstance(source: MangaSource, scrollToLanguage: Boolean = false) = SourceSettingsFragment().withArgs(2) {
 			putString(AppRouter.KEY_SOURCE, source.name)
+			putBoolean(ARG_SCROLL_TO_LANGUAGE, scrollToLanguage)
 		}
+
+		private const val ARG_SCROLL_TO_LANGUAGE = "scroll_to_language"
 	}
 }
 
@@ -322,6 +329,7 @@ private fun SourceSettingsScreen(
 	onUninstall: (String) -> Unit,
 	onDeletePlugin: (String) -> Unit,
 	onLanguageSelected: (String) -> Unit,
+	scrollToLanguage: Boolean,
 ) {
 	// The active language drives an in-place reload of the whole screen.
 	var selectedLang by remember { mutableStateOf(initialLang) }
@@ -378,6 +386,7 @@ private fun SourceSettingsScreen(
 						selectedLang = lang
 						onLanguageSelected(lang)
 					},
+					scrollToTopOnAppear = scrollToLanguage,
 				)
 			}
 		}
@@ -553,8 +562,19 @@ private fun LanguageRadioGroup(
 	options: List<LanguageOption>,
 	selectedLang: String?,
 	onSelect: (String) -> Unit,
+	scrollToTopOnAppear: Boolean,
 ) {
-	SettingsGroup(title = stringResource(R.string.language)) {
+	val scrollToTop = LocalSettingsScrollToTop.current
+	var didScroll by remember { mutableStateOf(false) }
+	SettingsGroup(
+		modifier = Modifier.onGloballyPositioned { coordinates ->
+			if (scrollToTopOnAppear && !didScroll) {
+				didScroll = true
+				scrollToTop(coordinates.positionInWindow().y)
+			}
+		},
+		title = stringResource(R.string.language),
+	) {
 		options.forEach { option ->
 			item { pos ->
 				val isSelected = option.lang == selectedLang

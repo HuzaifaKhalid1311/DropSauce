@@ -198,7 +198,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 				val page = pagesAdapter.pageAt(position) ?: return
 				selectedPageId = page.id
 				viewModel.selectPage(page.id)
-				invalidateOptionsMenu()
 				updateScrollToTopVisibility()
 			}
 		})
@@ -386,6 +385,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+		pagesAdapter.setSearching(true)
 		setSearchTitleExpanded(true)
 		// The title inset that keeps a toolbar title clear of the back button also pushed the search
 		// field 16dp past it, leaving dead space. The field starts right after the button instead.
@@ -398,6 +398,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+		pagesAdapter.setSearching(false)
 		setSearchTitleExpanded(false)
 		viewBinding.toolbar.contentInsetStartWithNavigation =
 			resources.getDimensionPixelSize(R.dimen.top_bar_title_inset_with_navigation)
