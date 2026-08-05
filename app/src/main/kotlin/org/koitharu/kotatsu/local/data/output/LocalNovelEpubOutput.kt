@@ -38,6 +38,7 @@ class LocalNovelEpubOutput(
 	/** Spine order is the entry name, which sorts lexically into reading order by construction. */
 	private val spine = sortedMapOf<String, String>()
 	private var coverEntry: String? = null
+	private var isFinished = false
 
 	init {
 		index.setMangaInfo(manga)
@@ -75,6 +76,23 @@ class LocalNovelEpubOutput(
 	override suspend fun flushChapter(chapter: MangaChapter): Boolean = false
 
 	override suspend fun finish() = mutex.withLock {
+		finishImpl()
+	}
+
+	/** As in the zip output: keep the chapters already written instead of discarding the whole book. */
+	override suspend fun cleanup() = mutex.withLock {
+		if (isFinished || spine.isEmpty()) {
+			output.file.deleteAwait()
+			return@withLock
+		}
+		if (rootFile.exists()) {
+			runInterruptible(Dispatchers.IO) { mergeWith(rootFile) }
+		}
+		finishImpl()
+	}
+
+	private suspend fun finishImpl() {
+		isFinished = true
 		runInterruptible(Dispatchers.IO) {
 			output.use { zip ->
 				zip.put(ENTRY_MIMETYPE, MIMETYPE_EPUB)
@@ -87,11 +105,6 @@ class LocalNovelEpubOutput(
 		}
 		rootFile.deleteAwait()
 		output.file.renameTo(rootFile)
-		Unit
-	}
-
-	override suspend fun cleanup() = mutex.withLock {
-		output.file.deleteAwait()
 		Unit
 	}
 

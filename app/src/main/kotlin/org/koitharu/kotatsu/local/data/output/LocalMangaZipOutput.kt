@@ -27,6 +27,11 @@ class LocalMangaZipOutput(
 	private val index = MangaIndex(null)
 	private val mutex = Mutex()
 
+	/** Pages are added one by one, so a chapter is only indexed once [flushChapter] confirms it is complete. */
+	private val pendingChapters = HashMap<Long, IndexedValue<MangaChapter>>()
+	private var completedChapters = 0
+	private var isFinished = false
+
 	init {
 		if (!manga.isLocal) {
 			index.setMangaInfo(manga)
@@ -67,12 +72,42 @@ class LocalMangaZipOutput(
 			runInterruptible(Dispatchers.IO) {
 				output.put(name, file)
 			}
-			index.addChapter(chapter, null)
+			pendingChapters[chapter.value.id] = chapter
 		}
 
-	override suspend fun flushChapter(chapter: MangaChapter): Boolean = false
+	override suspend fun flushChapter(chapter: MangaChapter): Boolean {
+		mutex.withLock {
+			pendingChapters.remove(chapter.id)?.let {
+				index.addChapter(it, null)
+				completedChapters++
+			}
+		}
+		return false // a zip has no on-disk state until finish()
+	}
 
 	override suspend fun finish() = mutex.withLock {
+		finishImpl()
+	}
+
+	/**
+	 * Salvages the chapters that did make it: an interrupted download is finalized instead of thrown away,
+	 * so only the chapter that was in progress is lost.
+	 */
+	override suspend fun cleanup() = mutex.withLock {
+		if (isFinished || completedChapters == 0) {
+			output.file.deleteAwait()
+			return@withLock
+		}
+		if (rootFile.exists()) {
+			runInterruptible(Dispatchers.IO) { mergeWith(rootFile) }
+		}
+		finishImpl()
+		// ponytail: pages of the interrupted chapter stay in the archive as unreferenced entries;
+		// they are dropped on the next merge. Rewriting the zip to strip them is not worth the extra pass.
+	}
+
+	private suspend fun finishImpl() {
+		isFinished = true
 		runInterruptible(Dispatchers.IO) {
 			output.use { output ->
 				output.put(ENTRY_NAME_INDEX, index.toString())
@@ -81,12 +116,6 @@ class LocalMangaZipOutput(
 		}
 		rootFile.deleteAwait()
 		output.file.renameTo(rootFile)
-		Unit
-	}
-
-	override suspend fun cleanup() = mutex.withLock {
-		output.file.deleteAwait()
-		Unit
 	}
 
 	override fun close() {

@@ -195,6 +195,7 @@ class DownloadWorker @AssistedInject constructor(
 			val destination = localMangaRepository.getOutputDir(manga, task.destination)
 			checkNotNull(destination) { applicationContext.getString(R.string.cannot_find_available_storage) }
 			var output: LocalMangaOutput? = null
+			var isCompleted = false
 			try {
 				if (manga.isLocal) {
 					manga = localMangaRepository.getRemoteManga(manga)
@@ -282,6 +283,7 @@ class DownloadWorker @AssistedInject constructor(
 				val localManga = LocalMangaParser(output.rootFile).getManga(withDetails = false)
 				localStorageChanges.emit(localManga)
 				publishState(currentState.copy(localManga = localManga, eta = -1L, isStuck = false))
+				isCompleted = true
 			} catch (e: Exception) {
 				if (e !is CancellationException) {
 					publishState(
@@ -295,8 +297,14 @@ class DownloadWorker @AssistedInject constructor(
 			} finally {
 				withContext(NonCancellable) {
 					applicationContext.unregisterReceiver(pausingReceiver)
-					output?.closeQuietly()
+					// cleanup() may still write to the output (salvaging a partial archive), so it goes first
 					output?.cleanup()
+					output?.closeQuietly()
+					if (!isCompleted && output != null && output.rootFile.exists()) {
+						runCatchingCancellable {
+							localStorageChanges.emit(LocalMangaParser(output.rootFile).getManga(withDetails = false))
+						}.onFailure(Throwable::printStackTraceDebug)
+					}
 					destination.listFiles(TempFileFilter())?.forEach {
 						it.deleteAwait()
 					}
