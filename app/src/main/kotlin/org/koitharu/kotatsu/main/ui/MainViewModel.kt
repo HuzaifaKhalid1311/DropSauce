@@ -99,7 +99,14 @@ class MainViewModel @Inject constructor(
 
 	val appUpdate = appUpdateRepository.observeAvailableUpdate()
 
-	val feedCounter = trackingRepository.observeUnreadUpdatesCount()
+	// A negative counter renders as a plain dot (see MainNavigationDelegate.setCounter), which is what
+	// the "dot instead of a count" preference asks for.
+	val feedCounter = combine(
+		trackingRepository.observeUnreadUpdatesCount(),
+		settings.observeAsFlow(AppSettings.KEY_FEED_COUNTER_DOT) { isFeedCounterAsDot },
+	) { counter, asDot ->
+		if (asDot && counter > 0) -1 else counter
+	}
 		.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, 0)
 

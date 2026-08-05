@@ -23,7 +23,7 @@ class AutoUiScaleTest {
 	fun `a common narrow phone gets the reference canvas back`() {
 		val scale = autoUiScale(360)
 
-		assertEquals(0.85f, scale, 0.005f)
+		assertEquals(360 / 424f, scale, 0.005f)
 		assertTrue("canvas should reach the design width", 360 / scale >= 420f)
 	}
 
@@ -36,8 +36,8 @@ class AutoUiScaleTest {
 
 	@Test
 	fun `scale never drops below the floor`() {
-		assertEquals(0.85f, autoUiScale(240), 0f)
-		assertEquals(0.85f, autoUiScale(1), 0f)
+		assertEquals(0.80f, autoUiScale(240), 0f)
+		assertEquals(0.80f, autoUiScale(1), 0f)
 	}
 
 	@Test

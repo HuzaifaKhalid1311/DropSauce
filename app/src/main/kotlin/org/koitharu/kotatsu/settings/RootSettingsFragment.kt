@@ -28,7 +28,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -42,6 +47,7 @@ import org.koitharu.kotatsu.settings.search.SettingsSearchViewModel
 import org.koitharu.kotatsu.settings.about.AboutSettingsFragment
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -80,6 +86,7 @@ class RootSettingsFragment : BaseComposeSettingsFragment(R.string.settings) {
 					updateAvailable = update != null,
 					onSectionClick = { section -> openSection(section) },
 					onUpdateClick = { router.openAppUpdate() },
+					onOpenGithub = ::openGithub,
 				)
 			}
 		}
@@ -93,6 +100,10 @@ class RootSettingsFragment : BaseComposeSettingsFragment(R.string.settings) {
 			SettingsSearchMenuProvider(searchViewModel),
 			viewLifecycleOwner,
 		)
+	}
+
+	private fun openGithub() {
+		router.openExternalBrowser(getString(R.string.url_github), getString(R.string.source_code))
 	}
 
 	private fun openSection(section: SettingsSection) {
@@ -167,6 +178,7 @@ private fun RootSettingsContent(
 	updateAvailable: Boolean,
 	onSectionClick: (SettingsSection) -> Unit,
 	onUpdateClick: () -> Unit,
+	onOpenGithub: () -> Unit,
 ) {
 	val ctx = LocalContext.current
 	SettingsScaffold {
@@ -201,8 +213,32 @@ private fun RootSettingsContent(
 				}
 			}
 		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+		item { GithubStarNote(onOpenGithub = onOpenGithub) }
 		item { Spacer(Modifier.height(24.dp).fillMaxWidth()) }
 	}
+}
+
+/** Closing note on the settings landing screen: a nudge to star the repo, with "GitHub" as a link. */
+@Composable
+private fun GithubStarNote(onOpenGithub: () -> Unit) {
+	val message = stringResource(R.string.github_star_note)
+	val link = stringResource(R.string.github)
+	val linkStart = message.indexOf(link).coerceAtLeast(0)
+	PlainInfoSettingsItem(
+		text = buildAnnotatedString {
+			append(message.substring(0, linkStart))
+			withLink(
+				LinkAnnotation.Clickable(
+					tag = "github",
+					styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+					linkInteractionListener = { onOpenGithub() },
+				),
+			) { append(link) }
+			append(message.substring((linkStart + link.length).coerceAtMost(message.length)))
+		},
+		icon = R.drawable.ic_star_rate,
+	)
 }
 
 /**

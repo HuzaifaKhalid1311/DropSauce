@@ -6,7 +6,7 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
-	<HorizontalScrollView
+	<org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView
 		android:id="@+id/scrollView_filter"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
@@ -29,7 +29,7 @@
 			app:chipStyle="@style/Widget.Kotatsu.Chip.Filter"
 			app:singleLine="true" />
 
-	</HorizontalScrollView>
+	</org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView>
 
 	<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
 		android:id="@+id/recyclerView_chapters"

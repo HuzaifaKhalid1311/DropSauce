@@ -303,8 +303,8 @@ abstract class BaseActivity<B : ViewBinding> :
  */
 private const val REFERENCE_WIDTH_DP = 424
 
-/** Roughly the system's smallest "Display size" step; shrinking further makes text uncomfortable. */
-private const val MIN_AUTO_SCALE = 0.85f
+/** A little below the system's smallest "Display size" step; further makes text uncomfortable. */
+private const val MIN_AUTO_SCALE = 0.80f
 
 private var isUiScaleLogged = false
 

@@ -144,6 +144,8 @@
     <string name="feed_gestures_tip">Swipe an entry right to remove it from the feed, or left to mark it as read. You can turn these gestures off in Settings › Check for new chapters.</string>
     <string name="feed_swipe_gestures">Feed swipe gestures</string>
     <string name="feed_swipe_gestures_summary">Swipe feed entries to mark them as read or remove them</string>
+    <string name="feed_counter_dot">Dot instead of a count</string>
+    <string name="feed_counter_dot_summary">Mark the Feed tab with a plain dot instead of the number of unread updates</string>
     <string name="update_all">Update all</string>
     <string name="install">Install</string>
     <string name="uninstall">Uninstall</string>
@@ -319,6 +321,8 @@
     <string name="sync_delete_data_summary">Remove the backup stored on your Google Drive</string>
     <string name="sync_local_backup_note">Google Drive sync adds another layer of protection, but it should not be your only safeguard. Keep creating local backups periodically so you can recover your library if cloud data is unavailable or accidentally changed.</string>
     <string name="local_backup">local backups</string>
+    <string name="github_star_note">Enjoying the app? Star it on GitHub — it helps other readers find it.</string>
+    <string name="github" translatable="false">GitHub</string>
     <string name="sync_delete_confirm_message">This permanently deletes the synced data from your Google Drive. Data on your devices is kept. Continue?</string>
     <string name="sync_data_deleted">Sync data deleted from Google Drive</string>
     <string name="sync_content_favourites">Favorites &amp; categories</string>
