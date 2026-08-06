@@ -10,6 +10,7 @@
 	<string name="anilist_clientId" translatable="false">9887</string>
 	<string name="anilist_clientSecret" translatable="false">wrMqFosItQWsmB8dtAHfIFPDt15FfQi2ZGiKkJoW</string>
 	<string name="mal_clientId" translatable="false">6cd8e6349e9a36bc1fc1ab97703c9fd1</string>
+	<string name="mangabaka_clientId" translatable="false">fYKQAWhMFjYnXOKiIcrPKIZKQMjhAdBJ</string>
 	<string name="discord_app_id" translatable="false">1444242650067894303</string>
 	<string name="app_icon_url" translatable="false">https://raw.githubusercontent.com/HuzaifaKhalid1311/DropSauce/main/assets/icon.png</string>
 	<string-array name="values_theme" translatable="false">

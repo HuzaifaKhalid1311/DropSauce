@@ -26,6 +26,9 @@ import org.koitharu.kotatsu.scrobbling.kitsu.domain.KitsuScrobbler
 import org.koitharu.kotatsu.scrobbling.mal.data.MALAuthenticator
 import org.koitharu.kotatsu.scrobbling.mal.data.MALInterceptor
 import org.koitharu.kotatsu.scrobbling.mal.domain.MALScrobbler
+import org.koitharu.kotatsu.scrobbling.mangabaka.data.MangaBakaAuthenticator
+import org.koitharu.kotatsu.scrobbling.mangabaka.data.MangaBakaInterceptor
+import org.koitharu.kotatsu.scrobbling.mangabaka.domain.MangaBakaScrobbler
 import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriAuthenticator
 import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriInterceptor
 import org.koitharu.kotatsu.scrobbling.shikimori.domain.ShikimoriScrobbler
@@ -69,6 +72,18 @@ object ScrobblingModule {
 	): OkHttpClient = baseHttpClient.newBuilder().apply {
 		authenticator(authenticator)
 		addInterceptor(AniListInterceptor(storage))
+	}.build()
+
+	@Provides
+	@Singleton
+	@ScrobblerType(ScrobblerService.MANGABAKA)
+	fun provideMangaBakaHttpClient(
+		@BaseHttpClient baseHttpClient: OkHttpClient,
+		authenticator: MangaBakaAuthenticator,
+		@ScrobblerType(ScrobblerService.MANGABAKA) storage: ScrobblerStorage,
+	): OkHttpClient = baseHttpClient.newBuilder().apply {
+		authenticator(authenticator)
+		addInterceptor(MangaBakaInterceptor(storage))
 	}.build()
 
 	@Provides
@@ -118,11 +133,25 @@ object ScrobblingModule {
 	): ScrobblerStorage = ScrobblerStorage(context, ScrobblerService.KITSU)
 
 	@Provides
+	@Singleton
+	@ScrobblerType(ScrobblerService.MANGABAKA)
+	fun provideMangaBakaStorage(
+		@ApplicationContext context: Context,
+	): ScrobblerStorage = ScrobblerStorage(context, ScrobblerService.MANGABAKA)
+
+	@Provides
 	@ElementsIntoSet
 	fun provideScrobblers(
 		shikimoriScrobbler: ShikimoriScrobbler,
 		aniListScrobbler: AniListScrobbler,
 		malScrobbler: MALScrobbler,
-		kitsuScrobbler: KitsuScrobbler
-	): Set<@JvmSuppressWildcards Scrobbler> = setOf(shikimoriScrobbler, aniListScrobbler, malScrobbler, kitsuScrobbler)
+		kitsuScrobbler: KitsuScrobbler,
+		mangaBakaScrobbler: MangaBakaScrobbler,
+	): Set<@JvmSuppressWildcards Scrobbler> = setOf(
+		shikimoriScrobbler,
+		aniListScrobbler,
+		malScrobbler,
+		kitsuScrobbler,
+		mangaBakaScrobbler,
+	)
 }

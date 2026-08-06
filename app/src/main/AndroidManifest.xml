@@ -207,6 +207,7 @@
 				<data android:host="anilist-auth" />
 				<data android:host="mal-auth" />
 				<data android:host="kitsu-auth" />
+				<data android:host="mangabaka-auth" />
 			</intent-filter>
 
 		</activity>

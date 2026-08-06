@@ -39,6 +39,7 @@ import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.ui.selector.adapter.ScrobblerMangaSelectionDecoration
 import org.koitharu.kotatsu.scrobbling.common.ui.selector.adapter.ScrobblerSelectorAdapter
 
@@ -258,6 +259,10 @@ class ScrobblingSelectorSheet :
 			tab.setIcon(entry.scrobblerService.iconResId)
 			tab.setText(entry.scrobblerService.titleResId)
 			tabs.addTab(tab)
+			if (entry.scrobblerService == ScrobblerService.MANGABAKA) {
+				// TabLayout tints every icon, which flattens the bitmap logo into a silhouette
+				tab.icon?.setTintList(null)
+			}
 			if (entry.scrobblerService.id == selectedId) {
 				tab.select()
 			}

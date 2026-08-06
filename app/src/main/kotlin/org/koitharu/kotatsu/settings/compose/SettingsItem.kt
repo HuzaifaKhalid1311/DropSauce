@@ -130,7 +130,12 @@ fun SettingsItem(
 						tintIcon = tintIcon,
 					)
 				} else {
-					SettingsIconPlain(iconRes = icon, enabled = enabled, tintOverride = accentColor)
+					SettingsIconPlain(
+						iconRes = icon,
+						enabled = enabled,
+						tintOverride = accentColor,
+						tintIcon = tintIcon,
+					)
 				}
 				Spacer(Modifier.width(14.dp))
 			}
@@ -224,7 +229,12 @@ private fun SettingsIconBubble(
 }
 
 @Composable
-private fun SettingsIconPlain(@DrawableRes iconRes: Int, enabled: Boolean, tintOverride: Color? = null) {
+private fun SettingsIconPlain(
+	@DrawableRes iconRes: Int,
+	enabled: Boolean,
+	tintOverride: Color? = null,
+	tintIcon: Boolean = true,
+) {
 	val tint = (tintOverride ?: MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = if (enabled) 1f else 0.4f)
 	Box(
 		modifier = Modifier.size(44.dp),
@@ -234,7 +244,9 @@ private fun SettingsIconPlain(@DrawableRes iconRes: Int, enabled: Boolean, tintO
 			painter = rememberAnyDrawablePainter(iconRes),
 			contentDescription = null,
 			modifier = Modifier.size(24.dp),
-			colorFilter = ColorFilter.tint(tint),
+			// a bitmap logo would collapse to a flat silhouette if tinted
+			colorFilter = if (tintIcon) ColorFilter.tint(tint) else null,
+			alpha = if (enabled) 1f else 0.4f,
 		)
 	}
 }

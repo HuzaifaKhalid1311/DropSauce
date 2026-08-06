@@ -259,6 +259,7 @@ private fun ServicesScreen(
 					ScrobblerService.ANILIST to R.drawable.ic_anilist,
 					ScrobblerService.KITSU to R.drawable.ic_kitsu,
 					ScrobblerService.MAL to R.drawable.ic_mal,
+					ScrobblerService.MANGABAKA to R.drawable.ic_mangabaka,
 					ScrobblerService.SHIKIMORI to R.drawable.ic_shikimori,
 				)
 				SettingsGroup {
@@ -268,6 +269,7 @@ private fun ServicesScreen(
 								title = stringResource(svc.titleResId),
 								subtitle = scrobblerSummaries[svc],
 								icon = icon,
+								tintIcon = svc != ScrobblerService.MANGABAKA,
 								shape = pos.shape,
 								onClick = { onScrobblerClick(svc) },
 							)

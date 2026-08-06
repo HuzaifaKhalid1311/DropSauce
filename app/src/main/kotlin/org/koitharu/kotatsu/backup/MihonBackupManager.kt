@@ -586,6 +586,7 @@ class MihonBackupManager @Inject constructor(
     2 -> 2 // AniList
     3 -> 4 // Kitsu
     4 -> 1 // Shikimori
+    11 -> 5 // MangaBaka
     else -> null
   }
 
