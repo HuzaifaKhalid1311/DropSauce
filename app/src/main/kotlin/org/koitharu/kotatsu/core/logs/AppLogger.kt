@@ -101,7 +101,7 @@ class AppLogger @Inject constructor(
 			var bytesWritten = sessionFile.length()
 			try {
 				val pid = android.os.Process.myPid().toString()
-				val startedProcess = Runtime.getRuntime().exec(arrayOf("logcat", "-v", "threadtime", "--pid", pid))
+				val startedProcess = Runtime.getRuntime().exec(arrayOf("logcat", "-v", "threadtime"))
 				process = startedProcess
 				synchronized(stateLock) {
 					if (!isEnabled || generation != readerGeneration) {
@@ -127,6 +127,7 @@ class AppLogger @Inject constructor(
 				BufferedReader(InputStreamReader(startedProcess.inputStream)).use { reader ->
 					while (isActive) {
 						val line = reader.readLine() ?: break
+						if (!isOwnPid(line, pid)) continue
 						if (!buffer.offer(line)) {
 							buffer.poll()
 							buffer.offer(line)
@@ -168,6 +169,24 @@ class AppLogger @Inject constructor(
 		}
 		readerJob = job
 		job.start()
+	}
+
+	/**
+	 * threadtime format: `MM-DD HH:MM:SS.mmm  PID  TID L tag: message`.
+	 * We spawn an unfiltered logcat (see comment at exec) so the pid check happens here.
+	 */
+	private fun isOwnPid(line: String, pid: String): Boolean {
+		var i = 0
+		var field = 0
+		while (field < 2) { // skip date and time
+			while (i < line.length && line[i] == ' ') i++
+			while (i < line.length && line[i] != ' ') i++
+			field++
+		}
+		while (i < line.length && line[i] == ' ') i++
+		val start = i
+		while (i < line.length && line[i] != ' ') i++
+		return i - start == pid.length && line.regionMatches(start, pid, 0, pid.length)
 	}
 
 	private fun stopReadingLocked(): Job? {
