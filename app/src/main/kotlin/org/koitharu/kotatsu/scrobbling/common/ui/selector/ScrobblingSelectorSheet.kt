@@ -39,6 +39,7 @@ import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.ui.selector.adapter.ScrobblerMangaSelectionDecoration
 import org.koitharu.kotatsu.scrobbling.common.ui.selector.adapter.ScrobblerSelectorAdapter
@@ -87,6 +88,7 @@ class ScrobblingSelectorSheet :
 		setupSearch(binding)
 		onBackPressedDispatcher.addCallback(viewLifecycleOwner, searchBackCallback)
 		initTabs()
+		initTypeTabs()
 
 		viewModel.content.observe(viewLifecycleOwner, listAdapter)
 		viewModel.selectedItemId.observe(viewLifecycleOwner) {
@@ -105,6 +107,7 @@ class ScrobblingSelectorSheet :
 				binding.buttonDone.icon = null
 			}
 			binding.tabs.setTabsEnabled(!isLoading)
+			binding.tabsType.setTabsEnabled(!isLoading)
 		}
 		viewModel.selectedScrobblerIndex.observe(viewLifecycleOwner) { index ->
 			val tab = binding.tabs.getTabAt(index)
@@ -267,5 +270,25 @@ class ScrobblingSelectorSheet :
 				tab.select()
 			}
 		}
+	}
+
+	private fun initTypeTabs() {
+		val tabs = requireViewBinding().tabsType
+		tabs.removeAllTabs()
+		tabs.clearOnTabSelectedListeners()
+		for (type in ScrobblerMangaType.entries) {
+			tabs.addTab(tabs.newTab().setText(type.titleResId))
+		}
+		// select before listening so restoring the initial tab does not kick off a redundant reload
+		tabs.getTabAt(viewModel.selectedTypeIndex.value)?.select()
+		tabs.addOnTabSelectedListener(
+			object : TabLayout.OnTabSelectedListener {
+				override fun onTabSelected(tab: TabLayout.Tab) = viewModel.setTypeIndex(tab.position)
+
+				override fun onTabUnselected(tab: TabLayout.Tab?) = Unit
+
+				override fun onTabReselected(tab: TabLayout.Tab?) = Unit
+			},
+		)
 	}
 }

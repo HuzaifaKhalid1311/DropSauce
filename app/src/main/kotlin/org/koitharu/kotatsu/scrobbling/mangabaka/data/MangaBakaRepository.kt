@@ -21,9 +21,11 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
+import java.net.HttpURLConnection
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.inject.Inject
@@ -115,10 +117,11 @@ class MangaBakaRepository @Inject constructor(
 		return db.getScrobblingDao().delete(ScrobblerService.MANGABAKA.id, mangaId)
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
 		val url = "$BASE_API_URL/series/search".toHttpUrl().newBuilder()
 			.addQueryParameter("q", query)
-			// Mihon filters novels out here; DropSauce reads novels too, so they stay searchable
+			// Mihon hardcodes type_not=novel; DropSauce reads novels too, so the tab decides
+			.addQueryParameter(if (type.isNovel) "type" else "type_not", "novel")
 			.addQueryParameter("limit", MANGA_PAGE_SIZE.toString())
 			.addQueryParameter("page", (offset / MANGA_PAGE_SIZE + 1).toString())
 			.build()
@@ -141,6 +144,11 @@ class MangaBakaRepository @Inject constructor(
 	}
 
 	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+		// The POST forces state=reading, so an entry already in the library is taken as-is instead
+		libraryEntry(scrobblerMangaId)?.let {
+			saveLibraryEntry(mangaId, scrobblerMangaId, it, comment = null)
+			return
+		}
 		val body = JSONObject().put("state", "reading").toString().toJsonBody()
 		val request = Request.Builder()
 			.url("$BASE_API_URL/my/library/$scrobblerMangaId")
@@ -196,17 +204,34 @@ class MangaBakaRepository @Inject constructor(
 	}
 
 	private suspend fun fetchRate(mangaId: Long, targetId: Long, comment: String?): ScrobblingEntity {
-		val request = Request.Builder().url("$BASE_API_URL/my/library/$targetId").get().build()
-		val json = okHttp.newCall(request).await().parseJson().getJSONObject("data")
-		return saveRate(
-			mangaId = mangaId,
-			targetId = targetId,
-			status = json.getStringOrNull("state"),
-			chapter = json.optDouble("progress_chapter", 0.0).takeUnless { it.isNaN() }?.toInt() ?: 0,
-			rating = (json.optInt("rating", 0).toFloat() / RATING_MAX).coerceIn(0f, 1f),
-			comment = comment,
-		)
+		val json = checkNotNull(libraryEntry(targetId)) { "Series $targetId is not in the library" }
+		return saveLibraryEntry(mangaId, targetId, json, comment)
 	}
+
+	/** `null` when the series is not in the user's library yet. */
+	private suspend fun libraryEntry(targetId: Long): JSONObject? {
+		val request = Request.Builder().url("$BASE_API_URL/my/library/$targetId").get().build()
+		val response = okHttp.newCall(request).await()
+		if (response.code == HttpURLConnection.HTTP_NOT_FOUND) {
+			response.close()
+			return null
+		}
+		return response.parseJson().getJSONObject("data")
+	}
+
+	private suspend fun saveLibraryEntry(
+		mangaId: Long,
+		targetId: Long,
+		json: JSONObject,
+		comment: String?,
+	) = saveRate(
+		mangaId = mangaId,
+		targetId = targetId,
+		status = json.getStringOrNull("state"),
+		chapter = json.optDouble("progress_chapter", 0.0).takeUnless { it.isNaN() }?.toInt() ?: 0,
+		rating = (json.optInt("rating", 0).toFloat() / RATING_MAX).coerceIn(0f, 1f),
+		comment = comment,
+	)
 
 	private suspend fun saveRate(
 		mangaId: Long,

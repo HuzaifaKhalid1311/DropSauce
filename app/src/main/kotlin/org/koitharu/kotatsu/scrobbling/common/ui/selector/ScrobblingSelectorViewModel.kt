@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.ui.BaseViewModel
@@ -31,6 +32,7 @@ import org.koitharu.kotatsu.parsers.util.ifZero
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
 import org.koitharu.kotatsu.scrobbling.common.ui.selector.model.ScrobblerHint
 import javax.inject.Inject
@@ -48,6 +50,11 @@ class ScrobblingSelectorViewModel @Inject constructor(
 
 	val selectedScrobblerIndex = MutableStateFlow(0)
 
+	/** Linking a novel should not open on a page of comics, so the source decides the initial tab. */
+	val selectedTypeIndex = MutableStateFlow(
+		if (manga.source.isNovelSource) ScrobblerMangaType.NOVEL.ordinal else ScrobblerMangaType.MANGA.ordinal,
+	)
+
 	private val scrobblerMangaList = MutableStateFlow<List<ScrobblerManga>>(emptyList())
 	private val hasNextPage = MutableStateFlow(true)
 	private val listError = MutableStateFlow<Throwable?>(null)
@@ -57,6 +64,9 @@ class ScrobblingSelectorViewModel @Inject constructor(
 
 	private val currentScrobbler: Scrobbler
 		get() = availableScrobblers[selectedScrobblerIndex.requireValue()]
+
+	private val currentType: ScrobblerMangaType
+		get() = ScrobblerMangaType.entries[selectedTypeIndex.requireValue()]
 
 	val content: StateFlow<List<ListModel>> = combine(
 		scrobblerMangaList,
@@ -125,7 +135,7 @@ class ScrobblingSelectorViewModel @Inject constructor(
 			listError.value = null
 			val offset = if (append) scrobblerMangaList.value.size else 0
 			runCatchingCancellable {
-				currentScrobbler.findManga(checkNotNull(searchQuery.value), offset)
+				currentScrobbler.findManga(checkNotNull(searchQuery.value), offset, currentType)
 			}.onSuccess { list ->
 				val newList = (if (append) {
 					scrobblerMangaList.value + list
@@ -153,20 +163,19 @@ class ScrobblingSelectorViewModel @Inject constructor(
 			return
 		}
 		doneJob = launchLoadingJob(Dispatchers.Default) {
-			val prevInfo = currentScrobbler.getScrobblingInfoOrNull(manga.id)
-			currentScrobbler.linkManga(manga.id, targetId)
 			val history = historyRepository.getOne(manga)
-			currentScrobbler.updateScrobblingInfo(
+			val canPushProgress = currentScrobbler.linkManga(
 				mangaId = manga.id,
-				rating = prevInfo?.rating ?: 0f,
-				status = prevInfo?.status ?: when {
+				targetId = targetId,
+				fallbackStatus = when {
 					history == null -> ScrobblingStatus.PLANNED
 					ReadingProgress.isCompleted(history.percent) -> ScrobblingStatus.COMPLETED
 					else -> ScrobblingStatus.READING
 				},
-				comment = prevInfo?.comment,
 			)
-			if (history != null) {
+			// A tracker that is already ahead of local history keeps its count; progress sync pulls it
+			// back into the app instead of the app pushing it backwards.
+			if (history != null && canPushProgress) {
 				currentScrobbler.scrobble(
 					manga = manga,
 					chapterId = history.chapterId,
@@ -179,6 +188,12 @@ class ScrobblingSelectorViewModel @Inject constructor(
 	fun setScrobblerIndex(index: Int) {
 		if (index == selectedScrobblerIndex.value || index !in availableScrobblers.indices) return
 		selectedScrobblerIndex.value = index
+		initialize()
+	}
+
+	fun setTypeIndex(index: Int) {
+		if (index == selectedTypeIndex.value || index !in ScrobblerMangaType.entries.indices) return
+		selectedTypeIndex.value = index
 		initialize()
 	}
 

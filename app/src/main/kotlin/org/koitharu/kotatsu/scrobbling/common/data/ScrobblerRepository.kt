@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.scrobbling.common.data
 
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 
 interface ScrobblerRepository {
@@ -20,7 +21,7 @@ interface ScrobblerRepository {
 
 	suspend fun unregister(mangaId: Long)
 
-	suspend fun findManga(query: String, offset: Int): List<ScrobblerManga>
+	suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga>
 
 	suspend fun getMangaInfo(id: Long): ScrobblerMangaInfo
 

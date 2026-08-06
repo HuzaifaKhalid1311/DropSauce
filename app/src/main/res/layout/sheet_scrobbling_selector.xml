@@ -61,6 +61,15 @@
 
 	</com.google.android.material.appbar.MaterialToolbar>
 
+	<com.google.android.material.tabs.TabLayout
+		android:id="@+id/tabs_type"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		app:tabGravity="fill"
+		app:tabIndicatorFullWidth="false"
+		app:tabMode="fixed" />
+
 	<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
 		android:id="@+id/recyclerView"
 		android:layout_width="match_parent"

@@ -93,17 +93,18 @@ constructor(
 					continue
 				}
 				val prevInfo = scrobbler.getScrobblingInfoOrNull(oldDetails.id) ?: continue
+				val status = prevInfo.status ?: when {
+					newHistory == null -> ScrobblingStatus.PLANNED
+					newHistory.percent == 1f -> ScrobblingStatus.COMPLETED
+					else -> ScrobblingStatus.READING
+				}
 				scrobbler.unregisterScrobbling(oldDetails.id)
-				scrobbler.linkManga(newDetails.id, prevInfo.targetId)
+				scrobbler.linkManga(newDetails.id, prevInfo.targetId, status)
+				// The remote entry is the same one, so this carries the old rating and note across too
 				scrobbler.updateScrobblingInfo(
 					mangaId = newDetails.id,
 					rating = prevInfo.rating,
-					status =
-						prevInfo.status ?: when {
-							newHistory == null -> ScrobblingStatus.PLANNED
-							newHistory.percent == 1f -> ScrobblingStatus.COMPLETED
-							else -> ScrobblingStatus.READING
-						},
+					status = status,
 					comment = prevInfo.comment,
 				)
 				if (newHistory != null) {

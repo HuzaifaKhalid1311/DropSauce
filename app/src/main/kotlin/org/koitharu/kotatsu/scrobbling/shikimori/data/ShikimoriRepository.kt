@@ -21,6 +21,7 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
@@ -91,7 +92,11 @@ class ShikimoriRepository @Inject constructor(
 		storage.clear()
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	/**
+	 * [type] is ignored: Shikimori keeps light novels on a separate `/api/ranobe` endpoint whose ids
+	 * live in a different namespace from `/api/mangas`, so it always returns comics.
+	 */
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
 		val page = offset / MANGA_PAGE_SIZE
 		val pageOffset = offset % MANGA_PAGE_SIZE
 		val url = BASE_URL.toHttpUrl().newBuilder()

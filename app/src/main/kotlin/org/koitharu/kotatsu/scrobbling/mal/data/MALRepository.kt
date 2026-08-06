@@ -19,6 +19,7 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
@@ -29,6 +30,8 @@ import javax.inject.Singleton
 private const val REDIRECT_URI = "kotatsu://mal-auth"
 private const val BASE_WEB_URL = "https://myanimelist.net"
 private const val BASE_API_URL = "https://api.myanimelist.net/v2"
+private const val MANGA_PAGE_SIZE = 20
+private val NOVEL_MEDIA_TYPES = setOf("novel", "light_novel")
 
 @Singleton
 class MALRepository @Inject constructor(
@@ -87,11 +90,18 @@ class MALRepository @Inject constructor(
 		return db.getScrobblingDao().delete(ScrobblerService.MAL.id, mangaId)
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	/**
+	 * MAL's search has no media type parameter, so the type is filtered out of each page here. That
+	 * makes a page yield fewer than [MANGA_PAGE_SIZE] items, which the caller's offset-based paging
+	 * absorbs by re-requesting the overlap and de-duplicating.
+	 */
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
 		val url = BASE_API_URL.toHttpUrl().newBuilder()
 			.addPathSegment("manga")
 			.addQueryParameter("offset", offset.toString())
+			.addQueryParameter("limit", MANGA_PAGE_SIZE.toString())
 			.addQueryParameter("nsfw", "true")
+			.addQueryParameter("fields", "media_type,main_picture")
 			// WARNING! MAL API throws a 400 when the query is over 64 characters
 			.addQueryParameter("q", query.take(64))
 			.build()
@@ -99,7 +109,12 @@ class MALRepository @Inject constructor(
 		val response = okHttp.newCall(request).await().parseJson()
 		check(response.has("data")) { "Invalid response: \"$response\"" }
 		val data = response.getJSONArray("data")
-		return data.mapJSONNotNull { jsonToManga(it, query) }
+		return data.mapJSONNotNull { jo ->
+			val mediaType = jo.optJSONObject("node")?.getStringOrNull("media_type")
+			// unknown media_type counts as a comic so nothing silently disappears from both tabs
+			if ((mediaType in NOVEL_MEDIA_TYPES) != type.isNovel) return@mapJSONNotNull null
+			jsonToManga(jo, query)
+		}
 	}
 
 	override suspend fun getMangaInfo(id: Long): ScrobblerMangaInfo {
@@ -114,6 +129,12 @@ class MALRepository @Inject constructor(
 	}
 
 	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+		// MAL has no create endpoint, only a blind PUT that would zero the score and force "reading",
+		// so an entry already on the website has to be picked up before it gets written over.
+		findExistingRate(scrobblerMangaId)?.let {
+			saveRate(it, mangaId, scrobblerMangaId)
+			return
+		}
 		val body = FormBody.Builder()
 			.add("status", "reading")
 			.add("score", "0")
@@ -173,6 +194,17 @@ class MALRepository @Inject constructor(
 			.build()
 		val response = okHttp.newCall(request).await().parseJson()
 		saveRate(response, mangaId, rateId.toLong())
+	}
+
+	/** `null` when the series is not on the user's list yet, in which case MAL omits `my_list_status`. */
+	private suspend fun findExistingRate(scrobblerMangaId: Long): JSONObject? {
+		val url = BASE_API_URL.toHttpUrl().newBuilder()
+			.addPathSegment("manga")
+			.addPathSegment(scrobblerMangaId.toString())
+			.addQueryParameter("fields", "my_list_status")
+			.build()
+		val response = okHttp.newCall(Request.Builder().url(url).get().build()).await().parseJson()
+		return response.optJSONObject("my_list_status")
 	}
 
 	private suspend fun saveRate(

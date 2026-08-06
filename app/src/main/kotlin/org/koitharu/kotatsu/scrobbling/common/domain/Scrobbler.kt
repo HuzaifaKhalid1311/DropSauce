@@ -22,6 +22,7 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerRepository
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
@@ -63,12 +64,26 @@ abstract class Scrobbler(
 		repository.logout()
 	}
 
-	suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
-		return repository.findManga(query, offset)
+	suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
+		return repository.findManga(query, offset, type)
 	}
 
-	suspend fun linkManga(mangaId: Long, targetId: Long) {
+	/**
+	 * Links [targetId] to [mangaId] without discarding what the tracker already knows: a rating, a
+	 * reading status or a chapter count set on the website always wins over anything the app can infer
+	 * from local history. [fallbackStatus] is only written when the entry is brand new.
+	 *
+	 * @return `true` if the tracker had no progress of its own, so local progress is safe to push.
+	 */
+	suspend fun linkManga(mangaId: Long, targetId: Long, fallbackStatus: ScrobblingStatus): Boolean {
 		repository.createRate(mangaId, targetId)
+		val entity = db.getScrobblingDao().find(scrobblerService.id, mangaId)
+		if (entity?.status == null) {
+			// Nothing to preserve, so seed the status. The rating is passed straight back through so a
+			// service that reports one without a status still keeps it.
+			updateScrobblingInfo(mangaId, entity?.rating ?: 0f, fallbackStatus, entity?.comment)
+		}
+		return entity == null || entity.chapter <= 0
 	}
 
 	suspend fun scrobble(manga: Manga, chapterId: Long) {
@@ -88,6 +103,11 @@ abstract class Scrobbler(
 		}
 		val entity = db.getScrobblingDao().find(scrobblerService.id, manga.id) ?: return
 		repository.updateRate(entity.id, entity.mangaId, number)
+		// Reading a chapter means it is no longer merely "planned", and no tracker flips that for us.
+		// Only PLANNED is touched, so a manually set "on hold"/"dropped"/"completed" survives.
+		if (isNotStarted(entity.status)) {
+			updateScrobblingInfo(manga.id, entity.rating, ScrobblingStatus.READING, entity.comment)
+		}
 	}
 
 	suspend fun getScrobblingInfoOrNull(mangaId: Long): ScrobblingInfo? {

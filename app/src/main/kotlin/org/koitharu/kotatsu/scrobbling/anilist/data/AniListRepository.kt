@@ -22,6 +22,7 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
@@ -114,13 +115,15 @@ class AniListRepository @Inject constructor(
 		storage.clear()
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
 		val page = (offset / MANGA_PAGE_SIZE.toFloat()).toIntUp() + 1
+		// AniList files prose as the NOVEL format under the MANGA type
+		val formatFilter = if (type.isNovel) "format: NOVEL" else "format_not: NOVEL"
 		val response = doRequest(
 			REQUEST_QUERY,
 			"""
 			Page(page: $page, perPage: ${MANGA_PAGE_SIZE}) {
-				media(type: MANGA, sort: SEARCH_MATCH, search: ${JSONObject.quote(query)}) {
+				media(type: MANGA, $formatFilter, sort: SEARCH_MATCH, search: ${JSONObject.quote(query)}) {
 					id
 					title {
 						userPreferred

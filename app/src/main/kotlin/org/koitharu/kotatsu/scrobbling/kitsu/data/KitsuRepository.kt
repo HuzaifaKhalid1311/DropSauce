@@ -23,6 +23,7 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuInterceptor.Companion.VND_JSON
@@ -87,10 +88,15 @@ class KitsuRepository(
 		return db.getScrobblingDao().delete(ScrobblerService.KITSU.id, mangaId)
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
+		// Kitsu has no "everything but novels" filter, so the comic subtypes are listed explicitly
+		val subtypes = if (type.isNovel) "novel" else "manga,manhwa,manhua,oneshot,doujin,oel"
 		val request = Request.Builder()
 			.get()
-			.url("$BASE_WEB_URL/api/edge/manga?page[limit]=20&page[offset]=$offset&filter[text]=${query.urlEncoded()}")
+			.url(
+				"$BASE_WEB_URL/api/edge/manga?page[limit]=20&page[offset]=$offset" +
+					"&filter[subtype]=$subtypes&filter[text]=${query.urlEncoded()}",
+			)
 		val response = okHttp.newCall(request.build()).await().parseJson().ensureSuccess()
 		return response.getJSONArray("data").mapJSON { jo ->
 			val attrs = jo.getJSONObject("attributes")
