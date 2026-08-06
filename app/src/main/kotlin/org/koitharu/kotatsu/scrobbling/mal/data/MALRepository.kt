@@ -24,6 +24,7 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import java.security.SecureRandom
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -128,12 +129,12 @@ class MALRepository @Inject constructor(
 		return ScrobblerMangaInfo(response)
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
 		// MAL has no create endpoint, only a blind PUT that would zero the score and force "reading",
 		// so an entry already on the website has to be picked up before it gets written over.
 		findExistingRate(scrobblerMangaId)?.let {
 			saveRate(it, mangaId, scrobblerMangaId)
-			return
+			return true
 		}
 		val body = FormBody.Builder()
 			.add("status", "reading")
@@ -150,6 +151,7 @@ class MALRepository @Inject constructor(
 			.build()
 		val response = okHttp.newCall(request).await().parseJson()
 		saveRate(response, mangaId, scrobblerMangaId)
+		return false
 	}
 
 	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
@@ -178,11 +180,21 @@ class MALRepository @Inject constructor(
 		saveRate(response, mangaId, rateId.toLong())
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val body = FormBody.Builder()
 			.add("status", status.toString())
 			.add("score", rating.toInt().toString())
 			.add("comments", comment.orEmpty())
+		if (setStartDate) {
+			body.add("start_date", LocalDate.now().toString())
+		}
 		val url = BASE_API_URL.toHttpUrl().newBuilder()
 			.addPathSegment("manga")
 			.addPathSegment(rateId.toString())

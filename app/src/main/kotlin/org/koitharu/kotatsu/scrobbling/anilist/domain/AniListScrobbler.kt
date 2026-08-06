@@ -11,7 +11,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AniListScrobbler @Inject constructor(
-	private val repository: AniListRepository,
+	repository: AniListRepository,
 	db: MangaDatabase,
 	mangaRepositoryFactory: MangaRepository.Factory,
 ) : Scrobbler(db, ScrobblerService.ANILIST, repository, mangaRepositoryFactory) {
@@ -23,22 +23,5 @@ class AniListScrobbler @Inject constructor(
 		statuses[ScrobblingStatus.COMPLETED] = "COMPLETED"
 		statuses[ScrobblingStatus.ON_HOLD] = "PAUSED"
 		statuses[ScrobblingStatus.DROPPED] = "DROPPED"
-	}
-
-	override suspend fun updateScrobblingInfo(
-		mangaId: Long,
-		rating: Float,
-		status: ScrobblingStatus?,
-		comment: String?,
-	) {
-		val entity = db.getScrobblingDao().find(scrobblerService.id, mangaId)
-		requireNotNull(entity) { "Scrobbling info for manga $mangaId not found" }
-		repository.updateRate(
-			rateId = entity.id,
-			mangaId = entity.mangaId,
-			rating = rating,
-			status = statuses[status],
-			comment = comment,
-		)
 	}
 }

@@ -188,12 +188,12 @@ class MihonExtensionLoader @Inject constructor(
 
 		private fun copyAndSetReadOnly(source: File, target: File) {
 			target.parentFile?.mkdirs()
-			target.setReadOnly()
 			source.inputStream().use { input ->
 				target.outputStream().use { output ->
 					input.copyTo(output)
 				}
 			}
+			target.setReadOnly()
 		}
 
 		@Suppress("DEPRECATION")

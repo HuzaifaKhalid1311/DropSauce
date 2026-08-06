@@ -27,8 +27,16 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuInterceptor.Companion.VND_JSON
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 private const val BASE_WEB_URL = "https://kitsu.app"
+
+// Kitsu stores reading dates as UTC timestamps and rejects a plain date
+private val KITSU_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter
+	.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+	.withZone(ZoneOffset.UTC)
 
 class KitsuRepository(
 	@ApplicationContext context: Context,
@@ -129,10 +137,10 @@ class KitsuRepository(
 		)
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
 		findExistingRate(scrobblerMangaId)?.let {
 			saveRate(it, mangaId)
-			return
+			return true
 		}
 		val user = cachedUser ?: loadUser()
 		val payload = JSONObject()
@@ -162,6 +170,7 @@ class KitsuRepository(
 			.post(payload.toKitsuRequestBody())
 		val response = okHttp.newCall(request.build()).await().parseJson().ensureSuccess().getJSONObject("data")
 		saveRate(response, mangaId)
+		return false
 	}
 
 	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
@@ -188,7 +197,14 @@ class KitsuRepository(
 		saveRate(response, mangaId)
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val payload = JSONObject()
 		payload.putJO("data") {
 			put("type", "libraryEntries")
@@ -197,6 +213,9 @@ class KitsuRepository(
 				put("status", status)
 				put("ratingTwenty", (rating * 20).toInt().coerceIn(2, 20))
 				put("notes", comment)
+				if (setStartDate) {
+					put("startedAt", KITSU_DATE_FORMAT.format(Instant.now()))
+				}
 			}
 		}
 		val request = Request.Builder()

@@ -34,6 +34,8 @@ abstract class Scrobbler(
 	val scrobblerService: ScrobblerService,
 	private val repository: ScrobblerRepository,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
+	/** Scale applied to the 0..1 rating before it reaches services that expect a wider range. */
+	private val ratingMax: Float = 1f,
 ) {
 
 	private val infoCache = LongSparseArray<ScrobblerMangaInfo>()
@@ -76,14 +78,15 @@ abstract class Scrobbler(
 	 * @return `true` if the tracker had no progress of its own, so local progress is safe to push.
 	 */
 	suspend fun linkManga(mangaId: Long, targetId: Long, fallbackStatus: ScrobblingStatus): Boolean {
-		repository.createRate(mangaId, targetId)
-		val entity = db.getScrobblingDao().find(scrobblerService.id, mangaId)
-		if (entity?.status == null) {
-			// Nothing to preserve, so seed the status. The rating is passed straight back through so a
-			// service that reports one without a status still keeps it.
-			updateScrobblingInfo(mangaId, entity?.rating ?: 0f, fallbackStatus, entity?.comment)
+		// Every service invents a status when it creates an entry ("reading" on most of them), so the
+		// stored status cannot tell an adopted entry from a fresh one — only createRate knows.
+		val wasAlreadyTracked = repository.createRate(mangaId, targetId)
+		if (wasAlreadyTracked) {
+			return db.getScrobblingDao().find(scrobblerService.id, mangaId)?.chapter?.let { it <= 0 } != false
 		}
-		return entity == null || entity.chapter <= 0
+		// Brand new entry, so it has no start date of its own worth keeping
+		updateScrobblingInfo(mangaId, rating = 0f, fallbackStatus, comment = null, forceStartDate = true)
+		return true
 	}
 
 	suspend fun scrobble(manga: Manga, chapterId: Long) {
@@ -122,12 +125,32 @@ abstract class Scrobbler(
 
 	fun isNotStarted(status: String?): Boolean = status == statuses[ScrobblingStatus.PLANNED]
 
-	abstract suspend fun updateScrobblingInfo(
+	/**
+	 * @param forceStartDate stamps today as the start date even when the status is not changing. Used
+	 * for an entry the app just created, which has no date of its own to preserve.
+	 */
+	suspend fun updateScrobblingInfo(
 		mangaId: Long,
 		@FloatRange(from = 0.0, to = 1.0) rating: Float,
 		status: ScrobblingStatus?,
 		comment: String?,
-	)
+		forceStartDate: Boolean = false,
+	) {
+		val entity = requireNotNull(db.getScrobblingDao().find(scrobblerService.id, mangaId)) {
+			"Scrobbling info for manga $mangaId not found"
+		}
+		val statusString = statuses[status]
+		// The start date marks the day reading began, so it is only rewritten on the way into READING
+		val isStartingToRead = status == ScrobblingStatus.READING && entity.status != statusString
+		repository.updateRate(
+			rateId = entity.id,
+			mangaId = entity.mangaId,
+			rating = rating * ratingMax,
+			status = statusString,
+			comment = comment,
+			setStartDate = forceStartDate || isStartingToRead,
+		)
+	}
 
 	fun observeScrobblingInfo(mangaId: Long): Flow<ScrobblingInfo?> {
 		return db.getScrobblingDao().observe(scrobblerService.id, mangaId)

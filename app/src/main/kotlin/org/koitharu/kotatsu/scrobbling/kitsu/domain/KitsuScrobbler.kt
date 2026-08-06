@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuRepository
 import javax.inject.Inject
 
 class KitsuScrobbler @Inject constructor(
-	private val repository: KitsuRepository,
+	repository: KitsuRepository,
 	db: MangaDatabase,
 	mangaRepositoryFactory: MangaRepository.Factory,
 ) : Scrobbler(db, ScrobblerService.KITSU, repository, mangaRepositoryFactory) {
@@ -21,22 +21,4 @@ class KitsuScrobbler @Inject constructor(
 		statuses[ScrobblingStatus.ON_HOLD] = "on_hold"
 		statuses[ScrobblingStatus.DROPPED] = "dropped"
 	}
-
-	override suspend fun updateScrobblingInfo(
-		mangaId: Long,
-		rating: Float,
-		status: ScrobblingStatus?,
-		comment: String?
-	) {
-		val entity = db.getScrobblingDao().find(scrobblerService.id, mangaId)
-		requireNotNull(entity) { "Scrobbling info for manga $mangaId not found" }
-		repository.updateRate(
-			rateId = entity.id,
-			mangaId = entity.mangaId,
-			rating = rating,
-			status = statuses[status],
-			comment = comment,
-		)
-	}
-
 }

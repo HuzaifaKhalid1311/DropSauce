@@ -28,6 +28,7 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import java.net.HttpURLConnection
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -143,11 +144,11 @@ class MangaBakaRepository @Inject constructor(
 		)
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
 		// The POST forces state=reading, so an entry already in the library is taken as-is instead
 		libraryEntry(scrobblerMangaId)?.let {
 			saveLibraryEntry(mangaId, scrobblerMangaId, it, comment = null)
-			return
+			return true
 		}
 		val body = JSONObject().put("state", "reading").toString().toJsonBody()
 		val request = Request.Builder()
@@ -157,6 +158,7 @@ class MangaBakaRepository @Inject constructor(
 		okHttp.newCall(request).await().parseJson()
 		// the create response carries no library data, so read it back
 		fetchRate(mangaId, scrobblerMangaId, comment = null)
+		return false
 	}
 
 	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
@@ -165,12 +167,28 @@ class MangaBakaRepository @Inject constructor(
 
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
 		val current = requireEntity(mangaId)
-		pushRate(mangaId, rateId.toLong(), current.status, chapter, current.rating, current.comment)
+		// no date here: this fires on every chapter read and would keep resetting the start date
+		pushRate(mangaId, rateId.toLong(), current.status, chapter, current.rating, current.comment, false)
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val current = requireEntity(mangaId)
-		pushRate(mangaId, rateId.toLong(), status ?: current.status, current.chapter, rating / RATING_MAX, comment)
+		pushRate(
+			mangaId = mangaId,
+			targetId = rateId.toLong(),
+			status = status ?: current.status,
+			chapter = current.chapter,
+			rating = rating / RATING_MAX,
+			comment = comment,
+			setStartDate = setStartDate,
+		)
 	}
 
 	private suspend fun requireEntity(mangaId: Long) = requireNotNull(
@@ -178,8 +196,9 @@ class MangaBakaRepository @Inject constructor(
 	) { "Scrobbling info for manga $mangaId not found" }
 
 	/**
-	 * Only the fields we own are sent: MangaBaka nulls out any key present in the PUT body,
-	 * so omitting `is_private`, `start_date` and `finish_date` keeps what the user set on the site.
+	 * Only the fields we own are sent: MangaBaka nulls out any key present in the PUT body, so
+	 * omitting `is_private`, `finish_date` — and `start_date` unless [setStartDate] — keeps what the
+	 * user set on the site.
 	 */
 	private suspend fun pushRate(
 		mangaId: Long,
@@ -188,13 +207,16 @@ class MangaBakaRepository @Inject constructor(
 		chapter: Int,
 		rating: Float,
 		comment: String?,
+		setStartDate: Boolean,
 	): ScrobblingEntity {
-		val body = JSONObject()
+		val json = JSONObject()
 			.put("state", status ?: "reading")
 			.put("progress_chapter", if (chapter > 0) chapter else JSONObject.NULL)
 			.put("rating", (rating * RATING_MAX).toInt().coerceIn(0, RATING_MAX).takeIf { it > 0 } ?: JSONObject.NULL)
-			.toString()
-			.toJsonBody()
+		if (setStartDate) {
+			json.put("start_date", LocalDate.now().toString())
+		}
+		val body = json.toString().toJsonBody()
 		val request = Request.Builder()
 			.url("$BASE_API_URL/my/library/$targetId")
 			.put(body)

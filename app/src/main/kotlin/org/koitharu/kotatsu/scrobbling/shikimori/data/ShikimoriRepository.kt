@@ -113,8 +113,12 @@ class ShikimoriRepository @Inject constructor(
 		return if (pageOffset != 0) list.drop(pageOffset) else list
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
 		val user = cachedUser ?: loadUser()
+		findExistingRate(user.id, scrobblerMangaId)?.let {
+			saveRate(it, mangaId)
+			return true
+		}
 		val payload = JSONObject()
 		payload.put(
 			"user_rate",
@@ -132,21 +136,29 @@ class ShikimoriRepository @Inject constructor(
 		val request = Request.Builder().url(url).post(payload.toRequestBody()).build()
 		val response = okHttp.newCall(request).await().parseJson()
 		saveRate(response, mangaId)
+		return false
 	}
 
 	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
 		val user = cachedUser ?: loadUser()
+		val existing = checkNotNull(findExistingRate(user.id, entity.targetId)) {
+			"Shikimori has no user rate for target ${entity.targetId}"
+		}
+		return saveRate(existing, entity.mangaId)
+	}
+
+	/** `null` when the user has no rate for this manga yet. */
+	private suspend fun findExistingRate(userId: Long, scrobblerMangaId: Long): JSONObject? {
 		val url = BASE_URL.toHttpUrl().newBuilder()
 			.addPathSegment("api")
 			.addPathSegment("v2")
 			.addPathSegment("user_rates")
-			.addQueryParameter("user_id", user.id.toString())
-			.addQueryParameter("target_id", entity.targetId.toString())
+			.addQueryParameter("user_id", userId.toString())
+			.addQueryParameter("target_id", scrobblerMangaId.toString())
 			.addQueryParameter("target_type", "Manga")
 			.build()
 		val response = okHttp.newCall(Request.Builder().url(url).get().build()).await().parseJsonArray()
-		check(response.length() == 1) { "Expected one Shikimori user rate, got ${response.length()}" }
-		return saveRate(response.getJSONObject(0), entity.mangaId)
+		return response.optJSONObject(0)
 	}
 
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
@@ -168,7 +180,15 @@ class ShikimoriRepository @Inject constructor(
 		saveRate(response, mangaId)
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	/** [setStartDate] is ignored: a Shikimori user rate has no editable reading date. */
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val payload = JSONObject()
 		payload.put(
 			"user_rate",

@@ -25,11 +25,29 @@ interface ScrobblerRepository {
 
 	suspend fun getMangaInfo(id: Long): ScrobblerMangaInfo
 
-	suspend fun createRate(mangaId: Long, scrobblerMangaId: Long)
+	/**
+	 * Registers the manga on the service, or adopts the entry already there.
+	 *
+	 * @return `true` when the service already had an entry, whose status, rating and progress were
+	 * stored as-is. Callers must not overwrite them; `false` means the entry was just created and its
+	 * fields are placeholders that still need filling in.
+	 */
+	suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean
 
 	suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity
 
 	suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int)
 
-	suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?)
+	/**
+	 * @param setStartDate writes today as the reading start date. Left alone otherwise, so a date the
+	 * user set on the website is never disturbed by an unrelated rating or note edit.
+	 */
+	suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	)
 }

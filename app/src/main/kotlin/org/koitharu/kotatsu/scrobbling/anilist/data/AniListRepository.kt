@@ -26,6 +26,7 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -141,7 +142,28 @@ class AniListRepository @Inject constructor(
 		return data.mapJSON { ScrobblerManga(it, query) }
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
+		// A create defaults the entry to CURRENT, so an entry already on the list is adopted first.
+		// mediaListEntry is simply null when the authorised user has not listed this media.
+		val existing = doRequest(
+			REQUEST_QUERY,
+			"""
+				Media(id: $scrobblerMangaId) {
+					mediaListEntry {
+						id
+						mediaId
+						status
+						notes
+						score
+						progress
+					}
+				}
+			""",
+		).getJSONObject("data").getJSONObject("Media").optJSONObject("mediaListEntry")
+		if (existing != null) {
+			saveRate(existing, mangaId)
+			return true
+		}
 		val response = doRequest(
 			REQUEST_MUTATION,
 			"""
@@ -156,6 +178,7 @@ class AniListRepository @Inject constructor(
 			""",
 		)
 		saveRate(response.getJSONObject("data").getJSONObject("SaveMediaListEntry"), mangaId)
+		return false
 	}
 
 	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
@@ -192,14 +215,27 @@ class AniListRepository @Inject constructor(
 		saveRate(response.getJSONObject("data").getJSONObject("SaveMediaListEntry"), mangaId)
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val scoreRaw = (rating * 100f).roundToInt()
 		val statusString = status?.let { ", status: $it" }.orEmpty()
 		val notesString = comment?.let { ", notes: ${JSONObject.quote(it)}" }.orEmpty()
+		val startedAtString = if (setStartDate) {
+			val today = LocalDate.now()
+			", startedAt: { year: ${today.year}, month: ${today.monthValue}, day: ${today.dayOfMonth} }"
+		} else {
+			""
+		}
 		val response = doRequest(
 			REQUEST_MUTATION,
 			"""
-				SaveMediaListEntry(id: $rateId, scoreRaw: $scoreRaw$statusString$notesString) {
+				SaveMediaListEntry(id: $rateId, scoreRaw: $scoreRaw$statusString$notesString$startedAtString) {
 					id
 					mediaId
 					status
