@@ -3,7 +3,7 @@
  * src/plugins/pluginManager.ts that a plugin sees at runtime: the `require` shim, @libs/fetch,
  * @libs/storage, and the promise<->native call bridge.
  *
- * LNReader is MIT licensed (c) 2021 Rajarshee Chatterjee - see licenses/lnreader-MIT.md.
+ * LNReader is MIT licensed (c) 2021 Rajarshee Chatterjee - see docs/lnreader/lnreader-MIT.md.
  *
  * MUST be evaluated BEFORE lnreader-libs.js: it overrides globalThis.fetch, and the bundle would
  * otherwise capture the real one and bypass OkHttp (losing UA/DoH/proxy/cookies, and hitting CORS).
@@ -197,7 +197,7 @@
   }
 
   function fetchProto() {
-    // protobufjs is not bundled - see tools/lnreader-bundle/README.md.
+    // protobufjs is not bundled - see docs/lnreader/README.md.
     return Promise.reject(new Error('fetchProto is not supported by this app'));
   }
 
