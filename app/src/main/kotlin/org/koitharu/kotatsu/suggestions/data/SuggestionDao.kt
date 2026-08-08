@@ -75,6 +75,10 @@ abstract class SuggestionDao : MangaQueryBuilder.ConditionCallback {
 			)
 		}"
 
+		is ListFilterOption.State -> option.state?.let {
+			"(SELECT state FROM manga WHERE manga.manga_id = suggestions.manga_id) = ${sqlEscapeString(it.name)}"
+		}
+
 		else -> null
 	}
 }

@@ -52,10 +52,12 @@ class UpdatesViewModel @Inject constructor(
 				filterOptions = filterOptions,
 			)
 		},
-		quickFilter.appliedOptions,
 		settings.observeAsFlow(AppSettings.KEY_UPDATED_GROUPING) { isUpdatedGroupingEnabled },
 		observeListModeWithTriggers(),
-	) { mangaList, filters, grouping, mode ->
+	) { mangaList, grouping, mode ->
+		// Read here rather than combined in: the query above already re-runs on every filter change, and
+		// a second input would render the chips one frame ahead of their results.
+		val filters = quickFilter.appliedOptions.value
 		when {
 			mangaList.isEmpty() -> listOfNotNull(
 				quickFilter.filterItem(filters),

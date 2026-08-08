@@ -54,6 +54,10 @@ class FeedViewModel @Inject constructor(
 	private val db: MangaDatabase,
 ) : BaseViewModel(), QuickFilterListener by quickFilter {
 
+	init {
+		quickFilter.isStateFilterEnabled = false
+	}
+
 	private val limit = MutableStateFlow(PAGE_SIZE)
 	private val isReady = AtomicBoolean(false)
 	private val expandedIds = MutableStateFlow<Set<Long>>(emptySet())
@@ -69,7 +73,6 @@ class FeedViewModel @Inject constructor(
 
 	@Suppress("USELESS_CAST")
 	val content = combine(
-		quickFilter.appliedOptions,
 		combine(limit, quickFilter.appliedOptions.combineWithSettings(), ::Pair)
 			.flatMapLatest { repository.observeTrackingLog(it.first, it.second) },
 		combine(
@@ -78,7 +81,10 @@ class FeedViewModel @Inject constructor(
 		) { tip, swipe -> tip && swipe },
 		expandedIds,
 		historyRepository.observeAll(),
-	) { filters, list, isTipVisible, expanded, _ ->
+	) { list, isTipVisible, expanded, _ ->
+		// Read here rather than combined in: the query above already re-runs on every filter change, and
+		// a second input would render the chips one frame ahead of their results.
+		val filters = quickFilter.appliedOptions.value
 		val result = ArrayList<ListModel>((list.size * 1.4).toInt().coerceAtLeast(3))
 		if (list.isNotEmpty() && isTipVisible) {
 			result += gesturesTip

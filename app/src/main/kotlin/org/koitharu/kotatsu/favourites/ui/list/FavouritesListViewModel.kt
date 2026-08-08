@@ -95,7 +95,6 @@ class FavouritesListViewModel @Inject constructor(
 
 	override val content = combine(
 		observeFavorites(),
-		quickFilter.appliedOptions,
 		observeListModeWithTriggers(),
 		// Folded into the refresh trigger to stay inside combine's five-flow overload.
 		combine(
@@ -103,7 +102,10 @@ class FavouritesListViewModel @Inject constructor(
 			settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_UI_SCALING) },
 		) { _, isScalingTipVisible -> isScalingTipVisible },
 		pinnedIds,
-	) { list, filters, mode, isScalingTipVisible, pinned ->
+	) { list, mode, isScalingTipVisible, pinned ->
+		// Filters are read here rather than combined in: observeFavorites() already re-queries on every
+		// filter change, and a second input would render the chips one frame ahead of their results.
+		val filters = quickFilter.appliedOptions.value
 		list.mapList(mode, filters, pinned.takeIfDefaultState(filters), isScalingTipVisible)
 	}.distinctUntilChanged().onEach {
 		isPaginationReady.set(true)

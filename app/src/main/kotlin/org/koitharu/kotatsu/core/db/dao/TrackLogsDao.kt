@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.core.db.dao
 
+import android.database.DatabaseUtils
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -82,6 +83,10 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = track_logs.manga_id AND favourites.category_id = ${option.category.id})"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE manga_tags.manga_id = track_logs.manga_id AND tag_id = ${option.tagId})"
 		ListFilterOption.Macro.NSFW -> "(SELECT nsfw FROM manga WHERE manga.manga_id = track_logs.manga_id) = 1"
+		is ListFilterOption.State -> option.state?.let {
+			"(SELECT state FROM manga WHERE manga.manga_id = track_logs.manga_id) = ${DatabaseUtils.sqlEscapeString(it.name)}"
+		}
+
 		else -> null
 	}
 }

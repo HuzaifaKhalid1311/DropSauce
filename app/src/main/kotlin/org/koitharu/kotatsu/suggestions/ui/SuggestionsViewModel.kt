@@ -44,9 +44,11 @@ class SuggestionsViewModel @Inject constructor(
 
 	override val content = combine(
 		quickFilter.appliedOptions.combineWithSettings().flatMapLatest { repository.observeAll(0, it) },
-		quickFilter.appliedOptions,
 		observeListModeWithTriggers(),
-	) { list, filters, mode ->
+	) { list, mode ->
+		// Read here rather than combined in: the query above already re-runs on every filter change, and
+		// a second input would render the chips one frame ahead of their results.
+		val filters = quickFilter.appliedOptions.value
 		when {
 			list.isEmpty() -> if (filters.isEmpty()) {
 				listOf(

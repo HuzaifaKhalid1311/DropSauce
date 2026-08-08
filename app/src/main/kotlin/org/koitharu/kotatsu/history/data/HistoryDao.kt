@@ -199,6 +199,7 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE history.manga_id = manga_tags.manga_id AND tag_id = ${option.tagId})"
 		ListFilterOption.Downloaded -> "EXISTS(SELECT * FROM local_index WHERE local_index.manga_id = history.manga_id)"
 		is ListFilterOption.Source -> "manga.source = ${sqlEscapeString(option.mangaSource.name)}"
+		is ListFilterOption.State -> option.state?.let { "manga.state = ${sqlEscapeString(it.name)}" }
 		else -> null
 	}
 }
