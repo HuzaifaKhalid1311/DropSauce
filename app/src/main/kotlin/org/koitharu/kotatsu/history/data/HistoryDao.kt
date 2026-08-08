@@ -20,6 +20,7 @@ import org.koitharu.kotatsu.core.db.entity.TagEntity
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_COMPLETED
+import org.koitharu.kotatsu.list.domain.toOrderBy
 
 @Dao
 abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
@@ -58,19 +59,11 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 			.where("history.deleted_at = 0")
 			.filters(filterOptions)
 			.orderBy(
-				orderBy = when (order) {
-					ListSortOrder.LAST_READ -> "history.updated_at DESC"
-					ListSortOrder.LONG_AGO_READ -> "history.updated_at ASC"
-					ListSortOrder.NEWEST -> "history.created_at DESC"
-					ListSortOrder.OLDEST -> "history.created_at ASC"
-					ListSortOrder.PROGRESS -> "history.percent DESC"
-					ListSortOrder.UNREAD -> "history.percent ASC"
-					ListSortOrder.ALPHABETIC -> "manga.title"
-					ListSortOrder.ALPHABETIC_REVERSE -> "manga.title DESC"
-					ListSortOrder.NEW_CHAPTERS -> "IFNULL((SELECT chapters_new FROM tracks WHERE tracks.manga_id = manga.manga_id), 0) DESC"
-					ListSortOrder.UPDATED -> "IFNULL((SELECT last_chapter_date FROM tracks WHERE tracks.manga_id = manga.manga_id), 0) DESC"
-					else -> throw IllegalArgumentException("Sort order $order is not supported")
-				},
+				orderBy = order.toOrderBy(
+					dateAdded = "history.created_at",
+					lastRead = "history.updated_at",
+					progress = "history.percent",
+				),
 			)
 			.groupBy("history.manga_id")
 			.limit(limit)

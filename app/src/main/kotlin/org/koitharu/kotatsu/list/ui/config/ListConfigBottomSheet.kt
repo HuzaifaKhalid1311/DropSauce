@@ -15,7 +15,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,7 +34,6 @@ import org.koitharu.kotatsu.core.ui.sheet.SheetContentPadding
 import org.koitharu.kotatsu.core.ui.sheet.SheetSection
 import org.koitharu.kotatsu.core.ui.sheet.SheetSegment
 import org.koitharu.kotatsu.core.ui.sheet.SheetSegmentedSelector
-import org.koitharu.kotatsu.core.ui.sheet.SheetSelectorField
 import org.koitharu.kotatsu.core.ui.sheet.SheetSwitchRow
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.databinding.SheetListModeBinding
@@ -79,13 +77,7 @@ class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 		var isGridSpacingIncreased by remember { mutableStateOf(viewModel.isGridSpacingIncreased) }
 		var gridSize by remember { mutableFloatStateOf(viewModel.gridSize.toFloat()) }
 		var isGroupingEnabled by remember { mutableStateOf(viewModel.isGroupingEnabled) }
-		var isGroupingAvailable by remember { mutableStateOf(viewModel.isGroupingAvailable) }
-		val sortOrders = remember { viewModel.getSortOrders() }
-		var sortOrderIndex by remember {
-			mutableIntStateOf(
-				sortOrders?.indexOf(viewModel.getSelectedSortOrder())?.coerceAtLeast(0) ?: 0,
-			)
-		}
+		val isGroupingAvailable = viewModel.isGroupingAvailable
 		val isGridMode = mode == ListMode.GRID || mode == ListMode.COVER_ONLY
 
 		Column(modifier = Modifier.padding(bottom = 16.dp)) {
@@ -143,23 +135,6 @@ class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 						onValueChange = {
 							gridSize = it
 							viewModel.gridSize = it.roundToInt()
-						},
-						modifier = Modifier.padding(horizontal = SheetContentPadding),
-					)
-				}
-			}
-
-			if (sortOrders != null) {
-				SheetSection(title = stringResource(R.string.sort_order)) {
-					SheetSelectorField(
-						current = sortOrders.getOrNull(sortOrderIndex)
-							?.let { stringResource(it.titleResId) }
-							.orEmpty(),
-						items = sortOrders.map { stringResource(it.titleResId) },
-						onSelect = { index ->
-							sortOrderIndex = index
-							viewModel.setSortOrder(index)
-							isGroupingAvailable = viewModel.isGroupingAvailable
 						},
 						modifier = Modifier.padding(horizontal = SheetContentPadding),
 					)

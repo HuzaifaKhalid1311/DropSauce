@@ -72,6 +72,7 @@ import org.koitharu.kotatsu.filter.ui.tags.TagsCatalogSheet
 import org.koitharu.kotatsu.image.ui.ImageActivity
 import org.koitharu.kotatsu.list.ui.config.ListConfigBottomSheet
 import org.koitharu.kotatsu.list.ui.config.ListConfigSection
+import org.koitharu.kotatsu.list.ui.sort.ListSortSheet
 import org.koitharu.kotatsu.local.ui.ImportDialogFragment
 import org.koitharu.kotatsu.local.ui.info.LocalInfoDialog
 import org.koitharu.kotatsu.main.ui.MainActivity
@@ -486,6 +487,12 @@ class AppRouter private constructor(
 
     fun showListConfigSheet(section: ListConfigSection) {
         ListConfigBottomSheet().withArgs(1) {
+            putParcelable(KEY_LIST_SECTION, section)
+        }.showDistinct()
+    }
+
+    fun showListSortSheet(section: ListConfigSection) {
+        ListSortSheet().withArgs(1) {
             putParcelable(KEY_LIST_SECTION, section)
         }.showDistinct()
     }

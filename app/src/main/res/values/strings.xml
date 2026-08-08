@@ -1152,4 +1152,7 @@
     <string name="private_extension_install_failed">Failed to install sandbox extension: %1$s</string>
     <string name="disabled_extensions">Disabled</string>
     <string name="private_mode_auto_update_note">Auto-update is always on in sandbox mode. Extensions update silently without prompts as soon as updates are detected.</string>
+    <string name="sort_unread_count">Unread count</string>
+    <string name="sort_ascending">%s (ascending)</string>
+    <string name="sort_descending">%s (descending)</string>
 </resources>

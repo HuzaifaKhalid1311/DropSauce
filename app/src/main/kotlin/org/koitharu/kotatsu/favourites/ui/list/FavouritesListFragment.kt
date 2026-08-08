@@ -6,23 +6,22 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
+import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
-import org.koitharu.kotatsu.core.util.ext.sortedByOrdinal
 import org.koitharu.kotatsu.core.util.ext.withArgs
 import org.koitharu.kotatsu.databinding.FragmentListBinding
-import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.list.ui.MangaListFragment
 import org.koitharu.kotatsu.list.ui.adapter.MangaListAdapter
+import org.koitharu.kotatsu.list.ui.config.ListConfigSection
 import org.koitharu.kotatsu.list.ui.size.DynamicItemSizeResolver
 
 @AndroidEntryPoint
-class FavouritesListFragment : MangaListFragment(), PopupMenu.OnMenuItemClickListener {
+class FavouritesListFragment : MangaListFragment() {
 
 	override val viewModel by viewModels<FavouritesListViewModel>()
 
@@ -48,19 +47,7 @@ class FavouritesListFragment : MangaListFragment(), PopupMenu.OnMenuItemClickLis
 	override fun onEmptyActionClick() = viewModel.clearFilter()
 
 	override fun onFilterClick(view: View?) {
-		val menu = PopupMenu(view?.context ?: return, view)
-		menu.setOnMenuItemClickListener(this)
-		val orders = ListSortOrder.FAVORITES.sortedByOrdinal()
-		for ((i, item) in orders.withIndex()) {
-			menu.menu.add(Menu.NONE, Menu.NONE, i, item.titleResId)
-		}
-		menu.show()
-	}
-
-	override fun onMenuItemClick(item: MenuItem): Boolean {
-		val order = ListSortOrder.FAVORITES.sortedByOrdinal().getOrNull(item.order) ?: return false
-		viewModel.setSortOrder(order)
-		return true
+		router.showListSortSheet(ListConfigSection.Favorites(categoryId))
 	}
 
 	override fun onCreateActionMode(

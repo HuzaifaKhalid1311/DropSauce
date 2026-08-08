@@ -218,19 +218,16 @@ class HistoryListViewModel @Inject constructor(
 		return result
 	}
 
-	private fun MangaHistory.header(order: ListSortOrder): ListHeader? = when (order) {
-		ListSortOrder.LAST_READ,
-		ListSortOrder.LONG_AGO_READ -> calculateTimeAgo(updatedAt)?.let {
+	private fun MangaHistory.header(order: ListSortOrder): ListHeader? = when (order.type) {
+		ListSortOrder.Type.LAST_READ -> calculateTimeAgo(updatedAt)?.let {
 			ListHeader(it)
 		} ?: ListHeader(R.string.unknown)
 
-		ListSortOrder.OLDEST,
-		ListSortOrder.NEWEST -> calculateTimeAgo(createdAt)?.let {
+		ListSortOrder.Type.DATE_ADDED -> calculateTimeAgo(createdAt)?.let {
 			ListHeader(it)
 		} ?: ListHeader(R.string.unknown)
 
-		ListSortOrder.UNREAD,
-		ListSortOrder.PROGRESS -> ListHeader(
+		ListSortOrder.Type.PROGRESS -> ListHeader(
 			when {
 				ReadingProgress.isCompleted(percent) -> R.string.status_completed
 				percent in 0f..0.01f -> R.string.status_planned
@@ -239,14 +236,7 @@ class HistoryListViewModel @Inject constructor(
 			},
 		)
 
-		ListSortOrder.ALPHABETIC,
-		ListSortOrder.ALPHABETIC_REVERSE,
-		ListSortOrder.RELEVANCE,
-		ListSortOrder.NEW_CHAPTERS,
-		ListSortOrder.UPDATED,
-		ListSortOrder.RATING,
-		ListSortOrder.TOTAL_CHAPTERS,
-		ListSortOrder.LATEST_CHAPTER -> null
+		else -> null
 	}
 
 	private fun getEmptyState(hasFilters: Boolean) = if (hasFilters) {

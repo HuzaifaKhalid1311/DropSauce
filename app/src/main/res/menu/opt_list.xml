@@ -4,6 +4,13 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_sort"
+		android:icon="@drawable/ic_sort_asc"
+		android:orderInCategory="35"
+		android:title="@string/sort_order"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_list_mode"
 		android:icon="@drawable/ic_list_detailed"
 		android:orderInCategory="40"

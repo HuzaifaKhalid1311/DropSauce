@@ -150,15 +150,6 @@ class FavouritesListViewModel @Inject constructor(
 		}
 	}
 
-	fun setSortOrder(order: ListSortOrder) {
-		if (categoryId == NO_ID) {
-			return
-		}
-		launchJob {
-			repository.setCategoryOrder(categoryId, order)
-		}
-	}
-
 	fun requestMoreItems() {
 		if (isPaginationReady.compareAndSet(true, false)) {
 			limit.value += PAGE_SIZE

@@ -21,7 +21,6 @@ import org.koitharu.kotatsu.core.util.ext.getSerializableCompat
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.setChecked
-import org.koitharu.kotatsu.core.util.ext.sortedByOrdinal
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.ActivityCategoryEditBinding
 import org.koitharu.kotatsu.list.domain.ListSortOrder
@@ -35,7 +34,7 @@ class FavouritesCategoryEditActivity :
 
 	private val viewModel by viewModels<FavouritesCategoryEditViewModel>()
 	private var selectedSortOrder: ListSortOrder? = null
-	private val sortOrders = ListSortOrder.FAVORITES.sortedByOrdinal()
+	private val sortOrders = ListSortOrder.entries
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -109,8 +108,7 @@ class FavouritesCategoryEditActivity :
 		}
 		viewBinding.editName.setText(category?.title)
 		selectedSortOrder = category?.order
-		val sortText = getString((category?.order ?: ListSortOrder.NEWEST).titleResId)
-		viewBinding.editSort.setText(sortText, false)
+		viewBinding.editSort.setText(sortLabel(category?.order ?: ListSortOrder.NEWEST), false)
 		viewBinding.switchTracker.setChecked(category?.isTrackingEnabled != false, false)
 		viewBinding.switchDownloadNewChapters.setChecked(category?.isNewChaptersDownloadEnabled == true, false)
 		viewBinding.switchShelf.setChecked(category?.isVisibleInLibrary != false, false)
@@ -133,8 +131,14 @@ class FavouritesCategoryEditActivity :
 		}
 	}
 
+	/** The dropdown is flat, so each row has to spell out its direction. */
+	private fun sortLabel(order: ListSortOrder) = getString(
+		if (order.isAscending) R.string.sort_ascending else R.string.sort_descending,
+		getString(order.titleResId),
+	)
+
 	private fun initSortSpinner() {
-		val entries = sortOrders.map { getString(it.titleResId) }
+		val entries = sortOrders.map(::sortLabel)
 		val adapter = SortAdapter(this, entries)
 		viewBinding.editSort.setAdapter(adapter)
 		viewBinding.editSort.onItemClickListener = this
@@ -142,8 +146,7 @@ class FavouritesCategoryEditActivity :
 
 	private fun getSelectedSortOrder(): ListSortOrder {
 		selectedSortOrder?.let { return it }
-		val entries = sortOrders.map { getString(it.titleResId) }
-		val index = entries.indexOf(viewBinding.editSort.text.toString())
+		val index = sortOrders.map(::sortLabel).indexOf(viewBinding.editSort.text.toString())
 		return sortOrders.getOrNull(index) ?: ListSortOrder.NEWEST
 	}
 
