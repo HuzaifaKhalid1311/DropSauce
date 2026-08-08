@@ -439,8 +439,10 @@ class GoogleDriveSyncRepository @Inject constructor(
 	 *  1. A device with no baseline hash (never synced) is treated as having made NO local change, so
 	 *     it ADOPTS any existing remote config instead of overwriting the cloud with local defaults —
 	 *     this is the bug that wiped settings when signing in on a second device.
-	 *  2. Each section is unioned by key (winner overrides on conflict) so a key that exists on only
-	 *     one device is never dropped. Disabled sections dump empty locally and so pass remote through.
+	 *  2. Additive sections (app settings, source settings, manga prefs) are unioned by key — they are
+	 *     applied without clearing, keys accumulate across app versions, and an absent key just means
+	 *     "no opinion". The reader tap grid is the exception; see [mergeReaderGrid].
+	 *     Disabled sections dump empty locally and so pass remote through.
 	 *
 	 * The whole bundle still resolves by [SyncConfig.revision] (last-writer-wins) when both sides edited
 	 * overlapping keys concurrently — a rare case given the multi-hour sync cadence.
@@ -468,7 +470,7 @@ class GoogleDriveSyncRepository @Inject constructor(
 			revision = maxOf(localRevision, remoteRevision, 0L),
 			settings = mergeConfigMap(local.settings, remote?.settings, remoteWon)
 				.filterKeys { it !in EXCLUDED_SETTINGS_KEYS },
-			readerGrid = mergeConfigMap(local.readerGrid, remote?.readerGrid, remoteWon),
+			readerGrid = mergeReaderGrid(local.readerGrid, remote?.readerGrid, remoteWon),
 			sourceSettings = mergeConfigList(local.sourceSettings, remote?.sourceSettings, remoteWon) { it.source },
 			mangaPrefs = mergeConfigList(local.mangaPrefs, remote?.mangaPrefs, remoteWon) { it.mangaId },
 		)
@@ -499,6 +501,27 @@ class GoogleDriveSyncRepository @Inject constructor(
 			out.putAll(local)
 		}
 		return out
+	}
+
+	/**
+	 * The tap grid is the one config section stored as a whole: applying it wipes the prefs file and
+	 * writes the bundle verbatim, and turning an area off *removes* its key (`putString(key, null)` is
+	 * a delete). So a missing key means "the user disabled this area", not "no opinion" — unioning it
+	 * like [mergeConfigMap] resurrects every area that was ever turned on, which is how tap actions
+	 * crawled back to their defaults a sync or two after being changed. Take the winner's bundle whole.
+	 *
+	 * An empty side carries no data at all (settings sync off, or a remote written before tap-grid sync
+	 * existed) and passes the other side through — a local grid always has at least its `_init` marker.
+	 */
+	private fun mergeReaderGrid(
+		local: Map<String, BackupPrimitive>,
+		remote: Map<String, BackupPrimitive>?,
+		remoteWon: Boolean,
+	): Map<String, BackupPrimitive> = when {
+		remote.isNullOrEmpty() -> local
+		local.isEmpty() -> remote
+		remoteWon -> remote
+		else -> local
 	}
 
 	/** Union of two lists keyed by [key]; the winning side overrides on a shared key. */
