@@ -74,7 +74,6 @@ import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
-import org.koitharu.kotatsu.settings.developer.DeveloperToolsFragment
 
 @AndroidEntryPoint
 class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
@@ -117,7 +116,6 @@ class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
 					onChangelog = ::openChangelog,
 					onOpenLink = ::openLink,
 					onVerboseLoggingToggle = viewModel::setVerboseLogging,
-					onOpenDeveloperTools = ::openDeveloperTools,
 				)
 			}
 		}
@@ -135,14 +133,6 @@ class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
 	private fun openChangelog() {
 		(activity as? SettingsActivity)?.openFragment(
 			ChangelogFragment::class.java,
-			null,
-			isFromRoot = false,
-		)
-	}
-
-	private fun openDeveloperTools() {
-		(activity as? SettingsActivity)?.openFragment(
-			DeveloperToolsFragment::class.java,
 			null,
 			isFromRoot = false,
 		)
@@ -177,7 +167,6 @@ private fun AboutScreen(
 	onChangelog: () -> Unit,
 	onOpenLink: (urlRes: Int, titleRes: Int) -> Unit,
 	onVerboseLoggingToggle: (Boolean) -> Unit,
-	onOpenDeveloperTools: () -> Unit,
 ) {
 	val ctx = LocalContext.current
 	SettingsScaffold {
@@ -255,15 +244,6 @@ private fun AboutScreen(
 						shape = pos.shape,
 						checked = isVerboseLogging,
 						onCheckedChange = onVerboseLoggingToggle,
-					)
-				}
-				item { pos ->
-					ActionSettingsItem(
-						title = stringResource(R.string.developer_testing_tools),
-						subtitle = stringResource(R.string.developer_testing_tools_summary),
-						icon = R.drawable.ic_timer_run,
-						shape = pos.shape,
-						onClick = onOpenDeveloperTools,
 					)
 				}
 			}
