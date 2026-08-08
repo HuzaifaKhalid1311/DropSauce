@@ -52,7 +52,7 @@
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toBottomOf="@id/appbar" />
 
-	<HorizontalScrollView
+	<org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView
 		android:id="@+id/scrollView_chips"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
@@ -78,7 +78,7 @@
 
 		</com.google.android.material.chip.ChipGroup>
 
-	</HorizontalScrollView>
+	</org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView>
 
 	<org.koitharu.kotatsu.stats.ui.views.PieChartView
 		android:id="@+id/chart"

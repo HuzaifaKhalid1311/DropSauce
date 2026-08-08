@@ -643,7 +643,7 @@
     <string name="state_abandoned">Dropped</string>
     <string name="enhanced_colors_summary">Reduces banding, but may impact performance</string>
     <string name="enhanced_colors">32-bit color mode</string>
-    <string name="list_options">List options</string>
+    <string name="list_options">Display options</string>
     <string name="by_relevance">Relevance</string>
     <string name="categories">Categories</string>
     <string name="online_variant">Online variant</string>

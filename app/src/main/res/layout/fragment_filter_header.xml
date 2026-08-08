@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<HorizontalScrollView
+<org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:id="@+id/scrollView"
@@ -21,4 +21,4 @@
 		app:singleLine="true"
 		app:singleSelection="false" />
 
-</HorizontalScrollView>
+</org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView>

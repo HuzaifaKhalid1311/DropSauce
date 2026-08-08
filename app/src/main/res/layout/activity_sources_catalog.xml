@@ -50,7 +50,7 @@
 
 		</com.google.android.material.appbar.CollapsingToolbarLayout>
 
-		<HorizontalScrollView
+		<org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView
 			android:id="@+id/scrollView_chips"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
 				app:singleLine="true"
 				app:singleSelection="false" />
 
-		</HorizontalScrollView>
+		</org.koitharu.kotatsu.core.ui.widgets.NestedHorizontalScrollView>
 
 		<com.google.android.material.tabs.TabLayout
 			android:id="@+id/tabs"
