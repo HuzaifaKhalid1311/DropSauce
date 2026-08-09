@@ -194,6 +194,10 @@ private fun TrackerScreen(
 	var trackerNoNsfw by rememberBooleanPref(AppSettings.KEY_TRACKER_NO_NSFW, false)
 	var feedSwipeGestures by rememberBooleanPref(AppSettings.KEY_FEED_SWIPE_GESTURES, true)
 	var feedCounterAsDot by rememberBooleanPref(AppSettings.KEY_FEED_COUNTER_DOT, false)
+	var skipCompleted by rememberBooleanPref(AppSettings.KEY_TRACKER_SKIP_COMPLETED, false)
+	var skipUnstarted by rememberBooleanPref(AppSettings.KEY_TRACKER_SKIP_UNSTARTED, false)
+	var skipUnread by rememberBooleanPref(AppSettings.KEY_TRACKER_SKIP_UNREAD, false)
+
 
 	val freqValues = remember { ctx.resources.getStringArray(R.array.values_tracker_frequency).toList() }
 	val freqEntries = remember(freqValues) {
@@ -359,9 +363,49 @@ private fun TrackerScreen(
 						shape = pos.shape,
 						enabled = categoriesEnabled && categories.isNotEmpty(),
 					)
+
 				}
 			}
 		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+		item {
+			SettingsGroup(title = stringResource(R.string.pref_smart_update_title)) {
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.pref_smart_update_skip_completed),
+						subtitle = stringResource(R.string.pref_smart_update_skip_completed_summary),
+						checked = skipCompleted,
+						onCheckedChange = { skipCompleted = it },
+						icon = R.drawable.ic_eye_check,
+						shape = pos.shape,
+						enabled = enabled,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.pref_smart_update_skip_unstarted),
+						subtitle = stringResource(R.string.pref_smart_update_skip_unstarted_summary),
+						checked = skipUnstarted,
+						onCheckedChange = { skipUnstarted = it },
+						icon = R.drawable.ic_history,
+						shape = pos.shape,
+						enabled = enabled,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.pref_smart_update_skip_unread),
+						subtitle = stringResource(R.string.pref_smart_update_skip_unread_summary),
+						checked = skipUnread,
+						onCheckedChange = { skipUnread = it },
+						icon = R.drawable.ic_dot_indicator,
+						shape = pos.shape,
+						enabled = enabled,
+					)
+				}
+			}
+		}
+
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 		item {
 			SettingsGroup(title = stringResource(R.string.debug)) {

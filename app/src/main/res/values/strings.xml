@@ -1155,4 +1155,13 @@
     <string name="sort_unread_count">Unread count</string>
     <string name="sort_ascending">%s (ascending)</string>
     <string name="sort_descending">%s (descending)</string>
+
+    <!-- Smart Update -->
+    <string name="pref_smart_update_title">Smart update</string>
+    <string name="pref_smart_update_skip_completed">Skip completed entries</string>
+    <string name="pref_smart_update_skip_completed_summary">Skip entries with \"Completed\" status</string>
+    <string name="pref_smart_update_skip_unstarted">Skip unstarted entries</string>
+    <string name="pref_smart_update_skip_unstarted_summary">Skip entries with no reading progress</string>
+    <string name="pref_smart_update_skip_unread">Skip entries with unread chapters</string>
+    <string name="pref_smart_update_skip_unread_summary">Skip checking updates if unread chapter(s) exist</string>
 </resources>
