@@ -17,7 +17,6 @@ object SmartUpdateHelper {
 		database: MangaDatabase,
 	): Boolean = getSkipReasonRes(track.manga, track.newChapters, settings, database) != null
 
-	@StringRes
 	suspend fun getSkipReasonRes(
 		manga: Manga,
 		newChapters: Int,
