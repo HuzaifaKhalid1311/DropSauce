@@ -173,6 +173,13 @@
 	<!--== Default Theme ==-->
 	<style name="Theme.Kotatsu" parent="Base.Theme.Kotatsu" />
 
+	<!-- Empty translucent host for activities that only show a Compose dialog -->
+	<style name="Theme.Kotatsu.Transparent" parent="Theme.Kotatsu">
+		<item name="android:windowBackground">@android:color/transparent</item>
+		<item name="android:windowIsTranslucent">true</item>
+		<item name="android:windowContentOverlay">@null</item>
+	</style>
+
 	<!-- Base ThemeOverlay -->
 	<style name="ThemeOverlay.Kotatsu" parent="ThemeOverlay.Material3.Light">
 		<item name="android:popupMenuStyle">@style/Widget.Kotatsu.PopupMenu</item>

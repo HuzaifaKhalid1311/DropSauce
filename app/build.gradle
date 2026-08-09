@@ -249,7 +249,6 @@ dependencies {
 	implementation libs.markwon
 	implementation libs.kizzyrpc
 
-	implementation libs.acra.http
 	implementation libs.acra.dialog
 
 

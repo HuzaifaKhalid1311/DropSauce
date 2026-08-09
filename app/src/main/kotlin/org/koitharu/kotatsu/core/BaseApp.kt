@@ -19,12 +19,12 @@ import org.acra.config.dialog
 import org.acra.data.StringFormat
 import org.acra.ktx.initAcra
 import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.logs.AppLogger
 import org.koitharu.kotatsu.core.os.AppValidator
 import org.koitharu.kotatsu.core.os.RomCompat
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
@@ -105,11 +105,8 @@ open class BaseApp : Application(), Configuration.Provider {
 			reportFormat = StringFormat.JSON
 			
 			dialog {
-				text = getString(R.string.crash_text)
-				title = getString(R.string.error_occurred)
-				positiveButtonText = getString(R.string.close)
-				resIcon = R.drawable.ic_alert_outline
-				resTheme = android.R.style.Theme_Material_Light_Dialog_Alert
+				// CrashDialogActivity brings its own title/text/buttons
+				reportDialogClass = CrashDialogActivity::class.java
 			}
 		}
 	}
