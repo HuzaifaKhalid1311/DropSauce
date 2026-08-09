@@ -198,7 +198,6 @@ class ReaderActivity :
         ).flowOn(Dispatchers.Default)
             .observe(this, this::onLoadingStateChanged)
         viewModel.isKeepScreenOnEnabled.observe(this, this::setKeepScreenOn)
-        viewModel.isInfoBarTransparent.observe(this) { viewBinding.infoBar.drawBackground = !it }
         viewModel.isInfoBarEnabled.observe(this, ::onReaderBarChanged)
         viewModel.isBookmarkAdded.observe(this, MenuInvalidator(this))
         viewModel.onAskNsfwIncognito.observeEvent(this) { askForIncognitoMode() }
@@ -669,7 +668,6 @@ class ReaderActivity :
             else -> chapterTitle
         }
         if (
-            settings.isReaderChapterToastEnabled &&
             chapterTitle != previous?.getChapterTitle(resources) &&
             chapterTitle.isNotEmpty()
         ) {

@@ -190,7 +190,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.container, null))
 		viewModel.isLoading.observe(this, this::onLoadingStateChanged)
 		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)
-		settings.observe(AppSettings.KEY_NAV_LEGACY).observe(this) { adjustFabVisibility() }
 		viewModel.feedCounter.observe(this, ::onFeedCounterChanged)
 		viewModel.hasExtensionUpdates.observe(this) { hasUpdates ->
 			navigationDelegate.setCounter(NavItem.EXPLORE, if (hasUpdates) -1 else 0)
@@ -326,7 +325,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	) {
 		if (top != oldTop || bottom != oldBottom) {
 			updateContainerBottomMargin()
-			if (settings.isNavBarPinned && !settings.isLegacyNavigationBar) {
+			if (settings.isNavBarPinned) {
 				ViewCompat.requestApplyInsets(viewBinding.container)
 			}
 		}
@@ -433,11 +432,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		} else {
 			navigationDelegate.primaryFragment
 		}
-		// When the modern floating bar is shown, the "continue reading" action lives on it as a
-		// standalone circular button (handled below), so it must never appear as a FAB. In legacy
-		// navigation mode — or on the tablet nav rail, which has no floating bar — it keeps the old
-		// behaviour of a FAB shown only inside the history tab.
-		val useFloatingContinue = viewBinding.bottomNav != null && !settings.isLegacyNavigationBar
+		// The "continue reading" action lives on the floating bottom bar on phones. The tablet
+		// navigation rail has no floating bar, so it keeps the FAB inside the history tab.
+		val useFloatingContinue = viewBinding.bottomNav != null
 		if (!useFloatingContinue && isResumeEnabled && !actionModeDelegate.isActionModeStarted &&
 			!isSearchOpened && fragment is HistoryListFragment
 		) {
@@ -638,7 +635,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		// padding, so the last row can always be scrolled fully into view above the bar — without
 		// adding a container margin that would break the edge-to-edge look of the gesture area.
 		ViewCompat.setOnApplyWindowInsetsListener(viewBinding.container) { _, windowInsets ->
-			val extraBottom = if (settings.isNavBarPinned && !settings.isLegacyNavigationBar) {
+			val extraBottom = if (settings.isNavBarPinned) {
 				((viewBinding.bottomNav?.height ?: 0) - navSystemBarBottom).coerceAtLeast(0)
 			} else {
 				0

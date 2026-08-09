@@ -1,8 +1,6 @@
 package org.koitharu.kotatsu.core.ui.widgets
 
 import android.content.Context
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
@@ -42,15 +40,12 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	private val composeItemsState = MutableStateFlow<List<FloatingNavBarItem>>(emptyList())
 	private val selectedIdState = MutableStateFlow(0)
 	private val labeledState = MutableStateFlow(true)
-	private val navColorsState = MutableStateFlow(readLegacyNavColors())
+	private val navColorsState = MutableStateFlow(readNavColors())
 	private val continueVisibleState = MutableStateFlow(false)
 	private var continueClickListener: (() -> Unit)? = null
 	private val sourceItems = mutableListOf<NavItem>()
 	private val hiddenIds = mutableSetOf<Int>()
 	private val badgeCounts = mutableMapOf<Int, Int>()
-	private val legacyBackground: Drawable = ColorDrawable(context.getThemeColor(materialR.attr.colorSurfaceContainer))
-	private val legacyElevation = elevation
-	private var useLegacyNavigation = false
 
 	private val composeView: ComposeView = ComposeView(context).apply {
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -140,22 +135,13 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 		labeledState.value = value
 	}
 
-	/**
-	 * Toggle the standalone circular "continue reading" button rendered next to the floating bar.
-	 * Has no effect in legacy navigation mode, where the Compose layer is hidden entirely.
-	 */
+	/** Toggle the standalone circular "continue reading" button rendered next to the floating bar. */
 	fun setContinueVisible(value: Boolean) {
 		continueVisibleState.value = value
 	}
 
 	fun setOnContinueClickListener(listener: (() -> Unit)?) {
 		continueClickListener = listener
-	}
-
-	fun setUseLegacyNavigation(value: Boolean) {
-		if (useLegacyNavigation == value) return
-		useLegacyNavigation = value
-		updateNavigationMode()
 	}
 
 	fun setComposeBadge(@IdRes itemId: Int, count: Int) {
@@ -190,25 +176,12 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 		for (i in 0 until childCount) {
 			val child = getChildAt(i)
 			if (child !== composeView) {
-				child.visibility = if (useLegacyNavigation) View.VISIBLE else View.GONE
+				child.visibility = View.GONE
 			}
 		}
 	}
 
-	private fun updateNavigationMode() {
-		navColorsState.value = readLegacyNavColors()
-		composeView.visibility = if (useLegacyNavigation) View.GONE else View.VISIBLE
-		for (i in 0 until childCount) {
-			val child = getChildAt(i)
-			if (child !== composeView) {
-				child.visibility = if (useLegacyNavigation) View.VISIBLE else View.GONE
-			}
-		}
-		background = if (useLegacyNavigation) legacyBackground else null
-		elevation = if (useLegacyNavigation) legacyElevation else 0f
-	}
-
-	private fun readLegacyNavColors(): FloatingNavBarColors {
+	private fun readNavColors(): FloatingNavBarColors {
 		val selectedState = intArrayOf(android.R.attr.state_enabled, android.R.attr.state_checked)
 		val unselectedState = intArrayOf(android.R.attr.state_enabled, -android.R.attr.state_checked)
 		val fallbackContainer = context.getThemeColor(materialR.attr.colorSurfaceContainer)

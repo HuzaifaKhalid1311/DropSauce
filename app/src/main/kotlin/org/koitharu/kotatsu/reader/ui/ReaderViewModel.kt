@@ -15,7 +15,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -150,20 +149,11 @@ class ReaderViewModel @Inject constructor(
         valueProducer = { isReaderBarEnabled },
     )
 
-    val isInfoBarTransparent = settings.observeAsStateFlow(
-        scope = viewModelScope + Dispatchers.Default,
-        key = AppSettings.KEY_READER_BAR_TRANSPARENT,
-        valueProducer = { isReaderBarTransparent },
-    )
-
     val isKeepScreenOnEnabled = settings.observeAsStateFlow(
         scope = viewModelScope + Dispatchers.Default,
         key = AppSettings.KEY_READER_SCREEN_ON,
         valueProducer = { isReaderKeepScreenOn },
     )
-
-    val isWebtoonZooEnabled = observeIsWebtoonZoomEnabled()
-        .stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
 
     val isWebtoonGapsEnabled = settings.observeAsStateFlow(
         scope = viewModelScope + Dispatchers.Default,
@@ -177,21 +167,10 @@ class ReaderViewModel @Inject constructor(
         valueProducer = { isWebtoonPullGestureEnabled },
     )
 
-    val defaultWebtoonZoomOut = observeIsWebtoonZoomEnabled().flatMapLatest {
-        if (it) {
-            observeWebtoonZoomOut()
-        } else {
-            flowOf(0f)
-        }
-    }.flowOn(Dispatchers.Default)
+    val defaultWebtoonZoomOut = observeWebtoonZoomOut().flowOn(Dispatchers.Default)
 
-    val isZoomControlsEnabled = getObserveIsZoomControlEnabled().flatMapLatest { zoom ->
-        if (zoom) {
-            combine(readerMode, isWebtoonZooEnabled) { mode, ze -> ze || mode != ReaderMode.WEBTOON }
-        } else {
-            flowOf(false)
-        }
-    }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+    val isZoomControlsEnabled = getObserveIsZoomControlEnabled()
+        .stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
 
     val readerSettingsProducer = readerSettingsProducerFactory.create(
         manga.mapNotNull { it?.id },
@@ -656,11 +635,6 @@ class ReaderViewModel @Inject constructor(
         }
         return state.scroll.coerceIn(0, EPUB_SLIDER_MAX) to (EPUB_SLIDER_MAX + 1)
     }
-
-    private fun observeIsWebtoonZoomEnabled() = settings.observeAsFlow(
-        key = AppSettings.KEY_WEBTOON_ZOOM,
-        valueProducer = { isWebtoonZoomEnabled },
-    )
 
     private fun observeWebtoonZoomOut() = settings.observeAsFlow(
         key = AppSettings.KEY_WEBTOON_ZOOM_OUT,
