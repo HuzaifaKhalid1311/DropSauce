@@ -17,7 +17,6 @@
     <string name="app_update_available">มีเวอร์ชันใหม่ของแอปนี้ให้ใช้งานแล้ว</string>
     <string name="notifications">การแจ้งเตือน</string>
     <string name="notifications_settings">ตั้งค่าการแจ้งเตือน</string>
-    <string name="vibration">สั่น</string>
     <string name="remove_category">ลบ</string>
     <string name="favourites">รายการโปรด</string>
     <string name="history">ประวัติ</string>
@@ -46,7 +45,6 @@
     <string name="search_history_cleared">เคลียร์แล้ว</string>
     <string name="clear_search_history">เคลียร์ประวัติการค้นหา</string>
     <string name="download">ดาวน์โหลด</string>
-    <string name="notification_sound">เสียงการแจ้งเตือน</string>
     <string name="cannot_find_available_storage">ไม่มีพื้นที่ว่างในอุปกรณ์</string>
     <string name="done">สำเร็จ</string>
     <string name="text_feed_holder">ตอนใหม่ของเรื่องที่คุณกําลังอ่านจะแสดงไว้ที่นี่</string>
@@ -124,7 +122,6 @@
     <string name="color_dark">มืด</string>
     <string name="color_light">สว่าง</string>
     <string name="description">คำอธิบาย</string>
-    <string name="webtoon_zoom_summary">อนุญาตให้ซูมเข้าในโหมดเว็บตูน</string>
     <string name="show_pages_numbers_summary">แสดงเลขหน้าที่มุมล่าง</string>
     <string name="zoom_mode_fit_width">พอดีกับความกว้าง</string>
     <string name="black_dark_theme_summary">ใช้พลังงานแบตเตอรี่บนจอหน้า AMOLED</string>
@@ -177,7 +174,6 @@
     <string name="search_hint">ใส่ชื่อเรื่องมังงะ,แนวหรือชื่อแหล่ง</string>
     <string name="this_month">เดือนนี้</string>
     <string name="reader_settings">ตั้งค่าการโปรแกรมอ่าน</string>
-    <string name="light_indicator">ไฟ LED</string>
     <string name="genres">ประเภท</string>
     <string name="state_finished">เสร็จสิ้น</string>
     <string name="state_ongoing">กำลังดำเนินการอยู่</string>
@@ -191,7 +187,6 @@
     <string name="suggestions_enable">เปิดใช้คำแนะนำ</string>
     <string name="not_available">ไม่สามารถใช้ได้</string>
     <string name="tap_to_try_again">แตะเพื่อลองอีกครั้ง</string>
-    <string name="silent">เงียบ</string>
     <string name="captcha_required">ต้องมี CAPTCHA ถึงจะเข้าสำเร็จ</string>
     <string name="captcha_solve">แก้ไข</string>
     <string name="text_clear_updates_feed_prompt">ล้างประวัติการอัปเดตทั้งหมดอย่างถาวรไหม\?</string>

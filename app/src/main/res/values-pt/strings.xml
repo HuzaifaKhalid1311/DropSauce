@@ -63,7 +63,6 @@
     <string name="notifications">Notificações</string>
     <string name="new_chapters">Novos capítulos</string>
     <string name="notifications_settings">Configurações das notificações</string>
-    <string name="light_indicator">Indicador LED</string>
     <string name="remote_sources">Fontes de mangá</string>
     <string name="close">Fechar</string>
     <string name="light">Claro</string>
@@ -80,7 +79,6 @@
     <string name="text_file_not_supported">Escolha um ficheiro ZIP ou CBZ.</string>
     <string name="clear_search_history">Limpar histórico de pesquisa</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Ativado %1$d de %2$d</string>
-    <string name="notification_sound">Som de notificação</string>
     <string name="show_pages_numbers">Páginas numeradas</string>
     <string name="state_finished">Concluído</string>
     <string name="state_ongoing">Em andamento</string>
@@ -116,7 +114,6 @@
     <string name="group">Grupo</string>
     <string name="today">Hoje</string>
     <string name="tap_to_try_again">Toque para tentar novamente</string>
-    <string name="silent">Silencioso</string>
     <string name="captcha_required">CAPTCHA obrigatório</string>
     <string name="captcha_solve">Resolver</string>
     <string name="cookies_cleared">Todos os cookies foram removidos</string>
@@ -134,7 +131,6 @@
     <string name="auth_not_supported_by">O login em %s não é suportado</string>
     <string name="genres">Gêneros</string>
     <string name="text_clear_cookies_prompt">Será desconectado de todas as fontes</string>
-    <string name="vibration">Vibração</string>
     <string name="cannot_find_available_storage">Sem armazenamento disponível</string>
     <string name="favourites_categories">Categorias favoritas</string>
     <string name="text_history_holder_secondary">Encontre o que ler na seção «Explorar»</string>
@@ -296,13 +292,11 @@
     <string name="show_in_grid_view">Mostrar na visualização em grade</string>
     <string name="settings_apply_restart_required">Por favor, reinicie o app para aplicar essas mudanças</string>
     <string name="scrobbling_empty_hint">Para acompanhar o progresso da leitura, selecione Menu → Vá até a tela de detalhes do mangá.</string>
-    <string name="webtoon_zoom">Zoom Webtoon</string>
     <string name="comics_archive_import_description">Você pode selecionar um ou mais arquivos .cbz ou .zip, cada arquivo será reconhecido como um mangá separado.</string>
     <string name="folder_with_images_import_description">Você pode selecionar um diretório com arquivos ou imagens. Cada arquivo (ou subdiretório) será reconhecido como um capítulo.</string>
     <string name="address">Endereço</string>
     <string name="port">Porta</string>
     <string name="restore_summary">Restaurar backup criado anteriormente</string>
-    <string name="webtoon_zoom_summary">Permitir zoom no gesto no modo webtoon</string>
     <string name="reader_info_bar_summary">Mostrar a hora atual e o progresso da leitura na parte superior da tela</string>
     <string name="show_on_shelf">Mostrar na prateleira</string>
     <string name="find_similar">Encontrar semelhante</string>
@@ -622,8 +616,6 @@
     <string name="access_denied_403">Acesso negado (403)</string>
     <string name="content_type_doujinshi">Fanzine</string>
     <string name="captcha_required_message">Esta fonte requer a resolução de um captcha para continuar</string>
-    <string name="handle_links">Lidar com links</string>
-    <string name="handle_links_summary">Lidar com links de mangá de aplicativos externos (por exemplo, navegador da web). Você também pode precisar habilitá-lo manualmente nas configurações do sistema do aplicativo</string>
     <string name="error_not_image">Formato inválido: imagem esperada, mas obteve %s</string>
     <string name="max_backups_count">Número máximo de backups</string>
     <string name="test_connection">Conexão de teste</string>
@@ -633,7 +625,6 @@
     <string name="rating">Avaliação</string>
     <string name="clear_database">Limpar banco de dados</string>
     <string name="clear_database_summary">Excluir informações sobre mangás que não são utilizadas</string>
-    <string name="reader_info_bar_transparent">Barra de informações do leitor transparente</string>
     <string name="restoring_backup">Restaurando backup</string>
     <string name="reader_controls_in_bottom_bar">Controles do leitor na barra inferior</string>
     <string name="chapters_and_pages">Capítulos e páginas</string>
@@ -648,8 +639,6 @@
     <string name="clear_browser_data">Limpar informações do browser</string>
     <string name="clear_browser_data_summary">Limpar informações do browser como cache e cookies. Aviso: Autorizações em fontes de mangá podem ficar inválidas</string>
     <string name="no_write_permission_to_file">Não há permissão para modificar um ficheiro</string>
-    <string name="tags_warnings">Destacar géneros perigosos</string>
-    <string name="tags_warnings_summary">Destacar géneros que podem ser inapropriados para a maioria dos utilizadores</string>
     <string name="manga_override_hint">Estás mudanças vão afetar como mangá é apresentado na aplicação</string>
     <string name="use_default_cover">Usar capa padrão</string>
     <string name="pick_manga_page">Escolher página do mangá</string>
@@ -714,8 +703,6 @@
     <string name="two_page_scroll_sensitivity">Sensibilidade de rolagem de página dupla</string>
     <string name="enable_pull_gesture_title">Ativar gesto de puxar</string>
     <string name="enable_pull_gesture_summary">Use o gesto de puxar para mudar de capítulo na webtoon</string>
-    <string name="reader_chapter_toast">Mostrar pop-up de mudança de capítulo</string>
-    <string name="reader_chapter_toast_summary">Mostrar uma mensagem pop-up com o título do capítulo quando ele for alterado</string>
     <string name="storage_and_network">Armazenamento e internet</string>
     <string name="data_removal">Remover dados</string>
     <string name="privacy">Privacidade</string>

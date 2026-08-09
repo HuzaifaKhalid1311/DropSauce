@@ -52,9 +52,6 @@
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Đã bật %1$d trong số %2$d nguồn</string>
     <string name="new_chapters">Chương mới</string>
     <string name="download">Tải xuống</string>
-    <string name="notification_sound">Âm thanh thông báo</string>
-    <string name="light_indicator">Tín hiệu đèn LED thông báo</string>
-    <string name="vibration">Rung</string>
     <string name="favourites_categories">Danh mục yêu thích</string>
     <string name="remove_category">Xoá</string>
     <string name="text_local_holder_primary">Lưu gì đó trước</string>
@@ -88,7 +85,6 @@
     <string name="just_now">Mới đây</string>
     <string name="yesterday">Hôm qua</string>
     <string name="reader_mode_hint">Cài đặt được chọn sẽ chỉ lưu lại cho truyện này</string>
-    <string name="silent">Im lặng</string>
     <string name="captcha_required">Yêu cầu xác thực CAPTCHA</string>
     <string name="captcha_solve">Xác thực</string>
     <string name="clear_cookies">Xoá cookies</string>
@@ -271,7 +267,6 @@
     <string name="reader_control_ltr_summary">Chạm vào bên phải màn hình hoặc nhấn nút mũi tên bên phải để sang trang kế tiếp. Điều này phụ thuộc vào thiết bị / giả lập bạn đang dùng (Không điều chỉnh hướng với chế độ đọc)</string>
     <string name="history_shortcuts">Hiển thị lối tắt truyện đọc gần đây</string>
     <string name="contrast">Tương phản</string>
-    <string name="webtoon_zoom">Phóng to truyện Webtoon</string>
     <string name="show_in_grid_view">Hiển thị dưới dạng lưới</string>
     <string name="color_theme">Bảng màu</string>
     <string name="nothing_here">Không có gì ở đây cả</string>
@@ -297,7 +292,6 @@
     <string name="password">Mật khẩu</string>
     <string name="username">Tên người dùng</string>
     <string name="invalid_value_message">Giá trị không hợp lệ</string>
-    <string name="webtoon_zoom_summary">Cho phép cử chỉ phóng to ở chế độ Webtoon</string>
     <string name="show_pages_numbers_summary">Hiển thị số trang ở góc bên dưới</string>
     <string name="ignore_ssl_errors">Bỏ qua lỗi SSL</string>
     <string name="settings_apply_restart_required">Vui lòng khởi động lại ứng dụng để áp dụng những thay đổi trên</string>
@@ -621,8 +615,6 @@
     <string name="pages_saved">Đã lưu trang</string>
     <string name="delete_old_backups">Xóa bản sao lưu cũ</string>
     <string name="delete_old_backups_summary">Tự động xóa các bản sao lưu cũ để tiết kiệm bộ nhớ của thiết bị</string>
-    <string name="handle_links">Xử lý liên kết (Link)</string>
-    <string name="handle_links_summary">Xử lý các liên kết (Link) truyện từ các ứng dụng bên ngoài (Ví dụ: Chrome,...). Có thể bạn cũng cần phải bật thủ công trong cài đặt hệ thống</string>
     <string name="email">E-mail</string>
     <string name="captcha_required_message">Nguồn đang yêu cầu xác thực CAPTCHA để có thể tiếp tục sử dụng</string>
     <string name="author">Tác giả</string>
@@ -632,7 +624,6 @@
     <string name="test_connection">Kiểm tra kết nối</string>
     <string name="clear_database">Xóa database</string>
     <string name="clear_database_summary">Xoá thông tin dữ liệu về manga chưa từng được sử dụng (cache)</string>
-    <string name="reader_info_bar_transparent">Làm trong suốt thanh trạng thái ở giao diện đọc truyện</string>
     <string name="restoring_backup">Đang khôi phục sao lưu</string>
     <string name="chapters_and_pages">Duyệt chương và trang đọc</string>
     <string name="pages_slider">Thanh trượt chuyển trang</string>
@@ -656,8 +647,6 @@
     <string name="clear_browser_data_summary">Điều này sẽ xóa những dữ liệu như cache và cookies. Lưu ý: Xác thực (đăng nhập) đối với nguồn đọc có thể sẽ không còn hợp lệ nữa</string>
     <string name="no_write_permission_to_file">Không có quyền để ghi một tệp tin mới</string>
     <string name="exclude_nsfw_from_suggestions_summary">Gợi ý về manga người lớn sẽ được ẩn đi. Tùy chọn này có thể không hoạt động chuẩn với một số nguồn</string>
-    <string name="tags_warnings">Highlight những thể loại không an toàn</string>
-    <string name="tags_warnings_summary">Highlight những thể loại mà nó không thực sự phù hợp với hầu hết người đọc (mọi lứa tuổi)</string>
     <string name="manga_override_hint">Những thay đổi này sẽ ảnh hưởng đến cách bạn trang trí / trình bày truyện trong ứng dụng</string>
     <string name="pick_manga_page">Chọn trang có trong manga làm ảnh bìa của truyện</string>
     <string name="change_cover">Sửa ảnh bìa truyện</string>
@@ -713,8 +702,6 @@
     <string name="enable_pull_gesture_summary">Sử dụng cử chỉ tay kéo - thả để chuyển chương trong chế độ đọc Webtoon</string>
     <string name="enter_name">Hãy điền tên</string>
     <string name="two_page_scroll_sensitivity">Độ nhạy khi cuộn hai trang</string>
-    <string name="reader_chapter_toast">Hiện thông báo chuyển chương</string>
-    <string name="reader_chapter_toast_summary">Hiển thị một bong bóng nổi nho nhỏ ở phía dưới màn hình cùng với tên của chương truyện khi bạn đọc sang một chương truyện mới</string>
     <string name="storage_and_network">Lưu trữ và mạng</string>
     <string name="data_removal">Xoá dữ liệu</string>
     <string name="privacy">Quyền riêng tư</string>

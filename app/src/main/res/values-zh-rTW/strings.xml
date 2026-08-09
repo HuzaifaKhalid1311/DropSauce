@@ -81,15 +81,12 @@
     <string name="share_image">分享圖片</string>
     <string name="delete">刪除</string>
     <string name="clear_pages_cache">清除頁面快取</string>
-    <string name="webtoon_zoom_summary">在 webtoon 模式中允許手勢縮放</string>
     <string name="show_pages_numbers_summary">在底部角落顯示頁碼</string>
     <string name="reader_info_bar_summary">在畫面頂部顯示目前時間與閱讀進度</string>
     <string name="search_history_cleared">已清除</string>
     <string name="notifications">通知</string>
     <string name="download">下載</string>
     <string name="notifications_settings">通知設定</string>
-    <string name="notification_sound">通知聲音</string>
-    <string name="light_indicator">LED 指示燈</string>
     <string name="new_chapters">新章節</string>
     <string name="cannot_find_available_storage">沒有可用的儲存空間</string>
     <string name="other_storage">其他儲存</string>
@@ -122,7 +119,6 @@
     <string name="long_ago">很久以前</string>
     <string name="group">群組</string>
     <string name="today">今日</string>
-    <string name="silent">無聲</string>
     <string name="cookies_cleared">所有 cookies 已被移除</string>
     <string name="clear_feed">清除檔案</string>
     <string name="check_for_new_chapters">檢查新的章節</string>
@@ -244,7 +240,6 @@
     <string name="reset">重置</string>
     <string name="discard">放棄</string>
     <string name="error_no_space_left">裝置上沒有可用空間</string>
-    <string name="webtoon_zoom">Webtoon 縮放</string>
     <string name="network_unavailable">網路不可用</string>
     <string name="server_error">伺服器端錯誤 (%1$d)。請稍後重試</string>
     <string name="suggestions_notifications_summary">偶爾顯示推薦漫畫通知</string>
@@ -264,7 +259,6 @@
     <string name="read_mode">閱讀模式</string>
     <string name="grid_size">網格大小</string>
     <string name="reader_settings">閱讀設定</string>
-    <string name="vibration">震動</string>
     <string name="pages_animation">頁面動畫</string>
     <string name="zoom_mode_fit_width">適應寬度</string>
     <string name="zoom_mode_keep_start">從頭開始</string>

@@ -20,7 +20,6 @@
     <string name="clear_cookies">Tyhjennä evästeet</string>
     <string name="captcha_solve">Ratkaise</string>
     <string name="captcha_required">CAPTCHA vaaditaan</string>
-    <string name="silent">Äänetön</string>
     <string name="reader_mode_hint">Valittu kokoonpano muistetaan tästä mangasta</string>
     <string name="tap_to_try_again">Yritä uudelleen napauttamalla</string>
     <string name="today">Tänään</string>
@@ -75,9 +74,6 @@
     <string name="text_empty_holder_primary">Täällä on aika tyhjää…</string>
     <string name="remove_category">Poista luokka</string>
     <string name="favourites_categories">Suosikkiluokat</string>
-    <string name="vibration">Tärinä</string>
-    <string name="light_indicator">Merkkivalo</string>
-    <string name="notification_sound">Ilmoitusääni</string>
     <string name="notifications_settings">Ilmoitusten asetukset</string>
     <string name="download">Lataa</string>
     <string name="new_chapters">Uusia lukuja</string>

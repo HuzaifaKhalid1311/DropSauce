@@ -15,7 +15,6 @@
     <string name="clear_cookies">Effacer les cookies</string>
     <string name="captcha_solve">Résoudre</string>
     <string name="captcha_required">CAPTCHA requis</string>
-    <string name="silent">Silencieux</string>
     <string name="reader_mode_hint">La configuration choisie sera mémorisée pour ce manga</string>
     <string name="tap_to_try_again">Appuyez pour réessayer</string>
     <string name="today">Aujourd\'hui</string>
@@ -71,8 +70,6 @@
     <string name="text_empty_holder_primary">C\'est un peu vide ici…</string>
     <string name="remove_category">Retirer</string>
     <string name="favourites_categories">Catégories favorites</string>
-    <string name="light_indicator">Indicateur lumineux</string>
-    <string name="notification_sound">Son de notification</string>
     <string name="notifications_settings">Paramètres des notifications</string>
     <string name="download">Télécharger</string>
     <string name="new_chapters">Nouveaux chapitres</string>
@@ -274,7 +271,6 @@
     <string name="contrast">Contraste</string>
     <string name="reset">Réinitialiser</string>
     <string name="error_no_space_left">Il n\'y a plus d\'espace sur l\'appareil</string>
-    <string name="webtoon_zoom">Zoom Webtoon</string>
     <string name="network_unavailable">Le réseau n\'est pas disponible</string>
     <string name="server_error">Erreur côté serveur (%1$d). Veuillez réessayer plus tard</string>
     <string name="clear_new_chapters_counters">Effacer aussi les informations sur les nouveaux chapitres</string>
@@ -326,7 +322,6 @@
     <string name="invalid_value_message">Valeur invalide</string>
     <string name="authorization_optional">Autorisation (optionnel)</string>
     <string name="restore_summary">Restaurer la sauvegarde précédemment créée</string>
-    <string name="webtoon_zoom_summary">Autoriser le geste de zoom en mode webtoon</string>
     <string name="reader_info_bar_summary">Afficher l\'heure actuelle et la progression de la lecture en haut de l\'écran</string>
     <string name="show_pages_numbers_summary">Afficher les numéros de page dans le coin inférieur</string>
     <string name="download_option_first_n_chapters">%s premier(s)</string>
@@ -606,9 +601,7 @@
     <string name="pages_saved">Pages sauvegardées</string>
     <string name="delete_old_backups_summary">Suppression automatique des anciens fichiers de sauvegarde pour économiser de l\'espace de stockage</string>
     <string name="delete_old_backups">Supprimer les anciennes sauvegardes</string>
-    <string name="handle_links">Gérer les liens</string>
     <string name="email">Courriel</string>
-    <string name="handle_links_summary">Gérer les liens vers des mangas à partir d\'applications externes (par exemple, un navigateur web). Il se peut que vous deviez également l\'activer manuellement dans les paramètres système de l\'application</string>
     <string name="captcha_required_message">Cette source nécessite la résolution d\'un captcha pour continuer</string>
     <string name="author">Auteur</string>
     <string name="incognito">Mode Incognito</string>
@@ -622,7 +615,6 @@
     <string name="error_disclaimer_manga">Essayez d\'ouvrir le manga dans un navigateur Web pour vous assurer qu\'il est disponible sur sa source.</string>
     <string name="error_disclaimer_app_outdated">Il semble que votre version de DropSauce soit obsolète. Veuillez installer la dernière version pour obtenir tous les correctifs disponibles.</string>
     <string name="error_disclaimer_report">Vous pouvez envoyer un rapport des erreurs aux développeurs. Cela nous aidera à enquêter sur le problème et à le résoudre.</string>
-    <string name="reader_info_bar_transparent">Barre d\'informations transparente pour le lecteur</string>
     <string name="chapter_volume_number">Vol %1$s chapitre %2$s</string>
     <string name="chapter_number">Chapitre %s</string>
     <string name="unnamed_chapter">Chapitre sans nom</string>
@@ -640,7 +632,6 @@
     <string name="clear_browser_data">Effacer les données du navigateur</string>
     <string name="clear_browser_data_summary">Efface les données du navigateur telles que le cache et les cookies. Avertissement : l\'autorisation sur les sources de mangas peut devenir invalide</string>
     <string name="exclude_nsfw_from_suggestions_summary">Les mangas pour adultes ne seront pas affichés dans les suggestions. Cette option peut fonctionner de manière inexacte avec certaines sources</string>
-    <string name="tags_warnings">Mettre en évidence les genres dangereux</string>
     <string name="incognito_mode_hint_nsfw">Ce manga peut contenir du contenu réservé aux adultes. Voulez-vous utiliser le mode navigation privée ?</string>
     <string name="incognito_for_nsfw">Mode navigation privée pour les mangas NSFW</string>
     <string name="dont_ask_again">Ne plus demander</string>
@@ -648,7 +639,6 @@
     <string name="changelog">Journal des modifications</string>
     <string name="pick_manga_page">Choisissez une page de manga</string>
     <string name="manga_override_hint">Ces changements affecteront la façon dont les mangas sont affichés dans l\'application</string>
-    <string name="tags_warnings_summary">Mettre en évidence les genres qui peuvent être inappropriés pour la plupart des utilisateurs</string>
     <string name="change_cover">Changer la couverture</string>
     <string name="changelog_summary">Historique des modifications pour les versions récemment publiées</string>
     <string name="use_default_cover">Utiliser la couverture par défaut</string>

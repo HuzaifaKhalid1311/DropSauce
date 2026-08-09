@@ -82,7 +82,6 @@
     <string name="suggestions_enable">تفعيل الاقتراحات</string>
     <string name="clear_feed">مسح الموجز</string>
     <string name="welcome">مرحبا</string>
-    <string name="vibration">اهتزاز</string>
     <string name="no_update_available">لا يوجد تحديثات</string>
     <string name="remove_category">حذف</string>
     <string name="internal_storage">التخزين الداخلي</string>
@@ -106,7 +105,6 @@
     <string name="app_update_available">تتوفر نسخة جديدة من التطبيق</string>
     <string name="new_version_s">نسخة جديدة: %s</string>
     <string name="create_category">قائمة جديدة</string>
-    <string name="notification_sound">صوت الإشعار</string>
     <string name="backup_restore">النسخ الاحتياطي و الاستعادة</string>
     <string name="show_pages_numbers">إظهار أرقام الصفحات</string>
     <string name="search_history_cleared">تم المسح</string>
@@ -147,7 +145,6 @@
     <string name="enter_password">ادخل كلمة السر</string>
     <string name="data_restored_success">استعيدت جميع البيانات</string>
     <string name="external_storage">تخزين خارجي</string>
-    <string name="silent">صامت</string>
     <string name="today">اليوم</string>
     <string name="system_default">الافتراضي</string>
     <string name="sign_in">تسجبل الدخول</string>
@@ -283,7 +280,6 @@
     <string name="folder_with_images_import_description">يمكنك اختيار مكان في الذاكرة يحتوي على أرشيفات أو صور. سيتم التعرف على كل أرشيف (أو مجلد فرعي) على أنه فصل.</string>
     <string name="speed">السرعة</string>
     <string name="feed">الموجز</string>
-    <string name="light_indicator">مؤشر إل إي دي</string>
     <string name="comics_archive">أرشيف القصص المصورة</string>
     <string name="importing_manga">استيراد المانجا</string>
     <string name="import_completed">تم الإستيراد</string>
@@ -303,7 +299,6 @@
     <string name="color_correction">تصحيح الألوان</string>
     <string name="reset">إعادة تعيين</string>
     <string name="discard">تجاهل</string>
-    <string name="webtoon_zoom">تكبير الويبتون</string>
     <string name="network_unavailable">الشبكة غير متاحة</string>
     <string name="more">المزيد</string>
     <string name="prefetch_content">اعادة تحميل المحتوى</string>
@@ -330,7 +325,6 @@
     <string name="suggestions_notifications_summary">إظهار الإشعارات أحيانًا بالمانجا المقترحة</string>
     <string name="suggestions_enable_prompt">‌‌‍‎‎‍هل ترغب في تلقي اقتراحات المانجا الشخصية؟</string>
     <string name="images_proxy_title">وكيل تحسين الصور</string>
-    <string name="webtoon_zoom_summary">السماح بإيماءة التكبير في وضع الويب تون</string>
     <string name="downloaded">تم التنزيل</string>
     <string name="username">اسم المستخدم</string>
     <string name="password">كلمة المرور</string>
@@ -604,8 +598,6 @@
     <string name="landscape">أفقي</string>
     <string name="portrait">معرض</string>
     <string name="captcha_required_message">مطلوب اختبار CAPTCHA</string>
-    <string name="handle_links">معالجة الروابط</string>
-    <string name="handle_links_summary">معالجة الروابط باستخدام هذا التطبيق</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="unpopular">غير شعبي</string>
     <string name="chapter_selection_hint">يمكنك تحديد الفصول لتنزيلها عن طريق النقر المطول على العنصر في قائمة الفصول.</string>
@@ -657,7 +649,6 @@
     <string name="error_disclaimer_manga">حاول فتح المانجا في متصفح الويب للتأكد من توفرها في مصدرها.</string>
     <string name="error_disclaimer_report">يمكنك إرسال تقرير عن الأخطاء إلى المطورين. سيساعدنا هذا في التحقق من المشكلة وإصلاحها.</string>
     <string name="restoring_backup">استعادة النسخة الاحتياطية</string>
-    <string name="reader_info_bar_transparent">شريط معلومات القارئ الشفاف</string>
     <string name="chapter_volume_number">المجلد %1$s الفصل %2$s</string>
     <string name="chapter_number">الفصل %s</string>
     <string name="unnamed_chapter">فصل غير مسمى</string>
@@ -679,8 +670,6 @@
     <string name="clear_browser_data_summary">مسح بيانات المتصفح، مثل ذاكرة التخزين المؤقت وملفات تعريف الارتباط. تحذير: قد يصبح التفويض في مصادر المانجا غير صالح.</string>
     <string name="no_write_permission_to_file">ليس لديك صلاحية لكتابة ملف.</string>
     <string name="exclude_nsfw_from_suggestions_summary">لن تظهر المانغا المخصصة للبالغين في الاقتراحات. قد لا يعمل هذا الخيار بدقة مع بعض المصادر.</string>
-    <string name="tags_warnings">­ابراز التصنيفات الخطيرة</string>
-    <string name="tags_warnings_summary">ابراز التصنيفات التي قد تكون غير مناسبة لغالبية المستخدين.</string>
     <string name="error_non_file_uri">لا يمكن استخدام المسار المحدد لأنه لا يشير إلى ملف أو دليل.</string>
     <string name="manga_override_hint">ستؤثر هذه التغييرات على كيفية عرض المانجا في التطبيق.</string>
 </resources>

@@ -47,9 +47,6 @@
     <string name="remove_category">حذف دسته بندی</string>
     <string name="share_image">اشتراک گذاری عکس</string>
     <string name="switch_pages">جابه جایی صفحات</string>
-    <string name="notification_sound">صدای اعلان</string>
-    <string name="vibration">لرزاندن</string>
-    <string name="silent">سکوت</string>
     <string name="confirm">تایید</string>
     <string name="auth_not_supported_by">ورود به اکانت در %s پشتیبانی نمی شود</string>
     <string name="preload_pages">از قبل صفحات را بارگذاری کنید</string>
@@ -152,7 +149,6 @@
     <string name="grid_size">اندازه ی دریچه</string>
     <string name="clear_thumbs_cache">پاکسازی حافظه ی thumbnail ها</string>
     <string name="clear_search_history">پاکسازی تاریخچه ی جستجو</string>
-    <string name="light_indicator">نشانگر ال ای دی</string>
     <string name="pages_animation">انیمیشن صفحه</string>
     <string name="updates">به روز شده ها</string>
     <string name="new_version_s">نسخه ی جدید: %s</string>
@@ -291,7 +287,6 @@
     <string name="text_unsaved_changes_prompt">ذخیره یا لغو تغییرات ذخیره نشده؟</string>
     <string name="discard">لغو</string>
     <string name="error_no_space_left">هیچ فضایی روی دستگاه باقی نمانده است</string>
-    <string name="webtoon_zoom">بزرگ نمایی وبتوون</string>
     <string name="network_unavailable">شبکه در دسترس نیست</string>
     <string name="server_error">خطای سمت سرویس دهنده (%1$d). لطفا بعداً دوباره تلاش کنید</string>
     <string name="clear_new_chapters_counters">اطلاعات مربوط به فصل های جدید رو هم پاک کن</string>
@@ -352,7 +347,6 @@
     <string name="password">گذرواژه</string>
     <string name="authorization_optional">اعتبار سنجی (اختیاری)</string>
     <string name="restore_summary">بازیابی نسخه پشتیبان تهیه شده قبلی</string>
-    <string name="webtoon_zoom_summary">امکان زوم در حالت وبتون</string>
     <string name="reader_info_bar_summary">نمایش زمان و پیشرفت کنونی در بالای صفحه نمایش</string>
     <string name="show_pages_numbers_summary">نمایش شماره صفحه در گوشیه پایین صفحه</string>
     <string name="download_option_all_chapters">تمام فصل ها ترجمه شده %s</string>

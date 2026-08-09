@@ -92,9 +92,6 @@
     <string name="new_chapters">Új fejezetek</string>
     <string name="download">Letöltés</string>
     <string name="notifications_settings">Értesítési beállítások</string>
-    <string name="notification_sound">Értesítési hang</string>
-    <string name="light_indicator">LED jelzőfény</string>
-    <string name="vibration">Rezgés</string>
     <string name="favourites_categories">Kedvenc kategóriák</string>
     <string name="remove_category">Eltávolítás</string>
     <string name="text_empty_holder_primary">Kicsit üres itt…</string>
@@ -179,7 +176,6 @@
     <string name="reader_control_ltr">Ergonomikus olvasóvezérlés</string>
     <string name="color_correction">Színkorrekció</string>
     <string name="brightness">Fényerő</string>
-    <string name="webtoon_zoom">Webtoon zoomolás</string>
     <string name="automatic">Rendszer alapján</string>
     <string name="text_delete_local_manga">\"%s\" véglegesen törölve legyen az eszközről?</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d aktiválva a %2$d-ból</string>
@@ -188,7 +184,6 @@
     <string name="text_local_holder_secondary">Ments el valamit egy online katalógusból, vagy importálj egy fájlból.</string>
     <string name="text_feed_holder">Az általad olvasott mangák új fejezetei itt jelennek meg</string>
     <string name="reader_mode_hint">A választott beállításokat megjegyezzük ehhez a mangához</string>
-    <string name="silent">Néma</string>
     <string name="captcha_required">CAPTCHA szükséges</string>
     <string name="clear_cookies">Sütik törlése</string>
     <string name="captcha_solve">Megoldani</string>
@@ -360,7 +355,6 @@
     <string name="password">Jelszó</string>
     <string name="authorization_optional">Hitelesítés (opcionális)</string>
     <string name="restore_summary">Korábban létrehozott biztonsági mentés visszaállítása</string>
-    <string name="webtoon_zoom_summary">Engedélyezze a nagyító gesztust webtoon módban</string>
     <string name="reader_info_bar_summary">Aktuális idő és az olvasási folyamat megjelenítése a képernyő tetején</string>
     <string name="show_pages_numbers_summary">Oldalszámok megjelenítése az alsó sarokban</string>
     <string name="download_option_all_chapters">Minden fejezet fordítással %s</string>

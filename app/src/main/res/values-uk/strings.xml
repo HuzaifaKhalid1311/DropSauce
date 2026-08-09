@@ -75,7 +75,6 @@
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Увімкнено %1$d з %2$d</string>
     <string name="new_chapters">Нові розділи</string>
     <string name="download">Завантажити</string>
-    <string name="vibration">Вібрація</string>
     <string name="favourites_categories">Улюблені категорії</string>
     <string name="remove_category">Видалити</string>
     <string name="text_empty_holder_primary">Тут якось пусто…</string>
@@ -175,8 +174,6 @@
     <string name="text_feed_holder">Нові розділи того, що ви читаєте, показано тут</string>
     <string name="search_results">Результати пошуку</string>
     <string name="enter_password">Введіть пароль</string>
-    <string name="notification_sound">Звук сповіщень</string>
-    <string name="light_indicator">Світлодіодний індикатор</string>
     <string name="yesterday">Учора</string>
     <string name="right_to_left">Справа наліво (←)</string>
     <string name="create_backup">Створити резервну копію</string>
@@ -184,7 +181,6 @@
     <string name="data_restored_success">Всі дані були відновлені</string>
     <string name="group">Групувати</string>
     <string name="today">Сьогодні</string>
-    <string name="silent">Без звуку</string>
     <string name="long_ago">Давно</string>
     <string name="text_clear_updates_feed_prompt">Очистити всю історію оновлень назавжди\?</string>
     <string name="tracker_warning">Деякі пристрої мають різну поведінку системи, що може порушити фонові завдання.</string>
@@ -288,7 +284,6 @@
     <string name="clear_new_chapters_counters">Також очистити інформацію про нові розділи</string>
     <string name="error_no_space_left">На пристрої не залишилося вільного місця</string>
     <string name="network_unavailable">Мережа недоступна</string>
-    <string name="webtoon_zoom">Масштабування в режимі манхви</string>
     <string name="compact">Компактно</string>
     <string name="prefetch_content">Передвчасне завантаження контенту</string>
     <string name="mark_as_current">Позначити як актуальне</string>
@@ -349,7 +344,6 @@
     <string name="restore_summary">Відновити раніше створену резервну копію</string>
     <string name="reader_info_bar_summary">Показувати поточний час і прогрес читання у верхній частині екрана</string>
     <string name="show_pages_numbers_summary">Показати номери сторінок у нижньому куті</string>
-    <string name="webtoon_zoom_summary">Дозволити жести масштабування в режимі манхви</string>
     <string name="pick_custom_directory">Вибрати користувальницький каталог</string>
     <string name="no_access_to_file">Ви не маєте доступу до цього файлу чи каталогу</string>
     <string name="download_option_all_unread">Усі непрочитані розділи</string>
@@ -647,7 +641,6 @@
     <string name="max_backups_count">Максимальна кількість резервних копій</string>
     <string name="delete_old_backups">Видалити старі резервні копії</string>
     <string name="delete_old_backups_summary">Автоматично видаляти старі резервні копії, щоб звільнити місце для даних</string>
-    <string name="handle_links">Обробка посилань</string>
     <string name="email">Електронна пошта</string>
     <string name="captcha_required_message">Це джерело вимагає рішення капчі, щоб продовжити</string>
     <string name="author">Автор</string>
@@ -657,7 +650,6 @@
     <string name="test_connection">Тестове з\'єднання</string>
     <string name="clear_database">Очистити базу даних</string>
     <string name="clear_database_summary">Видалити інформацію про мангу, яка не використовується</string>
-    <string name="reader_info_bar_transparent">Прозора інформаційна панель читання</string>
     <string name="restoring_backup">Відновлення резервної копії</string>
     <string name="reader_controls_in_bottom_bar">Елементи керування читанням на нижній панелі</string>
     <string name="chapters_and_pages">Розділи та сторінки</string>
@@ -697,8 +689,6 @@
     <string name="use_default_cover">Використовувати стандартну обкладинку</string>
     <string name="manga_override_hint">Ці зміни впливатимуть на те, як манга відображається у програмі</string>
     <string name="error_non_file_uri">Вибраний шлях не може бути використаний, оскільки він не позначає файл чи каталог</string>
-    <string name="tags_warnings_summary">Виділяти жанри, які можуть бути неприйнятними для більшості користувачів</string>
-    <string name="tags_warnings">Виділяти небезпечні жанри</string>
     <string name="exclude_nsfw_from_suggestions_summary">Доросла манґа не відображатиметься у рекомендаціях. Ця опція може не працювати з деякими джерелами</string>
     <string name="no_write_permission_to_file">Немає прав на запис до файлу</string>
     <string name="clear_browser_data">Очистити дані браузера</string>
@@ -707,7 +697,6 @@
     <string name="error_disclaimer_report">Ви можете надіслати звіт про помилку розробникам. Це допоможе нам виправити проблему.</string>
     <string name="error_disclaimer_app_outdated">Схоже, що ваша версія DropSauce застаріла. Будь ласка, установіть останню версію, щоб отримати всі доступні виправлення.</string>
     <string name="error_disclaimer_manga">Спробуйте відкрити манґу в браузері, щоб переконатися, що вона доступна джерелом.</string>
-    <string name="handle_links_summary">Обробка посилань на мангу з зовнішніх програм (наприклад, веб-браузера). Можливо, вам також доведеться ввімкнути цю функцію вручну в системних налаштуваннях програми</string>
     <string name="clear_browser_data_summary">Очистити дані браузера, такі як кеш і файли cookie. Попередження: авторизація в джерелах манги може стати недійсною</string>
     <string name="local_storage_cleanup">Очищення локального сховища</string>
     <string name="main_screen">Головний екран</string>
@@ -738,8 +727,6 @@
     <string name="enable_pull_gesture_summary">Використовуйте жест потягування для перемикання розділів у вебтуні</string>
     <string name="two_page_scroll_sensitivity">Чутливість прокручування на дві сторінки</string>
     <string name="enter_name">Введіть ім\'я</string>
-    <string name="reader_chapter_toast">Показати спливаюче вікно зміни розділу</string>
-    <string name="reader_chapter_toast_summary">Показувати спливаюче повідомлення з назвою розділу, коли її змінено</string>
     <string name="storage_and_network">Зберігання та мережа</string>
     <string name="data_removal">Вилучення даних</string>
     <string name="privacy">Конфіденційність</string>

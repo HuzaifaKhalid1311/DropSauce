@@ -78,10 +78,8 @@
     <string name="text_history_holder_secondary">\"এক্সপ্লোর\" বিভাগে কী পড়তে হবে তা খুঁজুন</string>
     <string name="cancel_all">সব বাতিল করুন</string>
     <string name="all_favourites">সব প্রিয়</string>
-    <string name="light_indicator">LED নির্দেশক</string>
     <string name="favourites_categories">প্রিয় বিভাগ</string>
     <string name="rotate_screen">পর্দা ঘোরান</string>
-    <string name="vibration">কম্পন</string>
     <string name="no_update_available">কোন আপডেট উপলব্ধ নেই</string>
     <string name="remove_category">অপসারণ</string>
     <string name="read_later">পরে পড়ুন</string>
@@ -100,7 +98,6 @@
     <string name="scale_mode">স্কেল মোড</string>
     <string name="text_history_holder_primary">আপনি যা পড়েছেন তা এখানে প্রদর্শিত হবে</string>
     <string name="create_category">নতুন বিভাগ</string>
-    <string name="notification_sound">বিজ্ঞপ্তি শব্দ</string>
     <string name="downloads_wifi_only">শুধুমাত্র Wi-Fi এর মাধ্যমে ডাউনলোড করুন</string>
     <string name="cancel_all_downloads_confirm">সমস্ত সক্রিয় ডাউনলোড বাতিল করা হবে, আংশিকভাবে ডাউনলোড করা ডেটা হারিয়ে যাবে</string>
     <string name="notifications">বিজ্ঞপ্তি</string>
