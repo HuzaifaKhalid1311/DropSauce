@@ -238,13 +238,13 @@ private fun DuplicateCardItem(
 									text = "  ▲ +$diff",
 									style = MaterialTheme.typography.bodySmall,
 									fontWeight = FontWeight.Bold,
-									color = Color(0xFF4CAF50),
+									color = MaterialTheme.colorScheme.primary,
 								)
 								-1 -> Text(
 									text = "  ▼ $diff",
 									style = MaterialTheme.typography.bodySmall,
 									fontWeight = FontWeight.Bold,
-									color = Color(0xFFE57373),
+									color = MaterialTheme.colorScheme.error,
 								)
 							}
 						} else if (isTargetLoading) {
