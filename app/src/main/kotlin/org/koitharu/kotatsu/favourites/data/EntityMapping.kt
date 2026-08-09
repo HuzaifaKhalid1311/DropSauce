@@ -6,6 +6,8 @@ import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import java.time.Instant
 
+import org.koitharu.kotatsu.core.db.entity.ChapterEntity
+
 fun FavouriteCategoryEntity.toFavouriteCategory(id: Long = categoryId.toLong()) = FavouriteCategory(
 	id = id,
 	title = title,
@@ -17,6 +19,7 @@ fun FavouriteCategoryEntity.toFavouriteCategory(id: Long = categoryId.toLong()) 
 	isVisibleInLibrary = isVisibleInLibrary,
 )
 
-fun FavouriteManga.toManga() = manga.toManga(tags.toMangaTags(), null)
+fun FavouriteManga.toManga(chapters: List<ChapterEntity>? = null) = manga.toManga(tags.toMangaTags(), chapters)
 
 fun Collection<FavouriteManga>.toMangaList() = map { it.toManga() }
+

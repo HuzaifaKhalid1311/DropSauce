@@ -13,7 +13,10 @@ import org.koitharu.kotatsu.core.db.TABLE_FAVOURITES
 import org.koitharu.kotatsu.core.db.TABLE_FAVOURITE_CATEGORIES
 import org.koitharu.kotatsu.core.db.entity.toEntities
 import org.koitharu.kotatsu.core.db.entity.toEntity
+import org.koitharu.kotatsu.core.db.entity.toManga as toMangaWithTags
 import org.koitharu.kotatsu.core.db.entity.toMangaList
+
+
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.toMangaSources
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
@@ -21,7 +24,9 @@ import org.koitharu.kotatsu.core.util.ext.mapItems
 import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
 import org.koitharu.kotatsu.favourites.data.FavouriteEntity
 import org.koitharu.kotatsu.favourites.data.toFavouriteCategory
+import org.koitharu.kotatsu.favourites.data.toManga
 import org.koitharu.kotatsu.favourites.data.toMangaList
+
 import org.koitharu.kotatsu.favourites.domain.model.Cover
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
@@ -31,11 +36,16 @@ import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.search.domain.SearchKind
 import javax.inject.Inject
 
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+
 @Reusable
 class FavouritesRepository @Inject constructor(
 	private val db: MangaDatabase,
 	private val localObserver: LocalFavoritesObserver,
+	private val mihonExtensionManager: MihonExtensionManager,
 ) {
+
 
 	suspend fun getAllManga(): List<Manga> {
 		val entities = db.getFavouritesDao().findAll()
@@ -167,6 +177,84 @@ class FavouritesRepository @Inject constructor(
 	suspend fun getCategoriesIds(mangaId: Long): Set<Long> {
 		return db.getFavouritesDao().findCategoriesIds(mangaId).toSet()
 	}
+
+	suspend fun getDuplicates(manga: Manga): List<Manga> {
+		mihonExtensionManager.ensureReady()
+		val targetTitle = manga.title.lowercase().trim()
+		if (targetTitle.isBlank()) return emptyList()
+
+		val scrobbleDuplicates = db.getFavouritesDao().findDuplicatesByScrobbling(manga.id)
+		val titleDuplicates = db.getFavouritesDao().findDuplicatesByTitle(manga.title, manga.id)
+
+		val favouriteEntities = (scrobbleDuplicates + titleDuplicates).distinctBy { it.manga.id }
+		if (favouriteEntities.isEmpty()) {
+			return emptyList()
+		}
+
+		return favouriteEntities.map { favouriteManga ->
+			val chapters = db.getChaptersDao().findAll(favouriteManga.manga.id)
+			val history = db.getHistoryDao().find(favouriteManga.manga.id)
+			val prefs = db.getPreferencesDao().find(favouriteManga.manga.id)
+			val fullMangaWithTags = db.getMangaDao().find(favouriteManga.manga.id)
+			var mangaObj: Manga = (fullMangaWithTags?.toMangaWithTags(chapters.ifEmpty { null })
+				?: favouriteManga.toManga(chapters.ifEmpty { null }))
+
+			val coverOverride = prefs?.coverUrlOverride
+			if (!coverOverride.isNullOrEmpty()) {
+				mangaObj = mangaObj.copy(coverUrl = coverOverride)
+			}
+			val sourceName = mangaObj.source.name
+			if (mangaObj.source !is MihonMangaSource && sourceName.startsWith("MIHON_")) {
+				val sourceId = sourceName.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
+				val resolved = sourceId?.let { mihonExtensionManager.getMihonMangaSourceById(it) }
+					?: mihonExtensionManager.getMihonMangaSourceByName(sourceName)
+				if (resolved != null) {
+					mangaObj = mangaObj.copy(source = resolved)
+				}
+			}
+			if (mangaObj.chapters.isNullOrEmpty() && history != null && history.chaptersCount > 0) {
+				val dummyChapters = List(history.chaptersCount) { index ->
+					org.koitharu.kotatsu.parsers.model.MangaChapter(
+						id = (index + 1).toLong(),
+						title = null,
+						number = (index + 1).toFloat(),
+						volume = 0,
+						url = "",
+						scanlator = null,
+						uploadDate = 0L,
+						branch = null,
+						source = mangaObj.source,
+					)
+				}
+				mangaObj.copy(chapters = dummyChapters)
+			} else {
+				mangaObj
+			}
+		}
+	}
+
+	private fun String?.normalizeTitle(): String? {
+		if (this.isNullOrBlank()) return null
+		var s = this.lowercase().trim()
+		for (prefix in TITLE_PREFIXES) {
+			if (s.startsWith(prefix)) {
+				s = s.substring(prefix.length).trim()
+				break
+			}
+		}
+		val cleaned = s.replace(NON_ALPHANUMERIC_REGEX, "")
+		return cleaned.ifBlank { null }
+	}
+
+	companion object {
+		private val TITLE_PREFIXES = listOf("the ", "a ", "an ")
+		private val NON_ALPHANUMERIC_REGEX = Regex("[^a-z0-9]")
+	}
+
+
+
+
+
 
 	suspend fun findPopularSources(categoryId: Long, limit: Int): List<MangaSource> {
 		return db.getFavouritesDao().run {

@@ -1155,4 +1155,10 @@
     <string name="sort_unread_count">Unread count</string>
     <string name="sort_ascending">%s (ascending)</string>
     <string name="sort_descending">%s (descending)</string>
+
+    <!-- Duplicate Manga Warning -->
+    <string name="possible_duplicates_title">Possible duplicate entries</string>
+    <string name="possible_duplicates_summary">The following entry with a similar title already exists in your Favorites:</string>
+    <string name="action_add_anyway">Add anyway</string>
+    <string name="action_view_existing">View existing</string>
 </resources>

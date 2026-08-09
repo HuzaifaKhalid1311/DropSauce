@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import com.google.android.material.checkbox.MaterialCheckBox
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import coil3.ImageLoader
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.ComposeAlertDialogFragment
@@ -53,6 +55,9 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 
 	private val viewModel by viewModels<FavoriteDialogViewModel>()
 
+	@Inject
+	lateinit var imageLoader: ImageLoader
+
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		viewModel.onError.observeEvent(viewLifecycleOwner) { e ->
@@ -64,12 +69,35 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 	override fun Content() {
 		val context = LocalContext.current
 		val content by viewModel.content.collectAsState()
+		val duplicatesState by viewModel.duplicatesState.collectAsState()
+
+		val duplicatesList = duplicatesState
+		if (!duplicatesList.isNullOrEmpty()) {
+			DuplicateMangaDialog(
+				duplicatesList = duplicatesList,
+				imageLoader = imageLoader,
+				onAddAnyway = { viewModel.confirmAddDuplicate() },
+				onAddIndividualAnyway = { target -> viewModel.confirmAddIndividualAnyway(target) },
+				onSkipIndividual = { target -> viewModel.skipIndividualDuplicate(target) },
+				onOpenManga = { manga ->
+					router.openDetails(manga)
+				},
+				onMigrateManga = { targetManga, existingManga ->
+					viewModel.migrateDuplicate(targetManga, existingManga)
+				},
+				onDismissRequest = { viewModel.dismissDuplicate { dismiss() } },
+			)
+			return
+		}
+
+
 		val title = remember { viewModel.manga.joinToStringWithLimit(context, 92) { it.title } }
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_heart),
 			title = title,
 		) {
 			Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+
 				content.forEach { model ->
 					when (model) {
 						is LoadingState -> Box(

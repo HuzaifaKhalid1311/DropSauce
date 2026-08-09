@@ -68,6 +68,27 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 
 	@Transaction
 	@Query(
+		"SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id != :excludeMangaId AND manga_id IN (" +
+			"SELECT manga_id FROM manga WHERE LOWER(title) = LOWER(:title) " +
+			"OR (alt_title IS NOT NULL AND LOWER(alt_title) = LOWER(:title)) " +
+			"OR LOWER(title) LIKE '%' || LOWER(:title) || '%'" +
+			") GROUP BY manga_id",
+	)
+	abstract suspend fun findDuplicatesByTitle(title: String, excludeMangaId: Long): List<FavouriteManga>
+
+	@Transaction
+	@Query(
+		"SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id != :excludeMangaId AND manga_id IN (" +
+			"SELECT manga_id FROM scrobblings WHERE (scrobbler, target_id) IN (" +
+			"SELECT scrobbler, target_id FROM scrobblings WHERE manga_id = :excludeMangaId" +
+			")" +
+			") GROUP BY manga_id",
+	)
+	abstract suspend fun findDuplicatesByScrobbling(excludeMangaId: Long): List<FavouriteManga>
+
+
+	@Transaction
+	@Query(
 		"SELECT * FROM favourites WHERE category_id = :categoryId AND deleted_at = 0 " +
 			"GROUP BY manga_id ORDER BY created_at DESC",
 	)
