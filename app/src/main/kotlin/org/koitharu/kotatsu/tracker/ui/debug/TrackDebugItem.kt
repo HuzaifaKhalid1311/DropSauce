@@ -4,6 +4,8 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
 
+import androidx.annotation.StringRes
+
 data class TrackDebugItem(
 	val manga: Manga,
 	val lastChapterId: Long,
@@ -12,7 +14,7 @@ data class TrackDebugItem(
 	val lastChapterDate: Instant?,
 	val lastResult: Int,
 	val lastError: String?,
-	val skipReason: String? = null,
+	@StringRes val skipReasonRes: Int? = null,
 ) : ListModel {
 
 	override fun areItemsTheSame(other: ListModel): Boolean {

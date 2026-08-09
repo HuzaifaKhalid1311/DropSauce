@@ -49,11 +49,14 @@ fun trackDebugAD(
 						append(item.lastError ?: getString(R.string.error))
 					}
 				}
-			} else if (item.skipReason != null) {
-				append(" - ")
-				bold {
-					color(context.getThemeColor(materialR.attr.colorOutline, Color.GRAY)) {
-						append(item.skipReason)
+			} else {
+				val skipRes = item.skipReasonRes
+				if (skipRes != null) {
+					append(" - ")
+					bold {
+						color(context.getThemeColor(materialR.attr.colorOutline, Color.GRAY)) {
+							append(context.getString(skipRes))
+						}
 					}
 				}
 			}

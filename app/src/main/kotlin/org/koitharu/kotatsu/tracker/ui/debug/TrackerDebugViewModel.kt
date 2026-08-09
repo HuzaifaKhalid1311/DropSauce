@@ -29,7 +29,7 @@ class TrackerDebugViewModel @Inject constructor(
 
 	private suspend fun List<TrackWithManga>.toUiList(): List<TrackDebugItem> = map {
 		val manga = it.manga.toManga(emptySet(), null)
-		val skipReason = SmartUpdateHelper.getSkipReason(
+		val skipReasonRes = SmartUpdateHelper.getSkipReasonRes(
 			manga = manga,
 			newChapters = it.track.newChapters,
 			settings = settings,
@@ -43,7 +43,7 @@ class TrackerDebugViewModel @Inject constructor(
 			lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
 			lastResult = it.track.lastResult,
 			lastError = it.track.lastError,
-			skipReason = skipReason,
+			skipReasonRes = skipReasonRes,
 		)
 	}
 }
