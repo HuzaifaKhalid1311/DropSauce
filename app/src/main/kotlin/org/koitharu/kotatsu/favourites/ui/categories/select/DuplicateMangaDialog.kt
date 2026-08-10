@@ -60,7 +60,7 @@ import kotlin.math.sign
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 
 @Composable
 fun DuplicateMangaDialog(
@@ -74,6 +74,11 @@ fun DuplicateMangaDialog(
 	onDismissRequest: () -> Unit,
 ) {
 	var selectedForMigration by remember { mutableStateOf<Pair<Manga, Manga>?>(null) }
+	val flatDuplicates = remember(duplicatesList) {
+		duplicatesList.flatMap { (target, matches) ->
+			matches.map { duplicate -> target to duplicate }
+		}
+	}
 
 	val selected = selectedForMigration
 	if (selected != null) {
@@ -111,22 +116,20 @@ fun DuplicateMangaDialog(
 				)
 			}
 
-			items(
-				items = duplicatesList,
-				key = { (targetManga, _) -> targetManga.id },
-			) { (targetManga, matches) ->
-				matches.forEach { duplicate ->
-					Box(modifier = Modifier.animateItem()) {
-						DuplicateCardItem(
-							targetManga = targetManga,
-							duplicate = duplicate,
-							imageLoader = imageLoader,
-							onOpenManga = { onOpenManga(duplicate) },
-							onMigrateManga = { selectedForMigration = targetManga to duplicate },
-							onAddIndividualAnyway = { onAddIndividualAnyway(targetManga) },
-							onSkipIndividual = { onSkipIndividual(targetManga) },
-						)
-					}
+			itemsIndexed(
+				items = flatDuplicates,
+				key = { index, (target, duplicate) -> "${target.id}_${duplicate.id}_$index" },
+			) { _, (targetManga, duplicate) ->
+				Box(modifier = Modifier.animateItem()) {
+					DuplicateCardItem(
+						targetManga = targetManga,
+						duplicate = duplicate,
+						imageLoader = imageLoader,
+						onOpenManga = { onOpenManga(duplicate) },
+						onMigrateManga = { selectedForMigration = targetManga to duplicate },
+						onAddIndividualAnyway = { onAddIndividualAnyway(targetManga) },
+						onSkipIndividual = { onSkipIndividual(targetManga) },
+					)
 				}
 			}
 		}
