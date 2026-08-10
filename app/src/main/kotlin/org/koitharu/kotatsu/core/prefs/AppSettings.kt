@@ -328,21 +328,47 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_CHAPTER_JUMP_DIALOG, true)
 		set(value) = prefs.edit { putBoolean(KEY_CHAPTER_JUMP_DIALOG, value) }
 
-	// Ordered: the list is exactly what the reader's bottom bar shows, left to right.
-	var readerControls: List<ReaderControl>
-		get() = prefs.getString(KEY_READER_CONTROLS, null)
-			?.split(',')
-			?.mapNotNull { ReaderControl.entries.find(it.trim()) }
-			?: legacyReaderControls()
-		set(value) = prefs.edit { putString(KEY_READER_CONTROLS, value.joinToString(",") { it.name }) }
+	/**
+	 * The reader bottom bar layout: every control in the user's order, paired with whether it is
+	 * shown. Hidden controls keep their slot so re-enabling one puts it back where it was.
+	 * Serialized as a comma-separated list of names, hidden ones prefixed with '-'.
+	 */
+	var readerControlsLayout: List<Pair<ReaderControl, Boolean>>
+		get() {
+			val stored = prefs.getString(KEY_READER_CONTROLS, null)
+				?.split(',')
+				?.mapNotNull { token ->
+					val name = token.trim()
+					val control = ReaderControl.entries.find(name.removePrefix("-")) ?: return@mapNotNull null
+					control to !name.startsWith('-')
+				}
+				?.distinctBy { it.first }
+				.orEmpty()
+			val base = stored.ifEmpty { legacyReaderControlsLayout() }
+			// Controls introduced by a later version are appended, hidden.
+			val known = base.mapToSet { it.first }
+			return base + ReaderControl.entries.filterNot { it in known }.map { it to false }
+		}
+		set(value) = prefs.edit {
+			putString(KEY_READER_CONTROLS, value.joinToString(",") { (c, isShown) -> if (isShown) c.name else "-${c.name}" })
+		}
+
+	/** Just the controls the bar renders, left to right. */
+	val readerControls: List<ReaderControl>
+		get() = readerControlsLayout.mapNotNull { (control, isShown) -> control.takeIf { isShown } }
 
 	// Pre-ordering builds stored an unordered string set under a different key; read it once so an
 	// update does not silently reset a customised bar.
-	private fun legacyReaderControls(): List<ReaderControl> {
+	private fun legacyReaderControlsLayout(): List<Pair<ReaderControl, Boolean>> {
 		val legacy = runCatching {
 			prefs.getStringSet(KEY_READER_CONTROLS_LEGACY, null)
-		}.getOrNull() ?: return ReaderControl.DEFAULT
-		return ReaderControl.entries.filter { it.name in legacy }
+		}.getOrNull()
+		val shown = if (legacy != null) {
+			ReaderControl.entries.filter { it.name in legacy }
+		} else {
+			ReaderControl.DEFAULT
+		}
+		return shown.map { it to true }
 	}
 
 	val isOfflineCheckDisabled: Boolean

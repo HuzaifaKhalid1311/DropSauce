@@ -1023,7 +1023,7 @@
     <string name="restoring_backup">Restoring backup</string>
     <string name="reader_controls_in_bottom_bar">Reader controls in bottom bar</string>
     <string name="reader_controls_in_bottom_bar_summary">Choose the buttons and their order</string>
-    <string name="reader_controls_none">The bar is empty</string>
+    <string name="customize">Customize</string>
     <string name="chapters_and_pages">Chapters and pages</string>
     <string name="pages_slider">Page switch slider</string>
     <string name="screen_rotation_locked">Screen rotation has been locked</string>
