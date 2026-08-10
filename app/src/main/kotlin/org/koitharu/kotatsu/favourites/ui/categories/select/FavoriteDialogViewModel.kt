@@ -135,19 +135,6 @@ class FavoriteDialogViewModel @Inject constructor(
 		}
 	}
 
-	fun skipAllDuplicates(onCompleteIfEmpty: () -> Unit) {
-		val currentDuplicates = duplicatesState.value.orEmpty()
-		for ((target, _) in currentDuplicates) {
-			skippedMangaIds.add(target.id)
-		}
-		duplicatesState.value = emptyList()
-		refreshTrigger.value = Any()
-		val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
-		if (remainingActive.isEmpty()) {
-			onCompleteIfEmpty()
-		}
-	}
-
 	fun migrateDuplicate(targetManga: Manga, existingManga: Manga, onCompleteIfFinished: () -> Unit) {
 		launchJob(Dispatchers.Default) {
 			migrateUseCase(oldManga = existingManga, newManga = targetManga)
