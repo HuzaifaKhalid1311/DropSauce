@@ -21,6 +21,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -459,10 +460,10 @@ private fun MigrationConfirmationView(
 					)
 				}
 
-				Text(
-					text = "➔",
-					style = MaterialTheme.typography.titleLarge,
-					color = MaterialTheme.colorScheme.primary,
+				Icon(
+					painter = painterResource(R.drawable.ic_arrow_forward),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary,
 					modifier = Modifier.padding(horizontal = 8.dp),
 				)
 
