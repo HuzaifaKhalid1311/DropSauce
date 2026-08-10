@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.kotatsumigration.domain
 
 import androidx.room.withTransaction
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.history.data.HistoryEntity
@@ -40,7 +41,8 @@ class KotatsuMangaMigrator @Inject constructor(
 	 */
 	suspend operator fun invoke(oldManga: Manga, newSource: MangaSource): Long? {
 		val oldId = oldManga.id
-		val newId = mihonMangaId(newSource.name, oldManga.url)
+		val newUrl = oldManga.url.toMihonUrl()
+		val newId = mihonMangaId(newSource.name, newUrl)
 		if (newId == oldId) {
 			return null
 		}
@@ -51,7 +53,7 @@ class KotatsuMangaMigrator @Inject constructor(
 			.zip(migratedChapters.orEmpty())
 			.associate { (old, new) -> old.id to new.id }
 		fun migrateChapterId(id: Long) = chapterIds[id] ?: id
-		val newManga = oldManga.copy(id = newId, source = newSource, chapters = migratedChapters)
+		val newManga = oldManga.copy(id = newId, url = newUrl, source = newSource, chapters = migratedChapters)
 		mangaDataRepository.storeManga(newManga, replaceExisting = true)
 
 		database.withTransaction {
@@ -141,7 +143,44 @@ class KotatsuMangaMigrator @Inject constructor(
 	}
 }
 
-internal fun MangaChapter.forMihonSource(source: MangaSource): MangaChapter = copy(
-	id = mihonChapterId(source.name, url),
-	source = source,
-)
+internal fun MangaChapter.forMihonSource(source: MangaSource): MangaChapter = url.toMihonUrl().let { newUrl ->
+	copy(
+		id = mihonChapterId(source.name, newUrl),
+		url = newUrl,
+		source = source,
+	)
+}
+
+/**
+ * Kotatsu parsers are inconsistent about url form — many store a relative path, but a good number
+ * (DemonicScans, for one) store the full absolute url. Mihon's `HttpSource` always resolves
+ * `baseUrl + url`, so an absolute url both breaks fetching (`demonicscans.orghttps://…`: an
+ * UnknownHostException) and yields an id that can never match the one browsing the same source
+ * produces — so the entry looks unfavourited when found through search.
+ *
+ * Reducing an absolute url to its path (+query) is what Mihon extensions expect and makes the
+ * migrated id identical to the live one. Relative urls are returned untouched.
+ */
+internal fun String.toMihonUrl(): String {
+	val http = toHttpUrlOrNull() ?: return this
+	return http.encodedPath + http.encodedQuery?.let { "?$it" }.orEmpty()
+}
+
+/**
+ * Whether a request an extension built from a stored **absolute** url shows the signature of
+ * `baseUrl + url` concatenation — the failure [toMihonUrl] prevents, detected here so already-broken
+ * entries can be repaired. OkHttp normalizes the two glue shapes differently, so both are matched:
+ *
+ *  - `baseUrl` without a trailing slash — `demonicscans.org` + `https://demonicscans.org/manga/x`
+ *    parses to the host `demonicscans.orghttps`: the base host with junk appended (the
+ *    UnknownHostException users hit).
+ *  - `baseUrl` with a trailing slash — the host stays valid and the whole url lands in the path as
+ *    `/https://demonicscans.org/manga/x`, so a scheme inside the path is the tell.
+ *
+ * Deliberately narrow: a source that owns its absolute urls requests them unchanged (same host, no
+ * scheme in the path), and one that fetches from a sibling api host doesn't match the base-host
+ * prefix. Both are reported healthy and left alone.
+ */
+internal fun isGluedUrl(baseHost: String, requestHost: String, requestPath: String): Boolean {
+	return (requestHost != baseHost && requestHost.startsWith(baseHost)) || requestPath.contains("://")
+}
