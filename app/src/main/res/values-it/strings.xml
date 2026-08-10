@@ -174,7 +174,6 @@
     <string name="exclude_nsfw_from_suggestions">Non suggerire manga NSFW</string>
     <string name="reset_filter">Ripristina il filtro</string>
     <string name="never">Mai</string>
-    <string name="preload_pages">Precarica le pagine</string>
     <string name="only_using_wifi">Solo usando il Wi-Fi</string>
     <string name="always">Sempre</string>
     <string name="logged_in_as">Registrato come %s</string>

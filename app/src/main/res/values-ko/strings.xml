@@ -183,7 +183,6 @@
     <string name="only_using_wifi">와이파이에 연결된 경우에만</string>
     <string name="always">항상</string>
     <string name="percent_string_pattern">%1$s%%</string>
-    <string name="preload_pages">페이지 미리 로드하기</string>
     <string name="logged_in_as">%s로 로그인 됨</string>
     <string name="appearance">외관</string>
     <string name="suggestions_excluded_genres">제외할 장르 선택</string>

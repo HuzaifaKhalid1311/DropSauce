@@ -176,7 +176,6 @@
     <string name="always">Sempre</string>
     <string name="reset_filter">Redefinir filtro</string>
     <string name="never">Nunca</string>
-    <string name="preload_pages">Pré-carregar páginas</string>
     <string name="logged_in_as">Conectado como %s</string>
     <string name="various_languages">Vários idiomas</string>
     <string name="suggestions_updating">Atualização das sugestões</string>

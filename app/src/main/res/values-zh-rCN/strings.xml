@@ -182,7 +182,6 @@
     <string name="reset_filter">重置筛选</string>
     <string name="only_using_wifi">仅连接 Wi-Fi 时</string>
     <string name="always">总是</string>
-    <string name="preload_pages">页面预加载</string>
     <string name="logged_in_as">以 %s 登录</string>
     <string name="chapters_empty">此漫画没有章节</string>
     <string name="appearance">外观</string>

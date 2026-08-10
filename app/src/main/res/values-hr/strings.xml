@@ -411,7 +411,6 @@
     <string name="welcome">Dobrodošli</string>
     <string name="backup_saved">Sigurnosna kopija spremljena</string>
     <string name="enabled">Omogućeno</string>
-    <string name="preload_pages">Prethodno učitavanje stranica</string>
     <string name="empty_favourite_categories">Nema omiljenih kategorija</string>
     <string name="undo">Poništi</string>
     <string name="disable_all">Onemogući sve</string>

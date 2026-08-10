@@ -180,7 +180,6 @@
     <string name="clear_feed">Лекті тазалау</string>
     <string name="chapters_empty">Бұл маңгада тарау жоқ</string>
     <string name="clear_all_history">Түгел тарихты тазалау</string>
-    <string name="preload_pages">Беттерді алдынала жүктей беру</string>
     <string name="show_reading_indicators">Оқу прогрессін көрсету</string>
     <string name="local_manga_processing">Сақталған маңгаңыз үдерісте</string>
     <string name="show_notification_new_chapters_off">Мәлімдеме алмайсыз, бірақ жаңа тараулар тізімде көрсетіліп тұрады</string>

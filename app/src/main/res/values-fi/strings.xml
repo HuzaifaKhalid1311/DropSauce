@@ -175,7 +175,6 @@
     <string name="enabled">Käytössä</string>
     <string name="disabled">Pois päältä</string>
     <string name="only_using_wifi">Vain Wi-Fi:n käyttö</string>
-    <string name="preload_pages">Esilataa sivut</string>
     <string name="always">Aina</string>
     <string name="never">Ei koskaan</string>
     <string name="reset_filter">Nollaa suodatin</string>

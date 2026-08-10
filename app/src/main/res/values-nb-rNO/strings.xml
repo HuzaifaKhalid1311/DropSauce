@@ -173,7 +173,6 @@
     <string name="enabled">Påskrudd</string>
     <string name="disabled">Avskrudd</string>
     <string name="always">Alltid</string>
-    <string name="preload_pages">Forhåndsinnlast bilder</string>
     <string name="reset_filter">Tilbakestill filter</string>
     <string name="never">Aldri</string>
     <string name="only_using_wifi">Kun på Wi-Fi</string>

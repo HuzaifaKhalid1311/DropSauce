@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Live preview of the reader's bottom bar for the "Reader controls in bottom bar" settings
+     screen. It hosts the real ReaderActionsView (so it always matches the reader exactly) with a
+     transparent overlay on top that swallows every touch — the preview is look-only. -->
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+
+	<com.google.android.material.floatingtoolbar.FloatingToolbarLayout
+		style="@style/Widget.Kotatsu.ReaderFloatingToolbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<org.koitharu.kotatsu.reader.ui.ReaderActionsView
+			android:id="@+id/actionsView"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:minHeight="?actionBarSize"
+			android:paddingHorizontal="@dimen/margin_small"
+			android:paddingVertical="@dimen/reader_docked_toolbar_padding_vertical" />
+
+	</com.google.android.material.floatingtoolbar.FloatingToolbarLayout>
+
+	<View
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:clickable="true"
+		android:focusable="false"
+		android:importantForAccessibility="no" />
+
+</FrameLayout>

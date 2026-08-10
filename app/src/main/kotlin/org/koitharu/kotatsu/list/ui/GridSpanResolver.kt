@@ -34,7 +34,10 @@ class GridSpanResolver(
 			return
 		}
 		val rv = v as? RecyclerView ?: return
-		val width = abs(right - left)
+		// Content width, matching what setGridSize() measures. Using the outer width here would
+		// disagree with it by the (inset-dependent) horizontal padding and could resolve a
+		// different span count on every layout pass — a visible flicker on wide/landscape screens.
+		val width = abs(right - left) - rv.paddingStart - rv.paddingEnd
 		// Ignore implausibly small widths. While the RecyclerView lives inside a ViewPager2
 		// (e.g. the favourites pager) it can momentarily be laid out at a tiny transient width
 		// during page settling/rotation. Trusting such a value would lower the span count to the

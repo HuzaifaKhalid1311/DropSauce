@@ -267,7 +267,6 @@
     <string name="never">Never</string>
     <string name="only_using_wifi">Only on Wi-Fi</string>
     <string name="always">Always</string>
-    <string name="preload_pages">Preload pages</string>
     <string name="logged_in_as">Logged in as %s</string>
     <string name="nsfw">18+</string>
     <string name="various_languages">Various languages</string>
@@ -1023,6 +1022,8 @@
 	<string name="remove_highlight_action">Remove highlight</string>
     <string name="restoring_backup">Restoring backup</string>
     <string name="reader_controls_in_bottom_bar">Reader controls in bottom bar</string>
+    <string name="reader_controls_in_bottom_bar_summary">Choose the buttons and their order</string>
+    <string name="reader_controls_none">The bar is empty</string>
     <string name="chapters_and_pages">Chapters and pages</string>
     <string name="pages_slider">Page switch slider</string>
     <string name="screen_rotation_locked">Screen rotation has been locked</string>

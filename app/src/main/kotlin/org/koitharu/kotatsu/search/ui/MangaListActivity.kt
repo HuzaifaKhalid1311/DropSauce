@@ -101,7 +101,6 @@ class MangaListActivity :
 		source = resolved.source
 		activeLanguageName = resolved.languageSubtitle
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
-		viewBinding.statusBarScrim?.blurTarget = viewBinding.container
 		viewBinding.buttonOrder?.setOnClickListener(this)
 		viewBinding.textLanguage?.apply {
 			setTextColor(context.getThemeColor(appcompatR.attr.colorPrimary))

@@ -278,7 +278,6 @@
     <string name="never">ஒருபோதும்</string>
     <string name="only_using_wifi">வைஃபை மட்டுமே</string>
     <string name="always">எப்போதும்</string>
-    <string name="preload_pages">பக்கங்களை முன்னரே ஏற்றவும்</string>
     <string name="logged_in_as">%s ஆக உள்நுழைந்துள்ளது</string>
     <string name="various_languages">பல்வேறு மொழிகள்</string>
     <string name="search_chapters">அத்தியாயத்தைக் கண்டறியவும்</string>
