@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -18,7 +21,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.FloatState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -151,38 +157,81 @@ private fun ControlList(
 	Column {
 		SettingsGroupTitle(stringResource(R.string.customize))
 		layout.forEachIndexed { index, (control, isShown) ->
-			val isDragging = index == dragIndex
-			ControlRow(
-				control = control,
-				isShown = isShown,
-				shape = groupItemShape(index, layout.size),
-				modifier = Modifier
-					.zIndex(if (isDragging) 1f else 0f)
-					.graphicsLayer {
-						translationY = if (isDragging) dragOffset else 0f
-						shadowElevation = if (isDragging) DRAG_ELEVATION.toPx() else 0f
-					}
-					.onSizeChanged { rowPitch = it.height + gap },
-				onToggle = {
-					onChange(layout.toMutableList().apply { this[index] = control to !isShown })
-				},
-				onDragStart = {
-					dragIndex = index
-					dragOffset = 0f
-					haptic(HapticEffect.GESTURE_START)
-				},
-				onDrag = onDrag,
-				onDragEnd = {
-					dragIndex = -1
-					dragOffset = 0f
-					haptic(HapticEffect.GESTURE_END)
-				},
-			)
+			// Keyed by control so each row's state — and its slide animation — follows the item as
+			// the list reorders instead of staying with the slot.
+			key(control) {
+				val isDragging = index == dragIndex
+				val slide = rememberReorderSlide(index, rowPitch, isDragging)
+				ControlRow(
+					control = control,
+					isShown = isShown,
+					shape = groupItemShape(index, layout.size),
+					modifier = Modifier
+						.zIndex(if (isDragging) 1f else 0f)
+						.graphicsLayer {
+							translationY = if (isDragging) dragOffset else slide.floatValue
+							shadowElevation = if (isDragging) DRAG_ELEVATION.toPx() else 0f
+						}
+						.onSizeChanged { rowPitch = it.height + gap },
+					onToggle = {
+						onChange(layout.toMutableList().apply { this[index] = control to !isShown })
+					},
+					onDragStart = {
+						dragIndex = index
+						dragOffset = 0f
+						haptic(HapticEffect.GESTURE_START)
+					},
+					onDrag = onDrag,
+					onDragEnd = {
+						dragIndex = -1
+						dragOffset = 0f
+						haptic(HapticEffect.GESTURE_END)
+					},
+				)
+			}
 			if (index < layout.lastIndex) {
 				Spacer(Modifier.height(GROUP_GAP))
 			}
 		}
 	}
+}
+
+/**
+ * Rows displaced by a drag are re-composed straight into their new slot, which reads as a jump.
+ * Offset the row back to where it used to be and spring it into place so it visibly travels.
+ * The dragged row is excluded — it already follows the finger.
+ *
+ * The displacement is seeded during composition, not from the effect: an effect runs after the
+ * frame is composed, so the row would be drawn once at its destination before jumping back to
+ * start the animation — which is exactly the flicker this avoids.
+ */
+@Composable
+private fun rememberReorderSlide(
+	index: Int,
+	pitch: Float,
+	isDragging: Boolean,
+): FloatState {
+	val slide = remember { mutableFloatStateOf(0f) }
+	val previousIndex = remember { mutableIntStateOf(index) }
+	if (previousIndex.intValue != index) {
+		if (pitch > 0f && !isDragging) {
+			slide.floatValue += (previousIndex.intValue - index) * pitch
+		}
+		previousIndex.intValue = index
+	}
+	LaunchedEffect(index) {
+		if (slide.floatValue != 0f) {
+			animate(
+				initialValue = slide.floatValue,
+				targetValue = 0f,
+				animationSpec = spring(
+					dampingRatio = Spring.DampingRatioNoBouncy,
+					stiffness = Spring.StiffnessMediumLow,
+				),
+			) { value, _ -> slide.floatValue = value }
+		}
+	}
+	return slide
 }
 
 @Composable
@@ -215,8 +264,8 @@ private fun ControlRow(
 		onClick = onToggle,
 		trailing = {
 			Row(verticalAlignment = Alignment.CenterVertically) {
-				DragHandle(onDragStart = onDragStart, onDrag = onDrag, onDragEnd = onDragEnd)
 				Switch(checked = isShown, onCheckedChange = { onToggle() })
+				DragHandle(onDragStart = onDragStart, onDrag = onDrag, onDragEnd = onDragEnd)
 			}
 		},
 	)

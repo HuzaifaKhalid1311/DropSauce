@@ -4,8 +4,10 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
+import androidx.core.view.ancestors
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import org.koitharu.kotatsu.R
 
 class FastScrollRecyclerView @JvmOverloads constructor(
@@ -15,6 +17,16 @@ class FastScrollRecyclerView @JvmOverloads constructor(
 ) : RecyclerView(context, attrs, defStyleAttr) {
 
 	val fastScroller = FastScroller(context, attrs)
+	var isVP2BugWorkaroundEnabled = false
+		set(value) {
+			field = value
+			if (value && isAttachedToWindow) {
+				checkIfInVP2()
+			} else if (!value) {
+				applyVP2Workaround = false
+			}
+		}
+	private var applyVP2Workaround = false
 
 	var isFastScrollerEnabled: Boolean = true
 		set(value) {
@@ -53,10 +65,29 @@ class FastScrollRecyclerView @JvmOverloads constructor(
 	override fun onAttachedToWindow() {
 		super.onAttachedToWindow()
 		fastScroller.attachRecyclerView(this)
+		if (isVP2BugWorkaroundEnabled) {
+			checkIfInVP2()
+		}
 	}
 
 	override fun onDetachedFromWindow() {
 		fastScroller.detachRecyclerView()
 		super.onDetachedFromWindow()
+		applyVP2Workaround = false
+	}
+
+	override fun isLayoutRequested(): Boolean {
+		return if (applyVP2Workaround) false else super.isLayoutRequested()
+	}
+
+	override fun requestLayout() {
+		super.requestLayout()
+		if (applyVP2Workaround && parent?.isLayoutRequested == true) {
+			parent?.requestLayout()
+		}
+	}
+
+	private fun checkIfInVP2() {
+		applyVP2Workaround = ancestors.any { it is ViewPager2 } == true
 	}
 }

@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.favourites.ui.list
 
+import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -13,6 +14,7 @@ import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.util.ext.withArgs
+import org.koitharu.kotatsu.databinding.FragmentListBinding
 import org.koitharu.kotatsu.list.ui.MangaListFragment
 import org.koitharu.kotatsu.list.ui.adapter.MangaListAdapter
 import org.koitharu.kotatsu.list.ui.config.ListConfigSection
@@ -27,6 +29,11 @@ class FavouritesListFragment : MangaListFragment() {
 
 	val categoryId
 		get() = viewModel.categoryId
+
+	override fun onViewBindingCreated(binding: FragmentListBinding, savedInstanceState: Bundle?) {
+		super.onViewBindingCreated(binding, savedInstanceState)
+		binding.recyclerView.isVP2BugWorkaroundEnabled = true
+	}
 
 	override fun onCreateAdapter() = MangaListAdapter(
 		listener = this,
