@@ -64,9 +64,6 @@
     <string name="open_in_browser">Web tarayıcısında aç</string>
     <string name="new_chapters">Yeni bölümler</string>
     <string name="notifications_settings">Bildirim ayarları</string>
-    <string name="notification_sound">Bildirim sesi</string>
-    <string name="light_indicator">LED göstergesi</string>
-    <string name="vibration">Titreşim</string>
     <string name="other_storage">Diğer depolama</string>
     <string name="updates">Güncellemeler</string>
     <string name="create_shortcut">Kısayol oluştur</string>
@@ -129,7 +126,6 @@
     <string name="preparing_">Hazırlanıyor…</string>
     <string name="yesterday">Dün</string>
     <string name="group">Grup</string>
-    <string name="silent">Sessiz</string>
     <string name="captcha_solve">Çöz</string>
     <string name="clear_cookies">Çerezleri temizle</string>
     <string name="welcome">Hoş geldiniz</string>
@@ -280,7 +276,6 @@
     <string name="text_unsaved_changes_prompt">Kaydedilmeyen değişiklikler kaydedilsin mi yoksa yok mu sayılsın?</string>
     <string name="discard">Yoksay</string>
     <string name="error_no_space_left">Cihazda yer yok</string>
-    <string name="webtoon_zoom">Webtoon yakınlaştırma</string>
     <string name="clear_new_chapters_counters">Ayrıca yeni bölümler hakkındaki bilgileri temizle</string>
     <string name="compact">Sıkı</string>
     <string name="network_unavailable">Ağ kullanılamıyor</string>
@@ -337,7 +332,6 @@
     <string name="downloaded">İndirildi</string>
     <string name="username">Kullanıcı adı</string>
     <string name="restore_summary">Önceden oluşturulmuş yedeği geri yükle</string>
-    <string name="webtoon_zoom_summary">Webtoon modunda yakınlaştırma hareketine izin ver</string>
     <string name="reader_info_bar_summary">Geçerli saati ve okuma ilerlemesini ekranın üst kısmında gösterin</string>
     <string name="show_pages_numbers_summary">Sayfa numaralarını alt köşede göster</string>
     <string name="zoom_in">Yakınlaştır</string>
@@ -626,8 +620,6 @@
     <string name="delete_old_backups">Eski yedekleri sil</string>
     <string name="delete_old_backups_summary">Depolama kullanımını azaltmak için eski yedek dosyalarını otomatik olarak sil</string>
     <string name="email">E-posta</string>
-    <string name="handle_links">Bağlantıları aç</string>
-    <string name="handle_links_summary">Harici uygulamalardaki (örn. web tarayıcısı) manga bağlantılarını uygulamada açın. Uygulamanın sistem ayarlarından bunu aktifleştirmeniz gerekebilir</string>
     <string name="captcha_required_message">Bu kaynağın kullanılabilmesi için bir captcha çözülmesi gerekiyor</string>
     <string name="author">Yazar</string>
     <string name="rating">Puan</string>
@@ -636,7 +628,6 @@
     <string name="clear_database">Veri tabanını temizle</string>
     <string name="clear_database_summary">Kullanılmayan mangalar ile ilgili bilgileri silin</string>
     <string name="test_connection">Bağlantıyı test et</string>
-    <string name="reader_info_bar_transparent">Şeffaf bilgi çubuğu</string>
     <string name="restoring_backup">Yedek geri yükleniyor</string>
     <string name="pages_slider">Sayfa değiştirme kaydırıcısı</string>
     <string name="screen_rotation_locked">Ekran yönü kilitlendi</string>
@@ -660,8 +651,6 @@
     <string name="clear_browser_data_summary">Önbellek ve çerezler gibi tarayıcı verilerini temizleyin. Uyarı: Manga kaynakları için yapılan doğrulamalar geçersiz kalabilir</string>
     <string name="no_write_permission_to_file">Dosya yazma izni yok</string>
     <string name="exclude_nsfw_from_suggestions_summary">Yetişkin mangaları önerilerde gösterilmeyecektir. Bu seçenek her kaynak için doğru çalışmayabilir</string>
-    <string name="tags_warnings">Riskli türleri işaretle</string>
-    <string name="tags_warnings_summary">Çoğu kullanıcılar için uygunsuz olabilecek türleri işaretle</string>
     <string name="error_non_file_uri">Seçilen yol herhangi bir dosyaya ya da konuma ulaşmadığı için kullanılamıyor</string>
     <string name="use_default_cover">Varsayılan kapağı kullan</string>
     <string name="pick_custom_file">Özel dosya seç</string>
@@ -717,8 +706,6 @@
     <string name="enable_pull_gesture_summary">Webtoon modunda bölüm değiştirmek için çekme hareketi kullan</string>
     <string name="two_page_scroll_sensitivity">İki Sayfa Kaydırma Hassaslığı</string>
     <string name="enter_name">Ad girin</string>
-    <string name="reader_chapter_toast">Bölüm değişikliği açılır penceresini göster</string>
-    <string name="reader_chapter_toast_summary">Değiştirildiğinde bölüm başlığını içeren bir açılır pencere mesajı göster</string>
     <string name="storage_and_network">Depolama ve ağ</string>
     <string name="data_removal">Verilerin silinmesi</string>
     <string name="privacy">Gizlilik</string>

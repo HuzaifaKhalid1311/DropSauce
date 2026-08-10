@@ -82,9 +82,6 @@
     <string name="new_chapters">Новые главы</string>
     <string name="download">Загрузить</string>
     <string name="notifications_settings">Настройки уведомлений</string>
-    <string name="notification_sound">Звук уведомления</string>
-    <string name="light_indicator">Светодиодная индикация</string>
-    <string name="vibration">Вибросигнал</string>
     <string name="favourites_categories">Категории избранного</string>
     <string name="remove_category">Удалить</string>
     <string name="text_empty_holder_primary">Как-то здесь пусто…</string>
@@ -141,7 +138,6 @@
     <string name="today">Сегодня</string>
     <string name="tap_to_try_again">Попробовать ещё раз</string>
     <string name="reader_mode_hint">Выбранный режим будет сохранён для текущей манги</string>
-    <string name="silent">Без звука</string>
     <string name="captcha_required">Необходимо пройти CAPTCHA</string>
     <string name="captcha_solve">Пройти</string>
     <string name="clear_cookies">Очистить куки</string>
@@ -285,7 +281,6 @@
     <string name="brightness">Яркость</string>
     <string name="color_correction">Цветокоррекция</string>
     <string name="error_no_space_left">Не осталось свободного места на накопителе</string>
-    <string name="webtoon_zoom">Масштабирование в режиме манхвы</string>
     <string name="network_unavailable">Сеть недоступна</string>
     <string name="clear_new_chapters_counters">Также очистить информацию о новых главах</string>
     <string name="server_error">Внутренняя ошибка сервера (%1$d). Повторите попытку позже</string>
@@ -346,7 +341,6 @@
     <string name="downloaded">Скачано</string>
     <string name="images_proxy_title">Прокси для оптимизации изображений</string>
     <string name="invert_colors">Инвертировать цвета</string>
-    <string name="webtoon_zoom_summary">Разрешить жесты масштабирования в режиме манхвы</string>
     <string name="restore_summary">Восстановить ранее созданную резервную копию</string>
     <string name="reader_info_bar_summary">Отображение текущего времени и прогресса чтения в верхней части экрана</string>
     <string name="show_pages_numbers_summary">Показывать номера страниц в нижнем углу</string>
@@ -651,12 +645,9 @@
     <string name="clear_database">Очистить базу данных</string>
     <string name="clear_database_summary">Удалить информацию о манге, которая не используется</string>
     <string name="test_connection">Тестовое соединение</string>
-    <string name="handle_links">Обработка ссылок</string>
     <string name="rating">Рейтинг</string>
     <string name="author">Автор</string>
-    <string name="handle_links_summary">Обработка ссылок на мангу из внешних приложений (например, веб-браузера). Вам также может потребоваться включить его вручную в системных настройках приложения</string>
     <string name="restoring_backup">Восстановление резервной копии</string>
-    <string name="reader_info_bar_transparent">Прозрачная информационная панель чтения</string>
     <string name="simple">Простой</string>
     <string name="reader_controls_in_bottom_bar">Элементы управления чтением на нижней панели</string>
     <string name="chapters_and_pages">Главы и страницы</string>
@@ -673,8 +664,6 @@
     <string name="chapter_number">Глава %s</string>
     <string name="unnamed_chapter">Безымянная глава</string>
     <string name="error_disclaimer_manga">Попробуйте открыть мангу в браузере, чтобы убедиться, что она доступна в источнике.</string>
-    <string name="tags_warnings">Выделять опасные жанры</string>
-    <string name="tags_warnings_summary">Выделять жанры, которые могут быть неприемлемы для большинства пользователей</string>
     <string name="clear_browser_data">Очистить данные браузера</string>
     <string name="no_write_permission_to_file">Нет прав на запись в файл</string>
     <string name="link_to_manga_on_s">Ссылка на мангу на %s</string>
@@ -736,8 +725,6 @@
     <string name="enable_pull_gesture_title">Включить жест перетягивания</string>
     <string name="enable_pull_gesture_summary">Используйте жест перетаскивания для переключения глав в вебтуне</string>
     <string name="pull_to_next_chapter">Отпустите, чтобы открыть следующую главу</string>
-    <string name="reader_chapter_toast">Отображать сообщение о смене главы</string>
-    <string name="reader_chapter_toast_summary">Показывать всплывающее сообщение с названием главы при переходе между главами</string>
     <string name="storage_and_network">Хранилище и сеть</string>
     <string name="data_removal">Удаление данных</string>
     <string name="privacy">Приватность</string>

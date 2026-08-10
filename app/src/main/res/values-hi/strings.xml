@@ -64,12 +64,10 @@
     <string name="updates">अद्यतन</string>
     <string name="text_history_holder_secondary">«अन्वेषण करें» अनुभाग में जानें कि क्या पढ़ना है</string>
     <string name="all_favourites">सभी पसंदीदा</string>
-    <string name="light_indicator">LED सूचक</string>
     <string name="favourites_categories">पसंदीदा श्रेणियां</string>
     <string name="clear_thumbs_cache">थंबनेल कैच को साफ करे</string>
     <string name="switch_pages">पन्नो को बदले</string>
     <string name="rotate_screen">स्क्रीन घुमायें</string>
-    <string name="vibration">कंपन</string>
     <string name="remove_category">हटाएं</string>
     <string name="read_mode">पढ़ने की विधि</string>
     <string name="internal_storage">आंतरिक स्टोरेज</string>
@@ -86,7 +84,6 @@
     <string name="text_delete_local_manga">डिवाइस से \"%s\" को स्थायी रूप से मिटाएं?</string>
     <string name="text_history_holder_primary">आप जो पढ़ेंगे वह यहां प्रदर्शित किया जाएगा</string>
     <string name="delete_manga">मंगा मिटाएं</string>
-    <string name="notification_sound">सूचना की ध्वनि</string>
     <string name="search_history_cleared">साफ हो गया</string>
     <string name="open_in_browser">वेब ब्राउज़र में खोलें</string>
     <string name="notifications">सूचनाएं</string>
@@ -128,7 +125,6 @@
     <string name="local_manga_processing">सहेजे गए मंगा का प्रसंस्करण</string>
     <string name="chapters_will_removed_background">अध्याय पृष्ठभूमि में हटा दिए जाएंगे</string>
     <string name="comics_archive">कॉमिक्स संग्रह</string>
-    <string name="webtoon_zoom">वेबटून जूम</string>
     <string name="app_version">संस्करण %s</string>
     <string name="check_for_updates">अद्यतनों के लिए जांचें</string>
     <string name="no_update_available">कोई अद्यतन उपलब्ध नहीं</string>
@@ -145,7 +141,6 @@
     <string name="today">आज</string>
     <string name="tap_to_try_again">दोबारा प्रयास करने के लिए टैप करें</string>
     <string name="reader_mode_hint">इस मंगा के लिए चुना गया विन्यास याद रखा जाएगा</string>
-    <string name="silent">खामोश</string>
     <string name="captcha_required">CAPTCHA आवश्यक है</string>
     <string name="captcha_solve">हल करें</string>
     <string name="cookies_cleared">सभी कुकीज़ हटा दी गईं</string>
@@ -271,7 +266,6 @@
     <string name="invert_colors">रंगों को पलटें</string>
     <string name="show_pages_numbers_summary">निचले कोने में पृष्ठ संख्याएं दिखाएं</string>
     <string name="restore_summary">पहले बनाए गए बैकअप को पुनर्स्थापित करें</string>
-    <string name="webtoon_zoom_summary">वेबटून मोड में जूम इन जेस्चर की अनुमति दें</string>
     <string name="reader_info_bar_summary">स्क्रीन के शीर्ष पर वर्तमान समय और पढ़ने की प्रगति दिखाएं</string>
     <string name="volume_">वॉल्यूम %d</string>
     <string name="volume_unknown">अज्ञात वॉल्यूम</string>

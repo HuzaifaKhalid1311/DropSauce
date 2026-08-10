@@ -3,8 +3,6 @@ package org.koitharu.kotatsu.settings.tracker
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings as SystemSettings
 import android.view.LayoutInflater
@@ -37,15 +35,12 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.powerManager
-import org.koitharu.kotatsu.settings.NotificationSettingsLegacyFragment
-import org.koitharu.kotatsu.settings.SettingsActivity
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
-import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
 import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -98,13 +93,6 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 					onTrackCategories = router::showTrackerCategoriesConfigSheet,
 					onDownloadCategoriesChange = viewModel::setNewChaptersDownloadCategories,
 					onNotificationsSettings = ::openNotificationsSettings,
-					onOpenLegacyNotifications = {
-						(activity as? SettingsActivity)?.openFragment(
-							NotificationSettingsLegacyFragment::class.java,
-							null,
-							isFromRoot = false,
-						)
-					},
 					onTrackerDebug = {
 						startActivity(Intent(requireContext(), TrackerDebugActivity::class.java))
 					},
@@ -126,21 +114,8 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 	}
 
 	private fun openNotificationsSettings() {
-		val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			Intent(SystemSettings.ACTION_APP_NOTIFICATION_SETTINGS)
-				.putExtra(SystemSettings.EXTRA_APP_PACKAGE, requireContext().packageName)
-		} else if (!notificationHelper.getAreNotificationsEnabled()) {
-			Intent(SystemSettings.ACTION_APPLICATION_DETAILS_SETTINGS)
-				.setData(Uri.fromParts("package", requireContext().packageName, null))
-		} else {
-			// Fall through to the legacy in-app notification settings screen.
-			(activity as? SettingsActivity)?.openFragment(
-				NotificationSettingsLegacyFragment::class.java,
-				null,
-				isFromRoot = false,
-			)
-			return
-		}
+		val intent = Intent(SystemSettings.ACTION_APP_NOTIFICATION_SETTINGS)
+			.putExtra(SystemSettings.EXTRA_APP_PACKAGE, requireContext().packageName)
 		try {
 			startActivity(intent)
 		} catch (_: ActivityNotFoundException) {
@@ -180,7 +155,6 @@ private fun TrackerScreen(
 	onTrackCategories: () -> Unit,
 	onDownloadCategoriesChange: (Set<Long>) -> Unit,
 	onNotificationsSettings: () -> Unit,
-	onOpenLegacyNotifications: () -> Unit,
 	onTrackerDebug: () -> Unit,
 	onIgnoreDoze: () -> Unit,
 ) {
@@ -298,16 +272,6 @@ private fun TrackerScreen(
 						shape = pos.shape,
 						enabled = enabled,
 						onClick = onNotificationsSettings,
-					)
-				}
-				item { pos ->
-					NavigationSettingsItem(
-						title = stringResource(R.string.notifications),
-						icon = R.drawable.ic_list_detailed,
-
-						shape = pos.shape,
-						enabled = enabled,
-						onClick = onOpenLegacyNotifications,
 					)
 				}
 				item { pos ->

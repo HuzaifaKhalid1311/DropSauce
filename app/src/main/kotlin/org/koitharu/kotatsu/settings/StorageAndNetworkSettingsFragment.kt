@@ -135,8 +135,8 @@ private fun StorageNetworkScreen(
 		ctx.resources.getStringArray(R.array.values_image_proxies).toList()
 	}
 
-	var prefetchContent by rememberStringPref(AppSettings.KEY_PREFETCH_CONTENT, "2")
-	var pagesPreload by rememberStringPref(AppSettings.KEY_PAGES_PRELOAD, "2")
+	var prefetchContent by rememberStringPref(AppSettings.KEY_PREFETCH_CONTENT, "1")
+	var pagesPreload by rememberStringPref(AppSettings.KEY_PAGES_PRELOAD, "1")
 	var doh by rememberStringPref(AppSettings.KEY_DOH, DoHProvider.NONE.name)
 	// Blank = use the device WebView UA (kept in sync with Cloudflare challenge solving).
 	var userAgent by rememberStringPref(AppSettings.KEY_MIHON_USER_AGENT, "")

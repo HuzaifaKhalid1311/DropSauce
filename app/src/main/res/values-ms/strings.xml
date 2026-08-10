@@ -61,9 +61,6 @@
     <string name="open_in_browser">Buka dalam pelayar web</string>
     <string name="notifications">Notifikasi</string>
     <string name="new_chapters">Bab baharu</string>
-    <string name="notification_sound">Suara pemberitahuan</string>
-    <string name="light_indicator">Penunjuk LED</string>
-    <string name="vibration">Getaran</string>
     <string name="remove_category">Buang</string>
     <string name="text_history_holder_primary">Apa yang anda baca akan dipaparkan di sini</string>
     <string name="text_local_holder_primary">Simpan sesuatu dahulu</string>
@@ -97,7 +94,6 @@
     <string name="group">Kumpul</string>
     <string name="today">Hari ini</string>
     <string name="tap_to_try_again">Ketik untuk cuba semula</string>
-    <string name="silent">Senyap</string>
     <string name="captcha_required">CAPTCHA diperlukan</string>
     <string name="captcha_solve">Selesai</string>
     <string name="clear_cookies">Kosongkan kuki</string>
@@ -291,7 +287,6 @@
     <string name="discard">Buang</string>
     <string name="error_no_space_left">Tiada ruang yang tinggal pada peranti</string>
     <string name="reader_info_pattern">Bab %1$d/%2$d Hlm. %3$d/%4$d</string>
-    <string name="webtoon_zoom">Webtoon zum</string>
     <string name="network_unavailable">Rangkaian tidak tersedia</string>
     <string name="server_error">Ralat Side Server (%1$d). Sila cuba lagi kemudian</string>
     <string name="clear_new_chapters_counters">Juga jelas maklumat mengenai bab baru</string>
@@ -348,7 +343,6 @@
     <string name="password">Kata laluan</string>
     <string name="authorization_optional">Kebenaran (pilihan)</string>
     <string name="restore_summary">Pulihkan sandaran yang dibuat sebelum ini</string>
-    <string name="webtoon_zoom_summary">Benarkan isyarat zum masuk dalam mod webtoon</string>
     <string name="pull_to_prev_chapter">Siaran untuk membuka bab sebelumnya</string>
     <string name="pull_to_next_chapter">Siaran untuk membuka bab seterusnya</string>
     <string name="pull_top_no_prev">Tiada bab sebelumnya</string>
@@ -624,8 +618,6 @@
     <string name="max_backups_count">Bilangan sandaran maksimum</string>
     <string name="delete_old_backups">Padam sandaran lama</string>
     <string name="delete_old_backups_summary">Memadam fail sandaran lama secara automatik untuk menjimatkan ruang penyimpanan</string>
-    <string name="handle_links">Mengendalikan pautan</string>
-    <string name="handle_links_summary">Mengendalikan pautan manga dari aplikasi luaran (mis. Pelayar web). Anda juga mungkin perlu membolehkannya secara manual dalam tetapan sistem aplikasi</string>
     <string name="email">E -mel</string>
     <string name="captcha_required_message">Sumber ini memerlukan menyelesaikan Captcha untuk meneruskan</string>
     <string name="author">Pengarang</string>
@@ -635,7 +627,6 @@
     <string name="test_connection">Sambungan ujian</string>
     <string name="clear_database">Pangkalan data yang jelas</string>
     <string name="clear_database_summary">Padamkan maklumat mengenai manga yang tidak digunakan</string>
-    <string name="reader_info_bar_transparent">Bar Maklumat Pembaca Telus</string>
     <string name="restoring_backup">Memulihkan sandaran</string>
     <string name="reader_controls_in_bottom_bar">Kawalan pembaca di bar bawah</string>
     <string name="chapters_and_pages">Bab dan halaman</string>
@@ -659,8 +650,6 @@
     <string name="clear_browser_data_summary">Data penyemak imbas yang jelas seperti cache dan kuki. Amaran: Kebenaran dalam sumber manga mungkin tidak sah</string>
     <string name="no_write_permission_to_file">Tidak mempunyai kebenaran untuk menulis fail</string>
     <string name="exclude_nsfw_from_suggestions_summary">Manga dewasa tidak akan ditunjukkan dalam cadangan. Pilihan ini mungkin tidak tepat dengan beberapa sumber</string>
-    <string name="tags_warnings">Sorot genre berbahaya</string>
-    <string name="tags_warnings_summary">Sorot genre yang mungkin tidak sesuai untuk kebanyakan pengguna</string>
     <string name="error_non_file_uri">Laluan yang dipilih tidak dapat digunakan kerana ia tidak menandakan fail atau direktori</string>
     <string name="manga_override_hint">Perubahan ini akan mempengaruhi bagaimana manga dipaparkan dalam aplikasinya</string>
     <string name="use_default_cover">Gunakan penutup lalai</string>

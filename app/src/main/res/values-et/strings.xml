@@ -11,7 +11,6 @@
     <string name="cancel_all">Tühista kõik</string>
     <string name="all_favourites">Kõik lemmikud</string>
     <string name="save">Salvesta</string>
-    <string name="light_indicator">LED indikaator</string>
     <string name="no_chapters">Pole peatükke</string>
     <string name="related_manga_summary">Näita seotud mangade nimekirja. Mõnel juhul võib see olla ebatäpne või puududa</string>
     <string name="text_clear_cookies_prompt">Teid logitakse välja kõikidest allikatest</string>
@@ -36,7 +35,6 @@
     <string name="no_description">Kirjeldus puudub</string>
     <string name="chapters_empty">Selles mangas ei ole peatükke</string>
     <string name="remove">Eemalda</string>
-    <string name="vibration">Värisemine</string>
     <string name="no_update_available">Uuendusi pole saadaval</string>
     <string name="remove_category">Eemalda</string>
     <string name="clear_all_history">Tühjenda kõik ajalugu</string>
@@ -90,7 +88,6 @@
     <string name="loading_">Laadimine…</string>
     <string name="suggestions_notifications_summary">Vahepeal näita teateid koos soovitatud mangaga</string>
     <string name="updates_feed_cleared">Tühjendatud</string>
-    <string name="webtoon_zoom">Webtooni zoom</string>
     <string name="various_languages">Erinevad keeled</string>
     <string name="list_mode">Loetelu mood</string>
     <string name="removal_completed">Eemaldatud</string>
@@ -141,7 +138,6 @@
     <string name="delete_manga">Kustuta manga</string>
     <string name="create_category">Uus kategooria</string>
     <string name="delete">Kustuta</string>
-    <string name="notification_sound">Teate hääl</string>
     <string name="screenshots_allow">Luba</string>
     <string name="backup_restore">Varundamine ja taastamine</string>
     <string name="other_cache">Teised vahemälud</string>
@@ -309,7 +305,6 @@
     <string name="external_storage">Väline mälu</string>
     <string name="text_local_holder_secondary">Salvesta midagi võrgupõhisest kataloogist või impordi failist.</string>
     <string name="speed">Kiirus</string>
-    <string name="silent">Vaikne</string>
     <string name="text_local_holder_primary">Salvesta midagi esimesena</string>
     <string name="suggestion_manga">Soovitused: %s</string>
     <string name="removed_from_favourites">Eemaldatud lemmikutest</string>
@@ -336,7 +331,6 @@
     <string name="downloads_paused">Allalaadimised on pausil</string>
     <string name="cancel_all_downloads_confirm">Kõik pooleliolevad allalaadimised katkestatakse ja poolenisti allalaaditud sisu kustutatakse</string>
     <string name="text_downloads_list_holder">Sul pole midagi allalaetud</string>
-    <string name="webtoon_zoom_summary">Luba sisse suumimis liigutusi webtooni moodis</string>
     <string name="downloaded">Allalaetud</string>
     <string name="suggestions_enable_prompt">Kas te soovite saada personaliseerituid manga soovitusi?</string>
     <string name="address">Aadress</string>

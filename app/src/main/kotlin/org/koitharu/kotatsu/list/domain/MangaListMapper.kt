@@ -199,7 +199,7 @@ class MangaListMapper @Inject constructor(
 
 	@ColorRes
 	private fun getTagTint(tag: MangaTag): Int {
-		return if (settings.isTagsWarningsEnabled && tag.title.lowercase() in dict) {
+		return if (tag.title.lowercase() in dict) {
 			R.color.warning
 		} else {
 			0

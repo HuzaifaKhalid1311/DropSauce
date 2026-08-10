@@ -127,7 +127,6 @@
     <string name="clear_pages_cache">Linisin ang page cache</string>
     <string name="download">I-download</string>
     <string name="notifications_settings">Mga setting ng abiso</string>
-    <string name="notification_sound">Tunog ng abiso</string>
     <string name="favourites_categories">Mga paboritong kategorya</string>
     <string name="remove_category">Tanggalin</string>
     <string name="text_empty_holder_primary">Parang walang laman dito…</string>
@@ -140,7 +139,6 @@
     <string name="scale_mode">Mode ng scale</string>
     <string name="no_update_available">Walang available na update</string>
     <string name="group">Grupo</string>
-    <string name="silent">Tahimik</string>
     <string name="zoom_mode_fit_width">Pagkasyahin sa lapad</string>
     <string name="black_dark_theme">Itim</string>
     <string name="create_backup">Lumikha ng data backup</string>
@@ -235,7 +233,6 @@
     <string name="text_unsaved_changes_prompt">I-save o kalimutan ang mga hindi na-save na pagbabago\?</string>
     <string name="discard">Kalimutan</string>
     <string name="error_no_space_left">Walang natitirang espasyo sa device</string>
-    <string name="webtoon_zoom">Pag-zoom sa webtoon</string>
     <string name="server_error">Server side error (%1$d). Subukang muli mamaya</string>
     <string name="clear_new_chapters_counters">Linisan rin ang impormasyon tungkol sa mga bagong kabanata</string>
     <string name="prefetch_content">Preloading ng nilalaman</string>
@@ -324,7 +321,6 @@
     <string name="images_proxy_title">Proxy sa pag-optimize ng mga imahe</string>
     <string name="authorization_optional">Awtorisasyon (opsyonal)</string>
     <string name="restore_summary">Ibalik ang dating ginawang backup</string>
-    <string name="webtoon_zoom_summary">Payagan ang pag-zoom in na gesture sa webtoon mode</string>
     <string name="reader_info_bar_summary">Ipakita ang kasalukuyang oras at progreso ng pagbabasa sa tuktok ng screen</string>
     <string name="show_pages_numbers_summary">Ipakita ang mga numero ng pahina sa ibabang gilid</string>
     <string name="download_option_all_chapters">Lahat ng mga kabanata na may pagsasalin na %s</string>
@@ -602,8 +598,6 @@
     <string name="pages_saved">Na-save na mga pahina</string>
     <string name="delete_old_backups">Tanggalin ang mga lumang backup</string>
     <string name="delete_old_backups_summary">Awtomatikong tanggalin ang mga lumang backup file upang makatipid ng storage space</string>
-    <string name="handle_links">Pangasiwaan ang mga link</string>
-    <string name="handle_links_summary">Pangasiwaan ang manga link mula sa mga panlabas na application (hal. web browser). Maaaring kailanganin mo rin itong manual na paganahin sa mga setting ng system ng aplikasyon</string>
     <string name="email">Ang email</string>
     <string name="captcha_required_message">Ang source na ito ay kinakailang lutasin ang captcha para magpatuloy</string>
     <string name="author">May-Akda</string>
@@ -628,17 +622,14 @@
     <string name="unnamed_chapter">Walang pangalan na kabanata</string>
     <string name="error_disclaimer_app_outdated">Mukhang luma na ang bersyon mo ng DropSauce. Mangyaring i-install ang pinakabagong bersyon upang makuha ang lahat ng magagamit na mga pag-aayos.</string>
     <string name="error_disclaimer_report">Maaari kang magsumite ng ulat ng bug sa mga developer. Makakatulong ito sa amin na magsiyasat at ayusin ang isyu.</string>
-    <string name="tags_warnings">I-highlight ang mga mapanganib na genre</string>
     <string name="clear_browser_data">Linisin ang data ng browser</string>
     <string name="no_write_permission_to_file">Walang pahintulot na magsulat ng file</string>
     <string name="exclude_nsfw_from_suggestions_summary">Ang manga pang-matanda ay hindi ipapakita sa mga mungkahi. Maaaring gumana nang hindi tumpak ang opsyong ito sa ilang source</string>
-    <string name="tags_warnings_summary">I-highlight ang mga genre na maaaring hindi naaangkop para sa karamihan ng mga user</string>
     <string name="link_to_manga_in_app">Link sa manga sa DropSauce</string>
     <string name="simple">Pinasimple</string>
     <string name="link_to_manga_on_s">Link sa manga sa %s</string>
     <string name="clear_browser_data_summary">Linisin ang data ng browser tulad ng cache at mga cookie. Babala: Ang awtorisasyon sa mga source ng manga ay maaaring maging di-balido</string>
     <string name="error_non_file_uri">Hindi magagamit ang napiling path dahil hindi ito nagsasaad ng file o directory</string>
-    <string name="reader_info_bar_transparent">Nakikitang informatian bar</string>
     <string name="use_default_cover">Gamitin ang default na cover</string>
     <string name="pick_manga_page">Pumili ng pahina sa manga</string>
     <string name="pick_custom_file">Pumili ng custom na file</string>
@@ -689,6 +680,4 @@
     <string name="enable_pull_gesture_title">Paganahin ang paghila na gesture</string>
     <string name="enable_pull_gesture_summary">Gamitin ang paghila na gesture para makapagpalit ng kabanata sa webtoon</string>
     <string name="enter_name">Ipasok ang pangalan</string>
-    <string name="reader_chapter_toast">Ipakita ang popup sa pagpalit ng kabanata</string>
-    <string name="reader_chapter_toast_summary">Magpakita ng pop-up na mensahe na may pamagat ng kabanata kapag binago ito</string>
 </resources>

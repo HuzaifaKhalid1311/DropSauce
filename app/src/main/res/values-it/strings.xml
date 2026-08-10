@@ -63,7 +63,6 @@
     <string name="next">Prossimo</string>
     <string name="sign_in">Accedi</string>
     <string name="clear_feed">Cancella il flusso</string>
-    <string name="silent">Silenzioso</string>
     <string name="tap_to_try_again">Tocca per riprovare</string>
     <string name="today">Oggi</string>
     <string name="group">Gruppo</string>
@@ -112,9 +111,6 @@
     <string name="text_empty_holder_primary">È un po\' vuoto qui…</string>
     <string name="remove_category">Rimuovi la categoria</string>
     <string name="favourites_categories">Categorie di preferiti</string>
-    <string name="vibration">Vibrazione</string>
-    <string name="light_indicator">Indicatore luminoso</string>
-    <string name="notification_sound">Suono di notifica</string>
     <string name="notifications_settings">Impostazioni notifiche</string>
     <string name="download">Scarica</string>
     <string name="new_chapters">Nuovi capitoli</string>
@@ -242,7 +238,6 @@
     <string name="mark_as_current">Contrassegna come corrente</string>
     <string name="error_no_space_left">Non c\'è più spazio sul dispositivo</string>
     <string name="network_unavailable">La rete non è disponibile</string>
-    <string name="webtoon_zoom">Zoom Webtoon</string>
     <string name="back">Indietro</string>
     <string name="clear_all_history">Cancella tutta la cronologia</string>
     <string name="last_2_hours">Ultime 2 ore</string>
@@ -382,7 +377,6 @@
     <string name="skip">Salta</string>
     <string name="error_search_not_supported">Questa fonte di manga non supporta la ricerca</string>
     <string name="suggestions_wifi_only_summary">Non aggiornare suggerimenti mentre è in uso una connessione a consumo</string>
-    <string name="webtoon_zoom_summary">Consenti gesto di zoom in modalità webtoon</string>
     <string name="frequency_once_per_month">Una volta al mese</string>
     <string name="downloaded">Scaricato</string>
     <string name="suggestions_enable_prompt">Vuoi ricevere suggerimenti personalizzati di manga?</string>
@@ -617,15 +611,12 @@
     <string name="delete_old_backups">Elimina i vecchi backup</string>
     <string name="delete_old_backups_summary">Elimina automaticamente i vecchi backup per liberare spazio nella memoria</string>
     <string name="error_connection_reset">Ripristino della connessione da parte dell\'host remoto</string>
-    <string name="handle_links">Gestione link</string>
-    <string name="handle_links_summary">Gestisci i link ai manga da applicazioni esterne (ad esempio, dal browser web). Potrebbe essere necessario abilitarlo manualmente nelle impostazioni di sistema dell\'applicazione</string>
     <string name="clear_database">Pulisci database</string>
     <string name="clear_database_summary">Elimina le informazioni sui manga che non vengono utilizzate</string>
     <string name="test_connection">Connessione test</string>
     <string name="author">Autore</string>
     <string name="captcha_required_message">Questa sorgente richiede di risolvere un captcha per continuare</string>
     <string name="rating">Valutazione</string>
-    <string name="reader_info_bar_transparent">Barra informazione del lettore trasparente</string>
     <string name="restoring_backup">Ripristinando il backup</string>
     <string name="reader_controls_in_bottom_bar">Controlli del lettore nella barra in basso</string>
     <string name="screen_rotation_locked">Rotazione schermo bloccata</string>
@@ -649,8 +640,6 @@
     <string name="clear_browser_data">Pulisci dati del browser</string>
     <string name="no_write_permission_to_file">Non ha l\'autorizzazione a scrivere un file</string>
     <string name="exclude_nsfw_from_suggestions_summary">I manga per adulti non verranno mostrati nei suggerimenti. Questa opzione potrebbe non funzionare accuratamente con alcune fonti</string>
-    <string name="tags_warnings">Evidenzia i generi pericolosi</string>
-    <string name="tags_warnings_summary">Evidenzia i generi che potrebbero essere inappropriati per la maggior parte degli utenti</string>
     <string name="error_non_file_uri">Il percorso selezionato non può essere utilizzato perché non rappresenta un file o una cartella</string>
     <string name="use_default_cover">Usa copertina predefinita</string>
     <string name="manga_override_hint">Queste modifiche influenzeranno il modo in cui i manga vengono visualizzati nell\'app</string>
@@ -704,8 +693,6 @@
     <string name="enable_pull_gesture_summary">Abilita gesto di scorrimento per cambiare capitolo in webtoon</string>
     <string name="two_page_scroll_sensitivity">Sensibilità di scorrimento a due pagine</string>
     <string name="enter_name">Inserisci nome</string>
-    <string name="reader_chapter_toast">Mostra popup di cambio capitolo</string>
-    <string name="reader_chapter_toast_summary">Mostra un messaggio pop-up con un titolo del capitolo quando è cambiato</string>
     <string name="storage_and_network">Memoria e rete</string>
     <string name="data_removal">Rimozione dei dati</string>
     <string name="frequency_every_6_hours">Ogni 6 ore</string>

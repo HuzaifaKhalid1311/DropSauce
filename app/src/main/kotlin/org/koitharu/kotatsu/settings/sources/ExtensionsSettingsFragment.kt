@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -20,7 +19,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
@@ -53,7 +51,6 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 	@Inject
 	lateinit var shizukuInstaller: ShizukuExtensionInstaller
 
-	private val viewModel by viewModels<SourcesSettingsViewModel>()
 	private val shizukuPermissionListener = object : Shizuku.OnRequestPermissionResultListener {
 		override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
 			if (requestCode != SHIZUKU_PERMISSION_REQUEST_CODE) return
@@ -75,9 +72,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 		setContent {
 			DropSauceTheme {
-				val linksEnabled by viewModel.isLinksEnabled.collectAsState(false)
 				ExtensionsScreen(
-					linksEnabled = linksEnabled,
 					onOpenCatalog = { router.openSourcesCatalog(isExternalOnly = true) },
 					onOpenStores = router::openExtensionStores,
 					onOpenBrokenSourcesMigration = {
@@ -87,16 +82,11 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 							isFromRoot = false,
 						)
 					},
-					onLinksChanged = viewModel::setLinksEnabled,
 					onShizukuChanged = ::setShizukuEnabled,
 					onSandboxEnabled = ::onSandboxEnabled,
 				)
 			}
 		}
-	}
-
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
 	}
 
 	override fun onDestroy() {
@@ -160,11 +150,9 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 
 @Composable
 private fun ExtensionsScreen(
-	linksEnabled: Boolean,
 	onOpenCatalog: () -> Unit,
 	onOpenStores: () -> Unit,
 	onOpenBrokenSourcesMigration: () -> Unit,
-	onLinksChanged: (Boolean) -> Unit,
 	onShizukuChanged: (Boolean) -> Unit,
 	onSandboxEnabled: () -> Unit,
 ) {
@@ -184,7 +172,6 @@ private fun ExtensionsScreen(
 	var sortOrder by rememberStringPref(AppSettings.KEY_SOURCES_ORDER, SourcesSortOrder.ALPHABETIC.name)
 	var grid by rememberBooleanPref(AppSettings.KEY_SOURCES_GRID, true)
 	var noNsfw by rememberBooleanPref(AppSettings.KEY_DISABLE_NSFW, false)
-	var tagsWarnings by rememberBooleanPref(AppSettings.KEY_TAGS_WARNINGS, true)
 	var incognitoNsfw by rememberStringPref(AppSettings.KEY_INCOGNITO_NSFW, "ASK")
 	val shizukuEnabled by rememberBooleanPref(AppSettings.KEY_SHIZUKU_INSTALLER, false)
 	var privateEnabled by rememberBooleanPref(AppSettings.KEY_PRIVATE_INSTALLER, false)
@@ -279,17 +266,6 @@ private fun ExtensionsScreen(
 					)
 				}
 				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.tags_warnings),
-						subtitle = stringResource(R.string.tags_warnings_summary),
-						checked = tagsWarnings,
-						onCheckedChange = { tagsWarnings = it },
-						icon = R.drawable.ic_tag,
-						
-						shape = pos.shape,
-					)
-				}
-				item { pos ->
 					ListSettingsItem(
 						title = stringResource(R.string.incognito_for_nsfw),
 						entries = incognitoEntries,
@@ -297,22 +273,6 @@ private fun ExtensionsScreen(
 						selectedValue = incognitoNsfw,
 						onValueChange = { incognitoNsfw = it },
 						icon = R.drawable.ic_incognito,
-						
-						shape = pos.shape,
-					)
-				}
-			}
-		}
-		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
-		item {
-			SettingsGroup(title = stringResource(R.string.handle_links)) {
-				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.handle_links),
-						subtitle = stringResource(R.string.handle_links_summary),
-						checked = linksEnabled,
-						onCheckedChange = onLinksChanged,
-						icon = R.drawable.ic_open_external,
 						
 						shape = pos.shape,
 					)

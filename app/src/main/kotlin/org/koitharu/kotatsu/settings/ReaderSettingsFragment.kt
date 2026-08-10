@@ -93,8 +93,6 @@ private fun ReaderScreen(
 	val readerBackgroundValues = remember { ReaderBackground.entries.names().toList() }
 	val readerCropEntries = remember { ctx.resources.getStringArray(R.array.reader_crop).toList() }
 	val readerCropValues = remember { ctx.resources.getStringArray(R.array.values_reader_crop).toList() }
-	val networkPolicyEntries = remember { ctx.resources.getStringArray(R.array.network_policy).toList() }
-	val networkPolicyValues = remember { ctx.resources.getStringArray(R.array.values_network_policy).toList() }
 	val orientationEntries = remember { ctx.resources.getStringArray(R.array.screen_orientations).toList() }
 	val orientationValues = remember {
 		listOf(
@@ -109,7 +107,6 @@ private fun ReaderScreen(
 	var readerModeDetect by rememberBooleanPref(AppSettings.KEY_READER_MODE_DETECT, true)
 	var zoomMode by rememberStringPref(AppSettings.KEY_ZOOM_MODE, ZoomMode.FIT_CENTER.name)
 	var readerZoomButtons by rememberBooleanPref(AppSettings.KEY_READER_ZOOM_BUTTONS, false)
-	var webtoonZoom by rememberBooleanPref(AppSettings.KEY_WEBTOON_ZOOM, true)
 	var webtoonZoomOut by rememberIntPref(AppSettings.KEY_WEBTOON_ZOOM_OUT, 0)
 	var webtoonGaps by rememberBooleanPref(AppSettings.KEY_WEBTOON_GAPS, false)
 	var readerControls by rememberStringSetPref(
@@ -133,8 +130,6 @@ private fun ReaderScreen(
 	var readerScreenOn by rememberBooleanPref(AppSettings.KEY_READER_SCREEN_ON, true)
 	var readerMultitask by rememberBooleanPref(AppSettings.KEY_READER_MULTITASK, false)
 	var readerBar by rememberBooleanPref(AppSettings.KEY_READER_BAR, true)
-	var readerBarTransparent by rememberBooleanPref(AppSettings.KEY_READER_BAR_TRANSPARENT, true)
-	var readerChapterToast by rememberBooleanPref(AppSettings.KEY_READER_CHAPTER_TOAST, true)
 	var chapterJumpDialog by rememberBooleanPref(AppSettings.KEY_CHAPTER_JUMP_DIALOG, true)
 	var readerBackground by rememberStringPref(
 		AppSettings.KEY_READER_BACKGROUND,
@@ -142,7 +137,6 @@ private fun ReaderScreen(
 	)
 	var pagesNumbers by rememberBooleanPref(AppSettings.KEY_PAGES_NUMBERS, false)
 	var titleTapToRead by rememberBooleanPref(AppSettings.KEY_TITLE_TAP_TO_READ, false)
-	var pagesPreload by rememberStringPref(AppSettings.KEY_PAGES_PRELOAD, "2")
 
 	val isWebtoonMode = readerMode == ReaderMode.WEBTOON.name
 
@@ -213,17 +207,6 @@ private fun ReaderScreen(
 					)
 				}
 				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.webtoon_zoom),
-						subtitle = stringResource(R.string.webtoon_zoom_summary),
-						checked = webtoonZoom,
-						onCheckedChange = { webtoonZoom = it },
-						icon = R.drawable.ic_split_horizontal,
-						
-						shape = pos.shape,
-					)
-				}
-				item { pos ->
 					SliderSettingsItem(
 						title = stringResource(R.string.default_webtoon_zoom_out),
 						value = webtoonZoomOut,
@@ -235,7 +218,6 @@ private fun ReaderScreen(
 						icon = R.drawable.ic_zoom_out,
 						
 						shape = pos.shape,
-						enabled = webtoonZoom,
 					)
 				}
 				item { pos ->
@@ -452,28 +434,6 @@ private fun ReaderScreen(
 				}
 				item { pos ->
 					SwitchSettingsItem(
-						title = stringResource(R.string.reader_info_bar_transparent),
-						checked = readerBarTransparent,
-						onCheckedChange = { readerBarTransparent = it },
-						icon = R.drawable.ic_eye_check,
-						
-						shape = pos.shape,
-						enabled = readerBar,
-					)
-				}
-				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.reader_chapter_toast),
-						subtitle = stringResource(R.string.reader_chapter_toast_summary),
-						checked = readerChapterToast,
-						onCheckedChange = { readerChapterToast = it },
-						icon = R.drawable.ic_notification,
-
-						shape = pos.shape,
-					)
-				}
-				item { pos ->
-					SwitchSettingsItem(
 						title = stringResource(R.string.chapter_jump_setting_title),
 						subtitle = stringResource(R.string.chapter_jump_setting_summary),
 						checked = chapterJumpDialog,
@@ -507,18 +467,6 @@ private fun ReaderScreen(
 						checked = pagesNumbers,
 						onCheckedChange = { pagesNumbers = it },
 						icon = R.drawable.ic_title,
-						
-						shape = pos.shape,
-					)
-				}
-				item { pos ->
-					ListSettingsItem(
-						title = stringResource(R.string.preload_pages),
-						entries = networkPolicyEntries,
-						entryValues = networkPolicyValues,
-						selectedValue = pagesPreload,
-						onValueChange = { pagesPreload = it },
-						icon = R.drawable.ic_download,
 						
 						shape = pos.shape,
 					)

@@ -104,9 +104,6 @@
     <string name="new_chapters">New chapters</string>
     <string name="download">Download</string>
     <string name="notifications_settings">Notifications settings</string>
-    <string name="notification_sound">Notification sound</string>
-    <string name="light_indicator">LED indicator</string>
-    <string name="vibration">Vibration</string>
     <string name="favourites_categories">Favorite categories</string>
     <string name="remove_category">Remove</string>
     <string name="text_empty_holder_primary">It\'s kind of empty here...</string>
@@ -224,7 +221,6 @@
     <string name="today">Today</string>
     <string name="tap_to_try_again">Tap to try again</string>
     <string name="reader_mode_hint">The chosen configuration will be remembered for this manga</string>
-    <string name="silent">Silent</string>
     <string name="captcha_required">CAPTCHA required</string>
     <string name="captcha_solve">Solve</string>
     <string name="clear_cookies">Clear cookies</string>
@@ -369,7 +365,8 @@
     <string name="detect_reader_mode_summary">Automatically detect if manga is webtoon</string>
     <string name="disable_battery_optimization">Disable battery optimization</string>
     <string name="disable_battery_optimization_summary">Helps with background updates checks</string>
-    <string name="crash_text">Something went wrong. Please submit a bug report to the developers to help us fix it.</string>
+    <string name="crash_text">The app stopped unexpectedly. Copy the details if you want to report the problem.</string>
+    <string name="copy_details">Copy details</string>
     <string name="status">Status</string>
     <string name="status_planned">Planned</string>
     <string name="status_reading">Reading</string>
@@ -468,7 +465,6 @@
     <string name="text_unsaved_changes_prompt">Save or discard unsaved changes\?</string>
     <string name="discard">Discard</string>
     <string name="error_no_space_left">No space left on device</string>
-    <string name="webtoon_zoom">Webtoon zoom</string>
     <string name="network_unavailable">Network is not available</string>
     <string name="server_error">Server side error (%1$d). Please try again later</string>
     <string name="clear_new_chapters_counters">Also clear information about new chapters</string>
@@ -588,7 +584,6 @@
     <string name="password">Password</string>
     <string name="authorization_optional">Authorization (optional)</string>
     <string name="restore_summary">Restore previously created backup</string>
-    <string name="webtoon_zoom_summary">Allow zoom in gesture in webtoon mode</string>
     <string name="pull_to_prev_chapter">Release to open previous chapter</string>
     <string name="pull_to_next_chapter">Release to open next chapter</string>
     <string name="pull_top_no_prev">No previous chapter</string>
@@ -867,8 +862,6 @@
     <string name="new_chapters_pattern" translatable="false">%1$s: %2$d</string>
     <string name="pin_navigation_ui">Pin navigation UI</string>
     <string name="pin_navigation_ui_summary">Do not hide navigation bar and search view on scroll</string>
-    <string name="use_legacy_navigation_bar">Use legacy navigation bar</string>
-    <string name="use_legacy_navigation_bar_summary">Show Android\'s default bottom navigation style</string>
     <string name="search_suggestions">Search suggestions</string>
     <string name="recent_queries">Recent queries</string>
     <string name="suggested_queries">Suggested queries</string>
@@ -989,8 +982,6 @@
     <string name="max_backups_count">Max number of backups</string>
     <string name="delete_old_backups">Delete old backups</string>
     <string name="delete_old_backups_summary">Automatically delete old backup files to save storage space</string>
-    <string name="handle_links">Handle links</string>
-    <string name="handle_links_summary">Handle manga links from external applications (e.g. web browser). You may also need to enable it manually in the application\'s system settings</string>
     <string name="auto_update">Auto-update</string>
     <string name="shizuku_title">Shizuku installer (Beta)</string>
     <string name="shizuku_summary">Grant privileged access via Shizuku for silent, no-prompt installs</string>
@@ -1020,9 +1011,6 @@
     <string name="test_connection">Test connection</string>
     <string name="clear_database">Clear database</string>
     <string name="clear_database_summary">Delete information about manga that is not used</string>
-    <string name="reader_chapter_toast">Show chapter change popup</string>
-    <string name="reader_chapter_toast_summary">Show a pop-up message with a chapter title when it is changed</string>
-	<string name="reader_info_bar_transparent">Transparent reader information bar</string>
 	<string name="dictionary">Dictionary</string>
 	<string name="dictionary_source">Definitions from Free Dictionary API</string>
 	<string name="dictionary_not_found">No definition found.</string>
@@ -1057,8 +1045,6 @@
     <string name="clear_browser_data_summary">Clear browser data such as cache and cookies. Warning: Authorization in manga sources may become invalid</string>
     <string name="no_write_permission_to_file">Does not have permission to write a file</string>
     <string name="exclude_nsfw_from_suggestions_summary">Adult manga will not be shown in suggestions. This option may work inaccurate with some sources</string>
-    <string name="tags_warnings">Highlight dangerous genres</string>
-    <string name="tags_warnings_summary">Highlight genres that may be inappropriate for most users</string>
     <string name="error_non_file_uri">The selected path cannot be used because it does not denote a file or directory</string>
     <string name="manga_override_hint">These changes will affect how manga is displayed throughout the app. Discord Rich Presence can only show a custom cover set via an image URL; picked images fall back to the source cover.</string>
     <string name="use_default_cover">Use default cover</string>

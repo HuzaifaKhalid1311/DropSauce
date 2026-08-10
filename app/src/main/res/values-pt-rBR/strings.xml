@@ -74,9 +74,6 @@
     <string name="new_chapters">Novos capítulos</string>
     <string name="download">Baixar</string>
     <string name="notifications_settings">Configurações de notificações</string>
-    <string name="notification_sound">Som de notificação</string>
-    <string name="light_indicator">Indicador LED</string>
-    <string name="vibration">Vibração</string>
     <string name="remove_category">Remover</string>
     <string name="text_empty_holder_primary">Tá meio vazio aqui…</string>
     <string name="text_search_holder_secondary">Tente reformular a busca.</string>
@@ -110,7 +107,6 @@
     <string name="today">Hoje</string>
     <string name="tap_to_try_again">Toque para tentar novamente</string>
     <string name="reader_mode_hint">A configuração escolhida será lembrada para esta obra</string>
-    <string name="silent">Silencioso</string>
     <string name="captcha_required">CAPTCHA obrigatório</string>
     <string name="captcha_solve">Resolver</string>
     <string name="clear_cookies">Limpar cookies</string>
@@ -302,7 +298,6 @@
     <string name="speed">Velocidade</string>
     <string name="show_on_shelf">Mostrar na Prateleira</string>
     <string name="user_agent">Cabeçalho User/Agent</string>
-    <string name="webtoon_zoom">Zoom Webtoon</string>
     <string name="show_pages_numbers_summary">Exibir números de página no canto inferior</string>
     <string name="find_similar">Encontrar similares</string>
     <string name="resume">Retomar</string>
@@ -327,7 +322,6 @@
     <string name="username">Nome de usuário</string>
     <string name="password">Senha</string>
     <string name="restore_summary">Restaurar backup criado anteriormente</string>
-    <string name="webtoon_zoom_summary">Permitir zoom em gesto no modo webtoon</string>
     <string name="reader_info_bar_summary">Mostrar a hora atual e o progresso da leitura na parte superior da tela</string>
     <string name="download_option_all_chapters">Todos os capítulos com tradução %s</string>
     <string name="download_option_whole_manga">A obra toda</string>
@@ -593,8 +587,6 @@
     <string name="fixing_manga">Corrigindo a obra</string>
     <string name="fixed">Corrigida</string>
     <string name="no_fix_required">Nenhuma correção necessária para \"%s\"</string>
-    <string name="handle_links_summary">Lidar com links de mangá de aplicações externas (ex: navegador). Você talvez precise habilitar isso manualmente nas configurações da aplicação</string>
-    <string name="handle_links">Lidar com links</string>
     <string name="demographics">Demografia</string>
     <string name="access_denied_403">Acesso negado (403)</string>
     <string name="max_backups_count">Número máximo de backups</string>
@@ -635,7 +627,6 @@
     <string name="error_details">Detalhes do erro</string>
     <string name="error_disclaimer_report">Você pode submeter um bug report para os desenvolvedores. Isso nos ajudará investigar e solucionar o problema.</string>
     <string name="no_write_permission_to_file">Não há permissão de escrever um arquivo</string>
-    <string name="reader_info_bar_transparent">­Barra transparente de informações do leitor</string>
     <string name="chapter_volume_number">Vol %1$s Capítulo %2$s</string>
     <string name="chapter_number">Capítulo %s</string>
     <string name="unnamed_chapter">Capítulo sem nome</string>
@@ -649,8 +640,6 @@
     <string name="link_to_manga_in_app">Link para a obra no DropSauce</string>
     <string name="global_search">Pesquisa global</string>
     <string name="badges_in_lists">Emblemas em listas</string>
-    <string name="tags_warnings">Destacar gêneros perigosos</string>
-    <string name="tags_warnings_summary">Destacar gêneros que podem ser inapropriados para a maioria dos usuários</string>
     <string name="exclude_nsfw_from_suggestions_summary">Mangás adultos não serão exibidos nas sugestões. Esta opção pode funcionar de forma imprecisa com algumas fontes</string>
     <string name="manga_override_hint">Essas mudanças afetarão como a obra é exibida no aplicativo</string>
     <string name="use_default_cover">Usar a capa padrão</string>
@@ -705,8 +694,6 @@
     <string name="two_page_scroll_sensitivity">Sensibilidade de Rolagem Dupla</string>
     <string name="enable_pull_gesture_title">Ativar gesto de puxar</string>
     <string name="enable_pull_gesture_summary">Puxe para trocar de capítulo em webtoons</string>
-    <string name="reader_chapter_toast">Exibir mensagem ao mudar de capítulo</string>
-    <string name="reader_chapter_toast_summary">Exibir título do capítulo ao mudar de capítulo</string>
     <string name="storage_and_network">Armazenamento e rede</string>
     <string name="privacy">Privacidade</string>
     <string name="enter_name">Insira um nome</string>

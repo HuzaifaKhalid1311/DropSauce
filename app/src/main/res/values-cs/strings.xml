@@ -100,7 +100,6 @@
     <string name="today">Dnes</string>
     <string name="tap_to_try_again">Klikněte pro zopakování</string>
     <string name="reader_mode_hint">Zvolená konfigurace bude pro tuto mangu zapamatována</string>
-    <string name="silent">Tiché</string>
     <string name="captcha_required">Vyžadována CAPTCHA</string>
     <string name="captcha_solve">Vyřešit</string>
     <string name="text_clear_updates_feed_prompt">Vyčistit permanentně všechnu historii aktualizací\?</string>
@@ -224,7 +223,6 @@
     <string name="text_unsaved_changes_prompt">Uložit nebo zahodit neuložené změny\?</string>
     <string name="discard">Zahodit</string>
     <string name="error_no_space_left">Na zařízení není volné žádné místo</string>
-    <string name="webtoon_zoom">Webtoon přiblížení</string>
     <string name="network_unavailable">Připojení není dostupné</string>
     <string name="server_error">Chyba na straně serveru (%1$d). Prosíme zkuste to znovu později</string>
     <string name="clear_new_chapters_counters">Také vyčistit informace o nových kapitolách</string>
@@ -305,14 +303,11 @@
     <string name="search_on_s">Hledat na %s</string>
     <string name="internal_storage">Interní uložiště</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d z %2$d na</string>
-    <string name="notification_sound">Zvuk oznámení</string>
     <string name="search_history_cleared">Vyčištěno</string>
     <string name="external_storage">Externí uložiště</string>
     <string name="new_chapters">Nové kapitoly</string>
     <string name="download">Stáhnout</string>
     <string name="notifications_settings">Nastavení oznámení</string>
-    <string name="light_indicator">LED indikátor</string>
-    <string name="vibration">Vibrace</string>
     <string name="favourites_categories">Oblíbené kategorie</string>
     <string name="remove_category">Odstranit</string>
     <string name="read_later">Přečíst později</string>
@@ -346,7 +341,6 @@
     <string name="speed">Rychlost</string>
     <string name="downloads_wifi_only">Stahovat pouze přes Wi-Fi</string>
     <string name="cancel_all">Zrušit vše</string>
-    <string name="webtoon_zoom_summary">Povolit přiblížení v gestu ve webtoon režimu</string>
     <string name="description">Popis</string>
     <string name="state_upcoming">Již brzy</string>
     <string name="no_manga_sources_found">Na Váš dotaz nebyly nalezeny žádné zdroje mang</string>
@@ -599,9 +593,6 @@
     <string name="delete_old_backups">Smazat staré zálohy</string>
     <string name="rating">Hodnocení</string>
     <string name="incognito">Inkognito</string>
-    <string name="reader_info_bar_transparent">Průhledný informační proužek pro čtenáře</string>
-    <string name="handle_links">Spravovat odkazy</string>
-    <string name="handle_links_summary">Zpracování odkazů na manga z externích aplikací (např. webového prohlížeče). Může být také nutné povolit ji ručně v systémových nastaveních aplikace</string>
     <string name="content_type_artist_cg">Umělec CG</string>
     <string name="content_type_image_set">Sada obrázků</string>
     <string name="content_type_game_cg">Hra CG</string>
@@ -640,8 +631,6 @@
     <string name="error_details">Detaily o chybě</string>
     <string name="error_disclaimer_manga">Zkuste otevřít mangu ve webovém prohlížeči, abyste zjistliti jestli je dostupná.</string>
     <string name="error_disclaimer_app_outdated">Vypadá to, že vaše verze DropSauce je zastaralá. Prosíme, nainstalujte nejnovější verzi pro získání všech dostupných oprav chyb.</string>
-    <string name="tags_warnings">Zvýraznit nebezpečné žánry</string>
-    <string name="tags_warnings_summary">Zvýraznit žánry, které mohou být nevhodné pro většinu uživatelů</string>
     <string name="link_to_manga_in_app">Odkaz na mangau v DropSauce</string>
     <string name="clear_browser_data">Vyčistit data prohlížeče</string>
     <string name="exclude_nsfw_from_suggestions_summary">Dospělá manga nebude zobrazena v návrzích. Tato funkce může být nepřesná s některými zdroji</string>
@@ -669,8 +658,6 @@
     <string name="two_page_scroll_sensitivity">Dvoustranná citlivost posouvání</string>
     <string name="enable_pull_gesture_title">Povolit tahová gesta</string>
     <string name="enable_pull_gesture_summary">Použijte tahová gesta pro přepínání kapitol v režimu webtoon</string>
-    <string name="reader_chapter_toast">Zobrazit změnu kapitoly pomocí pop-upu</string>
-    <string name="reader_chapter_toast_summary">Zobrazit pop-up s názvem kapitoly, když se změní</string>
     <string name="badges_in_lists">Odznaky v seznamech</string>
     <string name="link_to_manga_on_s">Odkaz na mangu na %s</string>
     <string name="no_write_permission_to_file">Nemá oprávnění k ukládání souboru</string>

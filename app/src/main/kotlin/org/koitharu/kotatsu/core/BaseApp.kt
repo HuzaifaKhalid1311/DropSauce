@@ -3,6 +3,8 @@ package org.koitharu.kotatsu.core
 import android.app.Application
 import android.app.DownloadManager
 import android.content.Context
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.os.Environment
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatDelegate
@@ -19,12 +21,12 @@ import org.acra.config.dialog
 import org.acra.data.StringFormat
 import org.acra.ktx.initAcra
 import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.logs.AppLogger
 import org.koitharu.kotatsu.core.os.AppValidator
 import org.koitharu.kotatsu.core.os.RomCompat
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
@@ -79,6 +81,15 @@ open class BaseApp : Application(), Configuration.Provider {
 		if (ACRA.isACRASenderServiceProcess()) {
 			return
 		}
+		// Link handling is no longer a setting; re-enable the alias for users who turned it off before.
+		val linksAlias = ComponentName(this, "org.koitharu.kotatsu.details.ui.DetailsByLinkActivity")
+		if (packageManager.getComponentEnabledSetting(linksAlias) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
+			packageManager.setComponentEnabledSetting(
+				linksAlias,
+				PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+				PackageManager.DONT_KILL_APP,
+			)
+		}
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
 		appLogger.setEnabled(settings.isVerboseLoggingEnabled)
 		// Keep default platform security provider.
@@ -105,11 +116,8 @@ open class BaseApp : Application(), Configuration.Provider {
 			reportFormat = StringFormat.JSON
 			
 			dialog {
-				text = getString(R.string.crash_text)
-				title = getString(R.string.error_occurred)
-				positiveButtonText = getString(R.string.close)
-				resIcon = R.drawable.ic_alert_outline
-				resTheme = android.R.style.Theme_Material_Light_Dialog_Alert
+				// CrashDialogActivity brings its own title/text/buttons
+				reportDialogClass = CrashDialogActivity::class.java
 			}
 		}
 	}
