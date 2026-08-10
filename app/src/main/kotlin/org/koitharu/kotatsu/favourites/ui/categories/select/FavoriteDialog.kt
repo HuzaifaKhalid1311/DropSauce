@@ -78,12 +78,12 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 				imageLoader = imageLoader,
 				onAddAnyway = { viewModel.confirmAddDuplicate() },
 				onAddIndividualAnyway = { target -> viewModel.confirmAddIndividualAnyway(target) },
-				onSkipIndividual = { target -> viewModel.skipIndividualDuplicate(target) },
+				onSkipIndividual = { target -> viewModel.skipIndividualDuplicate(target) { dismiss() } },
 				onOpenManga = { manga ->
 					router.openDetails(manga)
 				},
 				onMigrateManga = { targetManga, existingManga ->
-					viewModel.migrateDuplicate(targetManga, existingManga)
+					viewModel.migrateDuplicate(targetManga, existingManga) { dismiss() }
 				},
 				onDismissRequest = { viewModel.dismissDuplicate { dismiss() } },
 			)
@@ -91,7 +91,8 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 		}
 
 
-		val title = remember { viewModel.manga.joinToStringWithLimit(context, 92) { it.title } }
+		val activeManga = remember(duplicatesState) { viewModel.getActiveManga() }
+		val title = remember(activeManga) { activeManga.joinToStringWithLimit(context, 92) { it.title } }
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_heart),
 			title = title,

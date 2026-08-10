@@ -57,6 +57,10 @@ import org.koitharu.kotatsu.core.util.ext.stableMangaCoverKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import kotlin.math.sign
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+
 @Composable
 fun DuplicateMangaDialog(
 	duplicatesList: List<Pair<Manga, List<Manga>>>,
@@ -90,32 +94,38 @@ fun DuplicateMangaDialog(
 		icon = painterResource(R.drawable.ic_info_outline),
 		title = stringResource(R.string.possible_duplicates_title),
 	) {
-		Column(
+		LazyColumn(
 			modifier = Modifier
 				.fillMaxWidth()
-				.heightIn(max = 420.dp)
-				.verticalScroll(rememberScrollState()),
+				.heightIn(max = 420.dp),
 			verticalArrangement = Arrangement.spacedBy(16.dp),
 		) {
-			Text(
-				text = stringResource(R.string.possible_duplicates_summary),
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-			)
+			item(key = "summary") {
+				Text(
+					text = stringResource(R.string.possible_duplicates_summary),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					textAlign = TextAlign.Center,
+					modifier = Modifier.fillMaxWidth(),
+				)
+			}
 
-			val showPerItemActions = duplicatesList.size > 1
-			duplicatesList.forEach { (targetManga, matches) ->
+			items(
+				items = duplicatesList,
+				key = { (targetManga, _) -> targetManga.id },
+			) { (targetManga, matches) ->
 				matches.forEach { duplicate ->
-					DuplicateCardItem(
-						targetManga = targetManga,
-						duplicate = duplicate,
-						imageLoader = imageLoader,
-						showPerItemActions = showPerItemActions,
-						onOpenManga = { onOpenManga(duplicate) },
-						onMigrateManga = { selectedForMigration = targetManga to duplicate },
-						onAddIndividualAnyway = { onAddIndividualAnyway(targetManga) },
-						onSkipIndividual = { onSkipIndividual(targetManga) },
-					)
+					Box(modifier = Modifier.animateItem()) {
+						DuplicateCardItem(
+							targetManga = targetManga,
+							duplicate = duplicate,
+							imageLoader = imageLoader,
+							onOpenManga = { onOpenManga(duplicate) },
+							onMigrateManga = { selectedForMigration = targetManga to duplicate },
+							onAddIndividualAnyway = { onAddIndividualAnyway(targetManga) },
+							onSkipIndividual = { onSkipIndividual(targetManga) },
+						)
+					}
 				}
 			}
 		}
@@ -139,7 +149,6 @@ private fun DuplicateCardItem(
 	targetManga: Manga,
 	duplicate: Manga,
 	imageLoader: ImageLoader,
-	showPerItemActions: Boolean,
 	onOpenManga: () -> Unit,
 	onMigrateManga: () -> Unit,
 	onAddIndividualAnyway: () -> Unit,
@@ -295,45 +304,43 @@ private fun DuplicateCardItem(
 				}
 			}
 
-			if (showPerItemActions) {
-				Row(
-					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.spacedBy(8.dp),
+			) {
+				Button(
+					onClick = onAddIndividualAnyway,
+					modifier = Modifier
+						.weight(1f)
+						.height(36.dp),
+					shape = RoundedCornerShape(20.dp),
+					contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
 				) {
-					Button(
-						onClick = onAddIndividualAnyway,
-						modifier = Modifier
-							.weight(1f)
-							.height(36.dp),
-						shape = RoundedCornerShape(20.dp),
-						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-					) {
-						Text(
-							text = stringResource(R.string.action_add_anyway),
-							style = MaterialTheme.typography.labelMedium,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis,
-						)
-					}
+					Text(
+						text = stringResource(R.string.action_add_anyway),
+						style = MaterialTheme.typography.labelMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+					)
+				}
 
-					OutlinedButton(
-						onClick = onSkipIndividual,
-						modifier = Modifier
-							.weight(1f)
-							.height(36.dp),
-						shape = RoundedCornerShape(20.dp),
-						contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-						colors = ButtonDefaults.outlinedButtonColors(
-							contentColor = MaterialTheme.colorScheme.error,
-						),
-					) {
-						Text(
-							text = stringResource(R.string.remove),
-							style = MaterialTheme.typography.labelMedium,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis,
-						)
-					}
+				OutlinedButton(
+					onClick = onSkipIndividual,
+					modifier = Modifier
+						.weight(1f)
+						.height(36.dp),
+					shape = RoundedCornerShape(20.dp),
+					contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+					colors = ButtonDefaults.outlinedButtonColors(
+						contentColor = MaterialTheme.colorScheme.error,
+					),
+				) {
+					Text(
+						text = stringResource(R.string.skip),
+						style = MaterialTheme.typography.labelMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+					)
 				}
 			}
 		}

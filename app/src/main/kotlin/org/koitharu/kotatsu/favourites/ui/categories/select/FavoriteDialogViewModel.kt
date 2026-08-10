@@ -93,10 +93,16 @@ class FavoriteDialogViewModel @Inject constructor(
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	private val skippedMangaIds = mutableSetOf<Long>()
+	private val migratedMangaIds = mutableSetOf<Long>()
+	private val approvedMangaIds = mutableSetOf<Long>()
+
+	fun getActiveManga(): List<Manga> {
+		return manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
+	}
 
 	fun setChecked(categoryId: Long, isChecked: Boolean) {
 		launchJob(Dispatchers.Default) {
-			val activeManga = manga.filterNot { skippedMangaIds.contains(it.id) }
+			val activeManga = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
 			if (activeManga.isEmpty()) return@launchJob
 
 			if (isChecked) {
@@ -113,23 +119,46 @@ class FavoriteDialogViewModel @Inject constructor(
 	}
 
 	fun confirmAddIndividualAnyway(targetManga: Manga) {
+		approvedMangaIds.add(targetManga.id)
 		val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
 		duplicatesState.value = current.ifEmpty { null }
 	}
 
-	fun skipIndividualDuplicate(targetManga: Manga) {
+	fun skipIndividualDuplicate(targetManga: Manga, onCompleteIfEmpty: () -> Unit) {
 		skippedMangaIds.add(targetManga.id)
 		val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
 		duplicatesState.value = current.ifEmpty { null }
 		refreshTrigger.value = Any()
+		val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
+		if (remainingActive.isEmpty()) {
+			onCompleteIfEmpty()
+		}
 	}
 
-	fun migrateDuplicate(targetManga: Manga, existingManga: Manga) {
+	fun skipAllDuplicates(onCompleteIfEmpty: () -> Unit) {
+		val currentDuplicates = duplicatesState.value.orEmpty()
+		for ((target, _) in currentDuplicates) {
+			skippedMangaIds.add(target.id)
+		}
+		duplicatesState.value = null
+		refreshTrigger.value = Any()
+		val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
+		if (remainingActive.isEmpty()) {
+			onCompleteIfEmpty()
+		}
+	}
+
+	fun migrateDuplicate(targetManga: Manga, existingManga: Manga, onCompleteIfFinished: () -> Unit) {
 		launchJob(Dispatchers.Default) {
 			migrateUseCase(oldManga = existingManga, newManga = targetManga)
+			migratedMangaIds.add(targetManga.id)
 			val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
 			duplicatesState.value = current.ifEmpty { null }
 			refreshTrigger.value = Any()
+			val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
+			if (remainingActive.isEmpty()) {
+				onCompleteIfFinished()
+			}
 		}
 	}
 
@@ -149,9 +178,24 @@ class FavoriteDialogViewModel @Inject constructor(
 				),
 			)
 		}
-		val activeManga = manga.filterNot { skippedMangaIds.contains(it.id) }
+		val activeManga = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
 		if (activeManga.isEmpty()) {
 			return emptyList()
+		}
+		val existingCategoryIds = mutableSetOf<Long>()
+		for (m in activeManga) {
+			val catIds = favouritesRepository.getCategoriesIds(m.id)
+			existingCategoryIds.addAll(catIds)
+		}
+		if (existingCategoryIds.isNotEmpty()) {
+			for (m in activeManga) {
+				val currentCats = favouritesRepository.getCategoriesIds(m.id)
+				if (currentCats.isEmpty()) {
+					for (catId in existingCategoryIds) {
+						favouritesRepository.addToCategory(catId, listOf(m))
+					}
+				}
+			}
 		}
 		val cats = MutableLongObjectMap<MutableLongSet>(categories.size)
 		categories.forEach { cats[it.id] = MutableLongSet(activeManga.size) }
@@ -183,6 +227,19 @@ class FavoriteDialogViewModel @Inject constructor(
 		return resolved
 	}
 
+	private fun updateDuplicatesState(currentList: List<Pair<Manga, List<Manga>>>) {
+		val activeState = duplicatesState.value
+		if (activeState.isNullOrEmpty()) return
+		val activeIds = activeState.map { it.first.id }.toSet()
+		val filtered = currentList.filter { (target, _) ->
+			activeIds.contains(target.id) &&
+				!skippedMangaIds.contains(target.id) &&
+				!migratedMangaIds.contains(target.id) &&
+				!approvedMangaIds.contains(target.id)
+		}
+		duplicatesState.value = filtered.ifEmpty { null }
+	}
+
 	private fun fetchDetailsAsync(list: List<Pair<Manga, List<Manga>>>) {
 		launchJob(Dispatchers.Default) {
 			val currentList = list.map { (target, dupes) ->
@@ -191,7 +248,7 @@ class FavoriteDialogViewModel @Inject constructor(
 				preparedTarget to preparedDupes
 			}.toMutableList()
 
-			duplicatesState.value = currentList.toList()
+			updateDuplicatesState(currentList)
 
 			currentList.forEachIndexed { pairIndex, (target, dupes) ->
 				var currentTarget = target
@@ -224,7 +281,7 @@ class FavoriteDialogViewModel @Inject constructor(
 				}
 
 				currentList[pairIndex] = currentTarget to updatedDupes.toList()
-				duplicatesState.value = currentList.toList()
+				updateDuplicatesState(currentList)
 			}
 		}
 	}
