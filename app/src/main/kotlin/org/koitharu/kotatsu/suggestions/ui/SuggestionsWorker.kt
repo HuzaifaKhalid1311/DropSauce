@@ -405,7 +405,7 @@ class SuggestionsWorker @AssistedInject constructor(
 	) : PeriodicWorkScheduler {
 
 		override suspend fun schedule() {
-			val request = PeriodicWorkRequestBuilder<SuggestionsWorker>(6, TimeUnit.HOURS)
+			val request = PeriodicWorkRequestBuilder<SuggestionsWorker>(24, TimeUnit.HOURS)
 				.setConstraints(createConstraints())
 				.addTag(TAG)
 				.setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.HOURS)

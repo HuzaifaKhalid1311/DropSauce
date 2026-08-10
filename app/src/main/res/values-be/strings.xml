@@ -82,9 +82,6 @@
     <string name="new_chapters">Новыя раздзелы</string>
     <string name="download">Спампаваць</string>
     <string name="notifications_settings">Налады апавяшчэнняў</string>
-    <string name="notification_sound">Гук апавяшчэння</string>
-    <string name="light_indicator">Светлавая iндыкацыя</string>
-    <string name="vibration">Вібрацыя</string>
     <string name="favourites_categories">Катэгорыі абранага</string>
     <string name="remove_category">Выдаліць катэгорыю</string>
     <string name="pages_animation">Анімацыя гартання</string>
@@ -135,7 +132,6 @@
     <string name="today">Сёння</string>
     <string name="tap_to_try_again">Паспрабаваць яшчэ раз</string>
     <string name="reader_mode_hint">Абраны рэжым будзе захаваны для бягучай мангі</string>
-    <string name="silent">Без гуку</string>
     <string name="captcha_required">Неабходна прайсці CAPTCHA</string>
     <string name="captcha_solve">Прайсці</string>
     <string name="clear_cookies">Ачысціць кукi</string>
@@ -255,7 +251,6 @@
     <string name="mark_as_current">Пазначыць як бягучы</string>
     <string name="error_no_space_left">На прыладзе не засталося месца</string>
     <string name="network_unavailable">Сетка недаступная</string>
-    <string name="webtoon_zoom">Маштабаванне ў рэжыме манхвы</string>
     <string name="color_theme">Каляровая гама</string>
     <string name="language">Мова</string>
     <string name="back">Назад</string>
@@ -347,7 +342,6 @@
     <string name="password">Пароль</string>
     <string name="invert_colors">Інвертаваць колеры</string>
     <string name="show_pages_numbers_summary">Паказаць нумары старонак у ніжнім куце</string>
-    <string name="webtoon_zoom_summary">Дазволіць жэсты маштабавання ў рэжыме манхвы</string>
     <string name="restore_summary">Аднавіць раней створаную рэзервовую копію</string>
     <string name="reader_info_bar_summary">Паказаць бягучы час і ход чытання ў верхняй частцы экрана</string>
     <string name="download_option_whole_manga">Манга цалкам</string>
@@ -641,17 +635,14 @@
     <string name="pages_saved">Старонкі захаваны</string>
     <string name="error_not_image">Няправільны фармат: чакаўся відарыс, але атрыманы %s</string>
     <string name="error_details">Падрабязнасці памылкі</string>
-    <string name="handle_links_summary">Апрацоўка спасылак на мангу з вонкавых праграм (напрыклад, вэб-браўзэра). Вам таксама можа спатрэбіцца ўключыць яго ўручную ў сістэмных наладах праграмы</string>
     <string name="access_denied_403">Доступ адхілены (403)</string>
     <string name="max_backups_count">Максімальная колькасць рэзервовых копій</string>
     <string name="incognito">Інкогніта</string>
     <string name="error_connection_reset">Скід падключэння аддаленым хостам</string>
     <string name="clear_database">Ачысціць базу дадзеных</string>
     <string name="clear_database_summary">Выдаліць інфармацыю аб манге, якая не выкарыстоўваецца</string>
-    <string name="reader_info_bar_transparent">Празрыстая інфармацыйная панэль чытання</string>
     <string name="restoring_backup">Аднаўленне рэзервовай копіі</string>
     <string name="captcha_required_message">Гэтая крыніца патрабуе рашэння капчы, каб працягнуць</string>
-    <string name="handle_links">Апрацоўка спасылак</string>
     <string name="email">Электронная пошта</string>
     <string name="chapter_volume_number">Том %1$s Раздзел %2$s</string>
     <string name="unnamed_chapter">Безназоўны раздзел</string>
@@ -673,8 +664,6 @@
     <string name="link_to_manga_on_s">Спасылка на мангу на %s</string>
     <string name="link_to_manga_in_app">Спасылка на мангу ў DropSauce</string>
     <string name="clear_browser_data">Ачысціць дадзеныя браўзэра</string>
-    <string name="tags_warnings">Вылучаць небяспечныя жанры</string>
-    <string name="tags_warnings_summary">Вылучаць жанры, якія могуць быць непрымальныя для большасці карыстальнікаў</string>
     <string name="pick_manga_page">Выбраць старонку мангі</string>
     <string name="pick_custom_file">Выбраць карыстацкі файл</string>
     <string name="change_cover">Змяніць вокладку</string>

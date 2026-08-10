@@ -45,8 +45,6 @@
     <string name="clear_search_history">Избриши историју претраге</string>
     <string name="app_update_available">Доступна је нова верзија апликације</string>
     <string name="open_in_browser">Отвори у прегледачу</string>
-    <string name="notification_sound">Звук обавештења</string>
-    <string name="vibration">Вибрација</string>
     <string name="text_empty_holder_primary">Овде је некако празно…</string>
     <string name="pages_animation">Анимација превлачења странице</string>
     <string name="about">О апликацији</string>
@@ -108,7 +106,6 @@
     <string name="options">Опције</string>
     <string name="add_to_favourites">Додај у Омиљене</string>
     <string name="text_history_holder_secondary">Пронађи ствари за читање у одељку „Истражи“</string>
-    <string name="light_indicator">Показатељ ЛЕД светла</string>
     <string name="favourites_categories">Омиљене категорије</string>
     <string name="remove_category">Уклони</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Омогућено је %1$d од %2$d</string>
@@ -209,7 +206,6 @@
     <string name="updates_feed_cleared">Избрисано</string>
     <string name="invalid_value_message">Погрешна вредност</string>
     <string name="downloads_cancelled">Преузимања су отказана</string>
-    <string name="webtoon_zoom">Webtoon увећање</string>
     <string name="various_languages">Разни језици</string>
     <string name="removal_completed">Уклањање је завршено</string>
     <string name="theme_name_miku">Мику</string>
@@ -294,7 +290,6 @@
     <string name="chapter_is_missing">Недостаје поглавље</string>
     <string name="error_search_not_supported">Овај извор манге не подржава претрагу</string>
     <string name="suggestions_wifi_only_summary">Немој ажурирати предлоге користећи ограничене мрежне везе</string>
-    <string name="webtoon_zoom_summary">Дозволи покрете увећања у webtoon режиму</string>
     <string name="categories_delete_confirm">Да ли сте сигуран да желиш да избришеш изабране омиљене категорије? \nСва манга у њој ће бити изгубљена и ово се не може поништити.</string>
     <string name="frequency_once_per_month">Једном месечно</string>
     <string name="logged_in_as">Пријављен као %s</string>
@@ -410,7 +405,6 @@
     <string name="zoom_mode_keep_start">Задржи на почетку</string>
     <string name="text_local_holder_secondary">Сачувај нешто из каталога или увези из датотеке.</string>
     <string name="speed">Брзина</string>
-    <string name="silent">Тихо</string>
     <string name="download_option_all_chapters">Сва поглавља са преводом %s</string>
     <string name="content_type_other">Остало</string>
     <string name="suggestion_manga">Предлог: %s</string>
@@ -644,8 +638,6 @@
     <string name="access_denied_403">Приступ одбијен (403)</string>
     <string name="delete_old_backups">Избриши старе резервне копије</string>
     <string name="delete_old_backups_summary">Аутоматски избриши старе датотеке резервних копија да бис уштедео простор за складиштење</string>
-    <string name="handle_links_summary">Отварање манга веза из спољних апликација (нпр. из прегледача). Можда ћеш морати да ручно омогућиш у системским поставкама апликације</string>
-    <string name="handle_links">Руковање везама</string>
     <string name="email">Е-пошта</string>
     <string name="captcha_required_message">Овај извор захтева решавање CAPTCHA за наставак</string>
     <string name="author">Аутор</string>
@@ -655,7 +647,6 @@
     <string name="test_connection">Провери везу</string>
     <string name="clear_database">Избриши базу података</string>
     <string name="clear_database_summary">Избриши информације о Манги које се не користе</string>
-    <string name="reader_info_bar_transparent">Провидна трака са информацијама о читаоцу</string>
     <string name="reader_controls_in_bottom_bar">Контроле читача у доњој траци</string>
     <string name="pages_slider">Клизач за пребацивање страница</string>
     <string name="screen_rotation_locked">Окретање екрана је закључано</string>
@@ -675,8 +666,6 @@
     <string name="error_disclaimer_app_outdated">Изгледа да је твоја верзија Котатсу-а застарела. Молим инсталирај најновију верзију да би добио све доступне исправке.</string>
     <string name="link_to_manga_on_s">Веза до Манге на %s</string>
     <string name="link_to_manga_in_app">Повезница до Манге у Котатсу</string>
-    <string name="tags_warnings">Означи опасне жанрове</string>
-    <string name="tags_warnings_summary">Означи жанрове који могу бити неприкладни за већину корисника</string>
     <string name="no_write_permission_to_file">Нема дозволу за писање датотеке</string>
     <string name="clear_browser_data_summary">Избриши податке претраживача као што су кеш меморија и колачићи. Упозорење: Овлашћења у манга изворима могу постати неважећа</string>
     <string name="chapter_volume_number">Том %1$s Поглавље %2$s</string>

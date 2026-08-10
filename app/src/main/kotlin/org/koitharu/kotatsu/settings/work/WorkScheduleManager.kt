@@ -75,7 +75,7 @@ class WorkScheduleManager @Inject constructor(
 		settings.subscribe(this)
 		processLifecycleScope.launch(Dispatchers.Default) {
 			updateWorkerImpl(trackerScheduler, settings.isTrackerEnabled, true)
-			updateWorkerImpl(suggestionScheduler, settings.isSuggestionsEnabled, false)
+			updateWorkerImpl(suggestionScheduler, settings.isSuggestionsEnabled, true)
 			updateWorkerImpl(
 				scheduler = backupScheduler,
 				isEnabled = settings.isPeriodicalBackupEnabled && settings.periodicalBackupDirectory != null,

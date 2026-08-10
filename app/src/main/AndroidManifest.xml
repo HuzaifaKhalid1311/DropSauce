@@ -183,6 +183,15 @@
 			android:label="@string/downloads"
 			android:launchMode="singleTop" />
 		<activity android:name="org.koitharu.kotatsu.image.ui.ImageActivity" />
+		<!-- Crash dialog: runs in ACRA's own process because the app process is dying -->
+		<activity
+			android:name="org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity"
+			android:excludeFromRecents="true"
+			android:exported="false"
+			android:finishOnTaskLaunch="true"
+			android:launchMode="singleInstance"
+			android:process=":acra"
+			android:theme="@style/Theme.Kotatsu.Transparent" />
 		<activity android:name="org.koitharu.kotatsu.favourites.ui.categories.edit.FavouritesCategoryEditActivity" />
 		<activity
 			android:name="org.koitharu.kotatsu.settings.override.OverrideConfigActivity"

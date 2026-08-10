@@ -75,8 +75,6 @@
     <string name="open_in_browser">वेब ब्राउजरमा खोल्नुहोस्</string>
     <string name="download">डाउनलोड</string>
     <string name="notifications_settings">सूचना सेटिङ</string>
-    <string name="light_indicator">LED सूचक</string>
-    <string name="vibration">भाईब्रेशन</string>
     <string name="favourites_categories">मनपर्ने वर्गहरू</string>
     <string name="remove_category">हटाउनुहोस्</string>
     <string name="text_empty_holder_primary">यहाँ अलि खाली जस्तो छ…</string>
@@ -96,7 +94,6 @@
     <string name="operation_not_supported">यो अपरेशन समर्थित छैन</string>
     <string name="no_description">कुनै विवरण छैन</string>
     <string name="clear_pages_cache">पृष्ठ क्यास खाली गर्नुहोस्</string>
-    <string name="notification_sound">सूचना आवाज</string>
     <string name="text_local_holder_primary">पहिले केही सेभ गर्नुहोस्</string>
     <string name="text_local_holder_secondary">अनलाइन क्याटलगबाट केहि सेभ गर्नुहोस् वा फाइलबाट आयात गर्नुहोस्।</string>
     <string name="updates_feed_cleared">खाली गरियो</string>
@@ -140,7 +137,6 @@
     <string name="long_ago">धेरै पहिले</string>
     <string name="group">समूह</string>
     <string name="today">आज</string>
-    <string name="silent">मौनधारण</string>
     <string name="captcha_solve">समाधान गर्नुहोस्</string>
     <string name="clear_cookies">कुकीहरू खाली गर्नुहोस्</string>
     <string name="cookies_cleared">सबै कुकीहरू हटाइयो</string>

@@ -101,8 +101,6 @@
     <string name="text_history_holder_secondary">Finde etwas zu lesen in der Rubrik „Erkunden“</string>
     <string name="text_search_holder_secondary">Versuche, die Anfrage umzuformulieren.</string>
     <string name="favourites_categories">Favoriten-Kategorien</string>
-    <string name="light_indicator">LED-Anzeige</string>
-    <string name="notification_sound">Benachrichtigungston</string>
     <string name="notifications_settings">Benachrichtigungseinstellungen</string>
     <string name="download">Herunterladen</string>
     <string name="new_chapters">Neue Kapitel</string>
@@ -134,7 +132,6 @@
     <string name="clear">Löschen</string>
     <string name="captcha_solve">Lösen</string>
     <string name="captcha_required">CAPTCHA erforderlich</string>
-    <string name="silent">Stumm</string>
     <string name="reader_mode_hint">Die gewählte Konfiguration wird für diesen Manga gespeichert</string>
     <string name="tap_to_try_again">Tippe, um es erneut zu versuchen</string>
     <string name="today">Heute</string>
@@ -274,7 +271,6 @@
     <string name="reader_control_ltr_summary">Tippe auf den rechten Rand oder drücke die rechte Taste, um immer zur nächsten Seite zu wechseln.</string>
     <string name="prefetch_content">Inhalte vorladen</string>
     <string name="mark_as_current">Als aktuell markieren</string>
-    <string name="webtoon_zoom">Webtoon-Zoom</string>
     <string name="language">Sprache</string>
     <string name="history_shortcuts">Zeige Verknüpfungen zu aktuellen Manga</string>
     <string name="history_shortcuts_summary">Neueste Manga durch langes Drücken auf das Anwendungssymbol verfügbar machen</string>
@@ -368,7 +364,6 @@
     <string name="periodic_backups">Periodische Backups</string>
     <string name="backup_frequency">Häufigkeit der Backup-Erstellung</string>
     <string name="error_multiple_genres_not_supported">Filtern nach mehreren Genres wird von dieser Manga-Quelle nicht unterstützt</string>
-    <string name="webtoon_zoom_summary">Zoom-Geste in Webtoon-Modus erlauben</string>
     <string name="on_device">Auf dem Gerät</string>
     <string name="directories">Verzeichnisse</string>
     <string name="state_paused">Pausiert</string>

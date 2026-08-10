@@ -59,7 +59,6 @@
     <string name="clear_cookies">Tøm infokapsler</string>
     <string name="captcha_solve">Løs</string>
     <string name="captcha_required">CAPTCHA kreves</string>
-    <string name="silent">Stille</string>
     <string name="tap_to_try_again">Trykk for å prøve igjen</string>
     <string name="today">I dag</string>
     <string name="group">Gruppe</string>
@@ -88,9 +87,6 @@
     <string name="pages_animation">Sideanimasjon</string>
     <string name="remove_category">Fjern</string>
     <string name="favourites_categories">Favorittkategorier</string>
-    <string name="light_indicator">LED-indikator</string>
-    <string name="vibration">Vibrasjon</string>
-    <string name="notification_sound">Merknadslyd</string>
     <string name="notifications_settings">Merknadsinnstillinger</string>
     <string name="download">Last ned</string>
     <string name="new_chapters">Nye kapittel</string>

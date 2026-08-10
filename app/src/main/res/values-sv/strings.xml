@@ -78,8 +78,6 @@
     <string name="new_chapters">Nya kapitel</string>
     <string name="download">Ladda ned</string>
     <string name="notifications_settings">Aviseringsinställningar</string>
-    <string name="light_indicator">LED-indikator</string>
-    <string name="notification_sound">Aviseringsljud</string>
     <string name="favourites_categories">Favoritkategorier</string>
     <string name="no_update_available">Inga tillgängliga uppdateringar</string>
     <string name="just_now">Just nu</string>
@@ -89,7 +87,6 @@
     <string name="today">Idag</string>
     <string name="tap_to_try_again">Tryck för att försöka igen</string>
     <string name="reader_mode_hint">Den valda konfigurationen kommer att bli ihågkommen för denna manga</string>
-    <string name="silent">Tyst</string>
     <string name="cookies_cleared">Alla kakor rensades</string>
     <string name="clear_feed">Rensa flöde</string>
     <string name="text_clear_updates_feed_prompt">Permanent rensa all uppdateringshistorik\?</string>
@@ -336,7 +333,6 @@
     <string name="globally">Globalt</string>
     <string name="grayscale">Gråskala</string>
     <string name="this_manga">Denna manga</string>
-    <string name="webtoon_zoom">Zoomning i webtoons</string>
     <string name="speed">Hastighet</string>
     <string name="show_on_shelf">Visa på Bokhyllan</string>
     <string name="find_similar">Hitta liknande</string>
@@ -382,7 +378,6 @@
     <string name="reader_control_ltr">Ergonomiska kontroller i läsläge</string>
     <string name="settings_apply_restart_required">Var god starta om appen för att verkställa ändringarna</string>
     <string name="download_option_whole_manga">Hela mangan</string>
-    <string name="webtoon_zoom_summary">Tillåt inzoomningsgest i webtoon-läge</string>
     <string name="pick_custom_directory">Välj en egen mapp</string>
     <string name="download_option_all_unread">Alla olästa kapitel</string>
     <string name="local_manga_directories">Lokala mangamappar</string>
@@ -482,7 +477,6 @@
     <string name="content_type_image_set">Bildsamling</string>
     <string name="show_labels_in_navbar">Visa etiketter i navigeringsfältet</string>
     <string name="captcha_required_message">Denna källa kräver att du löser en captcha för att fortsätta</string>
-    <string name="reader_info_bar_transparent">Transparent informationsfält i läsaren</string>
     <string name="category_hidden_done">Denna kategori har gömts från huvudskärmen och är tillgänglig via Meny → Hantera kategorier</string>
     <string name="ask_for_dest_dir_every_time">Efterfråga destinationsmappen varje gång</string>
     <string name="clear_stats">Rensa statistik</string>
@@ -491,8 +485,6 @@
     <string name="migrate_confirmation">Manga \"%1$s\" från \"%2$s\" kommer att bli ersatt med \"%3$s\" från \"%4$s\" i din historik och favoriter (om närvarande)</string>
     <string name="crop_pages">Beskär sidor</string>
     <string name="use_two_pages_landscape">Använd dubbelsidig layout vid liggande skärmorientering (beta)</string>
-    <string name="handle_links">Hantera länkar</string>
-    <string name="handle_links_summary">Hantera mangalänkar från externa applikationer (t.ex. webbläsare). Du kan även behöva tillåta det manuellt i systemets inställningar för applikationen</string>
     <string name="email">E-mail</string>
     <string name="sources_unpinned">Källor lösgjorda</string>
     <string name="plugin_incompatible_with_cause">Tilläggsfel: %s\nKontrollera att du använder den senaste versionen av tillägget och DropSauce</string>

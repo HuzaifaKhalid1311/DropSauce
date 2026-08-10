@@ -79,9 +79,6 @@
     <string name="new_chapters">Nuevos capítulos</string>
     <string name="download">Descargar</string>
     <string name="notifications_settings">Configuración de las notificaciones</string>
-    <string name="notification_sound">Sonido de las notificaciones</string>
-    <string name="light_indicator">Indicador LED</string>
-    <string name="vibration">Vibración</string>
     <string name="favourites_categories">Categorías favoritas</string>
     <string name="remove_category">Remover</string>
     <string name="pages_animation">Animación de página</string>
@@ -132,7 +129,6 @@
     <string name="today">Hoy</string>
     <string name="tap_to_try_again">Toca para volver a intentar</string>
     <string name="reader_mode_hint">Se recordará la configuración elegida para este manga</string>
-    <string name="silent">Silenciar</string>
     <string name="captcha_required">El captcha es obligatorio</string>
     <string name="captcha_solve">Resolver</string>
     <string name="clear_cookies">Borrar cookies</string>
@@ -282,7 +278,6 @@
     <string name="text_unsaved_changes_prompt">¿Guardar o descartar los cambios no guardados\?</string>
     <string name="discard">Descartar</string>
     <string name="error_no_space_left">Sin espacio en dispositivo</string>
-    <string name="webtoon_zoom">Zoom de webtoon</string>
     <string name="server_error">Error del servidor (%1$d). Vuelva a intentarlo más tarde</string>
     <string name="clear_new_chapters_counters">Información clara sobre los nuevos capítulos</string>
     <string name="network_unavailable">La red no está disponible</string>
@@ -336,7 +331,6 @@
     <string name="authorization_optional">Autorización (opcional)</string>
     <string name="password">Contraseña</string>
     <string name="invert_colors">Invertir los colores</string>
-    <string name="webtoon_zoom_summary">Permitir el gesto de acercamiento en el modo webtoon</string>
     <string name="show_pages_numbers_summary">Mostrar el números de la página en la esquina inferior</string>
     <string name="restore_summary">Restaurar una copia de seguridad creada anteriormente</string>
     <string name="reader_info_bar_summary">Muestra la hora actual y el progreso de la lectura en la parte superior de la pantalla</string>
@@ -624,8 +618,6 @@
     <string name="delete_old_backups_summary">Elimina automáticamente los archivos de copia de seguridad antiguos para ahorrar espacio de almacenamiento</string>
     <string name="delete_old_backups">Eliminar copias de seguridad antiguas</string>
     <string name="email">Correo electrónico</string>
-    <string name="handle_links">Gestionar enlaces</string>
-    <string name="handle_links_summary">Gestionar enlaces de manga desde aplicaciones externas (por ejemplo, navegador web). También puede ser necesario habilitarlo manualmente en la configuración de la aplicación</string>
     <string name="captcha_required_message">Esta fuente requiere resolver un captcha para continuar</string>
     <string name="incognito">Incógnito</string>
     <string name="error_connection_reset">Conexión restablecida por el host remoto</string>
@@ -645,7 +637,6 @@
     <string name="global_search">Búsqueda global</string>
     <string name="clear_database">Limpiar base de datos</string>
     <string name="clear_database_summary">Eliminar información en desuso del manga</string>
-    <string name="reader_info_bar_transparent">Barra de información del lector transparente</string>
     <string name="reader_controls_in_bottom_bar">Controles del lector en la barra inferior</string>
     <string name="chapters_and_pages">Capítulos y páginas</string>
     <string name="pages_slider">Deslizar para cambiar de página</string>
@@ -664,8 +655,6 @@
     <string name="clear_browser_data_summary">Borra los datos del navegador, como la caché y las cookies. Advertencia: la autorización en las fuentes de manga puede dejar de ser válida</string>
     <string name="no_write_permission_to_file">No tiene permiso para escribir el archivo</string>
     <string name="exclude_nsfw_from_suggestions_summary">El manga para adultos no aparecerá en las sugerencias. Esta opción puede funcionar de forma inexacta con algunas fuentes</string>
-    <string name="tags_warnings">Destacar géneros peligrosos</string>
-    <string name="tags_warnings_summary">Resaltar los géneros que pueden ser inapropiados para la mayoría de los usuarios</string>
     <string name="error_non_file_uri">La ruta seleccionada no se puede utilizar porque no indica un archivo o directorio</string>
     <string name="manga_override_hint">Estos cambios afectarán a la forma en que se muestra el manga en la aplicación</string>
     <string name="pick_manga_page">Seleccionar página</string>

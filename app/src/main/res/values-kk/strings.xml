@@ -73,9 +73,6 @@
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d ішіндегі %2$d қосулы</string>
     <string name="download">Жүктеп алу</string>
     <string name="notifications_settings">Мәлімдемені баптау</string>
-    <string name="notification_sound">Мәлімдеме дыбысы</string>
-    <string name="light_indicator">LED индикаттау</string>
-    <string name="vibration">Діріл</string>
     <string name="favourites_categories">Таңдаулы санаты</string>
     <string name="remove_category">Жою</string>
     <string name="text_empty_holder_primary">Мына жер бос екен…</string>
@@ -133,7 +130,6 @@
     <string name="today">Бүгін</string>
     <string name="tap_to_try_again">Қайталап көру</string>
     <string name="reader_mode_hint">Таңдалған пішімдеу осы маңга үшін сақталады</string>
-    <string name="silent">Дыбыссыз</string>
     <string name="captcha_required">CAPTCHA өтіңіз</string>
     <string name="captcha_solve">Өту</string>
     <string name="clear_cookies">Кукиді тазалау</string>
@@ -289,7 +285,6 @@
     <string name="suggestions_notifications_summary">Анда-санда мәлімдеме арқылы маңга ұсынып тұру</string>
     <string name="invalid_value_message">Жарамсыз өлшем</string>
     <string name="downloads_cancelled">Жүктеп алу доғарылды</string>
-    <string name="webtoon_zoom">Уебтүнді ұлғайту</string>
     <string name="theme_name_miku">Мику</string>
     <string name="data_not_restored">Дерек қалыпқа келмеді</string>
     <string name="directories">Каталог</string>
@@ -338,7 +333,6 @@
     <string name="text_downloads_list_holder">Жүктеп алғаныңыз жоқ</string>
     <string name="color_correction">Түс реттеу</string>
     <string name="suggestions_wifi_only_summary">Шектеулі желі қосылымы болса ұсынысты жаңартпау</string>
-    <string name="webtoon_zoom_summary">Уебтүн режімінде ұлғайту ымына рұқсат ету</string>
     <string name="categories_delete_confirm">Таңдаулы санатты шынымен жойғыңыз келе ме? \nІшіндегі бар маңга жойылады, сосын оны қайтарып ала алмайсыз.</string>
     <string name="frequency_once_per_month">Ай сайын</string>
     <string name="reader_info_pattern">%1$d/%2$d-тарау %3$d/%4$d-бет</string>

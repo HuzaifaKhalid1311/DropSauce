@@ -82,9 +82,6 @@
     <string name="new_chapters">Nova poglavlja</string>
     <string name="download">Preuzimi</string>
     <string name="notifications_settings">Postavke obavijesti</string>
-    <string name="notification_sound">Zvuk obavijesti</string>
-    <string name="light_indicator">LED indikator</string>
-    <string name="vibration">Vibracija</string>
     <string name="favourites_categories">Omiljene kategorije</string>
     <string name="text_search_holder_secondary">Pokušajte preformulirati upit.</string>
     <string name="text_history_holder_primary">Ono što pročitate bit će prikazano ovdje</string>
@@ -122,7 +119,6 @@
     <string name="today">Danas</string>
     <string name="tap_to_try_again">Dodirnite za ponovni pokušaj</string>
     <string name="reader_mode_hint">Odabrana konfiguracija će se zapamtiti za ovaj manga</string>
-    <string name="silent">Tiho</string>
     <string name="captcha_required">Potrebna CAPTCHA</string>
     <string name="captcha_solve">Riješi</string>
     <string name="clear_cookies">Obriši kolačiće</string>
@@ -213,7 +209,6 @@
     <string name="text_unsaved_changes_prompt">Spremi ili odbaci nespremljene promjene?</string>
     <string name="discard">Odbaci</string>
     <string name="error_no_space_left">Nema više prostora na uređaju</string>
-    <string name="webtoon_zoom">Webtoon zumiranje</string>
     <string name="network_unavailable">Mreža nije dostupna</string>
     <string name="server_error">Pogreška na strani poslužitelja (%1$d). Molimo pokušajte ponovo kasnije</string>
     <string name="clear_new_chapters_counters">Također očistite informacije o novim poglavljima</string>
@@ -457,7 +452,6 @@
     <string name="clear_network_cache">Očisti mrežnu predmemoriju</string>
     <string name="address">Adresa</string>
     <string name="images_proxy_title">Proxy za optimizaciju slika</string>
-    <string name="webtoon_zoom_summary">Dopusti gestu zumiranja u modusu webtoona</string>
     <string name="download_option_all_chapters">Sva poglavlja s prijevodom %s</string>
     <string name="this_month">Ovaj mjesec</string>
     <string name="color_light">Svjetla</string>
@@ -623,9 +617,6 @@
     <string name="rating">Ocjena</string>
     <string name="author">Autor</string>
     <string name="restoring_backup">Obnavljanje sigurnosne kopije</string>
-    <string name="reader_info_bar_transparent">Transparentna traka s informacijama čitača</string>
-    <string name="handle_links">Barataj poveznicama</string>
-    <string name="handle_links_summary">Barataj manga poveznicama iz eksternih aplikacija (npr. web preglednik). Možda ćeš to također morati ručno aktivirati u postavkama sustava aplikacije</string>
     <string name="simple">Jednostavno</string>
     <string name="reader_controls_in_bottom_bar">Kontrole čitača u donjoj traci</string>
     <string name="chapters_and_pages">Poglavlja i stranice</string>
@@ -649,8 +640,6 @@
     <string name="clear_browser_data_summary">Izbriši podatke iz preglednika poput predmemorije i kolačića. Upozorenje: Autorizacija na izvorima mange može postati nevažeća</string>
     <string name="no_write_permission_to_file">Nema dozvolu za pisanje u datoteku</string>
     <string name="exclude_nsfw_from_suggestions_summary">Manga za odrasle se neće prikazivati u prijedlozima. Ova opcija možda neće točno funkcionirati s nekim izvorima</string>
-    <string name="tags_warnings">Istakni opasne žanrove</string>
-    <string name="tags_warnings_summary">Istakni žanrove koji bi mogli biti neprikladni za većinu korisnika</string>
     <string name="pull_to_prev_chapter">Otpusti za otvaranje prethodnog poglavlja</string>
     <string name="pull_to_next_chapter">Otpusti za otvaranje sljedećeg poglavlja</string>
     <string name="pull_top_no_prev">Nema prethodnog poglavlja</string>
@@ -703,8 +692,6 @@
     <string name="chapters_load_failed">Neuspjelo učitavanje popisa poglavlja</string>
     <string name="discord_token_summary">Unesi svoj Discord token za uključivanje Rich Presence podataka</string>
     <string name="enter_name">Upiši ime</string>
-    <string name="reader_chapter_toast_summary">Prikaži skočnu poruku s naslovom poglavlja kada je promijenjen</string>
-    <string name="reader_chapter_toast">Prikaži skočnu poruku za promijenjeno poglavlje</string>
     <string name="two_page_scroll_sensitivity">Osjetljivost pomicanja dviju stranica</string>
     <string name="frequency_every_6_hours">Svakih 6 sati</string>
     <string name="storage_and_network">Spremište i mreža</string>

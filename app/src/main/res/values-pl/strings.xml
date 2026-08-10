@@ -51,7 +51,6 @@
     <string name="updated">Zaktualizowane</string>
     <string name="save_page">Zapisz stronę</string>
     <string name="page_saved">Zapisano stronę</string>
-    <string name="vibration">Wibracje</string>
     <string name="black_dark_theme">Tryb czarny</string>
     <string name="preparing_">Przygotowywanie…</string>
     <string name="file_not_found">Plik nieznaleziony</string>
@@ -133,7 +132,6 @@
     <string name="genres">Gatunki</string>
     <string name="captcha_solve">Rozwiąż</string>
     <string name="captcha_required">Wymagane CAPTCHA</string>
-    <string name="silent">Cichy</string>
     <string name="tap_to_try_again">Dotknij aby spróbować ponownie</string>
     <string name="just_now">Teraz</string>
     <string name="zoom_mode_fit_width">Dopasuj do szerokości</string>
@@ -147,7 +145,6 @@
     <string name="remove_category">Usuń</string>
     <string name="text_empty_holder_primary">Jest tu dosyć pusto…</string>
     <string name="favourites_categories">Ulubione kategorie</string>
-    <string name="light_indicator">Powiadomienie LED</string>
     <string name="new_chapters">Nowe rozdziały</string>
     <string name="local_storage">Lokalna pamięć</string>
     <string name="text_feed_holder">W tym miejscu pojawią się powiadomienia o nowych rozdziałach z mang które czytasz</string>
@@ -157,7 +154,6 @@
     <string name="open_in_browser">Otwórz w przeglądarce</string>
     <string name="show_pages_numbers">Numerowane strony</string>
     <string name="notifications">Powiadomienia</string>
-    <string name="notification_sound">Dźwięk powiadomień</string>
     <string name="notifications_settings">Ustawienia powiadomień</string>
     <string name="remote_sources">Zewnętrzne źródła</string>
     <string name="theme">Motyw</string>
@@ -285,7 +281,6 @@
     <string name="reader_control_ltr">Ergonomiczne sterowanie czytnikiem</string>
     <string name="text_unsaved_changes_prompt">Zapisać czy odrzucić niezapisane zmiany?</string>
     <string name="error_no_space_left">Brak miejsca w urządzeniu</string>
-    <string name="webtoon_zoom">Powiększanie webtoon</string>
     <string name="clear_new_chapters_counters">Wyczyść też informacje o nowych rozdziałach</string>
     <string name="reset">Resetuj</string>
     <string name="services">Usługi</string>
@@ -336,7 +331,6 @@
     <string name="authorization_optional">Autoryzacja (opcjonalnie)</string>
     <string name="invert_colors">Odwróć kolory</string>
     <string name="restore_summary">Przywróć wcześniej utworzoną kopię zapasową</string>
-    <string name="webtoon_zoom_summary">Zezwalaj na powiększanie gestu w trybie webtoon</string>
     <string name="show_pages_numbers_summary">Pokaż numery stron w dolnym rogu</string>
     <string name="reader_info_bar_summary">Pokaż aktualny czas i postęp czytania u góry ekranu</string>
     <string name="download_option_all_chapters">Wszystkie rozdziały z tłumaczeniem %s</string>
@@ -615,7 +609,6 @@
     <string name="portrait">Portret</string>
     <string name="access_denied_403">Odmowa dostępu (403)</string>
     <string name="captcha_required_message">To źródło wymaga rozwiązania captcha, aby kontynuować</string>
-    <string name="handle_links">Obsługa linków</string>
     <string name="email">E-mail</string>
     <string name="max_backups_count">Maksymalna liczba kopii zapasowych</string>
     <string name="delete_old_backups">Usuń stare kopie zapasowe</string>
@@ -624,7 +617,6 @@
     <string name="error_not_image">Błędny format: oczekiwany obraz, ale pobrano %s</string>
     <string name="screen_orientation">Orientacja ekranu</string>
     <string name="landscape">Poziomo</string>
-    <string name="handle_links_summary">Obsługuj linki do mangi z zewnętrznych aplikacji (np. przeglądarki internetowej). Może być również konieczne ręczne włączenie go w ustawieniach systemowych aplikacji</string>
     <string name="error_disclaimer_report">Możesz zgłosić usterkę programistom. To pomoże nam znaleźć i naprawić problem.</string>
     <string name="clear_database">Wyczyść bazę danych</string>
     <string name="error_details">Szczegóły błędu</string>
@@ -639,13 +631,10 @@
     <string name="author">Autor</string>
     <string name="search_everywhere">Wyszukaj wszędzie</string>
     <string name="clear_browser_data_summary">Wyczyść dane przeglądarki takie jak pliki cookie i cache. Uwaga: Upoważnienia w źródłach mangi mogą stać się nieaktualne</string>
-    <string name="reader_info_bar_transparent">Przeźroczysty pasek informacji w czytniku</string>
-    <string name="tags_warnings_summary">Wyróżnij gatunki, które mogą być nieodpowiednie dla większości użytkowników</string>
     <string name="error_connection_reset">Połączenie zresetowane przez zdalny host</string>
     <string name="error_disclaimer_manga">Spróbuj otworzyć mangę w przeglądarce internetowej, aby upewnić się, że jest dostępna w swoim źródle.</string>
     <string name="link_to_manga_in_app">Link do mangi w DropSauce</string>
     <string name="clear_browser_data">Wyczyść dane przeglądarki</string>
-    <string name="tags_warnings">Wyróżnij niebezpieczne gatunki</string>
     <string name="use_default_cover">Użyj domyślnej okładki</string>
     <string name="pick_manga_page">Wybierz stronę mangi</string>
     <string name="pick_custom_file">Wybierz plik niestandardowy</string>

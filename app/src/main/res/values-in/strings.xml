@@ -78,7 +78,6 @@
     <string name="new_chapters">Sub-bab baru</string>
     <string name="download">Unduh</string>
     <string name="notifications_settings">Pengaturan notifikasi</string>
-    <string name="notification_sound">Suara notifikasi</string>
     <string name="text_empty_holder_primary">Sepi juga di sini…</string>
     <string name="text_history_holder_primary">Apa yang Anda baca akan ditampilkan di sini</string>
     <string name="text_history_holder_secondary">Cari sesuatu untuk dibaca via «Eksplor»</string>
@@ -111,7 +110,6 @@
     <string name="today">Hari ini</string>
     <string name="tap_to_try_again">Ketuk untuk coba lagi</string>
     <string name="reader_mode_hint">Konfigurasi yang dipilih akan diingat untuk manga ini</string>
-    <string name="silent">Diam</string>
     <string name="captcha_required">CAPTCHA diperlukan</string>
     <string name="captcha_solve">Selesaikan</string>
     <string name="clear_cookies">Bersihkan kuki</string>
@@ -184,8 +182,6 @@
     <string name="detect_reader_mode">Otomatis deteksi mode pembaca</string>
     <string name="detect_reader_mode_summary">Otomatis mendeteksi jika manga adalah webtoon</string>
     <string name="create_category">Kategori baru</string>
-    <string name="light_indicator">Indikator LED</string>
-    <string name="vibration">Getaran</string>
     <string name="favourites_categories">Kategori disukai</string>
     <string name="remove_category">Hapus</string>
     <string name="clear_updates_feed">Bersihkan aliran pembaruan</string>
@@ -297,7 +293,6 @@
     <string name="disable_battery_optimization">Nonaktifkan pengoptimalan baterai</string>
     <string name="reader_control_ltr">Kontrol pembaca ergonomis</string>
     <string name="color_correction">Koreksi warna</string>
-    <string name="webtoon_zoom">Pembesaran Webtoon</string>
     <string name="network_unavailable">Jaringan tidak tersedia</string>
     <string name="comics_archive_import_description">Anda dapat memilih satu atau beberapa berkas .cbz atau .zip, setiap file akan dikenali sebagai manga terpisah.</string>
     <string name="folder_with_images_import_description">Anda dapat memilih direktori yang berisi arsip atau gambar. Setiap arsip (atau subdirektori) akan dikenali sebagai sebuah bab.</string>
@@ -339,7 +334,6 @@
     <string name="authorization_optional">Otorisasi (opsional)</string>
     <string name="restore_summary">Pulihkan cadangan yang dibuat sebelumnya</string>
     <string name="show_pages_numbers_summary">Tampilkan nomor halaman di pojok bawah</string>
-    <string name="webtoon_zoom_summary">Izinkan gestur zum pada mode webtoon</string>
     <string name="reader_info_bar_summary">Tampilkan waktu saat ini dan progres bacaan di bagian atas layar</string>
     <string name="download_option_whole_manga">Seluruh manga</string>
     <string name="download_option_first_n_chapters">Pertama %s</string>
@@ -629,9 +623,6 @@
     <string name="content_type_one_shot">Satu tembakan</string>
     <string name="content_type_doujinshi">Komik independen</string>
     <string name="content_type_artist_cg">Artis CG</string>
-    <string name="reader_info_bar_transparent">Bilah informasi pembaca transparan</string>
-    <string name="handle_links">Tangani Tautan</string>
-    <string name="handle_links_summary">Menangani tautan manga dari aplikasi eksternal (misalnya browser web). Anda mungkin juga perlu mengaktifkannya secara manual di pengaturan sistem aplikasi</string>
     <string name="any">Setiap</string>
     <string name="author">Pengarang</string>
     <string name="plugin_incompatible_with_cause">Kesalahan plugin: %s\n.Pastikan Anda menggunakan plugin dan DropSauce versi terbaru</string>
@@ -659,8 +650,6 @@
     <string name="global_search">Pencarian global</string>
     <string name="search_everywhere">Cari dimana saja</string>
     <string name="badges_in_lists">Lencana dalam daftar</string>
-    <string name="tags_warnings">tandai genre berbahaya</string>
-    <string name="tags_warnings_summary">Tandai genre yang mungkin tidak pantas untuk sebagian besar pengguna</string>
     <string name="error_non_file_uri">Jalur yang dipilih tidak dapat digunakan karena tidak menunjukkan berkas atau direktori</string>
     <string name="use_default_cover">gunakan penutup default</string>
     <string name="pick_manga_page">Pilih halaman manga</string>
@@ -716,8 +705,6 @@
     <string name="enable_pull_gesture_summary">Gunakan gerakan tarik untuk pindah bab di webtoon</string>
     <string name="two_page_scroll_sensitivity">Sensitivitas Gulir Dua Halaman</string>
     <string name="enter_name">Masukkan nama</string>
-    <string name="reader_chapter_toast">Tampilkan popup perubahan bab</string>
-    <string name="reader_chapter_toast_summary">Tampilkan pesan pop-up dengan judul bab saat diubah</string>
     <string name="storage_and_network">Penyimpanan dan jaringan</string>
     <string name="data_removal">Penghapusan data</string>
     <string name="privacy">Pribadi</string>

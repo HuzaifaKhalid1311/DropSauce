@@ -55,7 +55,6 @@
     <string name="yesterday">ម្សិលមិញ</string>
     <string name="long_ago">ពីមុនមក</string>
     <string name="today">ថ្ងៃនេះ</string>
-    <string name="silent">ស្ថាត់</string>
     <string name="confirm">យល់ព្រម</string>
     <string name="dark">ងងឹត</string>
     <string name="newest">ថ្មីបំផុត</string>
@@ -89,8 +88,6 @@
     <string name="notifications">ជូនដំណឹង</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$dនៃ%2$dលើ</string>
     <string name="notifications_settings">ការកំណត់សេចក្តីជូនដំណឹង</string>
-    <string name="notification_sound">សម្លេងជូនដំណឹង</string>
-    <string name="light_indicator">សញ្ញាបង្ហាញអិលអ៉ីដ៉ី​</string>
     <string name="clear_thumbs_cache">សម្អាត់តមណែលឃែស</string>
     <string name="clear_search_history">សម្អាត់ប្រវិត្តស្វែងរក</string>
     <string name="search_history_cleared">សម្អាត់រួចរាល់</string>
@@ -98,7 +95,6 @@
     <string name="external_storage">ឃ្លាំងទិន្នន័យផ្ទៃក្រៅ</string>
     <string name="app_update_available">មានកំណែថ្មីនៃកម្មវិធី</string>
     <string name="new_chapters">ជំពូកថ្មី</string>
-    <string name="vibration">រំញ័រ</string>
     <string name="text_empty_holder_secondary_filtered">មិនមានមេនហ្កាដែលត្រូវគ្នានឹងតម្រងដែលអ្នកបានជ្រើសរើសទេ</string>
     <string name="text_history_holder_secondary">រកអ្វីដែលត្រូវអាននៅក្នុងផ្នែក \"រុករក\"</string>
     <string name="favourites_categories">ប្រភេទដែលចូលចិត្ត</string>

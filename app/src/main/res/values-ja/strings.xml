@@ -78,9 +78,6 @@
     <string name="new_chapters">新しい章</string>
     <string name="download">ダウンロード</string>
     <string name="notifications_settings">通知の設定</string>
-    <string name="notification_sound">通知音</string>
-    <string name="light_indicator">LED インジケータ</string>
-    <string name="vibration">バイブレーション</string>
     <string name="favourites_categories">お気に入りのカテゴリー</string>
     <string name="remove_category">削除</string>
     <string name="text_search_holder_secondary">クエリを再定式化してみてください。</string>
@@ -161,7 +158,6 @@
     <string name="scale_mode">スケールモード</string>
     <string name="today">今日</string>
     <string name="next">次のページ</string>
-    <string name="silent">サイレント</string>
     <string name="sign_in">サインイン</string>
     <string name="welcome">ようこそ</string>
     <string name="black_dark_theme_summary">AMOLEDスクリーンでさらに少ない電力を使用</string>
@@ -288,7 +284,6 @@
     <string name="server_error">サーバーサイドエラー (%1$d) です。後で再試行してください</string>
     <string name="clear_new_chapters_counters">新しいチャプターの情報も明確に</string>
     <string name="network_unavailable">ネットワークが利用できません</string>
-    <string name="webtoon_zoom">Webtoonズーム</string>
     <string name="compact">コンパクト</string>
     <string name="theme_name_mamimi">マミミ</string>
     <string name="theme_name_kanade">奏</string>
@@ -347,7 +342,6 @@
     <string name="password">パスワード</string>
     <string name="authorization_optional">オーソライズ（オプション）</string>
     <string name="restore_summary">以前作成したバックアップを復元する</string>
-    <string name="webtoon_zoom_summary">ウェブトゥーンモードでのズームインジェスチャを許可する</string>
     <string name="show_pages_numbers_summary">下隅にページ番号を表示する</string>
     <string name="reader_info_bar_summary">画面上部に現在時刻と読書の進行状況を表示する</string>
     <string name="download_option_all_chapters">翻訳付きのすべての章%s</string>
@@ -609,8 +603,6 @@
     <string name="clear_browser_data_summary">キャッシュやクッキーなどのブラウザデータを消去してください。警告：マンガソースでの認証が無効になる可能性があります</string>
     <string name="no_write_permission_to_file">ファイルへの書き込み権限がありません</string>
     <string name="exclude_nsfw_from_suggestions_summary">成人向け漫画はおすすめに表示されません。このオプションは一部のソースでは正確に機能しない場合があります</string>
-    <string name="tags_warnings">危険なジャンルを強調する</string>
-    <string name="tags_warnings_summary">ほとんどのユーザーにとって不適切と思われるジャンルを強調表示する</string>
     <string name="error_non_file_uri">選択されたパスはファイルまたはディレクトリを指していないため使用できません</string>
     <string name="manga_override_hint">これらの変更は、アプリ内でのマンガの表示方法に影響を与えます</string>
     <string name="use_default_cover">デフォルトの表紙を使用する</string>

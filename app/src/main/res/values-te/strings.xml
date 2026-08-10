@@ -85,9 +85,6 @@
     <string name="new_chapters">కొత్త చాప్టర్స్ / కొత్త అధ్యాయాలు</string>
     <string name="download">డౌన్‌లోడ్</string>
     <string name="notifications_settings">నోటిఫికేషన్స్ సెట్టింగ్స్</string>
-    <string name="notification_sound">నోటిఫికేషన్ సౌండ్</string>
-    <string name="light_indicator">LED సూచిక</string>
-    <string name="vibration">వైబ్రేషన్</string>
     <string name="favourites_categories">ఫేవరెట్ వర్గాలు</string>
     <string name="remove_category">వర్గం తొలగించు</string>
     <string name="text_empty_holder_primary">ఇక్కడ ఏదీ లేదు…</string>
