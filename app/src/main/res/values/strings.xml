@@ -1146,5 +1146,6 @@
     <string name="possible_duplicates_title">Possible duplicate entries</string>
     <string name="possible_duplicates_summary">Similar title already in Favorites:</string>
     <string name="action_add_anyway">Add anyway</string>
+    <string name="action_add_all_anyway">Add all anyway</string>
     <string name="action_view_existing">View existing</string>
 </resources>

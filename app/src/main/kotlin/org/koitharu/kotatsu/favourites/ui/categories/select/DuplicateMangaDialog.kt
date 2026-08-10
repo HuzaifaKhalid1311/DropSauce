@@ -60,7 +60,7 @@ import kotlin.math.sign
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun DuplicateMangaDialog(
@@ -70,10 +70,11 @@ fun DuplicateMangaDialog(
 	onAddIndividualAnyway: (Manga) -> Unit,
 	onSkipIndividual: (Manga) -> Unit,
 	onOpenManga: (Manga) -> Unit,
-	onMigrateManga: (targetManga: Manga, existingManga: Manga) -> Unit,
+	onMigrateManga: (targetManga: Manga, existingManga: Manga, onContinue: () -> Unit) -> Unit,
 	onDismissRequest: () -> Unit,
 ) {
 	var selectedForMigration by remember { mutableStateOf<Pair<Manga, Manga>?>(null) }
+	var isMigrating by remember { mutableStateOf(false) }
 	val flatDuplicates = remember(duplicatesList) {
 		duplicatesList.flatMap { (target, matches) ->
 			matches.map { duplicate -> target to duplicate }
@@ -87,11 +88,21 @@ fun DuplicateMangaDialog(
 			targetManga = targetManga,
 			existingManga = existingManga,
 			imageLoader = imageLoader,
+			isMigrating = isMigrating,
 			onConfirm = {
-				onMigrateManga(targetManga, existingManga)
-				selectedForMigration = null
+				if (!isMigrating) {
+					isMigrating = true
+					onMigrateManga(targetManga, existingManga) {
+						isMigrating = false
+						selectedForMigration = null
+					}
+				}
 			},
-			onBack = { selectedForMigration = null },
+			onBack = {
+				if (!isMigrating) {
+					selectedForMigration = null
+				}
+			},
 		)
 		return
 	}
@@ -116,10 +127,10 @@ fun DuplicateMangaDialog(
 				)
 			}
 
-			itemsIndexed(
+			items(
 				items = flatDuplicates,
-				key = { index, (target, duplicate) -> "${target.id}_${duplicate.id}_$index" },
-			) { _, (targetManga, duplicate) ->
+				key = { (target, duplicate) -> "${target.id}_${duplicate.id}" },
+			) { (targetManga, duplicate) ->
 				Box(modifier = Modifier.animateItem()) {
 					DuplicateCardItem(
 						targetManga = targetManga,
@@ -136,7 +147,7 @@ fun DuplicateMangaDialog(
 
 		Spacer(Modifier.size(16.dp))
 		ExpressivePillButton(
-			text = stringResource(R.string.action_add_anyway),
+			text = stringResource(R.string.action_add_all_anyway),
 			primary = true,
 			onClick = onAddAnyway,
 		)
@@ -356,6 +367,7 @@ private fun MigrationConfirmationView(
 	targetManga: Manga,
 	existingManga: Manga,
 	imageLoader: ImageLoader,
+	isMigrating: Boolean = false,
 	onConfirm: () -> Unit,
 	onBack: () -> Unit,
 ) {
@@ -511,12 +523,13 @@ private fun MigrationConfirmationView(
 		ExpressivePillButton(
 			text = stringResource(R.string.migrate),
 			primary = true,
+			enabled = !isMigrating,
 			onClick = onConfirm,
 		)
 		Spacer(Modifier.size(8.dp))
 		ExpressiveDialogTextButton(
 			text = stringResource(R.string.back),
-			onClick = onBack,
+			onClick = { if (!isMigrating) onBack() },
 		)
 	}
 }

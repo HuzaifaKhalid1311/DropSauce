@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.alternatives.domain.MigrateUseCase
 import org.koitharu.kotatsu.core.model.FavouriteCategory
@@ -135,7 +136,12 @@ class FavoriteDialogViewModel @Inject constructor(
 		}
 	}
 
-	fun migrateDuplicate(targetManga: Manga, existingManga: Manga, onCompleteIfFinished: () -> Unit) {
+	fun migrateDuplicate(
+		targetManga: Manga,
+		existingManga: Manga,
+		onCompleteIfFinished: () -> Unit,
+		onContinueWithRemaining: () -> Unit = {},
+	) {
 		launchJob(Dispatchers.Default) {
 			migrateUseCase(oldManga = existingManga, newManga = targetManga)
 			migratedMangaIds.add(targetManga.id)
@@ -143,8 +149,12 @@ class FavoriteDialogViewModel @Inject constructor(
 			duplicatesState.value = current.ifEmpty { emptyList() }
 			refreshTrigger.value = Any()
 			val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
-			if (remainingActive.isEmpty()) {
-				onCompleteIfFinished()
+			withContext(Dispatchers.Main) {
+				if (remainingActive.isEmpty()) {
+					onCompleteIfFinished()
+				} else {
+					onContinueWithRemaining()
+				}
 			}
 		}
 	}

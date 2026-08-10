@@ -99,8 +99,13 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 				onOpenManga = { manga ->
 					router.openDetails(manga)
 				},
-				onMigrateManga = { targetManga, existingManga ->
-					viewModel.migrateDuplicate(targetManga, existingManga) { dismiss() }
+				onMigrateManga = { targetManga, existingManga, onContinue ->
+					viewModel.migrateDuplicate(
+						targetManga = targetManga,
+						existingManga = existingManga,
+						onCompleteIfFinished = { dismiss() },
+						onContinueWithRemaining = onContinue,
+					)
 				},
 				onDismissRequest = { viewModel.dismissDuplicate { dismiss() } },
 			)
