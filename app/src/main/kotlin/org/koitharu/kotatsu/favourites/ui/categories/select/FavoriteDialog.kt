@@ -72,7 +72,24 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 		val duplicatesState by viewModel.duplicatesState.collectAsState()
 
 		val duplicatesList = duplicatesState
-		if (!duplicatesList.isNullOrEmpty()) {
+		if (duplicatesList == null) {
+			ExpressiveDialogCard(
+				icon = painterResource(R.drawable.ic_heart),
+				title = "",
+			) {
+				Box(
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(24.dp),
+					contentAlignment = Alignment.Center,
+				) {
+					CircularProgressIndicator()
+				}
+			}
+			return
+		}
+
+		if (duplicatesList.isNotEmpty()) {
 			DuplicateMangaDialog(
 				duplicatesList = duplicatesList,
 				imageLoader = imageLoader,

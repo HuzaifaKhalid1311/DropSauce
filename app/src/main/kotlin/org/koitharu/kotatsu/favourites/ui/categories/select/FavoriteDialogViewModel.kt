@@ -78,7 +78,7 @@ class FavoriteDialogViewModel @Inject constructor(
 			duplicatesState.value = resultList
 			fetchDetailsAsync(resultList)
 		} else {
-			duplicatesState.value = null
+			duplicatesState.value = emptyList()
 		}
 	}
 
@@ -115,19 +115,19 @@ class FavoriteDialogViewModel @Inject constructor(
 	}
 
 	fun confirmAddDuplicate() {
-		duplicatesState.value = null
+		duplicatesState.value = emptyList()
 	}
 
 	fun confirmAddIndividualAnyway(targetManga: Manga) {
 		approvedMangaIds.add(targetManga.id)
 		val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
-		duplicatesState.value = current.ifEmpty { null }
+		duplicatesState.value = current.ifEmpty { emptyList() }
 	}
 
 	fun skipIndividualDuplicate(targetManga: Manga, onCompleteIfEmpty: () -> Unit) {
 		skippedMangaIds.add(targetManga.id)
 		val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
-		duplicatesState.value = current.ifEmpty { null }
+		duplicatesState.value = current.ifEmpty { emptyList() }
 		refreshTrigger.value = Any()
 		val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
 		if (remainingActive.isEmpty()) {
@@ -140,7 +140,7 @@ class FavoriteDialogViewModel @Inject constructor(
 		for ((target, _) in currentDuplicates) {
 			skippedMangaIds.add(target.id)
 		}
-		duplicatesState.value = null
+		duplicatesState.value = emptyList()
 		refreshTrigger.value = Any()
 		val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
 		if (remainingActive.isEmpty()) {
@@ -153,7 +153,7 @@ class FavoriteDialogViewModel @Inject constructor(
 			migrateUseCase(oldManga = existingManga, newManga = targetManga)
 			migratedMangaIds.add(targetManga.id)
 			val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
-			duplicatesState.value = current.ifEmpty { null }
+			duplicatesState.value = current.ifEmpty { emptyList() }
 			refreshTrigger.value = Any()
 			val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
 			if (remainingActive.isEmpty()) {
@@ -163,7 +163,7 @@ class FavoriteDialogViewModel @Inject constructor(
 	}
 
 	fun dismissDuplicate(onDismissAll: () -> Unit) {
-		duplicatesState.value = null
+		duplicatesState.value = emptyList()
 		onDismissAll()
 	}
 
@@ -237,7 +237,7 @@ class FavoriteDialogViewModel @Inject constructor(
 				!migratedMangaIds.contains(target.id) &&
 				!approvedMangaIds.contains(target.id)
 		}
-		duplicatesState.value = filtered.ifEmpty { null }
+		duplicatesState.value = filtered.ifEmpty { emptyList() }
 	}
 
 	private fun fetchDetailsAsync(list: List<Pair<Manga, List<Manga>>>) {
