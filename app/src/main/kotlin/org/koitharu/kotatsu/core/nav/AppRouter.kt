@@ -31,9 +31,11 @@ import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
+import org.koitharu.kotatsu.core.model.MissingMangaSource
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isBroken
 import org.koitharu.kotatsu.core.model.isLocal
+import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaListFilter
@@ -126,7 +128,25 @@ class AppRouter private constructor(
     /** Activities **/
 
     fun openList(source: MangaSource, filter: MangaListFilter?, sortOrder: SortOrder?) {
-        startActivity(listIntent(contextOrNull() ?: return, source, filter, sortOrder))
+        val context = contextOrNull() ?: return
+        // The extension is not installed, so the list could only ever show an
+        // UnsupportedSourceException — offer the extensions catalog instead of opening it.
+        if (source.unwrap() is MissingMangaSource) {
+            showActionChoiceDialog(
+                context = context,
+                icon = R.drawable.ic_manga_source,
+                title = source.getTitle(context),
+                message = context.getString(R.string.source_not_installed),
+                actions = listOf(
+                    DialogAction(context.getString(R.string.extensions)) {
+                        openSourcesCatalog(isExternalOnly = true)
+                    },
+                ),
+                dismissLabel = context.getString(R.string.close),
+            )
+            return
+        }
+        startActivity(listIntent(context, source, filter, sortOrder))
     }
 
     fun openList(tag: MangaTag) = openList(tag.source, MangaListFilter(tags = setOf(tag)), null)

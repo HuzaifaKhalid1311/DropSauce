@@ -813,6 +813,7 @@
     <string name="long_ago_read">Long time ago read</string>
     <string name="unread">Unread</string>
     <string name="unsupported_source">This manga source is not supported</string>
+    <string name="source_not_installed">This extension is not installed, so its catalog cannot be opened. Install it from Extensions to browse this source.</string>
     <string name="install_extension_to_read_manga">Install the extension to read this manga</string>
     <string name="install_extension_mentioned_above_to_read">Install the extension mentioned above to read</string>
     <string name="show_pages_thumbs">Show pages thumbnails</string>
