@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Locale
 
 /**
@@ -246,7 +247,13 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 	) {
 		// Package-added/replaced broadcasts can arrive together. StateFlow is not a lock; use an
 		// atomic tryLock so two classloader scans cannot race and publish stale source instances.
-		if (!loadMutex.tryLock()) return
+		// When one is already running, wait it out rather than returning: callers treat this as
+		// "sources are ready afterwards", and returning early left them reading an empty cache —
+		// which is what made extension icons fall back to the generic placeholder at random.
+		if (!loadMutex.tryLock()) {
+			loadMutex.withLock { }
+			return
+		}
 		_isLoading.value = true
 		try {
 			val processed = processResults(loadResults(context))
