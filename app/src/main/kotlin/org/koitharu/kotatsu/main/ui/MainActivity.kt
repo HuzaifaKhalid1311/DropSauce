@@ -416,8 +416,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	private fun adjustAppbar(topFragment: Fragment) {
 		if (topFragment is FavouritesContainerFragment) {
 			fadingAppbarMediator.bind()
+			topFragment.attachTabsToAppBar()
 		} else {
 			fadingAppbarMediator.unbind()
+			val favourites = supportFragmentManager
+				.findFragmentByTag(FavouritesContainerFragment::class.java.name)
+			(favourites as? FavouritesContainerFragment)?.detachTabsFromAppBar()
 		}
 	}
 
