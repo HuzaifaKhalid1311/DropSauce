@@ -16,6 +16,7 @@ import androidx.appcompat.widget.ActionMenuView
 import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.children
+import androidx.core.view.doOnLayout
 import androidx.core.view.descendants
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -34,7 +35,29 @@ import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.android.material.tabs.TabLayout
 import kotlin.math.roundToInt
+import org.koitharu.kotatsu.R
 import com.google.android.material.R as materialR
+
+/**
+ * Sizes an empty-state view so its centered content lands on the middle of the display no matter how far
+ * down the screen its host starts (plain app bar, Favourites' category tabs, Explore's header). Without
+ * this every tab puts the mascot at a slightly different height.
+ */
+fun View.centerContentOnDisplay() {
+	doOnLayout {
+		val top = IntArray(2).also(::getLocationOnScreen)[1]
+		val available = resources.displayMetrics.heightPixels - top * 2
+		// Not enough room left to center in — let the content size itself instead of clipping it.
+		val height = if (available >= resources.getDimensionPixelSize(R.dimen.empty_state_min_height)) {
+			available
+		} else {
+			ViewGroup.LayoutParams.WRAP_CONTENT
+		}
+		if (layoutParams?.height != height) {
+			updateLayoutParams { this.height = height }
+		}
+	}
+}
 
 fun View.hasGlobalPoint(x: Int, y: Int): Boolean {
 	if (visibility != View.VISIBLE) {

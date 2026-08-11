@@ -108,7 +108,7 @@
     <string name="remove_category">Remove</string>
     <string name="text_empty_holder_primary">It\'s kind of empty here...</string>
     <string name="text_search_holder_secondary">Try to reformulate the query.</string>
-    <string name="text_history_holder_primary">What you read will be displayed here</string>
+    <string name="text_history_holder_primary">Nothing read yet</string>
     <string name="text_history_holder_secondary">Find what to read in the "Explore" section</string>
     <string name="text_empty_holder_secondary_filtered">There are no manga matching the filters you selected</string>
     <string name="text_local_holder_primary">Save something first</string>
@@ -124,6 +124,7 @@
     <string name="read_later">Read later</string>
     <string name="updates">Updates</string>
     <string name="updates_available">Updates available</string>
+    <string name="text_feed_holder_primary">Nothing new to read</string>
     <string name="text_feed_holder">New chapters of what you are reading are shown here</string>
     <string name="search_results">Search results</string>
     <string name="new_version_s">New version: %s</string>

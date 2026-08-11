@@ -23,6 +23,7 @@ import org.koitharu.kotatsu.core.ui.util.ActionModeListener
 import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
+import org.koitharu.kotatsu.core.util.ext.centerContentOnDisplay
 import org.koitharu.kotatsu.core.util.ext.findCurrentPagerFragment
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -117,6 +118,7 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 
 	override fun onInflate(stub: ViewStub?, inflated: View) {
 		val stubBinding = ItemEmptyStateBinding.bind(inflated)
+		inflated.centerContentOnDisplay()
 		stubBinding.icon.setImageAsync(R.drawable.ic_empty_favourites)
 		stubBinding.textPrimary.setText(R.string.text_empty_holder_primary)
 		stubBinding.textSecondary.setTextAndVisible(R.string.empty_favourite_categories)

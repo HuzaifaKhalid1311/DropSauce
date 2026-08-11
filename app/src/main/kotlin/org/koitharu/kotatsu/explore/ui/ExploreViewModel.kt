@@ -35,7 +35,7 @@ import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.ExploreSources
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
-import org.koitharu.kotatsu.list.ui.model.EmptyHint
+import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
@@ -221,7 +221,7 @@ class ExploreViewModel @Inject constructor(
 			// Novels can also come from extension APKs now, so the spinner belongs on both tabs —
 			// otherwise the novels tab claims nothing is installed while the scan is still running.
 			isExtensionsLoading -> result += LoadingState
-			else -> result += EmptyHint(
+			else -> result += EmptyState(
 				icon = R.drawable.ic_empty_common,
 				textPrimary = if (isNovelShown) {
 					R.string.no_novel_extension_installed
