@@ -63,64 +63,49 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 		viewModel.onError.observeEvent(viewLifecycleOwner) { e ->
 			Toast.makeText(context ?: return@observeEvent, e.getDisplayMessage(resources), Toast.LENGTH_SHORT).show()
 		}
+		viewModel.onMigrated.observeEvent(viewLifecycleOwner) {
+			Toast.makeText(context ?: return@observeEvent, R.string.migration_completed, Toast.LENGTH_SHORT).show()
+		}
+		// Nothing left to categorise once everything was skipped or migrated away.
+		viewModel.onDismissRequested.observeEvent(viewLifecycleOwner) { dismiss() }
 	}
 
 	@Composable
 	override fun Content() {
 		val context = LocalContext.current
 		val content by viewModel.content.collectAsState()
-		val duplicatesState by viewModel.duplicatesState.collectAsState()
+		val duplicates by viewModel.duplicates.collectAsState()
+		val migration by viewModel.migration.collectAsState()
 
-		val duplicatesList = duplicatesState
-		if (duplicatesList == null) {
-			ExpressiveDialogCard(
-				icon = painterResource(R.drawable.ic_heart),
-				title = "",
-			) {
-				Box(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(24.dp),
-					contentAlignment = Alignment.Center,
-				) {
-					CircularProgressIndicator()
-				}
-			}
-			return
-		}
-
-		if (duplicatesList.isNotEmpty()) {
-			DuplicateMangaDialog(
-				duplicatesList = duplicatesList,
+		migration?.let { request ->
+			MigrationConfirmation(
+				request = request,
 				imageLoader = imageLoader,
-				onAddAnyway = { viewModel.confirmAddDuplicate() },
-				onAddIndividualAnyway = { target -> viewModel.confirmAddIndividualAnyway(target) },
-				onSkipIndividual = { target -> viewModel.skipIndividualDuplicate(target) { dismiss() } },
-				onOpenManga = { manga ->
-					router.openDetails(manga)
-				},
-				onMigrateManga = { targetManga, existingManga, onContinue ->
-					viewModel.migrateDuplicate(
-						targetManga = targetManga,
-						existingManga = existingManga,
-						onCompleteIfFinished = { dismiss() },
-						onContinueWithRemaining = onContinue,
-					)
-				},
-				onDismissRequest = { viewModel.dismissDuplicate { dismiss() } },
+				onConfirm = { viewModel.confirmMigration() },
+				onBack = { viewModel.cancelMigration() },
 			)
 			return
 		}
 
-
-		val activeManga = remember(duplicatesState) { viewModel.getActiveManga() }
+		val activeManga = viewModel.getActiveManga()
 		val title = remember(activeManga) { activeManga.joinToStringWithLimit(context, 92) { it.title } }
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_heart),
 			title = title,
 		) {
 			Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-
+				DuplicateWarningSection(
+					duplicates = duplicates,
+					imageLoader = imageLoader,
+					onViewExisting = { manga ->
+						dismiss()
+						router.openDetails(manga)
+					},
+					onMigrate = { target, existing -> viewModel.requestMigration(target, existing) },
+					onAddAnyway = { targetId -> viewModel.addAnyway(targetId) },
+					onSkip = { targetId -> viewModel.skip(targetId) },
+					onAddAllAnyway = { viewModel.addAllAnyway() },
+				)
 				content.forEach { model ->
 					when (model) {
 						is LoadingState -> Box(

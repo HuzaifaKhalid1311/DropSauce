@@ -799,7 +799,7 @@
     <string name="pages_read_s">Pages read: %s</string>
     <string name="alternatives">Alternatives</string>
     <string name="migrate">Migrate</string>
-    <string name="migrate_confirmation">Migrate \"%1$s\" from %2$s to %4$s in your history and favorites.</string>
+    <string name="migrate_confirmation">Manga \"%1$s\" from \"%2$s\" will be replaced with \"%3$s\" from \"%4$s\" in your history and favorites (if present)</string>
     <string name="manga_migration">Manga migration</string>
     <string name="migration_completed">Migration completed</string>
     <string name="delete_read_chapters">Delete read chapters</string>
@@ -1142,9 +1142,11 @@
     <string name="sort_ascending">%s (ascending)</string>
     <string name="sort_descending">%s (descending)</string>
 
-    <!-- Duplicate Manga Warning -->
-    <string name="possible_duplicates_title">Possible duplicate entries</string>
-    <string name="possible_duplicates_summary">Similar title already in Favorites:</string>
+    <!-- Duplicate manga detection -->
+    <string name="possible_duplicates_title">Possible duplicate</string>
+    <string name="possible_duplicates_summary">These are already in your favorites. You can still add anyway, or migrate your progress across.</string>
+    <string name="duplicate_adding">Adding</string>
+    <string name="duplicate_in_library">In favorites</string>
     <string name="action_add_anyway">Add anyway</string>
     <string name="action_add_all_anyway">Add all anyway</string>
     <string name="action_view_existing">View existing</string>

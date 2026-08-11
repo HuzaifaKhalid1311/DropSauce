@@ -30,6 +30,3 @@ CLAUDE.md
 *.keystore
 *.b64
 /.vscode
-/research/
-/.agents/
-

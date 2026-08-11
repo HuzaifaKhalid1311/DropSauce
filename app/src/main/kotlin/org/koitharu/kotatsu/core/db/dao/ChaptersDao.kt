@@ -13,6 +13,10 @@ abstract class ChaptersDao {
 	@Query("SELECT * FROM chapters WHERE manga_id = :mangaId ORDER BY `index` ASC")
 	abstract suspend fun findAll(mangaId: Long): List<ChapterEntity>
 
+	/** Cached chapter count of the largest branch, mirroring `Manga.chaptersCount()`. 0 if nothing is cached. */
+	@Query("SELECT COUNT(*) FROM chapters WHERE manga_id = :mangaId GROUP BY branch ORDER BY COUNT(*) DESC LIMIT 1")
+	abstract suspend fun countChapters(mangaId: Long): Int?
+
 	@Query("DELETE FROM chapters WHERE manga_id = :mangaId")
 	abstract suspend fun deleteAll(mangaId: Long)
 

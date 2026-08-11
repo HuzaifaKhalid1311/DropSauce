@@ -66,26 +66,29 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT EXISTS(SELECT 1 FROM favourites LEFT JOIN favourite_categories ON favourite_categories.category_id = favourites.category_id WHERE favourites.manga_id = :mangaId AND favourites.deleted_at = 0 AND favourite_categories.deleted_at = 0 AND favourite_categories.download_new_chapters = 1)")
 	abstract suspend fun isNewChaptersDownloadEnabled(mangaId: Long): Boolean
 
-	@Transaction
+	/**
+	 * Titles of every favourite, for duplicate detection. Normalization and matching happen in
+	 * Kotlin because SQLite cannot strip punctuation, so this is deliberately a light projection.
+	 */
 	@Query(
-		"SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id != :excludeMangaId AND manga_id IN (" +
-			"SELECT manga_id FROM manga WHERE LOWER(title) = LOWER(:title) " +
-			"OR (alt_title IS NOT NULL AND LOWER(alt_title) = LOWER(:title)) " +
-			"OR LOWER(title) LIKE '%' || LOWER(:title) || '%'" +
-			") GROUP BY manga_id",
+		"SELECT DISTINCT manga.manga_id AS manga_id, manga.title AS title, manga.alt_title AS alt_title " +
+			"FROM favourites INNER JOIN manga ON manga.manga_id = favourites.manga_id " +
+			"WHERE favourites.deleted_at = 0",
 	)
-	abstract suspend fun findDuplicatesByTitle(title: String, excludeMangaId: Long): List<FavouriteManga>
+	abstract suspend fun findAllTitles(): List<FavouriteTitles>
+
+	/** Ids of favourites linked to the same scrobbler entry as [mangaId]. */
+	@Query(
+		"SELECT DISTINCT other.manga_id FROM scrobblings AS self " +
+			"INNER JOIN scrobblings AS other ON other.scrobbler = self.scrobbler AND other.target_id = self.target_id " +
+			"WHERE self.manga_id = :mangaId AND other.manga_id != :mangaId " +
+			"AND other.manga_id IN (SELECT manga_id FROM favourites WHERE deleted_at = 0)",
+	)
+	abstract suspend fun findIdsByScrobbling(mangaId: Long): LongArray
 
 	@Transaction
-	@Query(
-		"SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id != :excludeMangaId AND manga_id IN (" +
-			"SELECT manga_id FROM scrobblings WHERE (scrobbler, target_id) IN (" +
-			"SELECT scrobbler, target_id FROM scrobblings WHERE manga_id = :excludeMangaId" +
-			")" +
-			") GROUP BY manga_id",
-	)
-	abstract suspend fun findDuplicatesByScrobbling(excludeMangaId: Long): List<FavouriteManga>
-
+	@Query("SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id IN (:mangaIds) GROUP BY manga_id")
+	abstract suspend fun findAllByIds(mangaIds: Collection<Long>): List<FavouriteManga>
 
 	@Transaction
 	@Query(

@@ -15,19 +15,18 @@ import org.koitharu.kotatsu.core.db.entity.toEntities
 import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.db.entity.toManga as toMangaWithTags
 import org.koitharu.kotatsu.core.db.entity.toMangaList
-
-
 import org.koitharu.kotatsu.core.model.FavouriteCategory
+import org.koitharu.kotatsu.core.model.chaptersCount
 import org.koitharu.kotatsu.core.model.toMangaSources
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
 import org.koitharu.kotatsu.core.util.ext.mapItems
 import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
 import org.koitharu.kotatsu.favourites.data.FavouriteEntity
 import org.koitharu.kotatsu.favourites.data.toFavouriteCategory
-import org.koitharu.kotatsu.favourites.data.toManga
 import org.koitharu.kotatsu.favourites.data.toMangaList
-
 import org.koitharu.kotatsu.favourites.domain.model.Cover
+import org.koitharu.kotatsu.favourites.domain.model.DuplicateGroup
+import org.koitharu.kotatsu.favourites.domain.model.DuplicateMatch
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -36,16 +35,11 @@ import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.search.domain.SearchKind
 import javax.inject.Inject
 
-import org.koitharu.kotatsu.mihon.MihonExtensionManager
-import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-
 @Reusable
 class FavouritesRepository @Inject constructor(
 	private val db: MangaDatabase,
 	private val localObserver: LocalFavoritesObserver,
-	private val mihonExtensionManager: MihonExtensionManager,
 ) {
-
 
 	suspend fun getAllManga(): List<Manga> {
 		val entities = db.getFavouritesDao().findAll()
@@ -178,83 +172,87 @@ class FavouritesRepository @Inject constructor(
 		return db.getFavouritesDao().findCategoriesIds(mangaId).toSet()
 	}
 
-	suspend fun getDuplicates(manga: Manga): List<Manga> {
-		mihonExtensionManager.ensureReady()
-		val targetTitle = manga.title.lowercase().trim()
-		if (targetTitle.isBlank()) return emptyList()
-
-		val scrobbleDuplicates = db.getFavouritesDao().findDuplicatesByScrobbling(manga.id)
-		val titleDuplicates = db.getFavouritesDao().findDuplicatesByTitle(manga.title, manga.id)
-
-		val favouriteEntities = (scrobbleDuplicates + titleDuplicates).distinctBy { it.manga.id }
-		if (favouriteEntities.isEmpty()) {
+	/**
+	 * Existing favourites that look like the manga in [mangaList].
+	 *
+	 * A favourite matches when any of its titles normalizes to the same key as any title of the
+	 * candidate, or when both are linked to the same scrobbler entry. Manga that are already
+	 * favourited are not checked against themselves.
+	 *
+	 * Purely local: no source is ever contacted, so this is safe to run while the dialog is open.
+	 */
+	suspend fun findDuplicates(mangaList: Collection<Manga>): List<DuplicateGroup> {
+		val candidates = mangaList.filterNot { db.getFavouritesDao().findCategoriesCount(it.id) != 0 }
+		if (candidates.isEmpty()) {
 			return emptyList()
 		}
-
-		return favouriteEntities.map { favouriteManga ->
-			val chapters = db.getChaptersDao().findAll(favouriteManga.manga.id)
-			val history = db.getHistoryDao().find(favouriteManga.manga.id)
-			val prefs = db.getPreferencesDao().find(favouriteManga.manga.id)
-			val fullMangaWithTags = db.getMangaDao().find(favouriteManga.manga.id)
-			var mangaObj: Manga = (fullMangaWithTags?.toMangaWithTags(chapters.ifEmpty { null })
-				?: favouriteManga.toManga(chapters.ifEmpty { null }))
-
-			val coverOverride = prefs?.coverUrlOverride
-			if (!coverOverride.isNullOrEmpty()) {
-				mangaObj = mangaObj.copy(coverUrl = coverOverride)
-			}
-			val sourceName = mangaObj.source.name
-			if (mangaObj.source !is MihonMangaSource && sourceName.startsWith("MIHON_")) {
-				val sourceId = sourceName.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
-				val resolved = sourceId?.let { mihonExtensionManager.getMihonMangaSourceById(it) }
-					?: mihonExtensionManager.getMihonMangaSourceByName(sourceName)
-				if (resolved != null) {
-					mangaObj = mangaObj.copy(source = resolved)
-				}
-			}
-			if (mangaObj.chapters.isNullOrEmpty() && history != null && history.chaptersCount > 0) {
-				val dummyChapters = List(history.chaptersCount) { index ->
-					org.koitharu.kotatsu.parsers.model.MangaChapter(
-						id = (index + 1).toLong(),
-						title = null,
-						number = (index + 1).toFloat(),
-						volume = 0,
-						url = "",
-						scanlator = null,
-						uploadDate = 0L,
-						branch = null,
-						source = mangaObj.source,
-					)
-				}
-				mangaObj.copy(chapters = dummyChapters)
-			} else {
-				mangaObj
+		val dao = db.getFavouritesDao()
+		// One projection for the whole library, reused by every candidate.
+		val keysByMangaId = HashMap<Long, Set<String>>()
+		for (row in dao.findAllTitles()) {
+			val keys = titleKeysOf(row.title, row.altTitles?.split(ALT_TITLE_DIVIDER))
+			if (keys.isNotEmpty()) {
+				keysByMangaId[row.mangaId] = keys
 			}
 		}
+		val result = ArrayList<DuplicateGroup>(candidates.size)
+		for (manga in candidates) {
+			val keys = titleKeysOf(manga.title, manga.altTitles)
+			val matchedIds = LinkedHashSet<Long>()
+			if (keys.isNotEmpty()) {
+				keysByMangaId.forEach { (id, otherKeys) ->
+					if (id != manga.id && otherKeys.any { it in keys }) {
+						matchedIds.add(id)
+					}
+				}
+			}
+			dao.findIdsByScrobbling(manga.id).forEach { matchedIds.add(it) }
+			if (matchedIds.isEmpty()) {
+				continue
+			}
+			val matches = dao.findAllByIds(matchedIds).mapNotNull { favourite ->
+				val id = favourite.manga.id
+				val existing = db.getMangaDao().find(id)?.toMangaWithTags(null) ?: return@mapNotNull null
+				DuplicateMatch(manga = existing, chaptersCount = chaptersCountOf(id))
+			}
+			if (matches.isNotEmpty()) {
+				result.add(
+					DuplicateGroup(
+						target = manga,
+						targetChaptersCount = manga.chaptersCount().takeIf { it > 0 } ?: chaptersCountOf(manga.id),
+						matches = matches,
+					),
+				)
+			}
+		}
+		return result
 	}
 
-	private fun String?.normalizeTitle(): String? {
-		if (this.isNullOrBlank()) return null
-		var s = this.lowercase().trim()
+	private suspend fun chaptersCountOf(mangaId: Long): Int = db.getChaptersDao().countChapters(mangaId) ?: 0
+
+	/**
+	 * Comparable keys for a title and its alternatives: lower-cased, leading article dropped and
+	 * every non letter/digit removed, so "Re:Zero" and "Re Zero" collapse to the same key.
+	 * Unicode-aware on purpose — `[^a-z0-9]` would erase CJK and Cyrillic titles entirely.
+	 */
+	private fun titleKeysOf(title: String?, altTitles: Collection<String>?): Set<String> {
+		val result = HashSet<String>(2)
+		normalizeTitle(title)?.let(result::add)
+		altTitles?.forEach { alt -> normalizeTitle(alt)?.let(result::add) }
+		return result
+	}
+
+	private fun normalizeTitle(title: String?): String? {
+		if (title.isNullOrBlank()) return null
+		var s = title.lowercase().trim()
 		for (prefix in TITLE_PREFIXES) {
 			if (s.startsWith(prefix)) {
 				s = s.substring(prefix.length).trim()
 				break
 			}
 		}
-		val cleaned = s.replace(NON_ALPHANUMERIC_REGEX, "")
-		return cleaned.ifBlank { null }
+		return s.replace(NON_ALPHANUMERIC_REGEX, "").ifBlank { null }
 	}
-
-	companion object {
-		private val TITLE_PREFIXES = listOf("the ", "a ", "an ")
-		private val NON_ALPHANUMERIC_REGEX = Regex("[^a-z0-9]")
-	}
-
-
-
-
-
 
 	suspend fun findPopularSources(categoryId: Long, limit: Int): List<MangaSource> {
 		return db.getFavouritesDao().run {
@@ -426,5 +424,12 @@ class FavouritesRepository @Inject constructor(
 				db.getFavouritesDao().recover(mangaId = id, categoryId = categoryId)
 			}
 		}
+	}
+
+	private companion object {
+
+		const val ALT_TITLE_DIVIDER = '\n'
+		val TITLE_PREFIXES = arrayOf("the ", "a ", "an ")
+		val NON_ALPHANUMERIC_REGEX = Regex("[^\\p{L}\\p{N}]")
 	}
 }

@@ -9,35 +9,38 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.alternatives.domain.MigrateUseCase
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.ids
+import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
+import org.koitharu.kotatsu.core.util.ext.EventFlow
+import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
+import org.koitharu.kotatsu.core.util.ext.call
+import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.require
 import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
+import org.koitharu.kotatsu.favourites.domain.model.DuplicateGroup
 import org.koitharu.kotatsu.favourites.ui.categories.select.model.MangaCategoryItem
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.entity.toMangaChapters
-import org.koitharu.kotatsu.core.parser.FreshMangaDetailsRepository
-import org.koitharu.kotatsu.core.parser.MangaRepository
-import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import javax.inject.Inject
-
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import javax.inject.Inject
 
 @HiltViewModel
 class FavoriteDialogViewModel @Inject constructor(
@@ -45,41 +48,49 @@ class FavoriteDialogViewModel @Inject constructor(
 	private val favouritesRepository: FavouritesRepository,
 	private val migrateUseCase: MigrateUseCase,
 	private val mihonExtensionManager: MihonExtensionManager,
-	private val mangaRepositoryFactory: MangaRepository.Factory,
-	private val db: MangaDatabase,
 	settings: AppSettings,
 ) : BaseViewModel() {
-
 
 	val manga = savedStateHandle.require<List<ParcelableManga>>(AppRouter.KEY_MANGA_LIST).map {
 		it.manga
 	}
 
-	val duplicatesState = MutableStateFlow<List<Pair<Manga, List<Manga>>>?>(null)
+	private val duplicatesFlow = MutableStateFlow<List<DuplicateGroup>>(emptyList())
+
+	/**
+	 * Possible duplicates for the manga being added. Starts empty so the category picker is usable
+	 * immediately; results slide in once the (local-only) check finishes.
+	 */
+	val duplicates: StateFlow<List<DuplicateGroup>> = duplicatesFlow.asStateFlow()
+
+	private val migrationFlow = MutableStateFlow<MigrationRequest?>(null)
+
+	/** Non-null while the migration confirmation is on screen. */
+	val migration: StateFlow<MigrationRequest?> = migrationFlow.asStateFlow()
+
+	private val migratedEvent = MutableEventFlow<Unit>()
+	val onMigrated: EventFlow<Unit> = migratedEvent
+
+	private val dismissEvent = MutableEventFlow<Unit>()
+	val onDismissRequested: EventFlow<Unit> = dismissEvent
+
+	private val excludedMangaIds = MutableStateFlow(emptySet<Long>())
 
 	init {
 		launchJob(Dispatchers.Default) {
-			checkDuplicates()
-		}
-	}
-
-	private suspend fun checkDuplicates() {
-		val resultList = mutableListOf<Pair<Manga, List<Manga>>>()
-		for (m in manga) {
-			if (favouritesRepository.getCategoriesIds(m.id).isNotEmpty()) {
-				continue
+			// Detection is an assist, never a gate: on failure the dialog just behaves as before.
+			runCatchingCancellable {
+				favouritesRepository.findDuplicates(manga)
+			}.onFailure {
+				it.printStackTraceDebug()
+			}.onSuccess { found ->
+				duplicatesFlow.value = found.map { group ->
+					group.copy(
+						target = resolveSource(group.target),
+						matches = group.matches.map { m -> m.copy(manga = resolveSource(m.manga)) },
+					)
+				}
 			}
-			val resolvedManga = prepareManga(m)
-			val duplicates = favouritesRepository.getDuplicates(resolvedManga)
-			if (duplicates.isNotEmpty()) {
-				resultList.add(resolvedManga to duplicates)
-			}
-		}
-		if (resultList.isNotEmpty()) {
-			duplicatesState.value = resultList
-			fetchDetailsAsync(resultList)
-		} else {
-			duplicatesState.value = emptyList()
 		}
 	}
 
@@ -87,25 +98,22 @@ class FavoriteDialogViewModel @Inject constructor(
 	val content = combine(
 		favouritesRepository.observeCategories(),
 		refreshTrigger,
+		excludedMangaIds,
 		settings.observeAsFlow(AppSettings.KEY_TRACKER_ENABLED) { isTrackerEnabled },
-	) { categories, _, tracker ->
-		mapList(categories, tracker)
+	) { categories, _, excluded, tracker ->
+		mapList(categories, excluded, tracker)
 	}.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
-	private val skippedMangaIds = mutableSetOf<Long>()
-	private val migratedMangaIds = mutableSetOf<Long>()
-	private val approvedMangaIds = mutableSetOf<Long>()
-
-	fun getActiveManga(): List<Manga> {
-		return manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
-	}
+	/** The manga that will actually be added — everything the user did not skip or migrate away. */
+	fun getActiveManga(): List<Manga> = manga.filterNot { it.id in excludedMangaIds.value }
 
 	fun setChecked(categoryId: Long, isChecked: Boolean) {
 		launchJob(Dispatchers.Default) {
-			val activeManga = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
-			if (activeManga.isEmpty()) return@launchJob
-
+			val activeManga = getActiveManga()
+			if (activeManga.isEmpty()) {
+				return@launchJob
+			}
 			if (isChecked) {
 				favouritesRepository.addToCategory(categoryId, activeManga)
 			} else {
@@ -115,56 +123,64 @@ class FavoriteDialogViewModel @Inject constructor(
 		}
 	}
 
-	fun confirmAddDuplicate() {
-		duplicatesState.value = emptyList()
+	/** Dismiss the warning for [targetId] and keep it in the batch. */
+	fun addAnyway(targetId: Long) {
+		duplicatesFlow.update { list -> list.filterNot { it.target.id == targetId } }
 	}
 
-	fun confirmAddIndividualAnyway(targetManga: Manga) {
-		approvedMangaIds.add(targetManga.id)
-		val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
-		duplicatesState.value = current.ifEmpty { emptyList() }
+	fun addAllAnyway() {
+		duplicatesFlow.value = emptyList()
 	}
 
-	fun skipIndividualDuplicate(targetManga: Manga, onCompleteIfEmpty: () -> Unit) {
-		skippedMangaIds.add(targetManga.id)
-		val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
-		duplicatesState.value = current.ifEmpty { emptyList() }
-		refreshTrigger.value = Any()
-		val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
-		if (remainingActive.isEmpty()) {
-			onCompleteIfEmpty()
+	/** Drop [targetId] from the batch entirely. */
+	fun skip(targetId: Long) {
+		excludedMangaIds.update { it + targetId }
+		duplicatesFlow.update { list -> list.filterNot { it.target.id == targetId } }
+		if (getActiveManga().isEmpty()) {
+			dismissEvent.call(Unit)
 		}
 	}
 
-	fun migrateDuplicate(
-		targetManga: Manga,
-		existingManga: Manga,
-		onCompleteIfFinished: () -> Unit,
-		onContinueWithRemaining: () -> Unit = {},
-	) {
+	fun requestMigration(target: Manga, existing: Manga) {
+		if (existing.isLocal) {
+			return // migrating away from an imported copy would lose the local files
+		}
+		migrationFlow.value = MigrationRequest(target = target, existing = existing)
+	}
+
+	fun cancelMigration() {
+		migrationFlow.update { if (it?.isRunning == true) it else null }
+	}
+
+	fun confirmMigration() {
+		val request = migrationFlow.value ?: return
+		if (request.isRunning) {
+			return
+		}
+		migrationFlow.value = request.copy(isRunning = true)
 		launchJob(Dispatchers.Default) {
-			migrateUseCase(oldManga = existingManga, newManga = targetManga)
-			migratedMangaIds.add(targetManga.id)
-			val current = duplicatesState.value.orEmpty().filterNot { it.first.id == targetManga.id }
-			duplicatesState.value = current.ifEmpty { emptyList() }
-			refreshTrigger.value = Any()
-			val remainingActive = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
-			withContext(Dispatchers.Main) {
-				if (remainingActive.isEmpty()) {
-					onCompleteIfFinished()
-				} else {
-					onContinueWithRemaining()
-				}
+			try {
+				migrateUseCase(oldManga = request.existing, newManga = request.target)
+			} catch (e: Throwable) {
+				// Always release the confirmation screen, otherwise its buttons stay disabled forever.
+				migrationFlow.value = request.copy(isRunning = false)
+				throw e
+			}
+			migrationFlow.value = null
+			excludedMangaIds.update { it + request.target.id }
+			duplicatesFlow.update { list -> list.filterNot { it.target.id == request.target.id } }
+			migratedEvent.call(Unit)
+			if (getActiveManga().isEmpty()) {
+				dismissEvent.call(Unit)
 			}
 		}
 	}
 
-	fun dismissDuplicate(onDismissAll: () -> Unit) {
-		duplicatesState.value = emptyList()
-		onDismissAll()
-	}
-
-	private suspend fun mapList(categories: List<FavouriteCategory>, tracker: Boolean): List<ListModel> {
+	private suspend fun mapList(
+		categories: List<FavouriteCategory>,
+		excluded: Set<Long>,
+		tracker: Boolean,
+	): List<ListModel> {
 		if (categories.isEmpty()) {
 			return listOf(
 				EmptyState(
@@ -175,24 +191,9 @@ class FavoriteDialogViewModel @Inject constructor(
 				),
 			)
 		}
-		val activeManga = manga.filterNot { skippedMangaIds.contains(it.id) || migratedMangaIds.contains(it.id) }
+		val activeManga = manga.filterNot { it.id in excluded }
 		if (activeManga.isEmpty()) {
 			return emptyList()
-		}
-		val existingCategoryIds = mutableSetOf<Long>()
-		for (m in activeManga) {
-			val catIds = favouritesRepository.getCategoriesIds(m.id)
-			existingCategoryIds.addAll(catIds)
-		}
-		if (existingCategoryIds.isNotEmpty()) {
-			for (m in activeManga) {
-				val currentCats = favouritesRepository.getCategoriesIds(m.id)
-				if (currentCats.isEmpty()) {
-					for (catId in existingCategoryIds) {
-						favouritesRepository.addToCategory(catId, listOf(m))
-					}
-				}
-			}
 		}
 		val cats = MutableLongObjectMap<MutableLongSet>(categories.size)
 		categories.forEach { cats[it.id] = MutableLongSet(activeManga.size) }
@@ -213,85 +214,37 @@ class FavoriteDialogViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun prepareManga(manga: Manga): Manga {
-		var resolved = resolveManga(manga)
-		if (resolved.chapters == null) {
-			val dbChapters = runCatchingCancellable { db.getChaptersDao().findAll(resolved.id) }.getOrNull()
-			if (!dbChapters.isNullOrEmpty()) {
-				resolved = resolved.copy(chapters = dbChapters.toMangaChapters())
-			}
-		}
-		return resolved
-	}
-
-	private fun updateDuplicatesState(currentList: List<Pair<Manga, List<Manga>>>) {
-		val activeState = duplicatesState.value
-		if (activeState.isNullOrEmpty()) return
-		val activeIds = activeState.map { it.first.id }.toSet()
-		val filtered = currentList.filter { (target, _) ->
-			activeIds.contains(target.id) &&
-				!skippedMangaIds.contains(target.id) &&
-				!migratedMangaIds.contains(target.id) &&
-				!approvedMangaIds.contains(target.id)
-		}
-		duplicatesState.value = filtered.ifEmpty { emptyList() }
-	}
-
-	private fun fetchDetailsAsync(list: List<Pair<Manga, List<Manga>>>) {
-		launchJob(Dispatchers.Default) {
-			val currentList = list.map { (target, dupes) ->
-				val preparedTarget = prepareManga(target)
-				val preparedDupes = dupes.map { prepareManga(it) }
-				preparedTarget to preparedDupes
-			}.toMutableList()
-
-			updateDuplicatesState(currentList)
-
-			currentList.forEachIndexed { pairIndex, (target, dupes) ->
-				var currentTarget = target
-				if (currentTarget.chapters.isNullOrEmpty()) {
-					runCatchingCancellable {
-						val repo = mangaRepositoryFactory.create(currentTarget.source)
-						val details = repo.getDetails(currentTarget)
-						currentTarget = if (details.chapters.isNullOrEmpty()) {
-							(repo as? FreshMangaDetailsRepository)?.getFreshDetails(currentTarget) ?: details
-						} else {
-							details
-						}
-					}
-				}
-
-				val updatedDupes = dupes.toMutableList()
-				updatedDupes.forEachIndexed { dupIndex, dup ->
-					if (dup.chapters.isNullOrEmpty()) {
-						runCatchingCancellable {
-							val repo = mangaRepositoryFactory.create(dup.source)
-							val details = repo.getDetails(dup)
-							val fullDup = if (details.chapters.isNullOrEmpty()) {
-								(repo as? FreshMangaDetailsRepository)?.getFreshDetails(dup) ?: details
-							} else {
-								details
-							}
-							updatedDupes[dupIndex] = fullDup
-						}
-					}
-				}
-
-				currentList[pairIndex] = currentTarget to updatedDupes.toList()
-				updateDuplicatesState(currentList)
-			}
-		}
-	}
-
-	private suspend fun resolveManga(manga: Manga): Manga {
-		if (manga.source is MihonMangaSource) return manga
+	/**
+	 * Manga restored from the database carry a placeholder `MIHON_<id>` source; swap in the live
+	 * extension source so the card can render a proper source name.
+	 */
+	private suspend fun resolveSource(manga: Manga): Manga {
 		val name = manga.source.name
-		if (!name.startsWith("MIHON_")) return manga
-		mihonExtensionManager.ensureReady()
-		val sourceId = name.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
+		if (manga.source is MihonMangaSource || !name.startsWith(MIHON_SOURCE_PREFIX)) {
+			return manga
+		}
+		val isReady = runCatchingCancellable {
+			mihonExtensionManager.ensureReady()
+		}.onFailure {
+			it.printStackTraceDebug()
+		}.isSuccess
+		if (!isReady) {
+			return manga
+		}
+		val sourceId = name.removePrefix(MIHON_SOURCE_PREFIX).substringBefore(':').toLongOrNull()
 		val resolved = sourceId?.let { mihonExtensionManager.getMihonMangaSourceById(it) }
 			?: mihonExtensionManager.getMihonMangaSourceByName(name)
 		return if (resolved != null) manga.copy(source = resolved) else manga
 	}
-}
 
+	data class MigrationRequest(
+		val target: Manga,
+		val existing: Manga,
+		val isRunning: Boolean = false,
+	)
+
+	private companion object {
+
+		const val MIHON_SOURCE_PREFIX = "MIHON_"
+	}
+}
