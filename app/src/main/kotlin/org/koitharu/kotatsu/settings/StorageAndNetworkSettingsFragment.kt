@@ -195,7 +195,7 @@ private fun StorageNetworkScreen(
 						entryValues = networkPolicyValues,
 						selectedValue = prefetchContent,
 						onValueChange = { prefetchContent = it },
-						icon = R.drawable.ic_download,
+						icon = R.drawable.ic_downloading,
 						
 						shape = pos.shape,
 					)
