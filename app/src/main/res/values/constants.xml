@@ -22,6 +22,11 @@
 		<item>favourites</item>
 		<item>history</item>
 	</string-array>
+	<string-array name="values_smart_update_rules" translatable="false">
+		<item>completed</item>
+		<item>unstarted</item>
+		<item>unread</item>
+	</string-array>
 	<string-array name="values_network_policy" translatable="false">
 		<item>1</item>
 		<item>2</item>

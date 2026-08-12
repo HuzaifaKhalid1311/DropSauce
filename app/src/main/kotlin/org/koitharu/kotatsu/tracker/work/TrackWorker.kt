@@ -65,7 +65,6 @@ import org.koitharu.kotatsu.tracker.domain.GetTracksUseCase
 import org.koitharu.kotatsu.tracker.domain.model.MangaTracking
 import org.koitharu.kotatsu.tracker.domain.model.MangaUpdates
 import org.koitharu.kotatsu.tracker.work.TrackerNotificationHelper.NotificationInfo
-import org.koitharu.kotatsu.tracker.domain.SmartUpdateHelper
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
@@ -84,7 +83,6 @@ class TrackWorker @AssistedInject constructor(
 	private val workManager: WorkManager,
 	private val favouritesRepository: FavouritesRepository,
 	private val downloadSchedulerLazy: Lazy<DownloadWorker.Scheduler>,
-	private val database: MangaDatabase,
 ) : CoroutineWorker(context, workerParams) {
 
 	private val notificationManager by lazy { NotificationManagerCompat.from(applicationContext) }
@@ -116,13 +114,7 @@ class TrackWorker @AssistedInject constructor(
 			return Result.success()
 		}
 
-		val tracksToUpdate = tracks.filterNot { SmartUpdateHelper.shouldSkip(it, settings, database) }
-
-		if (tracksToUpdate.isEmpty()) {
-			return Result.success()
-		}
-
-		checkUpdatesAsync(tracksToUpdate)
+		checkUpdatesAsync(tracks)
 		return Result.success()
 	}
 

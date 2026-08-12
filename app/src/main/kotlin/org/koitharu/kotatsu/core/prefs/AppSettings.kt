@@ -390,15 +390,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isTrackerNsfwDisabled: Boolean
 		get() = prefs.getBoolean(KEY_TRACKER_NO_NSFW, false)
 
-	val isTrackerSkipCompleted: Boolean
-		get() = prefs.getBoolean(KEY_TRACKER_SKIP_COMPLETED, false)
-
-	val isTrackerSkipUnstarted: Boolean
-		get() = prefs.getBoolean(KEY_TRACKER_SKIP_UNSTARTED, false)
-
-	val isTrackerSkipUnread: Boolean
-		get() = prefs.getBoolean(KEY_TRACKER_SKIP_UNREAD, false)
-
+	/** Entries the tracker should not spend a network request on, see [SMART_UPDATE_SKIP_COMPLETED] etc. */
+	val trackerSmartUpdateRules: Set<String>
+		get() = prefs.getStringSet(KEY_TRACKER_SMART_UPDATE, null).orEmpty()
 
 	val isFeedSwipeGesturesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_FEED_SWIPE_GESTURES, true)
@@ -1106,6 +1100,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val TRACK_HISTORY = "history"
 		const val TRACK_FAVOURITES = "favourites"
 
+		const val SMART_UPDATE_SKIP_COMPLETED = "completed"
+		const val SMART_UPDATE_SKIP_UNSTARTED = "unstarted"
+		const val SMART_UPDATE_SKIP_UNREAD = "unread"
+
 		const val KEY_ADBLOCK = "adblock"
 		const val KEY_LIST_MODE = "list_mode_2"
 		const val KEY_TITLE_OVER_COVER = "title_over_cover"
@@ -1149,11 +1147,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_TRACKER_FREQUENCY = "tracker_freq"
 		const val KEY_TRACK_SOURCES = "track_sources"
 		const val KEY_TRACKER_NO_NSFW = "tracker_no_nsfw"
-		const val KEY_TRACKER_SKIP_COMPLETED = "tracker_skip_completed"
-		const val KEY_TRACKER_SKIP_UNSTARTED = "tracker_skip_unstarted"
-		const val KEY_TRACKER_SKIP_UNREAD = "tracker_skip_unread"
-
-
+		const val KEY_TRACKER_SMART_UPDATE = "tracker_smart_update"
 		const val KEY_FEED_SWIPE_GESTURES = "feed_swipe_gestures"
 		const val KEY_FEED_COUNTER_DOT = "feed_counter_dot"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"

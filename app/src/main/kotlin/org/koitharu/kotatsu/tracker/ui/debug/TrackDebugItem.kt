@@ -1,10 +1,9 @@
 package org.koitharu.kotatsu.tracker.ui.debug
 
+import androidx.annotation.StringRes
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
-
-import androidx.annotation.StringRes
 
 data class TrackDebugItem(
 	val manga: Manga,

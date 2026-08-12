@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.toInstantOrNull
 import org.koitharu.kotatsu.tracker.data.TrackWithManga
-import org.koitharu.kotatsu.tracker.domain.SmartUpdateHelper
+import org.koitharu.kotatsu.tracker.domain.smartUpdateSkipReason
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,23 +27,30 @@ class TrackerDebugViewModel @Inject constructor(
 		.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
 
-	private suspend fun List<TrackWithManga>.toUiList(): List<TrackDebugItem> = map {
-		val manga = it.manga.toManga(emptySet(), null)
-		val skipReasonRes = SmartUpdateHelper.getSkipReasonRes(
-			manga = manga,
-			newChapters = it.track.newChapters,
-			settings = settings,
-			database = db,
-		)
-		TrackDebugItem(
-			manga = manga,
-			lastChapterId = it.track.lastChapterId,
-			newChapters = it.track.newChapters,
-			lastCheckTime = it.track.lastCheckTime.toInstantOrNull(),
-			lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
-			lastResult = it.track.lastResult,
-			lastError = it.track.lastError,
-			skipReasonRes = skipReasonRes,
-		)
+	private suspend fun List<TrackWithManga>.toUiList(): List<TrackDebugItem> {
+		val rules = settings.trackerSmartUpdateRules
+		val historyIds = if (rules.isEmpty()) {
+			emptySet()
+		} else {
+			db.getHistoryDao().findAllIds().toHashSet()
+		}
+		return map {
+			val manga = it.manga.toManga(emptySet(), null)
+			TrackDebugItem(
+				manga = manga,
+				lastChapterId = it.track.lastChapterId,
+				newChapters = it.track.newChapters,
+				lastCheckTime = it.track.lastCheckTime.toInstantOrNull(),
+				lastChapterDate = it.track.lastChapterDate.toInstantOrNull(),
+				lastResult = it.track.lastResult,
+				lastError = it.track.lastError,
+				skipReasonRes = smartUpdateSkipReason(
+					rules = rules,
+					state = manga.state,
+					hasHistory = manga.id in historyIds,
+					newChapters = it.track.newChapters,
+				),
+			)
+		}
 	}
 }
