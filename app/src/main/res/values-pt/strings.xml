@@ -176,7 +176,6 @@
     <string name="always">Sempre</string>
     <string name="reset_filter">Redefinir filtro</string>
     <string name="never">Nunca</string>
-    <string name="preload_pages">Pré-carregar páginas</string>
     <string name="logged_in_as">Conectado como %s</string>
     <string name="various_languages">Vários idiomas</string>
     <string name="suggestions_updating">Atualização das sugestões</string>
@@ -671,8 +670,8 @@
     <string name="creating_backup">Criando backup</string>
     <string name="reader_multitask">Abra o leitor em uma tarefa separada</string>
     <string name="reader_multitask_summary">Permite que você mantenha vários leitores com diferentes mangás abertos ao mesmo tempo</string>
-    <string name="reader_navigation_inverted">https://hosted.weblate.org/translate/kotatsu/strings/pt/?checksum=b84ea9f18b9b4dde</string>
-    <string name="reader_navigation_inverted_summary">https://hosted.weblate.org/translate/kotatsu/strings/pt/?checksum=b84ea9f18b9b4dde</string>
+    <string name="reader_navigation_inverted">Inverter controlos de navegação</string>
+    <string name="reader_navigation_inverted_summary">Inverter o sentido do botão de volume e da navegação por tecla direcional (esquerda/cima/baixo/direita)</string>
     <string name="book_effect">Fundo amarelaso (filtro de luz azul)</string>
     <string name="local_storage_cleanup">Limpeza do armazenamento local</string>
     <string name="main_screen">Ecrã principal</string>

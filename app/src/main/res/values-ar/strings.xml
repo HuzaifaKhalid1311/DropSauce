@@ -158,7 +158,6 @@
     <string name="all_favourites">كل المُفضلة</string>
     <string name="disable_all">تعطيل الجميع</string>
     <string name="chapters_empty">لا توجد فصول في هذه المانجا</string>
-    <string name="preload_pages">إعادة تحميل الصفحات</string>
     <string name="show_reading_indicators">إظهار مؤشرات التقدم في القراءة</string>
     <string name="local_manga_processing">معالجة المانجا المحفوظة</string>
     <string name="cannot_find_available_storage">لاتوجد مساحة تخزين كافية</string>

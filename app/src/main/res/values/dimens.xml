@@ -3,6 +3,8 @@
 
 	<!-- Common dimensions -->
 	<dimen name="margin_normal">16dp</dimen>
+	<!-- Below this, an empty state stops being vertically centered and just wraps its content. -->
+	<dimen name="empty_state_min_height">320dp</dimen>
 	<dimen name="margin_small">8dp</dimen>
 	<!-- List spacing -->
 	<dimen name="list_spacing_small">6dp</dimen>

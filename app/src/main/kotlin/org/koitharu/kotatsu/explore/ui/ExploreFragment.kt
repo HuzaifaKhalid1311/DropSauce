@@ -125,6 +125,10 @@ class ExploreFragment :
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
 			applyLayoutManager(viewModel.isGrid.value)
+			// The empty state sizes itself one layout pass late (it centers on the display), so the height
+			// measured right after emit() can be stale. Re-measuring on every page layout is a no-op unless
+			// the height really changed.
+			addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> post(::updatePagerHeight) }
 		}
 		pages[if (isNovel) 1 else 0] = recyclerView
 		viewModel.sources.observe(viewLifecycleOwner) { content ->

@@ -142,7 +142,6 @@
     <string name="text_suggestion_holder">Mulai membaca manga dan Anda akan mendapatkan saran yang dipersonalisasi</string>
     <string name="exclude_nsfw_from_suggestions">Jangan menyarankan manga TAUSB</string>
     <string name="always">Selalu</string>
-    <string name="preload_pages">Muat ulang halaman</string>
     <string name="logged_in_as">Masuk sebagai %s</string>
     <string name="enabled">Diaktifkan</string>
     <string name="disabled">Dinonaktifkan</string>

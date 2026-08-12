@@ -23,7 +23,6 @@ abstract class FragmentContainerActivity(private val fragmentClass: Class<out Fr
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityContainerBinding.inflate(layoutInflater))
-		viewBinding.statusBarScrim?.blurTarget = viewBinding.container
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		val fm = supportFragmentManager
 		if (fm.findFragmentById(R.id.container) == null) {

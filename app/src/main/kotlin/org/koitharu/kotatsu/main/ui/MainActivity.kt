@@ -148,7 +148,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.buttonSettings.setOnClickListener {
 			router.openSettings()
 		}
-		viewBinding.statusBarScrim.blurTarget = viewBinding.container
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch)
 

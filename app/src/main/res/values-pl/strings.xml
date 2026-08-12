@@ -249,7 +249,6 @@
     <string name="text_suggestion_holder">Zacznij czytać mangę, a otrzymasz spersonalizowane sugestie</string>
     <string name="exclude_nsfw_from_suggestions">Nie proponuj mang NSFW</string>
     <string name="reset_filter">Zresetuj filtr</string>
-    <string name="preload_pages">Ładuj wstępnie strony</string>
     <string name="suggestions_updating">Aktualizowanie sugestii</string>
     <string name="text_delete_local_manga_batch">Trwale usunąć wybrane elementy z urządzenia?</string>
     <string name="removal_completed">Usuwanie zakończone</string>

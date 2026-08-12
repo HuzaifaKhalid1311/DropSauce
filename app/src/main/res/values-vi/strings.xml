@@ -103,7 +103,6 @@
     <string name="suggestions_summary">Gợi ý truyện dựa trên sở thích của bạn</string>
     <string name="exclude_nsfw_from_suggestions">Không đề xuất truyện NSFW</string>
     <string name="enabled">Đã bật</string>
-    <string name="preload_pages">Tải trước trang</string>
     <string name="various_languages">Nhiều ngôn ngữ</string>
     <string name="search_chapters">Tìm kiếm chương</string>
     <string name="chapters_empty">Không có chương nào trong truyện này</string>

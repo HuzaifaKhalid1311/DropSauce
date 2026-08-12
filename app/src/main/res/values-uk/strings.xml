@@ -145,7 +145,6 @@
     <string name="disabled">Вимкнено</string>
     <string name="reset_filter">Скинути фільтр</string>
     <string name="only_using_wifi">Тільки по Wi-Fi</string>
-    <string name="preload_pages">Попереднє завантаження сторінок</string>
     <string name="logged_in_as">Ви увійшли як %s</string>
     <string name="various_languages">Різні мови</string>
     <string name="search_chapters">Знайти розділ</string>

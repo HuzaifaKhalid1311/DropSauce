@@ -133,7 +133,6 @@
     <string name="suggestions_enable">啟用推薦</string>
     <string name="enabled">啟用</string>
     <string name="always">總是</string>
-    <string name="preload_pages">預載頁面</string>
     <string name="logged_in_as">以 %s 登入</string>
     <string name="various_languages">各種語言</string>
     <string name="search_chapters">尋找章節</string>
