@@ -29,10 +29,10 @@ class TrackerDebugViewModel @Inject constructor(
 
 	private suspend fun List<TrackWithManga>.toUiList(): List<TrackDebugItem> {
 		val rules = settings.trackerSmartUpdateRules
-		val historyIds = if (rules.isEmpty()) {
+		val startedIds = if (rules.isEmpty()) {
 			emptySet()
 		} else {
-			db.getHistoryDao().findAllIds().toHashSet()
+			db.getHistoryDao().findStartedIds().toHashSet()
 		}
 		return map {
 			val manga = it.manga.toManga(emptySet(), null)
@@ -47,7 +47,7 @@ class TrackerDebugViewModel @Inject constructor(
 				skipReasonRes = smartUpdateSkipReason(
 					rules = rules,
 					state = manga.state,
-					hasHistory = manga.id in historyIds,
+					hasProgress = manga.id in startedIds,
 					newChapters = it.track.newChapters,
 				),
 			)

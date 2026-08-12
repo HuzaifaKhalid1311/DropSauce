@@ -14,14 +14,14 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 fun smartUpdateSkipReason(
 	rules: Set<String>,
 	state: MangaState?,
-	hasHistory: Boolean,
+	hasProgress: Boolean,
 	newChapters: Int,
 ): Int? = when {
 	rules.isEmpty() -> null
 	AppSettings.SMART_UPDATE_SKIP_COMPLETED in rules && state == MangaState.FINISHED ->
 		R.string.smart_update_skip_completed
 
-	AppSettings.SMART_UPDATE_SKIP_UNSTARTED in rules && !hasHistory ->
+	AppSettings.SMART_UPDATE_SKIP_UNSTARTED in rules && !hasProgress ->
 		R.string.smart_update_skip_unstarted
 
 	AppSettings.SMART_UPDATE_SKIP_UNREAD in rules && newChapters > 0 ->

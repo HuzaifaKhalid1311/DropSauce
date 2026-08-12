@@ -11,7 +11,7 @@ class SmartUpdateRulesTest {
 
 	@Test
 	fun `no rules never skips`() {
-		assertNull(smartUpdateSkipReason(emptySet(), MangaState.FINISHED, hasHistory = false, newChapters = 3))
+		assertNull(smartUpdateSkipReason(emptySet(), MangaState.FINISHED, hasProgress = false, newChapters = 3))
 	}
 
 	@Test
@@ -19,23 +19,23 @@ class SmartUpdateRulesTest {
 		val completed = setOf(AppSettings.SMART_UPDATE_SKIP_COMPLETED)
 		assertEquals(
 			R.string.smart_update_skip_completed,
-			smartUpdateSkipReason(completed, MangaState.FINISHED, hasHistory = true, newChapters = 0),
+			smartUpdateSkipReason(completed, MangaState.FINISHED, hasProgress = true, newChapters = 0),
 		)
-		assertNull(smartUpdateSkipReason(completed, MangaState.ONGOING, hasHistory = false, newChapters = 5))
+		assertNull(smartUpdateSkipReason(completed, MangaState.ONGOING, hasProgress = false, newChapters = 5))
 
 		val unstarted = setOf(AppSettings.SMART_UPDATE_SKIP_UNSTARTED)
 		assertEquals(
 			R.string.smart_update_skip_unstarted,
-			smartUpdateSkipReason(unstarted, MangaState.ONGOING, hasHistory = false, newChapters = 0),
+			smartUpdateSkipReason(unstarted, MangaState.ONGOING, hasProgress = false, newChapters = 0),
 		)
-		assertNull(smartUpdateSkipReason(unstarted, MangaState.ONGOING, hasHistory = true, newChapters = 0))
+		assertNull(smartUpdateSkipReason(unstarted, MangaState.ONGOING, hasProgress = true, newChapters = 0))
 
 		val unread = setOf(AppSettings.SMART_UPDATE_SKIP_UNREAD)
 		assertEquals(
 			R.string.smart_update_skip_unread,
-			smartUpdateSkipReason(unread, MangaState.ONGOING, hasHistory = true, newChapters = 1),
+			smartUpdateSkipReason(unread, MangaState.ONGOING, hasProgress = true, newChapters = 1),
 		)
-		assertNull(smartUpdateSkipReason(unread, MangaState.ONGOING, hasHistory = true, newChapters = 0))
+		assertNull(smartUpdateSkipReason(unread, MangaState.ONGOING, hasProgress = true, newChapters = 0))
 	}
 
 	@Test
@@ -46,6 +46,6 @@ class SmartUpdateRulesTest {
 			AppSettings.SMART_UPDATE_SKIP_UNSTARTED,
 			AppSettings.SMART_UPDATE_SKIP_UNREAD,
 		)
-		assertNull(smartUpdateSkipReason(all, MangaState.ONGOING, hasHistory = true, newChapters = 0))
+		assertNull(smartUpdateSkipReason(all, MangaState.ONGOING, hasProgress = true, newChapters = 0))
 	}
 }

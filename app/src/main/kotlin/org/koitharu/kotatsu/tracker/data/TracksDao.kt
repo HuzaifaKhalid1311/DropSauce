@@ -34,7 +34,7 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 			"OR (:trackFavourites AND manga_id IN (SELECT DISTINCT manga_id FROM favourites WHERE deleted_at = 0 " +
 			"AND category_id IN (SELECT category_id FROM favourite_categories WHERE (`track` = 1 OR download_new_chapters = 1) AND deleted_at = 0)))) " +
 			"AND (NOT :skipCompleted OR manga_id NOT IN (SELECT manga_id FROM manga WHERE state = 'FINISHED')) " +
-			"AND (NOT :skipUnstarted OR manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0)) " +
+			"AND (NOT :skipUnstarted OR manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0 AND percent > 0)) " +
 			"AND (NOT :skipUnread OR IFNULL(chapters_new, 0) = 0) " +
 			"ORDER BY last_check_time ASC LIMIT :limit OFFSET :offset",
 	)
