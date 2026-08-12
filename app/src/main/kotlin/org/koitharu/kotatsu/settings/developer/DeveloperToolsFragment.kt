@@ -25,8 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -83,6 +85,8 @@ class DeveloperToolsFragment : BaseComposeSettingsFragment(R.string.developer_te
 					state = state,
 					onRun = viewModel::runAll,
 					onCancel = viewModel::cancel,
+					onRunOne = viewModel::runOne,
+					onCancelOne = viewModel::cancelOne,
 					onOpenExtension = { sourceId ->
 						router.openList(MangaSource(sourceId), null, null)
 					},
@@ -97,6 +101,8 @@ private fun DeveloperToolsScreen(
 	state: DeveloperToolsUiState,
 	onRun: () -> Unit,
 	onCancel: () -> Unit,
+	onRunOne: (String) -> Unit,
+	onCancelOne: (String) -> Unit,
 	onOpenExtension: (String) -> Unit,
 ) {
 	val results = state.results
@@ -135,7 +141,7 @@ private fun DeveloperToolsScreen(
 						progress = { if (state.total == 0) 0f else state.completed.toFloat() / state.total },
 						modifier = Modifier.fillMaxWidth(),
 					)
-				} else if (results.isNotEmpty()) {
+				} else if (tested > 0) {
 					Text(
 						text = stringResource(
 							R.string.developer_tools_summary,
@@ -197,7 +203,7 @@ private fun DeveloperToolsScreen(
 
 		if (results.isEmpty() && !state.isRunning && state.errorMessage == null) {
 			item {
-				EmptyResults(hasRun = state.hasRun)
+				EmptyResults()
 			}
 		}
 
@@ -206,7 +212,10 @@ private fun DeveloperToolsScreen(
 				result = result,
 				shape = groupItemShape(index, results.size),
 				modifier = Modifier.padding(bottom = if (index == results.lastIndex) 12.dp else 3.dp),
+				isTestAllRunning = state.isRunning,
 				onOpenExtension = onOpenExtension,
+				onRunOne = onRunOne,
+				onCancelOne = onCancelOne,
 			)
 		}
 		}
@@ -214,7 +223,7 @@ private fun DeveloperToolsScreen(
 }
 
 @Composable
-private fun EmptyResults(hasRun: Boolean) {
+private fun EmptyResults() {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -229,10 +238,7 @@ private fun EmptyResults(hasRun: Boolean) {
 			modifier = Modifier.size(40.dp),
 		)
 		Text(
-			text = stringResource(when {
-				hasRun -> R.string.developer_tools_no_extensions
-				else -> R.string.developer_tools_empty_title
-			}),
+			text = stringResource(R.string.developer_tools_no_extensions),
 			style = MaterialTheme.typography.titleMedium,
 			fontWeight = FontWeight.SemiBold,
 			color = MaterialTheme.colorScheme.onSurface,
@@ -245,7 +251,10 @@ private fun ExtensionResultItem(
 	result: DeveloperExtensionTestResult,
 	shape: androidx.compose.ui.graphics.Shape,
 	modifier: Modifier = Modifier,
+	isTestAllRunning: Boolean,
 	onOpenExtension: (String) -> Unit,
+	onRunOne: (String) -> Unit,
+	onCancelOne: (String) -> Unit,
 ) {
 	var expanded by rememberSaveable(result.packageName) { mutableStateOf(false) }
 	val interactionSource = remember { MutableInteractionSource() }
@@ -322,6 +331,31 @@ private fun ExtensionResultItem(
 							color = statusColor,
 						)
 					}
+				}
+				val isTesting = result.status == DeveloperExtensionStatus.RUNNING
+				FilledTonalIconButton(
+					onClick = {
+						if (isTesting) onCancelOne(result.packageName) else onRunOne(result.packageName)
+					},
+					// While "test all" drives the whole list, per-row control would fight it.
+					enabled = !isTestAllRunning,
+					modifier = Modifier.size(40.dp),
+					colors = if (isTesting) {
+						IconButtonDefaults.filledTonalIconButtonColors(
+							containerColor = MaterialTheme.colorScheme.errorContainer,
+							contentColor = MaterialTheme.colorScheme.onErrorContainer,
+						)
+					} else {
+						IconButtonDefaults.filledTonalIconButtonColors()
+					},
+				) {
+					Icon(
+						painter = painterResource(if (isTesting) R.drawable.ic_close else R.drawable.ic_play),
+						contentDescription = stringResource(
+							if (isTesting) R.string.cancel_tests else R.string.test_extension,
+						),
+						modifier = Modifier.size(18.dp),
+					)
 				}
 				if (hasDetails) {
 					Icon(

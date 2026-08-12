@@ -110,13 +110,10 @@ class DeveloperExtensionTestRunner @Inject constructor(
 	private val imageLoader: ImageLoader,
 ) {
 
-	suspend fun run(
-		onPrepared: suspend (results: List<DeveloperExtensionTestResult>) -> Unit,
-		onStarted: suspend (packageName: String) -> Unit,
-		onResult: suspend (result: DeveloperExtensionTestResult) -> Unit,
-	): List<DeveloperExtensionTestResult> {
+	/** The extensions available for testing, one randomly picked catalogue source each. */
+	suspend fun prepareTargets(): List<SelectedExtensionTest<MihonMangaSource>> {
 		extensionManager.ensureReady()
-		val selected = selectOneSourcePerExtension(
+		return selectOneSourcePerExtension(
 			candidates = extensionManager.installedExtensions.value.map { extension ->
 				ExtensionTestCandidate(
 					packageName = extension.pkgName,
@@ -128,11 +125,22 @@ class DeveloperExtensionTestRunner @Inject constructor(
 			},
 			random = Random.Default,
 		).sortedBy { it.extensionName.lowercase() }
-		onPrepared(selected.map(::pendingResult))
+	}
+
+	fun pendingResultOf(target: SelectedExtensionTest<MihonMangaSource>) = pendingResult(target)
+
+	/** Runs the full suite for a single extension — the per-row test button. */
+	suspend fun test(target: SelectedExtensionTest<MihonMangaSource>) = testExtension(target)
+
+	suspend fun run(
+		targets: List<SelectedExtensionTest<MihonMangaSource>>,
+		onStarted: suspend (packageName: String) -> Unit,
+		onResult: suspend (result: DeveloperExtensionTestResult) -> Unit,
+	): List<DeveloperExtensionTestResult> {
 		val semaphore = Semaphore(MAX_CONCURRENT_EXTENSIONS)
 		val callbackMutex = Mutex()
 		return coroutineScope {
-			selected.map { target ->
+			targets.map { target ->
 				async {
 					semaphore.withPermit {
 						callbackMutex.withLock { onStarted(target.packageName) }
