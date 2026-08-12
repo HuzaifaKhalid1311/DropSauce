@@ -77,8 +77,6 @@ class DetailsExpressiveActivity :
 		WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isDarkTheme
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		supportActionBar?.setDisplayShowTitleEnabled(false)
-		viewBinding.statusBarScrim.blurTarget = viewBinding.swipeRefreshLayout
-
 		setupContent()
 		setupSwipeRefresh()
 

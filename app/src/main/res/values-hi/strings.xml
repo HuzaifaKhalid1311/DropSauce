@@ -166,7 +166,6 @@
     <string name="search_chapters">अध्याय खोजें</string>
     <string name="percent_string_pattern">%1$s%%</string>
     <string name="appearance">दिखावट</string>
-    <string name="preload_pages">पन्ने पहले से लोड करें</string>
     <string name="edit">संपादित करें</string>
     <string name="download_slowdown">धीमी गति से डाउनलोड करें</string>
     <string name="edit_category">श्रेणी संपादित करें</string>

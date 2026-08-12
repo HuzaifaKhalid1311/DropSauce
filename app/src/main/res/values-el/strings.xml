@@ -153,7 +153,6 @@
     <string name="show_pages_numbers">Αριθμημένες σελίδες</string>
     <string name="enabled">Ενεργοποιημένο</string>
     <string name="never">Ποτέ</string>
-    <string name="preload_pages">Προφόρτωση σελίδων</string>
     <string name="logged_in_as">Συνδέθηκες ως %s</string>
     <string name="always">Πάντα</string>
     <string name="various_languages">Διάφορες γλώσσες</string>

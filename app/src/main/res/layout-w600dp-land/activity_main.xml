@@ -34,15 +34,6 @@
 			app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
 			tools:layout="@layout/fragment_list" />
 
-		<org.koitharu.kotatsu.core.ui.widgets.StatusBarBlurView
-			android:id="@+id/statusBarScrim"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_gravity="top"
-			android:clickable="false"
-			android:focusable="false"
-			android:importantForAccessibility="no" />
-
 		<com.google.android.material.appbar.AppBarLayout
 			android:id="@+id/appbar"
 			android:layout_width="match_parent"

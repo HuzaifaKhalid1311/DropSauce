@@ -52,7 +52,6 @@
     <string name="black_dark_theme">Црна</string>
     <string name="black_dark_theme_summary">Троши мање енергије на AMOLED екранима</string>
     <string name="show_pages_numbers">Приказ бројева на страницама</string>
-    <string name="preload_pages">Преучитавање страница</string>
     <string name="appearance">Изглед</string>
     <string name="check_new_chapters_title">Провери да ли постоје нова поглавља и обавести ме</string>
     <string name="show_notification_new_chapters_on">Добићеш обавештења о ажурирањима манге коју читаш</string>

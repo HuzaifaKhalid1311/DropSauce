@@ -179,7 +179,6 @@
     <string name="never">Никогда</string>
     <string name="only_using_wifi">Только по Wi-Fi</string>
     <string name="always">Всегда</string>
-    <string name="preload_pages">Предварительная загрузка страниц</string>
     <string name="logged_in_as">Вы авторизованы как %s</string>
     <string name="various_languages">Разные языки</string>
     <string name="search_chapters">Найти главу</string>

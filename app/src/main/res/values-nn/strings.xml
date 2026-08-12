@@ -220,7 +220,6 @@
     <string name="never">Aldri</string>
     <string name="only_using_wifi">Berre på Wi-Fi</string>
     <string name="always">Alltid</string>
-    <string name="preload_pages">Hent sider på forhand</string>
     <string name="appearance">Utsjånaden</string>
     <string name="text_delete_local_manga_batch">Slett valde ting ifrå eininga di\?</string>
     <string name="logged_in_as">Logga inn som %s</string>

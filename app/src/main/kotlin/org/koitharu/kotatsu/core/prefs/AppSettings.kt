@@ -65,7 +65,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		if (!prefs.getBoolean(KEY_PRELOAD_POLICIES_RESET, false)) {
 			prefs.edit {
 				putString(KEY_PREFETCH_CONTENT, "1")
-				putString(KEY_PAGES_PRELOAD, "1")
 				putBoolean(KEY_PRELOAD_POLICIES_RESET, true)
 			}
 		}
@@ -329,10 +328,48 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_CHAPTER_JUMP_DIALOG, true)
 		set(value) = prefs.edit { putBoolean(KEY_CHAPTER_JUMP_DIALOG, value) }
 
-	val readerControls: Set<ReaderControl>
-		get() = prefs.getStringSet(KEY_READER_CONTROLS, null)?.mapNotNullTo(EnumSet.noneOf(ReaderControl::class.java)) {
-			ReaderControl.entries.find(it)
-		} ?: ReaderControl.DEFAULT
+	/**
+	 * The reader bottom bar layout: every control in the user's order, paired with whether it is
+	 * shown. Hidden controls keep their slot so re-enabling one puts it back where it was.
+	 * Serialized as a comma-separated list of names, hidden ones prefixed with '-'.
+	 */
+	var readerControlsLayout: List<Pair<ReaderControl, Boolean>>
+		get() {
+			val stored = prefs.getString(KEY_READER_CONTROLS, null)
+				?.split(',')
+				?.mapNotNull { token ->
+					val name = token.trim()
+					val control = ReaderControl.entries.find(name.removePrefix("-")) ?: return@mapNotNull null
+					control to !name.startsWith('-')
+				}
+				?.distinctBy { it.first }
+				.orEmpty()
+			val base = stored.ifEmpty { legacyReaderControlsLayout() }
+			// Controls introduced by a later version are appended, hidden.
+			val known = base.mapToSet { it.first }
+			return base + ReaderControl.entries.filterNot { it in known }.map { it to false }
+		}
+		set(value) = prefs.edit {
+			putString(KEY_READER_CONTROLS, value.joinToString(",") { (c, isShown) -> if (isShown) c.name else "-${c.name}" })
+		}
+
+	/** Just the controls the bar renders, left to right. */
+	val readerControls: List<ReaderControl>
+		get() = readerControlsLayout.mapNotNull { (control, isShown) -> control.takeIf { isShown } }
+
+	// Pre-ordering builds stored an unordered string set under a different key; read it once so an
+	// update does not silently reset a customised bar.
+	private fun legacyReaderControlsLayout(): List<Pair<ReaderControl, Boolean>> {
+		val legacy = runCatching {
+			prefs.getStringSet(KEY_READER_CONTROLS_LEGACY, null)
+		}.getOrNull()
+		val shown = if (legacy != null) {
+			ReaderControl.entries.filter { it.name in legacy }
+		} else {
+			ReaderControl.DEFAULT
+		}
+		return shown.map { it to true }
+	}
 
 	val isOfflineCheckDisabled: Boolean
 		get() = prefs.getBoolean(KEY_OFFLINE_DISABLED, false)
@@ -876,17 +913,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_READER_AUTOSCROLL_FAB, true)
 		set(value) = prefs.edit { putBoolean(KEY_READER_AUTOSCROLL_FAB, value) }
 
+	// Page preloading is always on (no user setting): the only thing that turns it off is the system
+	// restricting our background data.
 	val isPagesPreloadEnabled: Boolean
-		get() {
-			if (isBackgroundNetworkRestricted()) {
-				return false
-			}
-			val policy = NetworkPolicy.from(
-				prefs.getString(KEY_PAGES_PRELOAD, null),
-				NetworkPolicy.ALWAYS,
-			)
-			return policy.isNetworkAllowed(connectivityManager)
-		}
+		get() = !isBackgroundNetworkRestricted()
 
 	val is32BitColorsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_32BIT_COLOR, false)
@@ -1113,7 +1143,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_FEED_COUNTER_DOT = "feed_counter_dot"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"
 		const val KEY_READER_ANIMATION = "reader_animation2"
-		const val KEY_READER_CONTROLS = "reader_controls"
+		const val KEY_READER_CONTROLS = "reader_controls_order"
+		private const val KEY_READER_CONTROLS_LEGACY = "reader_controls"
 		const val KEY_READER_MODE = "reader_mode"
 		const val KEY_EPUB_FONT_SIZE = "epub_font_size"
 		const val KEY_EPUB_FONT_FAMILY = "epub_font_family"
@@ -1150,7 +1181,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_INCOGNITO_NSFW = "incognito_nsfw"
 		const val KEY_PAGES_NUMBERS = "pages_numbers"
 		const val KEY_SCREENSHOTS_POLICY = "screenshots_policy"
-		const val KEY_PAGES_PRELOAD = "pages_preload"
 		const val KEY_SUGGESTIONS = "suggestions"
 		const val KEY_SUGGESTIONS_WIFI_ONLY = "suggestions_wifi"
 		const val KEY_SUGGESTIONS_EXCLUDE_NSFW = "suggestions_exclude_nsfw"

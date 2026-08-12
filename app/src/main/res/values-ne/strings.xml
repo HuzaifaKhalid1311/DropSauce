@@ -169,7 +169,6 @@
     <string name="reset_filter">फिल्टर रिसेट गर्नुहोस्</string>
     <string name="only_using_wifi">Wi-Fi मा मात्र</string>
     <string name="always">सधैं</string>
-    <string name="preload_pages">प्रिलोड पृष्ठहरू</string>
     <string name="logged_in_as">%s को रूपमा लग इन गरियो</string>
     <string name="nsfw">१८+</string>
     <string name="percent_string_pattern">%1$s%%</string>

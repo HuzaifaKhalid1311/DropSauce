@@ -68,6 +68,30 @@ abstract class MangaDao {
 	abstract suspend fun findLegacyMangaWithUserData(): List<MangaWithTags>
 
 	/**
+	 * Already-migrated Mihon entries left holding an **absolute** url. Earlier builds of the
+	 * Kotatsu→Mihon migration copied the Kotatsu url verbatim, but a number of Kotatsu parsers store
+	 * the full url while Mihon extensions resolve `baseUrl + url` — so those entries can't be fetched
+	 * and their id doesn't match the one browsing the same source produces. A handful of Mihon
+	 * sources legitimately own absolute urls, so the caller confirms per-source before repairing.
+	 */
+	@Transaction
+	@Query(
+		"""
+		SELECT * FROM manga
+		WHERE source LIKE 'MIHON\_%' ESCAPE '\'
+			AND (url LIKE 'http://%' OR url LIKE 'https://%')
+			AND manga_id IN (
+				SELECT manga_id FROM favourites WHERE deleted_at = 0
+				UNION SELECT manga_id FROM history WHERE deleted_at = 0
+				UNION SELECT manga_id FROM bookmarks
+				UNION SELECT manga_id FROM tracks
+				UNION SELECT manga_id FROM scrobblings
+			)
+		""",
+	)
+	abstract suspend fun findMigratedMangaWithAbsoluteUrl(): List<MangaWithTags>
+
+	/**
 	 * Distinct external (`MIHON_<id>`) source names referenced by the user's library (favourites or
 	 * history). Used to recommend installing the matching extensions for migrated entries whose
 	 * extension isn't installed yet.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Explore "Suggestions" block: a Material 3 multi-browse carousel of cover posters
      (CarouselLayoutManager + MultiBrowseCarouselStrategy are set in code). -->
-<androidx.recyclerview.widget.RecyclerView
+<org.koitharu.kotatsu.core.ui.widgets.CarouselRecyclerView
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/recyclerView"

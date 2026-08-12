@@ -69,7 +69,6 @@
     <string name="yesterday">Tegnap</string>
     <string name="group">Csoport</string>
     <string name="always">Mindig</string>
-    <string name="preload_pages">Oldalak előtöltése</string>
     <string name="suggestions_excluded_genres_summary">Határozz meg műfajokat, amiket nem akarsz látni a javaslatokban</string>
     <string name="canceled">Megszakítva</string>
     <string name="clear_pages_cache">Oldal gyorsítótár törlése</string>

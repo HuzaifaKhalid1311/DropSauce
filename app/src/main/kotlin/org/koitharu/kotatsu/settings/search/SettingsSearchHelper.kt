@@ -160,7 +160,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_WEBTOON_GAPS, R.string.webtoon_gaps, R.string.webtoon_gaps_summary, crumbs, ReaderSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Controls") { crumbs ->
-				addItem(AppSettings.KEY_READER_CONTROLS, R.string.reader_controls_in_bottom_bar, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_controls))
+				addItem(AppSettings.KEY_READER_CONTROLS, R.string.reader_controls_in_bottom_bar, R.string.reader_controls_in_bottom_bar_summary, crumbs, ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_controls))
 				addItem("reader_tap_actions", R.string.reader_actions, R.string.reader_actions_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_CONTROL_LTR, R.string.reader_control_ltr, R.string.reader_control_ltr_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_VOLUME_BUTTONS, R.string.switch_pages_volume_buttons, R.string.switch_pages_volume_buttons_summary, crumbs, ReaderSettingsFragment::class.java)
@@ -205,7 +205,6 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, "Network") { crumbs ->
 				addItem(AppSettings.KEY_PREFETCH_CONTENT, R.string.prefetch_content, breadcrumbs = crumbs, fragmentClass = StorageAndNetworkSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.network_policy))
-				addItem(AppSettings.KEY_PAGES_PRELOAD, R.string.preload_pages, breadcrumbs = crumbs, fragmentClass = StorageAndNetworkSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.network_policy))
 				addItem("proxy", R.string.proxy, breadcrumbs = crumbs, fragmentClass = ProxySettingsFragment::class.java)
 				addItem(AppSettings.KEY_PROXY_TYPE, R.string.type, breadcrumbs = crumbs + ctx.getString(R.string.proxy), fragmentClass = ProxySettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.proxy_types))
 				addItem(AppSettings.KEY_PROXY_ADDRESS, R.string.address, breadcrumbs = crumbs + ctx.getString(R.string.proxy), fragmentClass = ProxySettingsFragment::class.java)

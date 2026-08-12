@@ -234,8 +234,28 @@ class ReaderActionsView @JvmOverloads constructor(
 		binding.buttonBookmark.isVisible = ReaderControl.BOOKMARK in controls
 		binding.buttonOptions.isVisible = isLandscape
 		binding.slider.isVisible = ReaderControl.SLIDER in controls
+		// bringChildToFront moves a child to the end of the child list, so walking the ordered
+		// list left to right leaves the children in exactly that order. Options stays pinned last.
+		for (control in controls) {
+			bringChildToFront(control.view())
+		}
+		bringChildToFront(binding.buttonOptions.slot())
 		adjustLayoutParams()
 	}
+
+	/** The direct child of this LinearLayout that hosts the given control. */
+	private fun ReaderControl.view(): View = when (this) {
+		ReaderControl.PREV_CHAPTER -> binding.buttonPrev.slot()
+		ReaderControl.NEXT_CHAPTER -> binding.buttonNext.slot()
+		ReaderControl.SLIDER -> binding.slider
+		ReaderControl.PAGES_SHEET -> binding.buttonPagesThumbs.slot()
+		ReaderControl.SCREEN_ROTATION -> binding.buttonScreenRotation.slot()
+		ReaderControl.SAVE_PAGE -> binding.buttonSave.slot()
+		ReaderControl.TIMER -> binding.buttonTimer.slot()
+		ReaderControl.BOOKMARK -> binding.buttonBookmark.slot()
+	}
+
+	private fun View.slot(): View = parent as View
 
 	private fun updatePagesSheetButton() {
 		val button = binding.buttonPagesThumbs

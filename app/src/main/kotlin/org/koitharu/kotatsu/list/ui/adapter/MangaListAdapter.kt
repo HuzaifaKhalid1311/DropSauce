@@ -31,7 +31,6 @@ open class MangaListAdapter(
 		addDelegate(ListItemType.STATE_ERROR, errorStateListAD(listener))
 		addDelegate(ListItemType.FOOTER_ERROR, errorFooterAD(listener))
 		addDelegate(ListItemType.STATE_EMPTY, emptyStateListAD(listener))
-		addDelegate(ListItemType.HINT_EMPTY, emptyHintAD(listener))
 		addDelegate(ListItemType.HEADER, listHeaderAD(listener))
 		addDelegate(ListItemType.QUICK_FILTER, quickFilterAD(listener))
 		addDelegate(ListItemType.TIP, tipAD(listener, onTipClose))

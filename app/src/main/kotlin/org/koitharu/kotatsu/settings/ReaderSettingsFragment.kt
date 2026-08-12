@@ -25,17 +25,17 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderAnimation
 import org.koitharu.kotatsu.core.prefs.ReaderBackground
-import org.koitharu.kotatsu.core.prefs.ReaderControl
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.ui.util.ActivityRecreationHandle
-import org.koitharu.kotatsu.parsers.util.mapToSet
 import javax.inject.Inject
 import org.koitharu.kotatsu.parsers.util.names
+import org.koitharu.kotatsu.settings.reader.ReaderBarSettingsFragment
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
+import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -62,6 +62,13 @@ class ReaderSettingsFragment : BaseComposeSettingsFragment(R.string.reader_setti
 			DropSauceTheme {
 				ReaderScreen(
 					onTapActions = router::openReaderTapGridSettings,
+					onReaderBar = {
+						(activity as? SettingsActivity)?.openFragment(
+							ReaderBarSettingsFragment::class.java,
+							null,
+							isFromRoot = false,
+						)
+					},
 				)
 			}
 		}
@@ -76,6 +83,7 @@ class ReaderSettingsFragment : BaseComposeSettingsFragment(R.string.reader_setti
 @Composable
 private fun ReaderScreen(
 	onTapActions: () -> Unit,
+	onReaderBar: () -> Unit,
 ) {
 	val ctx = LocalContext.current
 	val colors = CategoryPalette.forKey("reader")
@@ -85,8 +93,6 @@ private fun ReaderScreen(
 	val readerModeValues = remember { ReaderMode.entries.names().toList() }
 	val zoomModeEntries = remember { ctx.resources.getStringArray(R.array.zoom_modes).toList() }
 	val zoomModeValues = remember { ZoomMode.entries.names().toList() }
-	val readerControlEntries = remember { ctx.resources.getStringArray(R.array.reader_controls).toList() }
-	val readerControlValues = remember { ReaderControl.entries.names().toList() }
 	val readerAnimationEntries = remember { ctx.resources.getStringArray(R.array.reader_animation).toList() }
 	val readerAnimationValues = remember { ReaderAnimation.entries.names().toList() }
 	val readerBackgroundEntries = remember { ctx.resources.getStringArray(R.array.reader_backgrounds).toList() }
@@ -109,10 +115,6 @@ private fun ReaderScreen(
 	var readerZoomButtons by rememberBooleanPref(AppSettings.KEY_READER_ZOOM_BUTTONS, false)
 	var webtoonZoomOut by rememberIntPref(AppSettings.KEY_WEBTOON_ZOOM_OUT, 0)
 	var webtoonGaps by rememberBooleanPref(AppSettings.KEY_WEBTOON_GAPS, false)
-	var readerControls by rememberStringSetPref(
-		AppSettings.KEY_READER_CONTROLS,
-		ReaderControl.DEFAULT.mapToSet { it.name },
-	)
 	var readerTapsLtr by rememberBooleanPref(AppSettings.KEY_READER_CONTROL_LTR, false)
 	var readerVolumeButtons by rememberBooleanPref(AppSettings.KEY_READER_VOLUME_BUTTONS, false)
 	var readerNavigationInverted by rememberBooleanPref(AppSettings.KEY_READER_NAVIGATION_INVERTED, false)
@@ -237,15 +239,12 @@ private fun ReaderScreen(
 		item {
 			SettingsGroup(title = "Controls") {
 				item { pos ->
-					MultiSelectSettingsItem(
+					NavigationSettingsItem(
 						title = stringResource(R.string.reader_controls_in_bottom_bar),
-						entries = readerControlEntries,
-						entryValues = readerControlValues,
-						selectedValues = readerControls,
-						onValuesChange = { readerControls = it },
+						subtitle = stringResource(R.string.reader_controls_in_bottom_bar_summary),
 						icon = R.drawable.ic_tap,
-						
 						shape = pos.shape,
+						onClick = onReaderBar,
 					)
 				}
 				item { pos ->

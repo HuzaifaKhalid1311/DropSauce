@@ -201,7 +201,6 @@
     <string name="never">ไม่เคย</string>
     <string name="only_using_wifi">ใช้ Wi-Fi เท่านั้น</string>
     <string name="always">ตลอด</string>
-    <string name="preload_pages">โหลดหน้าล่วงหน้า</string>
     <string name="percent_string_pattern">%1$s%%</string>
     <string name="text_delete_local_manga_batch">ลบรายการที่เลือกออกจากอุปกรณ์อย่างถาวรไหม\?</string>
     <string name="removal_completed">การลบเสร็จสมบูรณ์</string>

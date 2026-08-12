@@ -169,7 +169,6 @@
     <string name="disabled">Désactivé</string>
     <string name="only_using_wifi">Uniquement en Wi-Fi</string>
     <string name="always">Toujours</string>
-    <string name="preload_pages">Précharger les pages</string>
     <string name="never">Jamais</string>
     <string name="reset_filter">Réinitialiser le filtre</string>
     <string name="logged_in_as">Connecté en tant que %s</string>
