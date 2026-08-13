@@ -81,12 +81,13 @@ fun MultiSelectSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	emptySummary: String? = null,
 ) {
 	var showDialog by remember { mutableStateOf(false) }
 	val selectedIndices = entryValues
 		.mapIndexedNotNull { i, v -> if (v in selectedValues) i else null }
 		.toSet()
-	val summary = selectedIndices.joinToString { entries[it] }.ifEmpty { null }
+	val summary = selectedIndices.joinToString { entries[it] }.ifEmpty { emptySummary }
 
 	SettingsItem(
 		title = title,

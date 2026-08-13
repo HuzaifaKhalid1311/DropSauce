@@ -70,9 +70,13 @@ class TrackingRepository @Inject constructor(
 	}
 
 	suspend fun getTracks(offset: Int, limit: Int): List<MangaTracking> {
+		val smartUpdateRules = settings.trackerSmartUpdateRules
 		return db.getTracksDao().findAllForChecking(
 			trackHistory = AppSettings.TRACK_HISTORY in settings.trackSources,
 			trackFavourites = AppSettings.TRACK_FAVOURITES in settings.trackSources,
+			skipCompleted = AppSettings.SMART_UPDATE_SKIP_COMPLETED in smartUpdateRules,
+			skipUnstarted = AppSettings.SMART_UPDATE_SKIP_UNSTARTED in smartUpdateRules,
+			skipUnread = AppSettings.SMART_UPDATE_SKIP_UNREAD in smartUpdateRules,
 			offset = offset,
 			limit = limit,
 		).map {

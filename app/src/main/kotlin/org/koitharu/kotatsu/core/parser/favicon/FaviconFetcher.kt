@@ -20,13 +20,16 @@ import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.util.ext.fetch
+import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+import org.koitharu.kotatsu.parsers.model.MangaSource as ParsedMangaSource
 import javax.inject.Inject
+import javax.inject.Provider
 import java.io.File
 import coil3.Uri as CoilUri
 
@@ -36,16 +39,21 @@ class FaviconFetcher(
 	private val imageLoader: ImageLoader,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val mihonExtensionManager: MihonExtensionManager,
+	private val lnPluginManagerProvider: Provider<LnPluginManager>,
 ) : Fetcher {
 
 	override suspend fun fetch(): FetchResult? {
-		val mangaSource = MangaSource(uri.schemeSpecificPart)
+		val ssp = uri.schemeSpecificPart
+		if (ssp.startsWith(FAVICON_PACKAGE_PREFIX)) {
+			return fetchPackageIcon(ssp.removePrefix(FAVICON_PACKAGE_PREFIX))
+		}
+		val mangaSource = MangaSource(ssp)
 		// A novel plugin ships its icon as a plain url, so coil fetches it like any other image.
-		(mangaSource as? LnMangaSource)?.let { ln ->
+		resolveLnSource(mangaSource, ssp)?.let { ln ->
 			val icon = ln.plugin.iconUrl.takeIf { it.isNotEmpty() } ?: R.drawable.ic_manga_source
 			return imageLoader.fetch(icon, options)
 		}
-		resolveMihonSource(uri.schemeSpecificPart)?.let { return fetchMihonIcon(it) }
+		resolveMihonSource(ssp)?.let { return fetchMihonIcon(it) }
 
 		return when (val repo = mangaRepositoryFactory.create(mangaSource)) {
 			is MihonMangaRepository -> fetchMihonIcon(repo)
@@ -77,15 +85,17 @@ class FaviconFetcher(
 		return fetchMihonIcon(repository.source)
 	}
 
-	private suspend fun fetchMihonIcon(source: MihonMangaSource): FetchResult {
+	private suspend fun fetchMihonIcon(source: MihonMangaSource): FetchResult = fetchPackageIcon(source.pkgName)
+
+	private suspend fun fetchPackageIcon(pkgName: String): FetchResult {
 		val icon = runCatching {
 			runInterruptible {
-				options.context.packageManager.getApplicationIcon(source.pkgName)
+				options.context.packageManager.getApplicationIcon(pkgName)
 			}
 		}.getOrNull() ?: runCatching {
 			runInterruptible {
 				val ctx = options.context
-				val extFile = File(MihonExtensionLoader.getPrivateExtensionDir(ctx), "${source.pkgName}.ext")
+				val extFile = File(MihonExtensionLoader.getPrivateExtensionDir(ctx), "$pkgName.ext")
 				if (!extFile.isFile) return@runInterruptible null
 				val pm = ctx.packageManager
 				@Suppress("DEPRECATION")
@@ -104,6 +114,22 @@ class FaviconFetcher(
 		)
 	}
 
+	/**
+	 * `MangaSource(name)` resolves `LN_*` through [LnPluginManager]'s static handle, which is null
+	 * until something injects the singleton — so on a cold start every novel plugin resolved to a
+	 * [org.koitharu.kotatsu.core.model.MissingMangaSource] and fell through to the generic icon.
+	 * Injecting the manager here (lazily: its constructor builds the JS host, which must not happen
+	 * on the main thread) makes the lookup work from the first icon onwards.
+	 */
+	private fun resolveLnSource(mangaSource: ParsedMangaSource, name: String): LnMangaSource? {
+		(mangaSource as? LnMangaSource)?.let { return it }
+		if (!name.startsWith("LN_")) return null
+		return lnPluginManagerProvider.get().run {
+			initialize()
+			getById(name.removePrefix("LN_"))
+		}
+	}
+
 	private suspend fun resolveMihonSource(name: String): MihonMangaSource? {
 		if (!name.startsWith("MIHON_")) return null
 		mihonExtensionManager.ensureReady()
@@ -119,6 +145,7 @@ class FaviconFetcher(
 	class Factory @Inject constructor(
 		private val mangaRepositoryFactory: MangaRepository.Factory,
 		private val mihonExtensionManager: MihonExtensionManager,
+		private val lnPluginManagerProvider: Provider<LnPluginManager>,
 	) : Fetcher.Factory<CoilUri> {
 
 		override fun create(
@@ -132,6 +159,7 @@ class FaviconFetcher(
 				imageLoader = imageLoader,
 				mangaRepositoryFactory = mangaRepositoryFactory,
 				mihonExtensionManager = mihonExtensionManager,
+				lnPluginManagerProvider = lnPluginManagerProvider,
 			)
 		} else {
 			null

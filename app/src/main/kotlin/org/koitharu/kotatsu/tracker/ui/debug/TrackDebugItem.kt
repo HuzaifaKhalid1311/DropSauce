@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.tracker.ui.debug
 
+import androidx.annotation.StringRes
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
@@ -12,6 +13,7 @@ data class TrackDebugItem(
 	val lastChapterDate: Instant?,
 	val lastResult: Int,
 	val lastError: String?,
+	@StringRes val skipReasonRes: Int? = null,
 ) : ListModel {
 
 	override fun areItemsTheSame(other: ListModel): Boolean {

@@ -73,6 +73,10 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT manga_id FROM history WHERE deleted_at = 0")
 	abstract suspend fun findAllIds(): LongArray
 
+	/** Manga actually started, i.e. with reading progress above zero. */
+	@Query("SELECT manga_id FROM history WHERE deleted_at = 0 AND percent > 0")
+	abstract suspend fun findStartedIds(): LongArray
+
 	@Query(
 		"""SELECT tags.* FROM tags
 		LEFT JOIN manga_tags ON tags.tag_id = manga_tags.tag_id

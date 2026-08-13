@@ -247,12 +247,19 @@ class MainNavigationDelegate(
 		val current = primaryFragment
 		val transaction = fragmentManager.beginTransaction()
 			.setReorderingAllowed(true)
-			.setCustomAnimations(
+		// Favourites puts its category tabs into the activity's app bar, which makes the app bar taller
+		// and pushes the fragment container down by the tab strip's height. With a crossfade the still
+		// visible outgoing screen slides along with it, which reads as a flicker, so swap instantly here.
+		val involvesFavourites = fragmentClass == FavouritesContainerFragment::class.java ||
+			current is FavouritesContainerFragment
+		if (!involvesFavourites) {
+			transaction.setCustomAnimations(
 				R.anim.m3_fade_through_enter,
 				R.anim.m3_fade_through_exit,
 				R.anim.m3_fade_through_pop_enter,
 				R.anim.m3_fade_through_pop_exit,
 			)
+		}
 		if (current != null) {
 			transaction.hide(current)
 			transaction.setMaxLifecycle(current, Lifecycle.State.STARTED)

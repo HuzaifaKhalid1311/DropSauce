@@ -83,11 +83,6 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 
 	override fun onHiddenChanged(hidden: Boolean) {
 		super.onHiddenChanged(hidden)
-		if (hidden) {
-			detachTabsFromAppBar()
-		} else {
-			attachTabsToAppBar()
-		}
 		if (!hidden) {
 			// This tab is kept alive across bottom-nav switches, so its category lists would retain
 			// their previous scroll. Reset every instantiated category page (the visible one plus any
@@ -148,7 +143,10 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 
 	// The category tabs live in the activity's AppBarLayout while this tab is visible, so they scroll
 	// off-screen together with the search bar instead of being pinned above the (edge-to-edge) lists.
-	private fun attachTabsToAppBar() {
+	// Called by MainActivity at bottom-nav commit time, not from onHiddenChanged: that callback is only
+	// delivered after the tab-switch animation finishes, so the app bar would grow by the tab strip's
+	// height a frame after the crossfade ended and visibly shove the list down.
+	fun attachTabsToAppBar() {
 		val tabs = viewBinding?.tabs ?: return
 		val appBar = (activity as? AppBarOwner)?.appBar ?: return
 		if (tabs.parent === appBar) {
@@ -168,7 +166,7 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 		)
 	}
 
-	private fun detachTabsFromAppBar() {
+	fun detachTabsFromAppBar() {
 		val tabs = viewBinding?.tabs ?: return
 		val parent = tabs.parent as? ViewGroup ?: return
 		if (parent !== viewBinding?.root) {

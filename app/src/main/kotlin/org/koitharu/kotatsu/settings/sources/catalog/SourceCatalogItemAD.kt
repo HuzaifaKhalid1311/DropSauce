@@ -8,6 +8,7 @@ import com.google.android.material.shape.CornerFamily
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSource
+import org.koitharu.kotatsu.core.parser.favicon.extensionPackageFaviconUri
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
@@ -102,7 +103,18 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewIcon.applyExternalSourceStyle(true)
 		val sourceIconName = item.sourceIconName
 		val iconUrl = item.iconUrl
-		if (iconUrl != null) {
+		// An installed APK extension carries its icon inside itself, so read it from there rather
+		// than from the repo's icon url: that url needs the network, and survives only as long as
+		// the shared thumbnail disk cache doesn't evict it — which is why installed rows dropped to
+		// the letter placeholder at random. Novel plugins are not packages (their icon only ever
+		// exists as a url), so they keep the url path.
+		val isLnPlugin = sourceIconName?.startsWith("LN_") == true
+		if (isInstalled && !isLnPlugin) {
+			binding.imageViewIcon.setImageFromUrlAsync(
+				url = extensionPackageFaviconUri(item.packageName),
+				fallbackName = sourceIconName ?: item.packageName,
+			)
+		} else if (iconUrl != null) {
 			binding.imageViewIcon.setImageFromUrlAsync(
 				url = iconUrl,
 				fallbackName = sourceIconName ?: item.packageName,

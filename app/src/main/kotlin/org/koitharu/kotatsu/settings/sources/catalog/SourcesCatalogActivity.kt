@@ -125,13 +125,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private var pendingReplacementDownloadId: Long? = null
 	private lateinit var pagesAdapter: SourcesCatalogPagesAdapter
 	private var selectedPageId = ExtensionCatalogPage.Available.id
-	private val storagePermissionRequest = registerForActivityResult(
-		ActivityResultContracts.RequestPermission(),
-	) { granted ->
-		if (granted) {
-			processInstallQueue()
-		}
-	}
 	private val installPermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
 		if (!canInstallPackages()) {
 			Toast.makeText(this, R.string.extension_install_permission_required_message, Toast.LENGTH_LONG).show()
@@ -557,13 +550,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			requestInstallPackagesPermission()
 			return
 		}
-		val nextRequest = pendingInstallQueue.removeFirstOrNull() ?: return
-		if (!nextRequest.isNovelPlugin && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-			storagePermissionRequest.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-			pendingInstallQueue.addFirst(nextRequest)
-		} else {
-			downloadAndInstallExtension(nextRequest)
-		}
+		// The apk lands in getExternalFilesDir(), which is app-scoped and needs no storage permission
+		// on any API level — an extra pre-Q permission round-trip here only spun forever.
+		downloadAndInstallExtension(pendingInstallQueue.removeFirstOrNull() ?: return)
 	}
 
 	private fun downloadAndInstallExtension(requestModel: SourcesCatalogViewModel.InstallRequest) {

@@ -813,6 +813,7 @@
     <string name="long_ago_read">Long time ago read</string>
     <string name="unread">Unread</string>
     <string name="unsupported_source">This manga source is not supported</string>
+    <string name="source_not_installed">This extension is not installed, so its catalog cannot be opened. Install it from Extensions to browse this source.</string>
     <string name="install_extension_to_read_manga">Install the extension to read this manga</string>
     <string name="install_extension_mentioned_above_to_read">Install the extension mentioned above to read</string>
     <string name="show_pages_thumbs">Show pages thumbnails</string>
@@ -1130,6 +1131,20 @@
     <string name="manage_extensions">Manage extensions</string>
     <string name="manage_extensions_summary">Add, remove or update extensions</string>
     <string name="nsfw_filter">NSFW filter</string>
+	<string name="developer_testing_tools">Developer testing tools</string>
+	<string name="developer_testing_tools_summary">Test installed extensions</string>
+	<string name="test_all_extensions">Test all extensions</string>
+	<string name="cancel_tests">Cancel tests</string>
+	<string name="test_extension">Test this extension</string>
+	<string name="developer_tools_no_extensions">No installed extensions were found.</string>
+	<string name="developer_tools_progress">%1$d of %2$d extensions tested</string>
+	<string name="developer_tools_summary">%1$d tested · %2$d passed · %3$d blocked · %4$d errors</string>
+	<string name="developer_status_pending">Pending</string>
+	<string name="developer_status_running">Testing</string>
+	<string name="developer_status_blocked">Blocked</string>
+	<string name="developer_status_error">Error</string>
+	<string name="developer_status_passed">Passed</string>
+    <string name="developer_status_skipped">Skipped</string>
     <string name="private_extensions">Sandbox extensions</string>
     <string name="private_extensions_summary">Install extensions inside the app\'s sandboxed storage. No system install permissions needed, updates are automatic, and extensions are invisible to other apps.</string>
     <string name="private_extensions_enabled">Sandbox mode is on</string>
@@ -1152,4 +1167,14 @@
     <string name="action_add_anyway">Add anyway</string>
     <string name="action_add_all_anyway">Add all anyway</string>
     <string name="action_view_existing">View existing</string>
+
+    <!-- Smart update -->
+    <string name="smart_update">Smart update</string>
+    <string name="smart_update_summary">Check everything</string>
+    <string name="smart_update_completed">Skip completed (never checked again)</string>
+    <string name="smart_update_unstarted">Skip not started yet</string>
+    <string name="smart_update_unread">Skip while new chapters are unread</string>
+    <string name="smart_update_skip_completed">Skipped: completed</string>
+    <string name="smart_update_skip_unstarted">Skipped: not started</string>
+    <string name="smart_update_skip_unread">Skipped: unread chapters</string>
 </resources>
