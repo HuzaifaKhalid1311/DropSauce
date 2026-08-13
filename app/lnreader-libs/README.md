@@ -7,7 +7,7 @@ To regenerate:
 
 ```bash
 npm install cheerio@1.0.0-rc.12 htmlparser2 dayjs @noble/ciphers esbuild
-npx esbuild entry.mjs --bundle --outfile=../../app/src/main/assets/lnreader-libs.js \
+npx esbuild entry.mjs --bundle --outfile=../src/main/assets/lnreader-libs.js \
   --format=iife --platform=browser --target=es2020 --minify --define:global=globalThis
 ```
 

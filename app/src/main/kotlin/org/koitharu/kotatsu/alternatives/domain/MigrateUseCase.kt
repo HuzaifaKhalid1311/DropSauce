@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.details.domain.ProgressUpdateUseCase
 import org.koitharu.kotatsu.history.data.HistoryEntity
 import org.koitharu.kotatsu.history.data.toMangaHistory
-import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
@@ -48,13 +47,35 @@ constructor(
 			val favoritesDao = database.getFavouritesDao()
 			val oldFavourites = favoritesDao.findAllRaw(oldDetails.id)
 			if (oldFavourites.isNotEmpty()) {
-				favoritesDao.delete(oldManga.id)
+				favoritesDao.delete(oldDetails.id)
 				for (f in oldFavourites) {
 					val e =
 						f.copy(
-							mangaId = newManga.id,
+							mangaId = newDetails.id,
 						)
 					favoritesDao.upsert(e)
+				}
+			}
+			// per-manga preferences: reading mode, colour filter, title/cover overrides
+			val preferencesDao = database.getPreferencesDao()
+			preferencesDao.find(oldDetails.id)?.let { prefs ->
+				preferencesDao.delete(oldDetails.id)
+				preferencesDao.upsert(prefs.copy(mangaId = newDetails.id))
+			}
+			// bookmarks, re-pointed at the matching chapter of the new source
+			val bookmarksDao = database.getBookmarksDao()
+			val oldBookmarks = bookmarksDao.findAll(oldDetails.id)
+			if (oldBookmarks.isNotEmpty()) {
+				val chapterIds = mapChapterIds(oldDetails, newDetails)
+				// The page id and thumbnail belong to the old source and can't be recomputed, but the
+				// reader finds a bookmark by manga + chapter + page, so those keep working.
+				val migrated = oldBookmarks.mapNotNull { bookmark ->
+					val newChapterId = chapterIds[bookmark.chapterId] ?: return@mapNotNull null
+					bookmark.copy(mangaId = newDetails.id, chapterId = newChapterId)
+				}
+				bookmarksDao.deleteAll(oldDetails.id)
+				if (migrated.isNotEmpty()) {
+					bookmarksDao.upsert(migrated)
 				}
 			}
 			// replace history
@@ -176,10 +197,38 @@ constructor(
 			chapterId = newChapterId,
 			page = history.page,
 			scroll = history.scroll,
-			percent = PROGRESS_NONE,
+			// Keep the progress the reader already earned; the equivalent chapter was just found above,
+			// so resetting it here would wipe the progress bar for no reason.
+			percent = history.percent,
 			deletedAt = 0,
 			chaptersCount = checkNotNull(newChapters[newBranch]).size,
 		)
+	}
+
+	/**
+	 * Old chapter id -> new chapter id, matched by volume and chapter number across every branch.
+	 * Chapters with no counterpart are simply absent, so callers drop whatever hangs off them.
+	 */
+	private fun mapChapterIds(
+		oldManga: Manga,
+		newManga: Manga,
+	): Map<Long, Long> {
+		val newChapters = newManga.chapters
+		if (newChapters.isNullOrEmpty()) {
+			return emptyMap()
+		}
+		val byNumber = HashMap<Pair<Int, Float>, Long>(newChapters.size)
+		for (chapter in newChapters) {
+			if (chapter.number > 0f) {
+				byNumber.putIfAbsent(chapter.volume to chapter.number, chapter.id)
+			}
+		}
+		val oldChapters = oldManga.chapters ?: return emptyMap()
+		val result = HashMap<Long, Long>(oldChapters.size)
+		for (chapter in oldChapters) {
+			byNumber[chapter.volume to chapter.number]?.let { result[chapter.id] = it }
+		}
+		return result
 	}
 
 	private fun List<MangaChapter>.findByNumber(

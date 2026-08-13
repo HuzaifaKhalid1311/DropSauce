@@ -48,6 +48,9 @@ abstract class BookmarksDao {
 	@Query("DELETE FROM bookmarks WHERE page_id = :pageId")
 	abstract suspend fun delete(pageId: Long): Int
 
+	@Query("DELETE FROM bookmarks WHERE manga_id = :mangaId")
+	abstract suspend fun deleteAll(mangaId: Long): Int
+
 	@Query("DELETE FROM bookmarks WHERE manga_id = :mangaId AND chapter_id = :chapterId AND page = :page")
 	abstract suspend fun delete(mangaId: Long, chapterId: Long, page: Int): Int
 

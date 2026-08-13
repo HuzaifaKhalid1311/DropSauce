@@ -32,4 +32,8 @@
 		<item quantity="one">%1$d minute</item>
 		<item quantity="other">%1$d minutes</item>
 	</plurals>
+	<plurals name="duplicates_remaining">
+		<item quantity="one">%1$d more title to review</item>
+		<item quantity="other">%1$d more titles to review</item>
+	</plurals>
 </resources>

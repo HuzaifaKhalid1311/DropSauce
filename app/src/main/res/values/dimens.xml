@@ -6,6 +6,8 @@
 	<!-- Below this, an empty state stops being vertically centered and just wraps its content. -->
 	<dimen name="empty_state_min_height">320dp</dimen>
 	<dimen name="margin_small">8dp</dimen>
+	<!-- Top corner radius of the expressive pull-up sheets, applied in code (see DuplicatesSheet). -->
+	<dimen name="sheet_corner_expressive">32dp</dimen>
 	<!-- List spacing -->
 	<dimen name="list_spacing_small">6dp</dimen>
 	<dimen name="list_spacing_normal">8dp</dimen>

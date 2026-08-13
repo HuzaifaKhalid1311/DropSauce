@@ -139,6 +139,7 @@ private fun ReaderScreen(
 	)
 	var pagesNumbers by rememberBooleanPref(AppSettings.KEY_PAGES_NUMBERS, false)
 	var titleTapToRead by rememberBooleanPref(AppSettings.KEY_TITLE_TAP_TO_READ, false)
+	var checkDuplicates by rememberBooleanPref(AppSettings.KEY_CHECK_DUPLICATES, true)
 
 	val isWebtoonMode = readerMode == ReaderMode.WEBTOON.name
 
@@ -176,6 +177,17 @@ private fun ReaderScreen(
 						checked = titleTapToRead,
 						onCheckedChange = { titleTapToRead = it },
 						icon = R.drawable.ic_read,
+
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.duplicates_check),
+						subtitle = stringResource(R.string.duplicates_check_summary),
+						checked = checkDuplicates,
+						onCheckedChange = { checkDuplicates = it },
+						icon = R.drawable.ic_duplicate,
 
 						shape = pos.shape,
 					)

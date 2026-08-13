@@ -798,6 +798,17 @@
     <string name="empty_stats_text">There are no statistics for the selected period</string>
     <string name="pages_read_s">Pages read: %s</string>
     <string name="alternatives">Alternatives</string>
+    <string name="duplicates_title">Already in your library</string>
+    <string name="duplicates_summary">\"%1$s\" looks like something you already have.</string>
+    <string name="duplicates_add_anyway">Add anyway</string>
+    <string name="duplicates_skip">Don\'t add</string>
+    <string name="duplicates_replaced">Replaced %1$s: %2$s → %3$s</string>
+    <string name="duplicates_stop_checking">Stop checking for duplicates</string>
+    <string name="duplicates_check">Check for duplicates</string>
+    <string name="duplicates_check_summary">Warn when a title you are adding is already in your library</string>
+    <string name="replace">Replace</string>
+    <string name="replace_unavailable">Can\'t replace</string>
+    <string name="preview">Preview</string>
     <string name="migrate">Migrate</string>
     <string name="migrate_confirmation">Manga \"%1$s\" from \"%2$s\" will be replaced with \"%3$s\" from \"%4$s\" in your history and favorites (if present)</string>
     <string name="manga_migration">Manga migration</string>

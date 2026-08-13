@@ -102,7 +102,7 @@ class AlternativesActivity : BaseActivity<ActivityAlternativesBinding>(),
 
 	private fun confirmMigration(target: Manga) {
 		buildAlertDialog(this, isCentered = true) {
-			setIcon(R.drawable.ic_replace)
+			setIcon(R.drawable.ic_swap)
 			setTitle(R.string.manga_migration)
 			setMessage(
 				getString(

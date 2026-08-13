@@ -21,6 +21,18 @@ abstract class ScrobblingDao {
 	@Query("SELECT * FROM scrobblings WHERE manga_id = :mangaId")
 	abstract suspend fun findAll(mangaId: Long): List<ScrobblingEntity>
 
+	/**
+	 * Other manga linked to the very same remote entry on the same tracker — a definite duplicate,
+	 * whatever the titles happen to look like. Mirrors mihon's `track_dupes` CTE.
+	 */
+	@Query(
+		"SELECT DISTINCT s2.manga_id FROM scrobblings s1 " +
+			"INNER JOIN scrobblings s2 ON s1.scrobbler = s2.scrobbler " +
+			"AND s1.target_id = s2.target_id AND s1.manga_id != s2.manga_id " +
+			"WHERE s1.manga_id = :mangaId",
+	)
+	abstract suspend fun findLinkedMangaIds(mangaId: Long): LongArray
+
 	@Upsert
 	abstract suspend fun upsert(entity: ScrobblingEntity)
 

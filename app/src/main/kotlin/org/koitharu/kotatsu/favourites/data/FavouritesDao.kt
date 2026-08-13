@@ -41,6 +41,27 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT manga.* FROM favourites LEFT JOIN manga ON manga.manga_id = favourites.manga_id WHERE favourites.deleted_at = 0 AND (manga.title LIKE :query OR manga.alt_title LIKE :query) LIMIT :limit")
 	abstract suspend fun searchByTitle(query: String, limit: Int): List<MangaWithTags>
 
+	/**
+	 * Coarse net for duplicate detection: favourites whose title contains [query] or is contained by it,
+	 * in either direction (mihon only matches one way), plus a forward match against the joined alt titles.
+	 * Deliberately loose — [org.koitharu.kotatsu.favourites.domain.DuplicatesUseCase] re-checks every hit
+	 * against normalized titles, so the SQL only has to avoid missing anything.
+	 * The length guards keep `instr` from matching a one-or-two-character title against half the library.
+	 */
+	@Transaction
+	@Query(
+		"SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id != :mangaId AND manga_id IN (" +
+			"SELECT manga_id FROM manga WHERE " +
+			"(length(title) >= 3 AND (instr(lower(title), :query) > 0 OR instr(:query, lower(title)) > 0)) " +
+			"OR (alt_title IS NOT NULL AND length(alt_title) >= 3 AND instr(lower(alt_title), :query) > 0)" +
+			")",
+	)
+	abstract suspend fun findSimilar(mangaId: Long, query: String): List<FavouriteManga>
+
+	@Transaction
+	@Query("SELECT * FROM favourites WHERE deleted_at = 0 AND manga_id IN (:ids)")
+	abstract suspend fun findByIds(ids: Collection<Long>): List<FavouriteManga>
+
 	@Transaction
 	@Query("SELECT manga.* FROM favourites LEFT JOIN manga ON manga.manga_id = favourites.manga_id WHERE favourites.deleted_at = 0 AND (manga.author LIKE :query) LIMIT :limit")
 	abstract suspend fun searchByAuthor(query: String, limit: Int): List<MangaWithTags>

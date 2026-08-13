@@ -66,6 +66,7 @@ import org.koitharu.kotatsu.favourites.ui.FavouritesActivity
 import org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesActivity
 import org.koitharu.kotatsu.favourites.ui.categories.edit.FavouritesCategoryEditActivity
 import org.koitharu.kotatsu.favourites.ui.categories.select.FavoriteDialog
+import org.koitharu.kotatsu.favourites.ui.duplicates.DuplicatesSheet
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
 import org.koitharu.kotatsu.filter.ui.mihon.MihonFilterSheetFragment
 import org.koitharu.kotatsu.filter.ui.mihon.MihonSortSheet
@@ -412,7 +413,28 @@ class AppRouter private constructor(
 
     fun showFavoriteDialog(manga: Manga, accentColor: Int? = null) = showFavoriteDialog(setOf(manga), accentColor)
 
+    /**
+     * Entry point for favouriting anything: screens the manga for library duplicates first, then hands
+     * whatever is left over to [showFavoriteCategoriesDialog]. The sheet stays invisible and gets out
+     * of the way immediately when nothing clashes, which is the usual case.
+     */
     fun showFavoriteDialog(manga: Collection<Manga>, accentColor: Int? = null) {
+        if (manga.isEmpty()) {
+            return
+        }
+        DuplicatesSheet().withArgs(1) {
+            putParcelableArrayList(
+                KEY_MANGA_LIST,
+                manga.mapTo(ArrayList(manga.size)) { ParcelableManga(it, withDescription = false) },
+            )
+            if (accentColor != null) {
+                putInt(KEY_ACCENT_COLOR, accentColor)
+            }
+        }.showDistinct()
+    }
+
+    /** The category picker itself, after duplicates have been dealt with. */
+    fun showFavoriteCategoriesDialog(manga: Collection<Manga>, accentColor: Int? = null) {
         if (manga.isEmpty()) {
             return
         }

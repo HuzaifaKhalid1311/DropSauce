@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material "content_copy": two stacked sheets, i.e. the same thing twice. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:tint="?attr/colorControlNormal"
+	android:viewportWidth="960"
+	android:viewportHeight="960">
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="M640,40L160,40C116,40 80,76 80,120L80,680L160,680L160,120L640,120L640,40ZM760,200L320,200C276,200 240,236 240,280L240,840C240,884 276,920 320,920L760,920C804,920 840,884 840,840L840,280C840,236 804,200 760,200ZM760,840L320,840L320,280L760,280L760,840Z" />
+</vector>
