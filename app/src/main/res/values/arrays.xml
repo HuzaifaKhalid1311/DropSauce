@@ -15,6 +15,11 @@
 		<item>@string/favourites</item>
 		<item>@string/history</item>
 	</string-array>
+	<string-array name="smart_update_rules" translatable="false">
+		<item>@string/smart_update_completed</item>
+		<item>@string/smart_update_unstarted</item>
+		<item>@string/smart_update_unread</item>
+	</string-array>
 	<string-array name="list_modes" translatable="false">
 		<item>@string/list</item>
 		<item>@string/detailed_list</item>

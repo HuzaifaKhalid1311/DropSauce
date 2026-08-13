@@ -14,6 +14,7 @@ import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.databinding.ItemTrackDebugBinding
 import org.koitharu.kotatsu.tracker.data.TrackEntity
 import androidx.appcompat.R as appcompatR
+import com.google.android.material.R as materialR
 
 fun trackDebugAD(
 	clickListener: OnListItemClickListener<TrackDebugItem>,
@@ -46,6 +47,16 @@ fun trackDebugAD(
 				bold {
 					color(context.getThemeColor(appcompatR.attr.colorError, Color.RED)) {
 						append(item.lastError ?: getString(R.string.error))
+					}
+				}
+			} else {
+				val skipRes = item.skipReasonRes
+				if (skipRes != null) {
+					append(" - ")
+					bold {
+						color(context.getThemeColor(materialR.attr.colorOutline, Color.GRAY)) {
+							append(context.getString(skipRes))
+						}
 					}
 				}
 			}

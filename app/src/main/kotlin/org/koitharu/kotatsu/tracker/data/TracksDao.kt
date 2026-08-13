@@ -22,18 +22,28 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	 * Rows eligible for a new-chapters check. Deliberately narrower than [findAll]: track rows are
 	 * also kept alive for feed display/sync (see the track_logs pin in TrackingRepository), and those
 	 * pinned rows must NOT be checked — otherwise manga from untracked categories keep updating.
+	 *
+	 * The smart-update rules (`skip*`) are part of this query on purpose: filtering in Kotlin after
+	 * LIMIT would let skipped rows sit at the head of the `last_check_time ASC` queue forever and
+	 * starve everything else out of the batch.
 	 */
 	@Transaction
 	@Query(
 		"SELECT * FROM tracks WHERE " +
-			"(:trackHistory AND manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0)) " +
+			"((:trackHistory AND manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0)) " +
 			"OR (:trackFavourites AND manga_id IN (SELECT DISTINCT manga_id FROM favourites WHERE deleted_at = 0 " +
-			"AND category_id IN (SELECT category_id FROM favourite_categories WHERE (`track` = 1 OR download_new_chapters = 1) AND deleted_at = 0))) " +
+			"AND category_id IN (SELECT category_id FROM favourite_categories WHERE (`track` = 1 OR download_new_chapters = 1) AND deleted_at = 0)))) " +
+			"AND (NOT :skipCompleted OR manga_id NOT IN (SELECT manga_id FROM manga WHERE state = 'FINISHED')) " +
+			"AND (NOT :skipUnstarted OR manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0 AND percent > 0)) " +
+			"AND (NOT :skipUnread OR IFNULL(chapters_new, 0) = 0) " +
 			"ORDER BY last_check_time ASC LIMIT :limit OFFSET :offset",
 	)
 	abstract suspend fun findAllForChecking(
 		trackHistory: Boolean,
 		trackFavourites: Boolean,
+		skipCompleted: Boolean,
+		skipUnstarted: Boolean,
+		skipUnread: Boolean,
 		offset: Int,
 		limit: Int,
 	): List<TrackWithManga>
