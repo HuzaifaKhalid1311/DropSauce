@@ -25,11 +25,18 @@ constructor(
 	private val progressUpdateUseCase: ProgressUpdateUseCase,
 	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
 ) {
+	/**
+	 * @param migrateProgress when false the new manga simply takes the old one's place in the library:
+	 * favourites and per-manga preferences still move, but reading history, bookmarks, the update
+	 * tracker and scrobbler links are dropped along with the entry being replaced.
+	 */
 	suspend operator fun invoke(
 		oldManga: Manga,
 		newManga: Manga,
+		migrateProgress: Boolean = true,
 	) {
-		val oldDetails = if (oldManga.chapters.isNullOrEmpty()) {
+		// Only the progress migration needs the old chapter list; without it this network call is waste.
+		val oldDetails = if (migrateProgress && oldManga.chapters.isNullOrEmpty()) {
 			runCatchingCancellable {
 				mangaRepositoryFactory.create(oldManga.source).getDetails(oldManga)
 			}.getOrDefault(oldManga)
@@ -61,6 +68,18 @@ constructor(
 			preferencesDao.find(oldDetails.id)?.let { prefs ->
 				preferencesDao.delete(oldDetails.id)
 				preferencesDao.upsert(prefs.copy(mangaId = newDetails.id))
+			}
+			if (!migrateProgress) {
+				// Plain replacement: whatever the old entry had read, bookmarked or tracked goes with it.
+				database.getBookmarksDao().deleteAll(oldDetails.id)
+				database.getHistoryDao().delete(oldDetails.id)
+				database.getTracksDao().delete(oldDetails.id)
+				for (scrobbler in scrobblers) {
+					if (scrobbler.isEnabled) {
+						scrobbler.unregisterScrobbling(oldDetails.id)
+					}
+				}
+				return@withTransaction
 			}
 			// bookmarks, re-pointed at the matching chapter of the new source
 			val bookmarksDao = database.getBookmarksDao()

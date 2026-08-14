@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One Explore pager page (manga or novel extensions). The root must fill the pager, while the list
      itself is wrap_content: the page is as tall as the taller of the two lists, so the shorter one ends in
-     empty space instead of changing the scroll height when you switch. -->
+     empty space instead of changing the scroll height when you switch. Nested scrolling stays off so the
+     list never steals the drag from the NestedScrollView, even while it is briefly clipped. -->
 <FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"

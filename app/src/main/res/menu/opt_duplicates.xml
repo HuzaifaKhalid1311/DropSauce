@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+	xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<item
+		android:id="@+id/action_migrate_progress"
+		android:checkable="true"
+		android:icon="@drawable/ic_progress_migrate"
+		android:title="@string/duplicates_migrate_progress" />
+
+	<item
+		android:id="@+id/action_stop_checking"
+		android:icon="@drawable/ic_eye_off"
+		android:title="@string/duplicates_stop_checking" />
+
+</menu>

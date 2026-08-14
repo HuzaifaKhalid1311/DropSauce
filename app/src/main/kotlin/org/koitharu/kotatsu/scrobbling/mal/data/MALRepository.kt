@@ -229,10 +229,11 @@ class MALRepository @Inject constructor(
 			id = scrobblerMangaId.toInt(),
 			mangaId = mangaId,
 			targetId = scrobblerMangaId,
-			status = json.getString("status"),
-			chapter = json.getInt("num_chapters_read"),
-			comment = json.getString("comments"),
-			rating = (json.getDouble("score").toFloat() / 10f).coerceIn(0f, 1f),
+			// MAL omits empty fields from my_list_status, so every field must be optional
+			status = json.getStringOrNull("status").orEmpty(),
+			chapter = json.optInt("num_chapters_read"),
+			comment = json.getStringOrNull("comments"),
+			rating = (json.optDouble("score", 0.0).toFloat() / 10f).coerceIn(0f, 1f),
 		)
 		db.getScrobblingDao().upsert(entity)
 		return entity
@@ -258,9 +259,9 @@ class MALRepository @Inject constructor(
 	private fun ScrobblerMangaInfo(json: JSONObject) = ScrobblerMangaInfo(
 		id = json.getLong("id"),
 		name = json.getString("title"),
-		cover = json.getJSONObject("main_picture").getString("large"),
+		cover = json.optJSONObject("main_picture")?.getStringOrNull("large").orEmpty(),
 		url = "$BASE_WEB_URL/manga/${json.getLong("id")}",
-		descriptionHtml = json.getString("synopsis"),
+		descriptionHtml = json.getStringOrNull("synopsis").orEmpty(),
 	)
 
 	@Suppress("FunctionName")

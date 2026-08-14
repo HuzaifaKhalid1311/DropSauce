@@ -90,6 +90,15 @@ class DuplicatesViewModel @Inject constructor(
 		}
 	}
 
+	/** Sticky preference: decides whether [replaceWith] carries progress over or just swaps the entry. */
+	fun setProgressMigrated(value: Boolean) {
+		if (isBusy()) return
+		settings.isDuplicateProgressMigrated = value
+		_state.update { current ->
+			if (current is DuplicatesState.Ask) current.copy(isProgressMigrated = value) else current
+		}
+	}
+
 	fun skip() {
 		if (isBusy()) return
 		queue.removeFirstOrNull()
@@ -108,7 +117,11 @@ class DuplicatesViewModel @Inject constructor(
 		setCardsBusy(existing.id)
 		launchLoadingJob(Dispatchers.Default) {
 			try {
-				migrateUseCase(oldManga = existing, newManga = current.manga)
+				migrateUseCase(
+					oldManga = existing,
+					newManga = current.manga,
+					migrateProgress = settings.isDuplicateProgressMigrated,
+				)
 			} catch (e: Throwable) {
 				setCardsBusy(null)
 				throw e
@@ -154,6 +167,7 @@ class DuplicatesViewModel @Inject constructor(
 			incoming = next.manga,
 			cards = next.duplicates.map { DuplicateCardModel(it, known, isMigrating = false, isBlocked = false) },
 			remaining = queue.size - 1,
+			isProgressMigrated = settings.isDuplicateProgressMigrated,
 		)
 		if (known == null) {
 			resolveIncomingChapters(next.manga)

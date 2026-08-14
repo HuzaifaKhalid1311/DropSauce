@@ -804,6 +804,7 @@
     <string name="duplicates_add_anyway">Add anyway</string>
     <string name="duplicates_skip">Don\'t add</string>
     <string name="duplicates_replaced">Replaced %1$s: %2$s → %3$s</string>
+    <string name="duplicates_migrate_progress">Migrate progress</string>
     <string name="duplicates_stop_checking">Stop checking for duplicates</string>
     <string name="duplicates_check">Check for duplicates</string>
     <string name="duplicates_check_summary">Warn when a title you are adding is already in your library</string>

@@ -12,6 +12,7 @@ sealed interface DuplicatesState {
 		val incoming: Manga,
 		val cards: List<DuplicateCardModel>,
 		val remaining: Int,
+		val isProgressMigrated: Boolean,
 	) : DuplicatesState {
 
 		val isMigrating: Boolean

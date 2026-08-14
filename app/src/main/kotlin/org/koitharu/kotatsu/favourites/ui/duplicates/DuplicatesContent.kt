@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.favourites.ui.duplicates
 
+import android.view.Gravity
+import android.view.View
+import androidx.appcompat.widget.PopupMenu
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -27,10 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,13 +43,16 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.parser.favicon.faviconUri
+import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
+import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.list.domain.ReadingProgress
 import kotlin.math.roundToInt
 
@@ -67,14 +69,17 @@ fun DuplicatesContent(
 	onPreview: (DuplicateCardModel) -> Unit,
 	onReplace: (DuplicateCardModel) -> Unit,
 	onDisableCheck: () -> Unit,
+	onMigrateProgressChanged: (Boolean) -> Unit,
 ) {
 	Column(modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)) {
 		Header(
 			subtitle = stringResource(R.string.duplicates_summary, state.incoming.title),
 			remaining = state.remaining,
 			enabled = !state.isMigrating,
+			isProgressMigrated = state.isProgressMigrated,
 			onSkip = onSkip,
 			onDisableCheck = onDisableCheck,
+			onMigrateProgressChanged = onMigrateProgressChanged,
 		)
 		Spacer(Modifier.height(16.dp))
 		// No height cap: the sheet grows with the card count and, once it runs out of screen, this is
@@ -123,8 +128,10 @@ private fun Header(
 	subtitle: String,
 	remaining: Int,
 	enabled: Boolean,
+	isProgressMigrated: Boolean,
 	onSkip: () -> Unit,
 	onDisableCheck: () -> Unit,
+	onMigrateProgressChanged: (Boolean) -> Unit,
 ) {
 	Row(
 		modifier = Modifier
@@ -171,10 +178,21 @@ private fun Header(
 				)
 			}
 		}
-		Box {
-			var isMenuOpen by remember { mutableStateOf(false) }
+		// PopupMenu positions itself against a real View, so an empty one is parked under the button:
+		// anchoring to the Compose root instead would drop the menu from the sheet's own corner.
+		val anchor = remember { mutableStateOf<View?>(null) }
+		Box(contentAlignment = Alignment.Center) {
+			AndroidView(
+				factory = { View(it) },
+				update = { anchor.value = it },
+				modifier = Modifier.size(44.dp),
+			)
 			IconButton(
-				onClick = { isMenuOpen = true },
+				onClick = {
+					anchor.value?.let {
+						showOverflowMenu(it, isProgressMigrated, onDisableCheck, onMigrateProgressChanged)
+					}
+				},
 				enabled = enabled,
 				modifier = Modifier.size(44.dp),
 			) {
@@ -189,27 +207,37 @@ private fun Header(
 					modifier = Modifier.size(24.dp),
 				)
 			}
-			DropdownMenu(
-				expanded = isMenuOpen,
-				onDismissRequest = { isMenuOpen = false },
-				shape = RoundedCornerShape(20.dp),
-			) {
-				DropdownMenuItem(
-					text = { Text(stringResource(R.string.duplicates_stop_checking)) },
-					leadingIcon = {
-						Icon(
-							painter = painterResource(R.drawable.ic_eye_off),
-							contentDescription = null,
-							modifier = Modifier.size(20.dp),
-						)
-					},
-					onClick = {
-						isMenuOpen = false
-						onDisableCheck()
-					},
-				)
-			}
 		}
+	}
+}
+
+/**
+ * The platform [PopupMenu] rather than Compose's [androidx.compose.material3.DropdownMenu], so this
+ * overflow looks and behaves exactly like every other three-dot menu in the app — the theme styles
+ * it, and [adjustPopupMenuIcons] gives it the same icon metrics.
+ */
+private fun showOverflowMenu(
+	anchor: View,
+	isProgressMigrated: Boolean,
+	onDisableCheck: () -> Unit,
+	onMigrateProgressChanged: (Boolean) -> Unit,
+) {
+	// Anchored to the sheet's own view: `END` lands it under the button it was opened from.
+	PopupMenu(anchor.context, anchor, Gravity.END).apply {
+		inflate(R.menu.opt_duplicates)
+		setForceShowIcon(true)
+		menu.setOptionalIconsVisibleCompat(true)
+		menu.findItem(R.id.action_migrate_progress).isChecked = isProgressMigrated
+		menu.adjustPopupMenuIcons(anchor.resources)
+		setOnMenuItemClickListener { item ->
+			when (item.itemId) {
+				R.id.action_migrate_progress -> onMigrateProgressChanged(!isProgressMigrated)
+				R.id.action_stop_checking -> onDisableCheck()
+				else -> return@setOnMenuItemClickListener false
+			}
+			true
+		}
+		show()
 	}
 }
 
@@ -267,7 +295,7 @@ private fun DuplicateCard(
 			}
 			// Preview affordance, parked in the card's own corner rather than over the artwork.
 			Icon(
-				painter = painterResource(R.drawable.ic_open_in_new),
+				painter = painterResource(R.drawable.ic_open_external),
 				contentDescription = stringResource(R.string.preview),
 				tint = MaterialTheme.colorScheme.onSurfaceVariant,
 				modifier = Modifier

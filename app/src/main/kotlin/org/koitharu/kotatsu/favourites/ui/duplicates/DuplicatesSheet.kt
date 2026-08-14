@@ -65,6 +65,7 @@ class DuplicatesSheet : BaseAdaptiveSheet<SheetDuplicatesBinding>() {
 						onPreview = { router.openDetails(it.manga) },
 						onReplace = { viewModel.replaceWith(it.manga) },
 						onDisableCheck = viewModel::disableDuplicateCheck,
+						onMigrateProgressChanged = viewModel::setProgressMigrated,
 					)
 				}
 			}

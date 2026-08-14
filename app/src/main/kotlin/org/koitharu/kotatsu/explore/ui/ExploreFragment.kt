@@ -35,6 +35,7 @@ import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.core.util.ext.recyclerView
 import org.koitharu.kotatsu.core.util.ext.setTabsEnabled
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.FragmentExploreBinding
@@ -89,6 +90,11 @@ class ExploreFragment :
 
 		binding.pager.adapter = ExploreSourcesPagerAdapter(::onPageCreated)
 		binding.pager.offscreenPageLimit = 1
+		// The pager's internal list opens a *horizontal* nested scroll on every touch-down. The app bar
+		// declines it, and CoordinatorLayout keeps one accept-flag per child per gesture — so that "no"
+		// overwrites the "yes" the NestedScrollView just got, and the search bar sits still for the whole
+		// gesture. The pager has no use for nested scrolling, so switch it off.
+		binding.pager.recyclerView?.isNestedScrollingEnabled = false
 		// A zero-height pager lays out no pages at all, so nothing would ever be measured. Start at one
 		// screen and let updatePagerHeight replace it with the real content height.
 		binding.pager.updateLayoutParams { height = resources.displayMetrics.heightPixels }
