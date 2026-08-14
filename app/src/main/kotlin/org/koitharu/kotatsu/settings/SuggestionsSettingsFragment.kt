@@ -94,7 +94,8 @@ class SuggestionsSettingsFragment :
 	override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
 		if (settings.isSuggestionsEnabled && (key == AppSettings.KEY_SUGGESTIONS
 				|| key == AppSettings.KEY_SUGGESTIONS_EXCLUDE_TAGS
-				|| key == AppSettings.KEY_SUGGESTIONS_EXCLUDE_NSFW)
+				|| key == AppSettings.KEY_SUGGESTIONS_EXCLUDE_NSFW
+				|| key == AppSettings.KEY_SUGGESTIONS_EXCLUDE_NOVELS)
 		) {
 			updateSuggestions()
 		}
@@ -116,6 +117,7 @@ private fun SuggestionsScreen(
 	var notifications by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS_NOTIFICATIONS, false)
 	var excludeTags by rememberStringPref(AppSettings.KEY_SUGGESTIONS_EXCLUDE_TAGS, "")
 	var excludeNsfw by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NSFW, false)
+	var excludeNovels by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NOVELS, true)
 
 	var showTagsDialog by remember { mutableStateOf(false) }
 
@@ -172,6 +174,17 @@ private fun SuggestionsScreen(
 						checked = excludeNsfw,
 						onCheckedChange = { excludeNsfw = it },
 						icon = R.drawable.ic_nsfw,
+						shape = pos.shape,
+						enabled = enabled,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.exclude_novels_from_suggestions),
+						subtitle = stringResource(R.string.exclude_novels_from_suggestions_summary),
+						checked = excludeNovels,
+						onCheckedChange = { excludeNovels = it },
+						icon = R.drawable.ic_auto_stories,
 						shape = pos.shape,
 						enabled = enabled,
 					)

@@ -195,7 +195,8 @@ private fun FloatingContinueButton(
 	) {
 		Surface(
 			onClick = onClick,
-			shape = CircleShape,
+			// M3 Expressive square FAB: 16dp corner on a 56dp container
+			shape = RoundedCornerShape(16.dp),
 			color = container,
 			contentColor = content,
 			shadowElevation = 8.dp,

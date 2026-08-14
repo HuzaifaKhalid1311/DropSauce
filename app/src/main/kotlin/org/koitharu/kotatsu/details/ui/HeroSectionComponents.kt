@@ -525,7 +525,9 @@ internal fun FavouriteButton(
 			accent
 		}
 		Row(
-			modifier = Modifier.fillMaxSize(),
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(horizontal = 16.dp),
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.Center,
 		) {

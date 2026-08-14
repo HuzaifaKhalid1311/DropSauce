@@ -258,6 +258,7 @@
     <string name="suggestions_info">All data is only analyzed locally on this device and never sent anywhere.</string>
     <string name="text_suggestion_holder">Start reading manga and you will get personalized suggestions</string>
     <string name="exclude_nsfw_from_suggestions">Do not suggest NSFW manga</string>
+    <string name="exclude_novels_from_suggestions">Do not suggest novels</string>
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
     <string name="reset_filter">Reset filter</string>
@@ -1059,6 +1060,7 @@
     <string name="clear_browser_data_summary">Clear browser data such as cache and cookies. Warning: Authorization in manga sources may become invalid</string>
     <string name="no_write_permission_to_file">Does not have permission to write a file</string>
     <string name="exclude_nsfw_from_suggestions_summary">Adult manga will not be shown in suggestions. This option may work inaccurate with some sources</string>
+    <string name="exclude_novels_from_suggestions_summary">Sources categorized as novels will not be used for suggestions</string>
     <string name="error_non_file_uri">The selected path cannot be used because it does not denote a file or directory</string>
     <string name="manga_override_hint">These changes will affect how manga is displayed throughout the app. Discord Rich Presence can only show a custom cover set via an image URL; picked images fall back to the source cover.</string>
     <string name="use_default_cover">Use default cover</string>
