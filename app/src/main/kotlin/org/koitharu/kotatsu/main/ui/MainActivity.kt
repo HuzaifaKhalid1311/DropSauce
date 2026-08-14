@@ -1,7 +1,9 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,6 +22,7 @@ import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.Insets
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuProvider
@@ -43,6 +46,7 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
+import com.google.android.material.R as materialR
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.search.SearchView
@@ -59,6 +63,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.browser.AdListUpdateService
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
@@ -68,6 +73,7 @@ import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
+import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.applySystemAnimatorScale
@@ -118,6 +124,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	private val shrinkFabRunnable = Runnable { viewBinding.fab?.shrink() }
 	private var navSystemBarBottom: Int = 0
 
+
 	override val appBar: AppBarLayout
 		get() = viewBinding.appbar
 
@@ -140,6 +147,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_search, 0, 0, 0)
 			compoundDrawablePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
 		}
+
+		viewBinding.statusBarScrim.background = statusBarScrimDrawable(this)
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
@@ -304,6 +313,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			marginStart = barsInsets.start(v)
 			topMargin = barsInsets.top
 			bottomMargin = barsInsets.bottom
+		}
+		viewBinding.statusBarScrim.updateLayoutParams {
+			height = (barsInsets.top * StatusBarScrim.HEIGHT_FACTOR).roundToInt()
 		}
 		updateContainerBottomMargin()
 		return insets.consume(v, typeMask, start = viewBinding.navRail != null).also {
@@ -733,6 +745,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 		private const val FAB_SHRINK_DELAY_MS = 1500L
 		private const val ACTION_MODE_TOP_BAR_FADE_DURATION_MS = 150L
+	}
+}
+
+/** See [StatusBarScrim] — the details screen draws the same curve in Compose. */
+private fun statusBarScrimDrawable(context: android.content.Context): GradientDrawable {
+	val surface = MaterialColors.getColor(context, materialR.attr.colorSurface, Color.TRANSPARENT)
+	val alphas = StatusBarScrim.alphas
+	return GradientDrawable(
+		GradientDrawable.Orientation.TOP_BOTTOM,
+		IntArray(alphas.size) { ColorUtils.setAlphaComponent(surface, alphas[it].roundToInt()) },
+	).apply {
+		setDither(true) // 8-bit alpha over a long ramp bands without it
 	}
 }
 

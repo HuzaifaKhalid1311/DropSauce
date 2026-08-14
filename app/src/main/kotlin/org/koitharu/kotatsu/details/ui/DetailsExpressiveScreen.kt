@@ -22,8 +22,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,6 +37,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.DetailsUiMode
+import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.details.data.MangaDetails
@@ -207,9 +210,51 @@ fun DetailsExpressiveScreen(
 					actions = actions,
 					modifier = Modifier
 						.align(Alignment.BottomEnd)
-						.padding(end = SCREEN_PADDING, bottom = bottomContentPadding + 16.dp),
+						.padding(end = SCREEN_PADDING, bottom = bottomContentPadding + 16.dp)
+						.dockGlow(scheme.surface),
 				)
+
+				// Status bar protection, mirroring the View-side scrim in MainActivity. Sits under the
+				// activity's toolbar (that lives in the XML AppBarLayout above this ComposeView).
+				if (topInset > 0.dp) {
+					val stops = StatusBarScrim.alphas
+					Box(
+						modifier = Modifier
+							.align(Alignment.TopCenter)
+							.fillMaxWidth()
+							.height(topInset * StatusBarScrim.HEIGHT_FACTOR)
+							.background(
+								Brush.verticalGradient(
+									*stops.mapIndexed { i, a ->
+										i / (stops.lastIndex.toFloat()) to scheme.surface.copy(alpha = a / 255f)
+									}.toTypedArray(),
+								),
+							),
+					)
+				}
 		}
+	}
+}
+
+/**
+ * Soft radial halo behind the action dock so the pill and FAB keep contrast over scrolling content.
+ * Drawn from the dock's own bounds and deliberately spills past them — a round falloff has no
+ * visible edge, unlike a rectangular scrim.
+ */
+private fun Modifier.dockGlow(surface: Color) = drawBehind {
+	val rx = size.width * 0.82f
+	val ry = size.height * 1.20f
+	val brush = Brush.radialGradient(
+		0f to surface.copy(alpha = 0.92f),
+		0.40f to surface.copy(alpha = 0.74f),
+		0.72f to surface.copy(alpha = 0.32f),
+		1f to Color.Transparent,
+		center = center,
+		radius = rx,
+	)
+	// Squash the circle into an ellipse so the halo hugs the (wide, short) dock instead of ballooning.
+	scale(scaleX = 1f, scaleY = ry / rx, pivot = center) {
+		drawCircle(brush = brush, radius = rx, center = center)
 	}
 }
 
