@@ -182,19 +182,16 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	}
 
 	private fun readNavColors(): FloatingNavBarColors {
-		val selectedState = intArrayOf(android.R.attr.state_enabled, android.R.attr.state_checked)
 		val unselectedState = intArrayOf(android.R.attr.state_enabled, -android.R.attr.state_checked)
 		val fallbackContainer = context.getThemeColor(materialR.attr.colorSurfaceContainer)
-		val fallbackSelected = context.getThemeColor(materialR.attr.colorSecondaryContainer)
-		val fallbackSelectedContent = context.getThemeColor(androidx.appcompat.R.attr.colorPrimary)
 		val fallbackUnselectedContent = context.getThemeColor(materialR.attr.colorOnSurfaceVariant)
+		// The theme's own active indicator (colorSecondaryContainer) is nearly the same tone as the
+		// bar itself, so the selected item barely reads as selected. The primary container pair is
+		// the strongest on-theme option and carries its own guaranteed-contrast content colour.
 		return FloatingNavBarColors(
 			container = backgroundTintList?.defaultColor ?: fallbackContainer,
-			selectedContainer = itemActiveIndicatorColor?.getColorForState(selectedState, fallbackSelected)
-				?: fallbackSelected,
-			selectedContent = itemIconTintList?.getColorForState(selectedState, fallbackSelectedContent)
-				?: itemTextColor?.getColorForState(selectedState, fallbackSelectedContent)
-				?: fallbackSelectedContent,
+			selectedContainer = context.getThemeColor(materialR.attr.colorPrimaryContainer),
+			selectedContent = context.getThemeColor(materialR.attr.colorOnPrimaryContainer),
 			unselectedContent = itemIconTintList?.getColorForState(unselectedState, fallbackUnselectedContent)
 				?: itemTextColor?.getColorForState(unselectedState, fallbackUnselectedContent)
 				?: fallbackUnselectedContent,

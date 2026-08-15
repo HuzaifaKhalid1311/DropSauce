@@ -315,7 +315,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			bottomMargin = barsInsets.bottom
 		}
 		viewBinding.statusBarScrim.updateLayoutParams {
-			height = (barsInsets.top * StatusBarScrim.HEIGHT_FACTOR).roundToInt()
+			// No status bar to protect when it is hidden (the inset can still be non-zero on
+			// cutout devices), so the scrim would just be a stray band at the top.
+			height = if (settings.isStatusBarHidden) {
+				0
+			} else {
+				(barsInsets.top * StatusBarScrim.HEIGHT_FACTOR).roundToInt()
+			}
 		}
 		updateContainerBottomMargin()
 		return insets.consume(v, typeMask, start = viewBinding.navRail != null).also {
