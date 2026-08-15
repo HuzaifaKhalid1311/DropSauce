@@ -798,6 +798,23 @@
     <string name="three_months">Three months</string>
     <string name="empty_stats_text">There are no statistics for the selected period</string>
     <string name="pages_read_s">Pages read: %s</string>
+    <string name="stats_activity">Activity</string>
+    <string name="stats_top_manga">Top manga</string>
+    <string name="stats_under_minute" translatable="false">&lt;1 m</string>
+    <string name="stats_categories_all">All categories</string>
+    <string name="stats_since">since %s</string>
+    <string name="stats_chapters_read">Chapters read</string>
+    <string name="stats_pages_read">Pages read</string>
+    <string name="stats_day_streak">Day streak</string>
+    <string name="stats_longest_streak">Best %d</string>
+    <string name="stats_daily_average">Daily average</string>
+    <string name="stats_active_days">%d active days</string>
+    <string name="stats_active_days_short">Days read</string>
+    <string name="stats_range_day">Last 24 hours</string>
+    <string name="stats_range_week">Last 7 days</string>
+    <string name="stats_range_month">Last 30 days</string>
+    <string name="stats_range_3months">Last 13 weeks</string>
+    <string name="stats_range_all">Last 12 months</string>
     <string name="alternatives">Alternatives</string>
     <string name="duplicates_title">Already in your library</string>
     <string name="duplicates_summary">\"%1$s\" looks like something you already have.</string>

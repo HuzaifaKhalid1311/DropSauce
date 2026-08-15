@@ -3,7 +3,6 @@
 	<item name="toolbar" type="id" />
 	<item name="container" type="id" />
 	<item name="fast_scroller" type="id" />
-	<item name="group_period" type="id" />
 	<!-- Navigation -->
 	<item name="nav_history" type="id" />
 	<item name="nav_favorites" type="id" />
