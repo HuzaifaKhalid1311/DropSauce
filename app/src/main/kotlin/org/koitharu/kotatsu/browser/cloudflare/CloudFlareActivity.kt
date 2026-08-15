@@ -49,12 +49,12 @@ class CloudFlareActivity : BaseBrowserActivity() {
 	private var pendingResult = RESULT_CANCELED
 	private val isHidden: Boolean by lazy { intent?.getBooleanExtra(EXTRA_HIDDEN, false) == true }
 	private val isAutoResolve: Boolean by lazy { intent?.getBooleanExtra(EXTRA_AUTO_RESOLVE, false) == true }
-	private val isLnReaderSource: Boolean by lazy {
-		intent?.getStringExtra(AppRouter.KEY_SOURCE)?.startsWith(LN_SOURCE_PREFIX) == true
-	}
 	private var resultNotified = false
 	private var hiddenTimeoutJob: Job? = null
 	private var clearanceVerificationJob: Job? = null
+
+	/** Clearance cookie a silent check already found insufficient, so it is not re-tested on every page load. */
+	private var rejectedClearance: String? = null
 
 	@Inject
 	lateinit var cookieJar: MutableCookieJar
@@ -161,26 +161,39 @@ class CloudFlareActivity : BaseBrowserActivity() {
 		if (!isHidden) {
 			viewBinding.progressBar.isInvisible = true
 		}
-		// LNReader considers a usable WebView session enough. A valid existing cf_clearance cookie
-		// does not change, so CloudFlareClient's cookie-change check cannot detect that case.
-		if (
-			isLnReaderSource &&
-			intent?.dataString?.let { CloudFlareHelper.getClearanceCookie(cookieJar, it) } != null
-		) {
-			onCheckPassed()
+		// CloudFlareClient can only detect a clearance cookie that *changed*, so a still-valid
+		// cookie we already had reads as a failure there. Whenever a clearance cookie exists at
+		// all, hand over to onCheckPassed - it settles the question with a real request instead
+		// of guessing from the cookie. Silent, and only once per distinct cookie: this fires on
+		// every page load, including the challenge pages the user is still working through, and
+		// neither a "captcha required" toast nor a repeated request belongs there.
+		val clearance = intent?.dataString?.let { CloudFlareHelper.getClearanceCookie(cookieJar, it) }
+		if (clearance != null && clearance != rejectedClearance) {
+			onCheckPassed(silentFor = clearance)
 		}
 	}
 
 	fun onLoopDetected() {
-		if (isHidden || isAutoResolve) {
-			restartCheck()
-		} else {
-			cfClient.reset()
+		// Deliberately no restartCheck() in the hidden/auto pass: it deletes the site's Cloudflare
+		// cookies, and this activity is FLAG_NOT_TOUCHABLE with alpha 0.01, so an interactive
+		// challenge can never be solved here anyway. It used to throw away a clearance the user had
+		// just earned by hand, putting them back on the challenge page - an endless loop of solving
+		// and being un-solved. Let the WebView keep going until HIDDEN_TIMEOUT_MS instead, which
+		// leaves a slow but genuine JS challenge exactly as much time as it had before.
+		cfClient.reset()
+		if (!isHidden && !isAutoResolve) {
 			android.util.Log.w(TAG, "Cloudflare loop detected; keeping manual browser open for user action")
 		}
 	}
 
-	fun onCheckPassed() {
+	/**
+	 * [silentFor] is the exact clearance cookie the silent probe is testing; null means a real cookie
+	 * change reported by [CloudFlareClient], which is allowed to complain out loud. It has to be
+	 * carried in rather than re-read on failure: the WebView and the verify request itself both write
+	 * to the cookie jar, so by the time the verdict lands the jar may already hold a *newer* cookie -
+	 * blacklisting that one would ignore a clearance nobody ever tested.
+	 */
+	fun onCheckPassed(silentFor: String? = null) {
 		if (clearanceVerificationJob?.isActive == true) {
 			return
 		}
@@ -189,7 +202,9 @@ class CloudFlareActivity : BaseBrowserActivity() {
 			// the root may be unprotected while the actual resource is still blocked
 			val url = intent?.getStringExtra(EXTRA_ORIGINAL_URL)?.takeIf { it.isNotBlank() } ?: intent?.dataString
 			if (url.isNullOrBlank() || !verifyClearance(url)) {
-				if (!isHidden) {
+				if (silentFor != null) {
+					rejectedClearance = silentFor
+				} else if (!isHidden) {
 					showSnackbar(getString(R.string.captcha_required_message))
 				}
 				return@launch
@@ -282,7 +297,6 @@ class CloudFlareActivity : BaseBrowserActivity() {
 		const val EXTRA_HIDDEN = "hidden"
 		const val EXTRA_AUTO_RESOLVE = "auto_resolve"
 		const val EXTRA_ORIGINAL_URL = "original_url"
-		private const val LN_SOURCE_PREFIX = "LN_"
 		private const val HIDDEN_TIMEOUT_MS = 45_000L
 	}
 }
