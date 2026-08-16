@@ -411,21 +411,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		adjustFabVisibility(isResumeEnabled = isEnabled)
 	}
 
-	private fun onFirstStart() = try {
+	private fun onFirstStart() {
 		lifecycleScope.launch(Dispatchers.Main) { // not a default `Main.immediate` dispatcher
 			withContext(Dispatchers.Default) {
 				LocalStorageCleanupWorker.enqueue(applicationContext)
 			}
 			withResumed {
-				MangaPrefetchService.prefetchLast(this@MainActivity)
-				startService(Intent(this@MainActivity, LocalIndexUpdateService::class.java))
-				if (settings.isAdBlockEnabled) {
-					startService(Intent(this@MainActivity, AdListUpdateService::class.java))
+				try {
+					MangaPrefetchService.prefetchLast(this@MainActivity)
+					startService(Intent(this@MainActivity, LocalIndexUpdateService::class.java))
+					if (settings.isAdBlockEnabled) {
+						startService(Intent(this@MainActivity, AdListUpdateService::class.java))
+					}
+				} catch (e: IllegalStateException) {
+					// BackgroundServiceStartNotAllowedException if AMS hasn't completed process state transition
+					e.printStackTraceDebug()
 				}
 			}
 		}
-	} catch (e: IllegalStateException) {
-		e.printStackTraceDebug()
 	}
 
 	// The appbar keeps fitsSystemWindows=false on every tab: the WindowInsetHolder child provides the
