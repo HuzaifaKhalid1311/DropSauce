@@ -56,7 +56,7 @@ class WebtoonScalingFrame @JvmOverloads constructor(
 	private var animator: ValueAnimator? = null
 	private var pendingScroll = 0
 
-	var isZoomEnable = true
+	var isZoomEnable = false
 		set(value) {
 			field = value
 			if (scale != 1f) {

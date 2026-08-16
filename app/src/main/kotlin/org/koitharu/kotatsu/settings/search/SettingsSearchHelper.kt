@@ -156,6 +156,7 @@ class SettingsSearchHelper @Inject constructor(
 			group(sectionCrumbs, "Zoom") { crumbs ->
 				addItem(AppSettings.KEY_ZOOM_MODE, R.string.scale_mode, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.zoom_modes))
 				addItem(AppSettings.KEY_READER_ZOOM_BUTTONS, R.string.reader_zoom_buttons, R.string.reader_zoom_buttons_summary, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_WEBTOON_ZOOM, R.string.webtoon_zoom, R.string.webtoon_zoom_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_WEBTOON_ZOOM_OUT, R.string.default_webtoon_zoom_out, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_WEBTOON_GAPS, R.string.webtoon_gaps, R.string.webtoon_gaps_summary, crumbs, ReaderSettingsFragment::class.java)
 			}

@@ -903,6 +903,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isScrobblingProgressSyncEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SCROBBLING_PROGRESS_SYNC, true)
 
+	val isWebtoonZoomEnabled: Boolean
+		get() = prefs.getBoolean(KEY_WEBTOON_ZOOM, true)
+
 	var isWebtoonGapsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_WEBTOON_GAPS, false)
 		set(value) = prefs.edit { putBoolean(KEY_WEBTOON_GAPS, value) }
@@ -1230,6 +1233,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_FAVORITES_ORDER = "fav_order"
 		const val KEY_FAVORITES_PINNED = "fav_pinned_order_"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
+		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"
 		const val KEY_WEBTOON_ZOOM_OUT = "webtoon_zoom_out"
 		const val KEY_WEBTOON_PULL_GESTURE = "webtoon_pull_gesture"
 		const val KEY_PREFETCH_CONTENT = "prefetch_content"
