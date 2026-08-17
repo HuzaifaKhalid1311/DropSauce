@@ -87,6 +87,11 @@ abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
 			actionModeDelegate = (activity as? BaseActivity<*>)?.actionModeDelegate
 		}
 		onViewBindingCreated(binding, savedInstanceState)
+		// Sheets pad themselves for the navigation bar in onApplyWindowInsets, but the dialog window only
+		// dispatches insets a frame or two after the show animation has already started — the sheet is
+		// measured at the wrong height first and visibly snaps into place. Seed it from the host window,
+		// which knows the insets already, so the first measure is the final one.
+		ViewCompat.getRootWindowInsets(requireActivity().window.decorView)?.let { onApplyWindowInsets(view, it) }
 	}
 
 	@CallSuper

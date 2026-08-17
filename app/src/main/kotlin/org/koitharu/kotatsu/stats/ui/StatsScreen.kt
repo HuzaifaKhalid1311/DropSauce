@@ -95,7 +95,6 @@ fun StatsScreen(
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background)
 			.nestedScroll(rememberNestedScrollInteropConnection()),
 	) {
 		// Only the very first load gets a progress bar, and it floats over the content rather than

@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.backup.MihonBackupExporter
 import org.koitharu.kotatsu.backup.MihonBackupManager
 import org.koitharu.kotatsu.backup.MihonBackupManager.Options
 import org.koitharu.kotatsu.backup.MihonBackupManager.RestoreReport
@@ -58,6 +59,9 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 	@Inject
 	lateinit var migrationManager: KotatsuMigrationManager
 
+	@Inject
+	lateinit var mihonExporter: MihonBackupExporter
+
 	private val restoreMihonBackupLauncher = registerForActivityResult(
 		ActivityResultContracts.OpenDocument(),
 	) { uri ->
@@ -71,6 +75,14 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 	) { uri ->
 		if (uri != null && BackupService.start(requireContext(), uri)) {
 			Toast.makeText(requireContext(), R.string.creating_backup, Toast.LENGTH_SHORT).show()
+		}
+	}
+
+	private val exportMihonBackupLauncher = registerForActivityResult(
+		ActivityResultContracts.CreateDocument(MihonBackupExporter.MIME_TYPE),
+	) { uri ->
+		if (uri != null) {
+			runMihonExportJob(uri)
 		}
 	}
 
@@ -129,6 +141,9 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 					},
 					migrationSubtitle = migrationSubtitle,
 					onMigrateFromKotatsu = ::confirmAndStartKotatsuMigration,
+					onExportToMihon = {
+						exportMihonBackupLauncher.launch(MihonBackupExporter.generateFileName())
+					},
 				)
 			}
 		}
@@ -159,6 +174,24 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 				}
 			}
 		}.show()
+	}
+
+	private fun runMihonExportJob(uri: Uri) {
+		lifecycleScope.launch {
+			val message = runCatching {
+				mihonExporter.export(uri)
+			}.fold(
+				onSuccess = { report ->
+					if (report.skippedCount > 0) {
+						getString(R.string.export_to_mihon_done_partial, report.exportedCount, report.skippedCount)
+					} else {
+						getString(R.string.export_to_mihon_done, report.exportedCount)
+					}
+				},
+				onFailure = { it.getDisplayMessage(resources) },
+			)
+			Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+		}
 	}
 
 	private fun runMihonRestoreJob(uri: Uri, options: Options) {
@@ -227,6 +260,7 @@ private fun BackupScreen(
 	onRestoreFromTachiyomi: () -> Unit,
 	migrationSubtitle: String,
 	onMigrateFromKotatsu: () -> Unit,
+	onExportToMihon: () -> Unit,
 ) {
 	SettingsScaffold {
 		item {
@@ -265,7 +299,7 @@ private fun BackupScreen(
 		}
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 		item {
-			SettingsGroup(title = stringResource(R.string.import_from_other_apps)) {
+			SettingsGroup(title = stringResource(R.string.other_apps)) {
 				item { pos ->
 					ActionSettingsItem(
 						title = stringResource(R.string.restore_from_tachiyomi),
@@ -284,6 +318,16 @@ private fun BackupScreen(
 
 						shape = pos.shape,
 						onClick = onMigrateFromKotatsu,
+					)
+				}
+				item { pos ->
+					ActionSettingsItem(
+						title = stringResource(R.string.export_to_mihon),
+						subtitle = stringResource(R.string.export_to_mihon_summary),
+						icon = R.drawable.ic_upload_file,
+
+						shape = pos.shape,
+						onClick = onExportToMihon,
 					)
 				}
 			}

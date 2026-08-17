@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.fragment.app.Fragment
 import dagger.Reusable
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.backup.local.ui.periodical.PeriodicalBackupSettingsFragment
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.settings.AppearanceSettingsFragment
@@ -79,6 +80,8 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_THEME_AMOLED, R.string.black_dark_theme, R.string.black_dark_theme_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_APP_LOCALE, R.string.language, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_HIDE_STATUS_BAR, R.string.hide_status_bar, R.string.hide_status_bar_summary, crumbs, AppearanceSettingsFragment::class.java)
+				addItem(AppSettings.KEY_UI_SCALE, R.string.ui_scale, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java, keywordRes = intArrayOf(R.string.ui_scale_smallest, R.string.ui_scale_smaller, R.string.ui_scale_default, R.string.ui_scale_larger, R.string.ui_scale_largest))
+				addItem(AppSettings.KEY_HAPTIC_FEEDBACK, R.string.haptic_feedback, R.string.haptic_feedback_summary, crumbs, AppearanceSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.manga_list)) { crumbs ->
 				addItem(AppSettings.KEY_LIST_MODE, R.string.list_mode, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.list_modes))
@@ -94,6 +97,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("details_appearance_nav", R.string.details_appearance, R.string.details_appearance_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_DETAILS_UI, R.string.details_ui, breadcrumbs = crumbs + ctx.getString(R.string.details_appearance), fragmentClass = PreviewSettingsFragment::class.java, keywordRes = intArrayOf(R.string.details_ui_compact, R.string.details_ui_expressive))
 				addItem(AppSettings.KEY_DETAILS_BACKDROP, R.string.details_backdrop, R.string.details_backdrop_summary, crumbs + ctx.getString(R.string.details_appearance), PreviewSettingsFragment::class.java)
+				addItem(AppSettings.KEY_DETAILS_BACKDROP_BLUR_AMOUNT, R.string.details_backdrop_blur, breadcrumbs = crumbs + ctx.getString(R.string.details_appearance), fragmentClass = PreviewSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.main_screen)) { crumbs ->
 				addItem(AppSettings.KEY_SEARCH_SUGGESTION_TYPES, R.string.search_suggestions, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
@@ -123,6 +127,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("sync_frequency", R.string.sync_frequency, breadcrumbs = crumbs, fragmentClass = SyncSettingsFragment::class.java, keywordRes = intArrayOf(R.string.sync_freq_off, R.string.sync_freq_6h, R.string.sync_freq_12h, R.string.sync_freq_daily, R.string.sync_freq_weekly))
 				addItem("sync_wifi_only", R.string.sync_wifi_only, breadcrumbs = crumbs, fragmentClass = SyncSettingsFragment::class.java)
 				addItem("sync_on_start", R.string.sync_on_start, R.string.sync_on_start_summary, crumbs, SyncSettingsFragment::class.java)
+				addItem("sync_disable_deletion", R.string.sync_disable_deletion, R.string.sync_disable_deletion_summary, crumbs, SyncSettingsFragment::class.java)
 				addItem("sync_what", R.string.sync_what, breadcrumbs = crumbs, fragmentClass = SyncSettingsFragment::class.java, keywordRes = intArrayOf(R.string.sync_content_favourites, R.string.sync_content_history, R.string.sync_content_bookmarks, R.string.sync_content_feed, R.string.sync_content_tracking, R.string.sync_content_stats, R.string.sync_content_settings, R.string.sync_content_covers))
 				addItem("sync_delete_data", R.string.sync_delete_data, R.string.sync_delete_data_summary, crumbs, SyncSettingsFragment::class.java)
 			}
@@ -138,6 +143,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("sources_catalog", R.string.manage_extensions, R.string.manage_extensions_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem("extension_stores", R.string.manage_stores, R.string.manage_stores_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem("migrate_broken_sources", R.string.migrate_broken_sources, R.string.migrate_broken_sources_summary, crumbs, ExtensionsSettingsFragment::class.java)
+				addItem(AppSettings.KEY_PRIVATE_INSTALLER, R.string.private_extensions, R.string.private_extensions_summary, crumbs, ExtensionsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.appearance)) { crumbs ->
 				addItem(AppSettings.KEY_SOURCES_ORDER, R.string.sort_order, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
@@ -153,6 +159,8 @@ class SettingsSearchHelper @Inject constructor(
 			group(sectionCrumbs, "Mode") { crumbs ->
 				addItem(AppSettings.KEY_READER_MODE, R.string.default_mode, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_modes))
 				addItem(AppSettings.KEY_READER_MODE_DETECT, R.string.detect_reader_mode, R.string.detect_reader_mode_summary, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_TITLE_TAP_TO_READ, R.string.title_tap_to_read, R.string.title_tap_to_read_summary, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_CHECK_DUPLICATES, R.string.duplicates_check, R.string.duplicates_check_summary, crumbs, ReaderSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Zoom") { crumbs ->
 				addItem(AppSettings.KEY_ZOOM_MODE, R.string.scale_mode, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.zoom_modes))
@@ -181,6 +189,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_READER_ORIENTATION, R.string.screen_orientation, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.screen_orientations))
 				addItem(AppSettings.KEY_READER_SCREEN_ON, R.string.keep_screen_on, R.string.keep_screen_on_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_MULTITASK, R.string.reader_multitask, R.string.reader_multitask_summary, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_CHAPTER_JUMP_DIALOG, R.string.chapter_jump_setting_title, R.string.chapter_jump_setting_summary, crumbs, ReaderSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Reading info") { crumbs ->
 				addItem(AppSettings.KEY_READER_BAR, R.string.reader_info_bar, R.string.reader_info_bar_summary, crumbs, ReaderSettingsFragment::class.java)
@@ -229,6 +238,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_LOCAL_STORAGE, R.string.manga_save_location, breadcrumbs = crumbs, fragmentClass = DownloadsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_DOWNLOADS_FORMAT, R.string.preferred_download_format, breadcrumbs = crumbs, fragmentClass = DownloadsSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.download_formats))
 				addItem(AppSettings.KEY_DOWNLOADS_METERED_NETWORK, R.string.download_over_cellular, breadcrumbs = crumbs, fragmentClass = DownloadsSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.metered_network_options))
+				addItem("rebuild_downloads_index", R.string.rebuild_downloads_index, R.string.rebuild_downloads_index_summary, crumbs, DownloadsSettingsFragment::class.java)
 				addItem("ignore_dose", R.string.disable_battery_optimization, R.string.disable_battery_optimization_summary_downloads, crumbs, DownloadsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.pages_saving)) { crumbs ->
@@ -242,9 +252,17 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("create_backup", R.string.create_backup, R.string.create_backup_summary, crumbs, BackupSettingsFragment::class.java)
 				addItem("restore_local_backup", R.string.restore_backup, R.string.restore_summary, crumbs, BackupSettingsFragment::class.java)
 				addItem("backup_periodic_screen", R.string.periodic_backups, R.string.periodic_backups_summary, crumbs, BackupSettingsFragment::class.java)
+				val periodicCrumbs = crumbs + ctx.getString(R.string.periodic_backups)
+				addItem(AppSettings.KEY_BACKUP_PERIODICAL_ENABLED, R.string.periodic_backups_enable, breadcrumbs = periodicCrumbs, fragmentClass = PeriodicalBackupSettingsFragment::class.java)
+				addItem(AppSettings.KEY_BACKUP_PERIODICAL_OUTPUT, R.string.backups_output_directory, breadcrumbs = periodicCrumbs, fragmentClass = PeriodicalBackupSettingsFragment::class.java)
+				addItem(AppSettings.KEY_BACKUP_PERIODICAL_FREQ, R.string.backup_frequency, breadcrumbs = periodicCrumbs, fragmentClass = PeriodicalBackupSettingsFragment::class.java)
+				addItem(AppSettings.KEY_BACKUP_PERIODICAL_TRIM, R.string.delete_old_backups, R.string.delete_old_backups_summary, periodicCrumbs, PeriodicalBackupSettingsFragment::class.java)
+				addItem(AppSettings.KEY_BACKUP_PERIODICAL_COUNT, R.string.max_backups_count, breadcrumbs = periodicCrumbs, fragmentClass = PeriodicalBackupSettingsFragment::class.java)
 			}
-			group(sectionCrumbs, ctx.getString(R.string.import_from_other_apps)) { crumbs ->
+			group(sectionCrumbs, ctx.getString(R.string.other_apps)) { crumbs ->
 				addItem("restore_backup", R.string.restore_from_tachiyomi, R.string.restore_tachiyomi_summary, crumbs, BackupSettingsFragment::class.java)
+				addItem("migrate_from_kotatsu", R.string.migrate_from_kotatsu, breadcrumbs = crumbs, fragmentClass = BackupSettingsFragment::class.java, keywordText = listOf("kotatsu"))
+				addItem("export_to_mihon", R.string.export_to_mihon, R.string.export_to_mihon_summary, crumbs, BackupSettingsFragment::class.java, keywordText = listOf("mihon", "tachiyomi", "tachibk", "export"))
 			}
 		}
 
@@ -259,6 +277,8 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_FEED_SWIPE_GESTURES, R.string.feed_swipe_gestures, R.string.feed_swipe_gestures_summary, crumbs, TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_TRACKER_NO_NSFW, R.string.disable_nsfw_notifications, R.string.disable_nsfw_notifications_summary, crumbs, TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_TRACKER_DOWNLOAD, R.string.download_new_chapters, breadcrumbs = crumbs, fragmentClass = TrackerSettingsFragment::class.java)
+				addItem(AppSettings.KEY_FEED_COUNTER_DOT, R.string.feed_counter_dot, R.string.feed_counter_dot_summary, crumbs, TrackerSettingsFragment::class.java)
+				addItem(AppSettings.KEY_TRACKER_SMART_UPDATE, R.string.smart_update, R.string.smart_update_summary, crumbs, TrackerSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.debug)) { crumbs ->
 				addItem("tracker_debug", R.string.tracker_debug_info, R.string.tracker_debug_info_summary, crumbs, TrackerSettingsFragment::class.java)
@@ -275,11 +295,13 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_SUGGESTIONS_NOTIFICATIONS, R.string.notifications_enable, R.string.suggestions_notifications_summary, crumbs + ctx.getString(R.string.suggestions), SuggestionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_SUGGESTIONS_EXCLUDE_TAGS, R.string.suggestions_excluded_genres, R.string.suggestions_excluded_genres_summary, crumbs + ctx.getString(R.string.suggestions), SuggestionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NSFW, R.string.exclude_nsfw_from_suggestions, R.string.exclude_nsfw_from_suggestions_summary, crumbs + ctx.getString(R.string.suggestions), SuggestionsSettingsFragment::class.java)
+				addItem(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NOVELS, R.string.exclude_novels_from_suggestions, R.string.exclude_novels_from_suggestions_summary, crumbs + ctx.getString(R.string.suggestions), SuggestionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_RELATED_MANGA, R.string.related_manga, R.string.related_manga_summary, crumbs, ServicesSettingsFragment::class.java)
 				addItem(AppSettings.KEY_STATS_ENABLED, R.string.reading_stats, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READING_TIME, R.string.reading_time_estimation, R.string.reading_time_estimation_summary, crumbs, ServicesSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.tracking)) { crumbs ->
+				addItem(AppSettings.KEY_SCROBBLING_PROGRESS_SYNC, R.string.sync_progress_from_tracking, R.string.sync_progress_from_tracking_summary, crumbs, ServicesSettingsFragment::class.java)
 				addItem("anilist", R.string.anilist, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem("kitsu", R.string.kitsu, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem("mal", R.string.mal, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
