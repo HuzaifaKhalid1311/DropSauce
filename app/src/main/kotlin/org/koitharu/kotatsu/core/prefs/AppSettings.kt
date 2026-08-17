@@ -147,6 +147,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isNavBarPinned: Boolean
 		get() = prefs.getBoolean(KEY_NAV_PINNED, false)
 
+	val isLegacyNavigationBar: Boolean
+		get() = prefs.getBoolean(KEY_NAV_LEGACY, false)
+
 	val isMainFabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_MAIN_FAB, true)
 
@@ -1256,6 +1259,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
+		const val KEY_NAV_LEGACY = "nav_legacy"
 		const val KEY_MAIN_FAB = "main_fab"
 		const val KEY_32BIT_COLOR = "enhanced_colors"
 		const val KEY_SOURCES_ORDER = "sources_sort_order"

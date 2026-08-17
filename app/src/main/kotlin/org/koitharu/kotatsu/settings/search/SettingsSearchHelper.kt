@@ -100,6 +100,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_NAV_MAIN, R.string.main_screen_sections, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_MAIN_FAB, R.string.main_screen_fab, R.string.main_screen_fab_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_NAV_LABELS, R.string.show_labels_in_navbar, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
+				addItem(AppSettings.KEY_NAV_LEGACY, R.string.use_legacy_navigation_bar, R.string.use_legacy_navigation_bar_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_NAV_PINNED, R.string.pin_navigation_ui, R.string.pin_navigation_ui_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_EXIT_CONFIRM, R.string.exit_confirmation, R.string.exit_confirmation_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_SHORTCUTS, R.string.history_shortcuts, R.string.history_shortcuts_summary, crumbs, AppearanceSettingsFragment::class.java)

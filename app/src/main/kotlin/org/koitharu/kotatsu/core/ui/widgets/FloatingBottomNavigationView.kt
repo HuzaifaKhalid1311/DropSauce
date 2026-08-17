@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.core.ui.widgets
 
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
@@ -46,6 +48,9 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	private val sourceItems = mutableListOf<NavItem>()
 	private val hiddenIds = mutableSetOf<Int>()
 	private val badgeCounts = mutableMapOf<Int, Int>()
+	private val legacyBackground: Drawable = ColorDrawable(context.getThemeColor(materialR.attr.colorSurfaceContainer))
+	private val legacyElevation = elevation
+	private var useLegacyNavigation = false
 
 	private val composeView: ComposeView = ComposeView(context).apply {
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -144,6 +149,12 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 		continueClickListener = listener
 	}
 
+	fun setUseLegacyNavigation(value: Boolean) {
+		if (useLegacyNavigation == value) return
+		useLegacyNavigation = value
+		updateNavigationMode()
+	}
+
 	fun setComposeBadge(@IdRes itemId: Int, count: Int) {
 		if (count == 0) badgeCounts.remove(itemId) else badgeCounts[itemId] = count
 		rebuildComposeItems()
@@ -176,9 +187,22 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 		for (i in 0 until childCount) {
 			val child = getChildAt(i)
 			if (child !== composeView) {
-				child.visibility = View.GONE
+				child.visibility = if (useLegacyNavigation) View.VISIBLE else View.GONE
 			}
 		}
+	}
+
+	private fun updateNavigationMode() {
+		navColorsState.value = readNavColors()
+		composeView.visibility = if (useLegacyNavigation) View.GONE else View.VISIBLE
+		for (i in 0 until childCount) {
+			val child = getChildAt(i)
+			if (child !== composeView) {
+				child.visibility = if (useLegacyNavigation) View.VISIBLE else View.GONE
+			}
+		}
+		background = if (useLegacyNavigation) legacyBackground else null
+		elevation = if (useLegacyNavigation) legacyElevation else 0f
 	}
 
 	private fun readNavColors(): FloatingNavBarColors {

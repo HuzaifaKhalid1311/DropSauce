@@ -893,6 +893,8 @@
     <string name="more_frequently">More frequently</string>
     <string name="frequency_of_check">Frequency of check</string>
     <string name="new_chapters_pattern" translatable="false">%1$s: %2$d</string>
+    <string name="use_legacy_navigation_bar">Use legacy navigation bar</string>
+    <string name="use_legacy_navigation_bar_summary">Show Android\'s default bottom navigation style</string>
     <string name="pin_navigation_ui">Pin navigation UI</string>
     <string name="pin_navigation_ui_summary">Do not hide navigation bar and search view on scroll</string>
     <string name="search_suggestions">Search suggestions</string>
