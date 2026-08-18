@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.github.AppVersion
+import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.util.FileSize
@@ -45,6 +46,7 @@ class AppUpdateActivity : BaseActivity<ActivityAppUpdateBinding>(), View.OnClick
 
 	private val viewModel: AppUpdateViewModel by viewModels()
 	private lateinit var downloadReceiver: UpdateDownloadReceiver
+	private var isAutoDownloadStarted = false
 
 	private val permissionRequest = registerForActivityResult(
 		ActivityResultContracts.RequestPermission(),
@@ -118,6 +120,11 @@ class AppUpdateActivity : BaseActivity<ActivityAppUpdateBinding>(), View.OnClick
 		if (version == null) {
 			viewBinding.textViewContent.setText(R.string.loading_)
 			return
+		}
+		// Launched straight from the home screen prompt: download and install without a second tap.
+		if (intent?.getBooleanExtra(AppRouter.KEY_AUTO_DOWNLOAD, false) == true && !isAutoDownloadStarted) {
+			isAutoDownloadStarted = true
+			doUpdate()
 		}
 		val markwon = Markwon.create(this)
 		val message = withContext(Dispatchers.Default) {

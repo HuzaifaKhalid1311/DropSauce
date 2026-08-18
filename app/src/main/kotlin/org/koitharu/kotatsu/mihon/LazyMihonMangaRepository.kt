@@ -51,6 +51,9 @@ class LazyMihonMangaRepository(
 	override val supportsDynamicFilters: Boolean
 		get() = true
 
+	override val inAppListingsExclusive: Boolean
+		get() = true
+
 	override suspend fun loadDefaultFilterList() = resolve().loadDefaultFilterList()
 
 	override val sortOrders: Set<SortOrder>

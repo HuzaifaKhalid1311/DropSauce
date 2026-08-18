@@ -77,14 +77,6 @@ class MihonMangaRepository(
 
 	private val paginationStates = java.util.concurrent.ConcurrentHashMap<String, PaginationState>()
 
-	// True when the source exposes its own "Order by"/"Sort" control (e.g. Asura Scans) instead of
-	// distinct Popular/Latest listings. Structural per-source property, so compute it once. When set,
-	// an unfiltered browse must go through getSearchManga so the source's own (default) order-by is
-	// honored — otherwise it silently falls back to getPopularManga and "Latest" shows popular content.
-	private val hasSourceSortControl: Boolean by lazy {
-		runCatching { MihonFilterMapper.findSortFilter(mihonSource.getFilterList()) != null }.getOrDefault(false)
-	}
-
 	private fun paginationKey(order: SortOrder?, filter: MangaListFilter?): String =
 		"$order|${filter?.query}|${filter?.tags}|${filter?.tagsExclude}"
 
@@ -95,7 +87,10 @@ class MihonMangaRepository(
 	}.let { EnumSet.copyOf(it) }
 
 	override var defaultSortOrder: SortOrder
-		get() = sourceSettings.defaultSortOrder ?: SortOrder.POPULARITY
+		// Only the two in-app listings can be the browse default; anything else stored by an older
+		// build (e.g. RELEVANCE, which needs a query) falls back to Popular like Mihon's default.
+		get() = sourceSettings.defaultSortOrder?.takeIf { it == SortOrder.POPULARITY || it == SortOrder.UPDATED }
+			?: SortOrder.POPULARITY
 		set(value) {
 			sourceSettings.defaultSortOrder = value
 		}
@@ -132,9 +127,11 @@ class MihonMangaRepository(
 
 		val mangasPage = try {
 			when {
+				// Mihon's three listings: a search/filter request, or one of the two dedicated
+				// endpoints. A chosen server-side sort is encoded as a filter tag, so it lands in the
+				// first branch and the endpoints only serve an otherwise-untouched browse.
 				hasFilters -> mihonSource.getSearchManga(page, query, filter.toMihonFilterList())
 				order == SortOrder.UPDATED && source.supportsLatest -> mihonSource.getLatestUpdates(page)
-				hasSourceSortControl -> mihonSource.getSearchManga(page, "", (filter ?: MangaListFilter.EMPTY).toMihonFilterList())
 				else -> mihonSource.getPopularManga(page)
 			}
 		} catch (e: Exception) {
@@ -502,6 +499,9 @@ class MihonMangaRepository(
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
 	override val supportsDynamicFilters: Boolean
+		get() = true
+
+	override val inAppListingsExclusive: Boolean
 		get() = true
 
 	override suspend fun loadDefaultFilterList(): FilterList = withContext(Dispatchers.IO) {

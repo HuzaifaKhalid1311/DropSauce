@@ -136,7 +136,9 @@ class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig 
 		const val KEY_SLOWDOWN = "slowdown"
 		const val KEY_INTERCEPT_CLOUDFLARE = "intercept_cloudflare"
 		const val KEY_SORT_ORDER = "sort_order"
-		const val KEY_LAST_SORT_KEY = "last_sort_key"
-		const val KEY_LAST_SORT_TITLE = "last_sort_title"
+		// Versioned key: bumping it drops every remembered server-side sort once, so all extensions
+		// start on the in-app "Popular" listing after the update.
+		const val KEY_LAST_SORT_KEY = "last_sort_key_v2"
+		const val KEY_LAST_SORT_TITLE = "last_sort_title_v2"
 	}
 }

@@ -234,7 +234,13 @@ class AppRouter private constructor(
 
     fun openBookmarks() = startActivity(AllBookmarksActivity::class.java)
 
-    fun openAppUpdate() = startActivity(AppUpdateActivity::class.java)
+    fun openAppUpdate(autoDownload: Boolean = false) {
+        val context = contextOrNull() ?: return
+        startActivity(
+            Intent(context, AppUpdateActivity::class.java)
+                .putExtra(KEY_AUTO_DOWNLOAD, autoDownload),
+        )
+    }
 
     fun openSuggestions() {
         startActivity(suggestionsIntent(contextOrNull() ?: return))
@@ -905,6 +911,7 @@ class AppRouter private constructor(
         const val KEY_SOURCE_CATALOG_AUTO_MIGRATE = "source_catalog_auto_migrate"
         const val KEY_SOURCE = "source"
         const val KEY_SCROLL_TO_LANGUAGE = "scroll_to_language"
+        const val KEY_AUTO_DOWNLOAD = "auto_download"
         const val KEY_TAB = "tab"
         const val KEY_TITLE = "title"
         const val KEY_URL = "url"

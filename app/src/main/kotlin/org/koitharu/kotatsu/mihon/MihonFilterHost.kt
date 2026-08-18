@@ -15,4 +15,13 @@ interface MihonFilterHost {
 
 	/** Returns a fresh [FilterList] in its default state (a new instance on every call). */
 	suspend fun loadDefaultFilterList(): FilterList
+
+	/**
+	 * True when the in-app Popular/Latest listings are served by dedicated endpoints that take no
+	 * filters, so switching to one replaces the applied filters instead of combining with them —
+	 * Mihon's own behaviour. Sources whose listing call accepts filters (LNReader plugins) leave it
+	 * false and keep the filters applied.
+	 */
+	val inAppListingsExclusive: Boolean
+		get() = false
 }

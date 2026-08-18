@@ -75,7 +75,6 @@ class FilterCoordinator @Inject constructor(
     private val currentListFilter = MutableStateFlow(restoreSortFilter())
     private val currentSortOrder = MutableStateFlow(repository.defaultSortOrder)
     private val initialSortOrder = repository.defaultSortOrder
-    private val defaultDynamicSortLabel = MutableStateFlow<String?>(null)
 
     private val availableSortOrders = repository.sortOrders
     private val filterOptions = suspendLazy { repository.getFilterOptions() }
@@ -320,21 +319,6 @@ class FilterCoordinator @Inject constructor(
                     sourceSettings.lastSortTagTitle = sortTag?.title
                 }
                 .launchIn(coroutineScope)
-            // Load the source's own default sort option name so the chip can show it instead of the
-            // generic "Popular" fallback when no explicit sort has been chosen yet.
-            coroutineScope.launch {
-                val host = filterHost ?: return@launch
-                val defaults = host.loadDefaultFilterList()
-                defaultDynamicSortLabel.value = when (val ref = MihonFilterMapper.findSortFilter(defaults)) {
-                    is MihonFilterMapper.SortRef.OfSort -> {
-                        val idx = ref.filter.state?.index ?: 0
-                        ref.filter.values.getOrNull(idx)
-                    }
-                    is MihonFilterMapper.SortRef.OfSelect ->
-                        ref.filter.values.getOrNull(ref.filter.state)?.toString()
-                    null -> null
-                }
-            }
         }
     }
 
@@ -383,41 +367,61 @@ class FilterCoordinator @Inject constructor(
         currentListFilter.value = MangaListFilter(query = query, tags = tags)
     }
 
-    /** Loads the current sort state for the compact sort picker (the source's own sort, or the built-in orders). */
+    /**
+     * Loads the state of the compact sort picker: the in-app listings (Mihon's own Popular/Latest
+     * endpoints) plus the source's own sort control, if it has one. A server-side sort is active
+     * exactly while an encoded "srt@..." tag is applied, and it replaces the in-app selection.
+     */
     suspend fun loadSortState(): SortState {
         val host = filterHost
         if (host?.supportsDynamicFilters == true) {
             val working = host.loadDefaultFilterList()
             MihonFilterMapper.decode(working, currentListFilter.value)
-            when (val ref = MihonFilterMapper.findSortFilter(working)) {
-                is MihonFilterMapper.SortRef.OfSort -> {
-                    val selection = ref.filter.state
-                    return SortState.Source(
-                        title = ref.filter.name,
-                        options = ref.filter.values.toList(),
-                        selectedIndex = selection?.index ?: -1,
-                        isAscending = selection?.ascending == true,
-                        supportsDirection = true,
-                    )
-                }
-
-                is MihonFilterMapper.SortRef.OfSelect -> {
-                    return SortState.Source(
-                        title = ref.filter.name,
-                        options = ref.filter.values.map { it.toString() },
-                        selectedIndex = ref.filter.state,
-                        isAscending = false,
-                        supportsDirection = false,
-                    )
-                }
-
-                null -> Unit
+            val hasSourceSort = currentListFilter.value.tags.any {
+                it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX)
             }
+            val sourceSort = when (val ref = MihonFilterMapper.findSortFilter(working)) {
+                is MihonFilterMapper.SortRef.OfSort -> SortState.Source(
+                    options = ref.filter.values.toList(),
+                    // Without an applied sort tag the picker shows the in-app listing as selected, so
+                    // the FilterList's own default selection must not be marked here.
+                    selectedIndex = if (hasSourceSort) ref.filter.state?.index ?: -1 else -1,
+                    isAscending = hasSourceSort && ref.filter.state?.ascending == true,
+                    supportsDirection = true,
+                )
+
+                is MihonFilterMapper.SortRef.OfSelect -> SortState.Source(
+                    options = ref.filter.values.map { it.toString() },
+                    selectedIndex = if (hasSourceSort) ref.filter.state else -1,
+                    isAscending = false,
+                    supportsDirection = false,
+                )
+
+                null -> null
+            }
+            return SortState(
+                inAppOptions = IN_APP_SORT_ORDERS.filter { it in availableSortOrders },
+                inAppSelected = currentSortOrder.value.takeUnless { hasSourceSort },
+                source = sourceSort,
+            )
         }
-        return SortState.Native(
-            options = availableSortOrders.sortedByOrdinal(),
-            selected = currentSortOrder.value,
+        return SortState(
+            inAppOptions = availableSortOrders.sortedByOrdinal(),
+            inAppSelected = currentSortOrder.value,
+            source = null,
         )
+    }
+
+    /**
+     * Switches to an in-app listing (Popular/Latest). For Mihon sources those are listings of their
+     * own, so — like Mihon's chips — they replace the search+filter state, the source's own sort
+     * included. Sources whose listing call takes filters keep them.
+     */
+    fun applyInAppSort(order: SortOrder) {
+        if (filterHost?.inAppListingsExclusive == true) {
+            currentListFilter.value = MangaListFilter.EMPTY
+        }
+        setSortOrder(order)
     }
 
     /** Applies a source sort selection ([Filter.Sort] or sort [Filter.Select]), preserving other filters. */
@@ -440,11 +444,10 @@ class FilterCoordinator @Inject constructor(
     fun snapshot() = Snapshot(
         sortOrder = currentSortOrder.value,
         listFilter = currentListFilter.value,
-        defaultSortLabel = defaultDynamicSortLabel.value,
     )
 
-    fun observe(): Flow<Snapshot> = combine(currentSortOrder, currentListFilter, defaultDynamicSortLabel) { order, filter, label ->
-        Snapshot(order, filter, label)
+    fun observe(): Flow<Snapshot> = combine(currentSortOrder, currentListFilter) { order, filter ->
+        Snapshot(order, filter)
     }
 
     fun setSortOrder(newSortOrder: SortOrder) {
@@ -698,7 +701,6 @@ class FilterCoordinator @Inject constructor(
     data class Snapshot(
         val sortOrder: SortOrder,
         val listFilter: MangaListFilter,
-        val defaultSortLabel: String? = null,
     )
 
     /** A fresh pair of Mihon filter lists: the user-editable [working] copy and the [defaults] baseline. */
@@ -708,20 +710,21 @@ class FilterCoordinator @Inject constructor(
     )
 
     /** Sort options surfaced by the compact sort picker. */
-    sealed interface SortState {
+    data class SortState(
+        /** In-app listings for a Mihon source, or the built-in orders of any other source. */
+        val inAppOptions: List<SortOrder>,
+        /** The selected in-app order, or null while a server-side sort is applied. */
+        val inAppSelected: SortOrder?,
+        /** The source's own sort control, or null when it has none. */
+        val source: Source?,
+    ) {
 
         data class Source(
-            val title: String,
             val options: List<String>,
             val selectedIndex: Int,
             val isAscending: Boolean,
             val supportsDirection: Boolean,
-        ) : SortState
-
-        data class Native(
-            val options: List<SortOrder>,
-            val selected: SortOrder,
-        ) : SortState
+        )
     }
 
     interface Owner {
@@ -732,6 +735,9 @@ class FilterCoordinator @Inject constructor(
     companion object {
 
         private const val TAGS_LIMIT = 12
+
+        /** The listings Mihon serves from dedicated endpoints instead of a search request, in display order. */
+        private val IN_APP_SORT_ORDERS = listOf(SortOrder.POPULARITY, SortOrder.UPDATED)
         private val MAX_YEAR = Calendar.getInstance()[Calendar.YEAR] + 1
 
         fun find(fragment: Fragment): FilterCoordinator? {

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.filter.ui.mihon
 
 import android.content.Context
+import androidx.annotation.DrawableRes
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -9,11 +10,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.model.titleRes
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator.SortState
 import org.koitharu.kotatsu.filter.ui.mihon.model.SortOptionModel
+import org.koitharu.kotatsu.filter.ui.mihon.model.SortSectionModel
+import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.koitharu.kotatsu.parsers.model.SortOrder
 
 @HiltViewModel(assistedFactory = MihonSortViewModel.Factory::class)
 class MihonSortViewModel @AssistedInject constructor(
@@ -22,73 +27,117 @@ class MihonSortViewModel @AssistedInject constructor(
 ) : BaseViewModel() {
 
 	private var sortState: SortState? = null
-	private val contentFlow = MutableStateFlow<List<SortOptionModel>>(emptyList())
 
-	val content: StateFlow<List<SortOptionModel>> = contentFlow
+	// The source's own options start visible only when one of them is what's currently applied.
+	private var isSourceSectionExpanded = false
+	private val contentFlow = MutableStateFlow<List<ListModel>>(emptyList())
+
+	val content: StateFlow<List<ListModel>> = contentFlow
 
 	init {
 		launchLoadingJob(Dispatchers.Default) {
-			sortState = filter.loadSortState()
+			val state = filter.loadSortState()
+			sortState = state
+			isSourceSectionExpanded = state.source != null && state.inAppSelected == null
 			rebuild()
 		}
 	}
 
 	fun onOptionClick(model: SortOptionModel) {
-		when (val state = sortState) {
-			is SortState.Source -> {
-				val index = model.id
-				if (state.supportsDirection) {
-					// Tapping the selected option flips direction; a new option keeps ascending.
-					val ascending = if (index == state.selectedIndex) !state.isAscending else true
-					filter.applySourceSort(index, ascending)
-					sortState = state.copy(selectedIndex = index, isAscending = ascending)
-				} else {
-					filter.applySourceSort(index, false)
-					sortState = state.copy(selectedIndex = index)
-				}
-				rebuild()
-			}
-
-			is SortState.Native -> {
-				val order = state.options.firstOrNull { it.ordinal == model.id } ?: return
-				filter.setSortOrder(order)
-				sortState = state.copy(selected = order)
-				rebuild()
-			}
-
-			null -> Unit
+		val state = sortState ?: return
+		if (model.isInApp) {
+			val order = state.inAppOptions.firstOrNull { it.ordinal == model.id } ?: return
+			filter.applyInAppSort(order)
+			sortState = state.copy(
+				inAppSelected = order,
+				source = state.source?.copy(selectedIndex = -1, isAscending = false),
+			)
+			rebuild()
+			return
 		}
+		val source = state.source ?: return
+		val index = model.id
+		if (source.supportsDirection) {
+			// Tapping the selected option flips direction; a new option keeps ascending.
+			val ascending = if (index == source.selectedIndex) !source.isAscending else true
+			filter.applySourceSort(index, ascending)
+			sortState = state.copy(
+				inAppSelected = null,
+				source = source.copy(selectedIndex = index, isAscending = ascending),
+			)
+		} else {
+			filter.applySourceSort(index, false)
+			sortState = state.copy(inAppSelected = null, source = source.copy(selectedIndex = index))
+		}
+		rebuild()
+	}
+
+	fun onSectionClick() {
+		isSourceSectionExpanded = !isSourceSectionExpanded
+		rebuild()
 	}
 
 	private fun rebuild() {
-		contentFlow.value = when (val state = sortState) {
-			is SortState.Source -> state.options.mapIndexed { index, label ->
-				SortOptionModel(
-					id = index,
-					title = label,
-					indicator = when {
-						index != state.selectedIndex -> SortOptionModel.Indicator.NONE
-						!state.supportsDirection -> SortOptionModel.Indicator.SELECTED
-						state.isAscending -> SortOptionModel.Indicator.ASCENDING
-						else -> SortOptionModel.Indicator.DESCENDING
-					},
+		val state = sortState ?: return
+		val source = state.source
+		contentFlow.value = buildList {
+			state.inAppOptions.forEach { order ->
+				add(
+					SortOptionModel(
+						id = order.ordinal,
+						title = context.getString(order.pickerTitleRes()),
+						indicator = if (order == state.inAppSelected) {
+							SortOptionModel.Indicator.SELECTED
+						} else {
+							SortOptionModel.Indicator.NONE
+						},
+						isInApp = true,
+						iconResId = order.pickerIconRes(),
+					),
 				)
 			}
-
-			is SortState.Native -> state.options.map { order ->
-				SortOptionModel(
-					id = order.ordinal,
-					title = context.getString(order.titleRes),
-					indicator = if (order == state.selected) {
-						SortOptionModel.Indicator.SELECTED
-					} else {
-						SortOptionModel.Indicator.NONE
-					},
+			if (source == null) {
+				return@buildList
+			}
+			add(
+				SortSectionModel(
+					title = context.getString(R.string.sort_section_source),
+					isExpanded = isSourceSectionExpanded,
+				),
+			)
+			if (!isSourceSectionExpanded) {
+				return@buildList
+			}
+			source.options.forEachIndexed { index, label ->
+				add(
+					SortOptionModel(
+						id = index,
+						title = label,
+						indicator = when {
+							index != source.selectedIndex -> SortOptionModel.Indicator.NONE
+							!source.supportsDirection -> SortOptionModel.Indicator.SELECTED
+							source.isAscending -> SortOptionModel.Indicator.ASCENDING
+							else -> SortOptionModel.Indicator.DESCENDING
+						},
+						isInApp = false,
+					),
 				)
 			}
-
-			null -> emptyList()
 		}
+	}
+
+	@DrawableRes
+	private fun SortOrder.pickerIconRes(): Int = when {
+		!filter.isDynamicFilter -> 0
+		this == SortOrder.UPDATED -> R.drawable.ic_sort_latest
+		this == SortOrder.POPULARITY -> R.drawable.ic_sort_popular
+		else -> 0
+	}
+
+	/** "Latest" reads better than the library-wide "Updated" for the in-app listing of a source. */
+	private fun SortOrder.pickerTitleRes(): Int = when {
+		this == SortOrder.UPDATED && filter.isDynamicFilter -> R.string.latest
+		else -> titleRes
 	}
 
 	@AssistedFactory

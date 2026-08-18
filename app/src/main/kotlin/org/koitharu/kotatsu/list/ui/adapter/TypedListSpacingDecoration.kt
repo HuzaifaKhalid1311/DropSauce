@@ -33,6 +33,7 @@ class TypedListSpacingDecoration(
 			ListItemType.FILTER_LANGUAGE,
 			ListItemType.QUICK_FILTER,
 			ListItemType.MIHON_SORT_OPTION,
+			ListItemType.MIHON_SORT_SECTION,
 				-> outRect.set(0)
 
 			ListItemType.HEADER,

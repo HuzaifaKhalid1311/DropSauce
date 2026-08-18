@@ -326,12 +326,20 @@ class MangaListActivity :
 			val isDynamic = filter.isDynamicFilter
 			filter.observe().observe(this) { snapshot ->
 				if (isDynamic) {
-					// The real sort lives inside the Mihon FilterList (encoded as a "srt@" tag); show its
-					// value on the button and only count non-sort tags towards the "filter applied" badge.
+					// A server-side sort lives inside the Mihon FilterList (encoded as a "srt@" tag) and
+					// wins over the in-app Popular/Latest listing; only non-sort tags count towards the
+					// "filter applied" badge. The icon says which of the two kinds is active.
 					val sortTag = snapshot.listFilter.tags.firstOrNull { it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX) }
-					chipSort.text = sortTag?.title?.substringAfter(": ")
-						?: snapshot.defaultSortLabel
-						?: getString(snapshot.sortOrder.titleRes)
+					if (sortTag != null) {
+						chipSort.text = sortTag.title.substringAfter(": ")
+						chipSort.setIconResource(R.drawable.ic_sort)
+					} else if (snapshot.sortOrder == SortOrder.UPDATED) {
+						chipSort.setText(R.string.latest)
+						chipSort.setIconResource(R.drawable.ic_sort_latest)
+					} else {
+						chipSort.setText(R.string.popular)
+						chipSort.setIconResource(R.drawable.ic_sort_popular)
+					}
 					chipSort.isVisible = true
 					filterBadge.counter = if (snapshot.listFilter.tags.any { !it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX) }) 1 else 0
 				} else {

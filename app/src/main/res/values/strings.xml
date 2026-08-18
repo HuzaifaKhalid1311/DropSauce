@@ -49,6 +49,8 @@
     <string name="downloads">Downloads</string>
     <string name="by_name">Name</string>
     <string name="popular">Popular</string>
+    <string name="latest">Latest</string>
+    <string name="sort_section_source">Server-side</string>
     <string name="updated">Updated</string>
     <string name="newest">Newest</string>
     <string name="by_rating">Rating</string>

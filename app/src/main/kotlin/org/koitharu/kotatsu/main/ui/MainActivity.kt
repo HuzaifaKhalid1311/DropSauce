@@ -157,7 +157,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.buttonSettings.setOnClickListener {
 			router.openSettings()
 		}
-		viewBinding.buttonUpdate.setOnClickListener { router.openAppUpdate() }
+		viewBinding.buttonUpdate.setOnClickListener { router.openAppUpdate(autoDownload = true) }
 		viewBinding.buttonUpdateDismiss.setOnClickListener {
 			viewModel.appUpdate.value?.let { settings.dismissedUpdateVersion = it.name }
 			viewBinding.layoutUpdatePrompt.isVisible = false
