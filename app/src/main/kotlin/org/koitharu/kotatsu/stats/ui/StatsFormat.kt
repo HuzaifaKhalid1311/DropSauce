@@ -70,5 +70,7 @@ fun labelStride(count: Int): Int = when {
 	count <= 8 -> 1
 	count <= 16 -> 2
 	count <= 24 -> 4
-	else -> 6
+	count <= 48 -> 6
+	// "All time" can be arbitrarily many monthly bars — keep roughly eight ticks whatever the span.
+	else -> (count + 7) / 8
 }

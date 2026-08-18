@@ -157,6 +157,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.buttonSettings.setOnClickListener {
 			router.openSettings()
 		}
+		viewBinding.buttonUpdate.setOnClickListener { router.openAppUpdate() }
+		viewBinding.buttonUpdateDismiss.setOnClickListener {
+			settings.dismissedUpdateVersion = viewModel.appUpdate.value?.name
+			viewBinding.layoutUpdatePrompt.isVisible = false
+		}
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch)
 
@@ -204,7 +209,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			navigationDelegate.setCounter(NavItem.EXPLORE, if (hasUpdates) -1 else 0)
 		}
 		viewModel.appUpdate.observe(this) { update ->
+			// The dot stays for as long as the update does; only the bubble honours the dismissal.
 			viewBinding.badgeSettingsUpdate.visibility = if (update != null) View.VISIBLE else View.GONE
+			viewBinding.layoutUpdatePrompt.isVisible =
+				update != null && update.name != settings.dismissedUpdateVersion
 		}
 		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
 		searchSuggestionViewModel.isIncognitoModeEnabled.observe(this, this::onIncognitoModeChanged)

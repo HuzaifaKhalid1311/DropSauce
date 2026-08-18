@@ -504,6 +504,7 @@ private fun StatsPeriod.rangeLabelResId(): Int = when (this) {
 	StatsPeriod.WEEK -> R.string.stats_range_week
 	StatsPeriod.MONTH -> R.string.stats_range_month
 	StatsPeriod.MONTHS_3 -> R.string.stats_range_3months
+	StatsPeriod.YEAR -> R.string.stats_range_year
 	StatsPeriod.ALL -> R.string.stats_range_all
 }
 

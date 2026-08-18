@@ -155,6 +155,82 @@
 
 			</LinearLayout>
 
+			<!-- Update prompt: a chat-style bubble whose tail points up at the settings button. -->
+			<LinearLayout
+				android:id="@+id/layout_update_prompt"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:paddingHorizontal="8dp"
+				android:paddingBottom="12dp"
+				android:visibility="gone"
+				tools:visibility="visible"
+				app:layout_scrollFlags="scroll|enterAlways|snap">
+
+				<ImageView
+					android:layout_width="16dp"
+					android:layout_height="8dp"
+					android:layout_marginStart="20dp"
+					android:src="@drawable/bg_update_bubble_tail"
+					android:importantForAccessibility="no" />
+
+				<com.google.android.material.card.MaterialCardView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					app:cardBackgroundColor="?attr/colorPrimaryContainer"
+					app:cardCornerRadius="20dp"
+					app:cardElevation="0dp"
+					app:strokeWidth="0dp">
+
+					<LinearLayout
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:minHeight="56dp"
+						android:gravity="center_vertical"
+						android:orientation="horizontal"
+						android:paddingStart="16dp"
+						android:paddingEnd="4dp">
+
+						<TextView
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_weight="1"
+							android:text="@string/app_update_available"
+							android:textAppearance="?attr/textAppearanceBodyMedium"
+							android:textColor="?attr/colorOnPrimaryContainer" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_update"
+							style="?borderlessButtonStyle"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/update"
+							android:textColor="?attr/colorOnPrimaryContainer"
+							app:rippleColor="?attr/colorOnPrimaryContainer" />
+
+						<com.google.android.material.button.MaterialButton
+							android:id="@+id/button_update_dismiss"
+							style="?attr/materialIconButtonStyle"
+							android:layout_width="40dp"
+							android:layout_height="40dp"
+							android:contentDescription="@string/close"
+							android:insetTop="0dp"
+							android:insetBottom="0dp"
+							android:insetLeft="0dp"
+							android:insetRight="0dp"
+							android:padding="0dp"
+							app:icon="@drawable/ic_close"
+							app:iconGravity="textStart"
+							app:iconPadding="0dp"
+							app:iconSize="20dp"
+							app:iconTint="?attr/colorOnPrimaryContainer" />
+
+					</LinearLayout>
+
+				</com.google.android.material.card.MaterialCardView>
+
+			</LinearLayout>
+
 		</com.google.android.material.appbar.AppBarLayout>
 
 		<!-- Status bar protection: a soft surface-to-transparent fade, sized in MainActivity from the top inset. -->

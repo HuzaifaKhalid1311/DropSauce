@@ -12,6 +12,7 @@ enum class StatsPeriod(
 	// Declaration order is the order the filter chips appear in: widest first, so the default
 	// selection sits at the start of the row.
 	ALL(R.string.all_time, Int.MAX_VALUE),
+	YEAR(R.string.year, 365),
 	MONTHS_3(R.string.three_months, 90),
 	MONTH(R.string.month, 30),
 	WEEK(R.string.week, 7),

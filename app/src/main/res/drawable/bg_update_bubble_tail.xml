@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Upward-pointing tail of the home screen update bubble, aimed at the settings button. -->
+<vector
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="16dp"
+	android:height="8dp"
+	android:viewportWidth="16"
+	android:viewportHeight="8"
+	android:tint="?attr/colorPrimaryContainer">
+
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="M8,0L16,8L0,8Z" />
+
+</vector>

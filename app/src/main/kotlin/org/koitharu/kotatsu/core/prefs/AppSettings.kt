@@ -153,6 +153,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isMainFabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_MAIN_FAB, true)
 
+	/**
+	 * Version name of the app update whose home screen prompt was dismissed. Stored rather than a
+	 * plain flag so a newer release brings the prompt back on its own.
+	 */
+	var dismissedUpdateVersion: String?
+		get() = prefs.getString(KEY_UPDATE_PROMPT_DISMISSED, null)
+		set(value) = prefs.edit { putString(KEY_UPDATE_PROMPT_DISMISSED, value) }
+
 	var gridSize: Int
 		get() = prefs.getInt(KEY_GRID_SIZE, 100)
 		set(value) = prefs.edit { putInt(KEY_GRID_SIZE, value) }
@@ -1261,6 +1269,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_NAV_PINNED = "nav_pinned"
 		const val KEY_NAV_LEGACY = "nav_legacy"
 		const val KEY_MAIN_FAB = "main_fab"
+		const val KEY_UPDATE_PROMPT_DISMISSED = "update_prompt_dismissed"
 		const val KEY_32BIT_COLOR = "enhanced_colors"
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_MIHON_PER_EXT_ACTIVE_LANG = "mihon_per_ext_active_lang"

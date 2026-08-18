@@ -820,7 +820,8 @@
     <string name="stats_range_week">Last 7 days</string>
     <string name="stats_range_month">Last 30 days</string>
     <string name="stats_range_3months">Last 13 weeks</string>
-    <string name="stats_range_all">Last 12 months</string>
+    <string name="stats_range_year">Last 12 months</string>
+    <string name="stats_range_all">All time</string>
     <string name="alternatives">Alternatives</string>
     <string name="duplicates_title">Already in your library</string>
     <string name="duplicates_summary">\"%1$s\" looks like something you already have.</string>

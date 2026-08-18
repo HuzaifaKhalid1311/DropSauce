@@ -18,6 +18,7 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ActionMode
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.OnApplyWindowInsetsListener
@@ -178,6 +179,32 @@ abstract class BaseActivity<B : ViewBinding> :
 		toolbar?.let {
 			setSupportActionBar(it)
 			it.applyTonalTopBarStyle()
+			takeOverToolbarBackHandling(it)
+		}
+	}
+
+	/**
+	 * Toolbar registers its own back callback at PRIORITY_OVERLAY, which outranks the keyboard's:
+	 * with an expanded search action view, the first back gesture collapsed the search instead of
+	 * only hiding the IME. Opting out and collapsing from the ordinary back dispatcher restores the
+	 * expected order — back hides the keyboard first, the next one closes the search.
+	 */
+	private fun takeOverToolbarBackHandling(toolbar: Toolbar) {
+		toolbar.setBackInvokedCallbackEnabled(false)
+		val callback = object : OnBackPressedCallback(toolbar.hasExpandedActionView()) {
+			override fun handleOnBackPressed() {
+				if (toolbar.hasExpandedActionView()) {
+					toolbar.collapseActionView()
+				} else {
+					// Nothing to collapse — step aside and let whoever is next handle it.
+					isEnabled = false
+					onBackPressedDispatcher.onBackPressed()
+				}
+			}
+		}
+		onBackPressedDispatcher.addCallback(this, callback)
+		toolbar.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+			callback.isEnabled = toolbar.hasExpandedActionView()
 		}
 	}
 

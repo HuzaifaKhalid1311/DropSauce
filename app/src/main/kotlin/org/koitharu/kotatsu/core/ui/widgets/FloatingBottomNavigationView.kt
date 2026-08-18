@@ -50,6 +50,9 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	private val badgeCounts = mutableMapOf<Int, Int>()
 	private val legacyBackground: Drawable = ColorDrawable(context.getThemeColor(materialR.attr.colorSurfaceContainer))
 	private val legacyElevation = elevation
+	// The legacy bar's items sit too close to its top edge. Nudging them down with translationY
+	// (rather than padding) keeps the bar and the items themselves exactly the same size.
+	private val legacyItemOffset = LEGACY_ITEM_OFFSET_DP * resources.displayMetrics.density
 	private var useLegacyNavigation = false
 
 	private val composeView: ComposeView = ComposeView(context).apply {
@@ -188,6 +191,7 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 			val child = getChildAt(i)
 			if (child !== composeView) {
 				child.visibility = if (useLegacyNavigation) View.VISIBLE else View.GONE
+				child.translationY = if (useLegacyNavigation) legacyItemOffset else 0f
 			}
 		}
 	}
@@ -199,6 +203,7 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 			val child = getChildAt(i)
 			if (child !== composeView) {
 				child.visibility = if (useLegacyNavigation) View.VISIBLE else View.GONE
+				child.translationY = if (useLegacyNavigation) legacyItemOffset else 0f
 			}
 		}
 		background = if (useLegacyNavigation) legacyBackground else null
@@ -224,5 +229,6 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 
 	companion object {
 		const val MAX_RENDERED_ITEMS = 5
+		private const val LEGACY_ITEM_OFFSET_DP = 8f
 	}
 }

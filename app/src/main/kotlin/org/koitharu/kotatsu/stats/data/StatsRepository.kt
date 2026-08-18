@@ -38,12 +38,16 @@ class StatsRepository @Inject constructor(
 	 */
 	suspend fun getStatsSnapshot(period: StatsPeriod, categories: Set<Long>): ReadingStats {
 		val zone = ZoneId.systemDefault()
-		val (unit, starts) = bucketStarts(period, zone)
+		// "All time" bars run from the very first session, which only the query itself knows, so its
+		// buckets are built after the sessions are loaded. Every other period is a fixed-length window.
+		val boundedStarts = if (period == StatsPeriod.ALL) null else bucketStarts(period, zone, 0L)
 		// The window is the chart's own first bar, not the raw "N days ago": anchoring bars to whole
 		// hours/days/weeks means a plain `now - N days` cutoff would pull in sessions that fall before
 		// bar zero, which then count towards the headline but have nowhere to be drawn.
-		val fromDate = if (period == StatsPeriod.ALL) 0L else starts.first()
+		val fromDate = boundedStarts?.second?.first() ?: 0L
 		val sessions = db.getStatsDao().getSessions(fromDate, categories)
+		val (unit, starts) = boundedStarts
+			?: bucketStarts(period, zone, sessions.firstOrNull()?.startedAt ?: System.currentTimeMillis())
 		val durations = LongArray(starts.size)
 		val activeDays = HashSet<LocalDate>()
 		val perManga = HashMap<Long, MangaAggregate>()
@@ -145,10 +149,14 @@ class StatsRepository @Inject constructor(
 	/**
 	 * Bar boundaries for the activity chart, always ending on the current hour/day/week/month so the
 	 * rightmost bar is "now". Longer periods aggregate harder — a five-year history as daily bars is
-	 * unreadable, so "all time" is charted as the last twelve months while the numbers above it stay
-	 * genuinely all-time.
+	 * unreadable, so a year is charted as twelve monthly bars, and "all time" keeps monthly bars but
+	 * stretches back to [firstSessionAt] (ignored by every other period).
 	 */
-	private fun bucketStarts(period: StatsPeriod, zone: ZoneId): Pair<StatsBucketUnit, LongArray> {
+	private fun bucketStarts(
+		period: StatsPeriod,
+		zone: ZoneId,
+		firstSessionAt: Long,
+	): Pair<StatsBucketUnit, LongArray> {
 		val now = ZonedDateTime.now(zone)
 		fun starts(count: Int, unit: StatsBucketUnit, anchor: ZonedDateTime, step: (ZonedDateTime, Long) -> ZonedDateTime) =
 			unit to LongArray(count) { i -> step(anchor, -(count - 1L - i)).toInstant().toEpochMilli() }
@@ -162,11 +170,23 @@ class StatsRepository @Inject constructor(
 				now.toLocalDate().with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1).atStartOfDay(zone),
 			) { a, d -> a.plusWeeks(d) }
 
-			StatsPeriod.ALL -> starts(
+			StatsPeriod.YEAR -> starts(
 				12,
 				StatsBucketUnit.MONTH,
 				now.toLocalDate().withDayOfMonth(1).atStartOfDay(zone),
 			) { a, d -> a.plusMonths(d) }
+
+			StatsPeriod.ALL -> {
+				val firstMonth = Instant.ofEpochMilli(firstSessionAt)
+					.atZone(zone).toLocalDate().withDayOfMonth(1)
+				val thisMonth = now.toLocalDate().withDayOfMonth(1)
+				val months = ChronoUnit.MONTHS.between(firstMonth, thisMonth).toInt() + 1
+				starts(
+					months.coerceAtLeast(1),
+					StatsBucketUnit.MONTH,
+					thisMonth.atStartOfDay(zone),
+				) { a, d -> a.plusMonths(d) }
+			}
 		}
 	}
 
