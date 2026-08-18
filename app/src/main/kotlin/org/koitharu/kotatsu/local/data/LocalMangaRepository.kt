@@ -168,6 +168,17 @@ class LocalMangaRepository @Inject constructor(
 		}.getOrNull()
 	}
 
+	/**
+	 * Index-only lookup of a downloaded copy. Unlike [findSavedManga] this never falls back to
+	 * scanning storage, so it costs a single indexed query when nothing is downloaded and is cheap
+	 * enough to run before showing anything.
+	 */
+	suspend fun findSavedMangaIndexed(remoteManga: Manga): LocalManga? = runCatchingCancellable {
+		localMangaIndex.get(remoteManga.id, withDetails = true)
+	}.onFailure {
+		it.printStackTraceDebug()
+	}.getOrNull()
+
 	suspend fun findSavedManga(remoteManga: Manga, withDetails: Boolean = true): LocalManga? = runCatchingCancellable {
 		// very fast path
 		localMangaIndex.get(remoteManga.id, withDetails)?.let { cached ->

@@ -60,13 +60,18 @@ class DetailsLoadUseCase @Inject constructor(
 			"Cannot resolve intent $intent"
 		}
 		val override = mangaDataRepository.getOverride(manga.id)
-		// The database is the screen's stale-while-revalidate cache. Do not put local-storage
-		// discovery or source work in front of this emission: finding a downloaded copy can require
-		// a filesystem scan, which previously made an already-known manga look like a cold load.
+		// The downloaded copy has to be attached to the FIRST emission. The reader commits to this
+		// snapshot: it inits its chapter list from it and immediately starts fetching pages, so a
+		// later emission that adds the local copy arrives after the chapter was already pulled over
+		// the network. The index lookup is a single indexed query when nothing is downloaded, so
+		// this emission stays instant - only the storage *scan* stays behind it.
+		val savedManga = if (manga.isLocal) null else localMangaRepository.findSavedMangaIndexed(manga)
+		// The database is the screen's stale-while-revalidate cache. Do not put source work in front
+		// of this emission, which previously made an already-known manga look like a cold load.
 		emit(
 			MangaDetails(
 				manga = manga,
-				localManga = null,
+				localManga = savedManga,
 				override = override,
 				description = manga.description?.parseAsHtml(withImages = false),
 				isLoaded = false,
@@ -75,7 +80,7 @@ class DetailsLoadUseCase @Inject constructor(
 		if (manga.isLocal) {
 			loadLocal(manga, override, force)
 		} else {
-			loadRemote(manga, override, force)
+			loadRemote(manga, override, force, savedManga)
 		}
 	}.map { details ->
 		// per-manga "merge scanlators": collapse all branches into one so the whole app
@@ -150,6 +155,7 @@ class DetailsLoadUseCase @Inject constructor(
 		manga: Manga,
 		override: MangaOverride?,
 		force: Boolean,
+		savedManga: LocalManga?,
 	) = coroutineScope {
 		// Skip the background refresh entirely if details were fetched recently enough
 		// (either by opening this screen or by the new-chapters tracker) — the DB copy is fresh.
@@ -159,7 +165,7 @@ class DetailsLoadUseCase @Inject constructor(
 			emit(
 				MangaDetails(
 					manga = manga,
-					localManga = localMangaRepository.findSavedManga(manga, withDetails = true),
+					localManga = savedManga ?: localMangaRepository.findSavedManga(manga, withDetails = true),
 					override = override,
 					description = manga.description?.parseAsHtml(withImages = true),
 					isLoaded = true,
@@ -170,8 +176,9 @@ class DetailsLoadUseCase @Inject constructor(
 		val remoteDeferred = async {
 			getDetails(manga, force)
 		}
-		val localManga = localMangaRepository.findSavedManga(manga, withDetails = true)
-		if (localManga != null) {
+		// Already resolved from the index? Skip the storage scan.
+		val localManga = savedManga ?: localMangaRepository.findSavedManga(manga, withDetails = true)
+		if (localManga != null && localManga !== savedManga) {
 			emit(
 				MangaDetails(
 					manga = manga,

@@ -283,8 +283,10 @@ class DetailsViewModel @Inject constructor(
 				val current = mangaDetails.value
 				// Once useful content is on screen, incomplete refresh emissions must not replace
 				// it. They can otherwise temporarily change tags, chapter counts, and other fields
-				// while local/source enrichment is still running.
-				if (!it.isLoaded && current.hasRenderableSnapshot()) {
+				// while local/source enrichment is still running. An emission that adds the
+				// downloaded copy is exempt: it is strictly richer, and dropping it hid the
+				// "on device" markers until the source finished loading.
+				if (!it.isLoaded && current.hasRenderableSnapshot() && !(it.local != null && current?.local == null)) {
 					return@collect
 				}
 				if (it.allChapters.isNotEmpty()) {
