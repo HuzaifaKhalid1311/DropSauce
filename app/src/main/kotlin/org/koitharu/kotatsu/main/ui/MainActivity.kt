@@ -159,7 +159,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 		viewBinding.buttonUpdate.setOnClickListener { router.openAppUpdate() }
 		viewBinding.buttonUpdateDismiss.setOnClickListener {
-			settings.dismissedUpdateVersion = viewModel.appUpdate.value?.name
+			viewModel.appUpdate.value?.let { settings.dismissedUpdateVersion = it.name }
 			viewBinding.layoutUpdatePrompt.isVisible = false
 		}
 		fadingAppbarMediator =

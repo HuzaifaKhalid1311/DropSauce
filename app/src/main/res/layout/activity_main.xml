@@ -169,12 +169,12 @@
 
 					<com.google.android.material.button.MaterialButton
 						android:id="@+id/button_update"
-						style="?borderlessButtonStyle"
+						style="?materialButtonStyle"
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
 						android:text="@string/update"
-						android:textColor="?attr/colorOnPrimaryContainer"
-						app:rippleColor="?attr/colorOnPrimaryContainer" />
+						android:textColor="?attr/colorOnPrimary"
+						app:backgroundTint="?attr/colorPrimary" />
 
 					<com.google.android.material.button.MaterialButton
 						android:id="@+id/button_update_dismiss"
