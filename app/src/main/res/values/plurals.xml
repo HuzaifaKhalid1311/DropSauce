@@ -44,6 +44,10 @@
 		<item quantity="one">%1$d day</item>
 		<item quantity="other">%1$d days</item>
 	</plurals>
+	<plurals name="stats_range_months">
+		<item quantity="one">Last %1$d month</item>
+		<item quantity="other">Last %1$d months</item>
+	</plurals>
 	<plurals name="stats_titles">
 		<item quantity="one">%1$d title</item>
 		<item quantity="other">%1$d titles</item>

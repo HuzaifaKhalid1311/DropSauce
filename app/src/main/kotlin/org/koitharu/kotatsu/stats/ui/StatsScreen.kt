@@ -176,6 +176,13 @@ fun StatsScreen(
 					Text(
 						text = if (bucket != null) {
 							formatBucketTitle(bucket.startAt, stats.bucketUnit, zone)
+						} else if (period == StatsPeriod.ALL) {
+							// "All time" has no fixed length — say how far back the bars actually reach.
+							resources.getQuantityString(
+								R.plurals.stats_range_months,
+								stats.buckets.size,
+								stats.buckets.size,
+							)
 						} else {
 							stringResource(period.rangeLabelResId())
 						},
