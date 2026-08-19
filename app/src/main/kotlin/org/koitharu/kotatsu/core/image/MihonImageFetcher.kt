@@ -84,6 +84,11 @@ class MihonImageFetcher(
 
 	private fun writeToDiskCache(response: Response, key: String?): DiskCache.Snapshot? {
 		if (key == null || !options.diskCachePolicy.writeEnabled) return null
+		// Sources sometimes answer HTTP 200 with an error page or a JSON body. Caching that under the
+		// cover key would keep the cover broken for good, since the url (and so the key) never changes.
+		response.body.contentType()?.let { type ->
+			if (type.type.equals("text", true) || type.subtype.equals("json", true)) return null
+		}
 		val diskCache = imageLoader.diskCache ?: return null
 		val editor = diskCache.openEditor(key) ?: return null
 		return try {

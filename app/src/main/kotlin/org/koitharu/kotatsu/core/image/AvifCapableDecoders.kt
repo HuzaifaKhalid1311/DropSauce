@@ -26,13 +26,17 @@ private val AVIF_MIME = MimeType("image/avif")
 
 // ponytail: header sniff (ISO-BMFF `ftyp` + avif/avis brand) instead of full parse; enough since
 // we only need to divert AVIF away from the crashing platform path.
+fun isAvifHeader(head: ByteArray, length: Int = head.size): Boolean {
+	if (length < 12) return false
+	val s = String(head, 0, length, Charsets.ISO_8859_1)
+	return s.contains("ftyp") && (s.contains("avif") || s.contains("avis"))
+}
+
 private fun Uri.sniffAvif(context: Context): Boolean = runCatching {
 	context.contentResolver.openInputStream(this)?.use { stream ->
 		val head = ByteArray(64)
 		val n = stream.read(head)
-		if (n < 12) return@use false
-		val s = String(head, 0, n, Charsets.ISO_8859_1)
-		s.contains("ftyp") && (s.contains("avif") || s.contains("avis"))
+		isAvifHeader(head, n)
 	} ?: false
 }.getOrDefault(false)
 

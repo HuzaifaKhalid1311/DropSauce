@@ -16,6 +16,7 @@ import coil3.util.component1
 import coil3.util.component2
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
 import kotlinx.coroutines.runInterruptible
+import okio.Buffer
 import org.aomedia.avif.android.AvifDecoder
 import org.koitharu.kotatsu.core.util.ext.readByteBuffer
 
@@ -89,8 +90,23 @@ class AvifImageDecoder(
 
 		override fun hashCode() = javaClass.hashCode()
 
+		/**
+		 * The mime type is unreliable: images served from the disk cache carry none at all, and some
+		 * sources label AVIF as `image/jpeg`. In both cases the bytes would fall through to the
+		 * platform decoder, which fails on many devices ("getPixels failed with error invalid input")
+		 * even though the bundled software decoder handles them. So sniff the header as well.
+		 */
 		private fun isApplicable(result: SourceFetchResult): Boolean {
-			return result.mimeType == "image/avif"
+			if (result.mimeType == "image/avif") {
+				return true
+			}
+			return runCatching {
+				result.source.source().peek().use { peek ->
+					val head = Buffer()
+					peek.read(head, 64L)
+					isAvifHeader(head.readByteArray())
+				}
+			}.getOrDefault(false)
 		}
 	}
 }

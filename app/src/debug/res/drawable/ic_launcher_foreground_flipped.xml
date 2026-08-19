@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only: the launcher icon upside down, so a debug install is obvious at a glance. -->
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+	android:drawable="@drawable/ic_launcher_foreground"
+	android:fromDegrees="180"
+	android:toDegrees="180"
+	android:pivotX="50%"
+	android:pivotY="50%" />

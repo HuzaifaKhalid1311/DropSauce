@@ -80,11 +80,15 @@ class DataCleanupSettingsViewModel @Inject constructor(
             try {
                 loadingKeys.update { it + key }
                 for (cache in caches) {
+                    if (cache == CacheDir.THUMBS) {
+                        // Coil keeps its disk cache journal in memory. Deleting the directory behind
+                        // its back leaves it handing out entries whose files are gone, so images fail
+                        // to decode until the process restarts. Clear it through Coil first.
+                        coil.memoryCache?.clear()
+                        coil.diskCache?.clear()
+                    }
                     storageManager.clearCache(cache)
                     checkNotNull(cacheSizes[cache]).value = storageManager.computeCacheSize(cache)
-                    if (cache == CacheDir.THUMBS) {
-                        coil.memoryCache?.clear()
-                    }
                 }
             } finally {
                 loadingKeys.update { it - key }
