@@ -34,6 +34,7 @@ class ProtectActivity :
 
 	private val biometricPrompt = registerForAuthenticationResult(resultCallback = this)
 	private var isAutoPromptPending = true
+	private var isPromptShowing = false
 	private val isPinMode get() = settings.isAppPasswordSet
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,10 +57,19 @@ class ProtectActivity :
 
 	override fun onStart() {
 		super.onStart()
-		// Biometric mode auto-prompts once; PIN mode waits for input instead.
+		// Biometric mode auto-prompts; PIN mode waits for input instead (the field takes focus itself).
 		if (!isPinMode && isAutoPromptPending) {
 			isAutoPromptPending = false
 			viewBinding.root.post { startUnlockFlow() }
+		}
+	}
+
+	override fun onStop() {
+		super.onStop()
+		// Re-arm the auto-prompt when we were backgrounded for any reason other than the prompt
+		// itself (device-credential fallback runs in its own activity), so coming back re-asks.
+		if (!isPromptShowing) {
+			isAutoPromptPending = true
 		}
 	}
 
@@ -67,6 +77,7 @@ class ProtectActivity :
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat = insets
 
 	override fun onAuthResult(result: AuthenticationResult) {
+		isPromptShowing = false
 		if (result.isSuccess()) {
 			unlockAndFinish()
 		}
@@ -91,6 +102,7 @@ class ProtectActivity :
 				setMinStrength(Biometric.Strength.Class2)
 				setIsConfirmationRequired(false)
 			}
+		isPromptShowing = true
 		biometricPrompt.launch(request)
 		return true
 	}

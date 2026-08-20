@@ -63,6 +63,8 @@ abstract class BasePageHolder<B : ViewBinding>(
 	var boundData: ReaderPage? = null
 		private set
 
+	private var isProgressPending = false
+
 	init {
 		lifecycleScope.launch(Dispatchers.Main) {
 			ssiv.bindToLifecycle(this@BasePageHolder)
@@ -145,6 +147,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	@CallSuper
 	open fun onRecycled() {
+		hideProgress()
 		clearUpscale()
 		viewModel.onRecycle()
 		ssiv.recycle()
@@ -160,16 +163,47 @@ abstract class BasePageHolder<B : ViewBinding>(
 	@Suppress("DEPRECATION")
 	final override fun onLowMemory() = onTrimMemory(TRIM_MEMORY_COMPLETE)
 
+	/**
+	 * Decides the progress indicator's mode once per page, a moment after loading starts: real
+	 * download progress when the server reported a content length by then, indeterminate otherwise.
+	 * The mode is never changed while the indicator is on screen - Material forbids it, and the
+	 * hide/re-show it forces looks like the progress rewinding and starting over.
+	 */
+	private val showProgressRunnable = Runnable {
+		isProgressPending = false
+		val bar = bindingInfo.progressBar
+		val progress = (viewModel.state.value as? PageState.Loading)?.progress ?: -1
+		if (bar.visibility != View.VISIBLE) {
+			bar.isIndeterminate = progress !in 0..100
+		}
+		if (!bar.isIndeterminate && progress in 0..100) {
+			bar.progress = progress
+		}
+		bar.show()
+	}
+
+	private fun showProgress(progress: Int) {
+		val bar = bindingInfo.progressBar
+		when {
+			isProgressPending -> Unit // mode not decided yet, the runnable picks up the latest value
+			bar.visibility != View.VISIBLE -> {
+				isProgressPending = true
+				bar.postDelayed(showProgressRunnable, PROGRESS_MODE_DELAY)
+			}
+
+			!bar.isIndeterminate && progress in 0..100 -> bar.setProgressCompat(progress, true)
+		}
+	}
+
+	private fun hideProgress() {
+		bindingInfo.progressBar.removeCallbacks(showProgressRunnable)
+		isProgressPending = false
+		bindingInfo.progressBar.hide()
+	}
+
 	protected open fun onStateChanged(state: PageState) {
 		bindingInfo.layoutError.isVisible = state is PageState.Error
 		bindingInfo.layoutProgress.isGone = state.isFinalState()
-		val progress = (state as? PageState.Loading)?.progress ?: -1
-		if (progress in 0..100) {
-			bindingInfo.progressBar.isIndeterminate = false
-			bindingInfo.progressBar.setProgressCompat(progress, true)
-		} else {
-			bindingInfo.progressBar.isIndeterminate = true
-		}
 		when (state) {
 			is PageState.Converting -> {
 				bindingInfo.textViewStatus.setText(R.string.processing_)
@@ -188,7 +222,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 				)
 				bindingInfo.buttonCopy.isVisible = e.isSerializable()
 				bindingInfo.layoutError.isVisible = true
-				bindingInfo.progressBar.hide()
+				hideProgress()
 			}
 
 			is PageState.Loaded -> {
@@ -200,7 +234,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 			is PageState.Loading -> {
 				bindingInfo.textViewStatus.isVisible = false
-				bindingInfo.progressBar.show()
+				showProgress(state.progress)
 				if (state.preview != null && ssiv.getState() == null) {
 					settings.applyBitmapConfig(ssiv)
 					ssiv.setImage(state.preview)
@@ -239,6 +273,11 @@ abstract class BasePageHolder<B : ViewBinding>(
 		}
 		ssiv.setRenderEffect(null)
 		boundData?.let { UpscaleEffect.setActive(it.id, false) }
+	}
+
+	private companion object {
+
+		const val PROGRESS_MODE_DELAY = 500L
 	}
 
 	protected fun SubsamplingScaleImageView.applyDownSampling(isForeground: Boolean) {

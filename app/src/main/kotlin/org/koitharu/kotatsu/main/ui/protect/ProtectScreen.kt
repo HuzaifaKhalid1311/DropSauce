@@ -24,12 +24,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -56,6 +60,16 @@ fun ProtectScreen(
 ) {
 	var pin by remember { mutableStateOf("") }
 	var isError by remember { mutableStateOf(false) }
+	val focusRequester = remember { FocusRequester() }
+	val keyboardController = LocalSoftwareKeyboardController.current
+
+	// PIN mode: put the caret in the field and raise the numpad right away, so unlocking is one action.
+	LaunchedEffect(isPinMode) {
+		if (isPinMode) {
+			focusRequester.requestFocus()
+			keyboardController?.show()
+		}
+	}
 
 	fun submit() {
 		if (pin.length < MIN_PIN_LENGTH) return
@@ -130,7 +144,9 @@ fun ProtectScreen(
 					),
 					keyboardActions = KeyboardActions(onDone = { submit() }),
 					shape = RoundedCornerShape(16.dp),
-					modifier = Modifier.fillMaxWidth(),
+					modifier = Modifier
+						.fillMaxWidth()
+						.focusRequester(focusRequester),
 				)
 			}
 		}

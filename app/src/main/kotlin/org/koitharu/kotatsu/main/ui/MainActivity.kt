@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.main.ui
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
@@ -13,7 +12,6 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.ClickableSpan
-import android.text.style.StyleSpan
 import androidx.activity.result.contract.ActivityResultContracts
 import android.view.MotionEvent
 import android.view.View
@@ -72,6 +70,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.text.ChipBackgroundSpan
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
 import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
@@ -614,6 +613,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			hintText = "$scopeLabel · $originalHint"
 			scopeStart = 0
 		}
+		val density = resources.displayMetrics.density
 		searchView.hint = SpannableString(hintText).apply {
 			setSpan(
 				object : ClickableSpan() {
@@ -623,10 +623,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 					}
 
 					override fun updateDrawState(ds: TextPaint) {
-						ds.color = MaterialColors.getColor(
-							searchView.editText,
-							androidx.appcompat.R.attr.colorPrimary,
-						)
 						ds.isUnderlineText = false
 					}
 				},
@@ -634,8 +630,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				scopeStart + scopeLabel.length,
 				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
 			)
+			// Boxed like a chip: the scope is a control, not part of the sentence, and users miss it otherwise.
 			setSpan(
-				StyleSpan(Typeface.BOLD),
+				ChipBackgroundSpan(
+					backgroundColor = MaterialColors.getColor(
+						searchView.editText,
+						com.google.android.material.R.attr.colorSecondaryContainer,
+					),
+					textColor = MaterialColors.getColor(
+						searchView.editText,
+						com.google.android.material.R.attr.colorOnSecondaryContainer,
+					),
+					paddingHorizontal = 6f * density,
+					paddingVertical = 2f * density,
+					cornerRadius = 8f * density,
+				),
 				scopeStart,
 				scopeStart + scopeLabel.length,
 				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
