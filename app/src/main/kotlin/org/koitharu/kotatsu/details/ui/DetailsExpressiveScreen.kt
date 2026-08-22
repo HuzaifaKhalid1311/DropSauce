@@ -242,8 +242,8 @@ fun DetailsExpressiveScreen(
  * visible edge, unlike a rectangular scrim.
  */
 private fun Modifier.dockGlow(surface: Color) = drawBehind {
-	val rx = size.width * 0.82f
-	val ry = size.height * 1.20f
+	val rx = size.width * 0.62f
+	val ry = size.height * 0.60f
 	val brush = Brush.radialGradient(
 		0f to surface.copy(alpha = 0.92f),
 		0.40f to surface.copy(alpha = 0.74f),

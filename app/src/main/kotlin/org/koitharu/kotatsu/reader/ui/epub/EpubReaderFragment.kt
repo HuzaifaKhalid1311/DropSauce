@@ -107,6 +107,7 @@ import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isNightMode
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.URI_SCHEME_ZIP
+import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.local.data.input.EpubParser
 import org.koitharu.kotatsu.databinding.FragmentReaderEpubBinding
 import org.koitharu.kotatsu.databinding.SheetEpubDictionaryBinding
@@ -354,20 +355,21 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				url = chapter.url,
 			)
 		}
-		// A novel source has no archive on disk: its chapters are fetched from the source itself.
-		if (manga.source.isNovelSource) {
-			return PreparedBook(items, RemoteContentSource(mangaRepositoryFactory.create(manga.source), source))
-		}
 		val archives = HashMap<File, ZipFile>()
 		try {
-			items.map { File(it.url.toUri().schemeSpecificPart) }
+			items.mapNotNull { it.url.toUri().takeIf { u -> u.isZipUri() }?.let { u -> File(u.schemeSpecificPart) } }
 				.distinct()
 				.forEach { archives[it] = ZipFile(it) }
 		} catch (error: Throwable) {
 			archives.values.forEach(ZipFile::close)
 			throw error
 		}
-		return PreparedBook(items, ZipContentSource(archives))
+		val repository = if (manga.source.isNovelSource) {
+			mangaRepositoryFactory.create(manga.source)
+		} else {
+			null
+		}
+		return PreparedBook(items, HybridContentSource(archives, repository, source))
 	}
 
 	private fun ensureChaptersLoaded(range: IntRange) {
@@ -1296,7 +1298,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	 */
 	private fun searchBook(query: String) {
 		if (query.isEmpty() || chapters.isEmpty()) return
-		val isRemote = chapterContent is RemoteContentSource
+		val isRemote = (chapterContent as? HybridContentSource)?.hasRemote == true
 		Toast.makeText(requireContext(), R.string.loading_, Toast.LENGTH_SHORT).show()
 		viewLifecycleOwner.lifecycleScope.launch {
 			val results = withContext(Dispatchers.IO) {
@@ -1604,17 +1606,30 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		fun resolveExternalLink(chapterUrl: String, href: String): String?
 	}
 
-	private class ZipContentSource(private val archives: Map<File, ZipFile>) : ChapterContent {
+	private class HybridContentSource(
+		private val archives: Map<File, ZipFile>,
+		private val repository: MangaRepository?,
+		chapters: List<MangaChapter>,
+	) : ChapterContent {
 
+		val hasRemote: Boolean get() = repository != null
 		private val lock = Any()
+		private val byUrl = chapters.associateBy { it.url }
 
 		override fun loadHtml(url: String): String {
 			val uri = url.toUri()
-			val entryName = uri.fragment.orEmpty()
-			return synchronized(lock) {
-				val zip = archives[File(uri.schemeSpecificPart)] ?: return ""
-				val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
-				entry?.let { zip.getInputStream(it).bufferedReader().use { reader -> reader.readText() } }.orEmpty()
+			if (uri.isZipUri()) {
+				val entryName = uri.fragment.orEmpty()
+				return synchronized(lock) {
+					val zip = archives[File(uri.schemeSpecificPart)] ?: return ""
+					val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
+					entry?.let { zip.getInputStream(it).bufferedReader().use { reader -> reader.readText() } }.orEmpty()
+				}
+			}
+			if (repository == null) return ""
+			return runBlocking {
+				val chapter = byUrl[url] ?: return@runBlocking ""
+				repository.getChapterHtml(chapter).orEmpty()
 			}
 		}
 
@@ -1622,65 +1637,42 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			// A downloaded novel keeps its illustrations as absolute urls; let coil fetch those.
 			if (source.startsWith("http://", true) || source.startsWith("https://", true)) return source
 			val uri = chapterUrl.toUri()
-			val entryName = resolveEpubEntry(uri.fragment.orEmpty(), source)
-			return synchronized(lock) {
-				val archive = archives[File(uri.schemeSpecificPart)] ?: return null
-				val entry = archive.getEntry(entryName)
-					?: archive.getEntry(entryName.removePrefix("/"))
-					?: return null
-				archive.getInputStream(entry).use { it.readBytes() }
+			if (uri.isZipUri()) {
+				val entryName = resolveEpubEntry(uri.fragment.orEmpty(), source)
+				return synchronized(lock) {
+					val archive = archives[File(uri.schemeSpecificPart)] ?: return null
+					val entry = archive.getEntry(entryName)
+						?: archive.getEntry(entryName.removePrefix("/"))
+						?: return null
+					archive.getInputStream(entry).use { it.readBytes() }
+				}
 			}
-		}
-
-		override fun resolveExternalLink(chapterUrl: String, href: String): String? =
-			href.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
-
-		override fun close() {
-			synchronized(lock) { archives.values.forEach(ZipFile::close) }
-		}
-
-		private fun resolveEpubEntry(chapterEntry: String, source: String): String {
-			val cleanSource = source.substringBefore('#').substringBefore('?').replace(" ", "%20")
-			return URI("/${chapterEntry.replace('\\', '/')}").resolve(cleanSource).normalize().path.removePrefix("/")
-		}
-	}
-
-	/**
-	 * Chapters fetched from a novel plugin. Images are never downloaded here — the src is handed back
-	 * as an absolute url so coil loads it through the source's own headers, exactly like a cover.
-	 */
-	private class RemoteContentSource(
-		private val repository: MangaRepository,
-		chapters: List<MangaChapter>,
-	) : ChapterContent {
-
-		private val byUrl = chapters.associateBy { it.url }
-
-		// runBlocking is safe: ChapterContent.loadHtml is documented blocking and every caller
-		// already hops to Dispatchers.IO first.
-		override fun loadHtml(url: String): String = runBlocking {
-			val chapter = byUrl[url] ?: return@runBlocking ""
-			repository.getChapterHtml(chapter).orEmpty()
-		}
-
-		// Inline images in prose are often site-relative, so they get resolved against the source's
-		// own site — the plugin's for an LNReader novel, the extension's base url for a Tsundoku one.
-		override fun imageData(chapterUrl: String, source: String): Any? =
-			when (val novelSource = repository.source.unwrap()) {
+			if (repository == null) return null
+			return when (val novelSource = repository.source.unwrap()) {
 				is LnMangaSource -> novelSource.absoluteUrl(source)
 				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
 					?.let { resolveAgainst(it.baseUrl, source) }
-
 				else -> null
 			}
+		}
 
-		override fun resolveExternalLink(chapterUrl: String, href: String): String? =
-			when (val novelSource = repository.source.unwrap()) {
+		override fun resolveExternalLink(chapterUrl: String, href: String): String? {
+			val uri = chapterUrl.toUri()
+			if (uri.isZipUri()) {
+				return href.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
+			}
+			if (repository == null) return null
+			return when (val novelSource = repository.source.unwrap()) {
 				is LnMangaSource -> novelSource.absoluteUrl(href)
 				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
 					?.let { resolveAgainst(it.baseUrl, href) }
 				else -> null
 			}
+		}
+
+		override fun close() {
+			synchronized(lock) { archives.values.forEach(ZipFile::close) }
+		}
 
 		private fun resolveAgainst(baseUrl: String, value: String): String = when {
 			value.startsWith("http://") || value.startsWith("https://") -> value
@@ -1688,7 +1680,10 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			else -> baseUrl.trimEnd('/') + "/" + value.trimStart('/')
 		}
 
-		override fun close() = Unit
+		private fun resolveEpubEntry(chapterEntry: String, source: String): String {
+			val cleanSource = source.substringBefore('#').substringBefore('?').replace(" ", "%20")
+			return URI("/${chapterEntry.replace('\\', '/')}").resolve(cleanSource).normalize().path.removePrefix("/")
+		}
 	}
 
 	private data class PreparedBook(val chapters: List<NativeChapter>, val content: ChapterContent)
