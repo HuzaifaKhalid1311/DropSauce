@@ -25,6 +25,7 @@ import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.sanitize
+import org.koitharu.kotatsu.core.util.ext.textAndVisible
 import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.databinding.SheetScrobblingBinding
 import org.koitharu.kotatsu.details.ui.DetailsViewModel
@@ -162,9 +163,20 @@ class ScrobblingInfoSheet :
 			binding.chipGroupStatus.clearCheck()
 		}
 		isBindingStatus = false
+		bindProgress(binding, scrobbling.chapter)
 		binding.imageViewLogo.contentDescription = getString(scrobbling.scrobbler.titleResId)
 		binding.imageViewLogo.setImageResource(scrobbling.scrobbler.iconResId)
 		binding.imageViewCover.setImageAsync(scrobbling.coverUrl)
+	}
+
+	/** The tracker only knows the chapter it is at, so the total comes from the loaded details. */
+	private fun bindProgress(binding: SheetScrobblingBinding, chapter: Int) {
+		val total = viewModel.historyInfo.value.totalChapters
+		binding.textViewProgress.textAndVisible = when {
+			chapter <= 0 -> null
+			total > 0 -> getString(R.string.chapter_d_of_d, chapter, total)
+			else -> getString(R.string.chapter_number, chapter.toString())
+		}
 	}
 
 	private fun formatRating(stars: Float): String {

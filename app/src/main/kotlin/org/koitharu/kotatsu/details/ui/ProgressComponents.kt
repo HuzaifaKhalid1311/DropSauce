@@ -113,13 +113,14 @@ internal fun WavyProgressBar(progress: Float, color: Color, trackColor: Color, m
 		animationSpec = tween(600),
 		label = "progress",
 	)
-	// Material 3 Expressive flattens the wave outside [0.1, 0.9] and ramps it over 500ms,
-	// exactly like the wavy LinearProgressIndicator used by the download list.
-	val amplitudeFraction by animateFloatAsState(
-		targetValue = if (animatedProgress in FULL_AMPLITUDE_MIN..FULL_AMPLITUDE_MAX) 1f else 0f,
-		animationSpec = tween(500),
-		label = "amplitude",
-	)
+	// Material 3 Expressive flattens the wave outside [0.1, 0.9]. Ramping the amplitude across
+	// those two bands instead of snapping lets the wave grow out of — and settle back into —
+	// the flat line as the progress animates.
+	val amplitudeFraction = when {
+		animatedProgress < FULL_AMPLITUDE_MIN -> animatedProgress / FULL_AMPLITUDE_MIN
+		animatedProgress > FULL_AMPLITUDE_MAX -> (1f - animatedProgress) / (1f - FULL_AMPLITUDE_MAX)
+		else -> 1f
+	}.coerceIn(0f, 1f)
 	Canvas(modifier = modifier) {
 		val midY = size.height / 2f
 		val stroke = TRACK_THICKNESS.dp.toPx()
