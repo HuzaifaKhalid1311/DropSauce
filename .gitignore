@@ -33,3 +33,7 @@ CLAUDE.md
 /research/
 /.agents/
 
+
+# Unrelated scratch files that end up in the project root
+/*.json
+/*.html

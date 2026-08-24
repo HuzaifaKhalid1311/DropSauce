@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.viewModels
+import androidx.appcompat.widget.PopupMenu
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -224,6 +225,13 @@ class ReaderActivity :
         )
         UpscaleEffect.activePages.map { it.isNotEmpty() }.distinctUntilChanged()
             .observe(this, MenuInvalidator(this))
+        // Long-pressing the top bar offers the chapter currently being read in the built-in
+        // browser — the same action the chapters list already offers on a selected chapter.
+        viewBinding.toolbar.setOnLongClickListener(::onToolbarLongClick)
+        viewModel.onOpenChapterInBrowser.observeEvent(this) { url ->
+            val manga = viewModel.getMangaOrNull()
+            router.openBrowser(url = url, source = manga?.source, title = manga?.title)
+        }
 
         observeWindowLayout()
 
@@ -644,6 +652,21 @@ class ReaderActivity :
         val page = pages?.getOrNull(index) ?: return
         val chapterId = viewModel.getCurrentState()?.chapterId ?: return
         onPageSelected(ReaderPage(page, index, chapterId))
+    }
+
+    private fun onToolbarLongClick(view: View): Boolean {
+        val chapterId = viewModel.getCurrentState()?.chapterId ?: return false
+        view.hapticFeedback(HapticEffect.LONG_PRESS)
+        PopupMenu(view.context, view, Gravity.START).run {
+            inflate(R.menu.opt_browser)
+            setOnMenuItemClickListener { item ->
+                (item.itemId == R.id.action_browser).also { isHandled ->
+                    if (isHandled) viewModel.openChapterInBrowser(chapterId)
+                }
+            }
+            show()
+        }
+        return true
     }
 
     private fun onReaderBarChanged(isBarEnabled: Boolean) {

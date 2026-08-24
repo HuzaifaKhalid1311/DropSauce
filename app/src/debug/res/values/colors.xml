@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- Debug-only override: pure black-on-white launcher mark, so a debug install is obvious. -->
+	<color name="ic_launcher_background">#FFFFFF</color>
+</resources>

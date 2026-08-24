@@ -540,14 +540,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		return Hash.sha256(salt + pin) == hash
 	}
 
-	var pendingExtensionDownloads: Set<Long>
-		get() = prefs.getStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, emptySet())
-			.orEmpty()
-			.mapNotNullToSet { it.toLongOrNull() }
-		set(value) = prefs.edit {
-			putStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, value.mapToSet { it.toString() })
-		}
-
 	/**
 	 * Ids of installed novel (text) extension sources, remembered from the last extension scan.
 	 * Loading extensions needs a classloader pass, so right after launch a novel already in the
@@ -1299,7 +1291,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
-		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
 		const val KEY_NOVEL_SOURCE_IDS = "novel_source_ids"
 		const val KEY_GLOBAL_SEARCH_NOVEL_SCOPE = "global_search_novel_scope"
 		const val KEY_SEARCH_HIDE_EMPTY = "search_hide_empty"

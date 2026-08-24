@@ -113,25 +113,30 @@ internal fun WavyProgressBar(progress: Float, color: Color, trackColor: Color, m
 		animationSpec = tween(600),
 		label = "progress",
 	)
+	// Material 3 Expressive flattens the wave outside [0.1, 0.9] and ramps it over 500ms,
+	// exactly like the wavy LinearProgressIndicator used by the download list.
+	val amplitudeFraction by animateFloatAsState(
+		targetValue = if (animatedProgress in FULL_AMPLITUDE_MIN..FULL_AMPLITUDE_MAX) 1f else 0f,
+		animationSpec = tween(500),
+		label = "amplitude",
+	)
 	Canvas(modifier = modifier) {
 		val midY = size.height / 2f
-		val stroke = 4.5.dp.toPx()
+		val stroke = TRACK_THICKNESS.dp.toPx()
+		val amplitude = WAVE_AMPLITUDE.dp.toPx() * amplitudeFraction
+		val waveLength = WAVELENGTH.dp.toPx()
+		val stopRadius = STOP_INDICATOR_SIZE.dp.toPx() / 2f
+		// The gap between the active indicator and the track closes over the last percent,
+		// so a finished bar reads as one continuous line.
+		val gap = GAP_SIZE.dp.toPx() *
+			((1f - animatedProgress).coerceAtMost(GAP_RAMP_THRESHOLD) / GAP_RAMP_THRESHOLD)
 		val activeW = size.width * animatedProgress
-		val edgeFlatten = when {
-			animatedProgress <= 0.05f -> animatedProgress / 0.05f
-			animatedProgress >= 0.95f -> (1f - animatedProgress) / 0.05f
-			else -> 1f
-		}
-		val amplitude = (size.height / 2f - stroke / 2f) * 0.9f * edgeFlatten
-		val waveLength = 40.dp.toPx()
-		// The wave must land exactly on the track's centerline at the junction, so its
-		// amplitude fades out over the last quarter wavelength only.
-		val endTaper = waveLength / 4f
-		if (animatedProgress < 1f) {
+		val trackStart = activeW + gap
+		if (trackStart < size.width - stroke / 2f) {
 			drawLine(
 				color = trackColor,
-				start = Offset(activeW, midY),
-				end = Offset(size.width, midY),
+				start = Offset(trackStart, midY),
+				end = Offset(size.width - stroke / 2f, midY),
 				strokeWidth = stroke,
 				cap = StrokeCap.Round,
 			)
@@ -140,12 +145,11 @@ internal fun WavyProgressBar(progress: Float, color: Color, trackColor: Color, m
 			val path = Path().apply {
 				moveTo(0f, midY + amplitude * sin(phase))
 				var x = 0f
-				while (x <= activeW) {
-					val envelope = ((activeW - x) / endTaper).coerceIn(0f, 1f)
-					lineTo(x, midY + amplitude * envelope * sin((x / waveLength) * 2f * PI.toFloat() + phase))
+				while (x < activeW) {
+					lineTo(x, midY + amplitude * sin((x / waveLength) * 2f * PI.toFloat() + phase))
 					x += 3f
 				}
-				lineTo(activeW, midY)
+				lineTo(activeW, midY + amplitude * sin((activeW / waveLength) * 2f * PI.toFloat() + phase))
 			}
 			drawPath(
 				path = path,
@@ -153,8 +157,19 @@ internal fun WavyProgressBar(progress: Float, color: Color, trackColor: Color, m
 				style = Stroke(width = stroke, cap = StrokeCap.Round, join = StrokeJoin.Round),
 			)
 		}
+		drawCircle(color = color, radius = stopRadius, center = Offset(size.width - stopRadius, midY))
 	}
 }
+
+// Material 3 Expressive linear wavy progress indicator tokens.
+private const val TRACK_THICKNESS = 4f
+private const val WAVE_AMPLITUDE = 3f
+private const val WAVELENGTH = 40f
+private const val GAP_SIZE = 4f
+private const val STOP_INDICATOR_SIZE = 4f
+private const val GAP_RAMP_THRESHOLD = 0.01f
+private const val FULL_AMPLITUDE_MIN = 0.1f
+private const val FULL_AMPLITUDE_MAX = 0.9f
 
 private fun withTime(base: String, info: HistoryInfo, res: android.content.res.Resources): String {
 	val time = info.estimatedTime?.formatShort(res) ?: return base

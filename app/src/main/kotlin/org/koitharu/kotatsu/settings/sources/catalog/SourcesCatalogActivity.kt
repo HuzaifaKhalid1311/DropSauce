@@ -11,7 +11,6 @@ import android.view.View
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -72,6 +71,9 @@ import java.io.File
 import java.io.IOException
 import java.util.Locale
 import javax.inject.Inject
+
+/** Prefix of the extension apks cached in [android.content.Context.getCacheDir] while installing. */
+internal const val EXTENSION_APK_PREFIX = "extension_"
 
 @AndroidEntryPoint
 class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
@@ -561,10 +563,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			installNovelPlugin(requestModel)
 			return
 		}
-		val uri = Uri.parse(requestModel.url)
 		val downloadId = nextDownloadId++
-		val sourceFileName = uri.lastPathSegment?.takeIf { it.isNotBlank() } ?: "extension.apk"
-		val fileName = "$downloadId-$sourceFileName"
+		// One deterministic file per package in the cache dir, like Mihon: a retry overwrites the
+		// previous attempt instead of piling up, and the OS may reclaim it under storage pressure.
+		val fileName = "$EXTENSION_APK_PREFIX${requestModel.packageName}.apk"
 		downloadRequestsById[downloadId] = PendingDownload(
 			packageName = requestModel.packageName,
 			fileName = fileName,
@@ -628,10 +630,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun downloadApk(url: String, fileName: String) {
-		val destDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-			?: throw IOException("External storage is not available")
-		val destination = File(destDir, fileName)
-		val tmp = File(destDir, "$fileName.tmp")
+		val destination = File(cacheDir, fileName)
+		val tmp = File(cacheDir, "$fileName.tmp")
 		try {
 			val request = Request.Builder().url(url).get().build()
 			httpClient.newCall(request).execute().use { response ->
@@ -679,6 +679,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			activeInstallerPackage = expectedPackage
 			activeInstallerStoreId = pendingDownload.storeId
 			activeInstallerMode = pendingDownload.mode
+			activeInstallerFileName = pendingDownload.fileName
 			activeInstallerDownloadId = downloadId
 			isInstallerActive = true
 			lifecycleScope.launch {
@@ -834,11 +835,10 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun getDownloadedApkFile(fileName: String?): File? {
-		val downloadsDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return null
 		if (fileName.isNullOrBlank()) {
 			return null
 		}
-		return File(downloadsDir, fileName).takeIf { it.exists() }
+		return File(cacheDir, fileName).takeIf { it.exists() }
 	}
 
 	@Suppress("DEPRECATION")
@@ -993,10 +993,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	private fun clearOldApks() {
 		try {
-			val destDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-			destDir?.listFiles()?.forEach { file ->
+			cacheDir.listFiles()?.forEach { file ->
 				if (
-					file.name.endsWith(".apk") &&
+					file.name.startsWith(EXTENSION_APK_PREFIX) &&
 					System.currentTimeMillis() - file.lastModified() > STALE_APK_AGE_MS
 				) {
 					file.delete()
