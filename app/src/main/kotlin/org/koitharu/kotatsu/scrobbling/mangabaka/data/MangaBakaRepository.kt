@@ -141,6 +141,7 @@ class MangaBakaRepository @Inject constructor(
 			cover = json.coverUrl().orEmpty(),
 			url = "$BASE_WEB_URL/${json.getLong("id")}",
 			descriptionHtml = json.getStringOrNull("description").orEmpty(),
+			totalChapters = json.optInt("total_chapters"),
 		)
 	}
 

@@ -9,6 +9,7 @@ data class ScrobblingInfo(
 	val targetId: Long,
 	val status: ScrobblingStatus?,
 	val chapter: Int,
+	val totalChapters: Int,
 	val comment: String?,
 	val rating: Float,
 	val title: String,

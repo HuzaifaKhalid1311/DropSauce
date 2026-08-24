@@ -134,6 +134,7 @@ class KitsuRepository(
 			cover = attrs.getJSONObject("posterImage").getString("medium"),
 			url = "$BASE_WEB_URL/manga/${attrs.getString("slug")}",
 			descriptionHtml = attrs.getString("description").replace("\\n", "<br>"),
+			totalChapters = attrs.optInt("chapterCount"),
 		)
 	}
 

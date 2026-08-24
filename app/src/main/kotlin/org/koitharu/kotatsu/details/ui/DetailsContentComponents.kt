@@ -355,24 +355,46 @@ internal fun ScrobblingSection(
 								overflow = TextOverflow.Ellipsis,
 							)
 						}
-						if (info.rating > 0f) {
+						if (info.chapter > 0 || info.rating > 0f) {
 							Row(
 								modifier = Modifier.fillMaxWidth(),
-								horizontalArrangement = Arrangement.End,
+								horizontalArrangement = Arrangement.SpaceBetween,
 								verticalAlignment = Alignment.CenterVertically,
 							) {
-								Icon(
-									painter = painterResource(R.drawable.ic_star_small),
-									contentDescription = null,
-									tint = accent,
-									modifier = Modifier.size(20.dp),
-								)
-								Spacer(Modifier.width(4.dp))
+								// Whatever the tracker itself reports — the app's own chapter list
+								// may well disagree with it, and this card speaks for the tracker.
 								Text(
-									text = "${"%.1f".format(info.rating * 5)} / 5",
-									style = MaterialTheme.typography.titleSmall,
-									color = MaterialTheme.colorScheme.onSurface,
+									text = when {
+										info.chapter <= 0 -> ""
+										info.totalChapters > 0 -> stringResource(
+											R.string.chapters_read_d_of_d,
+											info.chapter,
+											info.totalChapters,
+										)
+										else -> stringResource(R.string.chapters_read_d, info.chapter)
+									},
+									style = MaterialTheme.typography.labelLarge,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									maxLines = 1,
+									overflow = TextOverflow.Ellipsis,
+									modifier = Modifier.weight(1f, fill = false),
 								)
+								if (info.rating > 0f) {
+									Row(verticalAlignment = Alignment.CenterVertically) {
+										Icon(
+											painter = painterResource(R.drawable.ic_star_small),
+											contentDescription = null,
+											tint = accent,
+											modifier = Modifier.size(20.dp),
+										)
+										Spacer(Modifier.width(4.dp))
+										Text(
+											text = "${"%.1f".format(info.rating * 5)} / 5",
+											style = MaterialTheme.typography.titleSmall,
+											color = MaterialTheme.colorScheme.onSurface,
+										)
+									}
+								}
 							}
 						}
 					}

@@ -262,6 +262,7 @@ class AniListRepository @Inject constructor(
 				}
 				description
 				siteUrl
+				chapters
 			}
 			""",
 		)
@@ -309,6 +310,7 @@ class AniListRepository @Inject constructor(
 		cover = json.getJSONObject("coverImage").getString("large"),
 		url = json.getString("siteUrl"),
 		descriptionHtml = json.getString("description"),
+		totalChapters = json.optInt("chapters"),
 	)
 
 	@Suppress("FunctionName")

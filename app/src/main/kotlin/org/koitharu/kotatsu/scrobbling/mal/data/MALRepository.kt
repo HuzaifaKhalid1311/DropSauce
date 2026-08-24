@@ -122,7 +122,7 @@ class MALRepository @Inject constructor(
 		val url = BASE_API_URL.toHttpUrl().newBuilder()
 			.addPathSegment("manga")
 			.addPathSegment(id.toString())
-			.addQueryParameter("fields", "synopsis")
+			.addQueryParameter("fields", "synopsis,num_chapters")
 			.build()
 		val request = Request.Builder().url(url)
 		val response = okHttp.newCall(request.build()).await().parseJson()
@@ -262,6 +262,7 @@ class MALRepository @Inject constructor(
 		cover = json.optJSONObject("main_picture")?.getStringOrNull("large").orEmpty(),
 		url = "$BASE_WEB_URL/manga/${json.getLong("id")}",
 		descriptionHtml = json.getStringOrNull("synopsis").orEmpty(),
+		totalChapters = json.optInt("num_chapters"),
 	)
 
 	@Suppress("FunctionName")

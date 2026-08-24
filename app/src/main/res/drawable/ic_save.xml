@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Material Symbols: download — matches the outline weight of the icons it sits next to. -->
+<!-- Material Symbols: download. The glyph only spans 160..800 of the 960 box while the icons it
+     sits next to in the selection menus span 120..840, so it is scaled up to match their optical
+     size and stroke weight. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
 	android:width="24dp"
 	android:height="24dp"
 	android:tint="?attr/colorControlNormal"
 	android:viewportWidth="960"
 	android:viewportHeight="960">
-	<path
-		android:fillColor="@android:color/white"
-		android:pathData="M480,633Q472,633 465,630Q458,627 452,621L344,513Q332,501 332.5,484.5Q333,468 344,456Q356,444 372.5,443.5Q389,443 401,455L440,494L440,200Q440,183 451.5,171.5Q463,160 480,160Q497,160 508.5,171.5Q520,183 520,200L520,494L559,455Q571,443 587.5,443Q604,443 616,455Q628,467 628,484Q628,501 616,513L508,621Q502,627 495,630Q488,633 480,633ZM240,800Q207,800 183.5,776.5Q160,753 160,720L160,640Q160,623 171.5,611.5Q183,600 200,600Q217,600 228.5,611.5Q240,623 240,640L240,720L720,720L720,640Q720,623 731.5,611.5Q743,600 760,600Q777,600 788.5,611.5Q800,623 800,640L800,720Q800,753 776.5,776.5Q753,800 720,800L240,800Z" />
+	<group
+		android:pivotX="480"
+		android:pivotY="480"
+		android:scaleX="1.125"
+		android:scaleY="1.125">
+		<path
+			android:fillColor="@android:color/white"
+			android:pathData="M480,633Q472,633 465,630Q458,627 452,621L344,513Q332,501 332.5,484.5Q333,468 344,456Q356,444 372.5,443.5Q389,443 401,455L440,494L440,200Q440,183 451.5,171.5Q463,160 480,160Q497,160 508.5,171.5Q520,183 520,200L520,494L559,455Q571,443 587.5,443Q604,443 616,455Q628,467 628,484Q628,501 616,513L508,621Q502,627 495,630Q488,633 480,633ZM240,800Q207,800 183.5,776.5Q160,753 160,720L160,640Q160,623 171.5,611.5Q183,600 200,600Q217,600 228.5,611.5Q240,623 240,640L240,720L720,720L720,640Q720,623 731.5,611.5Q743,600 760,600Q777,600 788.5,611.5Q800,623 800,640L800,720Q800,753 776.5,776.5Q753,800 720,800L240,800Z" />
+	</group>
 </vector>

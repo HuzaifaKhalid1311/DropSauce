@@ -252,6 +252,7 @@ class ShikimoriRepository @Inject constructor(
 		cover = json.getJSONObject("image").getString("preview").toAbsoluteUrl(DOMAIN),
 		url = json.getString("url").toAbsoluteUrl(DOMAIN),
 		descriptionHtml = json.getString("description_html"),
+		totalChapters = json.optInt("chapters"),
 	)
 
 	@Suppress("FunctionName")
