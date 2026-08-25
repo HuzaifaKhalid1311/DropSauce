@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.widget.common.WidgetCoverLoader
 import org.koitharu.kotatsu.widget.common.WidgetEntryPoint
+import org.koitharu.kotatsu.widget.common.WidgetTheme
 import org.koitharu.kotatsu.widget.common.widgetEntryPoint
 import kotlin.math.roundToInt
 
@@ -77,6 +78,7 @@ private class HistoryWidgetFactory(
 		}
 		views.setOnClickFillInIntent(R.id.widget_item_body, fillIn(item.mangaId, play = false))
 		views.setOnClickFillInIntent(R.id.widget_play, fillIn(item.mangaId, play = true))
+		WidgetTheme.apply(context, views)
 		return views
 	}
 
@@ -87,7 +89,9 @@ private class HistoryWidgetFactory(
 		.putExtra(HistoryWidget.EXTRA_MANGA_ID, mangaId)
 		.putExtra(HistoryWidget.EXTRA_PLAY, play)
 
-	override fun getLoadingView(): RemoteViews = RemoteViews(context.packageName, itemLayout)
+	override fun getLoadingView(): RemoteViews = RemoteViews(context.packageName, itemLayout).also { views ->
+		WidgetTheme.apply(context, views)
+	}
 
 	override fun getViewTypeCount() = 1
 

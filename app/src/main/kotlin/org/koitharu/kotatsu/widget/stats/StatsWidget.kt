@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
 import android.util.SizeF
@@ -14,9 +15,11 @@ import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.stats.ui.StatsActivity
+import org.koitharu.kotatsu.widget.common.WidgetColors
 import org.koitharu.kotatsu.widget.common.WidgetCoverLoader
 import org.koitharu.kotatsu.widget.common.WidgetIntents
 import org.koitharu.kotatsu.widget.common.WidgetSizes
+import org.koitharu.kotatsu.widget.common.WidgetTheme
 import org.koitharu.kotatsu.widget.common.runAsync
 import org.koitharu.kotatsu.widget.common.widgetEntryPoint
 import java.util.concurrent.TimeUnit
@@ -38,10 +41,18 @@ class StatsWidget : AppWidgetProvider() {
 			)
 			// Render a fresh chart bitmap per widget instance, sized to that widget's actual
 			// width so wide resizes don't get stretched by ImageView's fitXY scaling.
+			val colors = WidgetTheme.colors(appContext)
 			for (widgetId in appWidgetIds) {
 				val (chartW, chartH) = chartSizePx(appContext, appWidgetManager, widgetId)
-				val chart = StatsChartRenderer.render(appContext, snapshot.dailyMillis, chartW, chartH)
-				val views = buildContent(appContext, snapshot, chart, click)
+				val chart = StatsChartRenderer.render(
+					daily = snapshot.dailyMillis,
+					widthPx = chartW,
+					heightPx = chartH,
+					trackColor = colors?.surfaceContainerHigh
+						?: ContextCompat.getColor(appContext, R.color.kotatsu_surfaceContainerHigh),
+					barColor = colors?.primary ?: ContextCompat.getColor(appContext, R.color.kotatsu_primary),
+				)
+				val views = buildContent(appContext, snapshot, chart, click, colors)
 				appWidgetManager.updateAppWidget(widgetId, views)
 			}
 		}
@@ -85,6 +96,7 @@ class StatsWidget : AppWidgetProvider() {
 		snapshot: StatsSnapshot,
 		chart: android.graphics.Bitmap,
 		clickPi: PendingIntent,
+		colors: WidgetColors?,
 	): RemoteViews {
 		val todayText = formatDuration(context, snapshot.todayMillis)
 		val subtitleText = buildSubtitle(context, snapshot)
@@ -96,17 +108,19 @@ class StatsWidget : AppWidgetProvider() {
 				it.setImageViewBitmap(R.id.widget_stats_chart, chart)
 				it.setViewVisibility(R.id.widget_stats_chart, View.VISIBLE)
 				it.setViewVisibility(R.id.widget_stats_weekdays, View.VISIBLE)
-				it.highlightToday(context, snapshot.todayBucket)
+				it.highlightToday(context, snapshot.todayBucket, colors)
 			} else {
 				it.setViewVisibility(R.id.widget_stats_chart, View.GONE)
 				it.setViewVisibility(R.id.widget_stats_weekdays, View.GONE)
 			}
 			it.setOnClickPendingIntent(R.id.widget_stats_root, clickPi)
+			colors?.let { c -> WidgetTheme.apply(it, c) }
 		}
 		val compact = RemoteViews(context.packageName, R.layout.widget_stats_compact).also {
 			it.setTextViewText(R.id.widget_stats_today_value, todayText)
 			it.setTextViewText(R.id.widget_stats_subtitle, subtitleText)
 			it.setOnClickPendingIntent(R.id.widget_stats_root, clickPi)
+			colors?.let { c -> WidgetTheme.apply(it, c) }
 		}
 		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			RemoteViews(
@@ -120,7 +134,7 @@ class StatsWidget : AppWidgetProvider() {
 		}
 	}
 
-	private fun RemoteViews.highlightToday(context: Context, todayBucket: Int) {
+	private fun RemoteViews.highlightToday(context: Context, todayBucket: Int, colors: WidgetColors?) {
 		val dayIds = intArrayOf(
 			R.id.widget_stats_weekday_monday,
 			R.id.widget_stats_weekday_tuesday,
@@ -130,8 +144,9 @@ class StatsWidget : AppWidgetProvider() {
 			R.id.widget_stats_weekday_saturday,
 			R.id.widget_stats_weekday_sunday,
 		)
-		val normalColor = ContextCompat.getColor(context, R.color.kotatsu_onSurface)
-		val activeColor = ContextCompat.getColor(context, R.color.kotatsu_onPrimaryContainer)
+		val normalColor = colors?.onSurface ?: ContextCompat.getColor(context, R.color.kotatsu_onSurface)
+		val activeColor = colors?.onPrimaryContainer
+			?: ContextCompat.getColor(context, R.color.kotatsu_onPrimaryContainer)
 		for (id in dayIds) {
 			setInt(id, "setBackgroundColor", Color.TRANSPARENT)
 			setTextColor(id, normalColor)
@@ -139,6 +154,9 @@ class StatsWidget : AppWidgetProvider() {
 		dayIds.getOrNull(todayBucket)?.let { id ->
 			setInt(id, "setBackgroundResource", R.drawable.bg_appwidget_weekday_today)
 			setTextColor(id, activeColor)
+			if (colors != null) {
+				setColorStateList(id, "setBackgroundTintList", ColorStateList.valueOf(colors.primaryContainer))
+			}
 		}
 	}
 

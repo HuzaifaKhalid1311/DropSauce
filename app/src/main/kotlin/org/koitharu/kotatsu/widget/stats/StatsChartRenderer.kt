@@ -1,20 +1,18 @@
 package org.koitharu.kotatsu.widget.stats
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import androidx.core.content.ContextCompat
-import org.koitharu.kotatsu.R
 
 object StatsChartRenderer {
 
 	fun render(
-		context: Context,
 		daily: LongArray,
 		widthPx: Int,
 		heightPx: Int,
+		trackColor: Int,
+		barColor: Int,
 	): Bitmap {
 		val w = widthPx.coerceAtLeast(64)
 		val h = heightPx.coerceAtLeast(48)
@@ -27,10 +25,10 @@ object StatsChartRenderer {
 		val barWidth = (w - totalSpacing) / barCount
 		val maxValue = values.maxOrNull()?.coerceAtLeast(1L) ?: 1L
 		val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-			color = ContextCompat.getColor(context, R.color.kotatsu_surfaceContainerHigh)
+			color = trackColor
 		}
 		val activePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-			color = ContextCompat.getColor(context, R.color.kotatsu_primary)
+			color = barColor
 		}
 		val chartTop = 0f
 		val chartBottom = h.toFloat()

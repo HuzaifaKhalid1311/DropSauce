@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.widget.continuereading
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -16,7 +15,9 @@ import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.widget.common.WidgetCoverLoader
 import org.koitharu.kotatsu.widget.common.WidgetIntents
+import org.koitharu.kotatsu.widget.common.nudgeWidgets
 import org.koitharu.kotatsu.widget.common.WidgetSizes
+import org.koitharu.kotatsu.widget.common.WidgetTheme
 import org.koitharu.kotatsu.widget.common.runAsync
 import org.koitharu.kotatsu.widget.common.widgetEntryPoint
 import kotlin.math.roundToInt
@@ -129,13 +130,16 @@ class ContinueReadingWidget : AppWidgetProvider() {
 			null
 		}
 
+		val colors = WidgetTheme.colors(context)
 		val wide = RemoteViews(context.packageName, R.layout.widget_continue_reading).also {
 			applyWide(it, manga.title, subtitle, chapterText, percent, wideCover)
 			wirePendingIntents(context, it, manga, history, wide = true)
+			colors?.let { c -> WidgetTheme.apply(it, c) }
 		}
 		val small = RemoteViews(context.packageName, R.layout.widget_continue_reading_small).also {
 			applySmall(it, manga.title, percent, compactCover)
 			wirePendingIntents(context, it, manga, history, wide = false)
+			colors?.let { c -> WidgetTheme.apply(it, c) }
 		}
 		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 			RemoteViews(
@@ -198,7 +202,10 @@ class ContinueReadingWidget : AppWidgetProvider() {
 		// Only the play button is tappable — the rest of the widget is decorative,
 		// so a misclick never opens the reader unexpectedly.
 		val readPi = WidgetIntents.continueReading(context, manga, history)
+		// The wide layout's button is `widget_cta`, the compact one's is the icon itself; setting
+		// both is harmless because a missing id is skipped.
 		views.setOnClickPendingIntent(R.id.widget_cta, readPi)
+		views.setOnClickPendingIntent(R.id.widget_cta_icon, readPi)
 	}
 
 	private fun buildEmpty(context: Context): RemoteViews {
@@ -209,6 +216,7 @@ class ContinueReadingWidget : AppWidgetProvider() {
 			0,
 		)
 		views.setOnClickPendingIntent(R.id.widget_continue_reading_empty_root, pi)
+		WidgetTheme.apply(context, views)
 		return views
 	}
 
@@ -226,14 +234,6 @@ class ContinueReadingWidget : AppWidgetProvider() {
 		private const val TAG = "ContinueReadingWidget"
 		const val ACTION_REFRESH = "org.koitharu.kotatsu.widget.continuereading.REFRESH"
 
-		fun nudgeAll(context: Context) {
-			val mgr = AppWidgetManager.getInstance(context)
-			val ids = mgr.getAppWidgetIds(ComponentName(context, ContinueReadingWidget::class.java))
-			if (ids.isEmpty()) return
-			val broadcast = Intent(context, ContinueReadingWidget::class.java)
-				.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-				.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-			context.sendBroadcast(broadcast)
-		}
+		fun nudgeAll(context: Context) = nudgeWidgets(context, ContinueReadingWidget::class.java)
 	}
 }

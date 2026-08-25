@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
+	android:id="@+id/widget_root"
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
@@ -50,7 +51,7 @@
 	</LinearLayout>
 
 	<ImageView
-		android:id="@+id/widget_cta"
+		android:id="@+id/widget_cta_icon"
 		android:layout_width="40dp"
 		android:layout_height="40dp"
 		android:layout_marginStart="8dp"

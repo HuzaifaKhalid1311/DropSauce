@@ -25,6 +25,7 @@
 			android:layout_width="14dp"
 			android:layout_height="14dp"
 			android:contentDescription="@null"
+			android:id="@+id/widget_header_icon"
 			android:src="@drawable/ic_recent"
 			android:tint="@color/kotatsu_onSurface"
 			tools:ignore="UseAppTint" />
@@ -37,6 +38,7 @@
 			android:ellipsize="end"
 			android:letterSpacing="0.02"
 			android:maxLines="1"
+			android:id="@+id/widget_header_title"
 			android:text="@string/widget_history"
 			android:textColor="@color/kotatsu_onSurface"
 			android:textSize="13sp"

@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.widget.favorites
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -17,7 +16,9 @@ import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.widget.common.WidgetCoverLoader
 import org.koitharu.kotatsu.widget.common.WidgetIntents
+import org.koitharu.kotatsu.widget.common.nudgeWidgets
 import org.koitharu.kotatsu.widget.common.WidgetSizes
+import org.koitharu.kotatsu.widget.common.WidgetTheme
 import org.koitharu.kotatsu.widget.common.runAsync
 import org.koitharu.kotatsu.widget.common.widgetEntryPoint
 
@@ -181,11 +182,11 @@ class FavoritesWidget : AppWidgetProvider() {
 		val views = RemoteViews(context.packageName, R.layout.widget_favorites)
 		views.setOnClickPendingIntent(R.id.widget_settings, configIntent(context, widgetId))
 		views.setOnClickPendingIntent(R.id.widget_header, configIntent(context, widgetId))
-		views.setInt(
-			R.id.widget_settings,
-			"setColorFilter",
-			context.widgetSettingsTint(),
-		)
+		if (WidgetTheme.isSupported) {
+			WidgetTheme.apply(context, views)
+		} else {
+			views.setInt(R.id.widget_settings, "setColorFilter", context.widgetSettingsTint())
+		}
 
 		val slotIds = intArrayOf(R.id.widget_slot_1, R.id.widget_slot_2, R.id.widget_slot_3)
 		val coverIds = intArrayOf(R.id.widget_cover_1, R.id.widget_cover_2, R.id.widget_cover_3)
@@ -259,15 +260,7 @@ class FavoritesWidget : AppWidgetProvider() {
 		private const val TAG = "FavoritesWidget"
 		const val ACTION_REFRESH = "org.koitharu.kotatsu.widget.favorites.REFRESH"
 
-		fun nudgeAll(context: Context) {
-			val mgr = AppWidgetManager.getInstance(context)
-			val ids = mgr.getAppWidgetIds(ComponentName(context, FavoritesWidget::class.java))
-			if (ids.isEmpty()) return
-			val broadcast = Intent(context, FavoritesWidget::class.java)
-				.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-				.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-			context.sendBroadcast(broadcast)
-		}
+		fun nudgeAll(context: Context) = nudgeWidgets(context, FavoritesWidget::class.java)
 	}
 }
 

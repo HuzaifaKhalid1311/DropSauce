@@ -22,6 +22,7 @@
 		<ImageView
 			android:layout_width="14dp"
 			android:layout_height="14dp"
+			android:id="@+id/widget_header_icon"
 			android:src="@drawable/ic_heart"
 			android:contentDescription="@null"
 			android:tint="@color/kotatsu_onSurface"
@@ -34,6 +35,7 @@
 			android:layout_weight="1"
 			android:ellipsize="end"
 			android:maxLines="1"
+			android:id="@+id/widget_header_title"
 			android:text="@string/widget_favorites"
 			android:textColor="@color/kotatsu_onSurface"
 			android:textSize="13sp"

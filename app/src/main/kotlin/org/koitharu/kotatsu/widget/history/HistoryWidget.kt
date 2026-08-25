@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.widget.history
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -12,6 +11,8 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.entity.toManga
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.widget.common.WidgetIntents
+import org.koitharu.kotatsu.widget.common.nudgeWidgets
+import org.koitharu.kotatsu.widget.common.WidgetTheme
 import org.koitharu.kotatsu.widget.common.runAsync
 import org.koitharu.kotatsu.widget.common.widgetEntryPoint
 
@@ -95,6 +96,7 @@ class HistoryWidget : AppWidgetProvider() {
 		views.setRemoteAdapter(collectionId, adapterIntent)
 		views.setEmptyView(collectionId, R.id.widget_empty)
 		views.setPendingIntentTemplate(collectionId, clickTemplate(context, widgetId))
+		WidgetTheme.apply(context, views)
 		return views
 	}
 
@@ -126,14 +128,6 @@ class HistoryWidget : AppWidgetProvider() {
 			context.sendBroadcast(broadcast)
 		}
 
-		fun nudgeAll(context: Context) {
-			val mgr = AppWidgetManager.getInstance(context)
-			val ids = mgr.getAppWidgetIds(ComponentName(context, HistoryWidget::class.java))
-			if (ids.isEmpty()) return
-			val broadcast = Intent(context, HistoryWidget::class.java)
-				.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-				.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-			context.sendBroadcast(broadcast)
-		}
+		fun nudgeAll(context: Context) = nudgeWidgets(context, HistoryWidget::class.java)
 	}
 }

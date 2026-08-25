@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.settings.work.WorkScheduleManager
+import org.koitharu.kotatsu.widget.common.WidgetThemeWatcher
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -70,6 +71,8 @@ open class BaseApp : Application(), Configuration.Provider {
 	@LocalStorageChanges
 	lateinit var localStorageChanges: MutableSharedFlow<LocalManga?>
 
+	private val widgetThemeWatcher by lazy { WidgetThemeWatcher(this) }
+
 	override val workManagerConfiguration: Configuration
 		get() = Configuration.Builder()
 			.setWorkerFactory(workerFactory)
@@ -91,6 +94,7 @@ open class BaseApp : Application(), Configuration.Provider {
 			)
 		}
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
+		settings.subscribe(widgetThemeWatcher)
 		appLogger.setEnabled(settings.isVerboseLoggingEnabled)
 		// Keep default platform security provider.
 		setupActivityLifecycleCallbacks()

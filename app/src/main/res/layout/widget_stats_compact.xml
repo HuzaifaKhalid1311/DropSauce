@@ -34,6 +34,7 @@
 			android:background="@drawable/bg_appwidget_chip"
 			android:paddingHorizontal="9dp"
 			android:paddingVertical="2dp"
+			android:id="@+id/widget_stats_chip"
 			android:text="@string/widget_stats_today"
 			android:textColor="@color/kotatsu_onPrimaryContainer"
 			android:textSize="10sp"

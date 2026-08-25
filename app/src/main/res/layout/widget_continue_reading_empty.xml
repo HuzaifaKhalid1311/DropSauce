@@ -14,6 +14,7 @@
 	<ImageView
 		android:layout_width="32dp"
 		android:layout_height="32dp"
+		android:id="@+id/widget_empty_icon"
 		android:src="@drawable/ic_history"
 		android:contentDescription="@null"
 		app:tint="@color/kotatsu_onSurfaceVariant" />
@@ -23,6 +24,7 @@
 		android:layout_height="wrap_content"
 		android:layout_marginTop="8dp"
 		android:gravity="center"
+		android:id="@+id/widget_empty_text"
 		android:text="@string/widget_continue_reading_empty"
 		android:textColor="@color/kotatsu_onSurfaceVariant"
 		android:textSize="13sp" />
