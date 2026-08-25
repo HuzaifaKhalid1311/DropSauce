@@ -16,9 +16,10 @@ import org.koitharu.kotatsu.widget.common.runAsync
 import org.koitharu.kotatsu.widget.common.widgetEntryPoint
 
 /**
- * Scrollable list of the last read titles. The rows are served by [HistoryWidgetService]; taps are
- * routed back here as a broadcast because collection children can only carry fill-in intents, not
- * their own PendingIntents.
+ * The last read titles, in one of two styles picked per widget instance: a cover grid (default) or
+ * a list of rows. Items are served by [HistoryWidgetService]; taps are routed back here as a
+ * broadcast because collection children can only carry fill-in intents, not their own
+ * PendingIntents.
  */
 class HistoryWidget : AppWidgetProvider() {
 
@@ -28,9 +29,17 @@ class HistoryWidget : AppWidgetProvider() {
 		appWidgetIds: IntArray,
 	) {
 		for (widgetId in appWidgetIds) {
-			appWidgetManager.updateAppWidget(widgetId, buildViews(context, widgetId))
+			val isGrid = HistoryWidgetPrefs.isGrid(context, widgetId)
+			appWidgetManager.updateAppWidget(widgetId, buildViews(context, widgetId, isGrid))
+			appWidgetManager.notifyAppWidgetViewDataChanged(widgetId, collectionId(isGrid))
 		}
-		appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list)
+	}
+
+	override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+		super.onDeleted(context, appWidgetIds)
+		for (widgetId in appWidgetIds) {
+			HistoryWidgetPrefs.clear(context, widgetId)
+		}
 	}
 
 	override fun onReceive(context: Context, intent: Intent) {
@@ -73,18 +82,23 @@ class HistoryWidget : AppWidgetProvider() {
 		}
 	}
 
-	private fun buildViews(context: Context, widgetId: Int): RemoteViews {
-		val views = RemoteViews(context.packageName, R.layout.widget_history)
+	private fun buildViews(context: Context, widgetId: Int, isGrid: Boolean): RemoteViews {
+		val layout = if (isGrid) R.layout.widget_history_grid else R.layout.widget_history
+		val collectionId = collectionId(isGrid)
+		val views = RemoteViews(context.packageName, layout)
 		val adapterIntent = Intent(context, HistoryWidgetService::class.java)
 			.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
 			// A distinct data uri per widget keeps the framework from sharing one factory
-			// instance (and thus one stale row set) between several pinned widgets.
-			.setData(Uri.parse("kotatsu://widget/history/$widgetId"))
-		views.setRemoteAdapter(R.id.widget_list, adapterIntent)
-		views.setEmptyView(R.id.widget_list, R.id.widget_empty)
-		views.setPendingIntentTemplate(R.id.widget_list, clickTemplate(context, widgetId))
+			// instance (and thus one stale item set) between several pinned widgets; the style is
+			// part of it so switching styles rebuilds the items instead of reusing the old ones.
+			.setData(Uri.parse("kotatsu://widget/history/$widgetId/${if (isGrid) "grid" else "list"}"))
+		views.setRemoteAdapter(collectionId, adapterIntent)
+		views.setEmptyView(collectionId, R.id.widget_empty)
+		views.setPendingIntentTemplate(collectionId, clickTemplate(context, widgetId))
 		return views
 	}
+
+	private fun collectionId(isGrid: Boolean) = if (isGrid) R.id.widget_grid else R.id.widget_list
 
 	private fun clickTemplate(context: Context, widgetId: Int): PendingIntent {
 		val intent = Intent(context, HistoryWidget::class.java).setAction(ACTION_CLICK)
@@ -92,7 +106,7 @@ class HistoryWidget : AppWidgetProvider() {
 			context,
 			widgetId,
 			intent,
-			// MUTABLE is required: the row's fill-in intent supplies the manga id and the
+			// MUTABLE is required: the item's fill-in intent supplies the manga id and the
 			// play/open flag on top of this template.
 			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
 		)
@@ -104,6 +118,13 @@ class HistoryWidget : AppWidgetProvider() {
 		const val ACTION_CLICK = "org.koitharu.kotatsu.widget.history.CLICK"
 		const val EXTRA_MANGA_ID = "manga_id"
 		const val EXTRA_PLAY = "play"
+
+		fun nudge(context: Context, widgetId: Int) {
+			val broadcast = Intent(context, HistoryWidget::class.java)
+				.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+				.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(widgetId))
+			context.sendBroadcast(broadcast)
+		}
 
 		fun nudgeAll(context: Context) {
 			val mgr = AppWidgetManager.getInstance(context)

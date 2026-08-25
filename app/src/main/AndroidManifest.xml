@@ -432,6 +432,17 @@
 			android:permission="android.permission.BIND_REMOTEVIEWS" />
 
 		<activity
+			android:name="org.koitharu.kotatsu.widget.history.HistoryWidgetConfigActivity"
+			android:exported="true"
+			android:label="@string/widget_history_style"
+			android:theme="@style/Theme.Kotatsu.Transparent">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+			</intent-filter>
+		</activity>
+
+
+		<activity
 			android:name="org.koitharu.kotatsu.widget.favorites.FavoritesWidgetConfigActivity"
 			android:exported="true"
 			android:label="@string/widget_favorites_config_title"

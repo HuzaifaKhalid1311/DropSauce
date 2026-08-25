@@ -3,103 +3,142 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
-	tools:background="@drawable/bg_card"
+	tools:background="@drawable/bg_reader_panel"
 	tools:layout_height="wrap_content"
 	tools:layout_margin="@dimen/screen_padding"
 	tools:layout_width="match_parent"
-	tools:paddingBottom="@dimen/margin_normal"
 	tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+	<ImageView
+		android:id="@+id/icon_timer"
+		android:layout_width="20dp"
+		android:layout_height="20dp"
+		android:layout_marginStart="20dp"
+		android:contentDescription="@null"
+		android:src="@drawable/ic_timer"
+		app:layout_constraintBottom_toBottomOf="@id/textView_title"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="@id/textView_title"
+		app:tint="?colorPrimary" />
 
 	<TextView
 		android:id="@+id/textView_title"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
+		android:layout_marginStart="12dp"
 		android:gravity="center_vertical"
-		android:minHeight="?minTouchTargetSize"
-		android:paddingHorizontal="@dimen/margin_normal"
+		android:minHeight="56dp"
 		android:text="@string/automatic_scroll"
 		android:textAppearance="?textAppearanceTitleMedium"
 		app:layout_constraintEnd_toStartOf="@id/button_close"
-		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintStart_toEndOf="@id/icon_timer"
 		app:layout_constraintTop_toTopOf="parent" />
 
-	<ImageButton
+	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_close"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:background="?selectableItemBackgroundBorderless"
+		style="@style/Widget.Material3Expressive.Button.IconButton.Tonal"
+		android:layout_width="40dp"
+		android:layout_height="40dp"
+		android:layout_marginEnd="12dp"
 		android:contentDescription="@string/close"
-		android:minWidth="?minTouchTargetSize"
-		android:minHeight="?minTouchTargetSize"
-		android:src="?actionModeCloseDrawable"
+		android:insetTop="0dp"
+		android:insetBottom="0dp"
+		app:cornerRadius="20dp"
+		app:icon="@drawable/ic_close"
+		app:iconGravity="textStart"
+		app:iconPadding="0dp"
+		app:iconSize="20dp"
+		app:layout_constraintBottom_toBottomOf="@id/textView_title"
 		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintTop_toTopOf="parent" />
+		app:layout_constraintTop_toTopOf="@id/textView_title" />
 
-	<com.google.android.material.materialswitch.MaterialSwitch
-		android:id="@+id/switch_scroll_timer"
+	<!-- All three controls share one surface: the panel reads as a single card, not three chips. -->
+	<LinearLayout
+		android:id="@+id/container_sections"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginHorizontal="@dimen/margin_normal"
-		android:ellipsize="end"
-		android:singleLine="true"
-		android:text="@string/enable"
-		android:textAppearance="?attr/textAppearanceTitleSmall"
+		android:layout_marginHorizontal="12dp"
+		android:layout_marginBottom="12dp"
+		android:background="@drawable/bg_reader_panel_item"
+		android:orientation="vertical"
+		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toBottomOf="@id/textView_title" />
+		app:layout_constraintTop_toBottomOf="@id/textView_title">
 
-	<TextView
-		android:id="@+id/label_timer"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_marginStart="@dimen/margin_normal"
-		android:text="@string/speed"
-		android:textAppearance="?attr/textAppearanceTitleSmall"
-		app:layout_constraintBottom_toBottomOf="@id/slider_timer"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="@id/slider_timer" />
+		<com.google.android.material.materialswitch.MaterialSwitch
+			android:id="@+id/switch_scroll_timer"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:minHeight="56dp"
+			android:paddingHorizontal="16dp"
+			android:singleLine="true"
+			android:text="@string/enable"
+			android:textAppearance="?attr/textAppearanceTitleSmall" />
 
-	<com.google.android.material.slider.Slider
-		android:id="@+id/slider_timer"
-		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:layout_marginEnd="@dimen/margin_normal"
-		android:contentDescription="@string/speed"
-		android:labelFor="@id/switch_scroll_timer"
-		android:valueFrom="0.01"
-		android:valueTo="1.0"
-		app:labelBehavior="floating"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintStart_toEndOf="@id/label_timer"
-		app:layout_constraintTop_toBottomOf="@id/switch_scroll_timer" />
+		<androidx.constraintlayout.widget.ConstraintLayout
+			android:id="@+id/container_speed"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingHorizontal="16dp"
+			android:paddingBottom="4dp">
 
-	<TextView
-		android:id="@+id/textView_description"
-		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:layout_marginHorizontal="@dimen/margin_normal"
-		android:layout_marginTop="@dimen/margin_small"
-		android:textAppearance="?textAppearanceBodySmall"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toBottomOf="@id/slider_timer"
-		tools:text="@string/page_switch_timer" />
+			<TextView
+				android:id="@+id/label_timer"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:text="@string/speed"
+				android:textAppearance="?attr/textAppearanceTitleSmall"
+				app:layout_constraintEnd_toStartOf="@id/textView_value"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toTopOf="parent" />
 
-	<CheckedTextView
-		android:id="@+id/button_fab"
-		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="@dimen/margin_small"
-		android:background="?selectableItemBackground"
-		android:drawableEnd="?android:listChoiceIndicatorMultiple"
-		android:gravity="center_vertical"
-		android:paddingHorizontal="@dimen/margin_normal"
-		android:paddingVertical="4dp"
-		android:singleLine="true"
-		android:text="@string/show_floating_control_button"
-		android:textAppearance="?attr/textAppearanceTitleSmall"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toBottomOf="@id/textView_description" />
+			<TextView
+				android:id="@+id/textView_value"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textAppearance="?attr/textAppearanceTitleSmall"
+				android:textColor="?colorPrimary"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintTop_toTopOf="parent"
+				tools:text="60%" />
+
+			<com.google.android.material.slider.Slider
+				android:id="@+id/slider_timer"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="4dp"
+				android:contentDescription="@string/speed"
+				android:valueFrom="0.01"
+				android:valueTo="1.0"
+				app:labelBehavior="gone"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toBottomOf="@id/label_timer" />
+
+			<TextView
+				android:id="@+id/textView_description"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:textAppearance="?textAppearanceBodySmall"
+				android:textColor="?android:textColorSecondary"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toBottomOf="@id/slider_timer"
+				tools:text="@string/page_switch_timer" />
+		</androidx.constraintlayout.widget.ConstraintLayout>
+
+		<com.google.android.material.materialswitch.MaterialSwitch
+			android:id="@+id/button_fab"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:minHeight="56dp"
+			android:paddingHorizontal="16dp"
+			android:singleLine="true"
+			android:text="@string/show_floating_control_button"
+			android:textAppearance="?attr/textAppearanceTitleSmall" />
+	</LinearLayout>
 
 </merge>

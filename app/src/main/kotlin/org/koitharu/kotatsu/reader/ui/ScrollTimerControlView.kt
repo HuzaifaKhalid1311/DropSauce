@@ -58,7 +58,6 @@ class ScrollTimerControlView @JvmOverloads constructor(
 		binding.sliderTimer.setLabelFormatter(this)
 		binding.buttonClose.setOnClickListener(this)
 		binding.buttonFab.isGone = resources.getBoolean(R.bool.is_tablet)
-		setPadding(0, 0, 0, context.resources.getDimensionPixelOffset(R.dimen.margin_normal))
 	}
 
 	fun attach(timer: ScrollTimer, lifecycleOwner: LifecycleOwner) {
@@ -178,6 +177,7 @@ class ScrollTimerControlView @JvmOverloads constructor(
 	}
 
 	private fun updateDescription() {
+		binding.textViewValue.text = getFormattedValue(binding.sliderTimer.value)
 		if (isScrollingMode) {
 			binding.textViewDescription.isVisible = false
 		} else {

@@ -7,7 +7,7 @@
 	android:layout_height="match_parent"
 	android:background="@drawable/bg_appwidget_root"
 	android:orientation="vertical"
-	android:padding="12dp"
+	android:padding="10dp"
 	android:theme="@style/Theme.Kotatsu.AppWidgetContainer">
 
 	<LinearLayout
@@ -17,6 +17,7 @@
 		android:baselineAligned="false"
 		android:gravity="center_vertical"
 		android:orientation="horizontal"
+		android:paddingHorizontal="4dp"
 		android:paddingBottom="8dp"
 		tools:ignore="UseCompoundDrawables">
 
@@ -47,14 +48,16 @@
 		android:layout_height="0dp"
 		android:layout_weight="1">
 
-		<ListView
-			android:id="@+id/widget_list"
+		<GridView
+			android:id="@+id/widget_grid"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
-			android:divider="@null"
-			android:dividerHeight="0dp"
+			android:horizontalSpacing="0dp"
+			android:verticalSpacing="0dp"
 			android:listSelector="@android:color/transparent"
-			android:scrollbars="none" />
+			android:numColumns="2"
+			android:scrollbars="none"
+			android:stretchMode="columnWidth" />
 
 		<TextView
 			android:id="@+id/widget_empty"

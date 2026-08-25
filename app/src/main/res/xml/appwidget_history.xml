@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:configure="org.koitharu.kotatsu.widget.history.HistoryWidgetConfigActivity"
 	android:description="@string/widget_history_description"
-	android:initialLayout="@layout/widget_history"
+	android:initialLayout="@layout/widget_history_grid"
 	android:minHeight="180dp"
 	android:minResizeHeight="110dp"
 	android:minResizeWidth="220dp"
 	android:minWidth="220dp"
 	android:maxResizeHeight="600dp"
 	android:maxResizeWidth="600dp"
-	android:previewLayout="@layout/widget_history"
+	android:previewLayout="@layout/widget_history_grid"
 	android:resizeMode="horizontal|vertical"
 	android:targetCellHeight="4"
 	android:targetCellWidth="4"
 	android:updatePeriodMillis="1800000"
-	android:widgetCategory="home_screen" />
+	android:widgetCategory="home_screen"
+	android:widgetFeatures="reconfigurable|configuration_optional" />

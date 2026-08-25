@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tile gap is padding on this transparent wrapper, not grid spacing: the grid highlight is
+     painted over the whole item view, so spacing would glow as empty space. -->
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:padding="4dp">
+
+	<FrameLayout
+		android:id="@+id/widget_item_body"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@drawable/bg_appwidget_tile">
+
+		<ImageView
+			android:id="@+id/widget_cover"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:adjustViewBounds="true"
+			android:contentDescription="@string/widget_cover_content_description"
+			android:scaleType="fitCenter"
+			tools:src="@color/kotatsu_surfaceContainerHighest" />
+
+		<ImageView
+			android:id="@+id/widget_play"
+			android:layout_width="28dp"
+			android:layout_height="28dp"
+			android:layout_gravity="bottom|end"
+			android:layout_margin="6dp"
+			android:background="@drawable/bg_appwidget_play"
+			android:contentDescription="@string/widget_history_read"
+			android:padding="6dp"
+			android:src="@drawable/ic_play"
+			android:tint="@color/kotatsu_onPrimary"
+			tools:ignore="UseAppTint" />
+	</FrameLayout>
+
+</FrameLayout>

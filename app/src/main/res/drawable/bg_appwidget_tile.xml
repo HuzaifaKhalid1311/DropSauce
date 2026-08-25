@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cover tile of the grid history widget: the ripple mask follows the cover's rounded shape. -->
+<ripple
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:color="#33808080">
+	<item android:id="@android:id/mask">
+		<shape android:shape="rectangle">
+			<corners android:radius="14dp" />
+			<solid android:color="@android:color/white" />
+		</shape>
+	</item>
+	<item>
+		<shape android:shape="rectangle">
+			<corners android:radius="14dp" />
+			<solid android:color="@color/kotatsu_surfaceContainerHigh" />
+		</shape>
+	</item>
+</ripple>

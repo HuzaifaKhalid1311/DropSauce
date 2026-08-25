@@ -31,6 +31,9 @@
 	<string name="widget_history_description">Scroll your last read titles and jump straight back in</string>
 	<string name="widget_history_empty">Nothing read yet</string>
 	<string name="widget_history_read">Continue reading</string>
+	<string name="widget_history_style">Widget style</string>
+	<string name="widget_history_style_icon">Icon grid</string>
+	<string name="widget_history_style_list">List</string>
 
 	<!-- Common -->
 	<string name="widget_cover_content_description">Manga cover</string>
