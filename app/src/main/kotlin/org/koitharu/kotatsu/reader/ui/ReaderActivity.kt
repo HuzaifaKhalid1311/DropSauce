@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -23,9 +24,10 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.transition.ChangeBounds
 import androidx.transition.Fade
 import androidx.transition.Slide
+import androidx.transition.Transition
+import androidx.transition.TransitionListenerAdapter
 import androidx.transition.TransitionManager
 import androidx.transition.TransitionSet
 import androidx.window.layout.FoldingFeature
@@ -126,6 +128,8 @@ class ReaderActivity :
     private lateinit var touchHelper: TapGridDispatcher
     private lateinit var controlDelegate: ReaderControlDelegate
     private var gestureInsets: Insets = Insets.NONE
+    private var dockedToolbarHeight = 0
+    private var isPanelOffsetAnimating = false
     // Set when a long-press action consumed the gesture; the remainder of the touch stream is
     // delivered to the content as ACTION_CANCEL so the pager doesn't scroll under the opened sheet.
     private var isTouchCancelled = false
@@ -276,6 +280,9 @@ class ReaderActivity :
     }
 
     override fun onVisibilityChanged(v: View, visibility: Int) {
+        // Set the offset before the panel's own slide captures its end value, so it slides in at
+        // the right height instead of appearing at the bottom edge and jumping up afterwards.
+        updateTimerPanelOffset(animate = false)
         updateScrollTimerButton()
     }
 
@@ -510,6 +517,7 @@ class ReaderActivity :
 
     private fun setUiIsVisible(isUiVisible: Boolean) {
         if (viewBinding.appbarTop.isVisible != isUiVisible) {
+            var isAnimated = false
             if (isAnimationsEnabled) {
                 val transition = TransitionSet()
                     .setOrdering(TransitionSet.ORDERING_TOGETHER)
@@ -518,12 +526,16 @@ class ReaderActivity :
                 viewBinding.toolbarDocked?.let {
                     transition.addTransition(Slide(Gravity.BOTTOM).addTarget(it))
                 }
-                // The autoscroll panel dodges the docked toolbar's inset edge, so showing the
-                // toolbar re-lays it out. Without a ChangeBounds target for it that re-layout
-                // lands in one frame — the panel snaps to its new spot and the whole bottom
-                // area flashes before the toolbar finishes sliding in.
-                transition.addTransition(ChangeBounds().addTarget(viewBinding.timerControl))
+                // Re-dispatching insets changes the reader's own padding and the toolbar margins,
+                // which forces a full re-layout of the page view *while* the bars are sliding —
+                // that is the stutter. Hold it back until the slide is done.
+                transition.addListener(object : TransitionListenerAdapter() {
+                    override fun onTransitionEnd(transition: Transition) {
+                        viewBinding.root.requestApplyInsets()
+                    }
+                })
                 TransitionManager.beginDelayedTransition(viewBinding.root, transition)
+                isAnimated = true
             }
             val isFullscreen = settings.isReaderFullscreenEnabled
             viewBinding.appbarTop.isVisible = isUiVisible
@@ -531,8 +543,11 @@ class ReaderActivity :
             viewBinding.infoBar.isGone = isUiVisible || (!viewModel.isInfoBarEnabled.value)
             viewBinding.infoBar.isTimeVisible = isFullscreen
             updateScrollTimerButton()
+            updateTimerPanelOffset(animate = isAnimated)
             systemUiController.setSystemUiVisible(isUiVisible || !isFullscreen)
-            viewBinding.root.requestApplyInsets()
+            if (!isAnimated) {
+                viewBinding.root.requestApplyInsets()
+            }
         }
     }
 
@@ -554,6 +569,16 @@ class ReaderActivity :
             bottomMargin = tappableInsets.bottom
             rightMargin = systemBars.right
             leftMargin = systemBars.left
+        }
+        viewBinding.toolbarDocked?.let { docked ->
+            dockedToolbarHeight = maxOf(dockedToolbarHeight, docked.height)
+            val panelMargin = tappableInsets.bottom + resources.getDimensionPixelSize(R.dimen.screen_padding)
+            viewBinding.timerControl.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                if (bottomMargin != panelMargin) {
+                    bottomMargin = panelMargin
+                }
+            }
+            updateTimerPanelOffset(animate = false)
         }
         // The info bar must hug the real top edge: BaseActivity inflates the top inset with the
         // hidden status bar's height (so toolbars keep their place), but this bar replaces the
@@ -715,6 +740,41 @@ class ReaderActivity :
         viewBinding.actionsView.isPrevEnabled = uiState.hasPreviousChapter()
     }
 
+    /**
+     * Keeps the autoscroll panel just above the docked toolbar. CoordinatorLayout's
+     * `dodgeInsetEdges` used to do this, but dodging is resolved in a single layout pass — it
+     * teleported the panel instead of animating it. Driving translationY ourselves lets it glide
+     * in step with the toolbar's slide.
+     */
+    private fun updateTimerPanelOffset(animate: Boolean) {
+        // Tablet layouts anchor the panel to the top app bar, so there is nothing to dodge.
+        if (viewBinding.toolbarDocked == null) return
+        val panel = viewBinding.timerControl
+        // Hiding the system bars makes insets settle over several frames, and every one of those
+        // callbacks lands here. Without this guard they snap translationY straight to the target
+        // mid-flight, so the panel appears to jump while the toolbar is still sliding.
+        if (!animate && isPanelOffsetAnimating) return
+        val target = if (viewBinding.appbarTop.isVisible) {
+            -(dockedToolbarHeight + resources.getDimensionPixelSize(R.dimen.screen_padding)).toFloat()
+        } else {
+            0f
+        }
+        panel.animate().cancel()
+        if (animate && isAnimationsEnabled) {
+            isPanelOffsetAnimating = true
+            panel.animate()
+                .translationY(target)
+                .setDuration(PANEL_SLIDE_DURATION)
+                // same curve the toolbar's Slide uses, so the two travel as one
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .withEndAction { isPanelOffsetAnimating = false }
+                .start()
+        } else {
+            isPanelOffsetAnimating = false
+            panel.translationY = target
+        }
+    }
+
     private fun updateScrollTimerButton() {
         val button = viewBinding.buttonTimer ?: return
         val isButtonVisible = scrollTimer.isActive.value
@@ -775,6 +835,8 @@ class ReaderActivity :
 
         private const val TOAST_DURATION = 2000L
         private const val FAB_FADE_DURATION = 200L
+        // matches androidx.transition's default duration, so the panel and the toolbar move together
+        private const val PANEL_SLIDE_DURATION = 300L
 		private const val EPUB_MODE_SCROLL = "scroll"
 		private const val EPUB_MODE_PAGED_RTL = "paged_rtl"
 

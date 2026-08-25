@@ -553,6 +553,7 @@
 	<string name="epub_text_tab">Text</string>
 	<string name="epub_reading_tab">Reading</string>
     <string name="speed">Speed</string>
+    <string name="interval">Interval</string>
     <string name="show_on_shelf">Show on the Shelf</string>
     <string name="find_similar">Find similar</string>
     <string name="ignore_ssl_errors">Ignore SSL errors</string>

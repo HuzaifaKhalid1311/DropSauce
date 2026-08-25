@@ -7,6 +7,7 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.collection.ArraySet
 import androidx.core.content.edit
@@ -923,13 +924,23 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	@get:FloatRange(from = 0.0, to = 1.0)
 	var readerAutoscrollSpeed: Float
+		// 0 is unreachable from the slider and used to mean "never configured", which left the
+		// timer permanently disabled — fold it into the default instead.
 		get() = prefs.getFloat(KEY_READER_AUTOSCROLL_SPEED, 0f)
+			.takeIf { it > 0f }?.coerceAtMost(1f) ?: DEFAULT_AUTOSCROLL_SPEED
 		set(@FloatRange(from = 0.0, to = 1.0) value) = prefs.edit {
 			putFloat(
 				KEY_READER_AUTOSCROLL_SPEED,
 				value,
 			)
 		}
+
+	/** Seconds a page stays on screen while autoscroll runs in the paged reader modes. */
+	@get:IntRange(from = 1, to = 10)
+	var readerAutoscrollPageDelay: Int
+		get() = prefs.getInt(KEY_READER_AUTOSCROLL_PAGE_DELAY, DEFAULT_AUTOSCROLL_PAGE_DELAY)
+			.coerceIn(1, 10)
+		set(value) = prefs.edit { putInt(KEY_READER_AUTOSCROLL_PAGE_DELAY, value.coerceIn(1, 10)) }
 
 	var isReaderAutoscrollFabVisible: Boolean
 		get() = prefs.getBoolean(KEY_READER_AUTOSCROLL_FAB, true)
@@ -1252,7 +1263,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_GRID = "sources_grid"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
+		const val DEFAULT_AUTOSCROLL_SPEED = 0.5f
+		const val DEFAULT_AUTOSCROLL_PAGE_DELAY = 5
+
 		const val KEY_READER_AUTOSCROLL_SPEED = "as_speed"
+		const val KEY_READER_AUTOSCROLL_PAGE_DELAY = "as_page_delay"
 		const val KEY_READER_AUTOSCROLL_FAB = "as_fab"
 		const val KEY_PROXY_TYPE = "proxy_type_2"
 		const val KEY_PROXY_ADDRESS = "proxy_address"

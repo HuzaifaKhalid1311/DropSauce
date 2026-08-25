@@ -52,8 +52,7 @@
 		android:layout_margin="@dimen/screen_padding"
 		android:background="@drawable/bg_reader_panel"
 		android:elevation="4dp"
-		android:visibility="gone"
-		app:layout_dodgeInsetEdges="bottom" />
+		android:visibility="gone" />
 
 	<com.google.android.material.appbar.AppBarLayout
 		android:id="@+id/appbar_top"
