@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.koitharu.kotatsu.widget.continuereading.ContinueReadingWidget
+import org.koitharu.kotatsu.widget.history.HistoryWidget
 import org.koitharu.kotatsu.widget.stats.StatsWidget
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,6 +27,7 @@ class WidgetRefreshObserver @Inject constructor(
 	override fun onInvalidated(tables: Set<String>) {
 		if (HISTORY_TABLES.any { it in tables }) {
 			nudge(ContinueReadingWidget::class.java)
+			nudge(HistoryWidget::class.java)
 		}
 		if (STATS_TABLES.any { it in tables }) {
 			nudge(StatsWidget::class.java)

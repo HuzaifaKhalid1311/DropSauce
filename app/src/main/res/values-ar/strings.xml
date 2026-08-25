@@ -427,7 +427,6 @@
     <string name="error_filter_states_genre_not_supported">لا يدعم هذا المصدر التصفية حسب التصنيفات والحالات</string>
     <string name="disable_battery_optimization_summary_downloads">قد يساعد في بدء التنزيل إذا كان لديك أي مشاكل معه</string>
     <string name="genres_search_hint">ابدأ بكتابة اسم التصنيف</string>
-    <string name="speed_value">س%.1f</string>
     <string name="skip">تخطى</string>
     <string name="grayscale">تدرج الرمادي</string>
     <string name="globally">عالمياً</string>

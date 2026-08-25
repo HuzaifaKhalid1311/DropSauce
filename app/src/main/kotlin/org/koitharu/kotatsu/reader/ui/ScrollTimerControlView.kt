@@ -25,9 +25,11 @@ import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.parentView
 import org.koitharu.kotatsu.databinding.ViewScrollTimerBinding
+import java.text.NumberFormat
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.math.cbrt
 
 @AndroidEntryPoint
 class ScrollTimerControlView @JvmOverloads constructor(
@@ -44,7 +46,7 @@ class ScrollTimerControlView @JvmOverloads constructor(
 	private val binding = ViewScrollTimerBinding.inflate(LayoutInflater.from(context), this)
 
 	private var scrollTimer: ScrollTimer? = null
-	private var labelPattern = context.getString(R.string.speed_value)
+	private val percentFormat = NumberFormat.getPercentInstance()
 	private var readerMode: ReaderMode = ReaderMode.STANDARD
 
 	init {
@@ -99,10 +101,12 @@ class ScrollTimerControlView @JvmOverloads constructor(
 	}
 
 	override fun getFormattedValue(value: Float): String {
-		val valueFrom = binding.sliderTimer.valueFrom
-		val valueTo = binding.sliderTimer.valueTo
-		val percent = (value - valueFrom) / (valueTo - valueFrom)
-		return labelPattern.format(0.1 + percent * 10) // just something to display
+		// `value` arrives in CubicSlider's raw (pre-cube) space while valueFrom/valueTo report
+		// the cubed values, so normalize both sides before turning it into a percentage.
+		val from = cbrt(binding.sliderTimer.valueFrom)
+		val to = cbrt(binding.sliderTimer.valueTo)
+		val fraction = ((value - from) / (to - from)).coerceIn(0f, 1f)
+		return percentFormat.format(fraction)
 	}
 
 	override fun onValueChange(

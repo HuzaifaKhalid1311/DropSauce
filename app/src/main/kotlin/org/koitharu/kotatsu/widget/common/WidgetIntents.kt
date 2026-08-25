@@ -20,11 +20,12 @@ object WidgetIntents {
 	const val FRESH_LAUNCH_FLAGS =
 		Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-	fun continueReading(
+	/** Reader intent resuming at [history], ready to be launched or wrapped in a PendingIntent. */
+	fun readerIntent(
 		context: Context,
 		manga: Manga,
 		history: MangaHistory?,
-	): PendingIntent {
+	): Intent {
 		val builder = ReaderIntent.Builder(context).manga(manga)
 		if (history != null) {
 			builder.state(
@@ -35,7 +36,15 @@ object WidgetIntents {
 				),
 			)
 		}
-		val intent = builder.build().intent.addFlags(FRESH_LAUNCH_FLAGS)
+		return builder.build().intent.addFlags(FRESH_LAUNCH_FLAGS)
+	}
+
+	fun continueReading(
+		context: Context,
+		manga: Manga,
+		history: MangaHistory?,
+	): PendingIntent {
+		val intent = readerIntent(context, manga, history)
 		return PendingIntent.getActivity(context, ("read" + manga.id).hashCode(), intent, PI_FLAGS)
 	}
 

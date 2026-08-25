@@ -30,6 +30,13 @@ private const val MAX_SWITCH_DELAY = 10_000L
 private const val INTERACTION_SKIP_MS = 2_000L
 private const val SPEED_FACTOR_DELTA = 0.02f
 
+/**
+ * Pixels-per-tick, in dp. At the top of the slider the per-tick delay has already bottomed out
+ * at 1 ms, so the only remaining lever for a faster scroll is a bigger step — 1.38dp instead of
+ * the original 1dp makes the whole speed scale 38% quicker.
+ */
+private const val SCROLL_DELTA_DP = 1.38f
+
 class ScrollTimer @AssistedInject constructor(
 	@Assisted resources: Resources,
 	@Assisted private val listener: ReaderControlDelegate.OnInteractionListener,
@@ -45,7 +52,7 @@ class ScrollTimer @AssistedInject constructor(
 	private var resumeAt = 0L
 	private var isTouchDown = MutableStateFlow(false)
 	private val isRunning = MutableStateFlow(false)
-	private val scrollDelta = resources.resolveDp(1)
+	private val scrollDelta = resources.resolveDp(SCROLL_DELTA_DP)
 
 	val isActive: StateFlow<Boolean>
 		get() = isRunning
@@ -107,6 +114,9 @@ class ScrollTimer @AssistedInject constructor(
 		job = coroutineScope.launch {
 			var accumulator = 0L
 			var speedFactor = 1f
+			// scrollDelta is fractional; carry the leftover between ticks so the 1.2dp step
+			// survives rounding to whole pixels on every screen density.
+			var pixelCarry = 0f
 			while (isActive) {
 				if (isPaused()) {
 					speedFactor = (speedFactor - SPEED_FACTOR_DELTA).coerceAtLeast(0f)
@@ -124,8 +134,13 @@ class ScrollTimer @AssistedInject constructor(
 				if (!listener.isReaderResumed()) {
 					continue
 				}
-				if (!listener.scrollBy(scrollDelta, false)) {
-					accumulator += delayMs
+				pixelCarry += scrollDelta
+				val step = pixelCarry.toInt()
+				if (step > 0) {
+					pixelCarry -= step
+					if (!listener.scrollBy(step, false)) {
+						accumulator += delayMs
+					}
 				}
 				if (accumulator >= pageSwitchDelay) {
 					listener.switchPageBy(1)

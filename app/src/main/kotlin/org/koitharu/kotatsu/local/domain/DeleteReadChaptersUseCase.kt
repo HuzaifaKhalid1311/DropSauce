@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.mergedBranches
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
@@ -27,6 +28,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 	private val historyRepository: HistoryRepository,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val mangaDataRepository: MangaDataRepository,
+	private val settings: AppSettings,
 ) {
 
 	suspend operator fun invoke(manga: Manga): Int {
@@ -80,9 +82,10 @@ class DeleteReadChaptersUseCase @Inject constructor(
 		val branchChapters = chapters.filter { x -> x.branch == branch }
 		val currentIndex = branchChapters.indexOfFirst { it.id == history.chapterId }
 		val filteredChapters = if (currentIndex >= 0) {
-			// keep the current chapter and the one before it as a safety margin,
-			// delete only what lies 2+ chapters behind the reading position
-			branchChapters.take((currentIndex - 1).coerceAtLeast(0))
+			// Keep the current chapter plus `keep` chapters behind it as a safety margin;
+			// everything further back is deleted. keep = 0 drops a chapter as soon as the
+			// next one is opened.
+			branchChapters.take((currentIndex - settings.localChaptersCleanupKeep).coerceAtLeast(0))
 		} else {
 			emptyList()
 		}

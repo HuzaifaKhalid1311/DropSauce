@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -33,10 +34,12 @@ import org.koitharu.kotatsu.local.data.CacheDir
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.SegmentedSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
+import org.koitharu.kotatsu.settings.compose.rememberIntPref
 
 @AndroidEntryPoint
 class DataCleanupSettingsFragment : BaseComposeSettingsFragment(R.string.data_removal) {
@@ -246,6 +249,10 @@ private fun DataCleanupScreen(
 		}
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 		item {
+			// The safety margin only has any effect while the automatic cleanup is on, so it
+			// lives right under that switch and greys out with it — hoisted here because the
+			// SettingsGroup content lambda is not composable.
+			var auto by rememberBooleanPref(AppSettings.KEY_CHAPTERS_CLEAR_AUTO, false)
 			SettingsGroup(title = stringResource(R.string.delete_read_chapters)) {
 				item { pos ->
 					ActionSettingsItem(
@@ -258,7 +265,6 @@ private fun DataCleanupScreen(
 					)
 				}
 				item { pos ->
-					var auto by rememberBooleanPref(AppSettings.KEY_CHAPTERS_CLEAR_AUTO, false)
 					SwitchSettingsItem(
 						title = stringResource(R.string.delete_read_chapters_auto),
 						subtitle = stringResource(R.string.runs_on_app_start),
@@ -266,6 +272,23 @@ private fun DataCleanupScreen(
 						onCheckedChange = { auto = it },
 						icon = R.drawable.ic_timer_run,
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					var keep by rememberIntPref(AppSettings.KEY_CHAPTERS_CLEAR_KEEP, 2)
+					SegmentedSettingsItem(
+						title = stringResource(R.string.delete_read_chapters_keep),
+						subtitle = if (keep <= 0) {
+							stringResource(R.string.delete_read_chapters_keep_immediate)
+						} else {
+							pluralStringResource(R.plurals.delete_read_chapters_keep_summary, keep, keep)
+						},
+						labels = List(4) { it.toString() },
+						selectedIndex = keep.coerceIn(0, 3),
+						onSelected = { keep = it },
+						icon = R.drawable.ic_chapter_stack,
+						shape = pos.shape,
+						enabled = auto,
 					)
 				}
 			}

@@ -409,6 +409,28 @@
 				android:resource="@xml/appwidget_favorites" />
 		</receiver>
 
+		<receiver
+			android:name="org.koitharu.kotatsu.widget.history.HistoryWidget"
+			android:exported="true"
+			android:label="@string/widget_history">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<action android:name="android.intent.action.CONFIGURATION_CHANGED" />
+				<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+				<action android:name="org.koitharu.kotatsu.widget.history.REFRESH" />
+				<action android:name="org.koitharu.kotatsu.widget.history.CLICK" />
+			</intent-filter>
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/appwidget_history" />
+		</receiver>
+
+		<service
+			android:name="org.koitharu.kotatsu.widget.history.HistoryWidgetService"
+			android:exported="false"
+			android:permission="android.permission.BIND_REMOTEVIEWS" />
+
 		<activity
 			android:name="org.koitharu.kotatsu.widget.favorites.FavoritesWidgetConfigActivity"
 			android:exported="true"

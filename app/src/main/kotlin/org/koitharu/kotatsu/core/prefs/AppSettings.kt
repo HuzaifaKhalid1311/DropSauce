@@ -969,6 +969,13 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isAutoLocalChaptersCleanupEnabled: Boolean
 		get() = prefs.getBoolean(KEY_CHAPTERS_CLEAR_AUTO, false)
 
+	/**
+	 * How many chapters behind the current reading position are kept when read chapters are
+	 * deleted. 0 deletes the previous chapter as soon as the next one is opened.
+	 */
+	val localChaptersCleanupKeep: Int
+		get() = prefs.getInt(KEY_CHAPTERS_CLEAR_KEEP, 2).coerceIn(0, 3)
+
 	fun isPagesCropEnabled(mode: ReaderMode): Boolean {
 		val rawValue = prefs.getStringSet(KEY_READER_CROP, emptySet())
 		if (rawValue.isNullOrEmpty()) {
@@ -1143,6 +1150,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_COOKIES_CLEAR = "cookies_clear"
 		const val KEY_CHAPTERS_CLEAR = "chapters_clear"
 		const val KEY_CHAPTERS_CLEAR_AUTO = "chapters_clear_auto"
+		const val KEY_CHAPTERS_CLEAR_KEEP = "chapters_clear_keep"
 		const val KEY_THUMBS_CACHE_CLEAR = "thumbs_cache_clear"
 		const val KEY_SEARCH_HISTORY_CLEAR = "search_history_clear"
 		const val KEY_UPDATES_FEED_CLEAR = "updates_feed_clear"

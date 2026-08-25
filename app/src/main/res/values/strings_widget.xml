@@ -26,6 +26,12 @@
 	<string name="widget_favorites_pin_counter">%1$d / %2$d pinned</string>
 	<string name="widget_favorites_limit_reached">You can pin up to %1$d favorites</string>
 
+	<!-- History Widget -->
+	<string name="widget_history">Recently read</string>
+	<string name="widget_history_description">Scroll your last read titles and jump straight back in</string>
+	<string name="widget_history_empty">Nothing read yet</string>
+	<string name="widget_history_read">Continue reading</string>
+
 	<!-- Common -->
 	<string name="widget_cover_content_description">Manga cover</string>
 </resources>

@@ -460,7 +460,6 @@
     <string name="periodic_backups_enable">அவ்வப்போது காப்புப்பிரதிகளை இயக்கவும்</string>
     <string name="backups_output_directory">காப்புப்பிரதிகள் வெளியீட்டு அடைவு</string>
     <string name="last_successful_backup">கடைசி வெற்றிகரமான காப்புப்பிரதி: %s</string>
-    <string name="speed_value">எக்ச்%.1f எஃப்</string>
     <string name="content_type_manga">மங்கா</string>
     <string name="content_type_hentai">என்டாய்</string>
     <string name="content_type_comics">காமிக்ச்</string>

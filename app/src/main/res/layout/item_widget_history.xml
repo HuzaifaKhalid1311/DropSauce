@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/widget_item_body"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:baselineAligned="false"
+	android:background="@drawable/bg_appwidget_row"
+	android:gravity="center_vertical"
+	android:layout_marginBottom="6dp"
+	android:orientation="horizontal"
+	android:padding="6dp">
+
+	<ImageView
+		android:id="@+id/widget_cover"
+		android:layout_width="40dp"
+		android:layout_height="54dp"
+		android:background="@drawable/bg_appwidget_cover_small"
+		android:contentDescription="@string/widget_cover_content_description"
+		android:scaleType="fitCenter"
+		tools:src="@color/kotatsu_surfaceContainerHigh" />
+
+	<LinearLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="10dp"
+		android:layout_weight="1"
+		android:orientation="vertical">
+
+		<TextView
+			android:id="@+id/widget_title"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="2"
+			android:textColor="@color/kotatsu_onSurface"
+			android:textSize="14sp"
+			android:textStyle="bold"
+			tools:text="One Piece" />
+
+		<TextView
+			android:id="@+id/widget_subtitle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="2dp"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textColor="@color/kotatsu_onSurfaceVariant"
+			android:textSize="11sp"
+			tools:text="6%" />
+
+		<ProgressBar
+			android:id="@+id/widget_progress"
+			style="?android:attr/progressBarStyleHorizontal"
+			android:layout_width="match_parent"
+			android:layout_height="6dp"
+			android:layout_marginTop="5dp"
+			android:max="100"
+			android:progress="40"
+			android:progressDrawable="@drawable/bg_appwidget_progress_round" />
+	</LinearLayout>
+
+	<ImageView
+		android:id="@+id/widget_play"
+		android:layout_width="34dp"
+		android:layout_height="34dp"
+		android:layout_marginStart="8dp"
+		android:layout_marginEnd="2dp"
+		android:background="@drawable/bg_appwidget_play"
+		android:contentDescription="@string/widget_history_read"
+		android:padding="10dp"
+		android:src="@drawable/ic_play"
+		android:tint="@color/kotatsu_onPrimary"
+		tools:ignore="UseAppTint" />
+
+</LinearLayout>
