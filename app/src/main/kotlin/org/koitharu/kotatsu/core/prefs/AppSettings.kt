@@ -294,6 +294,24 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_EPUB_READING_MODE, "scroll") ?: "scroll"
 		set(value) = prefs.edit { putString(KEY_EPUB_READING_MODE, value) }
 
+	/** Speech rate for the novel text-to-speech, 0.25f..3f where 1f is the engine default. */
+	var epubTtsSpeed: Float
+		get() = prefs.getFloat(KEY_EPUB_TTS_SPEED, 1f).coerceIn(0.25f, 3f)
+		set(value) = prefs.edit { putFloat(KEY_EPUB_TTS_SPEED, value) }
+
+	/** Pitch for the novel text-to-speech, 0.5f..2f where 1f is the engine default. */
+	var epubTtsPitch: Float
+		get() = prefs.getFloat(KEY_EPUB_TTS_PITCH, 1f).coerceIn(0.5f, 2f)
+		set(value) = prefs.edit { putFloat(KEY_EPUB_TTS_PITCH, value) }
+
+	/**
+	 * Which of the offered voices is selected, as an index rather than a name: the offer is the best
+	 * few voices of whatever language is being read, so the same slot keeps working in every book.
+	 */
+	var epubTtsVoiceIndex: Int
+		get() = prefs.getInt(KEY_EPUB_TTS_VOICE, 0)
+		set(value) = prefs.edit { putInt(KEY_EPUB_TTS_VOICE, value) }
+
 	var isEpubPagedTapGesturesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_PAGED_TAP_GESTURES, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_PAGED_TAP_GESTURES, value) }
@@ -1207,6 +1225,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EPUB_TEXT_ALIGN = "epub_text_align"
 		const val KEY_EPUB_READING_MODE = "epub_reading_mode"
 		const val KEY_EPUB_PAGED_TAP_GESTURES = "epub_paged_tap_gestures"
+		const val KEY_EPUB_TTS_SPEED = "epub_tts_speed"
+		const val KEY_EPUB_TTS_VOICE = "epub_tts_voice_index"
+		const val KEY_EPUB_TTS_PITCH = "epub_tts_pitch"
 		const val KEY_EPUB_PUBLISHER_STYLE = "epub_publisher_style"
 		const val KEY_EPUB_BIONIC_READING = "epub_bionic_reading"
 		const val KEY_EPUB_THEME = "epub_theme"

@@ -46,6 +46,18 @@
 		app:layout_anchorGravity="bottom|end"
 		tools:visibility="visible" />
 
+	<org.koitharu.kotatsu.reader.ui.tts.TtsControlView
+		android:id="@+id/ttsControl"
+		android:layout_width="320dp"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/screen_padding"
+		android:background="@drawable/bg_reader_panel"
+		android:elevation="4dp"
+		android:visibility="gone"
+		app:layout_anchor="@id/appbar_top"
+		app:layout_anchorGravity="bottom|end"
+		tools:visibility="visible" />
+
 	<com.google.android.material.appbar.AppBarLayout
 		android:id="@+id/appbar_top"
 		android:layout_width="match_parent"

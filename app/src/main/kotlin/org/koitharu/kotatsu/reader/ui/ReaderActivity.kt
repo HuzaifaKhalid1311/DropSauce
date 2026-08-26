@@ -82,6 +82,8 @@ import org.koitharu.kotatsu.reader.domain.UpscaleEffect
 import org.koitharu.kotatsu.reader.ui.upscale.UpscalePreviewDialog
 import org.koitharu.kotatsu.reader.ui.config.ReaderConfigSheet
 import org.koitharu.kotatsu.reader.ui.epub.EpubReaderFragment
+import org.koitharu.kotatsu.reader.ui.tts.ReaderTts
+import org.koitharu.kotatsu.reader.ui.tts.ReaderTtsService
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
 import org.koitharu.kotatsu.reader.ui.tapgrid.TapGridDispatcher
@@ -124,6 +126,9 @@ class ReaderActivity :
         get() = readerManager.currentMode
 
     private lateinit var scrollTimer: ScrollTimer
+
+    @Inject
+    lateinit var tts: ReaderTts
     private lateinit var pageSaveHelper: PageSaveHelper
     private lateinit var touchHelper: TapGridDispatcher
     private lateinit var controlDelegate: ReaderControlDelegate
@@ -161,6 +166,15 @@ class ReaderActivity :
         }
         viewBinding.timerControl.onVisibilityChangeListener = this
         viewBinding.timerControl.attach(scrollTimer, this)
+        viewBinding.ttsControl.onVisibilityChangeListener = this
+        viewBinding.ttsControl.attach(tts, this)
+        tts.isPlaying.observe(this) {
+            updateScrollTimerButton()
+            if (it) {
+                scrollTimer.setActive(false)
+                ReaderTtsService.start(this, viewModel.getMangaOrNull()?.title.orEmpty())
+            }
+        }
         if (resources.getBoolean(R.bool.is_tablet)) {
             viewBinding.timerControl.updateLayoutParams<CoordinatorLayout.LayoutParams> {
                 topMargin = marginEnd + getThemeDimensionPixelOffset(appcompatR.attr.actionBarSize)
@@ -267,6 +281,15 @@ class ReaderActivity :
         viewModel.onStop()
     }
 
+    override fun onDestroy() {
+        // Backgrounding the reader keeps speaking; leaving it does not. A rotation is neither.
+        if (isFinishing) {
+            tts.stop()
+            ReaderTtsService.stop(this)
+        }
+        super.onDestroy()
+    }
+
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)
         viewModel.getMangaOrNull()?.publicUrl?.toUriOrNull()?.let { outContent.webUri = it }
@@ -284,6 +307,7 @@ class ReaderActivity :
         // the right height instead of appearing at the bottom edge and jumping up afterwards.
         updateTimerPanelOffset(animate = false)
         updateScrollTimerButton()
+        (readerManager.currentReader as? EpubReaderFragment)?.setTtsPickMode(viewBinding.ttsControl.isVisible)
     }
 
     override fun onZoomIn() {
@@ -296,7 +320,12 @@ class ReaderActivity :
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.button_timer -> onScrollTimerClick(isLongClick = false)
+            // One floating button for both: whichever of the two is running owns it.
+            R.id.button_timer -> if (tts.isPlaying.value) {
+                viewBinding.ttsControl.showOrHide()
+            } else {
+                onScrollTimerClick(isLongClick = false)
+            }
         }
     }
 
@@ -305,6 +334,7 @@ class ReaderActivity :
             return
         }
         readerManager.isEpub = viewModel.getMangaOrNull()?.isEpub == true
+        viewBinding.timerControl.setEpubReader(readerManager.isEpub)
         if (readerManager.currentMode != mode) {
             readerManager.replace(mode)
         }
@@ -641,10 +671,20 @@ class ReaderActivity :
     }
 
     override fun onScrollTimerClick(isLongClick: Boolean) {
+        viewBinding.ttsControl.hide()
         if (isLongClick) {
             scrollTimer.setActive(!scrollTimer.isActive.value)
         } else {
             viewBinding.timerControl.showOrHide()
+        }
+    }
+
+    override fun onTextToSpeechClick() {
+        val reader = readerManager.currentReader as? EpubReaderFragment ?: return
+        viewBinding.timerControl.hide()
+        viewBinding.ttsControl.show()
+        if (!tts.isAttached) {
+            reader.startTts()
         }
     }
 
@@ -749,7 +789,8 @@ class ReaderActivity :
     private fun updateTimerPanelOffset(animate: Boolean) {
         // Tablet layouts anchor the panel to the top app bar, so there is nothing to dodge.
         if (viewBinding.toolbarDocked == null) return
-        val panel = viewBinding.timerControl
+        // The floating button rides along: with the dock up it would otherwise sit behind it.
+        val panels = listOfNotNull<View>(viewBinding.timerControl, viewBinding.ttsControl, viewBinding.buttonTimer)
         // Hiding the system bars makes insets settle over several frames, and every one of those
         // callbacks lands here. Without this guard they snap translationY straight to the target
         // mid-flight, so the panel appears to jump while the toolbar is still sliding.
@@ -759,28 +800,32 @@ class ReaderActivity :
         } else {
             0f
         }
-        panel.animate().cancel()
+        panels.forEach { it.animate().cancel() }
         if (animate && isAnimationsEnabled) {
             isPanelOffsetAnimating = true
-            panel.animate()
-                .translationY(target)
-                .setDuration(PANEL_SLIDE_DURATION)
-                // same curve the toolbar's Slide uses, so the two travel as one
-                .setInterpolator(AccelerateDecelerateInterpolator())
-                .withEndAction { isPanelOffsetAnimating = false }
-                .start()
+            panels.forEach { panel ->
+                panel.animate()
+                    .translationY(target)
+                    .setDuration(PANEL_SLIDE_DURATION)
+                    // same curve the toolbar's Slide uses, so the two travel as one
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .withEndAction { isPanelOffsetAnimating = false }
+                    .start()
+            }
         } else {
             isPanelOffsetAnimating = false
-            panel.translationY = target
+            panels.forEach { it.translationY = target }
         }
     }
 
     private fun updateScrollTimerButton() {
         val button = viewBinding.buttonTimer ?: return
-        val isButtonVisible = scrollTimer.isActive.value
+        val isTts = tts.isPlaying.value
+        val isButtonVisible = (scrollTimer.isActive.value || isTts)
             && settings.isReaderAutoscrollFabVisible
-            && !viewBinding.appbarTop.isVisible
             && !viewBinding.timerControl.isVisible
+            && !viewBinding.ttsControl.isVisible
+        button.setIconResource(if (isTts) R.drawable.ic_voice_over else R.drawable.ic_timelapse)
         if (button.isVisible == isButtonVisible) {
             return
         }

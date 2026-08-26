@@ -553,6 +553,7 @@
 	<string name="epub_untitled_chapter">Untitled chapter</string>
 	<string name="epub_text_tab">Text</string>
 	<string name="epub_reading_tab">Reading</string>
+	<string name="epub_tools_tab">Tools</string>
     <string name="speed">Speed</string>
     <string name="interval">Interval</string>
     <string name="show_on_shelf">Show on the Shelf</string>
@@ -1219,4 +1220,16 @@
     <string name="smart_update_skip_completed">Skipped: completed</string>
     <string name="smart_update_skip_unstarted">Skipped: not started</string>
     <string name="smart_update_skip_unread">Skipped: unread chapters</string>
+    <string name="text_to_speech">Text to speech</string>
+    <string name="tts_playing">Playing</string>
+    <string name="tts_paused">Paused</string>
+    <string name="tts_next_sentence">Next sentence</string>
+    <string name="tts_previous_sentence">Previous sentence</string>
+    <string name="tts_voice">Voice</string>
+    <string name="tts_tap_hint">Tap any paragraph to read from there</string>
+    <string name="tts_pitch">Pitch</string>
+    <string name="tts_speed_value">%1$.2fx</string>
+    <string name="tts_voice_default">Default</string>
+    <string name="tts_unavailable">No text-to-speech engine is available</string>
+    <string name="stop">Stop</string>
 </resources>

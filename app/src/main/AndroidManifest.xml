@@ -18,6 +18,7 @@
 	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 	<uses-permission
 		android:name="android.permission.REQUEST_INSTALL_PACKAGES"
 		tools:ignore="RequestInstallPackagesPolicy" />
@@ -40,6 +41,9 @@
 		</intent>
 		<intent>
 			<action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.TTS_SERVICE" />
 		</intent>
 	</queries>
 
@@ -323,6 +327,11 @@
 			android:name="org.koitharu.kotatsu.details.service.MangaPrefetchService"
 			android:exported="false"
 			android:label="@string/prefetch_content" />
+		<service
+			android:name="org.koitharu.kotatsu.reader.ui.tts.ReaderTtsService"
+			android:exported="false"
+			android:foregroundServiceType="mediaPlayback"
+			android:label="@string/text_to_speech" />
 		<service
 			android:name="org.koitharu.kotatsu.browser.AdListUpdateService"
 			android:exported="false" />

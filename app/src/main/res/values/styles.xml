@@ -279,6 +279,18 @@
 		<item name="iconTint">@color/sel_toggle_button_fg</item>
 	</style>
 
+	<!-- Voice picker dots: selection follows the app accent, like the rest of the reader panels -->
+	<style name="Widget.Kotatsu.TtsVoiceButton" parent="Widget.Material3.Button.OutlinedButton">
+		<item name="backgroundTint">@color/sel_tts_voice_bg</item>
+		<item name="android:textColor">@color/sel_tts_voice_fg</item>
+		<item name="strokeColor">@color/sel_tts_voice_stroke</item>
+		<item name="android:insetTop">0dp</item>
+		<item name="android:insetBottom">0dp</item>
+		<item name="android:minWidth">0dp</item>
+		<item name="android:paddingStart">0dp</item>
+		<item name="android:paddingEnd">0dp</item>
+	</style>
+
 	<style name="Widget.Kotatsu.MaterialButtonToggleGroup.RectEdges" parent="Widget.Material3Expressive.MaterialButtonToggleGroup">
 		<item name="shapeAppearance">@xml/kotatsu_m3e_button_group_outer_shape</item>
 	</style>

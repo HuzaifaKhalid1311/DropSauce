@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +34,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -544,8 +544,9 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         var readingMode by remember {
             mutableStateOf(if (settings.epubReadingMode == "paged") "paged_ltr" else settings.epubReadingMode)
         }
-        val pagerState = rememberPagerState(pageCount = { 2 })
+        val pagerState = rememberPagerState(pageCount = { 3 })
         val scope = rememberCoroutineScope()
+        val callback = remember { findParentCallback(Callback::class.java) }
         // Book formatting temporarily owns typography; reading behavior and page colors remain editable.
         val editable = !publisherStyleEnabled
         val navBarPadding = remember {
@@ -588,7 +589,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         EpubSliderSection(Modifier.weight(1f), R.drawable.ic_move_horizontal, stringResource(R.string.epub_horizontal_margin), settings.epubHorizontalPadding, 0..64, " dp", defaultValue = 20, enabled = editable) { settings.epubHorizontalPadding = it }
                         EpubSliderSection(Modifier.weight(1f), R.drawable.ic_gesture_vertical, stringResource(R.string.epub_vertical_margin), settings.epubVerticalPadding, 0..112, " dp", defaultValue = 112, enabled = editable && readingMode != "scroll") { settings.epubVerticalPadding = it }
                     }
-                } else {
+                } else if (page == 1) {
                     EpubReadModeSection(readingMode) { mode ->
                         readingMode = mode
                         settings.epubReadingMode = mode
@@ -601,7 +602,6 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(IntrinsicSize.Max),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        EpubTapGestureSection(Modifier.weight(1f).fillMaxHeight(), enabled = readingMode != "scroll")
                         EpubChoiceSection(
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                             icon = R.drawable.ic_reader_ltr,
@@ -618,6 +618,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             },
                             enabled = editable,
                         ) { settings.epubTextAlign = it }
+                        EpubTapGestureSection(Modifier.weight(1f).fillMaxHeight(), enabled = readingMode != "scroll")
                     }
                     EpubFontSection(
                         selected = settings.epubFontFamily,
@@ -628,7 +629,11 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         },
                         onRemoveCustom = ::removeEpubCustomFont,
                     )
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                } else {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         ToolGridCard(
                             icon = R.drawable.ic_auto_fix,
                             label = stringResource(R.string.epub_publisher_style),
@@ -637,8 +642,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                 publisherStyleEnabled = !publisherStyleEnabled
                                 settings.isEpubPublisherStyleEnabled = publisherStyleEnabled
                             },
-                            modifier = Modifier.weight(1f).height(96.dp),
-                            iconSize = 22.dp,
+                            modifier = Modifier.weight(1f).height(120.dp),
+                            iconSize = 24.dp,
                         )
                         ToolGridCard(
                             icon = R.drawable.ic_bolt,
@@ -648,10 +653,35 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                 bionicReadingEnabled = !bionicReadingEnabled
                                 settings.isEpubBionicReadingEnabled = bionicReadingEnabled
                             },
-                            modifier = Modifier.weight(1f).height(96.dp),
-                            iconSize = 22.dp,
+                            modifier = Modifier.weight(1f).height(120.dp),
+                            iconSize = 24.dp,
                         )
-                        EpubThemeCard(modifier = Modifier.weight(1f).height(96.dp))
+                        EpubThemeCard(modifier = Modifier.weight(1f).height(120.dp))
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        ToolGridCard(
+                            icon = R.drawable.ic_timer,
+                            label = stringResource(R.string.automatic_scroll),
+                            onClick = {
+                                dismiss()
+                                callback?.onScrollTimerClick(isLongClick = false)
+                            },
+                            modifier = Modifier.weight(1f).height(120.dp),
+                            iconSize = 24.dp,
+                        )
+                        ToolGridCard(
+                            icon = R.drawable.ic_voice_over,
+                            label = stringResource(R.string.text_to_speech),
+                            onClick = {
+                                dismiss()
+                                callback?.onTextToSpeechClick()
+                            },
+                            modifier = Modifier.weight(1f).height(120.dp),
+                            iconSize = 24.dp,
+                        )
                     }
                 }
                 if (publisherStyleEnabled) {
@@ -673,7 +703,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
             var measuredHeights by remember { mutableStateOf(emptyList<Float>()) }
             SubcomposeLayout(modifier = Modifier.fillMaxWidth()) { constraints ->
                 val measureConstraints = Constraints(minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth)
-                val heights = List(2) { page ->
+                val heights = List(3) { page ->
                     subcompose("epub_page_height_$page") { pageContent(page) }
                         .maxOf { it.measure(measureConstraints).height }
                         .toFloat()
@@ -711,6 +741,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                 tabs = listOf(
                     Triple(stringResource(R.string.epub_text_tab), R.drawable.ic_appearance, 0),
                     Triple(stringResource(R.string.epub_reading_tab), R.drawable.ic_book_page, 1),
+                    Triple(stringResource(R.string.epub_tools_tab), R.drawable.ic_tune, 2),
                 ),
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
@@ -1743,6 +1774,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         fun onSavePageClick()
 
         fun onScrollTimerClick(isLongClick: Boolean)
+
+        fun onTextToSpeechClick()
 
         fun onBookmarkClick()
 

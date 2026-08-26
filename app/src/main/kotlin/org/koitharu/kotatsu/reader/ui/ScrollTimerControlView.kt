@@ -47,9 +47,12 @@ class ScrollTimerControlView @JvmOverloads constructor(
 	private val percentFormat = NumberFormat.getPercentInstance()
 	private var readerMode: ReaderMode = ReaderMode.STANDARD
 	private var isApplyingSliderMode = false
+	private var isEpub = false
+	private var epubMode = EPUB_MODE_SCROLL
 
+	// Novels have their own mode setting; a paged book is timed like a paged manga.
 	private val isScrollingMode: Boolean
-		get() = readerMode == ReaderMode.WEBTOON
+		get() = if (isEpub) epubMode == EPUB_MODE_SCROLL else readerMode == ReaderMode.WEBTOON
 
 	init {
 		binding.switchScrollTimer.setOnCheckedChangeListener(this)
@@ -74,7 +77,22 @@ class ScrollTimerControlView @JvmOverloads constructor(
 		).observe(lifecycleOwner) {
 			binding.buttonFab.isChecked = it
 		}
+		settings.observeAsStateFlow(
+			scope = lifecycleOwner.lifecycleScope + Dispatchers.Default,
+			key = AppSettings.KEY_EPUB_READING_MODE,
+			valueProducer = { epubReadingMode },
+		).observe(lifecycleOwner) {
+			epubMode = it
+			if (isEpub) applySliderMode()
+		}
 		applySliderMode()
+	}
+
+	fun setEpubReader(value: Boolean) {
+		if (isEpub != value) {
+			isEpub = value
+			applySliderMode()
+		}
 	}
 
 	fun onReaderModeChanged(mode: ReaderMode) {
@@ -201,5 +219,6 @@ class ScrollTimerControlView @JvmOverloads constructor(
 		const val PAGE_DELAY_MIN = 1f
 		const val PAGE_DELAY_MAX = 10f
 		const val PAGE_DELAY_STEP = 1f
+		const val EPUB_MODE_SCROLL = "scroll"
 	}
 }

@@ -114,6 +114,7 @@ import org.koitharu.kotatsu.databinding.SheetEpubDictionaryBinding
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.reader.ui.ReaderState
+import org.koitharu.kotatsu.reader.ui.tts.ReaderTts
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderAdapter
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderFragment
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
@@ -147,6 +148,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	@Inject
 	lateinit var mangaRepositoryFactory: MangaRepository.Factory
+
+	@Inject
+	lateinit var tts: ReaderTts
 
 	private var chapters: List<NativeChapter> = emptyList()
 	private val chapterDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -183,6 +187,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	private var highlightMangaId = 0L
 	private var cachedCustomTypeface: Typeface? = null
 	private var cachedCustomTypefaceStamp = Long.MIN_VALUE
+	private var ttsHighlightHost: TextView? = null
+	private var isTtsPickMode = false
+	private val ttsHighlightSpan = HighlightColorSpan(0)
 
 	private val rebuildRunnable = Runnable {
 		val locator = reflowLocator
@@ -236,9 +243,149 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				binding.root.requestApplyInsets()
 				switchReadingMode()
 			}
+		tts.position.observe(viewLifecycleOwner) { onTtsPositionChanged(it) }
+		tts.chapterFinished.observe(viewLifecycleOwner) { onTtsChapterFinished(it) }
+	}
+
+	/** Starts speaking the current chapter from wherever the reader is right now. */
+	fun startTts() {
+		val locator = currentLocator().clamped()
+		startTtsAt(locator.chapter, locator.offset)
+	}
+
+	/** While the TTS panel is open, a tap picks the paragraph to read from. */
+	fun setTtsPickMode(value: Boolean) {
+		isTtsPickMode = value
+	}
+
+	private fun startTtsAt(chapter: Int, offset: Int) {
+		loadChapterForTts(chapter) { text ->
+			tts.setChapter(chapter, text)
+			tts.play(paragraphStart(text, offset))
+		}
+	}
+
+	private fun startTtsAtTap(textView: TextView, event: MotionEvent) {
+		val location = textView.tag as? TextLocation ?: return
+		val offset = offsetAt(textView, event) ?: return
+		startTtsAt(location.chapter, location.baseOffset + offset)
+	}
+
+	private fun onTtsChapterFinished(chapter: Int) {
+		val next = chapter + 1
+		if (next > chapters.lastIndex) {
+			return
+		}
+		loadChapterForTts(next) { text ->
+			goTo(Locator(next, 0), smooth = true)
+			tts.setChapter(next, text)
+			tts.play(0)
+		}
+	}
+
+	private fun loadChapterForTts(index: Int, onLoaded: (String) -> Unit) {
+		if (chapters.getOrNull(index) == null) {
+			return
+		}
+		viewLifecycleOwner.lifecycleScope.launch {
+			val text = withContext(Dispatchers.Default) {
+				ensureChapterLoaded(index)
+				chapters.getOrNull(index)?.text?.toString()
+			}
+			if (!text.isNullOrEmpty()) onLoaded(text)
+		}
+	}
+
+	private fun onTtsPositionChanged(position: ReaderTts.Position?) {
+		(ttsHighlightHost?.text as? Spannable)?.removeSpan(ttsHighlightSpan)
+		ttsHighlightHost = null
+		if (position == null) {
+			return
+		}
+		if (bringTtsPositionIntoView(position)) {
+			applyTtsHighlight(position)
+		} else {
+			// The page it lives on still has to be bound and laid out before it can be painted on.
+			viewBinding?.root?.post { applyTtsHighlight(position) }
+		}
+	}
+
+	/**
+	 * Puts the spoken sentence on screen. Returns false when that needed a page turn or a jump, so
+	 * the caller knows the target view does not exist yet.
+	 */
+	private fun bringTtsPositionIntoView(position: ReaderTts.Position): Boolean {
+		val pager = pagerView ?: return true
+		val target = pages.indexOfFirst {
+			it.chapter == position.chapter && position.start in it.start until it.end
+		}
+		if (target < 0) {
+			// Outside the loaded page window - the locator jump rebuilds it around the sentence.
+			goTo(Locator(position.chapter, position.start), smooth = true)
+			return false
+		}
+		if (target == pager.currentItem) {
+			return true
+		}
+		pager.setCurrentItem(target, isAnimationEnabled())
+		return false
+	}
+
+	private fun applyTtsHighlight(position: ReaderTts.Position) {
+		ttsHighlightSpan.color = highlightColor
+		val host = textViewAt(position.chapter, position.start) ?: return
+		val location = host.tag as? TextLocation ?: return
+		val spannable = host.text as? Spannable ?: return
+		val start = (position.start - location.baseOffset).coerceIn(0, spannable.length)
+		val end = (position.end - location.baseOffset).coerceIn(start, spannable.length)
+		if (start != end) {
+			spannable.setSpan(ttsHighlightSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+			ttsHighlightHost = host
+		}
+		followTtsLine(host, start)
+	}
+
+	/**
+	 * In paged mode the pager keeps neighbouring pages bound off screen, so the match has to be the
+	 * page actually being shown - otherwise the highlight lands on a page nobody is looking at.
+	 */
+	private fun textViewAt(chapter: Int, offset: Int): TextView? {
+		val recycler = verticalView ?: (pagerView?.getChildAt(0) as? RecyclerView) ?: return null
+		val visiblePage = pagerView?.currentItem
+		for (index in 0 until recycler.childCount) {
+			val textView = recycler.getChildAt(index) as? TextView ?: continue
+			if (visiblePage != null && recycler.getChildAdapterPosition(textView) != visiblePage) continue
+			val location = textView.tag as? TextLocation ?: continue
+			if (location.chapter == chapter && offset - location.baseOffset in 0 until textView.text.length) {
+				return textView
+			}
+		}
+		return null
+	}
+
+	/** Keeps the spoken line on screen in scroll mode without scrolling on every single sentence. */
+	private fun followTtsLine(host: TextView, offsetInView: Int) {
+		val recycler = verticalView ?: return
+		val layout = host.layout ?: return
+		val line = layout.getLineForOffset(offsetInView)
+		val top = host.top + host.paddingTop + layout.getLineTop(line)
+		val bottom = host.top + host.paddingTop + layout.getLineBottom(line)
+		val visibleTop = recycler.paddingTop
+		val visibleBottom = recycler.height - recycler.paddingBottom
+		if (top >= visibleTop && bottom <= visibleBottom) {
+			return
+		}
+		recycler.smoothScrollBy(0, top - visibleTop - (visibleBottom - visibleTop) / 3)
+	}
+
+	/** Rounds a tapped offset down to the start of its paragraph, which is what a tap means here. */
+	private fun paragraphStart(text: String, offset: Int): Int {
+		val at = offset.coerceIn(0, text.length - 1)
+		return text.lastIndexOf('\n', at).let { if (it < 0) 0 else it + 1 }
 	}
 
 	override fun onDestroyView() {
+		ttsHighlightHost = null
 		viewBinding?.root?.removeCallbacks(rebuildRunnable)
 		highlightsJob?.cancel()
 		highlightsJob = null
@@ -1031,6 +1178,12 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			}
 		})
 		textView.setOnTouchListener { _, event ->
+			if (isTtsPickMode) {
+				// Swallow the tap so it doesn't also turn the page or toggle the UI; RecyclerView
+				// still intercepts drags, so scrolling to find a paragraph keeps working.
+				if (event.actionMasked == MotionEvent.ACTION_UP) startTtsAtTap(textView, event)
+				return@setOnTouchListener true
+			}
 			when (event.actionMasked) {
 				MotionEvent.ACTION_DOWN -> {
 					pressedLink = findSpanAt(textView, event, URLSpan::class.java)
@@ -1071,14 +1224,20 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	private fun <T> findSpanAt(textView: TextView, event: MotionEvent, type: Class<T>): T? {
 		val text = textView.text as? Spanned ?: return null
-		if (text.isEmpty()) return null
+		val offset = offsetAt(textView, event) ?: return null
+		return text.getSpans(offset, offset + 1, type).firstOrNull()
+	}
+
+	/** Character offset under the touch, in the text of [textView] itself. */
+	private fun offsetAt(textView: TextView, event: MotionEvent): Int? {
+		val text = textView.text
+		if (text.isNullOrEmpty()) return null
 		val layout = textView.layout ?: return null
 		val x = (event.x - textView.totalPaddingLeft + textView.scrollX).toInt()
 		val y = (event.y - textView.totalPaddingTop + textView.scrollY).toInt()
 		if (x !in 0..layout.width || y !in 0..layout.height) return null
 		val line = layout.getLineForVertical(y)
-		val offset = layout.getOffsetForHorizontal(line, x.toFloat()).coerceIn(0, text.length - 1)
-		return text.getSpans(offset, offset + 1, type).firstOrNull()
+		return layout.getOffsetForHorizontal(line, x.toFloat()).coerceIn(0, text.length - 1)
 	}
 
 	private fun showRemoveHighlight(bookmarkId: Long) {
