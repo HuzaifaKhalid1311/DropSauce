@@ -229,6 +229,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			.observe(viewLifecycleOwner) { refreshAlignment() }
 		settings.observeAsFlow(AppSettings.KEY_EPUB_PUBLISHER_STYLE) { isEpubPublisherStyleEnabled }
 			.observe(viewLifecycleOwner) { scheduleReflow() }
+		settings.observeAsFlow(AppSettings.KEY_EPUB_BIONIC_READING) { isEpubBionicReadingEnabled }
+			.observe(viewLifecycleOwner) { scheduleReflow() }
 		settings.observeAsFlow(AppSettings.KEY_EPUB_READING_MODE) { epubReadingMode }
 			.observe(viewLifecycleOwner) {
 				binding.root.requestApplyInsets()
@@ -636,7 +638,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		val key = "${container.width}:${container.height}:$effectiveFontSize:${readerTypeface.hashCode()}:" +
 			"${settings.epubCustomFontRevision}:" +
 			"$effectiveLineHeight:$effectiveParagraphSpacing:$effectiveHorizontalPadding:$effectiveVerticalPadding:" +
-			"$effectiveTextAlign:${settings.epubReadingMode}:${settings.isEpubPublisherStyleEnabled}"
+			"$effectiveTextAlign:${settings.epubReadingMode}:${settings.isEpubPublisherStyleEnabled}:" +
+			"${settings.isEpubBionicReadingEnabled}"
 		container.setBackgroundColor(backgroundColor)
 		if (pages.isNotEmpty() && paginationKey == key && pageRange?.contains(locator.chapter) == true) {
 			renderPagedReady(container, locator, pageInChapter)
@@ -817,6 +820,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			text.getSpans(0, text.length, TypefaceSpan::class.java).forEach(text::removeSpan)
 		}
 		applyParagraphSpacing(text)
+		if (settings.isEpubBionicReadingEnabled) applyBionicReading(text)
 		highlights.forEach { bookmark ->
 			if (bookmark.chapterId != chapter.id) return@forEach
 			val highlight = bookmark.epubHighlight ?: return@forEach
@@ -827,6 +831,26 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			text.setSpan(HighlightMarker(bookmark.pageId), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 		}
 		return text
+	}
+
+	/**
+	 * Bionic reading: bold the leading letters of every word so the eye can skim on the word shapes.
+	 * The prefix length comes from [bionicPrefixLength], the table text-vide uses at its default
+	 * fixation point, so the result matches other readers rather than a guessed percentage.
+	 */
+	private fun applyBionicReading(text: Spannable) {
+		// ponytail: re-derived on every bind, like the paragraph-spacing scan above. Cache the spanned
+		// copy on NativeChapter if long chapters ever stutter while scrolling.
+		BIONIC_WORD.findAll(text).forEach { match ->
+			val word = match.value
+			// Scripts without word spacing have no leading letters to fix on - the whole run reads as
+			// one "word" and would come out almost entirely bold.
+			if (BIONIC_UNSPACED_SCRIPT.containsMatchIn(word)) return@forEach
+			val prefix = bionicPrefixLength(word.length)
+			if (prefix == 0) return@forEach
+			val start = match.range.first
+			text.setSpan(StyleSpan(Typeface.BOLD), start, start + prefix, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+		}
 	}
 
 	private fun applyParagraphSpacing(text: Spannable) {
@@ -1732,9 +1756,28 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private const val MAX_MEANINGS = 4
 		private const val MAX_DEFINITIONS_PER_MEANING = 3
 		private const val MAX_SYNONYMS = 8
+
+		/** Runs of letters/digits containing at least one letter - text-vide's word pattern. */
+		private val BIONIC_WORD = Regex("[\\p{L}\\p{Nd}]*\\p{L}[\\p{L}\\p{Nd}]*")
+		private val BIONIC_UNSPACED_SCRIPT = Regex(
+			"[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}\\p{IsHangul}\\p{IsThai}\\p{IsLao}\\p{IsKhmer}]",
+		)
+
 		private val WORD_PATTERN = Regex("[\\p{L}\\p{M}]+(?:['’\\-][\\p{L}\\p{M}]+)*")
 		private val EMPTY_CHAPTER_TEXT = SpannedString("\u2014")
 	}
+}
+
+/**
+ * How many leading letters of a word bionic reading bolds: the word length minus the index of the
+ * first boundary it fits into, or minus the table size when it is longer than every boundary.
+ * The table is text-vide's, at the default fixation point, so output matches other readers.
+ */
+internal fun bionicPrefixLength(wordLength: Int): Int {
+	val bounds = intArrayOf(0, 4, 12, 17, 24, 29, 35, 42, 48)
+	val boundary = bounds.indexOfFirst { wordLength <= it }
+	val prefix = if (boundary < 0) wordLength - bounds.size else wordLength - boundary
+	return prefix.coerceIn(0, wordLength)
 }
 
 internal fun resolveChapterLink(currentUrl: String, href: String, chapterUrls: List<String>): Int? {

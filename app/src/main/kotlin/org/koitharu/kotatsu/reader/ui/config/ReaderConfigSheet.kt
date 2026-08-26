@@ -540,6 +540,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
     private fun EpubConfigContent() {
         val customFontName = remember(customFontUiRevision) { settings.epubCustomFontName }
         var publisherStyleEnabled by remember { mutableStateOf(settings.isEpubPublisherStyleEnabled) }
+        var bionicReadingEnabled by remember { mutableStateOf(settings.isEpubBionicReadingEnabled) }
         var readingMode by remember {
             mutableStateOf(if (settings.epubReadingMode == "paged") "paged_ltr" else settings.epubReadingMode)
         }
@@ -635,6 +636,17 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             onClick = {
                                 publisherStyleEnabled = !publisherStyleEnabled
                                 settings.isEpubPublisherStyleEnabled = publisherStyleEnabled
+                            },
+                            modifier = Modifier.weight(1f).height(96.dp),
+                            iconSize = 22.dp,
+                        )
+                        ToolGridCard(
+                            icon = R.drawable.ic_bolt,
+                            label = stringResource(R.string.epub_bionic_reading),
+                            checked = bionicReadingEnabled,
+                            onClick = {
+                                bionicReadingEnabled = !bionicReadingEnabled
+                                settings.isEpubBionicReadingEnabled = bionicReadingEnabled
                             },
                             modifier = Modifier.weight(1f).height(96.dp),
                             iconSize = 22.dp,

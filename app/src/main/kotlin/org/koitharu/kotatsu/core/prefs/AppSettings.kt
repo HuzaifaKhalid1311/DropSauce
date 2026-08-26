@@ -302,6 +302,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_EPUB_PUBLISHER_STYLE, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_PUBLISHER_STYLE, value) }
 
+	var isEpubBionicReadingEnabled: Boolean
+		get() = prefs.getBoolean(KEY_EPUB_BIONIC_READING, false)
+		set(value) = prefs.edit { putBoolean(KEY_EPUB_BIONIC_READING, value) }
+
 	// "system" | "white" | "gray" | "black" | "custom" - page colors of the EPUB reader only
 	var epubTheme: String
 		get() = prefs.getString(KEY_EPUB_THEME, "system") ?: "system"
@@ -1204,6 +1208,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EPUB_READING_MODE = "epub_reading_mode"
 		const val KEY_EPUB_PAGED_TAP_GESTURES = "epub_paged_tap_gestures"
 		const val KEY_EPUB_PUBLISHER_STYLE = "epub_publisher_style"
+		const val KEY_EPUB_BIONIC_READING = "epub_bionic_reading"
 		const val KEY_EPUB_THEME = "epub_theme"
 		const val KEY_EPUB_CUSTOM_BACKGROUND_COLOR = "epub_custom_background_color"
 		const val KEY_EPUB_CUSTOM_TEXT_COLOR = "epub_custom_text_color"
