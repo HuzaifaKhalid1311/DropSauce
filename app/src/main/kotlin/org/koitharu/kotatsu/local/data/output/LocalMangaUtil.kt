@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.local.data.output
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import org.koitharu.kotatsu.core.model.isLocal
+import org.koitharu.kotatsu.local.data.isEpubFile
 import org.koitharu.kotatsu.parsers.model.Manga
 
 class LocalMangaUtil(
@@ -20,6 +21,8 @@ class LocalMangaUtil(
 				output.deleteChapters(ids)
 				output.finish()
 			}
+		} else if (file.isEpubFile) {
+			LocalNovelEpubOutput.filterChapters(file, ids)
 		} else {
 			LocalMangaZipOutput.filterChapters(file, manga, ids)
 		}

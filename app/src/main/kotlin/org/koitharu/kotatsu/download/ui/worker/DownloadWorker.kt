@@ -297,8 +297,10 @@ class DownloadWorker @AssistedInject constructor(
 			} finally {
 				withContext(NonCancellable) {
 					applicationContext.unregisterReceiver(pausingReceiver)
-					// cleanup() may still write to the output (salvaging a partial archive), so it goes first
-					output?.cleanup()
+					// cleanup() may still write to the output (salvaging a partial archive), so it goes first.
+					// It can fail on its own now that finalizing reports a failed move instead of silently
+					// destroying the download, and that must not skip the closing and sweeping below.
+					runCatchingCancellable { output?.cleanup() }.onFailure(Throwable::printStackTraceDebug)
 					output?.closeQuietly()
 					if (!isCompleted && output != null && output.rootFile.exists()) {
 						runCatchingCancellable {

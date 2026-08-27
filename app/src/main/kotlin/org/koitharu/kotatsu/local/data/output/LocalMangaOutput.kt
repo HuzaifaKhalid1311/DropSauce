@@ -32,6 +32,30 @@ sealed class LocalMangaOutput(
 
 	abstract suspend fun cleanup()
 
+	/**
+	 * Puts the freshly written [temp] archive in place of [rootFile]. The previous download is only
+	 * dropped once the new one is actually in place: deleting first and ignoring the rename result
+	 * meant a failed rename left nothing on disk at all, so the book opened empty afterwards.
+	 *
+	 * The backup keeps the `.tmp` suffix so the usual temp sweep collects it if we die mid-swap.
+	 */
+	protected suspend fun replaceRootFile(temp: File) = withContext(Dispatchers.IO) {
+		val backup = File(rootFile.path + ".bak" + SUFFIX_TMP)
+		backup.delete()
+		val hasBackup = rootFile.exists() && rootFile.renameTo(backup)
+		if (!hasBackup) {
+			rootFile.delete()
+		}
+		if (temp.renameTo(rootFile)) {
+			backup.delete()
+		} else {
+			if (hasBackup) {
+				backup.renameTo(rootFile)
+			}
+			error("Cannot move $temp to $rootFile")
+		}
+	}
+
 	companion object {
 
 		const val ENTRY_NAME_INDEX = "index.json"

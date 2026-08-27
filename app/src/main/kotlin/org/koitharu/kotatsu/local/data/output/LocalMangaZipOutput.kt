@@ -114,8 +114,7 @@ class LocalMangaZipOutput(
 				output.finish()
 			}
 		}
-		rootFile.deleteAwait()
-		output.file.renameTo(rootFile)
+		replaceRootFile(output.file)
 	}
 
 	override fun close() {

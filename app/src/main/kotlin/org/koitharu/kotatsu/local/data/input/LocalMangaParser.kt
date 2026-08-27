@@ -165,9 +165,10 @@ class LocalMangaParser(private val uri: Uri) {
 	 */
 	@Blocking
 	private fun getIndexedEpubManga(file: File, withDetails: Boolean): LocalManga? {
-		val index = uri.resolveFsAndPath().use { (fileSystem, rootPath) ->
-			MangaIndex.read(fileSystem, rootPath / ENTRY_NAME_INDEX)
-		} ?: return null
+		val (index, entryNames) = uri.resolveFsAndPath().use { (fileSystem, rootPath) ->
+			val index = MangaIndex.read(fileSystem, rootPath / ENTRY_NAME_INDEX) ?: return null
+			index to fileSystem.listRecursively(rootPath).mapTo(HashSet()) { it.toString() }
+		}
 		val info = index.getMangaInfo() ?: return null
 		return LocalManga(
 			info.copy(
@@ -178,9 +179,14 @@ class LocalMangaParser(private val uri: Uri) {
 				largeCoverUrl = null,
 				chapters = if (withDetails) {
 					info.chapters?.mapNotNull { chapter ->
-						index.getChapterFileName(chapter.id)?.let { entry ->
-							chapter.copy(url = file.toZipUri(entry).toString(), source = LocalMangaSource)
-						}
+						// A chapter the index advertises but the archive does not hold is not downloaded,
+						// whatever the index says. Reporting it as local made it open blank forever, with
+						// no way back to the source; dropping it here just falls back to the network.
+						index.getChapterFileName(chapter.id)
+							?.takeIf { it.toRootedPath().toString() in entryNames }
+							?.let { entry ->
+								chapter.copy(url = file.toZipUri(entry).toString(), source = LocalMangaSource)
+							}
 					}
 				} else {
 					null

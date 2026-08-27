@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.core.util.MimeTypes
 import org.koitharu.kotatsu.core.util.ext.MimeType
 import org.koitharu.kotatsu.core.util.ext.deleteAwait
+import org.koitharu.kotatsu.core.util.ext.readText
 import org.koitharu.kotatsu.core.zip.ZipOutput
 import org.koitharu.kotatsu.local.data.MangaIndex
 import org.koitharu.kotatsu.local.data.input.EpubParser
@@ -39,6 +40,7 @@ class LocalNovelEpubOutput(
 	private val spine = sortedMapOf<String, String>()
 	private var coverEntry: String? = null
 	private var isFinished = false
+	private var excludedIds: Set<Long> = emptySet()
 
 	init {
 		index.setMangaInfo(manga)
@@ -103,9 +105,7 @@ class LocalNovelEpubOutput(
 				zip.finish()
 			}
 		}
-		rootFile.deleteAwait()
-		output.file.renameTo(rootFile)
-		Unit
+		replaceRootFile(output.file)
 	}
 
 	override fun close() = output.close()
@@ -119,22 +119,36 @@ class LocalNovelEpubOutput(
 		val previousTitles = runCatching { EpubParser.parse(other).spine.associate { it.href to it.title } }
 			.getOrDefault(emptyMap())
 		ZipFile(other).use { zip ->
+			val previousIndex = zip.getEntry(ENTRY_NAME_INDEX)?.let {
+				MangaIndex(zip.getInputStream(it).use { stream -> stream.reader().readText() })
+			}
+			// Dropping a chapter means not carrying its entry across, which is why the exclusion is
+			// resolved here rather than by rewriting the archive in place afterwards.
+			val excludedEntries = excludedIds.mapNotNullTo(HashSet()) { previousIndex?.getChapterFileName(it) }
 			for (entry in zip.entries()) {
 				if (entry.isDirectory || entry.name in GENERATED_ENTRIES) continue
 				if (entry.name == "$DIR_CONTENT/$FILE_OPF" || entry.name == "$DIR_CONTENT/$FILE_NCX") continue
+				if (entry.name in excludedEntries) continue
 				if (spine.containsKey(entry.name)) continue
 				output.copyEntryFrom(zip, entry)
 				if (entry.name.endsWith(".xhtml", ignoreCase = true)) {
 					spine[entry.name] = previousTitles[entry.name] ?: entry.name.substringAfterLast('/')
 				}
 			}
-			val previousIndex = zip.getEntry(ENTRY_NAME_INDEX)?.let {
-				MangaIndex(zip.getInputStream(it).use { stream -> stream.reader().readText() })
-			}
 			if (previousIndex != null) {
-				previousIndex.getMangaInfo()?.chapters?.withIndex()?.forEach { chapter ->
-					index.addChapter(chapter, previousIndex.getChapterFileName(chapter.value.id))
+				// The cover is copied above but only the index records where it lives, so without this a
+				// merge that adds no cover of its own would silently drop it from the rebuilt metadata.
+				if (coverEntry == null) {
+					previousIndex.getCoverEntry()?.let {
+						coverEntry = it
+						index.setCoverEntry(it)
+					}
 				}
+				previousIndex.getMangaInfo()?.chapters?.withIndex()
+					?.filterNot { it.value.id in excludedIds }
+					?.forEach { chapter ->
+						index.addChapter(chapter, previousIndex.getChapterFileName(chapter.value.id))
+					}
 			}
 		}
 	}
@@ -210,5 +224,29 @@ class LocalNovelEpubOutput(
 		private const val ENTRY_PATTERN = "%08d_%05d"
 
 		private val GENERATED_ENTRIES = setOf(ENTRY_MIMETYPE, ENTRY_CONTAINER, ENTRY_NAME_INDEX)
+
+		/**
+		 * Removes chapters from a downloaded novel by rebuilding the epub without their entries.
+		 *
+		 * [LocalMangaZipOutput.filterChapters] cannot do this: it keeps whatever matches the cbz
+		 * page-name pattern, which no epub entry does, so it used to strip every chapter *and* the
+		 * container files while leaving an index that still advertised them - the download then opened
+		 * blank forever. The remote info comes from the archive's own index because the caller only has
+		 * the local manga, which [MangaIndex.setMangaInfo] refuses to store.
+		 */
+		suspend fun filterChapters(file: File, idsToRemove: Set<Long>) {
+			// No index means an imported book rather than a download, so there is nothing to filter and
+			// nothing that could tell us which entry belongs to which chapter. Leave the file alone.
+			val info = runInterruptible(Dispatchers.IO) {
+				ZipFile(file).use { zip ->
+					zip.getEntry(ENTRY_NAME_INDEX)?.let { MangaIndex(zip.readText(it)).getMangaInfo() }
+				}
+			} ?: return
+			LocalNovelEpubOutput(file, info).use { output ->
+				output.excludedIds = idsToRemove
+				output.mergeWithExisting()
+				output.finish()
+			}
+		}
 	}
 }
