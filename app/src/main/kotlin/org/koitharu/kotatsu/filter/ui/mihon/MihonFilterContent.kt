@@ -40,8 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -64,6 +62,7 @@ private val IndentStep = 16.dp
  *
  * [onContentHeight] reports the pixel height the list needs when every row fits on screen, or null
  * when it doesn't — the sheet uses it to shrink its resting height for short filter sets.
+ * [onScrolledDown] reports whether the list is scrolled away from its top.
  */
 @Composable
 fun MihonFilterContent(
@@ -73,9 +72,13 @@ fun MihonFilterContent(
 	listener: MihonFilterListener,
 	contentPadding: PaddingValues,
 	onContentHeight: (Int?) -> Unit,
+	onScrolledDown: (Boolean) -> Unit,
 ) {
 	if (isLoading || isEmpty) {
-		LaunchedEffect(isLoading, isEmpty) { onContentHeight(null) }
+		LaunchedEffect(isLoading, isEmpty) {
+			onContentHeight(null)
+			onScrolledDown(false)
+		}
 		Box(
 			modifier = Modifier
 				.fillMaxSize()
@@ -95,14 +98,14 @@ fun MihonFilterContent(
 		return
 	}
 	val listState = rememberLazyListState()
+	// The sheet may only be dragged while the list sits at its top; otherwise a downward swipe
+	// meant to scroll back up would drag the whole sheet shut instead.
+	LaunchedEffect(listState) {
+		snapshotFlow { listState.canScrollBackward }.collect { onScrolledDown(it) }
+	}
 	LazyColumn(
 		state = listState,
-		// Bridges this Compose scroll into the View nested-scroll chain, so BottomSheetBehavior
-		// only takes over a downward drag once the list itself is back at the top. Without it the
-		// behaviour grabbed every drag and dragged the sheet shut mid-list.
-		modifier = Modifier
-			.fillMaxSize()
-			.nestedScroll(rememberNestedScrollInteropConnection()),
+		modifier = Modifier.fillMaxSize(),
 		contentPadding = contentPadding,
 	) {
 		items(items.size) { index ->

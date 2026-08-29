@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.download.ui.dialog
 
 import android.os.Bundle
 import android.view.View
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -108,7 +108,11 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 			title = stringResource(R.string.download),
 			message = summary,
 		) {
-			Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+			Column(
+				modifier = Modifier
+					.verticalScroll(rememberScrollState())
+					.animateContentSize(),
+			) {
 				// Whole manga
 				OptionRow(
 					selected = selectedOption == OPTION_WHOLE_MANGA,
@@ -246,13 +250,13 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 					Text(
 						text = stringResource(R.string.more_options),
 						style = MaterialTheme.typography.bodyLarge,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.primary,
 						modifier = Modifier.weight(1f),
 					)
 					Icon(
 						painter = painterResource(R.drawable.ic_expand_more),
 						contentDescription = null,
-						tint = MaterialTheme.colorScheme.onSurfaceVariant,
+						tint = MaterialTheme.colorScheme.primary,
 						modifier = Modifier
 							.padding(start = 8.dp)
 							.size(24.dp)
@@ -264,7 +268,7 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 							),
 					)
 				}
-				AnimatedVisibility(visible = moreExpanded) {
+				if (moreExpanded) {
 					Column {
 						SelectorField(
 							label = stringResource(R.string.destination_directory),

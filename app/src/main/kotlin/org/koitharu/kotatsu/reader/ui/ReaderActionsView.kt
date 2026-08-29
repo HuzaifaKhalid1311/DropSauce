@@ -221,9 +221,6 @@ class ReaderActionsView @JvmOverloads constructor(
 	}
 
 	fun setTimerActive(isActive: Boolean) {
-		binding.buttonTimer.setIconResource(
-			if (isActive) R.drawable.ic_timer_run else R.drawable.ic_timer,
-		)
 		binding.buttonTimer.iconTint = ColorStateList.valueOf(
 			context.getThemeColor(
 				if (isActive) appcompatR.attr.colorPrimary else materialR.attr.colorOnSurfaceVariant,
