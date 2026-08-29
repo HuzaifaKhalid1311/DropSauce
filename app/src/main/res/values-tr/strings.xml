@@ -633,7 +633,6 @@
     <string name="screen_rotation_unlocked">Ekran yön kilidi açıldı</string>
     <string name="reader_controls_in_bottom_bar">Alt çubukta okuyucu kontrolleri</string>
     <string name="chapters_and_pages">Bölümler ve sayfalar</string>
-    <string name="simple">Basit</string>
     <string name="global_search">Genel arama</string>
     <string name="search_everywhere">Her yerde ara</string>
     <string name="badges_in_lists">Listelerde rozetler</string>
@@ -713,6 +712,5 @@
     <string name="available_pattern">%1$s var</string>
     <string name="frequency_every_6_hours">6 saatte bir</string>
     <string name="pinned_sources_only">Yalnızca sabitlenen kaynaklar</string>
-    <string name="hide_empty_sources">Boş kaynakları gizle</string>
     <string name="auto_double_foldable">Otomatik İki Sayfa Katlanabilir</string>
 </resources>

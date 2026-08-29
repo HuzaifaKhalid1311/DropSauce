@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "A filter is applied" dot on the search kind action. Sits in the icon's bottom-right corner and
+     picks up the same accent the icon is tinted with. -->
+<badge
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	app:backgroundColor="?attr/colorPrimary"
+	app:badgeGravity="BOTTOM_END"
+	app:badgeRadius="5dp"
+	app:horizontalOffset="-2dp"
+	app:verticalOffset="-2dp" />

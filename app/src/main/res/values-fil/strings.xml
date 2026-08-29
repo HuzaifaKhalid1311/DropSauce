@@ -625,7 +625,6 @@
     <string name="no_write_permission_to_file">Walang pahintulot na magsulat ng file</string>
     <string name="exclude_nsfw_from_suggestions_summary">Ang manga pang-matanda ay hindi ipapakita sa mga mungkahi. Maaaring gumana nang hindi tumpak ang opsyong ito sa ilang source</string>
     <string name="link_to_manga_in_app">Link sa manga sa DropSauce</string>
-    <string name="simple">Pinasimple</string>
     <string name="link_to_manga_on_s">Link sa manga sa %s</string>
     <string name="clear_browser_data_summary">Linisin ang data ng browser tulad ng cache at mga cookie. Babala: Ang awtorisasyon sa mga source ng manga ay maaaring maging di-balido</string>
     <string name="error_non_file_uri">Hindi magagamit ang napiling path dahil hindi ito nagsasaad ng file o directory</string>

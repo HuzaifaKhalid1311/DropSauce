@@ -637,7 +637,6 @@
     <string name="unnamed_chapter">Bab tanpa nama</string>
     <string name="chapter_volume_number">Vol %1$sBab%2$s</string>
     <string name="chapter_number">Bab%s</string>
-    <string name="simple">Simpel</string>
     <string name="reader_controls_in_bottom_bar">Kontrol pembaca di bilah bawah</string>
     <string name="chapters_and_pages">Bab dan halaman</string>
     <string name="pages_slider">Penggeser pengalih halaman</string>
@@ -712,5 +711,4 @@
     <string name="private_app_directory_warning">Direktori ini beserta semua datanya akan dihapus jika Anda menghapus aplikasi</string>
     <string name="available_pattern">%1$s tersedia</string>
     <string name="pinned_sources_only">Hanya sumber yang disematkan</string>
-    <string name="hide_empty_sources">Sembunyikan sumber kosong</string>
 </resources>

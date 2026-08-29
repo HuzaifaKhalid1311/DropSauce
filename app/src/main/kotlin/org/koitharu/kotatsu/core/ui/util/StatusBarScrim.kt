@@ -1,6 +1,13 @@
 package org.koitharu.kotatsu.core.ui.util
 
+import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import androidx.core.graphics.ColorUtils
+import com.google.android.material.color.MaterialColors
 import kotlin.math.pow
+import kotlin.math.roundToInt
+import com.google.android.material.R as materialR
 
 /**
  * Shared shape of the status bar protection scrim (main screen + manga details): a `colorSurface`
@@ -50,6 +57,17 @@ object StatusBarScrim {
 	/** Alpha (0..255) at each of [STOP_COUNT] evenly spaced positions down the scrim. */
 	val alphas: FloatArray = FloatArray(STOP_COUNT) { i ->
 		255f * alphaAt(i / (STOP_COUNT - 1f))
+	}
+
+	/** The scrim as a view background; the details screen draws the same curve in Compose. */
+	fun drawable(context: Context): GradientDrawable {
+		val surface = MaterialColors.getColor(context, materialR.attr.colorSurface, Color.TRANSPARENT)
+		return GradientDrawable(
+			GradientDrawable.Orientation.TOP_BOTTOM,
+			IntArray(alphas.size) { ColorUtils.setAlphaComponent(surface, alphas[it].roundToInt()) },
+		).apply {
+			setDither(true) // 8-bit alpha over a long ramp bands without it
+		}
 	}
 
 	private fun alphaAt(t: Float): Float {

@@ -658,7 +658,6 @@
     <string name="no_write_permission_to_file">写入文件权限被禁止</string>
     <string name="clear_browser_data_summary">点击后清除浏览器（如缓存、Cookies）数据，警告：图源授权可能变为无效</string>
     <string name="exclude_nsfw_from_suggestions_summary">搜索建议中将不会出现成人漫画，此选项可能对某些图源不生效</string>
-    <string name="simple">默认</string>
     <string name="error_non_file_uri">选择的路径无法保存因其无法表示一个文件或存储目录</string>
     <string name="link_to_manga_on_s">在 %s 上连接漫画</string>
     <string name="link_to_manga_in_app">在 DropSauce 上连接漫画</string>

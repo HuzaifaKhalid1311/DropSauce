@@ -1,8 +1,6 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,7 +18,6 @@ import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.Insets
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuProvider
@@ -44,7 +41,6 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
-import com.google.android.material.R as materialR
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.search.SearchView
@@ -147,7 +143,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			compoundDrawablePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
 		}
 
-		viewBinding.statusBarScrim.background = statusBarScrimDrawable(this)
+		viewBinding.statusBarScrim.background = StatusBarScrim.drawable(this)
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
@@ -776,18 +772,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 		private const val FAB_SHRINK_DELAY_MS = 1500L
 		private const val ACTION_MODE_TOP_BAR_FADE_DURATION_MS = 150L
-	}
-}
-
-/** See [StatusBarScrim] — the details screen draws the same curve in Compose. */
-private fun statusBarScrimDrawable(context: android.content.Context): GradientDrawable {
-	val surface = MaterialColors.getColor(context, materialR.attr.colorSurface, Color.TRANSPARENT)
-	val alphas = StatusBarScrim.alphas
-	return GradientDrawable(
-		GradientDrawable.Orientation.TOP_BOTTOM,
-		IntArray(alphas.size) { ColorUtils.setAlphaComponent(surface, alphas[it].roundToInt()) },
-	).apply {
-		setDither(true) // 8-bit alpha over a long ramp bands without it
 	}
 }
 

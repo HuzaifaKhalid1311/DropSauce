@@ -123,7 +123,7 @@
 		<!-- Fix crash in A15 -->
 		<item name="actionButtonStyle">@style/Widget.AppCompat.ActionButton</item>
 		<item name="materialSearchBarStyle">@style/Widget.Kotatsu.SearchBar</item>
-		<item name="materialSearchViewStyle">@style/Widget.Material3Expressive.SearchView.AppBarWithSearch</item>
+		<item name="materialSearchViewStyle">@style/Widget.Kotatsu.SearchView</item>
 		<item name="materialSearchViewToolbarHeight">@dimen/search_bar_min_height</item>
 
 		<!-- Material 3 Expressive component styles (applied to every color scheme) -->
@@ -205,7 +205,7 @@
 		     toolbar (which keeps them aligned) on every theme. -->
 
 		<item name="materialSearchBarStyle">@style/Widget.Kotatsu.SearchBar</item>
-		<item name="materialSearchViewStyle">@style/Widget.Material3Expressive.SearchView.AppBarWithSearch</item>
+		<item name="materialSearchViewStyle">@style/Widget.Kotatsu.SearchView</item>
 		<item name="materialSearchViewToolbarHeight">@dimen/search_bar_min_height</item>
 
 		<item name="toolbarStyle">@style/Widget.Kotatsu.Toolbar</item>

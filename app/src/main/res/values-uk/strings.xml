@@ -657,7 +657,6 @@
     <string name="screen_rotation_unlocked">Поворот екрана було розблоковано</string>
     <string name="badges_in_lists">Піктограми у списках</string>
     <string name="search_everywhere">Пошук усюди</string>
-    <string name="simple">Простий</string>
     <string name="global_search">Глобальний пошук</string>
     <string name="chapter_volume_number">Том %1$s Розділ %2$s</string>
     <string name="chapter_number">Розділ %s</string>
@@ -735,5 +734,4 @@
     <string name="available_pattern">Доступно %1$s</string>
     <string name="auto_double_foldable">Автоматичне двосторінкове розміщення на складному</string>
     <string name="pinned_sources_only">Тільки закріплені джерела</string>
-    <string name="hide_empty_sources">Приховати порожні джерела</string>
 </resources>

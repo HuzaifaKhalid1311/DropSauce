@@ -184,6 +184,30 @@
 		<item name="strokeWidth">1dp</item>
 	</style>
 
+	<!-- The expanded search view fills the whole screen, so it has to paint exactly what the screen
+	     behind it paints: android:colorBackground, the same attr windowBackground and every top bar
+	     in the app use. Material's default is colorSurfaceContainerLow, a raised grey.
+
+	     Setting the colour is only half of it: SearchView composites an elevation overlay (a
+	     primary-tinted lightening pass) over its background whenever that colour equals colorSurface
+	     - and it takes the elevation from the search *bar*, which is 3dp. On the AMOLED theme
+	     colorSurface and colorBackground are both pure black, so the overlay always kicked in and no
+	     choice of colour attribute could have matched the home screen. elevationOverlayEnabled=false
+	     on the search view's own overlay is what actually makes the two flat and identical. -->
+	<style name="Widget.Kotatsu.SearchView" parent="Widget.Material3Expressive.SearchView.AppBarWithSearch">
+		<item name="backgroundTint">?android:attr/colorBackground</item>
+		<item name="materialThemeOverlay">@style/ThemeOverlay.Kotatsu.SearchView</item>
+	</style>
+
+	<style name="ThemeOverlay.Kotatsu.SearchView" parent="ThemeOverlay.Material3Expressive.SearchView.AppBarWithSearch">
+		<item name="elevationOverlayEnabled">false</item>
+		<item name="materialSearchViewToolbarStyle">@style/Widget.Kotatsu.SearchView.Toolbar</item>
+	</style>
+
+	<style name="Widget.Kotatsu.SearchView.Toolbar" parent="Widget.Material3Expressive.SearchView.Toolbar.AppBarWithSearch">
+		<item name="android:background">@drawable/bg_search_view_field</item>
+	</style>
+
 	<style name="Widget.Kotatsu.CircularProgressIndicator" parent="Widget.Material3Expressive.CircularProgressIndicator">
 		<item name="trackCornerRadius">@dimen/mtrl_progress_indicator_full_rounded_corner_radius</item>
 	</style>

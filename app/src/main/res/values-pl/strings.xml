@@ -648,7 +648,6 @@
     <string name="clear_database_summary">Usuń informacje o mandze, które nie są używane</string>
     <string name="theme_name_expressive">Wyraźny (Test)</string>
     <string name="no_write_permission_to_file">Nie ma uprawnień do zapisu pliku</string>
-    <string name="simple">Prosty</string>
     <string name="manga_override_hint">Te zmiany wpłyną na sposób wyświetlania mangi w aplikacji</string>
     <string name="pages_slider">Suwak przełączania stron</string>
     <string name="link_to_manga_on_s">Link do mangi na %s</string>

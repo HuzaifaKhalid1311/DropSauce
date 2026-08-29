@@ -650,7 +650,6 @@
     <string name="chapter_volume_number">المجلد %1$s الفصل %2$s</string>
     <string name="chapter_number">الفصل %s</string>
     <string name="unnamed_chapter">فصل غير مسمى</string>
-    <string name="simple">بسيط</string>
     <string name="reader_controls_in_bottom_bar">ادوات التحكم بالقارئ في الشريط السفلي</string>
     <string name="chapters_and_pages">الفصول و الصفحات</string>
     <string name="pages_slider">شريط تمرير الصفحة</string>

@@ -630,7 +630,6 @@
     <string name="screen_rotation_unlocked">Hướng xoay màn hình đã được mở khóa</string>
     <string name="reader_controls_in_bottom_bar">Tùy chỉnh nút điều khiển ở thanh công cụ phía dưới giao diện đọc</string>
     <string name="badges_in_lists">Hiển thị biểu tượng trong thư viện</string>
-    <string name="simple">Đơn giản</string>
     <string name="search_everywhere">Tìm kiếm ở bất cứ đâu</string>
     <string name="global_search">Tìm kiếm chung</string>
     <string name="error_details">Chi tiết lỗi</string>

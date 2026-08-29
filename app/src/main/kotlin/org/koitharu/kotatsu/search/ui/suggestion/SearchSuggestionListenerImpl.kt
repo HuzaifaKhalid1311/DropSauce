@@ -32,7 +32,7 @@ class SearchSuggestionListenerImpl(
 					viewModel.saveQuery(query)
 				}
 			}
-			searchView.hide()
+			// Deliberately left open: coming back from the results lands on the search bar again.
 		} else {
 			searchView.setText(query)
 		}

@@ -646,7 +646,6 @@
     <string name="chapter_volume_number">Том %1$s Раздзел %2$s</string>
     <string name="unnamed_chapter">Безназоўны раздзел</string>
     <string name="chapter_number">Раздзел %s</string>
-    <string name="simple">Просты</string>
     <string name="test_connection">Тэставое злучэнне</string>
     <string name="delete_old_backups_summary">Аўтаматычна выдаляць старыя рэзервовыя копіі, каб вызваліць месца для дадзеных</string>
     <string name="delete_old_backups">Выдаліць старыя рэзервовыя копіі</string>

@@ -647,7 +647,6 @@
     <string name="rating">Рейтинг</string>
     <string name="author">Автор</string>
     <string name="restoring_backup">Восстановление резервной копии</string>
-    <string name="simple">Простой</string>
     <string name="reader_controls_in_bottom_bar">Элементы управления чтением на нижней панели</string>
     <string name="chapters_and_pages">Главы и страницы</string>
     <string name="pages_slider">Ползунок переключения страниц</string>

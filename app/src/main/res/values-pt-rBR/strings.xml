@@ -629,7 +629,6 @@
     <string name="chapter_volume_number">Vol %1$s Capítulo %2$s</string>
     <string name="chapter_number">Capítulo %s</string>
     <string name="unnamed_chapter">Capítulo sem nome</string>
-    <string name="simple">Simples</string>
     <string name="chapters_and_pages">Capítulos e páginas</string>
     <string name="screen_rotation_locked">Rotação de tela foi bloqueada</string>
     <string name="screen_rotation_unlocked">Rotação de tela foi desbloquada</string>
@@ -701,7 +700,6 @@
     <string name="download_default_directory">Diretório padrão onde baixar os mangás</string>
     <string name="private_app_directory_warning">Esse diretório e todo seu conteúdo será deletado se desinstalar a aplicação</string>
     <string name="available_pattern">%1$s disponível</string>
-    <string name="hide_empty_sources">Esconder fontes vazias</string>
     <string name="pinned_sources_only">Apenas fontes fixadas</string>
     <string name="auto_double_foldable">Duas Páginas Automático em Tela Dobrável</string>
 </resources>

@@ -18,7 +18,7 @@
 
 				<item
 					android:id="@+id/action_kind_simple"
-					android:title="@string/simple" />
+					android:title="@string/search_kind_default" />
 
 				<item
 					android:id="@+id/action_kind_title"
@@ -42,9 +42,9 @@
 					android:title="@string/pinned_sources_only" />
 
 				<item
-					android:id="@+id/action_filter_hide_empty"
+					android:id="@+id/action_filter_local_only"
 					android:checkable="true"
-					android:title="@string/hide_empty_sources" />
+					android:title="@string/local_library_only" />
 
 			</group>
 		</menu>

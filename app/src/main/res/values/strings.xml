@@ -273,7 +273,7 @@
     <string name="no_filters_available">This source has no filters</string>
     <string name="enter_name">Enter name</string>
     <string name="pinned_sources_only">Pinned sources only</string>
-    <string name="hide_empty_sources">Hide empty sources</string>
+    <string name="local_library_only">Local library only</string>
     <string name="never">Never</string>
     <string name="only_using_wifi">Only on Wi-Fi</string>
     <string name="always">Always</string>
@@ -1083,7 +1083,7 @@
     <string name="screen_rotation_unlocked">Screen rotation has been unlocked</string>
     <string name="badges_in_lists">Badges in lists</string>
     <string name="search_everywhere">Search everywhere</string>
-    <string name="simple">Simple</string>
+    <string name="search_kind_default">Default</string>
     <string name="global_search">Global search</string>
     <string name="chapter_volume_number">Vol %1$s Chapter %2$s</string>
     <string name="chapter_number">Chapter %s</string>

@@ -648,7 +648,6 @@
     <string name="chapter_volume_number">தொகுதி %1$s அத்தியாயம் %2$s</string>
     <string name="chapter_number">அத்தியாயம் %s</string>
     <string name="unnamed_chapter">பெயரிடப்படாத அத்தியாயம்</string>
-    <string name="simple">எளிமையானது</string>
     <string name="reader_controls_in_bottom_bar">கீழ் பட்டியில் வாசகர் கட்டுப்பாடுகள்</string>
     <string name="chapters_and_pages">அத்தியாயங்கள் மற்றும் பக்கங்கள்</string>
     <string name="pages_slider">பக்க சுவிட்ச் ஸ்லைடர்</string>

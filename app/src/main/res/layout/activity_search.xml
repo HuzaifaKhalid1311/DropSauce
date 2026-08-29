@@ -13,11 +13,25 @@
 		app:elevation="0dp"
 		app:liftOnScroll="false">
 
-		<com.google.android.material.appbar.MaterialToolbar
-			android:id="@id/toolbar"
+		<!-- The filter badge is attached with this FrameLayout as its custom parent, so it is drawn
+		     as the frame's foreground instead of inside the menu item's own ViewOverlay - the
+		     overlay clips to the icon's bounds and cuts the badge off. -->
+		<FrameLayout
+			android:id="@+id/toolbarContainer"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			app:layout_scrollFlags="scroll|enterAlways" />
+			app:layout_scrollFlags="scroll|enterAlways">
+
+			<com.google.android.material.appbar.MaterialToolbar
+				android:id="@id/toolbar"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:minHeight="72dp"
+				android:paddingTop="@dimen/margin_small"
+				android:paddingBottom="@dimen/margin_small"
+				app:contentInsetStartWithNavigation="@dimen/margin_normal" />
+
+		</FrameLayout>
 
 	</com.google.android.material.appbar.AppBarLayout>
 
@@ -28,5 +42,13 @@
 		android:orientation="vertical"
 		app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
 		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
+
+	<!-- Status bar protection: the same surface-to-transparent fade as the main screen, sized from the top inset. -->
+	<View
+		android:id="@+id/statusBarScrim"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_gravity="top"
+		android:importantForAccessibility="no" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -616,7 +616,6 @@
     <string name="rating">Ocjena</string>
     <string name="author">Autor</string>
     <string name="restoring_backup">Obnavljanje sigurnosne kopije</string>
-    <string name="simple">Jednostavno</string>
     <string name="reader_controls_in_bottom_bar">Kontrole čitača u donjoj traci</string>
     <string name="chapters_and_pages">Poglavlja i stranice</string>
     <string name="pages_slider">Klizač za listanje stranica</string>
@@ -700,5 +699,4 @@
     <string name="private_app_directory_warning">Ako deinstaliraš aplikaciju, ovaj će se direktorij izbrisati sa svim podacima</string>
     <string name="available_pattern">%1$s dostupno</string>
     <string name="pinned_sources_only">Samo prikvačeni izvori</string>
-    <string name="hide_empty_sources">Sakrij prazne izvore</string>
 </resources>

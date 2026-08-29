@@ -61,22 +61,23 @@ class SearchViewModel @Inject constructor(
 	val kind = savedStateHandle.get<SearchKind>(AppRouter.KEY_KIND) ?: SearchKind.SIMPLE
 	private val isNovelScope = settings.isGlobalSearchNovelScope
 
-	private var pinnedOnly = MutableStateFlow(false)
-	private val hideEmpty = MutableStateFlow(settings.isSearchHideEmpty)
+	private val pinnedOnly = MutableStateFlow(settings.isSearchPinnedOnly)
+	private val localOnly = MutableStateFlow(settings.isSearchLocalOnly)
 	private val results = MutableStateFlow<List<SearchResultsListModel>>(emptyList())
 
 	private var searchJob: Job? = null
 
+	/** Whether any search filter is on, for the toolbar badge. */
+	val hasActiveFilters: StateFlow<Boolean> = combine(pinnedOnly, localOnly) { pinned, local ->
+		pinned || local
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+
 	val list: StateFlow<List<ListModel>> = combine(
 		results,
 		isLoading.dropWhile { !it },
-		hideEmpty,
-	) { list, loading, hideEmptyVal ->
-		val filteredList = if (hideEmptyVal) {
-			list.filter { it.list.isNotEmpty() }
-		} else {
-			list
-		}
+	) { list, loading ->
+		// Sources with no results are always hidden.
+		val filteredList = list.filter { it.list.isNotEmpty() }
 		when {
 			filteredList.isEmpty() -> listOf(
 				when {
@@ -118,30 +119,38 @@ class SearchViewModel @Inject constructor(
 		doSearch()
 	}
 
+	val isPinnedOnly: Boolean
+		get() = pinnedOnly.value
+
+	val isLocalOnly: Boolean
+		get() = localOnly.value
+
 	fun setPinnedOnly(value: Boolean) {
 		if (pinnedOnly.value != value) {
+			settings.isSearchPinnedOnly = value
 			pinnedOnly.value = value
 			retry()
 		}
 	}
 
-	fun setHideEmpty(value: Boolean) {
-		if (hideEmpty.value != value) {
-			settings.isSearchHideEmpty = value
-			hideEmpty.value = value
+	fun setLocalOnly(value: Boolean) {
+		if (localOnly.value != value) {
+			settings.isSearchLocalOnly = value
+			localOnly.value = value
+			retry()
 		}
 	}
-
-	val isHideEmpty: Boolean
-		get() = hideEmpty.value
 
 	private fun doSearch() {
 		val prevJob = searchJob
 		searchJob = launchLoadingJob(Dispatchers.Default) {
 			prevJob?.cancelAndJoin()
-			appendResult(searchHistory())
 			appendResult(searchFavorites())
+			appendResult(searchHistory())
 			appendResult(searchLocal())
+			if (localOnly.value) {
+				return@launchLoadingJob
+			}
 			val sources = if (pinnedOnly.value) {
 				sourcesRepository.getPinnedSources().toList()
 			} else {
