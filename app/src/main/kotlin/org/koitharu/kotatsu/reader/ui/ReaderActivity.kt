@@ -323,6 +323,8 @@ class ReaderActivity :
             // One floating button for both: whichever of the two is running owns it.
             R.id.button_timer -> if (tts.isPlaying.value) {
                 viewBinding.ttsControl.showOrHide()
+            } else if (readerManager.isEpub && settings.isReaderTtsFabVisible) {
+                onTextToSpeechClick()
             } else {
                 onScrollTimerClick(isLongClick = false)
             }
@@ -335,6 +337,7 @@ class ReaderActivity :
         }
         readerManager.isEpub = viewModel.getMangaOrNull()?.isEpub == true
         viewBinding.timerControl.setEpubReader(readerManager.isEpub)
+        updateScrollTimerButton()
         if (readerManager.currentMode != mode) {
             readerManager.replace(mode)
         }
@@ -681,6 +684,7 @@ class ReaderActivity :
 
     override fun onTextToSpeechClick() {
         val reader = readerManager.currentReader as? EpubReaderFragment ?: return
+        settings.isReaderTtsFabVisible = true
         viewBinding.timerControl.hide()
         viewBinding.ttsControl.show()
         if (!tts.isAttached) {
@@ -820,9 +824,12 @@ class ReaderActivity :
 
     private fun updateScrollTimerButton() {
         val button = viewBinding.buttonTimer ?: return
-        val isTts = tts.isPlaying.value
+        // The TTS face of the FAB is sticky: once speech has been started it stays offered on every
+        // novel until it is explicitly stopped, so resuming it doesn't mean digging through the menu.
+        val isTts = tts.isPlaying.value ||
+            (readerManager.isEpub && settings.isReaderTtsFabVisible)
         val isButtonVisible = (scrollTimer.isActive.value || isTts)
-            && settings.isReaderAutoscrollFabVisible
+            && (if (isTts) true else settings.isReaderAutoscrollFabVisible)
             && !viewBinding.timerControl.isVisible
             && !viewBinding.ttsControl.isVisible
         button.setIconResource(if (isTts) R.drawable.ic_voice_over else R.drawable.ic_timelapse)

@@ -152,6 +152,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		viewBinding.bottomNav?.setOnContinueClickListener { viewModel.openLastReader() }
+		viewBinding.bottomNav?.setOnContinueLongClickListener { viewModel.openLastDetails() }
 		viewBinding.buttonOverflow.setOnClickListener(this::showMainOverflowMenu)
 		viewBinding.buttonSettings.setOnClickListener {
 			router.openSettings()
@@ -199,6 +200,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 
 		viewModel.onOpenReader.observeEvent(this, this::onOpenReader)
+		viewModel.onOpenLastDetails.observeEvent(this) { router.openDetails(it) }
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.container, null))
 		viewModel.isLoading.observe(this, this::onLoadingStateChanged)
 		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)

@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.reader.ui
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.ContentObserver
 import android.provider.Settings
@@ -25,6 +26,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderControl
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
+import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.hasVisibleChildren
 import org.koitharu.kotatsu.core.util.ext.isRtl
 import org.koitharu.kotatsu.core.util.ext.setContentDescriptionAndTooltip
@@ -36,6 +38,7 @@ import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.TAB_BO
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.TAB_PAGES
 import org.koitharu.kotatsu.reader.ui.ReaderControlDelegate.OnInteractionListener
 import javax.inject.Inject
+import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR
 
 @AndroidEntryPoint
@@ -145,7 +148,8 @@ class ReaderActionsView @JvmOverloads constructor(
 			R.id.button_prev -> listener?.switchChapterBy(-1)
 			R.id.button_next -> listener?.switchChapterBy(1)
 			R.id.button_save -> listener?.onSavePageClick()
-			R.id.button_timer -> listener?.onScrollTimerClick(isLongClick = false)
+			// The dock button is a toggle: tap starts/stops autoscroll, long-press opens the panel.
+			R.id.button_timer -> listener?.onScrollTimerClick(isLongClick = true)
 			R.id.button_pages_thumbs -> AppRouter.from(this)?.showChapterPagesSheet()
 			R.id.button_screen_rotation -> listener?.toggleScreenOrientation()
 			R.id.button_options -> listener?.openMenu()
@@ -157,7 +161,7 @@ class ReaderActionsView @JvmOverloads constructor(
 		R.id.button_bookmark -> AppRouter.from(this)
 			?.showChapterPagesSheet(ChaptersPagesSheet.TAB_BOOKMARKS)
 
-		R.id.button_timer -> listener?.onScrollTimerClick(isLongClick = true)
+		R.id.button_timer -> listener?.onScrollTimerClick(isLongClick = false)
 		R.id.button_options -> AppRouter.from(this)?.openReaderSettings()
 		else -> null
 	} != null
@@ -219,6 +223,11 @@ class ReaderActionsView @JvmOverloads constructor(
 	fun setTimerActive(isActive: Boolean) {
 		binding.buttonTimer.setIconResource(
 			if (isActive) R.drawable.ic_timer_run else R.drawable.ic_timer,
+		)
+		binding.buttonTimer.iconTint = ColorStateList.valueOf(
+			context.getThemeColor(
+				if (isActive) appcompatR.attr.colorPrimary else materialR.attr.colorOnSurfaceVariant,
+			),
 		)
 	}
 

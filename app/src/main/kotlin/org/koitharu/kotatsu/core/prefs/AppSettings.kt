@@ -968,6 +968,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_READER_AUTOSCROLL_FAB, true)
 		set(value) = prefs.edit { putBoolean(KEY_READER_AUTOSCROLL_FAB, value) }
 
+	/**
+	 * Sticky "the reader wants text-to-speech" flag. Set when TTS is started, cleared only when it is
+	 * explicitly stopped, so the quick-start button survives leaving the book or the app.
+	 */
+	var isReaderTtsFabVisible: Boolean
+		get() = prefs.getBoolean(KEY_READER_TTS_FAB, false)
+		set(value) = prefs.edit { putBoolean(KEY_READER_TTS_FAB, value) }
+
 	// Page preloading is always on (no user setting): the only thing that turns it off is the system
 	// restricting our background data.
 	val isPagesPreloadEnabled: Boolean
@@ -1295,6 +1303,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_READER_AUTOSCROLL_SPEED = "as_speed"
 		const val KEY_READER_AUTOSCROLL_PAGE_DELAY = "as_page_delay"
 		const val KEY_READER_AUTOSCROLL_FAB = "as_fab"
+		const val KEY_READER_TTS_FAB = "tts_fab"
 		const val KEY_PROXY_TYPE = "proxy_type_2"
 		const val KEY_PROXY_ADDRESS = "proxy_address"
 		const val KEY_PROXY_PORT = "proxy_port"

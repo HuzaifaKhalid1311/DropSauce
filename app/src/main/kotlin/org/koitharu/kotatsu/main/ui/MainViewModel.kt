@@ -88,6 +88,7 @@ class MainViewModel @Inject constructor(
 	}
 
 	val onOpenReader = MutableEventFlow<Manga>()
+	val onOpenLastDetails = MutableEventFlow<Manga>()
 
 	val isResumeEnabled = readingResumeEnabledUseCase()
 		.withErrorHandling()
@@ -132,6 +133,13 @@ class MainViewModel @Inject constructor(
 		launchLoadingJob(Dispatchers.Default) {
 			val manga = historyRepository.getLastOrNull() ?: throw EmptyHistoryException()
 			onOpenReader.call(manga)
+		}
+	}
+
+	fun openLastDetails() {
+		launchLoadingJob(Dispatchers.Default) {
+			val manga = historyRepository.getLastOrNull() ?: throw EmptyHistoryException()
+			onOpenLastDetails.call(manga)
 		}
 	}
 

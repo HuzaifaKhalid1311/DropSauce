@@ -45,6 +45,7 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	private val navColorsState = MutableStateFlow(readNavColors())
 	private val continueVisibleState = MutableStateFlow(false)
 	private var continueClickListener: (() -> Unit)? = null
+	private var continueLongClickListener: (() -> Unit)? = null
 	private val sourceItems = mutableListOf<NavItem>()
 	private val hiddenIds = mutableSetOf<Int>()
 	private val badgeCounts = mutableMapOf<Int, Int>()
@@ -85,6 +86,7 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 						modifier = Modifier.wrapContentWidth(),
 						showContinue = showContinue,
 						onContinueClick = { continueClickListener?.invoke() },
+						onContinueLongClick = { continueLongClickListener?.invoke() },
 					)
 				}
 			}
@@ -150,6 +152,10 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 
 	fun setOnContinueClickListener(listener: (() -> Unit)?) {
 		continueClickListener = listener
+	}
+
+	fun setOnContinueLongClickListener(listener: (() -> Unit)?) {
+		continueLongClickListener = listener
 	}
 
 	fun setUseLegacyNavigation(value: Boolean) {

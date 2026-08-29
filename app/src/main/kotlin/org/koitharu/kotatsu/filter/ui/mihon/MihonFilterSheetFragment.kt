@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.updatePadding
@@ -76,6 +77,9 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 		}
 		val filter = FilterCoordinator.require(this)
 		binding.composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+		// Required half of the nested-scroll interop: makes this the sheet's scrolling child so the
+		// list's own scroll gets first refusal on a drag (see MihonFilterContent).
+		ViewCompat.setNestedScrollingEnabled(binding.composeView, true)
 		binding.composeView.setContent {
 			DropSauceTheme {
 				val items by viewModel.items.collectAsState()

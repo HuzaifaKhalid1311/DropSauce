@@ -14,7 +14,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,6 +102,7 @@ fun FloatingNavBar(
 	modifier: Modifier = Modifier,
 	showContinue: Boolean = false,
 	onContinueClick: () -> Unit = {},
+	onContinueLongClick: () -> Unit = {},
 ) {
 	if (items.isEmpty()) return
 	val cs = MaterialTheme.colorScheme
@@ -165,16 +168,21 @@ fun FloatingNavBar(
 					haptic(HapticEffect.CONFIRM)
 					onContinueClick()
 				},
+				onLongClick = {
+					haptic(HapticEffect.LONG_PRESS)
+					onContinueLongClick()
+				},
 			)
 		}
 	}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun FloatingContinueButton(
 	colors: FloatingNavBarColors,
 	onClick: () -> Unit,
+	onLongClick: () -> Unit,
 ) {
 	val container by animateColorAsState(
 		targetValue = Color(colors.selectedContainer),
@@ -194,7 +202,6 @@ private fun FloatingContinueButton(
 		state = tooltipState,
 	) {
 		Surface(
-			onClick = onClick,
 			// M3 Expressive square FAB: 16dp corner on a 56dp container
 			shape = RoundedCornerShape(16.dp),
 			color = container,
@@ -204,7 +211,13 @@ private fun FloatingContinueButton(
 				.size(56.dp)
 				.semantics { contentDescription = label },
 		) {
-			Box(contentAlignment = Alignment.Center) {
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = Modifier.combinedClickable(
+					onClick = onClick,
+					onLongClick = onLongClick,
+				),
+			) {
 				Icon(
 					painter = painterResource(R.drawable.ic_read),
 					contentDescription = null,

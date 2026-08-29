@@ -16,6 +16,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import javax.inject.Inject
 
 /**
@@ -27,6 +28,9 @@ class ReaderTtsService : LifecycleService() {
 
 	@Inject
 	lateinit var tts: ReaderTts
+
+	@Inject
+	lateinit var settings: AppSettings
 
 	private var title: String = ""
 
@@ -50,6 +54,8 @@ class ReaderTtsService : LifecycleService() {
 			ACTION_NEXT -> tts.skip(1)
 			ACTION_PREVIOUS -> tts.skip(-1)
 			ACTION_STOP -> {
+				// The only explicit "stop" the user has: retire the quick-start button with it.
+				settings.isReaderTtsFabVisible = false
 				tts.stop()
 				stopSelf()
 				return START_NOT_STICKY

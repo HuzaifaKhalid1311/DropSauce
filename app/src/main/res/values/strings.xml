@@ -90,7 +90,7 @@
     <string name="search_on_s">Search on %s</string>
     <string name="delete_manga">Delete manga</string>
     <string name="text_delete_local_manga">Permanently delete \"%s\" from device?</string>
-    <string name="reader_settings">Reader settings</string>
+    <string name="reader_settings">Reading</string>
     <string name="switch_pages">Switch pages</string>
     <string name="_continue">Continue</string>
     <string name="continue_reading">Continue reading</string>

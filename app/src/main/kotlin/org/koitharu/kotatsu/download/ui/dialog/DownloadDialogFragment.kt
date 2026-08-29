@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.download.ui.dialog
 
 import android.os.Bundle
 import android.view.View
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
@@ -56,6 +59,7 @@ import org.koitharu.kotatsu.core.ui.ComposeAlertDialogFragment
 import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
 import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogTextButton
 import org.koitharu.kotatsu.core.ui.dialog.ExpressivePillButton
+import org.koitharu.kotatsu.core.ui.sheet.SheetSelectorField
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
@@ -222,13 +226,14 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 					Text(
 						text = stringResource(R.string.start_download),
 						style = MaterialTheme.typography.bodyLarge,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						color = MaterialTheme.colorScheme.onSurface,
 						modifier = Modifier.weight(1f),
 					)
 					Switch(checked = startNow, onCheckedChange = { startNow = it })
 				}
 
-				// More options toggle
+				// More options toggle - same affordance as the extension filter sheet's
+				// expandable headers: a plain row plus a chevron that flips when open.
 				Row(
 					modifier = Modifier
 						.fillMaxWidth()
@@ -241,23 +246,40 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 					Text(
 						text = stringResource(R.string.more_options),
 						style = MaterialTheme.typography.bodyLarge,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						color = MaterialTheme.colorScheme.onSurface,
+						modifier = Modifier.weight(1f),
+					)
+					Icon(
+						painter = painterResource(R.drawable.ic_expand_more),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onSurfaceVariant,
+						modifier = Modifier
+							.padding(start = 8.dp)
+							.size(24.dp)
+							.rotate(
+								animateFloatAsState(
+									targetValue = if (moreExpanded) 180f else 0f,
+									label = "moreOptionsExpand",
+								).value,
+							),
 					)
 				}
-				if (moreExpanded) {
-					SelectorField(
-						label = stringResource(R.string.destination_directory),
-						current = destinations.getOrNull(destinationIndex)
-							?.let { it.title ?: stringResource(it.titleRes) } ?: "",
-						items = destinations.map { it.title ?: stringResource(it.titleRes) },
-						onSelect = { destinationIndex = it },
-					)
-					SelectorField(
-						label = stringResource(R.string.preferred_download_format),
-						current = formatLabels.getOrNull(formatIndex) ?: "",
-						items = formatLabels.toList(),
-						onSelect = { formatIndex = it },
-					)
+				AnimatedVisibility(visible = moreExpanded) {
+					Column {
+						SelectorField(
+							label = stringResource(R.string.destination_directory),
+							current = destinations.getOrNull(destinationIndex)
+								?.let { it.title ?: stringResource(it.titleRes) } ?: "",
+							items = destinations.map { it.title ?: stringResource(it.titleRes) },
+							onSelect = { destinationIndex = it },
+						)
+						SelectorField(
+							label = stringResource(R.string.preferred_download_format),
+							current = formatLabels.getOrNull(formatIndex) ?: "",
+							items = formatLabels.toList(),
+							onSelect = { formatIndex = it },
+						)
+					}
 				}
 			}
 
@@ -301,8 +323,10 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 				.padding(horizontal = 8.dp),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
-			RadioButton(selected = selected, onClick = onSelect)
-			Spacer(Modifier.size(8.dp))
+			// onClick = null: the whole row already handles the tap, and it also drops the
+			// button's own 48dp touch box, which was insetting these rows more than the rest.
+			RadioButton(selected = selected, onClick = null)
+			Spacer(Modifier.size(16.dp))
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
 					text = title,
@@ -344,32 +368,14 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 		items: List<String>,
 		onSelect: (Int) -> Unit,
 	) {
-		Column(modifier = Modifier.padding(top = 8.dp)) {
+		Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
 			Text(
 				text = label,
 				style = MaterialTheme.typography.titleSmall,
 				color = MaterialTheme.colorScheme.onSurface,
+				modifier = Modifier.padding(bottom = 4.dp),
 			)
-			Box {
-				var expanded by remember { mutableStateOf(false) }
-				TextButton(
-					onClick = { expanded = true },
-					modifier = Modifier.fillMaxWidth(),
-				) {
-					Text(text = current, modifier = Modifier.weight(1f))
-				}
-				DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-					items.forEachIndexed { index, item ->
-						DropdownMenuItem(
-							text = { Text(item) },
-							onClick = {
-								expanded = false
-								onSelect(index)
-							},
-						)
-					}
-				}
-			}
+			SheetSelectorField(current = current, items = items, onSelect = onSelect)
 		}
 	}
 

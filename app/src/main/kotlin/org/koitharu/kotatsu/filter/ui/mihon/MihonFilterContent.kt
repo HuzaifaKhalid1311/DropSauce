@@ -40,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -95,7 +97,12 @@ fun MihonFilterContent(
 	val listState = rememberLazyListState()
 	LazyColumn(
 		state = listState,
-		modifier = Modifier.fillMaxSize(),
+		// Bridges this Compose scroll into the View nested-scroll chain, so BottomSheetBehavior
+		// only takes over a downward drag once the list itself is back at the top. Without it the
+		// behaviour grabbed every drag and dragged the sheet shut mid-list.
+		modifier = Modifier
+			.fillMaxSize()
+			.nestedScroll(rememberNestedScrollInteropConnection()),
 		contentPadding = contentPadding,
 	) {
 		items(items.size) { index ->
