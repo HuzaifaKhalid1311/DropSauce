@@ -68,23 +68,15 @@ class ReaderTts @Inject constructor(
 			// the same person is what made the picker useless.
 			.distinctBy { it.name.substringBeforeLast('-') }
 			.toList()
+		android.util.Log.d("ReaderTts", "All speakers (${speakers.size}): ${speakers.map { it.name }}")
 		if (speakers.size <= MAX_PRESETS) {
 			return speakers
 		}
-		// Google's engine tags the gender in the voice name ("en-us-x-sfg#male_1-local"). When it is
-		// there, hand out two of each so the four slots are actually different people.
-		val male = speakers.filter { it.isMale() }
-		val female = speakers.filter { it.isFemale() }
-		if (male.isNotEmpty() && female.isNotEmpty()) {
-			val perGender = MAX_PRESETS / 2
-			val picked = female.take(perGender) + male.take(perGender)
-			if (picked.size == MAX_PRESETS) {
-				return picked
-			}
-		}
-		// Engine keeps gender to itself: spread the picks across the whole list instead of taking the
-		// top four, whose best-ranked entries are near-identical siblings.
-		return List(MAX_PRESETS) { speakers[it * (speakers.size - 1) / (MAX_PRESETS - 1)] }
+		// Based on the original 4-preset spread, pick presets at index 1 and 3 (old Voice 2 and Voice 4).
+		val fourPresets = List(4) { speakers[it * (speakers.size - 1) / 3] }
+		val picked = listOf(fourPresets[1], fourPresets[3]).distinct()
+		android.util.Log.d("ReaderTts", "Picked presets (${picked.size}): ${picked.map { it.name }}")
+		return picked
 	}
 
 	fun selectedVoiceIndex(): Int = settings.epubTtsVoiceIndex.coerceIn(0, MAX_PRESETS - 1)
@@ -262,15 +254,11 @@ class ReaderTts @Inject constructor(
 	}
 }
 
-private const val MAX_PRESETS = 4
+private const val MAX_PRESETS = 2
 private val WHITESPACE = Regex("""\s+""")
 
 private fun Voice.isInstallRequired(): Boolean =
 	features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) == true
-
-private fun Voice.isMale(): Boolean = name.contains("#male", ignoreCase = true)
-
-private fun Voice.isFemale(): Boolean = name.contains("#female", ignoreCase = true)
 
 /**
  * Cheap script sniff. Only tells apart the scripts that map to a different voice; anything Latin

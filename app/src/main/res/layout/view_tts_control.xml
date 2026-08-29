@@ -159,20 +159,6 @@
 				android:layout_width="48dp"
 				android:layout_height="48dp"
 				android:text="2" />
-
-			<com.google.android.material.button.MaterialButton
-				android:id="@+id/button_voice_2"
-				style="@style/Widget.Kotatsu.TtsVoiceButton"
-				android:layout_width="48dp"
-				android:layout_height="48dp"
-				android:text="3" />
-
-			<com.google.android.material.button.MaterialButton
-				android:id="@+id/button_voice_3"
-				style="@style/Widget.Kotatsu.TtsVoiceButton"
-				android:layout_width="48dp"
-				android:layout_height="48dp"
-				android:text="4" />
 		</com.google.android.material.button.MaterialButtonToggleGroup>
 
 		<TextView
