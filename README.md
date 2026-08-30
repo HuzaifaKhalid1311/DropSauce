@@ -5,7 +5,7 @@
 <h1 align="center">DropSauce</h1>
 
 <p align="center">
-  A lightweight, modern manga and novel reader for Android with a beautiful Material 3 Expressive design. Supports Mihon and LNReader extensions.
+  A lightweight, modern comic and novel reader for Android with a beautiful Material 3 Expressive design. Supports Mihon and LNReader extensions.
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
 
 ## About
 
-DropSauce is a free and open-source manga and novel reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
+DropSauce is a free and open-source comic and novel reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
 
 ⭐Please give the repo a star if you like the project. It helps more people find it.🌟
 
@@ -52,7 +52,7 @@ DropSauce is a free and open-source manga and novel reader for Android, built to
 </p>
 
 <p align="center">
-  <sub>Favorites | Details | Manga Reader | Novel Reader | Extensions | Settings</sub>
+  <sub>Favorites | Details | Manga/Webtoon Reader | Novel Reader | Extensions | Settings</sub>
 </p>
 
 ## Highlights
@@ -67,15 +67,14 @@ DropSauce is a free and open-source manga and novel reader for Android, built to
 <details>
 <summary><strong>Features</strong></summary>
 
-- Comfortable manga and novel reading experience with configurable reader behavior, haptics, and zoom gestures.
+- Comfortable manga, webtoon and novel reading experience with configurable reader behavior, haptics, and zoom gestures.
 - EPUB novel importing for offline reading.
 - Extensive extension ecosystem supporting native extensions, LNReader JS plugins, and Tsundoku APK extensions.
-- Global search toggle to easily filter between Manga and Novel sources.
 - Reverse tracking integration with a redesigned tracking menu.
 - Favorites, history, bookmarks, tracking, stats, and categories to keep your library organized.
 - Google Drive sync for library, history, bookmarks, tracking, stats, settings, and covers.
 - Local backup and restore system for moving or protecting your setup.
-- Material 3 Expressive details page for both manga and novels.
+- Material 3 Expressive details page for clear and quick overview
 - New onboarding/welcome flow with sync and restore setup.
 - Android widgets for continue reading, favorites, and reading stats.
 - PDF import support, converting PDFs into readable CBZ chapters.
@@ -90,7 +89,6 @@ DropSauce is a free and open-source manga and novel reader for Android, built to
 
 - Full novel support with offline EPUB file importing.
 - LNReader JS plugin and Tsundoku APK extension support.
-- Quick Manga / Novel toggle in the global search bar.
 - Interactive zoom gestures in novel reading mode.
 - Added reverse tracking and refreshed tracking menu design.
 - New popup animations across app flows.
