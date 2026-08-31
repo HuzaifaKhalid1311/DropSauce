@@ -1924,8 +1924,11 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 		/** Runs of letters/digits containing at least one letter - text-vide's word pattern. */
 		private val BIONIC_WORD = Regex("[\\p{L}\\p{Nd}]*\\p{L}[\\p{L}\\p{Nd}]*")
+		// ponytail: literal code-point ranges, not \p{IsHan}-style script names - the ICU on older
+		// Android (API 28 and below) rejects those and blows up the whole class in <clinit>.
 		private val BIONIC_UNSPACED_SCRIPT = Regex(
-			"[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}\\p{IsHangul}\\p{IsThai}\\p{IsLao}\\p{IsKhmer}]",
+			"[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF" +
+				"\u1100-\u11FF\uAC00-\uD7AF\u0E00-\u0EFF\u1780-\u17FF]",
 		)
 
 		private val WORD_PATTERN = Regex("[\\p{L}\\p{M}]+(?:['’\\-][\\p{L}\\p{M}]+)*")
