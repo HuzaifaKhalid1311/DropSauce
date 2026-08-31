@@ -132,7 +132,7 @@ class HistoryRepository @Inject constructor(
 		}
 		return db.withTransaction {
 			val history = db.getHistoryDao().findIncludingDeleted(manga.id)
-			if (!canAdvanceFromTracking(history, chapters, targetIndex)) {
+			if (!canAdvanceFromTracking(history, chapters, targetIndex, manga.chapters.orEmpty())) {
 				return@withTransaction false
 			}
 			val target = chapters[targetIndex]
@@ -296,10 +296,22 @@ internal fun canAdvanceFromTracking(
 	history: HistoryEntity?,
 	chapters: List<MangaChapter>,
 	targetIndex: Int,
+	allChapters: List<MangaChapter> = chapters,
 ): Boolean {
 	if (targetIndex !in chapters.indices || history?.deletedAt?.let { it != 0L } == true) {
 		return false
 	}
-	val currentIndex = history?.let { item -> chapters.indexOfFirst { it.id == item.chapterId } } ?: -1
-	return history == null || currentIndex >= 0 && targetIndex > currentIndex
+	if (history == null) {
+		return true
+	}
+	val currentIndex = chapters.indexOfFirst { it.id == history.chapterId }
+	if (currentIndex >= 0) {
+		return targetIndex > currentIndex
+	}
+	// The checkpoint is not in this branch: either the user is reading another scanlator, or the
+	// chapter no longer exists in the source at all — the usual state of a library migrated from
+	// another app. Compare chapter numbers instead, and when the checkpoint cannot be resolved
+	// anywhere the tracker is the only progress left, so let it win.
+	val currentNumber = allChapters.firstOrNull { it.id == history.chapterId }?.number ?: return true
+	return currentNumber <= 0f || chapters[targetIndex].number > currentNumber
 }

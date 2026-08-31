@@ -26,8 +26,20 @@ class TrackingProgressPolicyTest {
 	}
 
 	@Test
-	fun `tracking does not guess when current chapter is from another branch`() {
-		assertFalse(canAdvanceFromTracking(history(chapterId = 99), chapters, targetIndex = 1))
+	fun `tracking never moves behind progress made on another branch`() {
+		val otherBranch = listOf(chapter(99, number = 3f))
+		assertFalse(canAdvanceFromTracking(history(chapterId = 99), chapters, targetIndex = 1, chapters + otherBranch))
+	}
+
+	@Test
+	fun `tracking advances past progress made on another branch`() {
+		val otherBranch = listOf(chapter(99, number = 1f))
+		assertTrue(canAdvanceFromTracking(history(chapterId = 99), chapters, targetIndex = 1, chapters + otherBranch))
+	}
+
+	@Test
+	fun `tracking advances when the current chapter no longer exists`() {
+		assertTrue(canAdvanceFromTracking(history(chapterId = 99), chapters, targetIndex = 1))
 	}
 
 	private fun history(chapterId: Long, deletedAt: Long = 0) = HistoryEntity(
@@ -42,10 +54,10 @@ class TrackingProgressPolicyTest {
 		chaptersCount = chapters.size,
 	)
 
-	private fun chapter(id: Long) = MangaChapter(
+	private fun chapter(id: Long, number: Float = id.toFloat()) = MangaChapter(
 		id = id,
 		title = "Chapter $id",
-		number = id.toFloat(),
+		number = number,
 		volume = 0,
 		url = "/chapter/$id",
 		scanlator = null,
