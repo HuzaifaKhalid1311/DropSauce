@@ -74,6 +74,41 @@
 				tools:text="Original name: One Piece"
 				tools:visibility="visible" />
 
+			<com.google.android.material.textfield.TextInputLayout
+				android:id="@+id/layout_description"
+				style="?textInputOutlinedStyle"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="@dimen/margin_small"
+				app:endIconContentDescription="@string/reset"
+				app:endIconDrawable="@drawable/ic_revert"
+				app:endIconMode="custom">
+
+				<com.google.android.material.textfield.TextInputEditText
+					android:id="@+id/edit_description"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="top"
+					android:hint="@string/description"
+					android:inputType="textMultiLine|textCapSentences"
+					android:maxLines="8"
+					android:minLines="4"
+					tools:text="@tools:sample/lorem[20]" />
+
+			</com.google.android.material.textfield.TextInputLayout>
+
+			<TextView
+				android:id="@+id/textView_original_description"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="@dimen/margin_normal"
+				android:paddingHorizontal="@dimen/margin_small"
+				android:text="@string/original_description_hint"
+				android:textAppearance="?attr/textAppearanceBodySmall"
+				android:textColor="?colorOnSurfaceVariant"
+				android:visibility="gone"
+				tools:visibility="visible" />
+
 			<!-- Cover preview hero (floating, no wrapper) -->
 			<org.koitharu.kotatsu.image.ui.CoverImageView
 				android:id="@+id/imageView_cover"

@@ -3,7 +3,9 @@ package org.koitharu.kotatsu.details.ui
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +46,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -61,6 +65,9 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
 import org.koitharu.kotatsu.core.util.FileSize
+import android.os.Build
+import eu.kanade.tachiyomi.util.system.toast
+import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.list.ui.model.MangaListModel
@@ -71,6 +78,7 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import org.koitharu.kotatsu.details.ui.scrobbling.labelResId
 import java.util.Locale
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun DescriptionCard(
 	description: CharSequence?,
@@ -85,6 +93,8 @@ internal fun DescriptionCard(
 	var expanded by rememberSaveable(collapseEnabled) { mutableStateOf(!collapseEnabled) }
 	var hasOverflow by remember { mutableStateOf(false) }
 	val cardColor = MaterialTheme.colorScheme.surfaceContainerHigh
+	val context = LocalContext.current
+	val haptic = LocalHapticFeedback.current
 	SectionCard {
 		val locale = details?.getLocale()
 		Row(
@@ -129,11 +139,20 @@ internal fun DescriptionCard(
 			modifier = Modifier
 				.fillMaxWidth()
 				.animateContentSize()
-				.clickable(
+				.combinedClickable(
 					enabled = text.isNotEmpty(),
 					indication = null,
 					interactionSource = remember { MutableInteractionSource() },
-				) { expanded = !expanded },
+					onLongClick = {
+						haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+						context.copyToClipboard(context.getString(R.string.description), text)
+						// Android 13+ shows its own clipboard confirmation, so don't stack a second one.
+						if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+							context.toast(context.getString(R.string.copied_to_clipboard))
+						}
+					},
+					onClick = { expanded = !expanded },
+				),
 		) {
 			Text(
 				text = text.ifEmpty { stringResource(R.string.no_description) },

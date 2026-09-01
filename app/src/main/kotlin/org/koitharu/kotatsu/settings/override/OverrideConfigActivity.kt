@@ -25,6 +25,7 @@ import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.databinding.ActivityOverrideEditBinding
 import org.koitharu.kotatsu.parsers.model.Manga
+import androidx.core.text.parseAsHtml
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import org.koitharu.kotatsu.picker.ui.PageImagePickContract
 import com.google.android.material.R as materialR
@@ -36,6 +37,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 	private val viewModel: OverrideConfigViewModel by viewModels()
 
 	private var originalTitle: String? = null
+	private var originalDescription: String? = null
 
 	private val pickCoverFileLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument(), this)
 	private val pickPageLauncher = registerForActivityResult(PageImagePickContract(), this)
@@ -61,7 +63,9 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 		viewBinding.buttonPickUrl.setOnClickListener(this)
 		viewBinding.buttonResetCover.setOnClickListener(this)
 		viewBinding.layoutName.setEndIconOnClickListener(this)
+		viewBinding.layoutDescription.setEndIconOnClickListener(this)
 		viewBinding.editName.doAfterTextChanged { updateOriginalNamePreview() }
+		viewBinding.editDescription.doAfterTextChanged { updateDescriptionResetState() }
 		viewModel.data.filterNotNull().observe(this, ::onDataChanged)
 		viewModel.onSaved.observeEvent(this) { onDataSaved() }
 		viewModel.isLoading.observe(this, ::onLoadingStateChanged)
@@ -93,11 +97,14 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 		when (v.id) {
 			R.id.button_done -> viewModel.save(
 				title = viewBinding.editName.text?.toString()?.trim(),
+				description = viewBinding.editDescription.text?.toString()?.trim(),
 			)
 
 			materialR.id.text_input_end_icon -> {
-				if (isCustomNameTyped()) {
-					viewBinding.editName.text?.clear()
+				// Both fields share the same end-icon id; the parent layout tells them apart.
+				when (v.parent?.parent) {
+					viewBinding.layoutDescription -> viewBinding.editDescription.text?.clear()
+					else -> if (isCustomNameTyped()) viewBinding.editName.text?.clear()
 				}
 			}
 
@@ -169,6 +176,14 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 			viewBinding.editName.setText(override.title)
 			viewBinding.editName.tag = true  // Sentinel: field has been initialised; don't overwrite user edits on re-emit.
 		}
+		// Left empty when there is no override, exactly like the name field: empty means "use the
+		// source's own description", so a later source update still comes through.
+		originalDescription = manga.description?.parseAsHtml()?.toString()?.trim()
+		viewBinding.layoutDescription.placeholderText = originalDescription
+		if (viewBinding.editDescription.tag == null) {
+			viewBinding.editDescription.setText(override.description)
+			viewBinding.editDescription.tag = true
+		}
 		val hasCustomCover = !override.coverUrl.isNullOrEmpty()
 		viewBinding.buttonResetCover.isEnabled = hasCustomCover
 		viewBinding.layoutOriginalCover.isVisible = hasCustomCover
@@ -176,6 +191,13 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 			viewBinding.imageViewOriginalCover.setImageAsync(manga.coverUrl, manga)
 		}
 		updateOriginalNamePreview()
+		updateDescriptionResetState()
+	}
+
+	private fun updateDescriptionResetState() {
+		val hasCustom = !viewBinding.editDescription.text?.toString()?.trim().isNullOrEmpty()
+		setEndIconEnabled(viewBinding.layoutDescription, hasCustom)
+		viewBinding.textViewOriginalDescription.isVisible = hasCustom && !originalDescription.isNullOrEmpty()
 	}
 
 	private fun updateOriginalNamePreview() {
@@ -198,8 +220,10 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 		current: String = viewBinding.editName.text?.toString()?.trim().orEmpty(),
 	): Boolean = original.isNotEmpty() && current.isNotEmpty() && current != original
 
-	private fun setNameResetEnabled(isEnabled: Boolean) {
-		viewBinding.layoutName.findViewById<View>(materialR.id.text_input_end_icon)?.let { icon ->
+	private fun setNameResetEnabled(isEnabled: Boolean) = setEndIconEnabled(viewBinding.layoutName, isEnabled)
+
+	private fun setEndIconEnabled(layout: com.google.android.material.textfield.TextInputLayout, isEnabled: Boolean) {
+		layout.findViewById<View>(materialR.id.text_input_end_icon)?.let { icon ->
 			icon.isEnabled = isEnabled
 			icon.alpha = if (isEnabled) 1f else DISABLED_ICON_ALPHA
 		}
@@ -213,6 +237,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), View
 	private fun onLoadingStateChanged(isLoading: Boolean) {
 		viewBinding.buttonDone.isEnabled = !isLoading
 		viewBinding.editName.isEnabled = !isLoading
+		viewBinding.editDescription.isEnabled = !isLoading
 		if (isLoading) {
 			viewBinding.textViewError.isVisible = false
 		}

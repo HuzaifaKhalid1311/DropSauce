@@ -53,13 +53,14 @@ class OverrideConfigViewModel @Inject constructor(
 		}
 	}
 
-	fun save(title: String?) {
+	fun save(title: String?, description: String?) {
 		launchLoadingJob(Dispatchers.Default) {
 			val (sourceManga, draftOverride) = checkNotNull(data.value)
 			val previousCover = dataRepository.getOverride(sourceManga.id)?.coverUrl
 			val override = draftOverride.let {
 				it.copy(
 					title = title,
+					description = description,
 					coverUrl = it.coverUrl?.cachedFile(),
 				)
 			}
@@ -120,5 +121,5 @@ class OverrideConfigViewModel @Inject constructor(
 		}
 	}
 
-	private fun emptyOverride() = MangaOverride(null, null, null)
+	private fun emptyOverride() = MangaOverride(null, null, null, null)
 }

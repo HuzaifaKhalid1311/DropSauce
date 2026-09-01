@@ -983,6 +983,8 @@
     <string name="original_language">Original language</string>
     <string name="original_cover">Original cover</string>
     <string name="original_name">Original name</string>
+    <string name="original_description_hint">Clear the field to use the original description</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="year">Year</string>
     <string name="demographics">Demographics</string>
     <string name="demographic_shounen">Shounen</string>

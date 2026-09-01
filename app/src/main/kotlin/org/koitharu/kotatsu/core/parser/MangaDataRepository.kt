@@ -113,6 +113,7 @@ class MangaDataRepository @Inject constructor(
 			dao.upsert(
 				entity.copy(
 					titleOverride = normalizedOverride?.title?.nullIfEmpty(),
+					descriptionOverride = normalizedOverride?.description?.nullIfEmpty(),
 					coverUrlOverride = normalizedOverride?.coverUrl?.nullIfEmpty(),
 					contentRatingOverride = normalizedOverride?.contentRating?.name,
 				),
@@ -261,6 +262,9 @@ class MangaDataRepository @Inject constructor(
 		if (!override.title.isNullOrEmpty() && title == override.title) {
 			result = result.copy(title = existing.title)
 		}
+		if (!override.description.isNullOrEmpty() && description == override.description) {
+			result = result.copy(description = existing.description)
+		}
 		if (!override.coverUrl.isNullOrEmpty()) {
 			result = result.copy(
 				coverUrl = if (coverUrl == override.coverUrl) existing.coverUrl else coverUrl,
@@ -284,11 +288,13 @@ class MangaDataRepository @Inject constructor(
 		}
 		val normalized = copy(
 			title = title?.trim()?.nullIfEmpty()?.takeUnless { it == source.title },
+			description = description?.trim()?.nullIfEmpty()?.takeUnless { it == source.description },
 			coverUrl = coverUrl?.nullIfEmpty()?.takeUnless { it == source.coverUrl || it == source.largeCoverUrl },
 			contentRating = contentRating?.takeUnless { it == ContentRating(source.contentRating) },
 		)
 		return if (
 			normalized.title.isNullOrEmpty() &&
+			normalized.description.isNullOrEmpty() &&
 			normalized.coverUrl.isNullOrEmpty() &&
 			normalized.contentRating == null
 		) {
@@ -313,12 +319,15 @@ class MangaDataRepository @Inject constructor(
 	}
 
 	private fun MangaPrefsEntity.getOverrideOrNull(): MangaOverride? {
-		return if (titleOverride.isNullOrEmpty() && coverUrlOverride.isNullOrEmpty() && contentRatingOverride.isNullOrEmpty()) {
+		return if (titleOverride.isNullOrEmpty() && coverUrlOverride.isNullOrEmpty() &&
+			descriptionOverride.isNullOrEmpty() && contentRatingOverride.isNullOrEmpty()
+		) {
 			null
 		} else {
 			MangaOverride(
 				coverUrl = coverUrlOverride?.nullIfEmpty(),
 				title = titleOverride?.nullIfEmpty(),
+				description = descriptionOverride?.nullIfEmpty(),
 				contentRating = ContentRating(contentRatingOverride),
 			)
 		}
@@ -333,6 +342,7 @@ class MangaDataRepository @Inject constructor(
 		cfGrayscale = ReaderColorFilter.EMPTY.isGrayscale,
 		cfBookEffect = ReaderColorFilter.EMPTY.isBookBackground,
 		titleOverride = null,
+		descriptionOverride = null,
 		coverUrlOverride = null,
 		contentRatingOverride = null,
 		mergeScanlators = false,

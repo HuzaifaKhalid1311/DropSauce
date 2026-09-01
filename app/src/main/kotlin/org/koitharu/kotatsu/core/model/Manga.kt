@@ -215,6 +215,7 @@ fun MangaChapter.getLocalizedTitle(resources: Resources, index: Int = -1): Strin
 fun Manga.withOverride(override: MangaOverride?) = if (override != null) {
 	copy(
 		title = override.title.ifNullOrEmpty { title },
+		description = override.description.ifNullOrEmpty { description },
 		coverUrl = override.coverUrl.ifNullOrEmpty { coverUrl },
 		largeCoverUrl = override.coverUrl.ifNullOrEmpty { largeCoverUrl },
 		contentRating = override.contentRating ?: contentRating,

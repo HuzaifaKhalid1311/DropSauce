@@ -73,7 +73,7 @@ class DetailsLoadUseCase @Inject constructor(
 				manga = manga,
 				localManga = savedManga,
 				override = override,
-				description = manga.description?.parseAsHtml(withImages = false),
+				sourceDescription = manga.description?.parseAsHtml(withImages = false),
 				isLoaded = false,
 			),
 		)
@@ -105,7 +105,7 @@ class DetailsLoadUseCase @Inject constructor(
 				manga = localDetails,
 				localManga = null,
 				override = override,
-				description = localDetails.description?.parseAsHtml(withImages = false),
+				sourceDescription = localDetails.description?.parseAsHtml(withImages = false),
 				isLoaded = skipNetworkLoad,
 			),
 		)
@@ -119,7 +119,7 @@ class DetailsLoadUseCase @Inject constructor(
 					manga = localDetails,
 					localManga = null,
 					override = override,
-					description = localDetails.description?.parseAsHtml(withImages = true),
+					sourceDescription = localDetails.description?.parseAsHtml(withImages = true),
 					isLoaded = true,
 				),
 			)
@@ -129,7 +129,7 @@ class DetailsLoadUseCase @Inject constructor(
 				manga = remoteDetails ?: remoteManga,
 				localManga = LocalManga(localDetails),
 				override = override,
-				description = (remoteDetails ?: localDetails).description?.parseAsHtml(withImages = true),
+				sourceDescription = (remoteDetails ?: localDetails).description?.parseAsHtml(withImages = true),
 				isLoaded = true,
 			)
 			if (remoteDetails != null) {
@@ -167,7 +167,7 @@ class DetailsLoadUseCase @Inject constructor(
 					manga = manga,
 					localManga = savedManga ?: localMangaRepository.findSavedManga(manga, withDetails = true),
 					override = override,
-					description = manga.description?.parseAsHtml(withImages = true),
+					sourceDescription = manga.description?.parseAsHtml(withImages = true),
 					isLoaded = true,
 				),
 			)
@@ -184,7 +184,7 @@ class DetailsLoadUseCase @Inject constructor(
 					manga = manga,
 					localManga = localManga,
 					override = override,
-					description = localManga.manga.description?.parseAsHtml(withImages = true),
+					sourceDescription = localManga.manga.description?.parseAsHtml(withImages = true),
 					isLoaded = false,
 				),
 			)
@@ -198,7 +198,7 @@ class DetailsLoadUseCase @Inject constructor(
 					manga = manga,
 					localManga = localManga,
 					override = override,
-					description = (manga.description ?: localManga?.manga?.description)
+					sourceDescription = (manga.description ?: localManga?.manga?.description)
 						?.parseAsHtml(withImages = true),
 					isLoaded = true,
 				),
@@ -209,7 +209,7 @@ class DetailsLoadUseCase @Inject constructor(
 			manga = remoteDetails,
 			localManga = localManga,
 			override = override,
-			description = (remoteDetails.description
+			sourceDescription = (remoteDetails.description
 				?: localManga?.manga?.description)?.parseAsHtml(withImages = true),
 			isLoaded = true,
 		)

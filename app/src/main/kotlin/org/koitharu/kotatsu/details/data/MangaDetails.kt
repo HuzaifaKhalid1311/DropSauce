@@ -18,15 +18,19 @@ data class MangaDetails(
     private val manga: Manga,
     private val localManga: LocalManga?,
     private val override: MangaOverride?,
-    val description: CharSequence?,
+    private val sourceDescription: CharSequence?,
     val isLoaded: Boolean,
 ) {
+
+    /** A user-typed description always wins over whatever the source provides. */
+    val description: CharSequence?
+        get() = override?.description?.nullIfEmpty() ?: sourceDescription
 
     constructor(manga: Manga) : this(
         manga = manga,
         localManga = null,
         override = null,
-        description = null,
+        sourceDescription = null,
         isLoaded = false,
     )
 
@@ -75,6 +79,7 @@ data class MangaDetails(
         } else {
             manga.copy(
                 title = override?.title.ifNullOrEmpty { manga.title },
+                description = override?.description.ifNullOrEmpty { manga.description },
                 coverUrl = override?.coverUrl.ifNullOrEmpty { manga.coverUrl },
                 largeCoverUrl = override?.coverUrl.ifNullOrEmpty { manga.largeCoverUrl },
                 contentRating = override?.contentRating ?: manga.contentRating,
