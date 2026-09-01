@@ -982,8 +982,6 @@
     <string name="popular_in_year">Popular this year</string>
     <string name="original_language">Original language</string>
     <string name="original_cover">Original cover</string>
-    <string name="original_name">Original name</string>
-    <string name="original_description_hint">Clear the field to use the original description</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="year">Year</string>
     <string name="demographics">Demographics</string>
@@ -1111,6 +1109,10 @@
     <string name="pick_custom_file">Pick custom file</string>
     <string name="pick_from_gallery">Pick from gallery</string>
     <string name="change_cover">Change cover</string>
+    <string name="change_info">Change info</string>
+    <string name="cover_source_gallery">Gallery</string>
+    <string name="cover_source_file">File</string>
+    <string name="cover_source_page">Manga page</string>
     <string name="page_switch_timer">The page will switch every ~%d seconds</string>
     <string name="dont_ask_again">Don\'t ask again</string>
     <string name="incognito_mode_hint_nsfw">This manga may contain adult content. Do you want to use incognito mode?</string>

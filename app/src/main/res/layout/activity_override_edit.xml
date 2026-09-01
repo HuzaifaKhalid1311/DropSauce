@@ -1,266 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
-	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:orientation="vertical">
+	android:layout_height="match_parent">
 
-	<com.google.android.material.appbar.MaterialToolbar
-		android:id="@+id/toolbar"
+	<com.google.android.material.appbar.AppBarLayout
+		android:id="@+id/appbar"
 		android:layout_width="match_parent"
-		android:layout_height="?attr/actionBarSize"
-		app:title="@string/edit">
+		android:layout_height="wrap_content"
+		android:fitsSystemWindows="false"
+		app:liftOnScroll="false">
 
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/button_done"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_gravity="end"
-			android:layout_marginHorizontal="@dimen/toolbar_button_margin"
-			android:text="@string/save"
-			app:icon="@drawable/ic_check" />
+		<com.google.android.material.appbar.CollapsingToolbarLayout
+			android:id="@+id/collapsingToolbarLayout"
+			style="?attr/collapsingToolbarLayoutMediumStyle"
+			android:layout_width="match_parent"
+			android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
+			app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+			app:toolbarId="@id/toolbar">
 
-	</com.google.android.material.appbar.MaterialToolbar>
+			<com.google.android.material.appbar.MaterialToolbar
+				android:id="@id/toolbar"
+				android:layout_width="match_parent"
+				android:layout_height="?attr/actionBarSize"
+				app:layout_collapseMode="pin" />
 
-	<ScrollView
-		android:id="@+id/scrollView"
+		</com.google.android.material.appbar.CollapsingToolbarLayout>
+
+	</com.google.android.material.appbar.AppBarLayout>
+
+	<androidx.compose.ui.platform.ComposeView
+		android:id="@+id/composeView"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:clipToPadding="false"
-		android:overScrollMode="ifContentScrolls">
+		app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
-		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:paddingHorizontal="@dimen/screen_padding"
-			android:paddingTop="@dimen/margin_normal"
-			android:paddingBottom="@dimen/screen_padding">
-
-			<!-- Name field at the top so the keyboard doesn't cover it -->
-			<com.google.android.material.textfield.TextInputLayout
-				android:id="@+id/layout_name"
-				style="?textInputOutlinedStyle"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginBottom="@dimen/margin_small"
-				app:endIconContentDescription="@string/reset"
-				app:endIconDrawable="@drawable/ic_revert"
-				app:endIconMode="custom">
-
-				<com.google.android.material.textfield.TextInputEditText
-					android:id="@+id/edit_name"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/name"
-					android:imeOptions="actionDone"
-					android:inputType="textCapSentences"
-					android:maxLength="120"
-					tools:text="@tools:sample/lorem[3]" />
-
-			</com.google.android.material.textfield.TextInputLayout>
-
-			<TextView
-				android:id="@+id/textView_original_name"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginBottom="@dimen/margin_normal"
-				android:paddingHorizontal="@dimen/margin_small"
-				android:textAppearance="?attr/textAppearanceBodySmall"
-				android:textColor="?colorOnSurfaceVariant"
-				android:visibility="gone"
-				tools:text="Original name: One Piece"
-				tools:visibility="visible" />
-
-			<com.google.android.material.textfield.TextInputLayout
-				android:id="@+id/layout_description"
-				style="?textInputOutlinedStyle"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginBottom="@dimen/margin_small"
-				app:endIconContentDescription="@string/reset"
-				app:endIconDrawable="@drawable/ic_revert"
-				app:endIconMode="custom">
-
-				<com.google.android.material.textfield.TextInputEditText
-					android:id="@+id/edit_description"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:gravity="top"
-					android:hint="@string/description"
-					android:inputType="textMultiLine|textCapSentences"
-					android:maxLines="8"
-					android:minLines="4"
-					tools:text="@tools:sample/lorem[20]" />
-
-			</com.google.android.material.textfield.TextInputLayout>
-
-			<TextView
-				android:id="@+id/textView_original_description"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginBottom="@dimen/margin_normal"
-				android:paddingHorizontal="@dimen/margin_small"
-				android:text="@string/original_description_hint"
-				android:textAppearance="?attr/textAppearanceBodySmall"
-				android:textColor="?colorOnSurfaceVariant"
-				android:visibility="gone"
-				tools:visibility="visible" />
-
-			<!-- Cover preview hero (floating, no wrapper) -->
-			<org.koitharu.kotatsu.image.ui.CoverImageView
-				android:id="@+id/imageView_cover"
-				android:layout_width="172dp"
-				android:layout_height="238dp"
-				android:layout_gravity="center_horizontal"
-				android:layout_marginTop="@dimen/margin_small"
-				android:layout_marginBottom="@dimen/margin_small"
-				android:background="?colorSecondaryContainer"
-				android:clipToOutline="true"
-				android:scaleType="centerCrop"
-				app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Cover"
-				tools:background="@tools:sample/backgrounds/scenic[5]"
-				tools:ignore="ContentDescription" />
-
-			<TextView
-				android:id="@+id/textView_cover_title"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="@dimen/margin_normal"
-				android:layout_marginBottom="@dimen/margin_small"
-				android:paddingHorizontal="@dimen/margin_small"
-				android:text="@string/change_cover"
-				android:textAppearance="?textAppearanceTitleSmall" />
-
-			<!-- Cover actions -->
-			<com.google.android.material.card.MaterialCardView
-				style="?materialCardViewFilledStyle"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				app:cardBackgroundColor="?colorSurfaceContainerHigh"
-				app:cardElevation="0dp"
-				app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Card.Expressive">
-
-				<LinearLayout
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:baselineAligned="false"
-					android:orientation="horizontal">
-
-					<LinearLayout
-						android:layout_width="0dp"
-						android:layout_height="wrap_content"
-						android:layout_gravity="center_vertical"
-						android:layout_weight="1"
-						android:orientation="vertical"
-						android:paddingVertical="4dp">
-
-						<org.koitharu.kotatsu.core.ui.widgets.ListItemTextView
-							android:id="@+id/button_pick_gallery"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/pick_from_gallery"
-							app:drawableStartCompat="@drawable/ic_images" />
-
-						<org.koitharu.kotatsu.core.ui.widgets.ListItemTextView
-							android:id="@+id/button_pick_file"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/pick_custom_file"
-							app:drawableStartCompat="@drawable/ic_folder_file" />
-
-						<org.koitharu.kotatsu.core.ui.widgets.ListItemTextView
-							android:id="@+id/button_pick_page"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/pick_manga_page"
-							app:drawableStartCompat="@drawable/ic_grid" />
-
-						<org.koitharu.kotatsu.core.ui.widgets.ListItemTextView
-							android:id="@+id/button_pick_url"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/pick_cover_url"
-							app:drawableStartCompat="@drawable/ic_web" />
-
-					</LinearLayout>
-
-					<!-- Preview of the original cover that "use default" reverts to -->
-					<LinearLayout
-						android:id="@+id/layout_original_cover"
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:layout_gravity="center_vertical"
-						android:layout_marginEnd="16dp"
-						android:gravity="center_horizontal"
-						android:orientation="vertical"
-						android:paddingVertical="16dp"
-						android:visibility="gone"
-						tools:visibility="visible">
-
-						<org.koitharu.kotatsu.image.ui.CoverImageView
-							android:id="@+id/imageView_original_cover"
-							android:layout_width="72dp"
-							android:layout_height="100dp"
-							android:background="?colorSurfaceContainerHighest"
-							android:scaleType="centerCrop"
-							app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Cover.Medium"
-							tools:background="@tools:sample/backgrounds/scenic[7]"
-							tools:ignore="ContentDescription" />
-
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:layout_marginTop="6dp"
-							android:text="@string/original_cover"
-							android:textAppearance="?textAppearanceLabelSmall"
-							android:textColor="?colorOnSurfaceVariant" />
-
-						<com.google.android.material.button.MaterialButton
-							android:id="@+id/button_reset_cover"
-							style="?attr/materialIconButtonFilledTonalStyle"
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:layout_marginTop="8dp"
-							android:contentDescription="@string/use_default_cover"
-							app:icon="@drawable/ic_revert" />
-
-					</LinearLayout>
-
-				</LinearLayout>
-
-			</com.google.android.material.card.MaterialCardView>
-
-			<!-- Tip -->
-			<TextView
-				android:id="@+id/textView_tip"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="@dimen/margin_normal"
-				android:drawablePadding="@dimen/margin_small"
-				android:gravity="center_vertical"
-				android:paddingHorizontal="@dimen/margin_small"
-				android:text="@string/manga_override_hint"
-				android:textAppearance="?attr/textAppearanceBodySmall"
-				android:textColor="?colorOnSurfaceVariant"
-				app:drawableStartCompat="@drawable/ic_info_outline"
-				app:drawableTint="?colorOnSurfaceVariant" />
-
-			<TextView
-				android:id="@+id/textView_error"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="@dimen/margin_normal"
-				android:paddingHorizontal="@dimen/margin_small"
-				android:textColor="?colorError"
-				android:visibility="gone"
-				tools:text="@tools:sample/lorem[4]"
-				tools:visibility="visible" />
-
-		</LinearLayout>
-
-	</ScrollView>
-
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

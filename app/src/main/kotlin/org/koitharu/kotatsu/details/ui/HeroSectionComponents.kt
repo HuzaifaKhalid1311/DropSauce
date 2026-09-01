@@ -94,6 +94,7 @@ internal fun HeroSection(
 		) {
 			CoverCard(
 				manga = manga,
+				sourceManga = details?.sourceManga,
 				coverUrl = coverUrl,
 				imageLoader = imageLoader,
 				modifier = Modifier
@@ -164,6 +165,7 @@ internal fun HeroSection(
 				content = {
 					CoverCard(
 						manga = manga,
+						sourceManga = details?.sourceManga,
 						coverUrl = coverUrl,
 						imageLoader = imageLoader,
 						modifier = Modifier.width(COMPACT_COVER_WIDTH),
@@ -231,6 +233,8 @@ internal fun HeroSection(
 @Composable
 internal fun CoverCard(
 	manga: Manga,
+	/** The pristine manga, used to tell a source cover apart from a user override. */
+	sourceManga: Manga?,
 	coverUrl: String?,
 	imageLoader: ImageLoader,
 	modifier: Modifier,
@@ -247,19 +251,27 @@ internal fun CoverCard(
 		shadowElevation = 16.dp,
 		modifier = modifier,
 	) {
-		val coverRequest = remember(coverUrl, manga.id, manga.source) {
+		// `manga` already has the user's override applied, so the shared `cover:$id` disk slot must be
+		// decided against the pristine manga - otherwise a custom cover is stored under the source
+		// cover's key and keeps showing in lists after the override is reverted.
+		val keyManga = sourceManga ?: manga
+		val isSourceCover = coverUrl == keyManga.coverUrl || coverUrl == keyManga.largeCoverUrl
+		val coverRequest = remember(coverUrl, manga.id, manga.source, keyManga) {
 			ImageRequest.Builder(ctx)
 				.data(coverUrl)
 				.crossfade(true)
 				.mangaSourceExtra(manga.source)
-				.stableMangaCoverKey(manga, coverUrl)
+				.stableMangaCoverKey(keyManga, coverUrl)
 				.build()
 		}
-		if (forceRefresh && isRemoteCoverUrl(coverUrl)) {
-			LaunchedEffect(manga.id, coverUrl) {
+		// Refresh the source cover even while an override hides it, so reverting shows the current
+		// one straight away instead of a stale copy.
+		val refreshUrl = if (isSourceCover) coverUrl else keyManga.coverUrl
+		if (forceRefresh && isRemoteCoverUrl(refreshUrl)) {
+			LaunchedEffect(manga.id, refreshUrl) {
 				imageLoader.enqueue(
 					ImageRequest.Builder(ctx)
-						.data(coverUrl)
+						.data(refreshUrl)
 						.mangaSourceExtra(manga.source)
 						.diskCacheKey(mangaCoverDiskCacheKey(manga.id))
 						.diskCachePolicy(CachePolicy.WRITE_ONLY)
