@@ -1110,9 +1110,10 @@
     <string name="pick_from_gallery">Pick from gallery</string>
     <string name="change_cover">Change cover</string>
     <string name="change_info">Change info</string>
-    <string name="cover_source_gallery">Gallery</string>
-    <string name="cover_source_file">File</string>
+    <string name="cover_source_gallery">From gallery</string>
+    <string name="cover_source_file">Image file</string>
     <string name="cover_source_page">Manga page</string>
+    <string name="cover_source_url">Write URL</string>
     <string name="page_switch_timer">The page will switch every ~%d seconds</string>
     <string name="dont_ask_again">Don\'t ask again</string>
     <string name="incognito_mode_hint_nsfw">This manga may contain adult content. Do you want to use incognito mode?</string>

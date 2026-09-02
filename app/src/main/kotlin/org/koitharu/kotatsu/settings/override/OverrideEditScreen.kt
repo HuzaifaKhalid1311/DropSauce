@@ -139,7 +139,7 @@ enum class CoverSource(val titleResId: Int, val iconResId: Int) {
 	GALLERY(R.string.cover_source_gallery, R.drawable.ic_images),
 	FILE(R.string.cover_source_file, R.drawable.ic_folder_file),
 	PAGE(R.string.cover_source_page, R.drawable.ic_grid),
-	URL(R.string.url, R.drawable.ic_web),
+	URL(R.string.cover_source_url, R.drawable.ic_web),
 }
 
 /** Group heading, matching the label above every settings group. */
