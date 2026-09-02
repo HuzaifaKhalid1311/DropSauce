@@ -13,6 +13,7 @@ import android.view.ViewPropertyAnimator
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.doOnNextLayout
 import androidx.customview.view.AbsSavedState
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
@@ -156,13 +157,26 @@ open class SlidingBottomNavigationView @JvmOverloads constructor(
 		clearAnimation()
 
 		currentState = STATE_DOWN
+		if (height != 0) {
+			hideInternal(SLIDE_DOWN_ANIMATION_DURATION)
+		} else {
+			// Not laid out yet: force-measuring here would measure a detached ComposeView child
+			// and crash. Happens when the search view restores its state on activity re-creation.
+			doOnNextLayout { hideInternal(duration = 0L) }
+		}
+	}
+
+	private fun hideInternal(duration: Long) {
+		if (currentState != STATE_DOWN) {
+			return
+		}
 		val target = measureHeight()
 		if (target == 0) {
 			return
 		}
 		animateTranslation(
 			target.toFloat(),
-			SLIDE_DOWN_ANIMATION_DURATION,
+			duration,
 			FastOutLinearInInterpolator(),
 		)
 	}
