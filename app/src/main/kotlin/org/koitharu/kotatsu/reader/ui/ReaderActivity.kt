@@ -829,14 +829,16 @@ class ReaderActivity :
         val isTts = tts.isPlaying.value ||
             (readerManager.isEpub && settings.isReaderTtsFabVisible)
         val isButtonVisible = (scrollTimer.isActive.value || isTts)
-            && (if (isTts) true else settings.isReaderAutoscrollFabVisible)
+            && settings.isReaderAutoscrollFabVisible
             && !viewBinding.timerControl.isVisible
             && !viewBinding.ttsControl.isVisible
         button.setIconResource(if (isTts) R.drawable.ic_voice_over else R.drawable.ic_timelapse)
         if (button.isVisible == isButtonVisible) {
             return
         }
-        if (!isAnimationsEnabled) {
+        // Nothing to fade before the view is attached: ViewPropertyAnimator would never run its
+        // end action, leaving the button stuck at whatever the layout started it as.
+        if (!isAnimationsEnabled || !button.isAttachedToWindow) {
             button.isVisible = isButtonVisible
             return
         }

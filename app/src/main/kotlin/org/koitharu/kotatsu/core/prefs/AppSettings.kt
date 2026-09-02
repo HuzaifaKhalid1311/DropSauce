@@ -433,6 +433,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isTrackerNsfwDisabled: Boolean
 		get() = prefs.getBoolean(KEY_TRACKER_NO_NSFW, false)
 
+	/** Off by default: the "couldn't check these" notification is noise for most users. */
+	val isTrackerFailureNotificationEnabled: Boolean
+		get() = prefs.getBoolean(KEY_TRACKER_FAILURE_NOTIFICATION, false)
+
 	/** Entries the tracker should not spend a network request on, see [SMART_UPDATE_SKIP_COMPLETED] etc. */
 	val trackerSmartUpdateRules: Set<String>
 		get() = prefs.getStringSet(KEY_TRACKER_SMART_UPDATE, null).orEmpty()
@@ -1220,6 +1224,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_TRACKER_FREQUENCY = "tracker_freq"
 		const val KEY_TRACK_SOURCES = "track_sources"
 		const val KEY_TRACKER_NO_NSFW = "tracker_no_nsfw"
+		const val KEY_TRACKER_FAILURE_NOTIFICATION = "tracker_failed_notification"
 		const val KEY_TRACKER_SMART_UPDATE = "tracker_smart_update"
 		const val KEY_FEED_SWIPE_GESTURES = "feed_swipe_gestures"
 		const val KEY_FEED_COUNTER_DOT = "feed_counter_dot"

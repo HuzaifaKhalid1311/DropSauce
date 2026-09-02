@@ -145,7 +145,10 @@ class TrackerNotificationHelper @Inject constructor(
 	}
 
 	fun createFailedChecksNotification(failedCount: Int): Notification? {
-		if (failedCount <= 0 || !applicationContext.checkNotificationPermission(CHANNEL_ID)) {
+		if (failedCount <= 0 ||
+			!settings.isTrackerFailureNotificationEnabled ||
+			!applicationContext.checkNotificationPermission(CHANNEL_ID)
+		) {
 			return null
 		}
 		val title = applicationContext.resources.getQuantityStringSafe(

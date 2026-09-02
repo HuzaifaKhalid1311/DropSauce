@@ -12,16 +12,16 @@
 
 	<TextView
 		android:id="@+id/textView_number"
-		android:layout_width="24dp"
-		android:layout_height="24dp"
+		android:layout_width="26dp"
+		android:layout_height="26dp"
 		android:layout_marginStart="?android:listPreferredItemPaddingStart"
-		android:background="@drawable/bg_badge_default"
+		android:background="@drawable/bg_badge_tonal"
 		android:ellipsize="none"
 		android:gravity="center"
 		android:singleLine="true"
 		android:textAlignment="center"
-		android:textColor="?attr/colorOnPrimary"
-		android:textSize="12sp"
+		android:textAppearance="?attr/textAppearanceLabelMedium"
+		android:textColor="?attr/colorOnSecondaryContainer"
 		tools:text="13" />
 
 	<TextView

@@ -166,6 +166,7 @@ private fun TrackerScreen(
 	var frequency by rememberStringPref(AppSettings.KEY_TRACKER_FREQUENCY, "1")
 	var trackSources by rememberStringSetPref(AppSettings.KEY_TRACK_SOURCES, setOf(AppSettings.TRACK_FAVOURITES))
 	var trackerNoNsfw by rememberBooleanPref(AppSettings.KEY_TRACKER_NO_NSFW, false)
+	var failedChecksNotification by rememberBooleanPref(AppSettings.KEY_TRACKER_FAILURE_NOTIFICATION, false)
 	var feedSwipeGestures by rememberBooleanPref(AppSettings.KEY_FEED_SWIPE_GESTURES, true)
 	var feedCounterAsDot by rememberBooleanPref(AppSettings.KEY_FEED_COUNTER_DOT, false)
 	var smartUpdate by rememberStringSetPref(AppSettings.KEY_TRACKER_SMART_UPDATE, emptySet())
@@ -308,6 +309,18 @@ private fun TrackerScreen(
 						onCheckedChange = { trackerNoNsfw = it },
 						icon = R.drawable.ic_nsfw,
 						
+						shape = pos.shape,
+						enabled = enabled,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.failed_checks_notification),
+						subtitle = stringResource(R.string.failed_checks_notification_summary),
+						checked = failedChecksNotification,
+						onCheckedChange = { failedChecksNotification = it },
+						icon = R.drawable.ic_sync_problem,
+
 						shape = pos.shape,
 						enabled = enabled,
 					)

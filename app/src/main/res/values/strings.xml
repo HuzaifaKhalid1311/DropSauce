@@ -925,6 +925,8 @@
     <string name="disable_connectivity_check_summary">Skip the connectivity check in case you have issues with it (e.g. going offline mode even though the network is connected)</string>
     <string name="disable_nsfw_notifications">Disable NSFW notifications</string>
     <string name="disable_nsfw_notifications_summary">Do not show notifications about NSFW manga updates</string>
+    <string name="failed_checks_notification">Failed check notifications</string>
+    <string name="failed_checks_notification_summary">Notify when new chapters could not be fetched for some manga</string>
     <string name="debug_logs">Debug logs</string>
     <string name="tracker_debug_info">Checking for new chapters log</string>
     <string name="tracker_debug_info_summary">Debug information about background checks for new chapters</string>

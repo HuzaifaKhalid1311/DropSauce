@@ -42,6 +42,10 @@ class MangaSearchRepository @Inject constructor(
 		if (settings.isNsfwContentDisabled) it.filterNot { x -> x.manga.isNsfw } else it
 	}.map {
 		it.toManga()
+	}.distinctBy {
+		// The manga table can hold several rows for the same title from the same source (re-adds,
+		// restored backups, migrations). Collapse them here so every suggestion consumer is deduped.
+		it.source.name to it.title.lowercase()
 	}.sortedBy { x ->
 		x.title.levenshteinDistance(query)
 	}

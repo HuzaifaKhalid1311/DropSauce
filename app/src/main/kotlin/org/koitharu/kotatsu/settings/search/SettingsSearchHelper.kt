@@ -277,6 +277,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("notifications_settings", R.string.notifications_settings, breadcrumbs = crumbs, fragmentClass = TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_FEED_SWIPE_GESTURES, R.string.feed_swipe_gestures, R.string.feed_swipe_gestures_summary, crumbs, TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_TRACKER_NO_NSFW, R.string.disable_nsfw_notifications, R.string.disable_nsfw_notifications_summary, crumbs, TrackerSettingsFragment::class.java)
+				addItem(AppSettings.KEY_TRACKER_FAILURE_NOTIFICATION, R.string.failed_checks_notification, R.string.failed_checks_notification_summary, crumbs, TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_TRACKER_DOWNLOAD, R.string.download_new_chapters, breadcrumbs = crumbs, fragmentClass = TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_FEED_COUNTER_DOT, R.string.feed_counter_dot, R.string.feed_counter_dot_summary, crumbs, TrackerSettingsFragment::class.java)
 				addItem(AppSettings.KEY_TRACKER_SMART_UPDATE, R.string.smart_update, R.string.smart_update_summary, crumbs, TrackerSettingsFragment::class.java)
