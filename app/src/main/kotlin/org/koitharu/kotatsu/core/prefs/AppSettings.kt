@@ -181,6 +181,26 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_TITLE_TAP_TO_READ, false)
 		set(value) = prefs.edit { putBoolean(KEY_TITLE_TAP_TO_READ, value) }
 
+	var isListCheckpointEnabled: Boolean
+		get() = prefs.getBoolean(KEY_LIST_CHECKPOINT, true)
+		set(value) = prefs.edit { putBoolean(KEY_LIST_CHECKPOINT, value) }
+
+	/** Opaque record of where the user was in the list identified by [scope]. */
+	fun getListCheckpoint(scope: String): String? {
+		val key = KEY_LIST_CHECKPOINT + '_' + scope
+		return try {
+			prefs.getString(key, null)
+		} catch (e: ClassCastException) {
+			// An earlier build stored a bare manga id under this key - drop it and start over.
+			prefs.edit { remove(key) }
+			null
+		}
+	}
+
+	fun setListCheckpoint(scope: String, value: String) {
+		prefs.edit { putString(KEY_LIST_CHECKPOINT + '_' + scope, value) }
+	}
+
 	var isDuplicateCheckEnabled: Boolean
 		get() = prefs.getBoolean(KEY_CHECK_DUPLICATES, true)
 		set(value) = prefs.edit { putBoolean(KEY_CHECK_DUPLICATES, value) }
@@ -1182,6 +1202,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_LIST_MODE = "list_mode_2"
 		const val KEY_TITLE_OVER_COVER = "title_over_cover"
 		const val KEY_TITLE_TAP_TO_READ = "title_tap_to_read"
+		const val KEY_LIST_CHECKPOINT = "list_checkpoint"
 		const val KEY_CHECK_DUPLICATES = "check_duplicates"
 		const val KEY_MIGRATE_DUPLICATE_PROGRESS = "migrate_duplicate_progress"
 		const val KEY_GRID_SPACING_INCREASED = "grid_spacing_increased"

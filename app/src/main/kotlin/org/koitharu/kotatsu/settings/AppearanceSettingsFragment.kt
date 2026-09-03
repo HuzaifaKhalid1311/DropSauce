@@ -264,6 +264,7 @@ private fun AppearanceScreen(
 	var listMode by rememberStringPref(AppSettings.KEY_LIST_MODE, ListMode.GRID.name)
 	var gridSize by rememberIntPref(AppSettings.KEY_GRID_SIZE, 100)
 	var quickFilter by rememberBooleanPref(AppSettings.KEY_QUICK_FILTER, true)
+	var listCheckpoint by rememberBooleanPref(AppSettings.KEY_LIST_CHECKPOINT, true)
 	var readingIndicator by rememberReadingIndicatorPref(AppSettings.KEY_PROGRESS_INDICATORS)
 	var mangaListBadges by rememberStringSetPref(AppSettings.KEY_MANGA_LIST_BADGES, emptySet())
 
@@ -434,6 +435,17 @@ private fun AppearanceScreen(
 						checked = quickFilter,
 						onCheckedChange = { quickFilter = it },
 						icon = R.drawable.ic_filter_menu,
+
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.list_checkpoint_settings),
+						subtitle = stringResource(R.string.list_checkpoint_settings_summary),
+						checked = listCheckpoint,
+						onCheckedChange = { listCheckpoint = it },
+						icon = R.drawable.ic_jump_back,
 
 						shape = pos.shape,
 					)

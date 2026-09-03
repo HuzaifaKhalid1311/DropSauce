@@ -24,6 +24,7 @@ class HistoryListFragment : MangaListFragment() {
 
 	override val viewModel by viewModels<HistoryListViewModel>()
 	override val isSwipeRefreshEnabled = false
+	override val checkpointScope get() = "history"
 
 	override fun onViewBindingCreated(binding: FragmentListBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)

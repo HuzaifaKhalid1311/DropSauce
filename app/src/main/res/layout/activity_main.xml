@@ -244,6 +244,15 @@
 		tools:ignore="InconsistentLayout"
 		tools:visibility="visible" />
 
+	<include
+		android:id="@+id/buttonCheckpoint"
+		layout="@layout/view_list_checkpoint"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|center_horizontal"
+		android:visibility="gone"
+		tools:visibility="visible" />
+
 	<org.koitharu.kotatsu.core.ui.widgets.FloatingBottomNavigationView
 		android:id="@+id/bottomNav"
 		android:layout_width="match_parent"

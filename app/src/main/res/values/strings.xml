@@ -636,6 +636,10 @@
     <string name="related_manga_summary">Show a list of related titles. In some cases it may be inaccurate or missing</string>
     <string name="advanced">Advanced</string>
     <string name="manga_list">Manga list</string>
+    <string name="list_checkpoint">Last position</string>
+    <string name="list_checkpoint_settings">Jump back to where you left off</string>
+    <string name="list_checkpoint_settings_summary">Show a button in History that returns you to the spot you last scrolled to</string>
+    <string name="list_checkpoint_disable_prompt">Stop showing the “Jump back” button? You can turn it back on in Settings.</string>
     <string name="error_corrupted_file">Invalid data is returned or file is corrupted</string>
     <string name="on_device">On device</string>
     <string name="directories">Directories</string>
