@@ -59,6 +59,9 @@ fun exploreRecommendationItemAD(
 	}
 
 	bind {
+		val isPlaceholder = item.manga.isEmpty()
+		binding.layoutPlaceholder.isVisible = isPlaceholder
+		binding.recyclerView.isVisible = !isPlaceholder
 		adapter.items = item.manga
 	}
 }

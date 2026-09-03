@@ -212,8 +212,16 @@ class MangaListActivity :
 		button.doOnLayout {
 			val maxWidth = (viewBinding.root.width * SORT_BUTTON_MAX_WIDTH_FRACTION).roundToInt()
 			button.maxWidth = maxWidth
-			viewBinding.collapsingToolbarLayout?.expandedTitleMarginEnd = maxWidth +
+			val ctl = viewBinding.collapsingToolbarLayout ?: return@doOnLayout
+			ctl.expandedTitleMarginEnd = maxWidth +
 				resources.getDimensionPixelOffset(R.dimen.toolbar_button_margin) * 2
+			// The button is bottom-gravity in the parallax row, but its own vertical padding and
+			// insets leave its label sitting above the expanded title's baseline. Nudge it down so
+			// both baselines land on the same line (see applyLanguage for the same alignment).
+			if (ctl.subtitle.isNullOrEmpty()) {
+				button.translationY = (button.height - button.baseline - ctl.expandedTitleMarginBottom)
+					.toFloat().coerceAtLeast(0f)
+			}
 		}
 	}
 

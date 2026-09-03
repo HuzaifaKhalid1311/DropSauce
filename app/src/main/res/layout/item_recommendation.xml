@@ -1,18 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Explore "Suggestions" block: a Material 3 multi-browse carousel of cover posters
-     (CarouselLayoutManager + MultiBrowseCarouselStrategy are set in code). -->
-<org.koitharu.kotatsu.core.ui.widgets.CarouselRecyclerView
+     (CarouselLayoutManager + MultiBrowseCarouselStrategy are set in code), with a skeleton
+     placeholder shown in its place until the suggestions are loaded so the list doesn't jump. -->
+<FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/recyclerView"
 	android:layout_width="match_parent"
 	android:layout_height="232dp"
 	android:layout_marginStart="@dimen/list_spacing_normal_negative"
 	android:layout_marginEnd="@dimen/list_spacing_normal_negative"
-	android:layout_marginBottom="@dimen/margin_small"
-	android:clipChildren="false"
-	android:clipToPadding="false"
-	android:nestedScrollingEnabled="false"
-	android:orientation="horizontal"
-	android:paddingHorizontal="20dp"
-	tools:listitem="@layout/item_manga_carousel" />
+	android:layout_marginBottom="@dimen/margin_small">
+
+	<LinearLayout
+		android:id="@+id/layout_placeholder"
+		android:layout_width="match_parent"
+		android:layout_height="200dp"
+		android:clipChildren="false"
+		android:orientation="horizontal"
+		android:paddingHorizontal="20dp">
+
+		<View
+			android:layout_width="0dp"
+			android:layout_height="match_parent"
+			android:layout_marginEnd="10dp"
+			android:layout_weight="150"
+			android:background="@drawable/bg_carousel_placeholder" />
+
+		<View
+			android:layout_width="0dp"
+			android:layout_height="match_parent"
+			android:layout_marginEnd="10dp"
+			android:layout_weight="150"
+			android:background="@drawable/bg_carousel_placeholder" />
+
+		<View
+			android:layout_width="0dp"
+			android:layout_height="match_parent"
+			android:layout_weight="60"
+			android:background="@drawable/bg_carousel_placeholder" />
+
+	</LinearLayout>
+
+	<org.koitharu.kotatsu.core.ui.widgets.CarouselRecyclerView
+		android:id="@+id/recyclerView"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:clipChildren="false"
+		android:clipToPadding="false"
+		android:nestedScrollingEnabled="false"
+		android:orientation="horizontal"
+		android:paddingHorizontal="20dp"
+		tools:listitem="@layout/item_manga_carousel" />
+
+</FrameLayout>

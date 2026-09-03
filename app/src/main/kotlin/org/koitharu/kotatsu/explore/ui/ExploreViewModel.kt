@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
@@ -96,15 +98,13 @@ class ExploreViewModel @Inject constructor(
 
 	/** Everything above the extension list: quick buttons and the suggestions carousel. */
 	val headerContent: StateFlow<List<ListModel>> = getSuggestionFlow().map { recommendation ->
-		buildList(3) {
-			add(ExploreButtons)
-			if (recommendation.isNotEmpty()) {
-				add(ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions))
-				add(RecommendationsItem(recommendation.toRecommendationList()))
-			}
-		}
+		buildHeader(recommendation)
 	}.withErrorHandling()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(ExploreButtons))
+		.stateIn(
+			viewModelScope + Dispatchers.Default,
+			SharingStarted.Eagerly,
+			buildHeader(if (settings.isSuggestionsEnabled) null else emptyList()),
+		)
 
 	val sources: StateFlow<ExploreSources> = createSourcesFlow()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, loadingSources)
@@ -247,12 +247,26 @@ class ExploreViewModel @Inject constructor(
 		return result
 	}
 
-	private fun getSuggestionFlow() = isSuggestionsEnabled.flatMapLatest { isEnabled ->
+	/**
+	 * Header rows above the extension list. A `null` recommendation means "not loaded yet": the
+	 * suggestions block is still rendered, as a skeleton, so the extension list doesn't jump down
+	 * once the carousel arrives a moment later.
+	 */
+	private fun buildHeader(recommendation: List<Manga>?) = buildList(3) {
+		add(ExploreButtons)
+		if (recommendation == null || recommendation.isNotEmpty()) {
+			add(ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions))
+			add(RecommendationsItem(recommendation?.toRecommendationList().orEmpty()))
+		}
+	}
+
+	private fun getSuggestionFlow(): Flow<List<Manga>?> = isSuggestionsEnabled.flatMapLatest { isEnabled ->
 		if (isEnabled) {
 			// Observe the suggestions reactively so the carousel refreshes in place when suggestions
 			// are regenerated (e.g. from the Suggestions screen) instead of staying stale until restart.
 			suggestionRepository.observeRandomList(SUGGESTIONS_COUNT)
 				.catch { emit(emptyList()) }
+				.onStart<List<Manga>?> { emit(null) }
 		} else {
 			flowOf(emptyList())
 		}
