@@ -404,7 +404,8 @@
 		<item name="android:paddingTop">10dp</item>
 		<item name="android:paddingBottom">8dp</item>
 		<item name="android:gravity">center</item>
-		<item name="backgroundTint">?attr/colorSurfaceContainerHigh</item>
+		<!-- Same container tone as the search bar right above them. -->
+		<item name="backgroundTint">?attr/colorSurfaceContainer</item>
 	</style>
 
 	<style name="Widget.Kotatsu.TextView.Indicator" parent="Widget.MaterialComponents.TextView">

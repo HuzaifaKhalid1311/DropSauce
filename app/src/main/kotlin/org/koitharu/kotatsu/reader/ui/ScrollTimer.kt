@@ -64,6 +64,12 @@ class ScrollTimer @AssistedInject constructor(
 		get() = isRunning
 
 	init {
+		// Seed synchronously: the flows below deliver on another dispatcher, and until they do
+		// delayMs/stepPx would be 0 — a tick loop that never suspends and never scrolls, i.e. a
+		// main-thread busy spin. Hit on rotation, where the restored control re-arms the timer
+		// during layout.
+		onSpeedChanged(settings.readerAutoscrollSpeed)
+		pageSwitchDelay = settings.readerAutoscrollPageDelay * 1000L
 		settings.observeAsFlow(AppSettings.KEY_READER_AUTOSCROLL_SPEED) {
 			readerAutoscrollSpeed
 		}.flowOn(Dispatchers.Default)
