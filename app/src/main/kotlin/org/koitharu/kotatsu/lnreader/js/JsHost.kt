@@ -28,6 +28,7 @@ import org.json.JSONTokener
 import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.network.CommonHeaders
 import org.koitharu.kotatsu.core.network.MangaHttpClient
+import org.koitharu.kotatsu.core.network.RateLimitInterceptor
 import org.koitharu.kotatsu.core.network.webview.WebViewExecutor
 import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -65,6 +66,17 @@ class JsHost @Inject constructor(
 		(webViewExecutor.defaultUserAgent ?: UserAgents.FIREFOX_MOBILE)
 			.replace(Regex("; Android .*?\\)"), "; Android 10; K)")
 			.replace(Regex("Version/.* Chrome/"), "Chrome/")
+	}
+
+	// A browser `fetch` resolves on 429 and lets the plugin decide; Kotatsu's app-wide limiter
+	// instead throws, which aborts plugins that legitimately hit a 429-happy site (LNReader has no
+	// such limiter at all). Every other interceptor - Cloudflare, DoH, proxy, headers - is kept.
+	private val fetchClient: OkHttpClient by lazy {
+		okHttpClient.newBuilder().apply {
+			val kept = interceptors().filterNot { it is RateLimitInterceptor }
+			interceptors().clear()
+			interceptors().addAll(kept)
+		}.build()
 	}
 
 	@Volatile
@@ -290,7 +302,7 @@ class JsHost @Inject constructor(
 	}
 
 	private fun performRequest(request: Request, spec: JSONObject): JSONObject {
-		okHttpClient.newCall(request).execute().use { response ->
+		fetchClient.newCall(request).execute().use { response ->
 			val responseHeaders = JSONObject()
 			response.headers.forEach { (name, value) -> responseHeaders.put(name, value) }
 			val result = JSONObject()
