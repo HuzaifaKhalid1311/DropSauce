@@ -25,10 +25,8 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -138,7 +136,12 @@ class DetailsExpressiveActivity :
 				val url = viewModel.coverUrl.value ?: return@DetailsExpressiveActions
 				router.openImage(url = url, source = manga.source, manga = manga)
 			},
-			onTitleClick = { title -> showTitleDialog(title) },
+			onTitleClick = { title ->
+				router.showMangaTitleDialog(
+					title.nullIfEmpty() ?: return@DetailsExpressiveActions,
+					viewModel.getMangaOrNull()?.source ?: return@DetailsExpressiveActions,
+				)
+			},
 			onSourceClick = { manga -> router.openList(manga.source, null, null) },
 			onLocalClick = { manga -> router.showLocalInfoDialog(manga) },
 			onFavoriteClick = { manga -> router.showFavoriteDialog(manga, null) },
@@ -258,17 +261,6 @@ class DetailsExpressiveActivity :
 		// offset the old details screen used), not pushed down below the whole top bar.
 		viewBinding.swipeRefreshLayout.setProgressViewOffset(false, bars.top, bars.top + 180)
 		return insets
-	}
-
-	private fun showTitleDialog(title: String) {
-		val text = title.nullIfEmpty() ?: return
-		buildAlertDialog(this) {
-			setMessage(text)
-			setNegativeButton(R.string.close, null)
-			setPositiveButton(androidx.preference.R.string.copy) { _, _ ->
-				copyToClipboard(getString(R.string.content_type_manga), text)
-			}
-		}.show()
 	}
 
 	private class PrefetchObserver(

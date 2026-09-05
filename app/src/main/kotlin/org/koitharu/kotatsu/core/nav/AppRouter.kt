@@ -469,6 +469,23 @@ class AppRouter private constructor(
         )
     }
 
+    fun showMangaTitleDialog(title: String, source: MangaSource) {
+        val context = contextOrNull() ?: return
+        showActionChoiceDialog(
+            context = context,
+            icon = R.drawable.ic_menu_book,
+            title = title,
+            actions = listOf(
+                DialogAction(context.getString(R.string.search_on_s, source.getTitle(context))) {
+                    openSearch(source, title)
+                },
+                DialogAction(context.getString(R.string.search_everywhere)) { openSearch(title, SearchKind.TITLE) },
+            ),
+            dismissLabel = context.getString(R.string.close),
+            onCopyTitle = { context.copyToClipboard(context.getString(R.string.content_type_manga), title) },
+        )
+    }
+
     fun showAuthorDialog(author: String, source: MangaSource) {
         val context = contextOrNull() ?: return
         showActionChoiceDialog(
@@ -482,6 +499,7 @@ class AppRouter private constructor(
                 DialogAction(context.getString(R.string.search_everywhere)) { openSearch(author, SearchKind.AUTHOR) },
             ),
             dismissLabel = context.getString(R.string.close),
+            onCopyTitle = { context.copyToClipboard(context.getString(R.string.author), author) },
         )
     }
 

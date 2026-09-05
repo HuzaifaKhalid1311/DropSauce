@@ -29,6 +29,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -45,10 +46,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
@@ -105,6 +108,7 @@ fun ExpressiveDialogCard(
 	title: String,
 	message: String? = null,
 	messageModifier: Modifier = Modifier,
+	onCopyTitle: (() -> Unit)? = null,
 	content: @Composable ColumnScope.() -> Unit,
 ) {
 	Box(
@@ -120,49 +124,66 @@ fun ExpressiveDialogCard(
 				.fillMaxWidth()
 				.widthIn(max = 400.dp),
 		) {
-			Column(
-				modifier = Modifier.padding(24.dp),
-				horizontalAlignment = Alignment.CenterHorizontally,
-			) {
-				Box(
-					modifier = Modifier
-						.size(56.dp)
-						.background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-					contentAlignment = Alignment.Center,
+			Box {
+				Column(
+					modifier = Modifier.padding(24.dp),
+					horizontalAlignment = Alignment.CenterHorizontally,
 				) {
-					Icon(
-						painter = icon,
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.onSecondaryContainer,
-						modifier = Modifier.size(28.dp),
-					)
-				}
-				Spacer(Modifier.height(16.dp))
-				Text(
-					text = title,
-					style = MaterialTheme.typography.headlineSmall,
-					color = MaterialTheme.colorScheme.onSurface,
-					textAlign = TextAlign.Center,
-				)
-				if (message != null) {
-					Spacer(Modifier.height(8.dp))
 					Box(
-						modifier = messageModifier
-							.heightIn(max = 260.dp)
-							.fillMaxWidth()
-							.verticalScroll(rememberScrollState()),
+						modifier = Modifier
+							.size(56.dp)
+							.background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
 						contentAlignment = Alignment.Center,
 					) {
-						Text(
-							text = message,
-							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							textAlign = TextAlign.Center,
+						Icon(
+							painter = icon,
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSecondaryContainer,
+							modifier = Modifier.size(28.dp),
+						)
+					}
+					Spacer(Modifier.height(16.dp))
+					Text(
+						text = title,
+						style = MaterialTheme.typography.headlineSmall,
+						color = MaterialTheme.colorScheme.onSurface,
+						textAlign = TextAlign.Center,
+					)
+					if (message != null) {
+						Spacer(Modifier.height(8.dp))
+						Box(
+							modifier = messageModifier
+								.heightIn(max = 260.dp)
+								.fillMaxWidth()
+								.verticalScroll(rememberScrollState()),
+							contentAlignment = Alignment.Center,
+						) {
+							Text(
+								text = message,
+								style = MaterialTheme.typography.bodyMedium,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								textAlign = TextAlign.Center,
+							)
+						}
+					}
+					Spacer(Modifier.height(24.dp))
+					content()
+				}
+				if (onCopyTitle != null) {
+					IconButton(
+						onClick = onCopyTitle,
+						modifier = Modifier
+							.align(Alignment.TopEnd)
+							.padding(8.dp),
+					) {
+						Icon(
+							painter = painterResource(R.drawable.ic_content_copy),
+							contentDescription = stringResource(androidx.preference.R.string.copy),
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+							modifier = Modifier.size(20.dp),
 						)
 					}
 				}
-				Spacer(Modifier.height(24.dp))
-				content()
 			}
 		}
 	}
@@ -245,12 +266,14 @@ fun showActionChoiceDialog(
 	message: String? = null,
 	actions: List<DialogAction>,
 	dismissLabel: String,
+	onCopyTitle: (() -> Unit)? = null,
 ) {
 	showComposeDialog(context) { dismiss ->
 		ExpressiveDialogCard(
 			icon = painterResource(icon),
 			title = title,
 			message = message,
+			onCopyTitle = onCopyTitle,
 		) {
 			actions.forEachIndexed { index, action ->
 				if (index > 0) {
