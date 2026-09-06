@@ -460,6 +460,10 @@
     <string name="folder_with_images">Directory</string>
     <string name="importing_manga">Importing manga</string>
     <string name="import_completed">Import completed</string>
+    <plurals name="imported_titles">
+        <item quantity="one">%d title imported</item>
+        <item quantity="other">%d titles imported</item>
+    </plurals>
     <string name="import_completed_hint">You can delete the original file from storage to save space</string>
     <string name="import_will_start_soon">Import will start soon</string>
     <string name="feed">Feed</string>

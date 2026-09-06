@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import org.koitharu.kotatsu.core.model.LocalMangaSource
+import org.koitharu.kotatsu.core.model.isBroken
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.parser.MangaRepository
@@ -162,7 +163,9 @@ class LocalMangaRepository @Inject constructor(
 
 	suspend fun getRemoteManga(localManga: Manga): Manga? {
 		return runCatchingCancellable {
-			LocalMangaParser(localManga.url.toUri()).getMangaInfo()?.takeUnless { it.isLocal }
+			// A broken source has no repository to load from, so there is no remote counterpart to
+			// offer - an imported folder would otherwise show up as a title from an "Unknown" source
+			LocalMangaParser(localManga.url.toUri()).getMangaInfo()?.takeUnless { it.isLocal || it.isBroken }
 		}.onFailure {
 			it.printStackTraceDebug()
 		}.getOrNull()

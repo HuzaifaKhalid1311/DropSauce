@@ -43,13 +43,15 @@ class SingleMangaImporter @Inject constructor(
 
 	private val contentResolver = context.contentResolver
 
-	suspend fun import(uri: Uri): LocalManga {
+	suspend fun import(uri: Uri): List<LocalManga> {
 		val result = if (isDirectory(uri)) {
 			importDirectory(uri)
 		} else {
-			importFile(uri)
+			listOf(importFile(uri))
 		}
-		localStorageChanges.emit(result)
+		for (manga in result) {
+			localStorageChanges.emit(manga)
+		}
 		return result
 	}
 
@@ -119,17 +121,28 @@ class SingleMangaImporter @Inject constructor(
 		}
 	}
 
-	private suspend fun importDirectory(uri: Uri): LocalManga = withContext(Dispatchers.IO) {
+	private suspend fun importDirectory(uri: Uri): List<LocalManga> = withContext(Dispatchers.IO) {
 		val root = requireNotNull(DocumentFile.fromTreeUri(context, uri)) {
 			"Provided uri $uri is not a tree"
 		}
-		val allFiles = root.listFiles()
+		// A Mihon downloads root or source folder holds many titles, each of which becomes its own manga
+		val mangaDirs = root.findMangaDirs(contentResolver)
+		if (mangaDirs.isNotEmpty()) {
+			// Two sources can hold the same title, so each one needs a folder of its own here
+			mangaDirs.map { importMangaDirectory(it, unique = true) }
+		} else {
+			listOf(importMangaDirectory(root, unique = false))
+		}
+	}
+
+	private suspend fun importMangaDirectory(root: DocumentFile, unique: Boolean): LocalManga {
+		val allFiles = root.listFiles().filterNot { isImportJunk(it.name.orEmpty()) }
 		val pdfFiles = allFiles
 			.filter { it.isFile && hasPdfExtension(it.name ?: "") }
 			.sortedBy { it.name }
 
 		if (pdfFiles.isNotEmpty()) {
-			val dest = File(getOutputDir(), root.requireName())
+			val dest = destinationDir(root.requireName(), unique)
 			dest.mkdir()
 			for (pdfFile in pdfFiles) {
 				val chapterName = pdfFile.name!!.substringBeforeLast('.')
@@ -143,18 +156,23 @@ class SingleMangaImporter @Inject constructor(
 					throw e
 				}
 			}
-			return@withContext LocalMangaParser(dest).getManga(withDetails = false)
+			return LocalMangaParser(dest).getManga(withDetails = false)
 		}
 
-		val dest = File(getOutputDir(), root.requireName())
+		val dest = destinationDir(root.requireName(), unique)
 		dest.mkdir()
 		for (docFile in allFiles) {
 			docFile.copyTo(dest)
 		}
-		LocalMangaParser(dest).getManga(withDetails = false)
+		// No-op unless the folder came from Mihon and carries ComicInfo.xml
+		runInterruptible { writeMihonIndex(dest) }
+		return LocalMangaParser(dest).getManga(withDetails = false)
 	}
 
 	private suspend fun DocumentFile.copyTo(destDir: File) {
+		if (isImportJunk(name.orEmpty())) {
+			return
+		}
 		if (isDirectory) {
 			val subDir = File(destDir, requireName())
 			subDir.mkdir()
@@ -167,6 +185,26 @@ class SingleMangaImporter @Inject constructor(
 					output.writeAllCancellable(input)
 				}
 			}
+		}
+	}
+
+	/**
+	 * Re-importing the same folder keeps merging into it, as it always has. Only a batch import
+	 * sidesteps a folder that is already taken, so two same-named titles do not end up merged.
+	 */
+	private suspend fun destinationDir(name: String, unique: Boolean): File {
+		val outputDir = getOutputDir()
+		val dest = File(outputDir, name)
+		if (!unique || !dest.exists()) {
+			return dest
+		}
+		var i = 1
+		while (true) {
+			val candidate = File(outputDir, "${name}_$i")
+			if (!candidate.exists()) {
+				return candidate
+			}
+			i++
 		}
 	}
 

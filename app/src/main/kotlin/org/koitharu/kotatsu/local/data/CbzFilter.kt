@@ -60,8 +60,12 @@ fun File.hasMangaContent(depth: Int = CONTENT_SCAN_DEPTH): Boolean {
 // learns to decode a new one.
 private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "gif", "avif", "bmp", "heic", "heif", "jxl")
 
+fun hasImageExtension(string: String): Boolean {
+	return string.substringAfterLast('.', "").lowercase() in IMAGE_EXTENSIONS
+}
+
 private val File.isMangaContentFile: Boolean
-	get() = isSupportedArchive(name) || extension.lowercase() in IMAGE_EXTENSIONS
+	get() = isSupportedArchive(name) || hasImageExtension(name)
 
 val File.isZipArchive: Boolean
 	get() = isFile && isZipExtension(extension)

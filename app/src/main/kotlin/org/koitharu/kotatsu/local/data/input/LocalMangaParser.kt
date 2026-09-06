@@ -284,7 +284,8 @@ class LocalMangaParser(private val uri: Uri) {
 				.filter { fileSystem.isRegularFile(it) }
 			if (index != null) {
 				val pattern = index.getChapterNamesPattern(chapter)
-				entries.filter { x -> x.name.substringBefore('.').matches(pattern) }
+				// index.json and ComicInfo.xml live next to the pages in an imported chapter
+				entries.filter { x -> x.isImage() && x.name.substringBefore('.').matches(pattern) }
 			} else {
 				entries.filter { x -> x.isImage() && x.parent == rootPath }
 			}.toListSorted(compareBy(AlphanumComparator()) { x -> x.toString() })
