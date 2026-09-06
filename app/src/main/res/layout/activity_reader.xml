@@ -13,7 +13,7 @@
 		tools:background="@color/grey" />
 
 	<com.google.android.material.button.MaterialButton
-		android:id="@+id/button_timer"
+		android:id="@+id/button_timer_fab"
 		style="?materialIconButtonOutlinedStyle"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"

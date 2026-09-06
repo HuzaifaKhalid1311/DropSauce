@@ -380,13 +380,20 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             }
 
                             1 -> { // Info & Tools Page
+                                // The grid takes the whole page height so it ends flush with the
+                                // bottom, but never less than its floor: on a short landscape page
+                                // the surrounding scroll takes over instead of squashing the cards.
+                                val gridHeight = with(density) { (pagerHeightPx.toDp() - 100.dp) }
+                                    .coerceAtLeast(TOOL_GRID_MIN_HEIGHT)
                                 Column(
                                     modifier = Modifier
-                                        .fillMaxSize()
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
                                         .padding(horizontal = 16.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp),
                                 ) {
                                     ToolsGridSection(
+                                        modifier = Modifier.height(gridHeight),
                                         showPageTools = true,
                                         isAutoRotationEnabled = isAutoRotationEnabled,
                                         isBookmarkAdded = isBookmarkAdded,
@@ -415,8 +422,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                             router.openReaderSettings()
                                             dismissAllowingStateLoss()
                                         },
-                                        modifier = Modifier.weight(1f),
-                                    )
+                                                                            )
 
                                     Spacer(modifier = Modifier.height(84.dp))
                                 }
@@ -541,9 +547,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         val customFontName = remember(customFontUiRevision) { settings.epubCustomFontName }
         var publisherStyleEnabled by remember { mutableStateOf(settings.isEpubPublisherStyleEnabled) }
         var bionicReadingEnabled by remember { mutableStateOf(settings.isEpubBionicReadingEnabled) }
-        var readingMode by remember {
-            mutableStateOf(if (settings.epubReadingMode == "paged") "paged_ltr" else settings.epubReadingMode)
-        }
+        var readingMode by remember { mutableStateOf(settings.epubReadingMode) }
+        var isRtl by remember { mutableStateOf(settings.isEpubRtl) }
         val pagerState = rememberPagerState(pageCount = { 3 })
         val scope = rememberCoroutineScope()
         val callback = remember { findParentCallback(Callback::class.java) }
@@ -593,10 +598,6 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                     EpubReadModeSection(readingMode) { mode ->
                         readingMode = mode
                         settings.epubReadingMode = mode
-                        when {
-                            mode == "paged_rtl" && settings.epubTextAlign == "left" -> settings.epubTextAlign = "right"
-                            mode != "paged_rtl" && settings.epubTextAlign == "right" -> settings.epubTextAlign = "left"
-                        }
                     }
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(IntrinsicSize.Max),
@@ -607,18 +608,36 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             icon = R.drawable.ic_reader_ltr,
                             title = stringResource(R.string.epub_text_alignment),
                             choices = listOf(
-                                if (readingMode == "paged_rtl") "right" to stringResource(R.string.epub_align_right)
-                                else "left" to stringResource(R.string.epub_align_left),
                                 "justify" to stringResource(R.string.epub_align_justified),
+                                (if (isRtl) "right" else "left") to stringResource(R.string.epub_align_side),
                             ),
                             selected = when {
-                                readingMode == "paged_rtl" && settings.epubTextAlign == "left" -> "right"
-                                readingMode != "paged_rtl" && settings.epubTextAlign == "right" -> "left"
+                                isRtl && settings.epubTextAlign == "left" -> "right"
+                                !isRtl && settings.epubTextAlign == "right" -> "left"
                                 else -> settings.epubTextAlign
                             },
                             enabled = editable,
                         ) { settings.epubTextAlign = it }
-                        EpubTapGestureSection(Modifier.weight(1f).fillMaxHeight(), enabled = readingMode != "scroll")
+                        // Direction is its own axis now, so scroll mode can be RTL too.
+                        EpubChoiceSection(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            icon = R.drawable.ic_reading_direction,
+                            title = stringResource(R.string.epub_reading_direction),
+                            choices = listOf(
+                                "ltr" to stringResource(R.string.epub_mode_paged_ltr),
+                                "rtl" to stringResource(R.string.epub_mode_paged_rtl),
+                            ),
+                            selected = if (isRtl) "rtl" else "ltr",
+                        ) { value ->
+                            val rtl = value == "rtl"
+                            isRtl = rtl
+                            settings.isEpubRtl = rtl
+                            // Keep the side-aligned choice on the reading side of the page.
+                            when {
+                                rtl && settings.epubTextAlign == "left" -> settings.epubTextAlign = "right"
+                                !rtl && settings.epubTextAlign == "right" -> settings.epubTextAlign = "left"
+                            }
+                        }
                     }
                     EpubFontSection(
                         selected = settings.epubFontFamily,
@@ -685,6 +704,10 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             shape = CircleShape,
                         )
                     }
+                    EpubTapGestureSection(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        enabled = readingMode != "scroll",
+                    )
                 }
                 if (publisherStyleEnabled) {
                     Text(
@@ -846,7 +869,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
             enabled = enabled,
         ) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -959,8 +982,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
     ) {
         val modes = listOf(
             "scroll" to (R.string.epub_mode_scroll to R.drawable.ic_reader_vertical),
-            "paged_ltr" to (R.string.epub_mode_paged_ltr to R.drawable.ic_reader_ltr),
-            "paged_rtl" to (R.string.epub_mode_paged_rtl to R.drawable.ic_reader_rtl),
+            "paged" to (R.string.epub_mode_paged to R.drawable.ic_reader_paged),
         )
 
         val selectedIndex = modes.indexOfFirst { it.first == current }.coerceAtLeast(0)
@@ -1002,7 +1024,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         .padding(6.dp),
                 ) {
                     val animatedBias by animateFloatAsState(
-                        targetValue = selectedIndex - 1f,
+                        // -1f..1f across the segments, whatever their count
+                        targetValue = if (modes.size == 1) 0f else selectedIndex * 2f / (modes.size - 1) - 1f,
                         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                         label = "epub_mode_highlighter",
                     )
@@ -1451,6 +1474,12 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         }
     }
 
+    /**
+     * Floor for the three-row Tools grid. The pager pins every page to the Read Mode page's height,
+     * which in landscape is the short viewport of a scrolling page - well under what the cards need.
+     */
+    private val TOOL_GRID_MIN_HEIGHT = 336.dp
+
     @Composable
     private fun ToolsGridSection(
         showPageTools: Boolean,
@@ -1475,7 +1504,9 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         } else {
             R.drawable.ic_screen_rotation
         }
-        // Rows share the page height equally so this page matches the Read Mode page exactly.
+        // Rows split the height they are given equally, so the grid ends flush with the page and
+        // leaves no dead space. The caller is responsible for never handing it less than
+        // TOOL_GRID_MIN_HEIGHT - below that the cards would collapse and clip their labels.
         Column(
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp),

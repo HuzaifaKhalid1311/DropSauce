@@ -310,9 +310,24 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_EPUB_TEXT_ALIGN, "justify") ?: "justify"
 		set(value) = prefs.edit { putString(KEY_EPUB_TEXT_ALIGN, value) }
 
+	/**
+	 * Novel page turning: "scroll" or "paged". Reading direction is a separate axis
+	 * ([isEpubRtl]) so RTL works in scroll mode too.
+	 */
 	var epubReadingMode: String
-		get() = prefs.getString(KEY_EPUB_READING_MODE, "scroll") ?: "scroll"
+		get() = if (rawEpubReadingMode.startsWith("paged")) "paged" else "scroll"
 		set(value) = prefs.edit { putString(KEY_EPUB_READING_MODE, value) }
+
+	/**
+	 * Right-to-left reading. Defaults from the legacy combined "paged_rtl" value, so books already
+	 * set to RTL paged stay RTL without a migration pass.
+	 */
+	var isEpubRtl: Boolean
+		get() = prefs.getBoolean(KEY_EPUB_RTL, rawEpubReadingMode == "paged_rtl")
+		set(value) = prefs.edit { putBoolean(KEY_EPUB_RTL, value) }
+
+	private val rawEpubReadingMode: String
+		get() = prefs.getString(KEY_EPUB_READING_MODE, "scroll") ?: "scroll"
 
 	/** Speech rate for the novel text-to-speech, 0.25f..3f where 1f is the engine default. */
 	var epubTtsSpeed: Float
@@ -718,6 +733,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var mihonHiddenPackages: Set<String>
 		get() = prefs.getStringSet(KEY_MIHON_HIDDEN_PACKAGES, emptySet()).orEmpty()
 		set(value) = prefs.edit { putStringSet(KEY_MIHON_HIDDEN_PACKAGES, value) }
+
+	/** BCP-47 codes of source languages hidden from Explore. Empty means "show everything". */
+	var hiddenSourceLanguages: Set<String>
+		get() = prefs.getStringSet(KEY_HIDDEN_SOURCE_LANGUAGES, emptySet()).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_HIDDEN_SOURCE_LANGUAGES, value) }
 
 	/** LNReader plugin ids hidden from Explore. Mirrors [mihonHiddenPackages] for novel plugins. */
 	var lnHiddenPlugins: Set<String>
@@ -1262,6 +1282,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EPUB_VERTICAL_PADDING = "epub_vertical_padding"
 		const val KEY_EPUB_TEXT_ALIGN = "epub_text_align"
 		const val KEY_EPUB_READING_MODE = "epub_reading_mode"
+		const val KEY_EPUB_RTL = "epub_rtl"
 		const val KEY_EPUB_PAGED_TAP_GESTURES = "epub_paged_tap_gestures"
 		const val KEY_EPUB_TTS_SPEED = "epub_tts_speed"
 		const val KEY_EPUB_TTS_VOICE = "epub_tts_voice_index"
@@ -1354,6 +1375,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_MIHON_PER_EXT_ACTIVE_LANG = "mihon_per_ext_active_lang"
 		const val KEY_MIHON_HIDDEN_PACKAGES = "mihon_hidden_packages"
+		const val KEY_HIDDEN_SOURCE_LANGUAGES = "hidden_source_languages"
 		const val KEY_LN_HIDDEN_PLUGINS = "ln_hidden_plugins"
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_MIHON_EXTENSION_REPOS = "mihon_extension_repos"

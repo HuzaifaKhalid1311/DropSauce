@@ -20,11 +20,16 @@ import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import com.google.android.material.snackbar.Snackbar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.MultiChoiceDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.ActionModeListener
@@ -102,7 +107,7 @@ class ExploreFragment :
 			tab.setText(if (position == 1) R.string.store_kind_novel else R.string.store_kind_manga)
 		}.attach()
 		actionModeDelegate.addListener(this)
-		addMenuProvider(ExploreMenuProvider(router))
+		addMenuProvider(ExploreMenuProvider(router, ::showLanguageFilterDialog))
 		viewModel.headerContent.observe(viewLifecycleOwner, headerAdapter)
 		viewModel.hasExtensionUpdates.observe(viewLifecycleOwner) { hasUpdates ->
 			manageBadge = header.buttonManage.bindBadge(manageBadge, if (hasUpdates) "" else null)
@@ -189,6 +194,41 @@ class ExploreFragment :
 		}
 		if (height > 0 && binding.pager.layoutParams.height != height) {
 			binding.pager.updateLayoutParams { this.height = height }
+		}
+	}
+
+	/**
+	 * Multi-select of the languages spoken by the installed sources. Unchecking one hides every
+	 * source in that language from Explore; the set is stored globally, so it survives installs.
+	 */
+	private fun showLanguageFilterDialog() {
+		val languages = viewModel.sourceLanguages()
+		if (languages.isEmpty()) {
+			Snackbar.make(requireViewBinding().pager, R.string.no_extensions_installed, Snackbar.LENGTH_SHORT).show()
+			return
+		}
+		val labels = languages.map { getString(R.string.language_with_count, it.displayName, it.sourceCount) }
+		// Reuses the settings screens' own multi-choice dialog so it looks like every other one.
+		// It is a composable, so it rides on a throwaway zero-size host in the activity's content
+		// view - the dialog puts itself in its own window, the host only carries the composition.
+		val content = requireActivity().findViewById<ViewGroup>(android.R.id.content) ?: return
+		val host = ComposeView(requireContext())
+		content.addView(host)
+		host.setContent {
+			DropSauceTheme {
+				MultiChoiceDialog(
+					title = stringResource(R.string.filter_by_language),
+					entries = labels,
+					selectedIndices = languages.indices.filterTo(HashSet()) { languages[it].isEnabled },
+					onConfirm = { selected ->
+						viewModel.setHiddenLanguages(
+							languages.filterIndexed { index, _ -> index !in selected }
+								.mapTo(HashSet()) { it.code },
+						)
+					},
+					onDismiss = { content.removeView(host) },
+				)
+			}
 		}
 	}
 

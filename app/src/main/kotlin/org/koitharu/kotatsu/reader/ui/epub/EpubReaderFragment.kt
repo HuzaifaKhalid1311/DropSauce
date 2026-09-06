@@ -243,6 +243,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				binding.root.requestApplyInsets()
 				switchReadingMode()
 			}
+		settings.observeAsFlow(AppSettings.KEY_EPUB_RTL) { isEpubRtl }
+			.observe(viewLifecycleOwner) { switchReadingMode() }
 		tts.position.observe(viewLifecycleOwner) { onTtsPositionChanged(it) }
 		tts.chapterFinished.observe(viewLifecycleOwner) { onTtsChapterFinished(it) }
 	}
@@ -787,7 +789,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		val key = "${container.width}:${container.height}:$effectiveFontSize:${readerTypeface.hashCode()}:" +
 			"${settings.epubCustomFontRevision}:" +
 			"$effectiveLineHeight:$effectiveParagraphSpacing:$effectiveHorizontalPadding:$effectiveVerticalPadding:" +
-			"$effectiveTextAlign:${settings.epubReadingMode}:${settings.isEpubPublisherStyleEnabled}:" +
+			"$effectiveTextAlign:${settings.epubReadingMode}:${settings.isEpubRtl}:${settings.isEpubPublisherStyleEnabled}:" +
 			"${settings.isEpubBionicReadingEnabled}"
 		container.setBackgroundColor(backgroundColor)
 		if (pages.isNotEmpty() && paginationKey == key && pageRange?.contains(locator.chapter) == true) {
@@ -1519,7 +1521,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private val isPagedMode get() = settings.epubReadingMode != EPUB_MODE_SCROLL
-	private val isRtlPagedMode get() = settings.epubReadingMode == EPUB_MODE_PAGED_RTL
+
+	/** Reading direction. Independent of [isPagedMode], so scroll mode can be RTL too. */
+	private val isRtlPagedMode get() = settings.isEpubRtl
 	private val effectiveTextAlign get() = when {
 		settings.isEpubPublisherStyleEnabled -> if (isRtlPagedMode) "right" else "left"
 		isRtlPagedMode && settings.epubTextAlign == "left" -> "right"
@@ -1896,7 +1900,6 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	companion object {
 		private const val EPUB_MODE_SCROLL = "scroll"
-		private const val EPUB_MODE_PAGED_RTL = "paged_rtl"
 		private const val EPUB_THEME_CUSTOM = "custom"
 		private const val EPUB_FONT_CUSTOM = "custom"
 		private const val MAX_SEARCH_RESULTS = 100

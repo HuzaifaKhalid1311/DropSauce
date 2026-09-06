@@ -156,7 +156,7 @@ class ReaderActivity :
         controlDelegate = ReaderControlDelegate(resources, settings, tapGridSettings, this)
         viewBinding.zoomControl.listener = this
         viewBinding.actionsView.listener = this
-        viewBinding.buttonTimer?.setOnClickListener(this)
+        viewBinding.buttonTimerFab?.setOnClickListener(this)
         idlingDetector.bindToLifecycle(this)
         screenOrientationHelper.applySettings()
         viewModel.isBookmarkAdded.observe(this) { viewBinding.actionsView.isBookmarkAdded = it }
@@ -206,8 +206,8 @@ class ReaderActivity :
             ),
         )
         viewModel.readerMode.observe(this, Lifecycle.State.STARTED, this::onInitReader)
-        settings.observeAsFlow(AppSettings.KEY_EPUB_READING_MODE) { epubReadingMode }.observe(this) {
-            if (readerManager.isEpub) viewBinding.actionsView.setSliderReversed(it == EPUB_MODE_PAGED_RTL)
+        settings.observeAsFlow(AppSettings.KEY_EPUB_RTL) { isEpubRtl }.observe(this) {
+            if (readerManager.isEpub) viewBinding.actionsView.setSliderReversed(it)
         }
         viewModel.onPageSaved.observeEvent(this, PagesSavedObserver(viewBinding.container))
         viewModel.uiState.zipWithPrevious().observe(this, this::onUiStateChanged)
@@ -346,7 +346,7 @@ class ReaderActivity :
             lifecycle.postDelayed(TimeUnit.SECONDS.toMillis(1), hideUiRunnable)
         }
         viewBinding.actionsView.setSliderReversed(
-            if (readerManager.isEpub) settings.epubReadingMode == EPUB_MODE_PAGED_RTL else mode == ReaderMode.REVERSED,
+            if (readerManager.isEpub) settings.isEpubRtl else mode == ReaderMode.REVERSED,
         )
         viewBinding.timerControl.onReaderModeChanged(mode)
     }
@@ -794,7 +794,7 @@ class ReaderActivity :
         // Tablet layouts anchor the panel to the top app bar, so there is nothing to dodge.
         if (viewBinding.toolbarDocked == null) return
         // The floating button rides along: with the dock up it would otherwise sit behind it.
-        val panels = listOfNotNull<View>(viewBinding.timerControl, viewBinding.ttsControl, viewBinding.buttonTimer)
+        val panels = listOfNotNull<View>(viewBinding.timerControl, viewBinding.ttsControl, viewBinding.buttonTimerFab)
         // Hiding the system bars makes insets settle over several frames, and every one of those
         // callbacks lands here. Without this guard they snap translationY straight to the target
         // mid-flight, so the panel appears to jump while the toolbar is still sliding.
@@ -823,7 +823,7 @@ class ReaderActivity :
     }
 
     private fun updateScrollTimerButton() {
-        val button = viewBinding.buttonTimer ?: return
+        val button = viewBinding.buttonTimerFab ?: return
         // The TTS face of the FAB is sticky: once speech has been started it stays offered on every
         // novel until it is explicitly stopped, so resuming it doesn't mean digging through the menu.
         val isTts = tts.isPlaying.value ||
@@ -892,7 +892,6 @@ class ReaderActivity :
         // matches androidx.transition's default duration, so the panel and the toolbar move together
         private const val PANEL_SLIDE_DURATION = 300L
 		private const val EPUB_MODE_SCROLL = "scroll"
-		private const val EPUB_MODE_PAGED_RTL = "paged_rtl"
 
         private const val TOP_READER_BAR_ALPHA = 0.7f
     }

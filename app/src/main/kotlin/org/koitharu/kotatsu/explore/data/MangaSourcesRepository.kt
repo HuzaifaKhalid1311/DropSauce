@@ -14,14 +14,24 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageAutonym
 import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
+import org.koitharu.kotatsu.lnreader.model.langCode
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.resolveActiveMihonLanguage
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/** One language offered by the installed sources, as shown in the Explore language filter. */
+data class SourceLanguage(
+	val code: String,
+	val displayName: String,
+	val sourceCount: Int,
+	val isEnabled: Boolean,
+)
 
 /** Result of [MangaSourcesRepository.resolveActiveSource]. */
 data class ResolvedSource(
@@ -183,6 +193,16 @@ class MangaSourcesRepository @Inject constructor(
 	 * returned as-is. Honours the NSFW filter.
 	 */
 	private fun getMihonSources(): List<MihonMangaSource> {
+		val hiddenLangs = settings.hiddenSourceLanguages
+		return getActiveMihonSources().filterNot { it.language in hiddenLangs }
+	}
+
+	/**
+	 * Every source at its active language, before the language filter is applied. The filter runs
+	 * after the collapse on purpose: hiding a language must not change which variant of a
+	 * multi-language source is the active one.
+	 */
+	private fun getActiveMihonSources(): List<MihonMangaSource> {
 		val manager = mihonExtensionManager ?: return emptyList()
 		manager.initialize()
 		val hideNsfw = settings.isNsfwContentDisabled
@@ -229,7 +249,10 @@ class MangaSourcesRepository @Inject constructor(
 		val manager = lnPluginManager ?: return emptyList()
 		manager.initialize()
 		val hidden = settings.lnHiddenPlugins
-		return manager.getAll().filterNot { it.pluginId in hidden }
+		val hiddenLangs = settings.hiddenSourceLanguages
+		return manager.getAll()
+			.filterNot { it.pluginId in hidden }
+			.filterNot { it.plugin.langCode in hiddenLangs }
 	}
 
 	fun observeLnSources(): Flow<List<LnMangaSource>> {
@@ -238,7 +261,8 @@ class MangaSourcesRepository @Inject constructor(
 		return combine(
 			manager.sources,
 			settings.observeAsFlow(AppSettings.KEY_LN_HIDDEN_PLUGINS) { lnHiddenPlugins },
-		) { _: Any?, _: Any? ->
+			settings.observeAsFlow(AppSettings.KEY_HIDDEN_SOURCE_LANGUAGES) { hiddenSourceLanguages },
+		) { _: Any?, _: Any?, _: Any? ->
 			getLnSources()
 		}.distinctUntilChanged()
 	}
@@ -263,6 +287,39 @@ class MangaSourcesRepository @Inject constructor(
 			?.language
 			?.takeIf { it.isNotEmpty() }
 			?: "en"
+
+	/**
+	 * The languages actually spoken by the installed sources, with a source count each. Only the
+	 * *active* language of a multi-language source counts, so a source pinned to English shows up
+	 * as English alone. Ignores the language filter itself, so a hidden language can be unhidden.
+	 */
+	fun getSourceLanguages(): List<SourceLanguage> {
+		val hiddenPlugins = settings.lnHiddenPlugins
+		val counts = HashMap<String, Int>()
+		getActiveMihonSources().forEach { counts[it.language] = (counts[it.language] ?: 0) + 1 }
+		lnPluginManager?.let { manager ->
+			manager.initialize()
+			manager.getAll()
+				.filterNot { it.pluginId in hiddenPlugins }
+				.forEach {
+					val code = it.plugin.langCode
+					counts[code] = (counts[code] ?: 0) + 1
+				}
+		}
+		val hiddenLangs = settings.hiddenSourceLanguages
+		return counts.map { (code, count) ->
+			SourceLanguage(
+				code = code,
+				displayName = getExternalExtensionLanguageAutonym(code),
+				sourceCount = count,
+				isEnabled = code !in hiddenLangs,
+			)
+		}.sortedBy { it.displayName.lowercase() }
+	}
+
+	fun setHiddenLanguages(codes: Set<String>) {
+		settings.hiddenSourceLanguages = codes
+	}
 
 	/** True when at least one installed source offers more than one language. */
 	private fun hasMultiLanguageSources(): Boolean {
@@ -291,7 +348,8 @@ class MangaSourcesRepository @Inject constructor(
 			settings.observeAsFlow(AppSettings.KEY_MIHON_PER_EXT_ACTIVE_LANG) { mihonPerExtActiveLangs },
 			settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled },
 			settings.observeAsFlow(AppSettings.KEY_MIHON_HIDDEN_PACKAGES) { mihonHiddenPackages },
-		) { _: Any?, _: Any?, _: Any?, _: Any?, _: Any? ->
+			settings.observeAsFlow(AppSettings.KEY_HIDDEN_SOURCE_LANGUAGES) { hiddenSourceLanguages },
+		) { _: Array<Any?> ->
 			getMihonSources()
 		}.distinctUntilChanged()
 	}

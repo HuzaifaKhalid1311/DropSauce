@@ -3,6 +3,12 @@
 	xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<item
+		android:id="@+id/action_language_filter"
+		android:icon="@drawable/ic_language_filter"
+		android:title="@string/filter_by_language"
+		android:titleCondensed="@string/language" />
+
+	<item
 		android:id="@+id/action_manage"
 		android:icon="@drawable/ic_manga_source"
 		android:title="@string/extension_management"

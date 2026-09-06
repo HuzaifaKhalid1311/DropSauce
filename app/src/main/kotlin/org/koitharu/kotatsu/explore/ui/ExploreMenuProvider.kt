@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.core.nav.AppRouter
 
 class ExploreMenuProvider(
 	private val router: AppRouter,
+	private val onLanguageFilterClick: () -> Unit,
 ) : MenuProvider {
 
 	override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -19,6 +20,11 @@ class ExploreMenuProvider(
 		return when (menuItem.itemId) {
 			R.id.action_manage -> {
 				router.openSourcesCatalog(isExternalOnly = true)
+				true
+			}
+
+			R.id.action_language_filter -> {
+				onLanguageFilterClick()
 				true
 			}
 

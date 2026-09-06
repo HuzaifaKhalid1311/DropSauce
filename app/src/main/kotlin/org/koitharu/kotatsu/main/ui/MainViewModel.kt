@@ -1,9 +1,7 @@
 package org.koitharu.kotatsu.main.ui
 
-import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,47 +21,23 @@ import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.main.domain.ReadingResumeEnabledUseCase
-import org.koitharu.kotatsu.mihon.MihonExtensionLoader
-import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
-import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
-import org.koitharu.kotatsu.settings.sources.catalog.isNewerThan
 import org.koitharu.kotatsu.tracker.domain.TrackingRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-	@ApplicationContext private val appContext: Context,
 	private val historyRepository: HistoryRepository,
 	private val appUpdateRepository: AppUpdateRepository,
 	trackingRepository: TrackingRepository,
 	private val settings: AppSettings,
 	readingResumeEnabledUseCase: ReadingResumeEnabledUseCase,
-	private val mihonExtensionManager: MihonExtensionManager,
-	private val mihonExtensionLoader: MihonExtensionLoader,
 	private val extensionStoreManager: ExtensionStoreManager,
 	private val extensionUpdateScheduler: ExtensionUpdateWorker.Scheduler,
 ) : BaseViewModel() {
 
-	val hasExtensionUpdates: StateFlow<Boolean> = combine(
-		mihonExtensionManager.installedExtensions,
-		extensionStoreManager.states,
-		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
-	) { installed, stores, privateMode ->
-		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
-		// Read the installed list through the loader, not the load results: attributing an extension
-		// to its store needs the APK's signing fingerprints, which only this list carries. Without
-		// them a sideloaded extension had no nav-bar dot while Explore showed one for it.
-		installed.isNotEmpty() && mihonExtensionLoader.getInstalledExtensions(appContext, privateMode).any { local ->
-			val owner = extensionStoreManager.owner(mode, local) ?: return@any false
-			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
-			owner.enabled &&
-				state.health == StoreHealth.AVAILABLE &&
-				state.catalog.any { it.packageName == local.pkgName && it.isNewerThan(local) }
-		}
-	}.onEach { hasUpdates ->
+	val hasExtensionUpdates: StateFlow<Boolean> = extensionStoreManager.hasUpdates.onEach { hasUpdates ->
 		if (hasUpdates) {
 			if (settings.isPrivateInstallEnabled) {
 				extensionUpdateScheduler.startNow()

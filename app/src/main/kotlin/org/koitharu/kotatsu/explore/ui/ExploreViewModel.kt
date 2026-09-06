@@ -1,10 +1,8 @@
 package org.koitharu.kotatsu.explore.ui
 
-import android.content.Context
 import androidx.collection.LongSet
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +15,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
@@ -32,6 +29,7 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
+import org.koitharu.kotatsu.explore.data.SourceLanguage
 import org.koitharu.kotatsu.explore.domain.ExploreRepository
 import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
@@ -43,25 +41,19 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
 import org.koitharu.kotatsu.list.ui.model.TipModel
-import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
-import org.koitharu.kotatsu.settings.sources.catalog.StoreHealth
-import org.koitharu.kotatsu.settings.sources.catalog.isNewerThan
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
-	@ApplicationContext private val appContext: Context,
 	private val settings: AppSettings,
 	private val suggestionRepository: SuggestionRepository,
 	private val exploreRepository: ExploreRepository,
 	private val sourcesRepository: MangaSourcesRepository,
 	private val shortcutManager: AppShortcutManager,
-	private val mihonExtensionLoader: MihonExtensionLoader,
 	private val extensionStoreManager: ExtensionStoreManager,
 ) : BaseViewModel() {
 
@@ -82,19 +74,8 @@ class ExploreViewModel @Inject constructor(
 	private val mutableRandomLoading = MutableStateFlow(false)
 	val isRandomLoading = mutableRandomLoading.asStateFlow()
 
-	val hasExtensionUpdates: StateFlow<Boolean> = combine(
-		extensionStoreManager.states,
-		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
-	) { stores, privateMode ->
-		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
-		mihonExtensionLoader.getInstalledExtensions(appContext, privateMode).any { local ->
-			val owner = extensionStoreManager.owner(mode, local) ?: return@any false
-			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
-			owner.enabled &&
-				state.health == StoreHealth.AVAILABLE &&
-				state.catalog.any { it.packageName == local.pkgName && it.isNewerThan(local) }
-		}
-	}.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
+	val hasExtensionUpdates: StateFlow<Boolean> = extensionStoreManager.hasUpdates
+		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
 	/** Everything above the extension list: quick buttons and the suggestions carousel. */
 	val headerContent: StateFlow<List<ListModel>> = getSuggestionFlow().map { recommendation ->
@@ -138,6 +119,13 @@ class ExploreViewModel @Inject constructor(
 				mutableRandomLoading.value = false
 			}
 		}
+	}
+
+	/** Languages offered by the installed sources, for the Explore language filter. */
+	fun sourceLanguages(): List<SourceLanguage> = sourcesRepository.getSourceLanguages()
+
+	fun setHiddenLanguages(codes: Set<String>) {
+		sourcesRepository.setHiddenLanguages(codes)
 	}
 
 	fun requestPinShortcut(source: MangaSource) {

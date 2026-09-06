@@ -482,6 +482,9 @@
     <string name="prefetch_content">Content preloading</string>
     <string name="mark_as_current">Mark as current</string>
     <string name="language">Language</string>
+    <string name="filter_by_language">Filter by language</string>
+    <string name="language_with_count">%1$s (%2$d)</string>
+    <string name="no_extensions_installed">No extensions installed</string>
     <string name="theme_name_expressive">Expressive</string>
     <string name="color_theme">Color scheme</string>
     <string name="show_in_grid_view">Show in grid view</string>
@@ -520,10 +523,11 @@
 	<string name="epub_text_alignment">Text alignment</string>
 	<string name="epub_read_mode">Read mode</string>
 	<string name="epub_mode_scroll">Scroll</string>
+	<string name="epub_mode_paged">Paged</string>
+	<string name="epub_reading_direction">Direction</string>
 	<string name="epub_mode_paged_ltr">LTR</string>
 	<string name="epub_mode_paged_rtl">RTL</string>
-	<string name="epub_align_left">Left</string>
-	<string name="epub_align_right">Right</string>
+	<string name="epub_align_side">Side</string>
 	<string name="epub_align_justified">Justified</string>
 	<string name="epub_publisher_style">Use book formatting</string>
 	<string name="epub_bionic_reading">Bionic reading</string>

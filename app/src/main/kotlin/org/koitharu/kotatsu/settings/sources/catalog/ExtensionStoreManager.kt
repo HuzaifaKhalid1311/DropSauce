@@ -3,13 +3,20 @@ package org.koitharu.kotatsu.settings.sources.catalog
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import java.net.URI
 import javax.inject.Inject
@@ -34,12 +41,37 @@ class ExtensionStoreManager @Inject constructor(
 	private val registry: ExtensionStoreRegistry,
 	private val repository: ExternalExtensionRepoRepository,
 	private val extensionLoader: MihonExtensionLoader,
+	private val extensionManager: MihonExtensionManager,
+	private val settings: AppSettings,
 ) {
 
 	private val mutex = Mutex()
 	private val mutableStates = MutableStateFlow<List<ExtensionStoreState>>(emptyList())
 	private var initialized = false
 	val states: StateFlow<List<ExtensionStoreState>> = mutableStates.asStateFlow()
+
+	/**
+	 * Single source of truth for the "extension updates available" indicator.
+	 * Both the bottom-nav dot and the Explore "Manage" button badge observe this, so they
+	 * can never disagree.
+	 */
+	val hasUpdates: Flow<Boolean> = combine(
+		extensionManager.installedExtensions,
+		states,
+		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
+	) { installed, stores, privateMode ->
+		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		// Read the installed list through the loader, not the load results: attributing an extension
+		// to its store needs the APK's signing fingerprints, which only this list carries. Without
+		// them a sideloaded extension had no nav-bar dot while Explore showed one for it.
+		installed.isNotEmpty() && extensionLoader.getInstalledExtensions(context, privateMode).any { local ->
+			val owner = owner(mode, local) ?: return@any false
+			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
+			owner.enabled &&
+				state.health == StoreHealth.AVAILABLE &&
+				state.catalog.any { it.packageName == local.pkgName && it.isNewerThan(local) }
+		}
+	}.flowOn(Dispatchers.IO).distinctUntilChanged()
 
 	suspend fun initialize(forceRefresh: Boolean = false) = mutex.withLock {
 		withContext(Dispatchers.IO) {
