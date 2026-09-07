@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -202,9 +203,9 @@ private fun Header(
 					// Explicit: this sits on the bare sheet, where LocalContentColor is not theme-aware
 					// and the icon would come out near-invisible in one of the two themes.
 					tint = MaterialTheme.colorScheme.onSurfaceVariant,
-					// 24dp is the app-wide toolbar/overflow icon size; anything smaller reads as a
-					// different, undersized control next to every other menu in the app.
-					modifier = Modifier.size(24.dp),
+					// top_bar_action_icon_size is the app-wide toolbar/overflow icon size; anything else
+					// reads as a different, odd-sized control next to every other menu in the app.
+					modifier = Modifier.size(dimensionResource(R.dimen.top_bar_action_icon_size)),
 				)
 			}
 		}

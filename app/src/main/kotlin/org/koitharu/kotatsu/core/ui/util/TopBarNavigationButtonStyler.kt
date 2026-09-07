@@ -13,6 +13,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.ActionMenuView
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.children
@@ -27,15 +28,18 @@ import kotlin.math.roundToInt
  * bar). It enforces a single design language for the bar's clickable icons:
  *
  *  - A circular tonal **navigation button** (back / close) pinned to the start edge.
- *  - A tonal **pill** on the end edge that groups the action icons. Each action sits in its own
- *    square cell whose width equals the navigation button's diameter; the cells abut one another
- *    so their circular ripples are tangent, and the shared rounded-rectangle fill turns the row
- *    into a pill. With a single action the cell + pill collapse into a circle identical to the
- *    navigation button.
+ *  - A **connected button group** on the end edge that holds the action icons, mirroring the group
+ *    used on each row of the extension store. Each action is its own tonal segment, as tall as the
+ *    navigation button but [TonalBarMetrics.segmentWidth] wide so several of them together stay
+ *    within the footprint of the single pill they replaced; segments are separated by
+ *    [TonalBarMetrics.segmentSpacing] and share [TonalBarMetrics.innerCornerRadius] on the abutting
+ *    edges, while the group's outer edges stay fully rounded. A lone action widens back to the
+ *    navigation button's diameter, so it renders as an identical circle.
  *
  * Every icon — back, close, each action, the overflow "more" button — is rendered identically:
- * forced to [TonalBarMetrics.iconSize], centered on both axes inside its [TonalBarMetrics.cellSize]
- * cell with a centered circular ripple, and tinted with `colorOnSurfaceVariant`. The pill's end
+ * forced to [TonalBarMetrics.iconSize], centered on both axes inside its segment with a ripple
+ * bounded to that shape, and tinted with `colorOnSecondaryContainer` (the
+ * reference group's icon colour) over the unchanged `colorSurfaceContainer` fill. The group's end
  * inset mirrors the navigation button's start margin, so the bar is symmetric edge-to-edge.
  *
  * Menus inflate (and re-bind) asynchronously, so the styling re-applies on every layout pass. It is
@@ -53,9 +57,23 @@ private class TonalBarMetrics(context: Context) {
 	val iconSize = context.dimen(R.dimen.top_bar_action_icon_size)
 	val edgeMargin = context.dimen(R.dimen.top_bar_navigation_button_margin_start)
 
-	/** Symmetric padding that centers an [iconSize] icon inside a [cellSize] cell. */
+	/**
+	 * Segments are narrower than they are tall: the group holds several of them, so trimming the
+	 * width keeps the whole group no wider than the single pill it replaced. The height stays
+	 * [cellSize] so the group lines up with the circular navigation button.
+	 */
+	val segmentWidth = context.dimen(R.dimen.top_bar_action_segment_width)
+	val segmentSpacing = context.dimen(R.dimen.top_bar_action_segment_spacing)
+	val innerCornerRadius = context.dimen(R.dimen.top_bar_action_segment_inner_corner).toFloat()
+	val outerCornerRadius = cellSize / 2f
+
+	/** Symmetric padding that centers an [iconSize] icon inside the square navigation button. */
 	val iconInset = ((cellSize - iconSize) / 2).coerceAtLeast(0)
-	val iconTintColor = context.getThemeColor(materialR.attr.colorOnSurfaceVariant)
+
+	/** The same, for the narrower action segment — horizontal and vertical differ there. */
+	val segmentIconInsetX = ((segmentWidth - iconSize) / 2).coerceAtLeast(0)
+	val segmentIconInsetY = iconInset
+	val iconTintColor = context.getThemeColor(materialR.attr.colorOnSecondaryContainer)
 	val iconTint: ColorStateList = ColorStateList.valueOf(iconTintColor)
 }
 
@@ -114,15 +132,22 @@ internal fun ViewGroup.applyTonalActionMenuStyleNow() {
 private fun ActionMenuView.applyTonalPillStyle() {
 	val metrics = TonalBarMetrics(context)
 
-	// One-time container setup: the rounded-rectangle pill fill, no internal padding, and clip its
-	// children to the pill outline. Vertical-center gravity keeps the cells centered no matter how
-	// tall the container is ultimately measured.
+	// One-time container setup: the group itself draws nothing — each segment carries its own tonal
+	// fill — so it only needs zero padding and vertical-center gravity, which keeps the segments
+	// centered no matter how tall the container is ultimately measured.
 	if (getTag(R.id.tag_tonal_action_pill) == null) {
 		setTag(R.id.tag_tonal_action_pill, true)
 		setPadding(0, 0, 0, 0)
-		background = context.createPillBackground(metrics.cellSize)
-		clipToOutline = true
+		background = null
+		clipToOutline = false
 		gravity = Gravity.CENTER_VERTICAL
+		// The gap between segments has to be a divider, not a child margin: ActionMenuView.onMeasure
+		// resets every child's left/right margin to 0 whenever it is measured with a non-EXACTLY width
+		// spec — which is always the case inside a Toolbar — so margins are wiped on each pass and the
+		// segments end up touching. The LinearLayoutCompat divider it inherits is untouched by that.
+		dividerDrawable = spacerDrawable(metrics.segmentSpacing)
+		showDividers = LinearLayoutCompat.SHOW_DIVIDER_MIDDLE
+		dividerPadding = 0
 	}
 
 	// Pin the container to exactly the navigation-button height, center it vertically, push it to the
@@ -135,10 +160,17 @@ private fun ActionMenuView.applyTonalPillStyle() {
 		gravity = Gravity.END or Gravity.CENTER_VERTICAL,
 	)
 
-	for (child in children) {
-		if (child.isPillActionItem()) {
-			child.applyTonalActionCell(metrics)
-		}
+	// Only the icon-only items form the connected group, so first/last are computed over those alone.
+	val segments = children.filter { it.isPillActionItem() }.toList()
+	val isRtl = layoutDirection == View.LAYOUT_DIRECTION_RTL
+	segments.forEachIndexed { index, child ->
+		val isFirst = index == 0
+		val isLast = index == segments.lastIndex
+		child.applyTonalActionCell(
+			metrics = metrics,
+			roundLeft = if (isRtl) isLast else isFirst,
+			roundRight = if (isRtl) isFirst else isLast,
+		)
 	}
 }
 
@@ -150,31 +182,47 @@ private fun View.isPillActionItem(): Boolean = when (this) {
 }
 
 /**
- * Lays out one action as a square cell with a centered, uniformly-sized icon and a centered circular
- * ripple. The pill itself supplies the surface fill, so the cell's background is the ripple only.
+ * Lays out one action as a segment of the connected group: its own tonal fill with the
+ * group's outer corners fully rounded and the abutting ones small, a ripple bounded to that shape,
+ * and a centered, uniformly-sized icon.
  */
-private fun View.applyTonalActionCell(metrics: TonalBarMetrics) {
+private fun View.applyTonalActionCell(
+	metrics: TonalBarMetrics,
+	roundLeft: Boolean,
+	roundRight: Boolean,
+) {
 	if (getTag(R.id.tag_tonal_action_item) == null) {
 		setTag(R.id.tag_tonal_action_item, true)
 		minimumWidth = 0
 		minimumHeight = 0
-		background = context.createCenteredRipple()
 	}
-	updateLayoutSize(metrics.cellSize, metrics.cellSize, marginStart = 0, marginEnd = 0)
+	// The shape depends on the segment's position, which changes whenever the menu is rebound, so
+	// rebuild the background only when that position actually changed.
+	val shapeKey = (if (roundLeft) 1 else 0) or (if (roundRight) 2 else 0)
+	if (getTag(R.id.tag_tonal_action_shape) != shapeKey) {
+		setTag(R.id.tag_tonal_action_shape, shapeKey)
+		background = context.createSegmentBackground(metrics, roundLeft, roundRight)
+	}
+	// A lone action has both outer edges rounded, so give it the navigation button's full width: it
+	// then renders as an identical circle instead of a slightly squashed stadium.
+	val isOnlySegment = roundLeft && roundRight
+	val width = if (isOnlySegment) metrics.cellSize else metrics.segmentWidth
+	val insetX = if (isOnlySegment) metrics.iconInset else metrics.segmentIconInsetX
+	updateLayoutSize(width, metrics.cellSize)
 	when (this) {
 		// Overflow button & image action views: scale the drawable into the centered icon box.
 		is ImageView -> {
 			if (scaleType != ImageView.ScaleType.FIT_CENTER) {
 				scaleType = ImageView.ScaleType.FIT_CENTER
 			}
-			updatePaddingTo(metrics.iconInset)
+			updatePaddingTo(insetX, metrics.segmentIconInsetY)
 			forceImageIconTint(metrics)
 		}
 		// Icon-only ActionMenuItemView: the icon is a *left compound drawable*, which a TextView always
 		// draws at paddingLeft (gravity centers the text, not the drawable). So symmetric padding —
 		// not gravity — is what actually centers the icon in the cell.
 		is TextView -> {
-			updatePaddingTo(metrics.iconInset)
+			updatePaddingTo(insetX, metrics.segmentIconInsetY)
 			if (gravity != Gravity.CENTER) {
 				gravity = Gravity.CENTER
 			}
@@ -251,9 +299,11 @@ private fun ImageView.forceImageIconTint(metrics: TonalBarMetrics) {
 
 // region small idempotent view helpers
 
-private fun View.updatePaddingTo(value: Int) {
-	if (paddingLeft != value || paddingTop != value || paddingRight != value || paddingBottom != value) {
-		setPadding(value, value, value, value)
+private fun View.updatePaddingTo(horizontal: Int, vertical: Int = horizontal) {
+	if (paddingLeft != horizontal || paddingTop != vertical ||
+		paddingRight != horizontal || paddingBottom != vertical
+	) {
+		setPadding(horizontal, vertical, horizontal, vertical)
 	}
 }
 
@@ -327,19 +377,37 @@ private fun Context.createCircleButtonBackground(): RippleDrawable = RippleDrawa
 )
 
 /**
- * Transparent-bodied circular ripple for a cell inside the pill: the pill supplies the fill, so only
- * the bounded, centered press highlight is drawn here.
+ * One segment of the connected action group: the tonal fill plus a ripple bounded to the same
+ * rounded-rectangle outline. [roundLeft] / [roundRight] mark the group's outer edges (already
+ * resolved for the layout direction); the remaining corners take the small inner radius.
  */
-private fun Context.createCenteredRipple(): RippleDrawable = RippleDrawable(
-	ColorStateList.valueOf(getThemeColor(android.R.attr.colorControlHighlight)),
-	null,
-	circle(Color.WHITE),
-)
+private fun Context.createSegmentBackground(
+	metrics: TonalBarMetrics,
+	roundLeft: Boolean,
+	roundRight: Boolean,
+): RippleDrawable {
+	val left = if (roundLeft) metrics.outerCornerRadius else metrics.innerCornerRadius
+	val right = if (roundRight) metrics.outerCornerRadius else metrics.innerCornerRadius
+	// topLeft, topRight, bottomRight, bottomLeft — each as an x/y pair.
+	val radii = floatArrayOf(left, left, right, right, right, right, left, left)
+	return RippleDrawable(
+		ColorStateList.valueOf(getThemeColor(android.R.attr.colorControlHighlight)),
+		roundRect(tonalSurfaceColor(), radii),
+		roundRect(Color.WHITE, radii),
+	)
+}
 
-private fun Context.createPillBackground(heightPx: Int): Drawable = GradientDrawable().apply {
+/** A transparent, fixed-width divider used purely as the gap between two segments. */
+private fun spacerDrawable(widthPx: Int): Drawable = GradientDrawable().apply {
 	shape = GradientDrawable.RECTANGLE
-	cornerRadius = heightPx / 2f
-	setColor(tonalSurfaceColor())
+	setColor(Color.TRANSPARENT)
+	setSize(widthPx, 1)
+}
+
+private fun roundRect(color: Int, radii: FloatArray): GradientDrawable = GradientDrawable().apply {
+	shape = GradientDrawable.RECTANGLE
+	cornerRadii = radii
+	setColor(color)
 }
 
 private fun circle(color: Int): GradientDrawable = GradientDrawable().apply {

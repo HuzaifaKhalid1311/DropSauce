@@ -253,13 +253,6 @@ abstract class BaseActivity<B : ViewBinding> :
 		menu.adjustPopupMenuIcons(
 			resources = resources,
 			shouldSkip = { it.requiresActionButtonCompat() },
-			iconSizeProvider = {
-				if (it.itemId == R.id.action_manage && it.title == getString(R.string.extension_management)) {
-					resources.getDimensionPixelSize(R.dimen.explore_extension_menu_icon_size)
-				} else {
-					resources.getDimensionPixelSize(R.dimen.menu_popup_icon_size)
-				}
-			},
 		)
 		return super.onPreparePanel(featureId, view, menu)
 	}

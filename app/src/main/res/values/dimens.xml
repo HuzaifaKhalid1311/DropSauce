@@ -38,7 +38,11 @@
 	<dimen name="top_bar_navigation_button_size">46dp</dimen>
 	<!-- Inset of the back button from the start edge; the action pill mirrors it on the end edge. -->
 	<dimen name="top_bar_navigation_button_margin_start">16dp</dimen>
-	<dimen name="top_bar_action_icon_size">24dp</dimen>
+	<dimen name="top_bar_action_icon_size">22dp</dimen>
+	<!-- Connected-group metrics for the end action segments, matching the extension-store group. -->
+	<dimen name="top_bar_action_segment_width">42dp</dimen>
+	<dimen name="top_bar_action_segment_spacing">2dp</dimen>
+	<dimen name="top_bar_action_segment_inner_corner">8dp</dimen>
 	<!-- Start margin (16) + button (46) + 16 gap, so the title keeps the same rhythm as the edges. -->
 	<dimen name="top_bar_title_inset_with_navigation">78dp</dimen>
 	<dimen name="explore_grid_width">135dp</dimen>
@@ -107,7 +111,9 @@
 	<dimen name="menu_popup_min_width">160dp</dimen>
 	<dimen name="menu_popup_item_min_height">40dp</dimen>
 	<dimen name="menu_popup_icon_size">32dp</dimen>
-	<dimen name="explore_extension_menu_icon_size">40dp</dimen>
+	<!-- Leading icon of a standard popup/overflow menu item. Matches top_bar_action_icon_size so a
+	     menu opened from the top bar keeps the same icon size as the bar it dropped out of. -->
+	<dimen name="menu_popup_item_icon_size">22dp</dimen>
 	<dimen name="explore_header_side_width">104dp</dimen>
 	<dimen name="menu_popup_item_padding_horizontal">12dp</dimen>
 	<dimen name="menu_popup_selector_inset_horizontal">4dp</dimen>

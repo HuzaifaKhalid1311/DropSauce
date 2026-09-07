@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:id="@+id/icon"
-	android:layout_width="@dimen/menu_popup_icon_size"
-	android:layout_height="@dimen/menu_popup_icon_size"
+	android:layout_width="@dimen/menu_popup_item_icon_size"
+	android:layout_height="@dimen/menu_popup_item_icon_size"
 	android:layout_gravity="center_vertical"
 	android:layout_marginEnd="@dimen/menu_icon_text_spacing_extra"
 	android:duplicateParentState="true"
-	android:scaleType="centerInside" />
+	android:scaleType="centerInside"
+	app:tint="?attr/colorOnSecondaryContainer" />

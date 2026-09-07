@@ -15,6 +15,7 @@
 	<!-- View tags used by the tonal top-bar action pill styler -->
 	<item name="tag_tonal_action_menu" type="id" />
 	<item name="tag_tonal_action_pill" type="id" />
+	<item name="tag_tonal_action_shape" type="id" />
 	<item name="tag_tonal_action_item" type="id" />
 	<item name="tag_tonal_action_icon" type="id" />
 	<item name="tag_tonal_action_tint_color" type="id" />

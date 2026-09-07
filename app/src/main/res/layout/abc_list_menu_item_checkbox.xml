@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- app:buttonTint paints the box, app:buttonIconTint the tick inside it; the container/on-container
+     pair of the menu itself keeps the tick legible against the filled box in both themes. Do not add
+     android:buttonTint here: MaterialCheckBox stacks the box and the tick into one drawable, and the
+     platform tint covers that whole stack, flattening the tick into the filled box. -->
 <CheckBox xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:id="@+id/checkbox"
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
@@ -12,4 +17,6 @@
 	android:paddingStart="0dp"
 	android:paddingEnd="0dp"
 	android:paddingLeft="0dp"
-	android:paddingRight="0dp" />
+	android:paddingRight="0dp"
+	app:buttonIconTint="?attr/colorSecondaryContainer"
+	app:buttonTint="?attr/colorOnSecondaryContainer" />

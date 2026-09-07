@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.view.menu.ListMenuItemView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
 	android:background="@drawable/m3_popup_menu_row_selector"
@@ -41,7 +42,8 @@
 				android:ellipsize="marquee"
 				android:fadingEdge="horizontal"
 				android:singleLine="true"
-				android:textAppearance="?attr/textAppearanceLargePopupMenu" />
+				android:textAppearance="?attr/textAppearanceLargePopupMenu"
+				android:textColor="?attr/colorOnSecondaryContainer" />
 
 			<TextView
 				android:id="@+id/shortcut"
@@ -51,7 +53,8 @@
 				android:layout_alignParentStart="true"
 				android:duplicateParentState="true"
 				android:singleLine="true"
-				android:textAppearance="?attr/textAppearanceSmallPopupMenu" />
+				android:textAppearance="?attr/textAppearanceSmallPopupMenu"
+				android:textColor="?attr/colorOnSecondaryContainer" />
 
 		</RelativeLayout>
 
@@ -63,7 +66,8 @@
 			android:layout_marginStart="8dp"
 			android:duplicateParentState="true"
 			android:scaleType="center"
-			android:visibility="gone" />
+			android:visibility="gone"
+			app:tint="?attr/colorOnSecondaryContainer" />
 
 	</LinearLayout>
 
