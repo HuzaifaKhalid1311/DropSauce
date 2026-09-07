@@ -5,8 +5,8 @@
 
 	<item
 		android:id="@+id/action_done"
-		android:icon="@drawable/ic_check"
 		android:title="@string/save"
+		app:actionLayout="@layout/view_toolbar_save_button"
 		app:showAsAction="always" />
 
 </menu>

@@ -120,20 +120,25 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 
 	override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 		menuInflater.inflate(R.menu.opt_override_edit, menu)
+		menu?.findItem(R.id.action_done)?.actionView?.setOnClickListener { save() }
 		return super.onCreateOptionsMenu(menu)
 	}
 
 	override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
 		R.id.action_done -> {
-			errorText.value = null
-			viewModel.save(
-				title = titleText.value?.trim(),
-				description = descriptionText.value?.trim(),
-			)
+			save()
 			true
 		}
 
 		else -> super.onOptionsItemSelected(item)
+	}
+
+	private fun save() {
+		errorText.value = null
+		viewModel.save(
+			title = titleText.value?.trim(),
+			description = descriptionText.value?.trim(),
+		)
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
