@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -61,17 +62,29 @@ class ExtensionStoreManager @Inject constructor(
 		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
 	) { installed, stores, privateMode ->
 		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		if (installed.isEmpty()) {
+			// No extensions loaded (yet). Right after a cold start this is transient, and the store
+			// catalog is still empty too, so answer from the last persisted result instead of
+			// flashing "no updates" and forgetting one until the user refreshes the store manually.
+			return@combine settings.hasExtensionUpdates
+		}
+		if (stores.none { it.health == StoreHealth.AVAILABLE }) {
+			// Same reasoning: no store data means we can't tell, not that there is nothing.
+			return@combine settings.hasExtensionUpdates
+		}
 		// Read the installed list through the loader, not the load results: attributing an extension
 		// to its store needs the APK's signing fingerprints, which only this list carries. Without
 		// them a sideloaded extension had no nav-bar dot while Explore showed one for it.
-		installed.isNotEmpty() && extensionLoader.getInstalledExtensions(context, privateMode).any { local ->
+		extensionLoader.getInstalledExtensions(context, privateMode).any { local ->
 			val owner = owner(mode, local) ?: return@any false
 			val state = stores.firstOrNull { it.store.id == owner.id } ?: return@any false
 			owner.enabled &&
 				state.health == StoreHealth.AVAILABLE &&
 				state.catalog.any { it.packageName == local.pkgName && it.isNewerThan(local) }
 		}
-	}.flowOn(Dispatchers.IO).distinctUntilChanged()
+	}.distinctUntilChanged()
+		.onEach { settings.hasExtensionUpdates = it }
+		.flowOn(Dispatchers.IO)
 
 	suspend fun initialize(forceRefresh: Boolean = false) = mutex.withLock {
 		withContext(Dispatchers.IO) {

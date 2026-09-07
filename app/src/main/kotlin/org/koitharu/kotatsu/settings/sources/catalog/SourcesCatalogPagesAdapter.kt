@@ -137,7 +137,13 @@ class SourcesCatalogPagesAdapter(
 		}
 
 		fun update(page: ExtensionCatalogPage) {
-			catalogAdapter.items = (if (isSearching) content else normalContent)[page.id].orEmpty()
+			// The store catalog arrives after the installed list, so the "Updates available" section
+			// gets inserted above whatever is showing. RecyclerView anchors on the old first item, which
+			// left the new section scrolled off the top. Keep a list that was at the top at the top.
+			val wasAtTop = !binding.recyclerView.canScrollVertically(-1)
+			catalogAdapter.setItems((if (isSearching) content else normalContent)[page.id].orEmpty()) {
+				if (wasAtTop) binding.recyclerView.scrollToPosition(0)
+			}
 			binding.swipeRefreshLayout.isRefreshing = refreshing
 			binding.recyclerView.updatePadding(
 				left = insets.left,

@@ -5,7 +5,7 @@ package org.koitharu.kotatsu.list.ui.adapter
 import android.view.View
 import androidx.annotation.CheckResult
 import androidx.cardview.widget.CardView
-import androidx.core.view.doOnNextLayout
+import androidx.core.view.doOnLayout
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeUtils
 import com.google.android.material.badge.ExperimentalBadgeUtils
@@ -49,7 +49,10 @@ private fun initBadge(anchor: View): BadgeDrawable {
 	val badge = BadgeDrawable.create(anchor.context)
 	val resources = anchor.resources
 	badge.maxCharacterCount = resources.getInteger(R.integer.manga_badge_max_character_count)
-	anchor.doOnNextLayout {
+	// doOnLayout, not doOnNextLayout: the anchor is often already laid out by the time a badge is
+	// requested (e.g. the Explore "Manage" button when an extension update is found after the header
+	// was drawn), and then no further layout pass ever comes to attach the badge.
+	anchor.doOnLayout {
 		BadgeUtils.attachBadgeDrawable(badge, it)
 		badge.align(it)
 	}

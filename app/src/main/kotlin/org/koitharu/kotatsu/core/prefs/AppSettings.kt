@@ -646,6 +646,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_AUTO_UPDATE_EXTENSIONS, false)
 		set(value) = prefs.edit { putBoolean(KEY_AUTO_UPDATE_EXTENSIONS, value) }
 
+	/**
+	 * Last computed "extension updates available" result, persisted like Mihon's extension update
+	 * count so the indicator survives a cold start where the store catalog isn't loaded yet.
+	 */
+	var hasExtensionUpdates: Boolean
+		get() = prefs.getBoolean(KEY_EXTENSION_UPDATES_AVAILABLE, false)
+		set(value) = prefs.edit { putBoolean(KEY_EXTENSION_UPDATES_AVAILABLE, value) }
+
 	var isExtensionUpdateNotificationsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EXTENSION_UPDATE_NOTIFICATIONS, true)
 		set(value) = prefs.edit { putBoolean(KEY_EXTENSION_UPDATE_NOTIFICATIONS, value) }
@@ -1409,6 +1417,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PRIVATE_INSTALLER = "private_installer"
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"
 		const val KEY_EXTENSION_UPDATE_NOTIFICATIONS = "extension_update_notifications"
+		const val KEY_EXTENSION_UPDATES_AVAILABLE = "extension_updates_available"
 		const val KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME = "last_extension_update_notification_time"
 		const val KEY_DISCORD_RPC = "discord_rpc"
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"
