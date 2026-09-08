@@ -4,6 +4,12 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_import"
+		android:icon="@drawable/ic_fetch_details"
+		android:title="@string/import_from_tracker"
+		app:showAsAction="always" />
+
+	<item
 		android:id="@+id/action_done"
 		android:title="@string/save"
 		app:actionLayout="@layout/view_toolbar_save_button"

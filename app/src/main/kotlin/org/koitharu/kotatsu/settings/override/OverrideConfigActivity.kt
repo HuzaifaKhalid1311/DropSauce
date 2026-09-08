@@ -35,6 +35,7 @@ import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.databinding.ActivityOverrideEditBinding
 import org.koitharu.kotatsu.picker.ui.PageImagePickContract
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import javax.inject.Inject
 
@@ -52,6 +53,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 	private val viewModel: OverrideConfigViewModel by viewModels()
 
 	private val bottomInset = mutableIntStateOf(0)
+	private val isImportSheetShown = mutableStateOf(false)
 	private val titleText = mutableStateOf<String?>(null)
 	private val descriptionText = mutableStateOf<String?>(null)
 	private val errorText = mutableStateOf<String?>(null)
@@ -100,6 +102,19 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 						onCoverPick = ::onCoverPick,
 						onCoverReset = { viewModel.updateCover(null) },
 					)
+					val trackers by viewModel.trackers.collectAsState()
+					if (isImportSheetShown.value) {
+						TrackerImportSheet(
+							manga = manga,
+							trackers = trackers,
+							imageLoader = coil,
+							onImport = { tracker, fields ->
+								applyImport(tracker, fields)
+								isImportSheetShown.value = false
+							},
+							onDismiss = { isImportSheetShown.value = false },
+						)
+					}
 				}
 			}
 		}
@@ -116,6 +131,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 			finish()
 		}
 		viewModel.onError.observeEvent(this) { errorText.value = it.getDisplayMessage(resources) }
+		viewModel.trackers.observe(this) { invalidateOptionsMenu() }
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -124,13 +140,47 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 		return super.onCreateOptionsMenu(menu)
 	}
 
+	override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+		// Greyed out while there is nothing to import from — but still tappable, so a tap can say
+		// why instead of doing nothing. A disabled item would keep its full-strength icon anyway.
+		val hasTrackers = viewModel.trackers.value.isNotEmpty()
+		menu.findItem(R.id.action_import)?.icon?.alpha = if (hasTrackers) 255 else 97
+		return super.onPrepareOptionsMenu(menu)
+	}
+
 	override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
 		R.id.action_done -> {
 			save()
 			true
 		}
 
+		R.id.action_import -> {
+			if (viewModel.trackers.value.isEmpty()) {
+				Snackbar.make(
+					viewBinding.composeView,
+					R.string.import_from_tracker_empty,
+					Snackbar.LENGTH_SHORT,
+				).show()
+			} else {
+				isImportSheetShown.value = true
+			}
+			true
+		}
+
 		else -> super.onOptionsItemSelected(item)
+	}
+
+	/** Fills the editor with the tracker's values; saving them stays the user's call. */
+	private fun applyImport(tracker: ScrobblingInfo, fields: Set<ImportField>) {
+		if (ImportField.COVER in fields) {
+			viewModel.updateCover(tracker.coverUrl)
+		}
+		if (ImportField.TITLE in fields) {
+			titleText.value = tracker.title
+		}
+		if (ImportField.DESCRIPTION in fields) {
+			descriptionText.value = tracker.description?.toString().orEmpty()
+		}
 	}
 
 	private fun save() {

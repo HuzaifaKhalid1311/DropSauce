@@ -3,10 +3,17 @@ package org.koitharu.kotatsu.settings.override
 import android.content.Context
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.sink
@@ -26,6 +33,8 @@ import org.koitharu.kotatsu.core.util.ext.toFileOrNull
 import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import org.koitharu.kotatsu.parsers.util.md5
 import java.io.File
 import javax.inject.Inject
@@ -37,12 +46,25 @@ class OverrideConfigViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
 	@ApplicationContext private val context: Context,
 	private val dataRepository: MangaDataRepository,
+	scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
 ) : BaseViewModel() {
 
 	private val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
 	val data = MutableStateFlow<Pair<Manga, MangaOverride>?>(null)
 	val onSaved = MutableEventFlow<Unit>()
+
+	/**
+	 * Every tracker this manga is linked to, with the metadata it holds. Empty until the trackers
+	 * answer — each entry needs a network round trip — which is what greys out the import action.
+	 */
+	val trackers: StateFlow<List<ScrobblingInfo>> = combine(
+		scrobblers.map { it.observeScrobblingInfo(manga.id) },
+	) { info -> info.filterNotNull() }
+		// A tracker that cannot be reached just leaves the import action greyed out; it is not the
+		// editor's problem, and an error banner over the fields would be noise.
+		.catch { emit(emptyList()) }
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
 
 	init {
 		launchLoadingJob(Dispatchers.Default) {

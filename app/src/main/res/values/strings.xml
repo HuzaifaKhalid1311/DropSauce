@@ -1251,4 +1251,8 @@
     <string name="tts_voice_default">Default</string>
     <string name="tts_unavailable">No text-to-speech engine is available</string>
     <string name="stop">Stop</string>
+    <string name="cover">Cover</string>
+    <string name="import_from_tracker">Import from tracker</string>
+    <string name="import_from_tracker_hint">The values are filled into the editor, so you can check them before saving.</string>
+    <string name="import_from_tracker_empty">This manga is not linked to any tracker</string>
 </resources>

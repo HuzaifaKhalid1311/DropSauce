@@ -39,6 +39,12 @@ class ReaderTts @Inject constructor(
 	private var chapter: Int = -1
 	private var pendingPlayFrom: Int? = null
 
+	/** How much of the current sentence the engine has already spoken, in characters. */
+	private var spokenOffset = 0
+
+	/** Characters dropped from the front of the current utterance, which engine offsets exclude. */
+	private var spokenPrefix = 0
+
 	private val _isPlaying = MutableStateFlow(false)
 	private val _position = MutableStateFlow<Position?>(null)
 	private val _chapterFinished = MutableSharedFlow<Int>(extraBufferCapacity = 1)
@@ -156,11 +162,16 @@ class ReaderTts @Inject constructor(
 		_isPlaying.value = false
 	}
 
-	/** Speed and pitch only reach the engine at speak() time, so a live change has to re-queue. */
+	/**
+	 * Speed and pitch only reach the engine at speak() time, so a live change has to re-queue.
+	 * Re-queues from the word currently being spoken instead of the start of the sentence, so the
+	 * new value is heard right away and the listener does not lose their place.
+	 */
 	fun applyTuning() {
 		applySettings()
 		if (_isPlaying.value) {
-			play()
+			val index = _position.value?.index ?: return play()
+			speakFrom(index, skipChars = spokenOffset)
 		}
 	}
 
@@ -207,7 +218,11 @@ class ReaderTts @Inject constructor(
 		}
 	}
 
-	private fun speakFrom(startIndex: Int) {
+	/**
+	 * @param skipChars characters of the first sentence already spoken; they are dropped so a
+	 * re-queue continues mid-sentence rather than repeating it.
+	 */
+	private fun speakFrom(startIndex: Int, skipChars: Int = 0) {
 		val engine = tts ?: return
 		if (chunks.isEmpty()) {
 			return
@@ -215,9 +230,12 @@ class ReaderTts @Inject constructor(
 		applySettings()
 		engine.stop()
 		_isPlaying.value = true
+		spokenPrefix = skipChars
+		spokenOffset = skipChars
 		for (i in startIndex..chunks.lastIndex) {
 			val queueMode = if (i == startIndex) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-			engine.speak(spokenText(i), queueMode, null, i.toString())
+			val sentence = spokenText(i).let { if (i == startIndex) it.drop(skipChars) else it }
+			engine.speak(sentence, queueMode, null, i.toString())
 		}
 	}
 
@@ -234,7 +252,17 @@ class ReaderTts @Inject constructor(
 
 		override fun onStart(utteranceId: String?) {
 			val index = utteranceId?.toIntOrNull() ?: return
+			// Only the utterance a re-queue started mid-sentence carries a prefix; every one after
+			// it is spoken whole.
+			if (_position.value?.index != index) {
+				spokenPrefix = 0
+			}
+			spokenOffset = spokenPrefix
 			_position.value = positionAt(index)
+		}
+
+		override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
+			spokenOffset = spokenPrefix + start
 		}
 
 		override fun onDone(utteranceId: String?) {

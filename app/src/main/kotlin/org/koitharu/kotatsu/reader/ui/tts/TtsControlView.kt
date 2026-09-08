@@ -51,7 +51,6 @@ class TtsControlView @JvmOverloads constructor(
 
 	fun attach(controller: ReaderTts, lifecycleOwner: LifecycleOwner) {
 		tts = controller
-		// Re-queue once, on release: doing it per tick would restart the sentence on every pixel.
 		listOf(binding.sliderSpeed, binding.sliderPitch).forEach { it.addOnSliderTouchListener(tuningListener) }
 		binding.sliderSpeed.value = settings.epubTtsSpeed.coerceIn(
 			binding.sliderSpeed.valueFrom,
@@ -94,10 +93,18 @@ class TtsControlView @JvmOverloads constructor(
 			binding.buttonVoice1,
 		)
 
+	/**
+	 * The engine cannot re-tune an utterance it is already speaking, so a change is heard by
+	 * re-queueing from the word being spoken. Coalesced over a few frames of dragging: doing it per
+	 * tick would re-queue on every pixel and stutter.
+	 */
+	private val applyTuning = Runnable { tts?.applyTuning() }
+
 	private val tuningListener = object : Slider.OnSliderTouchListener {
 		override fun onStartTrackingTouch(slider: Slider) = Unit
 
 		override fun onStopTrackingTouch(slider: Slider) {
+			removeCallbacks(applyTuning)
 			tts?.applyTuning()
 		}
 	}
@@ -130,7 +137,8 @@ class TtsControlView @JvmOverloads constructor(
 			} else {
 				settings.epubTtsSpeed = value
 			}
-			tts?.applySettings()
+			removeCallbacks(applyTuning)
+			postDelayed(applyTuning, TUNING_DELAY)
 		}
 		updateLabels()
 	}
@@ -173,3 +181,5 @@ class TtsControlView @JvmOverloads constructor(
 			context.getString(R.string.tts_speed_value, binding.sliderPitch.value)
 	}
 }
+
+private const val TUNING_DELAY = 120L

@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.FloatState
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +44,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,6 +59,7 @@ import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import org.koitharu.kotatsu.reader.ui.ReaderActionsView
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
+import org.koitharu.kotatsu.settings.compose.ConfirmDialog
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -155,7 +160,24 @@ private fun ControlList(
 	}
 
 	Column {
-		SettingsGroupTitle(stringResource(R.string.customize))
+		var isConfirmingReset by remember { mutableStateOf(false) }
+		SettingsGroupTitle(
+			title = stringResource(R.string.customize),
+			isResetEnabled = layout != DEFAULT_LAYOUT,
+			onResetClick = { isConfirmingReset = true },
+		)
+		if (isConfirmingReset) {
+			ConfirmDialog(
+				title = stringResource(R.string.reset),
+				message = stringResource(R.string.config_reset_confirm),
+				confirmLabel = stringResource(R.string.reset),
+				onConfirm = {
+					onChange(DEFAULT_LAYOUT)
+					haptic(HapticEffect.CONFIRM)
+				},
+				onDismiss = { isConfirmingReset = false },
+			)
+		}
 		layout.forEachIndexed { index, (control, isShown) ->
 			// Keyed by control so each row's state — and its slide animation — follows the item as
 			// the list reorders instead of staying with the slot.
@@ -234,15 +256,36 @@ private fun rememberReorderSlide(
 	return slide
 }
 
+/** Group heading with the reset action parked at its end, which is where it stays out of the way. */
 @Composable
-private fun SettingsGroupTitle(title: String) {
-	Text(
-		text = title.uppercase(),
-		style = MaterialTheme.typography.labelMedium,
-		fontWeight = FontWeight.SemiBold,
-		color = MaterialTheme.colorScheme.primary,
-		modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 8.dp),
-	)
+private fun SettingsGroupTitle(
+	title: String,
+	isResetEnabled: Boolean,
+	onResetClick: () -> Unit,
+) {
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		Text(
+			text = title.uppercase(),
+			style = MaterialTheme.typography.labelMedium,
+			fontWeight = FontWeight.SemiBold,
+			color = MaterialTheme.colorScheme.primary,
+			modifier = Modifier.weight(1f),
+		)
+		TextButton(onClick = onResetClick, enabled = isResetEnabled) {
+			Icon(
+				painter = painterResource(R.drawable.ic_restart),
+				contentDescription = null,
+				modifier = Modifier.size(18.dp),
+			)
+			Spacer(Modifier.width(6.dp))
+			Text(stringResource(R.string.reset))
+		}
+	}
 }
 
 @Composable
@@ -306,6 +349,10 @@ private fun DragHandle(
 		)
 	}
 }
+
+/** The bar as it ships: the default controls in their default order, everything else hidden. */
+private val DEFAULT_LAYOUT: BarLayout = ReaderControl.DEFAULT.map { it to true } +
+	ReaderControl.entries.filterNot { it in ReaderControl.DEFAULT }.map { it to false }
 
 private val GROUP_GAP = 2.dp
 private val DRAG_ELEVATION = 8.dp
