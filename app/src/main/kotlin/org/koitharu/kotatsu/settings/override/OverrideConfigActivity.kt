@@ -83,7 +83,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 				val data by viewModel.data.collectAsState()
 				val isLoading by viewModel.isLoading.collectAsState()
 				val linkedTrackers by viewModel.linkedTrackers.collectAsState()
-				val isFetchingTrackerMetadata by viewModel.isFetchingTrackerMetadata.collectAsState()
+				val fetchingTracker by viewModel.fetchingTracker.collectAsState()
 				data?.let { (manga, override) ->
 					OverrideEditScreen(
 						manga = manga,
@@ -98,7 +98,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 						bottomInset = with(density) { bottomInset.intValue.toDp() },
 						imageLoader = coil,
 						linkedTrackers = linkedTrackers,
-						isFetchingTrackerMetadata = isFetchingTrackerMetadata,
+						fetchingTracker = fetchingTracker,
 						onTitleChange = { titleText.value = it },
 						onDescriptionChange = { descriptionText.value = it },
 						onCoverPick = ::onCoverPick,

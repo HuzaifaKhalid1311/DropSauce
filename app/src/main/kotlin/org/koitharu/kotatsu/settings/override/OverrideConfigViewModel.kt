@@ -59,7 +59,7 @@ class OverrideConfigViewModel @Inject constructor(
 	val onMetadataFetched = MutableEventFlow<TrackerMetadata>()
 
 	val linkedTrackers = MutableStateFlow<List<ScrobblerService>>(emptyList())
-	val isFetchingTrackerMetadata = MutableStateFlow(false)
+	val fetchingTracker = MutableStateFlow<ScrobblerService?>(null)
 
 	init {
 		launchLoadingJob(Dispatchers.Default) {
@@ -76,15 +76,14 @@ class OverrideConfigViewModel @Inject constructor(
 			val entities = database.getScrobblingDao().findAll(manga.id)
 			val linked = entities.mapNotNull { entity ->
 				ScrobblerService.entries.find { it.id == entity.scrobbler }
-			}
+			}.distinct()
 			linkedTrackers.value = linked
 		}
 	}
 
 	fun fetchTrackerMetadata(service: ScrobblerService) {
-		if (isFetchingTrackerMetadata.value) return
-		launchLoadingJob(Dispatchers.Default) {
-			isFetchingTrackerMetadata.value = true
+		if (!fetchingTracker.compareAndSet(null, service)) return
+		launchJob(Dispatchers.Default) {
 			try {
 				val scrobbler = scrobblers.find { it.scrobblerService == service }
 					?: throw IllegalStateException(context.getString(R.string.failed_to_fetch_metadata, context.getString(service.titleResId)))
@@ -103,7 +102,7 @@ class OverrideConfigViewModel @Inject constructor(
 					)
 				)
 			} finally {
-				isFetchingTrackerMetadata.value = false
+				fetchingTracker.value = null
 			}
 		}
 	}

@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -75,7 +76,7 @@ fun OverrideEditScreen(
 	bottomInset: Dp,
 	imageLoader: ImageLoader,
 	linkedTrackers: List<ScrobblerService>,
-	isFetchingTrackerMetadata: Boolean,
+	fetchingTracker: ScrobblerService?,
 	onTitleChange: (String) -> Unit,
 	onDescriptionChange: (String) -> Unit,
 	onCoverPick: (CoverSource) -> Unit,
@@ -108,7 +109,7 @@ fun OverrideEditScreen(
 		TrackerMetadataSection(
 			linkedTrackers = linkedTrackers,
 			enabled = !isLoading,
-			isFetching = isFetchingTrackerMetadata,
+			fetchingTracker = fetchingTracker,
 			onFetch = onFetchTrackerMetadata,
 		)
 		SectionLabel(stringResource(R.string.change_cover))
@@ -395,7 +396,7 @@ private fun HintRow(text: String) {
 private fun TrackerMetadataSection(
 	linkedTrackers: List<ScrobblerService>,
 	enabled: Boolean,
-	isFetching: Boolean,
+	fetchingTracker: ScrobblerService?,
 	onFetch: (ScrobblerService) -> Unit,
 ) {
 	if (linkedTrackers.isEmpty()) {
@@ -406,8 +407,8 @@ private fun TrackerMetadataSection(
 		linkedTrackers.forEach { service ->
 			TrackerFetchTile(
 				service = service,
-				enabled = enabled && !isFetching,
-				isFetching = isFetching,
+				enabled = enabled && fetchingTracker == null,
+				isFetching = fetchingTracker == service,
 				onClick = { onFetch(service) },
 			)
 		}
@@ -431,7 +432,11 @@ private fun TrackerFetchTile(
 	) {
 		Row(
 			modifier = Modifier
-				.clickable(enabled = enabled, onClick = onClick)
+				.clickable(
+					enabled = enabled,
+					role = Role.Button,
+					onClick = onClick,
+				)
 				.fillMaxWidth()
 				.padding(vertical = 14.dp, horizontal = 16.dp),
 			horizontalArrangement = Arrangement.SpaceBetween,
