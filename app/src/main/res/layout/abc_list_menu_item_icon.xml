@@ -8,4 +8,4 @@
 	android:layout_marginEnd="@dimen/menu_icon_text_spacing_extra"
 	android:duplicateParentState="true"
 	android:scaleType="centerInside"
-	app:tint="?attr/colorOnSecondaryContainer" />
+	app:tint="?attr/colorTopBarIcon" />

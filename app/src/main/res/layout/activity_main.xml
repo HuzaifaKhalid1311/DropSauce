@@ -68,7 +68,7 @@
 					app:iconSize="24dp"
 					app:iconPadding="0dp"
 					app:iconGravity="textStart"
-					app:iconTint="?attr/colorOnSurfaceVariant"
+					app:iconTint="?attr/colorTopBarIcon"
 					android:contentDescription="@string/settings" />
 
 				<View
@@ -116,7 +116,7 @@
 					app:iconSize="24dp"
 					app:iconPadding="0dp"
 					app:iconGravity="textStart"
-					app:iconTint="?attr/colorOnSurfaceVariant"
+					app:iconTint="?attr/colorTopBarIcon"
 					android:contentDescription="@string/more" />
 
 			</FrameLayout>

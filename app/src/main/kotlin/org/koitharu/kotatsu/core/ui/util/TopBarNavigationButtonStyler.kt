@@ -38,8 +38,8 @@ import kotlin.math.roundToInt
  *
  * Every icon — back, close, each action, the overflow "more" button — is rendered identically:
  * forced to [TonalBarMetrics.iconSize], centered on both axes inside its segment with a ripple
- * bounded to that shape, and tinted with `colorOnSecondaryContainer` (the
- * reference group's icon colour) over the unchanged `colorSurfaceContainer` fill. The group's end
+ * bounded to that shape, and tinted with `colorTopBarIcon` (normally the reference group's
+ * `colorOnSecondaryContainer`) over the unchanged `colorSurfaceContainer` fill. The group's end
  * inset mirrors the navigation button's start margin, so the bar is symmetric edge-to-edge.
  *
  * Menus inflate (and re-bind) asynchronously, so the styling re-applies on every layout pass. It is
@@ -73,7 +73,7 @@ private class TonalBarMetrics(context: Context) {
 	/** The same, for the narrower action segment — horizontal and vertical differ there. */
 	val segmentIconInsetX = ((segmentWidth - iconSize) / 2).coerceAtLeast(0)
 	val segmentIconInsetY = iconInset
-	val iconTintColor = context.getThemeColor(materialR.attr.colorOnSecondaryContainer)
+	val iconTintColor = context.getThemeColor(R.attr.colorTopBarIcon)
 	val iconTint: ColorStateList = ColorStateList.valueOf(iconTintColor)
 }
 
@@ -83,19 +83,30 @@ fun Toolbar.applyTonalNavigationButtonStyle() {
 	// caused the back-arrow + title to stutter on an in-place activity recreate (e.g. after a
 	// colour-scheme change), where there is no enter transition to mask a post-layout reflow.
 	contentInsetStartWithNavigation = resources.getDimensionPixelSize(R.dimen.top_bar_title_inset_with_navigation)
+	// Expanding an in-toolbar action view (the inline search field) swaps the button in this slot for
+	// a different view — see [findNavigationButton] — so re-style on every layout pass rather than
+	// once, the same way the action menu does. Styling is idempotent, so repeating it is free.
+	if (getTag(R.id.tag_tonal_navigation_button) == null) {
+		setTag(R.id.tag_tonal_navigation_button, true)
+		addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+			(view as? Toolbar)?.applyTonalNavigationButtonStyleNow()
+		}
+	}
 	// The navigation button is created lazily once a navigation icon is set, so style it just before
 	// the next draw rather than via post() (which runs after the first frame and pops in visibly).
-	doOnPreDraw {
-		val navigationButton = findNavigationButton() ?: return@doOnPreDraw
-		val metrics = TonalBarMetrics(context)
-		navigationButton.updateLayoutSize(
-			width = metrics.cellSize,
-			height = metrics.cellSize,
-			marginStart = metrics.edgeMargin,
-			gravity = Gravity.START or Gravity.CENTER_VERTICAL,
-		)
-		navigationButton.applyTonalCircleButton(metrics)
-	}
+	doOnPreDraw { applyTonalNavigationButtonStyleNow() }
+}
+
+private fun Toolbar.applyTonalNavigationButtonStyleNow() {
+	val navigationButton = findNavigationButton() ?: return
+	val metrics = TonalBarMetrics(context)
+	navigationButton.updateLayoutSize(
+		width = metrics.cellSize,
+		height = metrics.cellSize,
+		marginStart = metrics.edgeMargin,
+		gravity = Gravity.START or Gravity.CENTER_VERTICAL,
+	)
+	navigationButton.applyTonalCircleButton(metrics)
 }
 
 /**
@@ -351,8 +362,15 @@ private fun Context.dimen(resId: Int) = resources.getDimensionPixelSize(resId)
 private fun ViewGroup.findActionMenuView(): ActionMenuView? =
 	children.filterIsInstance<ActionMenuView>().firstOrNull()
 
+/**
+ * The button occupying the toolbar's start slot. Normally that is the navigation button, but while an
+ * action view is expanded (the inline search field) the toolbar parks the navigation button off-screen
+ * and puts its own *collapse* button — a separate view with default appcompat geometry and no start
+ * margin — in the same place. Both are the toolbar's first [ImageButton] child, so returning whichever
+ * is currently there keeps the arrow from jumping when search opens.
+ */
 private fun Toolbar.findNavigationButton(): ImageButton? {
-	navigationIcon ?: return null
+	if (navigationIcon == null && !hasExpandedActionView()) return null
 	return children.filterIsInstance<ImageButton>().firstOrNull()
 }
 

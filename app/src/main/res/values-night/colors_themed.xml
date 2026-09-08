@@ -148,8 +148,11 @@
 	<color name="kanade_onPrimaryContainer">#474755</color>
 	<color name="kanade_secondary">#DDDCDC</color>
 	<color name="kanade_onSecondary">#252626</color>
-	<color name="kanade_secondaryContainer">#919191</color>
-	<color name="kanade_onSecondaryContainer">#000000</color>
+	<!-- Swapped relative to the upstream palette, mirroring the light variant: the mid grey was the
+	     container and pure black its on-colour, leaving every on-secondaryContainer icon and label
+	     black on a dark surface. -->
+	<color name="kanade_secondaryContainer">#000000</color>
+	<color name="kanade_onSecondaryContainer">#DEDBE2</color>
 	<color name="kanade_tertiary">#DADDDD</color>
 	<color name="kanade_onTertiary">#232627</color>
 	<color name="kanade_tertiaryContainer">#A9ACAC</color>

@@ -91,7 +91,9 @@
 	<dimen name="fastscroll_scrollbar_padding_start">12dp</dimen>
 	<dimen name="fastscroll_scrollbar_padding_end">6dp</dimen>
 
-	<dimen name="search_bar_margin_horizontal">8dp</dimen>
+	<!-- Inset of the expanded search field's pill. Matches the home app bar row's own horizontal
+	     padding, so the field spans exactly the same outer edges as the bar it expanded out of. -->
+	<dimen name="search_bar_margin_horizontal">4dp</dimen>
 	<dimen name="search_bar_min_height">64dp</dimen>
 
 	<dimen name="onboarding_icon_size">72dp</dimen>

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -29,6 +30,7 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -74,6 +76,7 @@ import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.applySystemAnimatorScale
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.core.util.ext.end
+import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -145,6 +148,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			gravity = android.view.Gravity.CENTER
 			includeFontPadding = false
 			setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_search, 0, 0, 0)
+			// Tint here rather than in ic_search.xml: that drawable is shared with the epub reader's
+			// search field, which is not a top-bar control and must keep its own colour.
+			val topBarIconTint = ColorStateList.valueOf(context.getThemeColor(R.attr.colorTopBarIcon))
+			TextViewCompat.setCompoundDrawableTintList(this, topBarIconTint)
+			// The hint sits directly beside that icon, so it takes the same colour rather than the
+			// search bar style's default, which would leave the pair mismatched.
+			setHintTextColor(topBarIconTint)
 			compoundDrawablePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
 		}
 

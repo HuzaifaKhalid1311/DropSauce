@@ -43,7 +43,7 @@
 				android:fadingEdge="horizontal"
 				android:singleLine="true"
 				android:textAppearance="?attr/textAppearanceLargePopupMenu"
-				android:textColor="?attr/colorOnSecondaryContainer" />
+				android:textColor="?attr/colorTopBarIcon" />
 
 			<TextView
 				android:id="@+id/shortcut"
@@ -54,7 +54,7 @@
 				android:duplicateParentState="true"
 				android:singleLine="true"
 				android:textAppearance="?attr/textAppearanceSmallPopupMenu"
-				android:textColor="?attr/colorOnSecondaryContainer" />
+				android:textColor="?attr/colorTopBarIcon" />
 
 		</RelativeLayout>
 
@@ -67,7 +67,7 @@
 			android:duplicateParentState="true"
 			android:scaleType="center"
 			android:visibility="gone"
-			app:tint="?attr/colorOnSecondaryContainer" />
+			app:tint="?attr/colorTopBarIcon" />
 
 	</LinearLayout>
 

@@ -41,6 +41,7 @@
 		<item name="colorOnErrorContainer">@color/onErrorContainer</item>
 		<item name="colorOutline">@color/kotatsu_outline</item>
 		<item name="colorOutlineVariant">@color/kotatsu_outline</item>
+		<item name="colorTopBarIcon">?attr/colorOnSecondaryContainer</item>
 		<item name="colorControlNormal">?attr/colorOnSurface</item>
 		<item name="colorControlActivated">?attr/colorPrimary</item>
 		<item name="colorControlHighlight">@color/selector_overlay</item>

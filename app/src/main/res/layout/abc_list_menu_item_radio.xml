@@ -14,4 +14,4 @@
 	android:paddingEnd="0dp"
 	android:paddingLeft="0dp"
 	android:paddingRight="0dp"
-	app:buttonTint="?attr/colorOnSecondaryContainer" />
+	app:buttonTint="?attr/colorTopBarIcon" />

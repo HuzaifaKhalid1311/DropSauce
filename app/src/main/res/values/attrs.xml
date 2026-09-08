@@ -3,6 +3,15 @@
 
 	<attr name="expandCollapseIndicator" format="reference" />
 
+	<!--
+		Icon/label colour for the tonal top-bar controls and the popup menus they open. It defaults to
+		colorOnSecondaryContainer, the reference connected-button-group's on-colour, but those controls
+		sit on colorSurfaceContainer rather than on colorSecondaryContainer, so a theme whose
+		secondaryContainer is far from its surfaceContainer has to point this somewhere legible instead
+		of inheriting an on-colour meant for a container it never draws.
+	-->
+	<attr name="colorTopBarIcon" format="color" />
+
 	<attr name="listItemTextViewStyle" />
 	<attr name="fastScrollerStyle" />
 	<attr name="tipViewStyle" />

@@ -148,8 +148,11 @@
 	<color name="kanade_onPrimaryContainer">#FFFFFF</color>
 	<color name="kanade_secondary">#353636</color>
 	<color name="kanade_onSecondary">#FFFFFF</color>
-	<color name="kanade_secondaryContainer">#6D6D6D</color>
-	<color name="kanade_onSecondaryContainer">#FFFFFF</color>
+	<!-- Swapped relative to the upstream palette: this theme had the mid grey as the container and
+	     pure white as its on-colour, which left every on-secondaryContainer icon and label white on a
+	     light surface. -->
+	<color name="kanade_secondaryContainer">#FFFFFF</color>
+	<color name="kanade_onSecondaryContainer">#36363B</color>
 	<color name="kanade_tertiary">#333737</color>
 	<color name="kanade_onTertiary">#FFFFFF</color>
 	<color name="kanade_tertiaryContainer">#6A6E6E</color>
