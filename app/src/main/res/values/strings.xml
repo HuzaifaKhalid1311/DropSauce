@@ -1128,6 +1128,11 @@
     <string name="cover_source_file">Image file</string>
     <string name="cover_source_page">Manga page</string>
     <string name="cover_source_url">Write URL</string>
+    <string name="tracker_metadata">Tracker metadata</string>
+    <string name="fetch_from_tracker_format">Fetch from %s</string>
+    <string name="fetch_tracker_metadata_summary">Auto-fill title, description and cover</string>
+    <string name="metadata_fetched">Metadata loaded from %s</string>
+    <string name="failed_to_fetch_metadata">Failed to fetch metadata from %s</string>
     <string name="page_switch_timer">The page will switch every ~%d seconds</string>
     <string name="dont_ask_again">Don\'t ask again</string>
     <string name="incognito_mode_hint_nsfw">This manga may contain adult content. Do you want to use incognito mode?</string>

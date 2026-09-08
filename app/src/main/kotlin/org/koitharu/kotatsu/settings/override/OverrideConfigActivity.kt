@@ -82,6 +82,8 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 				val density = LocalDensity.current
 				val data by viewModel.data.collectAsState()
 				val isLoading by viewModel.isLoading.collectAsState()
+				val linkedTrackers by viewModel.linkedTrackers.collectAsState()
+				val isFetchingTrackerMetadata by viewModel.isFetchingTrackerMetadata.collectAsState()
 				data?.let { (manga, override) ->
 					OverrideEditScreen(
 						manga = manga,
@@ -95,10 +97,13 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 						error = errorText.value,
 						bottomInset = with(density) { bottomInset.intValue.toDp() },
 						imageLoader = coil,
+						linkedTrackers = linkedTrackers,
+						isFetchingTrackerMetadata = isFetchingTrackerMetadata,
 						onTitleChange = { titleText.value = it },
 						onDescriptionChange = { descriptionText.value = it },
 						onCoverPick = ::onCoverPick,
 						onCoverReset = { viewModel.updateCover(null) },
+						onFetchTrackerMetadata = { viewModel.fetchTrackerMetadata(it) },
 					)
 				}
 			}
@@ -111,11 +116,25 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 				descriptionText.value = override.description.orEmpty()
 			}
 		}
+		viewModel.onMetadataFetched.observeEvent(this) { metadata ->
+			titleText.value = metadata.title
+			descriptionText.value = metadata.description.orEmpty()
+			Snackbar.make(
+				viewBinding.composeView,
+				getString(R.string.metadata_fetched, getString(metadata.service.titleResId)),
+				Snackbar.LENGTH_SHORT,
+			).show()
+		}
 		viewModel.onSaved.observeEvent(this) {
 			setResult(RESULT_OK)
 			finish()
 		}
 		viewModel.onError.observeEvent(this) { errorText.value = it.getDisplayMessage(resources) }
+	}
+
+	override fun onResume() {
+		super.onResume()
+		viewModel.loadTrackers()
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu?): Boolean {

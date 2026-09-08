@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +54,7 @@ import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.stableMangaCoverKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 
 /**
  * Manga override editor: pick a cover, then optionally retitle and rewrite the description.
@@ -72,10 +74,13 @@ fun OverrideEditScreen(
 	error: String?,
 	bottomInset: Dp,
 	imageLoader: ImageLoader,
+	linkedTrackers: List<ScrobblerService>,
+	isFetchingTrackerMetadata: Boolean,
 	onTitleChange: (String) -> Unit,
 	onDescriptionChange: (String) -> Unit,
 	onCoverPick: (CoverSource) -> Unit,
 	onCoverReset: () -> Unit,
+	onFetchTrackerMetadata: (ScrobblerService) -> Unit,
 ) {
 	val hasCustomCover = !coverUrl.isNullOrEmpty()
 	val imeInset = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
@@ -100,6 +105,12 @@ fun OverrideEditScreen(
 			onResetClick = onCoverReset,
 		)
 		Spacer(Modifier.height(16.dp))
+		TrackerMetadataSection(
+			linkedTrackers = linkedTrackers,
+			enabled = !isLoading,
+			isFetching = isFetchingTrackerMetadata,
+			onFetch = onFetchTrackerMetadata,
+		)
 		SectionLabel(stringResource(R.string.change_cover))
 		CoverSourceGrid(enabled = !isLoading, onPick = onCoverPick)
 		Spacer(Modifier.height(24.dp))
@@ -377,5 +388,97 @@ private fun HintRow(text: String) {
 			style = MaterialTheme.typography.bodySmall,
 			color = MaterialTheme.colorScheme.onSurfaceVariant,
 		)
+	}
+}
+
+@Composable
+private fun TrackerMetadataSection(
+	linkedTrackers: List<ScrobblerService>,
+	enabled: Boolean,
+	isFetching: Boolean,
+	onFetch: (ScrobblerService) -> Unit,
+) {
+	if (linkedTrackers.isEmpty()) {
+		return
+	}
+	SectionLabel(stringResource(R.string.tracker_metadata))
+	Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+		linkedTrackers.forEach { service ->
+			TrackerFetchTile(
+				service = service,
+				enabled = enabled && !isFetching,
+				isFetching = isFetching,
+				onClick = { onFetch(service) },
+			)
+		}
+	}
+	Spacer(Modifier.height(24.dp))
+}
+
+@Composable
+private fun TrackerFetchTile(
+	service: ScrobblerService,
+	enabled: Boolean,
+	isFetching: Boolean,
+	onClick: () -> Unit,
+	modifier: Modifier = Modifier,
+) {
+	Surface(
+		modifier = modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(20.dp),
+		color = MaterialTheme.colorScheme.surfaceContainer,
+		contentColor = MaterialTheme.colorScheme.onSurface,
+	) {
+		Row(
+			modifier = Modifier
+				.clickable(enabled = enabled, onClick = onClick)
+				.fillMaxWidth()
+				.padding(vertical = 14.dp, horizontal = 16.dp),
+			horizontalArrangement = Arrangement.SpaceBetween,
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				modifier = Modifier.weight(1f),
+			) {
+				Icon(
+					painter = painterResource(service.iconResId),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(24.dp),
+				)
+				Spacer(Modifier.width(14.dp))
+				Column {
+					Text(
+						text = stringResource(R.string.fetch_from_tracker_format, stringResource(service.titleResId)),
+						style = MaterialTheme.typography.labelLarge,
+						fontWeight = FontWeight.SemiBold,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+					)
+					Text(
+						text = stringResource(R.string.fetch_tracker_metadata_summary),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+					)
+				}
+			}
+			Spacer(Modifier.width(8.dp))
+			if (isFetching) {
+				CircularProgressIndicator(
+					modifier = Modifier.size(20.dp),
+					strokeWidth = 2.dp,
+				)
+			} else {
+				Icon(
+					painter = painterResource(R.drawable.ic_cloud_sync),
+					contentDescription = stringResource(R.string.fetch_from_tracker_format, stringResource(service.titleResId)),
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(22.dp),
+				)
+			}
+		}
 	}
 }

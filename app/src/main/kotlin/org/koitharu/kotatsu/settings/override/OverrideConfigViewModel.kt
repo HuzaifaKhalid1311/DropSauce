@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.sink
+import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
@@ -27,22 +29,37 @@ import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.md5
+import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import java.io.File
 import javax.inject.Inject
 
 private const val DIR_COVERS = "covers"
+
+data class TrackerMetadata(
+	val title: String,
+	val description: String?,
+	val coverUrl: String?,
+	val service: ScrobblerService,
+)
 
 @HiltViewModel
 class OverrideConfigViewModel @Inject constructor(
 	savedStateHandle: SavedStateHandle,
 	@ApplicationContext private val context: Context,
 	private val dataRepository: MangaDataRepository,
+	private val database: MangaDatabase,
+	private val scrobblers: Set<@JvmSuppressWildcards Scrobbler>,
 ) : BaseViewModel() {
 
-	private val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
+	val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
 	val data = MutableStateFlow<Pair<Manga, MangaOverride>?>(null)
 	val onSaved = MutableEventFlow<Unit>()
+	val onMetadataFetched = MutableEventFlow<TrackerMetadata>()
+
+	val linkedTrackers = MutableStateFlow<List<ScrobblerService>>(emptyList())
+	val isFetchingTrackerMetadata = MutableStateFlow(false)
 
 	init {
 		launchLoadingJob(Dispatchers.Default) {
@@ -50,6 +67,44 @@ class OverrideConfigViewModel @Inject constructor(
 			// source title/cover, regardless of whether the caller already had an override applied.
 			val sourceManga = dataRepository.findMangaById(manga.id, false) ?: manga
 			data.value = sourceManga to (dataRepository.getOverride(manga.id) ?: emptyOverride())
+			loadTrackers()
+		}
+	}
+
+	fun loadTrackers() {
+		launchJob(Dispatchers.Default) {
+			val entities = database.getScrobblingDao().findAll(manga.id)
+			val linked = entities.mapNotNull { entity ->
+				ScrobblerService.entries.find { it.id == entity.scrobbler }
+			}
+			linkedTrackers.value = linked
+		}
+	}
+
+	fun fetchTrackerMetadata(service: ScrobblerService) {
+		if (isFetchingTrackerMetadata.value) return
+		launchLoadingJob(Dispatchers.Default) {
+			isFetchingTrackerMetadata.value = true
+			try {
+				val scrobbler = scrobblers.find { it.scrobblerService == service }
+					?: throw IllegalStateException(context.getString(R.string.failed_to_fetch_metadata, context.getString(service.titleResId)))
+				val info = scrobbler.getScrobblingInfoOrNull(manga.id)
+					?: throw IllegalStateException(context.getString(R.string.failed_to_fetch_metadata, context.getString(service.titleResId)))
+
+				if (!info.coverUrl.isNullOrBlank()) {
+					updateCover(info.coverUrl)
+				}
+				onMetadataFetched.call(
+					TrackerMetadata(
+						title = info.title,
+						description = info.description?.toString()?.trim(),
+						coverUrl = info.coverUrl,
+						service = service,
+					)
+				)
+			} finally {
+				isFetchingTrackerMetadata.value = false
+			}
 		}
 	}
 
