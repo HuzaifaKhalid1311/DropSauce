@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
-	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:orientation="vertical">
@@ -22,112 +20,9 @@
 
 	</com.google.android.material.appbar.MaterialToolbar>
 
-	<ScrollView
-		android:id="@+id/scrollView"
+	<androidx.compose.ui.platform.ComposeView
+		android:id="@+id/composeView"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:clipToPadding="false"
-		android:overScrollMode="ifContentScrolls">
-
-		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="vertical"
-			android:padding="16dp">
-
-			<com.google.android.material.textfield.TextInputLayout
-				android:id="@+id/layout_name"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content">
-
-				<com.google.android.material.textfield.TextInputEditText
-					android:id="@+id/edit_name"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/name"
-					android:imeOptions="actionDone"
-					android:inputType="textCapSentences"
-					android:maxLength="120" />
-
-			</com.google.android.material.textfield.TextInputLayout>
-
-			<com.google.android.material.textfield.TextInputLayout
-				android:id="@+id/layout_sort"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="16dp"
-				app:endIconMode="dropdown_menu">
-
-				<AutoCompleteTextView
-					android:id="@+id/edit_sort"
-					style="?editTextStyle"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:hint="@string/sort_order"
-					android:inputType="none" />
-
-			</com.google.android.material.textfield.TextInputLayout>
-
-			<com.google.android.material.card.MaterialCardView
-				style="?materialCardViewFilledStyle"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="16dp"
-				app:cardBackgroundColor="?colorSurfaceContainerHigh"
-				app:cardElevation="0dp"
-				app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.Card.Expressive">
-
-				<LinearLayout
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
-					android:orientation="vertical"
-					android:padding="@dimen/margin_normal">
-
-					<com.google.android.material.materialswitch.MaterialSwitch
-						android:id="@+id/switch_tracker"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:minHeight="48dp"
-						android:gravity="center_vertical"
-						android:text="@string/check_for_new_chapters"
-						android:visibility="gone"
-						tools:visibility="visible" />
-
-					<com.google.android.material.materialswitch.MaterialSwitch
-						android:id="@+id/switch_download_new_chapters"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:minHeight="48dp"
-						android:gravity="center_vertical"
-						android:text="@string/download_new_chapters"
-						android:visibility="gone"
-						tools:visibility="visible" />
-
-					<com.google.android.material.materialswitch.MaterialSwitch
-						android:id="@+id/switch_shelf"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:minHeight="48dp"
-						android:gravity="center_vertical"
-						android:text="@string/show_on_shelf"
-						tools:visibility="visible" />
-
-				</LinearLayout>
-
-			</com.google.android.material.card.MaterialCardView>
-
-			<TextView
-				android:id="@+id/textView_error"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="16dp"
-				android:textColor="?colorError"
-				android:visibility="gone"
-				tools:text="@tools:sample/lorem[4]"
-				tools:visibility="visible" />
-
-		</LinearLayout>
-
-	</ScrollView>
+		android:layout_height="match_parent" />
 
 </LinearLayout>

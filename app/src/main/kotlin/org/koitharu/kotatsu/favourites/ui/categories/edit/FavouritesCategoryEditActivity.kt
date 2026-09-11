@@ -1,57 +1,111 @@
 package org.koitharu.kotatsu.favourites.ui.categories.edit
 
-import android.content.Context
 import android.os.Bundle
-import android.text.Editable
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Filter
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.util.DefaultTextWatcher
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getSerializableCompat
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.setChecked
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.ActivityCategoryEditBinding
 import org.koitharu.kotatsu.list.domain.ListSortOrder
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
+/**
+ * Create/edit a favourites category. The activity owns the window — toolbar, Save button and the
+ * form state — while [FavouritesCategoryEditScreen] renders everything below the toolbar.
+ */
 @AndroidEntryPoint
 class FavouritesCategoryEditActivity :
 	BaseActivity<ActivityCategoryEditBinding>(),
-	AdapterView.OnItemClickListener,
-	View.OnClickListener,
-	DefaultTextWatcher {
+	View.OnClickListener {
 
 	private val viewModel by viewModels<FavouritesCategoryEditViewModel>()
-	private var selectedSortOrder: ListSortOrder? = null
-	private val sortOrders = ListSortOrder.entries
+
+	private val name = mutableStateOf("")
+	private val sortOrder = mutableStateOf(ListSortOrder.NEWEST)
+	private val isTrackerEnabled = mutableStateOf(true)
+	private val isDownloadEnabled = mutableStateOf(false)
+	private val isShelfEnabled = mutableStateOf(true)
+	private val error = mutableStateOf<String?>(null)
+	private val bottomInset = mutableIntStateOf(0)
+
+	/** The category loads asynchronously; seed the form from it once, never over user edits. */
+	private var isSeeded = false
+
+	/**
+	 * What the form looked like when it opened, so Save can stay disabled until something actually
+	 * differs. Re-read from the category on every emission — after a config change the form is
+	 * restored from the bundle, but the baseline still has to come from the stored category.
+	 */
+	private var baseline = FormState()
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityCategoryEditBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = true)
-		initSortSpinner()
 		viewBinding.buttonDone.setOnClickListener(this)
-		viewBinding.editName.addTextChangedListener(this)
-		afterTextChanged(viewBinding.editName.text)
+		viewBinding.composeView.setViewCompositionStrategy(
+			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+		)
+		viewBinding.composeView.setContent {
+			DropSauceTheme {
+				val density = LocalDensity.current
+				val isLoading by viewModel.isLoading.collectAsState()
+				val isTrackerSectionVisible by viewModel.isTrackerEnabled.collectAsState()
+
+				FavouritesCategoryEditScreen(
+					name = name.value,
+					onNameChange = {
+						name.value = it
+						updateDoneButton()
+					},
+					sortOrder = sortOrder.value,
+					onSortOrderChange = {
+						sortOrder.value = it
+						updateDoneButton()
+					},
+					isTrackerSectionVisible = isTrackerSectionVisible,
+					isTrackerEnabled = isTrackerEnabled.value,
+					onTrackerChange = {
+						isTrackerEnabled.value = it
+						updateDoneButton()
+					},
+					isDownloadEnabled = isDownloadEnabled.value,
+					onDownloadChange = {
+						isDownloadEnabled.value = it
+						updateDoneButton()
+					},
+					isShelfEnabled = isShelfEnabled.value,
+					onShelfChange = {
+						isShelfEnabled.value = it
+						updateDoneButton()
+					},
+					error = error.value,
+					enabled = !isLoading,
+					bottomInset = with(density) { bottomInset.intValue.toDp() },
+				)
+			}
+		}
 
 		viewModel.onSaved.observeEvent(this) { finishAfterTransition() }
 		viewModel.category.observe(this, ::onCategoryChanged)
-		viewModel.isLoading.observe(this, ::onLoadingStateChanged)
-		viewModel.onError.observeEvent(this, ::onError)
-		viewModel.isTrackerEnabled.observe(this) {
-			viewBinding.switchTracker.isVisible = it
-			viewBinding.switchDownloadNewChapters.isVisible = it
+		viewModel.isLoading.observe(this) { updateDoneButton() }
+		viewModel.onError.observeEvent(this) { e ->
+			error.value = e.getDisplayMessage(resources)
 		}
 	}
 
@@ -60,112 +114,102 @@ class FavouritesCategoryEditActivity :
 		insets: WindowInsetsCompat
 	): WindowInsetsCompat {
 		val barsInsets = insets.systemBarsInsets
-		viewBinding.root.setPadding(
-			barsInsets.left,
-			barsInsets.top,
-			barsInsets.right,
-			barsInsets.bottom,
-		)
+		// The bottom inset is handed to Compose instead so the form can scroll under the nav bar.
+		viewBinding.root.setPadding(barsInsets.left, barsInsets.top, barsInsets.right, 0)
+		bottomInset.intValue = barsInsets.bottom
 		return insets.consumeAllSystemBarsInsets()
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
 		super.onSaveInstanceState(outState)
-		outState.putSerializable(KEY_SORT_ORDER, selectedSortOrder)
+		outState.putString(KEY_NAME, name.value)
+		outState.putSerializable(KEY_SORT_ORDER, sortOrder.value)
+		outState.putBoolean(KEY_TRACKER, isTrackerEnabled.value)
+		outState.putBoolean(KEY_DOWNLOAD, isDownloadEnabled.value)
+		outState.putBoolean(KEY_SHELF, isShelfEnabled.value)
 	}
 
 	override fun onRestoreInstanceState(savedInstanceState: Bundle) {
 		super.onRestoreInstanceState(savedInstanceState)
+		name.value = savedInstanceState.getString(KEY_NAME).orEmpty()
 		savedInstanceState.getSerializableCompat<ListSortOrder>(KEY_SORT_ORDER)?.let {
-			selectedSortOrder = it
+			sortOrder.value = it
 		}
+		isTrackerEnabled.value = savedInstanceState.getBoolean(KEY_TRACKER, true)
+		isDownloadEnabled.value = savedInstanceState.getBoolean(KEY_DOWNLOAD, false)
+		isShelfEnabled.value = savedInstanceState.getBoolean(KEY_SHELF, true)
+		isSeeded = true
+		updateDoneButton()
 	}
 
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.button_done -> viewModel.save(
-				title = viewBinding.editName.text?.toString()?.trim().orEmpty(),
-				sortOrder = getSelectedSortOrder(),
-				isTrackerEnabled = viewBinding.switchTracker.isChecked,
-				isNewChaptersDownloadEnabled = viewBinding.switchDownloadNewChapters.isChecked,
-				isVisibleOnShelf = viewBinding.switchShelf.isChecked,
+				title = name.value.trim(),
+				sortOrder = sortOrder.value,
+				isTrackerEnabled = isTrackerEnabled.value,
+				// A category that is not tracked can never produce new chapters to download.
+				isNewChaptersDownloadEnabled = isDownloadEnabled.value && isTrackerEnabled.value,
+				isVisibleOnShelf = isShelfEnabled.value,
 			)
 		}
 	}
 
-	override fun afterTextChanged(s: Editable?) {
-		viewBinding.buttonDone.isEnabled = !s.isNullOrBlank() && !viewModel.isLoading.value
-	}
-
-	override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-		selectedSortOrder = sortOrders.getOrNull(position)
-	}
-
 	private fun onCategoryChanged(category: FavouriteCategory?) {
 		setTitle(if (category == null) R.string.create_category else R.string.edit_category)
-		if (selectedSortOrder != null) {
+		if (category == null) {
+			// The flow starts at null and only later emits the loaded category, so a null here is
+			// "not loaded yet" — seeding from it would blank the form for good.
 			return
 		}
-		viewBinding.editName.setText(category?.title)
-		selectedSortOrder = category?.order
-		viewBinding.editSort.setText(sortLabel(category?.order ?: ListSortOrder.NEWEST), false)
-		viewBinding.switchTracker.setChecked(category?.isTrackingEnabled != false, false)
-		viewBinding.switchDownloadNewChapters.setChecked(category?.isNewChaptersDownloadEnabled == true, false)
-		viewBinding.switchShelf.setChecked(category?.isVisibleInLibrary != false, false)
-	}
-
-	private fun onError(e: Throwable) {
-		viewBinding.textViewError.text = e.getDisplayMessage(resources)
-		viewBinding.textViewError.isVisible = true
-	}
-
-	private fun onLoadingStateChanged(isLoading: Boolean) {
-		viewBinding.buttonDone.isEnabled = !isLoading && !viewBinding.editName.text.isNullOrBlank()
-		viewBinding.editSort.isEnabled = !isLoading
-		viewBinding.editName.isEnabled = !isLoading
-		viewBinding.switchTracker.isEnabled = !isLoading
-		viewBinding.switchDownloadNewChapters.isEnabled = !isLoading
-		viewBinding.switchShelf.isEnabled = !isLoading
-		if (isLoading) {
-			viewBinding.textViewError.isVisible = false
+		baseline = FormState(
+			name = category.title,
+			sortOrder = category.order,
+			isTrackerEnabled = category.isTrackingEnabled,
+			isDownloadEnabled = category.isNewChaptersDownloadEnabled,
+			isShelfEnabled = category.isVisibleInLibrary,
+		)
+		if (!isSeeded) {
+			isSeeded = true
+			name.value = baseline.name
+			sortOrder.value = baseline.sortOrder
+			isTrackerEnabled.value = baseline.isTrackerEnabled
+			isDownloadEnabled.value = baseline.isDownloadEnabled
+			isShelfEnabled.value = baseline.isShelfEnabled
 		}
+		updateDoneButton()
 	}
 
-	/** The dropdown is flat, so each row has to spell out its direction. */
-	private fun sortLabel(order: ListSortOrder) = getString(
-		if (order.isAscending) R.string.sort_ascending else R.string.sort_descending,
-		getString(order.titleResId),
+	private fun currentFormState() = FormState(
+		name = name.value.trim(),
+		sortOrder = sortOrder.value,
+		isTrackerEnabled = isTrackerEnabled.value,
+		isDownloadEnabled = isDownloadEnabled.value,
+		isShelfEnabled = isShelfEnabled.value,
 	)
 
-	private fun initSortSpinner() {
-		val entries = sortOrders.map(::sortLabel)
-		val adapter = SortAdapter(this, entries)
-		viewBinding.editSort.setAdapter(adapter)
-		viewBinding.editSort.onItemClickListener = this
+	private fun updateDoneButton() {
+		viewBinding.buttonDone.isEnabled = name.value.isNotBlank() &&
+			!viewModel.isLoading.value &&
+			currentFormState() != baseline
 	}
 
-	private fun getSelectedSortOrder(): ListSortOrder {
-		selectedSortOrder?.let { return it }
-		val index = sortOrders.map(::sortLabel).indexOf(viewBinding.editSort.text.toString())
-		return sortOrders.getOrNull(index) ?: ListSortOrder.NEWEST
-	}
-
-	private class SortAdapter(
-		context: Context,
-		entries: List<String>,
-	) : ArrayAdapter<String>(context, android.R.layout.simple_spinner_dropdown_item, entries) {
-
-		override fun getFilter(): Filter = EmptyFilter
-
-		private object EmptyFilter : Filter() {
-			override fun performFiltering(constraint: CharSequence?) = FilterResults()
-			override fun publishResults(constraint: CharSequence?, results: FilterResults?) = Unit
-		}
-	}
+	/** Snapshot of the editable fields, compared by value to tell whether anything was changed. */
+	private data class FormState(
+		val name: String = "",
+		val sortOrder: ListSortOrder = ListSortOrder.NEWEST,
+		val isTrackerEnabled: Boolean = true,
+		val isDownloadEnabled: Boolean = false,
+		val isShelfEnabled: Boolean = true,
+	)
 
 	companion object {
 
 		const val NO_ID = -1L
 		private const val KEY_SORT_ORDER = "sort"
+		private const val KEY_NAME = "name"
+		private const val KEY_TRACKER = "tracker"
+		private const val KEY_DOWNLOAD = "download"
+		private const val KEY_SHELF = "shelf"
 	}
 }

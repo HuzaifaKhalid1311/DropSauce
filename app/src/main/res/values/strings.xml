@@ -565,6 +565,9 @@
     <string name="speed">Speed</string>
     <string name="interval">Interval</string>
     <string name="show_on_shelf">Show on the Shelf</string>
+    <string name="category_tracker_summary">Include this category when checking sources for new chapters</string>
+    <string name="category_download_summary">Save new chapters to your device as soon as they are found</string>
+    <string name="category_shelf_summary">Show this category as a row on the Shelf</string>
     <string name="find_similar">Find similar</string>
     <string name="ignore_ssl_errors">Ignore SSL errors</string>
     <string name="pause">Pause</string>

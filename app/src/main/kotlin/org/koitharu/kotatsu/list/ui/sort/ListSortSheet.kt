@@ -89,7 +89,7 @@ class ListSortSheet : BaseAdaptiveSheet<SheetSortOrderBinding>() {
 }
 
 @Composable
-private fun SortRow(
+internal fun SortRow(
 	title: String,
 	isSelected: Boolean,
 	isAscending: Boolean,
