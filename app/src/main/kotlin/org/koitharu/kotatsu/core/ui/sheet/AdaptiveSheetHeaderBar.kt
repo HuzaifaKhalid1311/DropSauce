@@ -219,6 +219,16 @@ class AdaptiveSheetHeaderBar @JvmOverloads constructor(
 		handle.alpha = 1f - clamped
 	}
 
+	/**
+	 * Drives [setDragHandleCollapseProgress] from a sheet's raw slide offset, so every sheet that
+	 * expands to full screen melts its handle away over the same top stretch of the drag.
+	 */
+	fun setDragHandleCollapseFromSlide(slideOffset: Float) {
+		setDragHandleCollapseProgress(
+			(slideOffset - DRAG_HANDLE_COLLAPSE_START) / (1f - DRAG_HANDLE_COLLAPSE_START),
+		)
+	}
+
 	private fun settleToState(sv: View, behavior: AdaptiveSheetBehavior.Bottom, newState: Int) {
 		if (behavior.state == newState) {
 			// Behavior setter is a no-op when state hasn't changed — animate back manually
@@ -278,6 +288,7 @@ class AdaptiveSheetHeaderBar @JvmOverloads constructor(
 
 	private companion object {
 		const val FLING_VELOCITY = 1000f  // pixels/second
+		const val DRAG_HANDLE_COLLAPSE_START = 0.65f
 		const val HALF_EXPANDED_RATIO = 0.5f
 	}
 }

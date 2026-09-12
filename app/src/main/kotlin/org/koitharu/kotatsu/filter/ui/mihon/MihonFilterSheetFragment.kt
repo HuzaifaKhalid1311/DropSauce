@@ -221,8 +221,7 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 		// Melt the drag handle away over the top stretch of the drag so reaching full screen is one
 		// seamless motion rather than the handle snapping out once expanded.
 		val binding = viewBinding ?: return
-		val progress = (slideOffset - DRAG_HANDLE_COLLAPSE_START) / (1f - DRAG_HANDLE_COLLAPSE_START)
-		binding.headerBar.setDragHandleCollapseProgress(progress)
+		binding.headerBar.setDragHandleCollapseFromSlide(slideOffset)
 	}
 
 	private fun updateLayoutForOffset(sheet: View) {
@@ -286,7 +285,6 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 	private companion object {
 		// Slide offset (0 = half, 1 = full screen) at which the drag handle starts collapsing. Kept above
 		// the half-expanded resting offset so the handle stays full at the centre position.
-		const val DRAG_HANDLE_COLLAPSE_START = 0.65f
 
 		// Lower bound for the content-fitted sheet height so a couple of filters don't produce a sliver
 		const val MIN_HEIGHT_RATIO = 0.2f

@@ -191,8 +191,7 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		// Melt the drag handle away over the top stretch of the drag so reaching full screen is one
 		// seamless upward motion rather than a rise followed by a separate "handle disappears" step.
 		val binding = viewBinding ?: return
-		val progress = (slideOffset - DRAG_HANDLE_COLLAPSE_START) / (1f - DRAG_HANDLE_COLLAPSE_START)
-		binding.headerBar.setDragHandleCollapseProgress(progress)
+		binding.headerBar.setDragHandleCollapseFromSlide(slideOffset)
 	}
 
 	override fun onActionModeStarted(mode: ActionMode) {
@@ -269,6 +268,5 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 
 		// Slide offset (0 = centre/half, 1 = full screen) at which the drag handle starts collapsing.
 		// Kept above the half-expanded resting offset so the handle stays full at the centre position.
-		private const val DRAG_HANDLE_COLLAPSE_START = 0.65f
 	}
 }

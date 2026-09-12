@@ -154,7 +154,10 @@ abstract class Scrobbler(
 
 	fun observeScrobblingInfo(mangaId: Long): Flow<ScrobblingInfo?> {
 		return db.getScrobblingDao().observe(scrobblerService.id, mangaId)
-			.map { it?.toScrobblingInfo() }
+			// A signed-out service still has its old rows in the database, but nothing can be done
+			// with them — every action routes through a scrobbler that is filtered out by
+			// `isEnabled` and fails as "not available". Hide them instead of offering dead entries.
+			.map { if (isEnabled) it?.toScrobblingInfo() else null }
 	}
 
 	fun observeAllScrobblingInfo(): Flow<List<ScrobblingInfo>> {

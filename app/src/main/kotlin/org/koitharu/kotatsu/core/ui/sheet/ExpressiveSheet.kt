@@ -206,7 +206,7 @@ fun SheetSelectorField(
 }
 
 /** One entry of a [SheetChips] row. */
-class SheetChip(val title: String, val isChecked: Boolean)
+class SheetChip(val title: String, val isChecked: Boolean, val icon: Painter? = null)
 
 /** Wrapping row of filter chips; [onClick] receives the tapped chip's index. */
 @Composable
@@ -225,6 +225,15 @@ fun SheetChips(
 				selected = chip.isChecked,
 				onClick = { onClick(index) },
 				label = { Text(chip.title) },
+				leadingIcon = chip.icon?.let { icon ->
+					{
+						Icon(
+							painter = icon,
+							contentDescription = null,
+							modifier = Modifier.size(18.dp),
+						)
+					}
+				},
 			)
 		}
 	}
