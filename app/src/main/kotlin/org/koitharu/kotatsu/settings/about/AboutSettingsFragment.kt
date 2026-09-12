@@ -8,9 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import android.graphics.Matrix
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.InfiniteTransition
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -57,7 +60,8 @@ import androidx.graphics.shapes.CornerRounding
 import androidx.graphics.shapes.Cubic
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
-import androidx.graphics.shapes.star
+import androidx.graphics.shapes.rectangle
+import androidx.graphics.shapes.transformed
 import androidx.fragment.app.viewModels
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,6 +79,11 @@ import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 import org.koitharu.kotatsu.settings.developer.DeveloperToolsFragment
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.sin
 
 @AndroidEntryPoint
 class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
@@ -285,114 +294,55 @@ private fun AboutHero(appVersion: String) {
 		Box(modifier = Modifier.fillMaxWidth()) {
 			val infiniteTransition = rememberInfiniteTransition(label = "HeroShapes")
 
-			// Three M3-Expressive shapes, each morphing between two members of the shape set rather
-			// than just sliding around. Built once and reused: a Morph is not cheap to construct.
-			val cookieToClover = remember { Morph(materialCookie4(), materialClover4()) }
-			val sunnyToCookie = remember { Morph(materialSunny(), materialCookie6()) }
-			val burstToBoom = remember { Morph(materialSoftBurst(), materialBurst()) }
+			// Three pairs from the real M3 Expressive shape set, each shape continuously morphing into
+			// its partner and back. Built once: a Morph is not cheap to construct.
+			val ghostToSemiCircle = remember { Morph(ghostishShape(), semiCircleShape()) }
+			val sunnyToCookie = remember { Morph(verySunnyShape(), cookie6Shape()) }
+			val triangleToPentagon = remember { Morph(triangleShape(), pentagonShape()) }
 
-			val cookieProgress by infiniteTransition.animateFloat(
-				initialValue = 0f,
+			val ghostProgress by infiniteTransition.morphProgress(9000, "ghostProgress")
+			val ghostSpin by infiniteTransition.spin(34000, "ghostSpin")
+			val sunnyProgress by infiniteTransition.morphProgress(7000, "sunnyProgress")
+			val sunnySpin by infiniteTransition.spin(26000, "sunnySpin", reverse = true)
+			val triangleProgress by infiniteTransition.morphProgress(11000, "triangleProgress")
+			val triangleSpin by infiniteTransition.spin(40000, "triangleSpin")
+			val drift by infiniteTransition.animateFloat(
+				initialValue = -1f,
 				targetValue = 1f,
 				animationSpec = infiniteRepeatable(
-					animation = tween(5200, easing = EaseInOut),
+					animation = tween(13000, easing = EaseInOut),
 					repeatMode = RepeatMode.Reverse,
 				),
-				label = "cookieProgress",
-			)
-			val cookieRotation by infiniteTransition.animateFloat(
-				initialValue = 0f,
-				targetValue = 360f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(22000, easing = LinearEasing),
-					repeatMode = RepeatMode.Restart,
-				),
-				label = "cookieRotation",
+				label = "drift",
 			)
 
-			val sunnyProgress by infiniteTransition.animateFloat(
-				initialValue = 0f,
-				targetValue = 1f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(6800, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse,
-				),
-				label = "sunnyProgress",
-			)
-			val sunnyRotation by infiniteTransition.animateFloat(
-				initialValue = 360f,
-				targetValue = 0f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(30000, easing = LinearEasing),
-					repeatMode = RepeatMode.Restart,
-				),
-				label = "sunnyRotation",
-			)
-			val sunnyDrift by infiniteTransition.animateFloat(
-				initialValue = -14f,
-				targetValue = 14f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(9000, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse,
-				),
-				label = "sunnyDrift",
-			)
-
-			val burstProgress by infiniteTransition.animateFloat(
-				initialValue = 0f,
-				targetValue = 1f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(4400, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse,
-				),
-				label = "burstProgress",
-			)
-			val burstRotation by infiniteTransition.animateFloat(
-				initialValue = 0f,
-				targetValue = 360f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(26000, easing = LinearEasing),
-					repeatMode = RepeatMode.Restart,
-				),
-				label = "burstRotation",
-			)
-			val burstBreath by infiniteTransition.animateFloat(
-				initialValue = 0.86f,
-				targetValue = 1.12f,
-				animationSpec = infiniteRepeatable(
-					animation = tween(7400, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse,
-				),
-				label = "burstBreath",
-			)
-
-			// Clipped by the Surface's rounded shape. The centred app icon sits around
-			// (width/2, ~90dp), so the shapes hug the corners and edges - clear of the content and
-			// well apart from each other.
+			// Clipped by the Surface's rounded shape. The centred app icon, title and chips own the
+			// middle column, so the shapes stay in the corners and along the edges - clear of the
+			// content and well apart from each other.
 			Canvas(modifier = Modifier.matchParentSize()) {
 				val unit = size.minDimension
 				drawMorph(
-					morph = cookieToClover,
-					progress = cookieProgress,
-					center = Offset(size.width * 0.90f, size.height * 0.13f),
-					radius = unit * 0.26f,
-					rotationDeg = cookieRotation,
-					color = decorColorStrong,
+					morph = ghostToSemiCircle,
+					progress = ghostProgress,
+					center = Offset(size.width * 0.11f, size.height * 0.20f + drift * 10f),
+					size = unit * 0.42f,
+					rotationDeg = ghostSpin,
+					color = decorColor,
 				)
 				drawMorph(
 					morph = sunnyToCookie,
 					progress = sunnyProgress,
-					center = Offset(size.width * 0.06f, size.height * 0.54f + sunnyDrift),
-					radius = unit * 0.21f,
-					rotationDeg = sunnyRotation,
-					color = decorColor,
+					center = Offset(size.width * 0.94f, size.height * 0.52f - drift * 12f),
+					size = unit * 0.56f,
+					rotationDeg = sunnySpin,
+					color = decorColorStrong,
 				)
 				drawMorph(
-					morph = burstToBoom,
-					progress = burstProgress,
-					center = Offset(size.width * 0.80f, size.height * 0.93f),
-					radius = unit * 0.30f * burstBreath,
-					rotationDeg = burstRotation,
+					morph = triangleToPentagon,
+					progress = triangleProgress,
+					center = Offset(size.width * 0.15f, size.height * 0.90f),
+					size = unit * 0.34f,
+					rotationDeg = triangleSpin,
 					color = decorColorStrong,
 				)
 			}
@@ -475,64 +425,171 @@ private fun AboutMetaPill(
 	}
 }
 
-/**
- * The M3-Expressive shapes used by the About hero, each built with androidx.graphics.shapes - the
- * same primitive the Material 3 shape set uses - and normalised to a unit radius around the origin
- * so any two of them can be morphed into each other and then placed by [drawMorph].
+/** A slow, eased there-and-back morph: no visible snap at either end. */
+@Composable
+private fun InfiniteTransition.morphProgress(durationMillis: Int, label: String) = animateFloat(
+	initialValue = 0f,
+	targetValue = 1f,
+	animationSpec = infiniteRepeatable(
+		animation = tween(durationMillis, easing = FastOutSlowInEasing),
+		repeatMode = RepeatMode.Reverse,
+	),
+	label = label,
+)
+
+/** A constant-speed full turn, so the shape never appears to stop or jerk. */
+@Composable
+private fun InfiniteTransition.spin(
+	durationMillis: Int,
+	label: String,
+	reverse: Boolean = false,
+) = animateFloat(
+	initialValue = if (reverse) 360f else 0f,
+	targetValue = if (reverse) 0f else 360f,
+	animationSpec = infiniteRepeatable(
+		animation = tween(durationMillis, easing = LinearEasing),
+		repeatMode = RepeatMode.Restart,
+	),
+	label = label,
+)
+
+/*
+ * The M3 Expressive shapes used by the About hero, ported from androidx.compose.material3's
+ * MaterialShapes (the Compose Material 3 version here predates it). Each is normalised, so it fits
+ * the unit square and can be morphed into any other one; [drawMorph] does the placing.
  */
-private fun materialCookie4() = RoundedPolygon.star(
-	numVerticesPerRadius = 4,
-	innerRadius = 0.82f,
-	rounding = CornerRounding(0.5f),
-	innerRounding = CornerRounding(0.5f),
-)
 
-private fun materialClover4() = RoundedPolygon.star(
-	numVerticesPerRadius = 4,
-	innerRadius = 0.53f,
-	rounding = CornerRounding(0.68f),
-	innerRounding = CornerRounding(0.12f),
-)
+private val cornerRound20 = CornerRounding(0.2f)
+private val cornerRound100 = CornerRounding(1f)
 
-private fun materialSunny() = RoundedPolygon.star(
-	numVerticesPerRadius = 8,
-	innerRadius = 0.8f,
-	rounding = CornerRounding(0.15f),
-	innerRounding = CornerRounding(0.15f),
-)
+private fun semiCircleShape() = RoundedPolygon.rectangle(
+	width = 1.6f,
+	height = 1f,
+	perVertexRounding = listOf(cornerRound20, cornerRound20, cornerRound100, cornerRound100),
+).normalized()
 
-private fun materialCookie6() = RoundedPolygon.star(
-	numVerticesPerRadius = 6,
-	innerRadius = 0.75f,
-	rounding = CornerRounding(0.5f),
-	innerRounding = CornerRounding(0.5f),
-)
+private fun triangleShape() = RoundedPolygon(numVertices = 3, rounding = cornerRound20)
+	.transformed(Matrix().apply { setRotate(-90f) })
+	.normalized()
 
-private fun materialSoftBurst() = RoundedPolygon.star(
-	numVerticesPerRadius = 10,
-	innerRadius = 0.65f,
-	rounding = CornerRounding(0.12f),
-	innerRounding = CornerRounding(0.12f),
-)
+private fun pentagonShape() = customPolygon(
+	listOf(
+		PointNRound(0.500f, -0.009f, CornerRounding(0.172f)),
+		PointNRound(1.030f, 0.365f, CornerRounding(0.164f)),
+		PointNRound(0.828f, 0.970f, CornerRounding(0.169f)),
+	),
+	reps = 1,
+	mirroring = true,
+).normalized()
 
-private fun materialBurst() = RoundedPolygon.star(
-	numVerticesPerRadius = 12,
-	innerRadius = 0.7f,
-)
+private fun verySunnyShape() = customPolygon(
+	listOf(
+		PointNRound(0.500f, 1.080f, CornerRounding(0.085f)),
+		PointNRound(0.358f, 0.843f, CornerRounding(0.085f)),
+	),
+	reps = 8,
+).normalized()
 
-/** Draws [morph] at [progress], scaled up from its unit radius and spun about its own centre. */
+private fun cookie6Shape() = customPolygon(
+	listOf(
+		PointNRound(0.723f, 0.884f, CornerRounding(0.394f)),
+		PointNRound(0.500f, 1.099f, CornerRounding(0.398f)),
+	),
+	reps = 6,
+).normalized()
+
+private fun ghostishShape() = customPolygon(
+	listOf(
+		PointNRound(0.500f, 0f, CornerRounding(1.000f)),
+		PointNRound(1f, 0f, CornerRounding(1.000f)),
+		PointNRound(1f, 1.140f, CornerRounding(0.254f, 0.106f)),
+		PointNRound(0.575f, 0.906f, CornerRounding(0.253f)),
+	),
+	reps = 1,
+	mirroring = true,
+).normalized()
+
+private class PointNRound(val x: Float, val y: Float, val rounding: CornerRounding)
+
+private fun customPolygon(
+	points: List<PointNRound>,
+	reps: Int,
+	centerX: Float = 0.5f,
+	centerY: Float = 0.5f,
+	mirroring: Boolean = false,
+): RoundedPolygon {
+	val actual = repeatPoints(points, reps, centerX, centerY, mirroring)
+	return RoundedPolygon(
+		vertices = FloatArray(actual.size * 2) { i -> if (i % 2 == 0) actual[i / 2].x else actual[i / 2].y },
+		perVertexRounding = actual.map { it.rounding },
+		centerX = centerX,
+		centerY = centerY,
+	)
+}
+
+private fun repeatPoints(
+	points: List<PointNRound>,
+	reps: Int,
+	centerX: Float,
+	centerY: Float,
+	mirroring: Boolean,
+): List<PointNRound> = if (mirroring) {
+	buildList {
+		val angles = points.map { atan2(it.y - centerY, it.x - centerX) * 180f / PI.toFloat() }
+		val distances = points.map { hypot(it.x - centerX, it.y - centerY) }
+		val actualReps = reps * 2
+		val sectionAngle = 360f / actualReps
+		repeat(actualReps) { rep ->
+			points.indices.forEach { index ->
+				val i = if (rep % 2 == 0) index else points.lastIndex - index
+				if (i > 0 || rep % 2 == 0) {
+					val degrees = sectionAngle * rep +
+						if (rep % 2 == 0) angles[i] else sectionAngle - angles[i] + 2 * angles[0]
+					val a = degrees.toRadians()
+					add(
+						PointNRound(
+							x = cos(a) * distances[i] + centerX,
+							y = sin(a) * distances[i] + centerY,
+							rounding = points[i].rounding,
+						),
+					)
+				}
+			}
+		}
+	}
+} else {
+	val n = points.size
+	(0 until n * reps).map { i ->
+		val source = points[i % n]
+		val a = ((i / n) * 360f / reps).toRadians()
+		val dx = source.x - centerX
+		val dy = source.y - centerY
+		PointNRound(
+			x = dx * cos(a) - dy * sin(a) + centerX,
+			y = dx * sin(a) + dy * cos(a) + centerY,
+			rounding = source.rounding,
+		)
+	}
+}
+
+private fun Float.toRadians(): Float = this / 360f * 2f * PI.toFloat()
+
+/**
+ * Draws [morph] at [progress], scaled from its unit square to [size] and spun about its own centre.
+ */
 private fun DrawScope.drawMorph(
 	morph: Morph,
 	progress: Float,
 	center: Offset,
-	radius: Float,
+	size: Float,
 	rotationDeg: Float,
 	color: Color,
 ) {
 	withTransform({
 		translate(center.x, center.y)
 		rotate(rotationDeg, Offset.Zero)
-		scale(radius, radius, Offset.Zero)
+		scale(size, size, Offset.Zero)
+		translate(-0.5f, -0.5f)
 	}) {
 		drawPath(morph.asCubics(progress).toComposePath(), color)
 	}

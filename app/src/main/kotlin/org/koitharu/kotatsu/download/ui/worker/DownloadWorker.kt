@@ -110,7 +110,7 @@ class DownloadWorker @AssistedInject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val settings: AppSettings,
 	@LocalStorageChanges private val localStorageChanges: MutableSharedFlow<LocalManga?>,
-	private val slowdownDispatcher: DownloadSlowdownDispatcher,
+	private val sourceThrottler: DownloadSourceThrottler,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
 	notificationFactoryFactory: DownloadNotificationFactory.Factory,
 ) : CoroutineWorker(appContext, params) {
@@ -406,38 +406,42 @@ class DownloadWorker @AssistedInject constructor(
 			}
 			return file
 		}
-		slowdownDispatcher.delay(source)
-		// Mihon extensions must fetch through their own client. For pages, getImageStream() runs the
-		// extension's getImage(): it resolves relative image urls (e.g. MangaDex "/data/..."), runs
-		// decryption/unscrambling overrides, and applies per-source headers (Referer, etc.). For
-		// covers (page == null), getCoverStream() fetches via the extension's client + headers like
-		// Mihon's MangaCoverFetcher — the app's shared client is 403'd by some cover CDNs (e.g.
-		// Comick). Both return null for non-extension sources, falling back to a direct request.
-		val response = (if (page != null) repo.getImageStream(url, page) else repo.getCoverStream(url))
-			?: run {
-				val imageHeaders = page?.let { repo.getImageRequestHeaders(url, it) }
-				val request = PageLoader.createPageRequest(url, source, imageHeaders)
-				imageProxyInterceptor.interceptPageRequest(request, okHttp)
-			}
-		return response
-			.ensureSuccess()
-			.use { r ->
-				var file: File? = null
-				try {
-					r.body.use { body ->
-						file = destination.createTempFile(
-							ext = MimeTypes.getExtension(body.contentType()?.toMimeType())
-						)
-						file.sink(append = false).buffer().use {
-							it.writeAllCancellable(body.source())
-						}
-					}
-				} catch (e: Exception) {
-					file?.delete()
-					throw e
+		// The page parallelism above is per-chapter and knows nothing about other running downloads,
+		// so the shared per-source slot (and the optional slowdown) is applied here, around the
+		// request itself.
+		return sourceThrottler.withRequestPermit(source) {
+			// Mihon extensions must fetch through their own client. For pages, getImageStream() runs the
+			// extension's getImage(): it resolves relative image urls (e.g. MangaDex "/data/..."), runs
+			// decryption/unscrambling overrides, and applies per-source headers (Referer, etc.). For
+			// covers (page == null), getCoverStream() fetches via the extension's client + headers like
+			// Mihon's MangaCoverFetcher — the app's shared client is 403'd by some cover CDNs (e.g.
+			// Comick). Both return null for non-extension sources, falling back to a direct request.
+			val response = (if (page != null) repo.getImageStream(url, page) else repo.getCoverStream(url))
+				?: run {
+					val imageHeaders = page?.let { repo.getImageRequestHeaders(url, it) }
+					val request = PageLoader.createPageRequest(url, source, imageHeaders)
+					imageProxyInterceptor.interceptPageRequest(request, okHttp)
 				}
-				checkNotNull(file)
-			}
+			response
+				.ensureSuccess()
+				.use { r ->
+					var file: File? = null
+					try {
+						r.body.use { body ->
+							file = destination.createTempFile(
+								ext = MimeTypes.getExtension(body.contentType()?.toMimeType())
+							)
+							file.sink(append = false).buffer().use {
+								it.writeAllCancellable(body.source())
+							}
+						}
+					} catch (e: Exception) {
+						file?.delete()
+						throw e
+					}
+					checkNotNull(file)
+				}
+		}
 	}
 
 	private fun File.createTempFile(ext: String?) = File(

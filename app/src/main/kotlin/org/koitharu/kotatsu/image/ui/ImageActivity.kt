@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.image.ui
 
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
@@ -58,6 +59,9 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 	private lateinit var imageMenuProvider: ImageMenuProvider
 	private var manga: Manga? = null
 
+	/** The decoded image currently on screen; save and share both write these exact pixels out. */
+	private var loadedBitmap: Bitmap? = null
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityImageBinding.inflate(layoutInflater))
@@ -70,6 +74,7 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 			activity = this,
 			snackbarHost = viewBinding.root,
 			viewModel = viewModel,
+			bitmapProvider = { loadedBitmap },
 		)
 		manga = intent.getParcelableExtraCompat<ParcelableManga>(AppRouter.KEY_MANGA)?.manga
 		viewBinding.buttonEdit.isVisible = manga != null
@@ -84,7 +89,7 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 		when (v.id) {
 			R.id.button_back -> dispatchNavigateUp()
 			R.id.button_save -> imageMenuProvider.requestSave()
-			R.id.button_share -> viewModel.shareImage()
+			R.id.button_share -> loadedBitmap?.let(viewModel::shareImage)
 			R.id.button_edit -> manga?.let { router.openMangaOverrideConfig(it) }
 			else -> loadImage()
 		}
@@ -136,7 +141,12 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 			.lifecycle(this)
 			.listener(this)
 			.mangaSourceExtra(MangaSource(intent.getStringExtra(AppRouter.KEY_SOURCE)))
-			.target(SsivTarget(viewBinding.ssiv))
+			.target(
+				SsivTarget(viewBinding.ssiv) { bitmap ->
+					loadedBitmap = bitmap
+					updateActionsEnabled()
+				},
+			)
 			.enqueueWith(coil)
 	}
 
@@ -147,13 +157,17 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 			}.show()
 	}
 
-	private fun onLoadingStateChanged(isLoading: Boolean) {
-		viewBinding.buttonSave.isEnabled = !isLoading
-		viewBinding.buttonShare.isEnabled = !isLoading
+	private fun onLoadingStateChanged(isLoading: Boolean) = updateActionsEnabled(isLoading)
+
+	private fun updateActionsEnabled(isLoading: Boolean = viewModel.isLoading.value) {
+		val isEnabled = !isLoading && loadedBitmap != null
+		viewBinding.buttonSave.isEnabled = isEnabled
+		viewBinding.buttonShare.isEnabled = isEnabled
 	}
 
 	private class SsivTarget(
 		override val view: SubsamplingScaleImageView,
+		private val onBitmapChanged: (Bitmap?) -> Unit,
 	) : GenericViewTarget<SubsamplingScaleImageView>() {
 
 		override var drawable: Drawable? = null
@@ -172,9 +186,12 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 
 		private fun setImageDrawable(drawable: Drawable?) {
 			if (drawable != null) {
-				view.setImage(ImageSource.bitmap(drawable.toBitmap()))
+				val bitmap = drawable.toBitmap()
+				view.setImage(ImageSource.bitmap(bitmap))
+				onBitmapChanged(bitmap)
 			} else {
 				view.recycle()
+				onBitmapChanged(null)
 			}
 		}
 	}

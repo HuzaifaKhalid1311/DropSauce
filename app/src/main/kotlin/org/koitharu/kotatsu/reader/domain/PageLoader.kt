@@ -64,7 +64,7 @@ import org.koitharu.kotatsu.core.util.ext.toMimeType
 import org.koitharu.kotatsu.core.util.ext.use
 import org.koitharu.kotatsu.core.util.ext.withProgress
 import org.koitharu.kotatsu.core.util.progress.ProgressDeferred
-import org.koitharu.kotatsu.download.ui.worker.DownloadSlowdownDispatcher
+import org.koitharu.kotatsu.download.ui.worker.DownloadSourceThrottler
 import org.koitharu.kotatsu.local.data.LocalStorageCache
 import org.koitharu.kotatsu.local.data.PageCache
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -89,7 +89,7 @@ class PageLoader @Inject constructor(
 	private val settings: AppSettings,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
-	private val downloadSlowdownDispatcher: DownloadSlowdownDispatcher,
+	private val downloadSourceThrottler: DownloadSourceThrottler,
 ) {
 
 	val loaderScope = lifecycle.lifecycleScope + InternalErrorHandler() + Dispatchers.Default
@@ -274,7 +274,7 @@ class PageLoader @Inject constructor(
 			uri.isFileUri() -> uri
 			else -> {
 				if (isPrefetch) {
-					downloadSlowdownDispatcher.delay(page.source)
+					downloadSourceThrottler.pace(page.source)
 				}
 				val repo = getRepository(page.source)
 				// Use extension's getImage() when available — handles decryption/unscrambling.

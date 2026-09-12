@@ -1065,7 +1065,8 @@
     <string name="ext_update_notifications_summary">Show a notification when installed extensions have updates available.</string>
     <string name="extension_updates_available">Extension updates available</string>
     <string name="extension_update_available">Extension update available</string>
-    <string name="extension_update_available_summary">A newer version of this extension is available. Updating keeps this source working.</string>
+    <string name="extension_update_available_summary">A newer version of this extension is available. Updating keeps this source working properly.</string>
+    <string name="extension_updated">Extension updated</string>
     <plurals name="extension_updates_available_message">
         <item quantity="one">%d extension update is ready to install</item>
         <item quantity="other">%d extension updates are ready to install</item>

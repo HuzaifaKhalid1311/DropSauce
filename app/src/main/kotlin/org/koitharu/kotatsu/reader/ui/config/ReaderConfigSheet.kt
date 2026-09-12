@@ -375,7 +375,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                         },
                                     )
 
-                                    Spacer(modifier = Modifier.height(76.dp))
+                                    Spacer(modifier = Modifier.height(70.dp))
                                 }
                             }
 
@@ -383,7 +383,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                 // The grid takes the whole page height so it ends flush with the
                                 // bottom, but never less than its floor: on a short landscape page
                                 // the surrounding scroll takes over instead of squashing the cards.
-                                val gridHeight = with(density) { (pagerHeightPx.toDp() - 92.dp) }
+                                val gridHeight = with(density) { (pagerHeightPx.toDp() - 86.dp) }
                                     .coerceAtLeast(TOOL_GRID_MIN_HEIGHT)
                                 Column(
                                     modifier = Modifier
@@ -427,7 +427,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                         },
                                                                             )
 
-                                    Spacer(modifier = Modifier.height(76.dp))
+                                    Spacer(modifier = Modifier.height(70.dp))
                                 }
                             }
                         }
@@ -1750,10 +1750,10 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         modifier: Modifier = Modifier,
     ) {
         val outerCorner = 48.dp
-        val innerCorner = 12.dp
+        val innerCorner = 18.dp
         Row(
             modifier = modifier.heightIn(min = 96.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Surface(
                 onClick = onClick,
@@ -1809,7 +1809,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
-                    .width(56.dp)
+                    .width(78.dp)
                     .fillMaxHeight(),
             ) {
                 Box(
@@ -1819,7 +1819,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                     Icon(
                         painter = painterResource(trailingIcon),
                         contentDescription = trailingContentDescription,
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(30.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }

@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Cache
 import okhttp3.CookieJar
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.core.network.cookies.AndroidCookieJar
@@ -66,6 +67,16 @@ interface NetworkModule {
 			proxyProvider: ProxyProvider,
 		): OkHttpClient = OkHttpClient.Builder().apply {
 			assertNotInMainThread()
+			// Every client in the app is derived from this one with newBuilder(), so they all share
+			// this dispatcher. OkHttp's default of 5 requests per host is exactly the per-chapter page
+			// parallelism a download uses, which left nothing for the reader, covers or a second
+			// download to the same host - they queued behind it instead of running.
+			dispatcher(
+				Dispatcher().apply {
+					maxRequests = 64
+					maxRequestsPerHost = 12
+				},
+			)
 			connectTimeout(20, TimeUnit.SECONDS)
 			readTimeout(60, TimeUnit.SECONDS)
 			writeTimeout(20, TimeUnit.SECONDS)

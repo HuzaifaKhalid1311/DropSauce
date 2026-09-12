@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.image.ui
 
 import android.Manifest
+import android.graphics.Bitmap
 import android.os.Build
 import android.view.Menu
 import android.view.MenuInflater
@@ -18,6 +19,7 @@ class ImageMenuProvider(
 	private val activity: ComponentActivity,
 	private val snackbarHost: View,
 	private val viewModel: ImageViewModel,
+	private val bitmapProvider: () -> Bitmap?,
 ) : MenuProvider {
 
 	private val permissionLauncher = activity.registerForActivityResult(
@@ -31,8 +33,9 @@ class ImageMenuProvider(
 	private val saveLauncher = activity.registerForActivityResult(
 		ActivityResultContracts.CreateDocument("image/png"),
 	) { uri ->
-		if (uri != null) {
-			viewModel.saveImage(uri)
+		val bitmap = bitmapProvider()
+		if (uri != null && bitmap != null) {
+			viewModel.saveImage(uri, bitmap)
 		}
 	}
 

@@ -60,14 +60,28 @@ class ShareHelper(private val context: Context) {
 		intentBuilder.startChooser()
 	}
 
-	fun shareImage(file: File) = shareImage(
-		FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", file),
+	/**
+	 * The type is resolved from the file name rather than left to the resolver: FileProvider answers
+	 * `application/octet-stream` for anything MimeTypeMap does not know (avif, jxl, ...), and a
+	 * receiving app handed an octet-stream treats it as a generic file instead of a full-size image.
+	 */
+	fun shareImage(file: File) {
+		val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", file)
+		val type = MimeTypes.getMimeTypeFromExtension(file.name)?.toString()
+			?: context.contentResolver.getType(uri)
+			?: TYPE_IMAGE
+		shareImage(uri, type)
+	}
+
+	fun shareImage(uri: Uri) = shareImage(
+		uri = uri,
+		type = context.contentResolver.getType(uri) ?: TYPE_IMAGE,
 	)
 
-	fun shareImage(uri: Uri) {
+	private fun shareImage(uri: Uri, type: String) {
 		ShareCompat.IntentBuilder(context)
 			.setStream(uri)
-			.setType(context.contentResolver.getType(uri) ?: TYPE_IMAGE)
+			.setType(type)
 			.setChooserTitle(R.string.share_image)
 			.startChooser()
 	}
