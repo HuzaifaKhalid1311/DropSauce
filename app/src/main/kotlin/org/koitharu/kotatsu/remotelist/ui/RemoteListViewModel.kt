@@ -10,6 +10,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -44,8 +45,10 @@ import org.koitharu.kotatsu.list.ui.model.toErrorFooter
 import org.koitharu.kotatsu.list.ui.model.toErrorState
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonFilterMapper
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import org.koitharu.kotatsu.parsers.util.sizeOrZero
 import org.jsoup.HttpStatusException
 import java.net.HttpURLConnection
@@ -63,10 +66,24 @@ open class RemoteListViewModel @Inject constructor(
 	private val exploreRepository: ExploreRepository,
 	sourcesRepository: MangaSourcesRepository,
 	mangaDataRepository: MangaDataRepository,
+	private val extensionStoreManager: ExtensionStoreManager,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), FilterCoordinator.Owner {
 
 	val source = MangaSource(savedStateHandle[RemoteListFragment.ARG_SOURCE])
+
+	/**
+	 * The package of the extension backing this source while it has an update waiting, else null.
+	 * Novel plugins are left out on purpose: they are files we own and the background worker
+	 * refreshes them unconditionally, so there is never an update for the user to act on.
+	 */
+	val extensionUpdatePackage: StateFlow<String?> = MihonExtensionManager.getByName(source.name)
+		?.pkgName
+		?.let { pkgName ->
+			extensionStoreManager.hasUpdateFor(pkgName).map { if (it) pkgName else null }
+		}
+		?.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, null)
+		?: MutableStateFlow(null)
 	val isRandomLoading = MutableStateFlow(false)
 	val onOpenManga = MutableEventFlow<Manga>()
 	val onBrokenSortFallback = MutableEventFlow<Unit>()
@@ -118,6 +135,14 @@ open class RemoteListViewModel @Inject constructor(
 			}.catch { error ->
 				listError.value = error
 			}.launchIn(viewModelScope)
+
+		if (MihonExtensionManager.getByName(source.name) != null) {
+			// Store catalogs are otherwise only loaded by the extension manager screen, so without
+			// this the update notice would never appear until the user went there first.
+			launchJob(Dispatchers.Default) {
+				extensionStoreManager.initialize()
+			}
+		}
 
 		launchJob(Dispatchers.Default) {
 			sourcesRepository.trackUsage(source)

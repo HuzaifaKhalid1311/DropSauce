@@ -60,6 +60,10 @@ class ShareHelper(private val context: Context) {
 		intentBuilder.startChooser()
 	}
 
+	fun shareImage(file: File) = shareImage(
+		FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", file),
+	)
+
 	fun shareImage(uri: Uri) {
 		ShareCompat.IntentBuilder(context)
 			.setStream(uri)

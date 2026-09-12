@@ -35,19 +35,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -56,6 +54,8 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.CornerRounding
+import androidx.graphics.shapes.Cubic
+import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.star
 import androidx.fragment.app.viewModels
@@ -275,8 +275,8 @@ private fun AboutScreen(
 @Composable
 private fun AboutHero(appVersion: String) {
 	val cs = MaterialTheme.colorScheme
-	val decorColor = cs.onPrimaryContainer.copy(alpha = 0.16f)
-	val decorColorStrong = cs.onPrimaryContainer.copy(alpha = 0.22f)
+	val decorColor = cs.onPrimaryContainer.copy(alpha = 0.20f)
+	val decorColorStrong = cs.onPrimaryContainer.copy(alpha = 0.28f)
 	Surface(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(28.dp),
@@ -285,78 +285,116 @@ private fun AboutHero(appVersion: String) {
 		Box(modifier = Modifier.fillMaxWidth()) {
 			val infiniteTransition = rememberInfiniteTransition(label = "HeroShapes")
 
-			val cookieRotation = infiniteTransition.animateFloat(
+			// Three M3-Expressive shapes, each morphing between two members of the shape set rather
+			// than just sliding around. Built once and reused: a Morph is not cheap to construct.
+			val cookieToClover = remember { Morph(materialCookie4(), materialClover4()) }
+			val sunnyToCookie = remember { Morph(materialSunny(), materialCookie6()) }
+			val burstToBoom = remember { Morph(materialSoftBurst(), materialBurst()) }
+
+			val cookieProgress by infiniteTransition.animateFloat(
+				initialValue = 0f,
+				targetValue = 1f,
+				animationSpec = infiniteRepeatable(
+					animation = tween(5200, easing = EaseInOut),
+					repeatMode = RepeatMode.Reverse,
+				),
+				label = "cookieProgress",
+			)
+			val cookieRotation by infiniteTransition.animateFloat(
 				initialValue = 0f,
 				targetValue = 360f,
 				animationSpec = infiniteRepeatable(
-					animation = tween(18000, easing = LinearEasing),
-					repeatMode = RepeatMode.Restart
+					animation = tween(22000, easing = LinearEasing),
+					repeatMode = RepeatMode.Restart,
 				),
-				label = "cookieRotation"
+				label = "cookieRotation",
 			)
 
-			val pillOffsetX = infiniteTransition.animateFloat(
-				initialValue = -25f,
-				targetValue = 25f,
+			val sunnyProgress by infiniteTransition.animateFloat(
+				initialValue = 0f,
+				targetValue = 1f,
 				animationSpec = infiniteRepeatable(
-					animation = tween(10000, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse
+					animation = tween(6800, easing = EaseInOut),
+					repeatMode = RepeatMode.Reverse,
 				),
-				label = "pillOffsetX"
+				label = "sunnyProgress",
 			)
-
-			val pillOffsetY = infiniteTransition.animateFloat(
-				initialValue = -15f,
-				targetValue = 15f,
+			val sunnyRotation by infiniteTransition.animateFloat(
+				initialValue = 360f,
+				targetValue = 0f,
 				animationSpec = infiniteRepeatable(
-					animation = tween(12000, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse
+					animation = tween(30000, easing = LinearEasing),
+					repeatMode = RepeatMode.Restart,
 				),
-				label = "pillOffsetY"
+				label = "sunnyRotation",
 			)
-
-			val ghostScale = infiniteTransition.animateFloat(
-				initialValue = 0.85f,
-				targetValue = 1.15f,
+			val sunnyDrift by infiniteTransition.animateFloat(
+				initialValue = -14f,
+				targetValue = 14f,
 				animationSpec = infiniteRepeatable(
-					animation = tween(8000, easing = EaseInOut),
-					repeatMode = RepeatMode.Reverse
+					animation = tween(9000, easing = EaseInOut),
+					repeatMode = RepeatMode.Reverse,
 				),
-				label = "ghostScale"
+				label = "sunnyDrift",
 			)
 
-			// Ghost-ish M3 Expressive shapes (ghost, 4-sided cookie, pill) scattered behind the content,
-			// clipped by the Surface's rounded shape. The centered app icon sits around
-			// (width/2, ~90dp); shapes are kept to the edges/corners so they never touch it.
+			val burstProgress by infiniteTransition.animateFloat(
+				initialValue = 0f,
+				targetValue = 1f,
+				animationSpec = infiniteRepeatable(
+					animation = tween(4400, easing = EaseInOut),
+					repeatMode = RepeatMode.Reverse,
+				),
+				label = "burstProgress",
+			)
+			val burstRotation by infiniteTransition.animateFloat(
+				initialValue = 0f,
+				targetValue = 360f,
+				animationSpec = infiniteRepeatable(
+					animation = tween(26000, easing = LinearEasing),
+					repeatMode = RepeatMode.Restart,
+				),
+				label = "burstRotation",
+			)
+			val burstBreath by infiniteTransition.animateFloat(
+				initialValue = 0.86f,
+				targetValue = 1.12f,
+				animationSpec = infiniteRepeatable(
+					animation = tween(7400, easing = EaseInOut),
+					repeatMode = RepeatMode.Reverse,
+				),
+				label = "burstBreath",
+			)
+
+			// Clipped by the Surface's rounded shape. The centred app icon sits around
+			// (width/2, ~90dp), so the shapes hug the corners and edges - clear of the content and
+			// well apart from each other.
 			Canvas(modifier = Modifier.matchParentSize()) {
 				val unit = size.minDimension
-				// 4-sided cookie, top-right corner, rotating smoothly
-				rotate(degrees = cookieRotation.value, pivot = Offset(size.width * 0.93f, size.height * 0.12f)) {
-					drawCookie(
-						centerX = size.width * 0.93f,
-						centerY = size.height * 0.12f,
-						radius = unit * 0.22f,
-						color = decorColorStrong,
-					)
-				}
-				// Pill, upright, left edge, moving around freely
-				drawPill(
-					centerX = size.width * 0.05f + pillOffsetX.value,
-					centerY = size.height * 0.46f + pillOffsetY.value,
-					width = unit * 0.15f,
-					height = unit * 0.44f,
-					rotationDeg = -16f,
+				drawMorph(
+					morph = cookieToClover,
+					progress = cookieProgress,
+					center = Offset(size.width * 0.90f, size.height * 0.13f),
+					radius = unit * 0.26f,
+					rotationDeg = cookieRotation,
+					color = decorColorStrong,
+				)
+				drawMorph(
+					morph = sunnyToCookie,
+					progress = sunnyProgress,
+					center = Offset(size.width * 0.06f, size.height * 0.54f + sunnyDrift),
+					radius = unit * 0.21f,
+					rotationDeg = sunnyRotation,
 					color = decorColor,
 				)
-				// Ghost-ish shape, diagonal, bottom-right, expanding and shrinking
-				scale(scale = ghostScale.value, pivot = Offset(size.width * 0.85f, size.height * 0.85f)) {
-					drawGhost(
-						centerX = size.width * 0.85f,
-						centerY = size.height * 0.85f,
-						radius = unit * 0.28f,
-						color = decorColor,
-					)
-				}
+				drawMorph(
+					morph = burstToBoom,
+					progress = burstProgress,
+					center = Offset(size.width * 0.80f, size.height * 0.93f),
+					radius = unit * 0.30f * burstBreath,
+					rotationDeg = burstRotation,
+					color = decorColorStrong,
+				)
 			}
 		Column(
 			modifier = Modifier
@@ -438,75 +476,77 @@ private fun AboutMetaPill(
 }
 
 /**
- * Draws a standard M3-Expressive 4-sided "cookie" shape (a `RoundedPolygon` star), built with
- * androidx.graphics.shapes — the same primitive the Material 3 shape set uses.
+ * The M3-Expressive shapes used by the About hero, each built with androidx.graphics.shapes - the
+ * same primitive the Material 3 shape set uses - and normalised to a unit radius around the origin
+ * so any two of them can be morphed into each other and then placed by [drawMorph].
  */
-private fun DrawScope.drawCookie(
-	centerX: Float,
-	centerY: Float,
+private fun materialCookie4() = RoundedPolygon.star(
+	numVerticesPerRadius = 4,
+	innerRadius = 0.82f,
+	rounding = CornerRounding(0.5f),
+	innerRounding = CornerRounding(0.5f),
+)
+
+private fun materialClover4() = RoundedPolygon.star(
+	numVerticesPerRadius = 4,
+	innerRadius = 0.53f,
+	rounding = CornerRounding(0.68f),
+	innerRounding = CornerRounding(0.12f),
+)
+
+private fun materialSunny() = RoundedPolygon.star(
+	numVerticesPerRadius = 8,
+	innerRadius = 0.8f,
+	rounding = CornerRounding(0.15f),
+	innerRounding = CornerRounding(0.15f),
+)
+
+private fun materialCookie6() = RoundedPolygon.star(
+	numVerticesPerRadius = 6,
+	innerRadius = 0.75f,
+	rounding = CornerRounding(0.5f),
+	innerRounding = CornerRounding(0.5f),
+)
+
+private fun materialSoftBurst() = RoundedPolygon.star(
+	numVerticesPerRadius = 10,
+	innerRadius = 0.65f,
+	rounding = CornerRounding(0.12f),
+	innerRounding = CornerRounding(0.12f),
+)
+
+private fun materialBurst() = RoundedPolygon.star(
+	numVerticesPerRadius = 12,
+	innerRadius = 0.7f,
+)
+
+/** Draws [morph] at [progress], scaled up from its unit radius and spun about its own centre. */
+private fun DrawScope.drawMorph(
+	morph: Morph,
+	progress: Float,
+	center: Offset,
 	radius: Float,
+	rotationDeg: Float,
 	color: Color,
 ) {
-	val polygon = RoundedPolygon.star(
-		numVerticesPerRadius = 4,
-		radius = radius,
-		innerRadius = radius * 0.82f,
-		rounding = CornerRounding(radius * 0.5f),
-		innerRounding = CornerRounding(radius * 0.5f),
-		centerX = centerX,
-		centerY = centerY,
-	)
-	drawPath(polygon.toComposePath(), color)
+	withTransform({
+		translate(center.x, center.y)
+		rotate(rotationDeg, Offset.Zero)
+		scale(radius, radius, Offset.Zero)
+	}) {
+		drawPath(morph.asCubics(progress).toComposePath(), color)
+	}
 }
 
-/** Draws a generic M3-Expressive "ghost-ish" blob shape. */
-private fun DrawScope.drawGhost(
-	centerX: Float,
-	centerY: Float,
-	radius: Float,
-	color: Color,
-) {
-	val polygon = RoundedPolygon.star(
-		numVerticesPerRadius = 5,
-		radius = radius,
-		innerRadius = radius * 0.7f,
-		rounding = CornerRounding(radius * 0.5f),
-		innerRounding = CornerRounding(radius * 0.4f),
-		centerX = centerX,
-		centerY = centerY,
-	)
-	drawPath(polygon.toComposePath(), color)
-}
-
-/** Converts an androidx.graphics.shapes [RoundedPolygon] into a Compose [Path]. */
-private fun RoundedPolygon.toComposePath(): Path {
+/** Converts a list of androidx.graphics.shapes [Cubic]s into a Compose [Path]. */
+private fun List<Cubic>.toComposePath(): Path {
 	val path = Path()
-	val cubicList = cubics
-	if (cubicList.isEmpty()) return path
-	val first = cubicList.first()
+	if (isEmpty()) return path
+	val first = first()
 	path.moveTo(first.anchor0X, first.anchor0Y)
-	for (c in cubicList) {
+	for (c in this) {
 		path.cubicTo(c.control0X, c.control0Y, c.control1X, c.control1Y, c.anchor1X, c.anchor1Y)
 	}
 	path.close()
 	return path
-}
-
-/** Draws a single M3-Expressive "pill" (stadium) shape, optionally rotated. */
-private fun DrawScope.drawPill(
-	centerX: Float,
-	centerY: Float,
-	width: Float,
-	height: Float,
-	rotationDeg: Float,
-	color: Color,
-) {
-	rotate(degrees = rotationDeg, pivot = Offset(centerX, centerY)) {
-		drawRoundRect(
-			color = color,
-			topLeft = Offset(centerX - width / 2f, centerY - height / 2f),
-			size = Size(width, height),
-			cornerRadius = CornerRadius(height / 2f, height / 2f),
-		)
-	}
 }

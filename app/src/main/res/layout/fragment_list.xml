@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+	android:layout_height="match_parent"
+	android:orientation="vertical">
+
+	<!-- Only RemoteListFragment inflates this, for the "extension update available" notice. -->
+	<ViewStub
+		android:id="@+id/stub_tip"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginHorizontal="8dp"
+		android:layout_marginTop="8dp"
+		android:inflatedId="@+id/tip_view"
+		android:layout="@layout/item_tip2" />
 
 	<org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout
 		android:id="@+id/swipeRefreshLayout"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
+		android:layout_height="0dp"
+		android:layout_weight="1">
 
 		<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView
 			android:id="@+id/recyclerView"
@@ -23,4 +35,4 @@
 
 	</org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout>
 
-</FrameLayout>
+</LinearLayout>

@@ -73,6 +73,7 @@ import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
 import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
 import org.koitharu.kotatsu.scrobbling.discord.ui.DiscordRpc
 import org.koitharu.kotatsu.stats.domain.StatsCollector
+import java.io.File
 import java.time.Instant
 import javax.inject.Inject
 
@@ -125,6 +126,9 @@ class ReaderViewModel @Inject constructor(
 
     val readerMode = MutableStateFlow<ReaderMode?>(null)
     val onPageSaved = MutableEventFlow<Collection<Uri>>()
+
+    /** Temp file of the current page, ready to be handed to a share intent. */
+    val onPageReadyToShare = MutableEventFlow<File>()
     val onLoadingError = MutableEventFlow<Throwable>()
     val onShowToast = MutableEventFlow<Int>()
     val onAskNsfwIncognito = MutableEventFlow<Unit>()
@@ -278,18 +282,27 @@ class ReaderViewModel @Inject constructor(
         val prevJob = pageSaveJob
         pageSaveJob = launchLoadingJob(Dispatchers.Default) {
             prevJob?.cancelAndJoin()
-            val state = checkNotNull(getCurrentState())
-            val currentManga = manga.requireValue()
-            val task = PageSaveHelper.Task(
-                manga = currentManga,
-                chapterId = state.chapterId,
-                pageNumber = state.page + 1,
-                page = checkNotNull(getCurrentPage()) { "Cannot find current page" },
-            )
-            val dest = pageSaveHelper.save(setOf(task))
+            val dest = pageSaveHelper.save(setOf(currentPageSaveTask()))
             onPageSaved.call(dest)
         }
     }
+
+    fun shareCurrentPage(
+        pageSaveHelper: PageSaveHelper
+    ) {
+        val prevJob = pageSaveJob
+        pageSaveJob = launchLoadingJob(Dispatchers.Default) {
+            prevJob?.cancelAndJoin()
+            onPageReadyToShare.call(pageSaveHelper.saveToTempFile(currentPageSaveTask()))
+        }
+    }
+
+    private fun currentPageSaveTask() = PageSaveHelper.Task(
+        manga = manga.requireValue(),
+        chapterId = checkNotNull(getCurrentState()).chapterId,
+        pageNumber = checkNotNull(getCurrentState()).page + 1,
+        page = checkNotNull(getCurrentPage()) { "Cannot find current page" },
+    )
 
     fun getCurrentPage(): MangaPage? {
         val state = readingState.value ?: return null

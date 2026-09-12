@@ -86,6 +86,25 @@ class ExtensionStoreManager @Inject constructor(
 		.onEach { settings.hasExtensionUpdates = it }
 		.flowOn(Dispatchers.IO)
 
+	/**
+	 * Whether one specific extension package has a newer build waiting in the store that owns it.
+	 * Same rules as [hasUpdates], just narrowed to a single package, so the two can never disagree.
+	 */
+	fun hasUpdateFor(packageName: String): Flow<Boolean> = combine(
+		extensionManager.installedExtensions,
+		states,
+		settings.observeAsFlow(AppSettings.KEY_PRIVATE_INSTALLER) { isPrivateInstallEnabled },
+	) { _, stores, privateMode ->
+		val mode = if (privateMode) ExtensionInstallMode.SANDBOX else ExtensionInstallMode.SYSTEM
+		val local = extensionLoader.getInstalledExtensions(context, privateMode)
+			.firstOrNull { it.pkgName == packageName } ?: return@combine false
+		val owner = owner(mode, local)?.takeIf { it.enabled } ?: return@combine false
+		val state = stores.firstOrNull { it.store.id == owner.id } ?: return@combine false
+		state.health == StoreHealth.AVAILABLE &&
+			state.catalog.any { it.packageName == packageName && it.isNewerThan(local) }
+	}.distinctUntilChanged()
+		.flowOn(Dispatchers.IO)
+
 	suspend fun initialize(forceRefresh: Boolean = false) = mutex.withLock {
 		withContext(Dispatchers.IO) {
 			val migrationPerformed = ensureMigrated()

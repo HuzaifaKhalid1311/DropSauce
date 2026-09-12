@@ -44,7 +44,7 @@ class LocalInfoViewModel @Inject constructor(
 			try {
 				isCleaningUp.value = true
 				val oldSize = size.value
-				val chaptersCount = deleteReadChaptersUseCase.invoke(manga)
+				val chaptersCount = deleteReadChaptersUseCase.invoke(manga, keep = 0)
 				computeSize().join()
 				val newSize = size.value
 				onCleanedUp.call(chaptersCount to oldSize - newSize)

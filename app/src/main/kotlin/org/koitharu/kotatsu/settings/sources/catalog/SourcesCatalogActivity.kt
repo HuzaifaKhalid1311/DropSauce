@@ -64,6 +64,7 @@ import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
 import org.koitharu.kotatsu.list.ui.model.ListHeader
+import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageLabel
 import org.koitharu.kotatsu.parsers.model.ContentType
@@ -112,6 +113,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	private val isAutoMigrate by lazy(LazyThreadSafetyMode.NONE) {
 		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_AUTO_MIGRATE, false) == true
 	}
+	/** Package whose update this screen was opened to install; cleared once it has been started. */
+	private var autoInstallPackage: String? = null
 	private var isScrollToTopShown = false
 	private val pendingInstallQueue = ArrayDeque<SourcesCatalogViewModel.InstallRequest>()
 	private val pendingDownloadedInstalls = ArrayDeque<Long>()
@@ -172,6 +175,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		clearOldApks()
+		if (savedInstanceState == null) {
+			autoInstallPackage = intent?.getStringExtra(AppRouter.KEY_SOURCE_CATALOG_INSTALL_PACKAGE)
+		}
 		setContentView(ActivitySourcesCatalogBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		if (isExternalOnly) {
@@ -226,6 +232,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 		viewModel.content.observe(this) { page ->
 			pagesAdapter.submitContent(page.pageId, page.items)
+			startAutoInstallIfReady(page.items)
 		}
 		viewModel.hasUpdates.observe(this) { hasUpdates ->
 			// No menu item depends on this. Invalidating here rebuilt the menu whenever a search
@@ -328,6 +335,21 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			currentRecyclerView()?.smoothScrollToTop()
 		}
 		updateScrollToTopVisibility()
+	}
+
+	/**
+	 * Runs the normal update action for the package this screen was opened for, as soon as the
+	 * catalog has an entry for it. Everything after that is the ordinary install flow.
+	 */
+	private fun startAutoInstallIfReady(items: List<ListModel>) {
+		val packageName = autoInstallPackage ?: return
+		val item = items.firstOrNull {
+			it is SourceCatalogItem.Extension &&
+				it.packageName == packageName &&
+				it.action == SourceCatalogItem.Extension.Action.UPDATE
+		} as? SourceCatalogItem.Extension ?: return
+		autoInstallPackage = null
+		viewModel.onInstallEntryClick(item)
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {

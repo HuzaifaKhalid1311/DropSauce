@@ -31,18 +31,23 @@ class DeleteReadChaptersUseCase @Inject constructor(
 	private val settings: AppSettings,
 ) {
 
-	suspend operator fun invoke(manga: Manga): Int {
+	/**
+	 * @param keep how many chapters behind the current one are kept as a safety margin. Only the
+	 * automatic cleanup wants a margin; a user who explicitly asks to delete read chapters expects
+	 * every chapter before the current one to go, so those callers pass 0.
+	 */
+	suspend operator fun invoke(manga: Manga, keep: Int = settings.localChaptersCleanupKeep): Int {
 		val localManga = if (manga.isLocal) {
 			LocalManga(manga)
 		} else {
 			checkNotNull(localMangaRepository.findSavedManga(manga)) { "Cannot find local manga" }
 		}
-		val task = getDeletionTask(localManga) ?: return 0
+		val task = getDeletionTask(localManga, keep) ?: return 0
 		localMangaRepository.deleteChapters(task.manga.manga, task.chaptersIds)
 		return task.chaptersIds.size
 	}
 
-	suspend operator fun invoke(): Int {
+	suspend operator fun invoke(keep: Int = settings.localChaptersCleanupKeep): Int {
 		val list = localMangaRepository.getList(0, null, null)
 		if (list.isEmpty()) {
 			return 0
@@ -51,7 +56,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 			for (manga in list) {
 				launch(Dispatchers.Default) {
 					val task = runCatchingCancellable {
-						getDeletionTask(LocalManga(manga))
+						getDeletionTask(LocalManga(manga), keep)
 					}.onFailure {
 						it.printStackTraceDebug()
 					}.getOrNull()
@@ -70,7 +75,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 		}.fold(0) { acc, x -> acc + x }
 	}
 
-	private suspend fun getDeletionTask(manga: LocalManga): DeletionTask? {
+	private suspend fun getDeletionTask(manga: LocalManga, keep: Int): DeletionTask? {
 		val history = historyRepository.getOne(manga.manga) ?: return null
 		val chapters = getAllChapters(manga).let {
 			if (mangaDataRepository.isScanlatorsMerged(manga.manga.id)) it.mergedBranches() else it
@@ -83,9 +88,9 @@ class DeleteReadChaptersUseCase @Inject constructor(
 		val currentIndex = branchChapters.indexOfFirst { it.id == history.chapterId }
 		val filteredChapters = if (currentIndex >= 0) {
 			// Keep the current chapter plus `keep` chapters behind it as a safety margin;
-			// everything further back is deleted. keep = 0 drops a chapter as soon as the
-			// next one is opened.
-			branchChapters.take((currentIndex - settings.localChaptersCleanupKeep).coerceAtLeast(0))
+			// everything further back is deleted. keep = 0 deletes everything before the
+			// current chapter.
+			branchChapters.take((currentIndex - keep).coerceAtLeast(0))
 		} else {
 			emptyList()
 		}

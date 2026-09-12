@@ -177,7 +177,7 @@ class DataCleanupSettingsViewModel @Inject constructor(
             try {
                 loadingKeys.update { it + AppSettings.KEY_CHAPTERS_CLEAR }
                 val oldSize = storageManager.computeStorageSize()
-                val chaptersCount = deleteReadChaptersUseCase.invoke()
+                val chaptersCount = deleteReadChaptersUseCase.invoke(keep = 0)
                 val newSize = storageManager.computeStorageSize()
                 onChaptersCleanedUp.call(chaptersCount to oldSize - newSize)
             } finally {

@@ -1064,6 +1064,8 @@
     <string name="ext_update_notifications_title">Notify about extension updates</string>
     <string name="ext_update_notifications_summary">Show a notification when installed extensions have updates available.</string>
     <string name="extension_updates_available">Extension updates available</string>
+    <string name="extension_update_available">Extension update available</string>
+    <string name="extension_update_available_summary">A newer version of this extension is available. Updating keeps this source working.</string>
     <plurals name="extension_updates_available_message">
         <item quantity="one">%d extension update is ready to install</item>
         <item quantity="other">%d extension updates are ready to install</item>
@@ -1130,7 +1132,7 @@
     <string name="cover_source_gallery">From gallery</string>
     <string name="cover_source_file">Image file</string>
     <string name="cover_source_page">Manga page</string>
-    <string name="cover_source_url">Write URL</string>
+    <string name="cover_source_url">Enter URL</string>
     <string name="page_switch_timer">The page will switch every ~%d seconds</string>
     <string name="dont_ask_again">Don\'t ask again</string>
     <string name="incognito_mode_hint_nsfw">This manga may contain adult content. Do you want to use incognito mode?</string>

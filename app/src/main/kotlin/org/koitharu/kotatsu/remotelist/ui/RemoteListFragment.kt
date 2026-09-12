@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.drop
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.nav.router
+import androidx.core.view.isVisible
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
+import org.koitharu.kotatsu.core.ui.widgets.TipView
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
 import org.koitharu.kotatsu.core.util.ext.getCauseUrl
@@ -36,6 +38,8 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner {
     override val filterCoordinator: FilterCoordinator
         get() = viewModel.filterCoordinator
 
+    private var updateTip: TipView? = null
+
     override fun onViewBindingCreated(binding: FragmentListBinding, savedInstanceState: Bundle?) {
         super.onViewBindingCreated(binding, savedInstanceState)
         addMenuProvider(RemoteListMenuProvider())
@@ -43,11 +47,17 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner {
         viewModel.isRandomLoading.observe(viewLifecycleOwner, MenuInvalidator(requireActivity()))
         viewModel.onOpenManga.observeEvent(viewLifecycleOwner) { router.openDetails(it) }
         viewModel.onBrokenSortFallback.observeEvent(viewLifecycleOwner) { showBrokenSortWarning() }
+        viewModel.extensionUpdatePackage.observe(viewLifecycleOwner, ::onExtensionUpdateChanged)
         filterCoordinator.observe().distinctUntilChangedBy { it.listFilter.isEmpty() }
             .drop(1)
             .observe(viewLifecycleOwner) {
                 activity?.invalidateMenu()
             }
+    }
+
+    override fun onDestroyView() {
+        updateTip = null
+        super.onDestroyView()
     }
 
     override fun onScrolledToEnd() {
@@ -99,6 +109,33 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner {
             Snackbar.make(requireViewBinding().recyclerView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT)
                 .show()
         }
+    }
+
+    /**
+     * Persistent, non-dismissable notice above the list while this source's extension has an update
+     * waiting. The button hands the package to the extension manager, which owns the whole
+     * download-and-install flow.
+     */
+    private fun onExtensionUpdateChanged(packageName: String?) {
+        val binding = viewBinding ?: return
+        if (packageName == null) {
+            updateTip?.isVisible = false
+            return
+        }
+        val tip = updateTip ?: (binding.stubTip.inflate() as TipView).also { updateTip = it }
+        tip.setIcon(R.drawable.ic_extension_update)
+        tip.setTitle(R.string.extension_update_available)
+        tip.setText(R.string.extension_update_available_summary)
+        tip.setPrimaryButtonText(R.string.update)
+        tip.setClosable(false)
+        tip.onButtonClickListener = object : TipView.OnButtonClickListener {
+            override fun onPrimaryButtonClick(tipView: TipView) {
+                router.openSourcesCatalog(isExternalOnly = true, installPackage = packageName)
+            }
+
+            override fun onSecondaryButtonClick(tipView: TipView) = Unit
+        }
+        tip.isVisible = true
     }
 
     private fun showBrokenSortWarning() {

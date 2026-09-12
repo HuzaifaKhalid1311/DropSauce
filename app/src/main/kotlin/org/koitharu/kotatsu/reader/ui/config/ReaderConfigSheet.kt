@@ -304,7 +304,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp + with(LocalDensity.current) { navBarPadding.toDp() }),
+                .padding(bottom = 4.dp + with(LocalDensity.current) { navBarPadding.toDp() }),
         ) {
             Column(
                 modifier = Modifier
@@ -375,7 +375,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                         },
                                     )
 
-                                    Spacer(modifier = Modifier.height(84.dp))
+                                    Spacer(modifier = Modifier.height(76.dp))
                                 }
                             }
 
@@ -383,7 +383,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                 // The grid takes the whole page height so it ends flush with the
                                 // bottom, but never less than its floor: on a short landscape page
                                 // the surrounding scroll takes over instead of squashing the cards.
-                                val gridHeight = with(density) { (pagerHeightPx.toDp() - 100.dp) }
+                                val gridHeight = with(density) { (pagerHeightPx.toDp() - 92.dp) }
                                     .coerceAtLeast(TOOL_GRID_MIN_HEIGHT)
                                 Column(
                                     modifier = Modifier
@@ -394,11 +394,14 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                 ) {
                                     ToolsGridSection(
                                         modifier = Modifier.height(gridHeight),
-                                        showPageTools = true,
                                         isAutoRotationEnabled = isAutoRotationEnabled,
                                         isBookmarkAdded = isBookmarkAdded,
                                         onSaveClick = {
                                             callback?.onSavePageClick()
+                                            dismissAllowingStateLoss()
+                                        },
+                                        onShareClick = {
+                                            callback?.onSharePageClick()
                                             dismissAllowingStateLoss()
                                         },
                                         onOrientationClick = {
@@ -424,7 +427,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                         },
                                                                             )
 
-                                    Spacer(modifier = Modifier.height(84.dp))
+                                    Spacer(modifier = Modifier.height(76.dp))
                                 }
                             }
                         }
@@ -1482,10 +1485,10 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 
     @Composable
     private fun ToolsGridSection(
-        showPageTools: Boolean,
         isAutoRotationEnabled: Boolean,
         isBookmarkAdded: Boolean,
         onSaveClick: () -> Unit,
+        onShareClick: () -> Unit,
         onOrientationClick: () -> Unit,
         onScrollTimerClick: () -> Unit,
         onColorFilterClick: () -> Unit,
@@ -1511,31 +1514,32 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Row 1: Save Page, Rotation (Pills) - not applicable to EPUB text chapters
-            if (showPageTools) {
-                Row(
+            // Row 1: Save Page (split: save / share), Rotation
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                ToolSplitPillCard(
+                    icon = R.drawable.ic_save,
+                    label = stringResource(R.string.save_page),
+                    onClick = onSaveClick,
+                    trailingIcon = R.drawable.ic_share,
+                    trailingContentDescription = stringResource(R.string.share_image),
+                    onTrailingClick = onShareClick,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    ToolPillCard(
-                        icon = R.drawable.ic_save,
-                        label = stringResource(R.string.save_page),
-                        onClick = onSaveClick,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    )
-                    ToolPillCard(
-                        icon = rotationIcon,
-                        label = stringResource(rotationTitle),
-                        onClick = onOrientationClick,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    )
-                }
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
+                ToolPillCard(
+                    icon = rotationIcon,
+                    label = stringResource(rotationTitle),
+                    onClick = onOrientationClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
             }
 
             // Row 2: Scroll Timer, Color correction (Squares)
@@ -1731,6 +1735,98 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         }
     }
 
+    /**
+     * Save page as an M3-Expressive split button: the wide leading half saves, the narrow trailing
+     * half shares. Two separate surfaces with a hairline gap, so each half has its own ripple.
+     */
+    @Composable
+    private fun ToolSplitPillCard(
+        icon: Int,
+        label: String,
+        onClick: () -> Unit,
+        trailingIcon: Int,
+        trailingContentDescription: String,
+        onTrailingClick: () -> Unit,
+        modifier: Modifier = Modifier,
+    ) {
+        val outerCorner = 48.dp
+        val innerCorner = 12.dp
+        Row(
+            modifier = modifier.heightIn(min = 96.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Surface(
+                onClick = onClick,
+                shape = RoundedCornerShape(
+                    topStart = outerCorner,
+                    bottomStart = outerCorner,
+                    topEnd = innerCorner,
+                    bottomEnd = innerCorner,
+                ),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            painter = painterResource(icon),
+                            contentDescription = label,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+            Surface(
+                onClick = onTrailingClick,
+                shape = RoundedCornerShape(
+                    topStart = innerCorner,
+                    bottomStart = innerCorner,
+                    topEnd = outerCorner,
+                    bottomEnd = outerCorner,
+                ),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .width(56.dp)
+                    .fillMaxHeight(),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(trailingIcon),
+                        contentDescription = trailingContentDescription,
+                        modifier = Modifier.size(26.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+    }
+
     @Composable
     private fun ToolPillCard(
         icon: Int,
@@ -1805,6 +1901,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         fun onDoubleModeChanged(isEnabled: Boolean)
 
         fun onSavePageClick()
+
+        fun onSharePageClick()
 
         fun onScrollTimerClick(isLongClick: Boolean)
 

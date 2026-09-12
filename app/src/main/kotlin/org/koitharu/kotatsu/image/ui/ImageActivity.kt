@@ -63,6 +63,7 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 		setContentView(ActivityImageBinding.inflate(layoutInflater))
 		viewBinding.buttonBack.setOnClickListener(this)
 		viewBinding.buttonSave.setOnClickListener(this)
+		viewBinding.buttonShare.setOnClickListener(this)
 		viewBinding.buttonEdit.setOnClickListener(this)
 
 		imageMenuProvider = ImageMenuProvider(
@@ -75,6 +76,7 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 		viewModel.isLoading.observe(this, ::onLoadingStateChanged)
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.root, null))
 		viewModel.onImageSaved.observeEvent(this, ::onImageSaved)
+		viewModel.onImageReadyToShare.observeEvent(this) { ShareHelper(this).shareImage(it) }
 		loadImage()
 	}
 
@@ -82,6 +84,7 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 		when (v.id) {
 			R.id.button_back -> dispatchNavigateUp()
 			R.id.button_save -> imageMenuProvider.requestSave()
+			R.id.button_share -> viewModel.shareImage()
 			R.id.button_edit -> manga?.let { router.openMangaOverrideConfig(it) }
 			else -> loadImage()
 		}
@@ -146,6 +149,7 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 
 	private fun onLoadingStateChanged(isLoading: Boolean) {
 		viewBinding.buttonSave.isEnabled = !isLoading
+		viewBinding.buttonShare.isEnabled = !isLoading
 	}
 
 	private class SsivTarget(
