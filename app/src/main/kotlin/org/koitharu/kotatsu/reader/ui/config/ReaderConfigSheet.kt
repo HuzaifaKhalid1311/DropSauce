@@ -1514,20 +1514,25 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Row 1: Save Page (split: save / share), Rotation
+            // Row 1: Save Page, Share Page, Rotation
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                ToolSplitPillCard(
+                ToolPillCard(
                     icon = R.drawable.ic_save,
                     label = stringResource(R.string.save_page),
                     onClick = onSaveClick,
-                    trailingIcon = R.drawable.ic_share,
-                    trailingContentDescription = stringResource(R.string.share_image),
-                    onTrailingClick = onShareClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
+                ToolPillCard(
+                    icon = R.drawable.ic_share,
+                    label = stringResource(R.string.share_page),
+                    onClick = onShareClick,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
@@ -1735,98 +1740,6 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         }
     }
 
-    /**
-     * Save page as an M3-Expressive split button: the wide leading half saves, the narrow trailing
-     * half shares. Two separate surfaces with a hairline gap, so each half has its own ripple.
-     */
-    @Composable
-    private fun ToolSplitPillCard(
-        icon: Int,
-        label: String,
-        onClick: () -> Unit,
-        trailingIcon: Int,
-        trailingContentDescription: String,
-        onTrailingClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        val outerCorner = 48.dp
-        val innerCorner = 18.dp
-        Row(
-            modifier = modifier.heightIn(min = 96.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Surface(
-                onClick = onClick,
-                shape = RoundedCornerShape(
-                    topStart = outerCorner,
-                    bottomStart = outerCorner,
-                    topEnd = innerCorner,
-                    bottomEnd = innerCorner,
-                ),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            painter = painterResource(icon),
-                            contentDescription = label,
-                            modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
-            }
-            Surface(
-                onClick = onTrailingClick,
-                shape = RoundedCornerShape(
-                    topStart = innerCorner,
-                    bottomStart = innerCorner,
-                    topEnd = outerCorner,
-                    bottomEnd = outerCorner,
-                ),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .width(78.dp)
-                    .fillMaxHeight(),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(trailingIcon),
-                        contentDescription = trailingContentDescription,
-                        modifier = Modifier.size(30.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
-    }
-
     @Composable
     private fun ToolPillCard(
         icon: Int,
@@ -1844,7 +1757,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
