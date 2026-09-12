@@ -13,6 +13,7 @@ import androidx.core.view.updatePadding
 import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
@@ -53,6 +54,10 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 			callback = this,
 		)
 		with(viewBinding.recyclerView) {
+			roundTopCorners(
+				radius = resources.getDimension(R.dimen.tile_corner),
+				extraInset = resources.getDimensionPixelOffset(R.dimen.list_spacing_normal),
+			)
 			setHasFixedSize(true)
 			addItemDecoration(decoration)
 			adapter = downloadsAdapter

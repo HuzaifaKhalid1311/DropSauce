@@ -32,6 +32,7 @@ import org.koitharu.kotatsu.core.util.ext.consumeAll
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.databinding.FragmentListBinding
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.ui.adapter.MangaListListener
@@ -114,8 +115,14 @@ class FeedFragment :
 			},
 		)
 		with(binding.recyclerView) {
-			val paddingVertical = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
-			setPadding(0, paddingVertical, 0, paddingVertical)
+			// the same spacing the item decoration insets feed rows by
+			val spacing = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
+			setPadding(0, spacing, 0, spacing)
+			// cut rows under the toolbar with a feed tile's own radius, at a tile's own edges
+			roundTopCorners(
+				radius = resources.getDimension(R.dimen.corner_large),
+				extraInset = spacing,
+			)
 			layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 			adapter = feedAdapter
 			setHasFixedSize(true)

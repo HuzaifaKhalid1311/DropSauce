@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.nav.router
@@ -58,6 +59,10 @@ class FavouriteCategoriesActivity :
 			callback = CategoriesSelectionCallback(viewBinding.recyclerView, viewModel),
 		)
 		selectionController.attachToRecyclerView(viewBinding.recyclerView)
+		viewBinding.recyclerView.roundTopCorners(
+			radius = resources.getDimension(R.dimen.tile_corner),
+			extraInset = resources.getDimensionPixelOffset(R.dimen.tile_margin_horizontal),
+		)
 		viewBinding.recyclerView.setHasFixedSize(true)
 		viewBinding.recyclerView.adapter = adapter
 		viewBinding.recyclerView.addItemDecoration(TypedListSpacingDecoration(this, false))

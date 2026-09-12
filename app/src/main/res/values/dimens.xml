@@ -18,6 +18,14 @@
 
 	<dimen name="grid_spacing">8dp</dimen>
 	<dimen name="list_spacing">8dp</dimen>
+	<!-- Cover corner radii; kept in sync with ShapeAppearanceOverlay.Kotatsu.Cover(.Large). -->
+	<!-- Settings-style / download tiles: radius and side margin, shared with the list top rounding. -->
+	<!-- ShapeAppearance.Kotatsu.CornerLarge, shared with the list top rounding. -->
+	<dimen name="corner_large">24dp</dimen>
+	<dimen name="tile_corner">20dp</dimen>
+	<dimen name="tile_margin_horizontal">12dp</dimen>
+	<dimen name="cover_corner">12dp</dimen>
+	<dimen name="cover_corner_large">16dp</dimen>
 	<dimen name="grid_spacing_outer">2dp</dimen>
 	<dimen name="grid_spacing_outer_large">6dp</dimen>
 	<dimen name="grid_spacing_outer_double">4dp</dimen>

@@ -16,10 +16,13 @@ import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
+import android.graphics.Outline
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.ViewPropertyAnimator
 import android.webkit.CookieManager
 import android.webkit.WebView
@@ -247,4 +250,32 @@ private fun PowerManager?.newPartialWakeLock(tag: String): PowerManager.WakeLock
 fun Context.copyToClipboard(label: String, content: String) {
 	val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
 	clipboardManager.setPrimaryClip(ClipData.newPlainText(label, content))
+}
+
+/**
+ * Rounds only the top corners of a scrolling view, so content disappearing under the toolbar is cut
+ * with the same radius as the content's own cards instead of a flat line. The rounded edges are
+ * pulled in to the view's own padding plus [extraInset] (an item's side margin), so the curve lands
+ * exactly where the outer cards start; the outline is extended past the bottom edge so the bottom
+ * corners stay square. A [radius] of 0 restores the default (unclipped) outline.
+ */
+fun View.roundTopCorners(radius: Float, extraInset: Int = 0) {
+	if (radius <= 0f) {
+		outlineProvider = ViewOutlineProvider.BACKGROUND
+		clipToOutline = false
+		return
+	}
+	outlineProvider = object : ViewOutlineProvider() {
+		override fun getOutline(view: View, outline: Outline) {
+			outline.setRoundRect(
+				view.paddingLeft + extraInset,
+				0,
+				view.width - view.paddingRight - extraInset,
+				view.height + radius.toInt(),
+				radius,
+			)
+		}
+	}
+	clipToOutline = true
+	invalidateOutline()
 }

@@ -22,6 +22,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.dialog.setEditText
@@ -43,6 +44,10 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 		title = getString(R.string.manage_stores)
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		adapter = ExtensionStoresAdapter(this)
+		viewBinding.recyclerView.roundTopCorners(
+			radius = resources.getDimension(R.dimen.tile_corner),
+			extraInset = resources.getDimensionPixelOffset(R.dimen.tile_margin_horizontal),
+		)
 		viewBinding.recyclerView.adapter = adapter
 		reorderHelper = ItemTouchHelper(ReorderCallback()).also {
 			it.attachToRecyclerView(viewBinding.recyclerView)

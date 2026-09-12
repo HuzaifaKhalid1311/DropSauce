@@ -678,16 +678,16 @@
 	</style>
 
 	<style name="ShapeAppearance.Kotatsu.CornerLarge" parent="ShapeAppearance.Material3.Corner.Large">
-		<item name="cornerSize">24dp</item>
+		<item name="cornerSize">@dimen/corner_large</item>
 	</style>
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.Cover" parent="">
-		<item name="cornerSize">12dp</item>
+		<item name="cornerSize">@dimen/cover_corner</item>
 	</style>
 
 	<!-- Matches the app-wide manga card corner radius (16dp); used for the details hero cover. -->
 	<style name="ShapeAppearanceOverlay.Kotatsu.Cover.Large" parent="">
-		<item name="cornerSize">16dp</item>
+		<item name="cornerSize">@dimen/cover_corner_large</item>
 	</style>
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.Cover.Medium" parent="">

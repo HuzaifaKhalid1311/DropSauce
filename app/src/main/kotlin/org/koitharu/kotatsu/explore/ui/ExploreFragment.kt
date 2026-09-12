@@ -20,6 +20,7 @@ import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import com.google.android.material.snackbar.Snackbar
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
@@ -78,6 +79,10 @@ class ExploreFragment :
 			decoration = SourceSelectionDecoration(binding.root.context),
 			registryOwner = this,
 			callback = this,
+		)
+		binding.scrollView.roundTopCorners(
+			radius = resources.getDimension(R.dimen.corner_large),
+			extraInset = resources.getDimensionPixelOffset(R.dimen.list_spacing_small),
 		)
 		val header = binding.header
 		val headerAdapter = ExploreAdapter(

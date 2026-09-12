@@ -42,6 +42,7 @@ import org.koitharu.kotatsu.core.util.ext.consumeAll
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
 import org.koitharu.kotatsu.databinding.FragmentListBinding
 import org.koitharu.kotatsu.list.domain.ListFilterOption
@@ -311,6 +312,15 @@ abstract class MangaListFragment :
 		spanSizeLookup.invalidateCache()
 		with(requireViewBinding().recyclerView) {
 			removeOnLayoutChangeListener(spanResolver)
+			if (mode == ListMode.GRID || mode == ListMode.COVER_ONLY) {
+				// Align the rounded cut with the outer covers: list padding + the item's own margin.
+				roundTopCorners(
+					radius = resources.getDimension(R.dimen.cover_corner_large),
+					extraInset = resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer),
+				)
+			} else {
+				roundTopCorners(radius = 0f)
+			}
 			when (mode) {
 				ListMode.LIST -> {
 					layoutManager = FitHeightLinearLayoutManager(context)
@@ -447,3 +457,4 @@ abstract class MangaListFragment :
 		}
 	}
 }
+

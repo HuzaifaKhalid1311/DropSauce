@@ -30,7 +30,7 @@ fun feedItemAD(
 	{ inflater, parent -> ItemFeedBinding.inflate(inflater, parent, false) },
 ) {
 	val density = context.resources.displayMetrics.density
-	val cornerLarge = 24f * density
+	val cornerLarge = context.resources.getDimension(R.dimen.corner_large)
 	val cornerSmall = 4f * density
 	val gapSeam = (3f * density).toInt()
 	val gapGroup = (12f * density).toInt()
