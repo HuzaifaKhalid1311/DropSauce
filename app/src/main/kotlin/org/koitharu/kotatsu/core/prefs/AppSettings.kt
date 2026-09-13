@@ -1195,20 +1195,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 	}
 
-	/**
-	 * Pinned navigation is the new default. Turn it on once for everyone who is updating — including
-	 * those who never touched the switch — and never again, so turning it back off sticks.
-	 */
-	private fun migrateNavPinned() {
-		if (prefs.contains(KEY_NAV_PINNED_DEFAULT_ON)) {
-			return
-		}
-		prefs.edit {
-			putBoolean(KEY_NAV_PINNED_DEFAULT_ON, true)
-			putBoolean(KEY_NAV_PINNED, true)
-		}
-	}
-
 	private fun migrateBackdropBlur() {
 		val oldKey = "details_backdrop_blur"
 		if (!prefs.contains(oldKey)) return
@@ -1222,7 +1208,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	init {
 		migrateBackdropBlur()
 		migrateUiScale()
-		migrateNavPinned()
 	}
 
 	companion object {
@@ -1391,7 +1376,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
-		const val KEY_NAV_PINNED_DEFAULT_ON = "nav_pinned_default_on"
 		const val KEY_NAV_LEGACY = "nav_legacy"
 		const val KEY_MAIN_FAB = "main_fab"
 		const val KEY_UPDATE_PROMPT_DISMISSED = "update_prompt_dismissed"

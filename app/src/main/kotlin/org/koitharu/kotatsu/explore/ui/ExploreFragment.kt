@@ -126,6 +126,10 @@ class ExploreFragment :
 		viewModel.onShowSuggestionsTip.observeEvent(viewLifecycleOwner) {
 			showSuggestionsTip()
 		}
+		binding.swipeRefreshLayout.setOnRefreshListener { viewModel.refresh() }
+		viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+			binding.swipeRefreshLayout.isRefreshing = isLoading
+		}
 	}
 
 	private fun onPageCreated(recyclerView: RecyclerView, isNovel: Boolean) {

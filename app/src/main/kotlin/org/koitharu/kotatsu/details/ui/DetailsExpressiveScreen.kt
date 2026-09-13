@@ -23,7 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -207,10 +209,33 @@ fun DetailsExpressiveScreen(
 					actions = actions,
 					modifier = Modifier
 						.align(Alignment.BottomEnd)
-						.padding(end = SCREEN_PADDING, bottom = bottomContentPadding + 16.dp),
+						.padding(end = SCREEN_PADDING, bottom = bottomContentPadding + 16.dp)
+						.dockGlow(scheme.surface),
 				)
 
 		}
+	}
+}
+
+/**
+ * Soft radial halo behind the action dock so the pill and FAB keep contrast over scrolling content.
+ * Drawn from the dock's own bounds and deliberately spills past them — a round falloff has no
+ * visible edge, unlike a rectangular scrim.
+ */
+private fun Modifier.dockGlow(surface: Color) = drawBehind {
+	val rx = size.width * 0.62f
+	val ry = size.height * 0.60f
+	val brush = Brush.radialGradient(
+		0f to surface.copy(alpha = 0.92f),
+		0.40f to surface.copy(alpha = 0.74f),
+		0.72f to surface.copy(alpha = 0.32f),
+		1f to Color.Transparent,
+		center = center,
+		radius = rx,
+	)
+	// Squash the circle into an ellipse so the halo hugs the (wide, short) dock instead of ballooning.
+	scale(scaleX = 1f, scaleY = ry / rx, pivot = center) {
+		drawCircle(brush = brush, radius = rx, center = center)
 	}
 }
 

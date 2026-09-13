@@ -31,11 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -69,37 +65,10 @@ internal fun ActionDock(
 	}
 }
 
-/**
- * Soft halo hugging the element's own outline, so each dock button keeps contrast over scrolling
- * content. Drawn as stacked rounded rects that fade outwards: the shape follows the button it is
- * attached to, so the wide pill and the narrower FAB each get a halo their own size instead of one
- * ellipse around both.
- */
-private fun Modifier.buttonGlow(
-	surface: Color,
-	cornerRadius: Dp? = null,
-	spread: Dp = 10.dp,
-	steps: Int = 7,
-) = drawBehind {
-	val maxSpread = spread.toPx()
-	repeat(steps) { i ->
-		// Outermost first, each ring smaller and a touch more opaque than the last.
-		val s = maxSpread * (steps - i) / steps
-		val r = (cornerRadius?.toPx() ?: (size.height / 2f)) + s
-		drawRoundRect(
-			color = surface.copy(alpha = 0.16f),
-			topLeft = Offset(-s, -s),
-			size = Size(size.width + s * 2, size.height + s * 2),
-			cornerRadius = CornerRadius(r, r),
-		)
-	}
-}
-
 @Composable
 internal fun ChaptersPill(count: Int, onClick: () -> Unit) {
 	Surface(
 		onClick = onClick,
-		modifier = Modifier.buttonGlow(MaterialTheme.colorScheme.surface),
 		shape = RoundedCornerShape(50),
 		color = MaterialTheme.colorScheme.surfaceContainerHighest,
 		tonalElevation = 3.dp,
@@ -162,7 +131,6 @@ internal fun ReadFab(
 	val onColor = if (enabled) baseContent else baseContent.copy(alpha = 0.7f)
 
 	Surface(
-		modifier = Modifier.buttonGlow(MaterialTheme.colorScheme.surface, cornerRadius = 24.dp),
 		shape = RoundedCornerShape(24.dp),
 		color = container,
 		shadowElevation = 6.dp,

@@ -323,7 +323,10 @@ abstract class MangaListFragment :
 			}
 			when (mode) {
 				ListMode.LIST -> {
-					layoutManager = FitHeightLinearLayoutManager(context)
+					// Compact rows are half-width, two per row.
+					layoutManager = FitHeightGridLayoutManager(context, COMPACT_SPAN_COUNT).also {
+						it.spanSizeLookup = spanSizeLookup
+					}
 				}
 
 				ListMode.DETAILED_LIST -> {
@@ -446,7 +449,7 @@ abstract class MangaListFragment :
 		override fun getSpanSize(position: Int): Int {
 			val total = (viewBinding?.recyclerView?.layoutManager as? GridLayoutManager)?.spanCount ?: return 1
 			return when (listAdapter?.getItemViewType(position)) {
-				ListItemType.MANGA_GRID.ordinal -> 1
+				ListItemType.MANGA_GRID.ordinal, ListItemType.MANGA_LIST.ordinal -> 1
 				else -> total
 			}
 		}
@@ -458,3 +461,4 @@ abstract class MangaListFragment :
 	}
 }
 
+private const val COMPACT_SPAN_COUNT = 2

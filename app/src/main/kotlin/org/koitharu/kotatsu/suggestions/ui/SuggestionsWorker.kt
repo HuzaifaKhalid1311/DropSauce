@@ -56,6 +56,8 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.asArrayList
 import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koitharu.kotatsu.core.util.ext.awaitWorkInfosByTag
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
 import org.koitharu.kotatsu.core.util.ext.flatten
@@ -448,6 +450,19 @@ class SuggestionsWorker @AssistedInject constructor(
 			workManager.enqueue(request).await()
 		}
 
+		/**
+		 * [startNow] plus a wait for the run to actually finish, so a pull-to-refresh can keep its
+		 * placeholder up until fresh suggestions exist. Gives up after a minute — the work may be
+		 * held back indefinitely by its network constraint.
+		 */
+		suspend fun runNow() {
+			startNow()
+			withTimeoutOrNull(RUN_NOW_TIMEOUT) {
+				workManager.getWorkInfosByTagFlow(TAG_ONESHOT)
+					.first { infos -> infos.none { !it.state.isFinished } }
+			}
+		}
+
 		private fun createConstraints() = Constraints.Builder()
 			.setRequiredNetworkType(if (settings.isSuggestionsWiFiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
 			.setRequiresBatteryNotLow(true)
@@ -468,6 +483,7 @@ class SuggestionsWorker @AssistedInject constructor(
 		const val MAX_SOURCE_RESULTS = 20
 		const val MAX_RAW_RESULTS = 280
 		const val TAG_EQ_THRESHOLD = 0.4f
+		private const val RUN_NOW_TIMEOUT = 60_000L
 		const val RATING_MIN = 0.5f
 		const val SETTINGS_ACTION_CODE = 4
 

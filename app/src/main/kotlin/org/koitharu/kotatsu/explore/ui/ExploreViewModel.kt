@@ -4,6 +4,7 @@ import androidx.collection.LongSet
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +46,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
+import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,6 +57,7 @@ class ExploreViewModel @Inject constructor(
 	private val sourcesRepository: MangaSourcesRepository,
 	private val shortcutManager: AppShortcutManager,
 	private val extensionStoreManager: ExtensionStoreManager,
+	private val suggestionsScheduler: SuggestionsWorker.Scheduler,
 ) : BaseViewModel() {
 
 	val isGrid = settings.observeAsStateFlow(
@@ -77,9 +80,17 @@ class ExploreViewModel @Inject constructor(
 	val hasExtensionUpdates: StateFlow<Boolean> = extensionStoreManager.hasUpdates
 		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
+	/** True while a pull-to-refresh is regenerating the suggestions. */
+	private val isRefreshingSuggestions = MutableStateFlow(false)
+
 	/** Everything above the extension list: quick buttons and the suggestions carousel. */
-	val headerContent: StateFlow<List<ListModel>> = getSuggestionFlow().map { recommendation ->
-		buildHeader(recommendation)
+	val headerContent: StateFlow<List<ListModel>> = combine(
+		getSuggestionFlow(),
+		isRefreshingSuggestions,
+	) { recommendation, isRefreshing ->
+		// Drop the stale carousel while refreshing: null renders the skeleton, so the pull visibly
+		// does something instead of leaving the old suggestions sitting there.
+		buildHeader(if (isRefreshing) null else recommendation)
 	}.withErrorHandling()
 		.stateIn(
 			viewModelScope + Dispatchers.Default,
@@ -102,6 +113,21 @@ class ExploreViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			if (!settings.isSuggestionsEnabled && settings.isTipEnabled(TIP_SUGGESTIONS)) {
 				onShowSuggestionsTip.call(Unit)
+			}
+		}
+	}
+
+	/** Pull-to-refresh: reload the installed extensions and regenerate the suggestions carousel. */
+	fun refresh() {
+		launchLoadingJob(Dispatchers.Default) {
+			isRefreshingSuggestions.value = settings.isSuggestionsEnabled
+			try {
+				sourcesRepository.reloadMihonSources()
+				if (settings.isSuggestionsEnabled) {
+					suggestionsScheduler.runNow()
+				}
+			} finally {
+				isRefreshingSuggestions.value = false
 			}
 		}
 	}
@@ -264,7 +290,7 @@ class ExploreViewModel @Inject constructor(
 		MangaCompactListModel(
 			manga = manga,
 			override = null,
-			progress = null,
+			subtitle = manga.authors.joinToString(", "),
 			counter = 0,
 		)
 	}
