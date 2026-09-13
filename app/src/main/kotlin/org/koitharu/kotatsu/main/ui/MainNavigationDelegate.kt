@@ -6,7 +6,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
-import androidx.activity.OnBackPressedCallback
 import androidx.annotation.IdRes
 import androidx.core.view.isEmpty
 import androidx.core.view.isVisible
@@ -48,6 +47,7 @@ import org.koitharu.kotatsu.history.ui.HistoryListFragment
 import org.koitharu.kotatsu.local.ui.LocalListFragment
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsFragment
 import org.koitharu.kotatsu.tracker.ui.feed.FeedFragment
+import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
 import org.koitharu.kotatsu.tracker.ui.updates.UpdatesFragment
 import java.util.LinkedList
 import com.google.android.material.R as materialR
@@ -56,7 +56,7 @@ class MainNavigationDelegate(
 	private val navBar: NavigationBarView,
 	private val fragmentManager: FragmentManager,
 	private val settings: AppSettings,
-) : OnBackPressedCallback(false),
+) : PredictiveBackCallback(false),
 	NavigationBarView.OnItemSelectedListener,
 	NavigationBarView.OnItemReselectedListener, View.OnClickListener {
 
@@ -117,7 +117,10 @@ class MainNavigationDelegate(
 		}
 	}
 
-	override fun handleOnBackPressed() {
+	override val backPreviewTarget: View?
+		get() = navBar.rootView?.findViewById(android.R.id.content)
+
+	override fun onBackConfirmed() {
 		navBar.selectedItemId = firstItem()?.itemId ?: return
 	}
 

@@ -1,12 +1,14 @@
 package org.koitharu.kotatsu.main.ui.welcome
 
-import androidx.activity.compose.BackHandler
+import androidx.activity.BackEventCompat
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,11 +46,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,6 +71,11 @@ import org.koitharu.kotatsu.settings.compose.ColorSchemePickerRow
 private const val PAGE_COUNT = 4
 private val CARD_SHAPE = RoundedCornerShape(24.dp)
 private val SCREEN_PADDING = 20.dp
+
+// Back-gesture preview, matching the View-side PredictiveBackCallback so both read as one gesture.
+private const val BACK_PREVIEW_SHRINK = 0.1f
+private val BACK_PREVIEW_SHIFT = 8.dp
+private val BACK_PREVIEW_CORNER = 28.dp
 
 data class OnboardingPermissions(
     val hasInstall: Boolean,
@@ -104,11 +116,41 @@ fun OnboardingScreen(
     val isLastPage by remember { derivedStateOf { pagerState.currentPage == PAGE_COUNT - 1 } }
     val backEnabled by remember { derivedStateOf { pagerState.currentPage > 0 } }
 
-    BackHandler(enabled = backEnabled) {
-        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+    // Back here steps to the previous slide, so it gets the same follow-the-finger preview the rest
+    // of the app's in-app back gestures use: the slide shrinks and rounds off as you drag, and
+    // springs back if you let go early.
+    var backProgress by remember { mutableFloatStateOf(0f) }
+    var isBackFromLeftEdge by remember { mutableStateOf(true) }
+    val backPreview by animateFloatAsState(
+        targetValue = backProgress,
+        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        label = "backPreview",
+    )
+    PredictiveBackHandler(enabled = backEnabled) { events ->
+        try {
+            events.collect { event ->
+                isBackFromLeftEdge = event.swipeEdge == BackEventCompat.EDGE_LEFT
+                backProgress = event.progress
+            }
+            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+        } finally {
+            backProgress = 0f
+        }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                val progress = backPreview
+                scaleX = 1f - BACK_PREVIEW_SHRINK * progress
+                scaleY = scaleX
+                translationX = (if (isBackFromLeftEdge) 1f else -1f) * BACK_PREVIEW_SHIFT.toPx() * progress
+                transformOrigin = TransformOrigin(if (isBackFromLeftEdge) 1f else 0f, 0.5f)
+                shape = RoundedCornerShape(BACK_PREVIEW_CORNER * progress)
+                clip = progress > 0f
+            },
+    ) {
         HorizontalPager(
             state = pagerState,
             // Leave room at the bottom for the navigation row (dots + FAB)

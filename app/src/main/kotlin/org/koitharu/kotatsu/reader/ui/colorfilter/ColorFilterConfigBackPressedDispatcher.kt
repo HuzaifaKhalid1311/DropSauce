@@ -1,17 +1,22 @@
 package org.koitharu.kotatsu.reader.ui.colorfilter
 
 import android.content.DialogInterface
-import androidx.activity.OnBackPressedCallback
+import android.view.View
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
+import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
 import org.koitharu.kotatsu.core.util.ext.call
 
 class ColorFilterConfigBackPressedDispatcher(
 	private val activity: ColorFilterConfigActivity,
 	private val viewModel: ColorFilterConfigViewModel,
-) : OnBackPressedCallback(true), DialogInterface.OnClickListener {
+) : PredictiveBackCallback(true), DialogInterface.OnClickListener {
 
-	override fun handleOnBackPressed() {
+	override val backPreviewTarget: View?
+		get() = activity.predictiveBackTarget()
+
+	override fun onBackConfirmed() {
 		if (viewModel.isChanged) {
 			showConfirmation()
 		} else {

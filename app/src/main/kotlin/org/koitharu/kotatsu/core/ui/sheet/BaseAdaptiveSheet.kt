@@ -122,6 +122,7 @@ abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
 		// depends on the sheet style, so it's read from the live sheet view rather than guessed.
 		actionModeDelegate = ActionModeDelegate(
 			backgroundColorResolver = ::resolveSheetSurfaceColor,
+			backPreviewTargetProvider = { view },
 		).also {
 			dialog.onBackPressedDispatcher.addCallback(it)
 		}

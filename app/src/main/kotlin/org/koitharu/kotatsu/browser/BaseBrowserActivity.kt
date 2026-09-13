@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.browser
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -14,6 +13,8 @@ import org.koitharu.kotatsu.core.network.proxy.ProxyProvider
 import org.koitharu.kotatsu.core.network.webview.adblock.AdBlock
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
+import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
 import org.koitharu.kotatsu.core.util.ext.configureForParser
 import org.koitharu.kotatsu.core.util.ext.consumeAll
 import org.koitharu.kotatsu.databinding.ActivityBrowserBinding
@@ -33,8 +34,11 @@ abstract class BaseBrowserActivity : BaseActivity<ActivityBrowserBinding>() {
 	@Inject
 	lateinit var adBlock: AdBlock
 
-	private val onBackPressedCallback = object : OnBackPressedCallback(false) {
-		override fun handleOnBackPressed() {
+	private val onBackPressedCallback = object : PredictiveBackCallback(false) {
+		override val backPreviewTarget: View?
+			get() = predictiveBackTarget()
+
+		override fun onBackConfirmed() {
 			viewBinding.webView.goBack()
 		}
 	}

@@ -18,7 +18,6 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ActionMode
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.OnApplyWindowInsetsListener
@@ -37,6 +36,8 @@ import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.ui.util.ActionModeDelegate
 import org.koitharu.kotatsu.core.ui.util.ActivityRecreationHandle
+import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
+import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
 import org.koitharu.kotatsu.core.ui.util.applyTonalTopBarStyle
 import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
 import org.koitharu.kotatsu.core.util.ext.isWebViewUnavailable
@@ -57,7 +58,9 @@ abstract class BaseActivity<B : ViewBinding> :
 		private set
 
 	@JvmField
-	val actionModeDelegate = ActionModeDelegate()
+	val actionModeDelegate = ActionModeDelegate(
+		backPreviewTargetProvider = { predictiveBackTarget() },
+	)
 
 	protected lateinit var entryPoint: BaseActivityEntryPoint
 
@@ -191,8 +194,11 @@ abstract class BaseActivity<B : ViewBinding> :
 	 */
 	private fun takeOverToolbarBackHandling(toolbar: Toolbar) {
 		toolbar.setBackInvokedCallbackEnabled(false)
-		val callback = object : OnBackPressedCallback(toolbar.hasExpandedActionView()) {
-			override fun handleOnBackPressed() {
+		val callback = object : PredictiveBackCallback(toolbar.hasExpandedActionView()) {
+			override val backPreviewTarget: View?
+				get() = predictiveBackTarget()
+
+			override fun onBackConfirmed() {
 				if (toolbar.hasExpandedActionView()) {
 					toolbar.collapseActionView()
 				} else {

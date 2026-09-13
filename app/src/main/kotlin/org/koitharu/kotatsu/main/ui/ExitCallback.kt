@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.search.SearchView
 import com.google.android.material.snackbar.Snackbar
@@ -16,12 +15,17 @@ import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
+import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
+import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
 import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
 
 class ExitCallback(
 	private val activity: MainActivity,
 	private val snackbarHost: View,
-) : OnBackPressedCallback(false), SearchView.TransitionListener {
+) : PredictiveBackCallback(false), SearchView.TransitionListener {
+
+	override val backPreviewTarget: View?
+		get() = activity.predictiveBackTarget()
 
 	private var job: Job? = null
 	private val isSearchOpen = MutableStateFlow(activity.viewBinding.searchView.isShowing)
@@ -41,7 +45,7 @@ class ExitCallback(
 		}
 	}
 
-	override fun handleOnBackPressed() {
+	override fun onBackConfirmed() {
 		job?.cancel()
 		job = activity.lifecycleScope.launch {
 			resetExitConfirmation()

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.Window
 import android.widget.ImageView
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.ActionBarContextView
 import androidx.core.view.ViewCompat
@@ -25,7 +24,13 @@ class ActionModeDelegate(
 	// Defaults to the window background (regular screens); hosts on a different surface (e.g. a bottom
 	// sheet) supply a resolver that returns that surface's actual colour so the bar matches its top bar.
 	private val backgroundColorResolver: (Window) -> Int = { it.context.getThemeColor(android.R.attr.colorBackground) },
-) : OnBackPressedCallback(false) {
+	// The view the back-gesture preview shrinks while selection mode is being dismissed. Hosts that
+	// can supply their content root pass it here; without one the gesture still works, just unpreviewed.
+	private val backPreviewTargetProvider: () -> View? = { null },
+) : PredictiveBackCallback(false) {
+
+	override val backPreviewTarget: View?
+		get() = backPreviewTargetProvider()
 
 	private var activeActionMode: ActionMode? = null
 	private var exitingActionMode: ActionMode? = null
@@ -36,7 +41,7 @@ class ActionModeDelegate(
 	val isActionModeStarted: Boolean
 		get() = activeActionMode != null
 
-	override fun handleOnBackPressed() {
+	override fun onBackConfirmed() {
 		finishActionMode()
 	}
 

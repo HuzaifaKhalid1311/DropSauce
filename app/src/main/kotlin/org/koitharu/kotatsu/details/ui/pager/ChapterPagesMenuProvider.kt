@@ -4,7 +4,6 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.core.view.isGone
@@ -16,6 +15,7 @@ import com.google.android.material.slider.TickVisibilityMode
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
+import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
 import org.koitharu.kotatsu.core.util.ext.setValueRounded
 import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.core.util.progress.IntPercentLabelFormatter
@@ -30,7 +30,7 @@ class ChapterPagesMenuProvider(
 	private val settings: AppSettings,
 	private val viewModel: ChaptersPagesViewModel,
 	private val toolbarContent: View,
-) : OnBackPressedCallback(false), MenuProvider, MenuItem.OnActionExpandListener,
+) : PredictiveBackCallback(false), MenuProvider, MenuItem.OnActionExpandListener,
 	SearchView.OnQueryTextListener,
 	Slider.OnChangeListener {
 
@@ -104,7 +104,10 @@ class ChapterPagesMenuProvider(
 		else -> false
 	}
 
-	override fun handleOnBackPressed() {
+	override val backPreviewTarget: View?
+		get() = sheet.view
+
+	override fun onBackConfirmed() {
 		expandedItemRef?.get()?.collapseActionView()
 	}
 
