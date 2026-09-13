@@ -92,8 +92,10 @@
 		<item name="textAppearanceSmallPopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
 		<item name="android:listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
 		<item name="listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
-		<!-- Snap the popup's corner onto the anchor button so it fully covers it. -->
+		<!-- Snap the popup's corner onto the anchor button so it fully covers it.
+		     Both spellings: AppCompatPopupWindow only honours the unprefixed one. -->
 		<item name="android:overlapAnchor">true</item>
+		<item name="overlapAnchor">true</item>
 		<item name="android:dropDownHorizontalOffset">0dp</item>
 		<item name="android:dropDownVerticalOffset">0dp</item>
 		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu</item>
@@ -112,8 +114,10 @@
 		<item name="textAppearanceSmallPopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
 		<item name="android:listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
 		<item name="listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
-		<!-- Snap the popup's corner onto the anchor button so it fully covers it. -->
+		<!-- Snap the popup's corner onto the anchor button so it fully covers it.
+		     Both spellings: AppCompatPopupWindow only honours the unprefixed one. -->
 		<item name="android:overlapAnchor">true</item>
+		<item name="overlapAnchor">true</item>
 		<item name="android:dropDownHorizontalOffset">0dp</item>
 		<item name="android:dropDownVerticalOffset">0dp</item>
 		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu</item>

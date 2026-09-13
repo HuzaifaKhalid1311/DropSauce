@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,19 +27,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -93,8 +98,10 @@ class BrokenSourcesMigrationFragment :
 		setContent {
 			DropSauceTheme {
 				val state by viewModel.state.collectAsState()
+				val progress by AutoFixService.progress.collectAsStateWithLifecycle()
 				BrokenSourcesMigrationScreen(
 					state = state,
+					progress = progress,
 					imageLoader = imageLoader,
 					onToggle = viewModel::toggle,
 					onToggleRecommended = {
@@ -107,6 +114,7 @@ class BrokenSourcesMigrationFragment :
 							isFromRoot = false,
 						)
 					},
+					onCancel = AutoFixService::cancel,
 					onFix = {
 						val rawSources = state.sources
 							.filter { it.key in state.selectedSources }
@@ -162,12 +170,15 @@ class BrokenSourcesMigrationFragment :
 @Composable
 private fun BrokenSourcesMigrationScreen(
 	state: BrokenSourcesMigrationState,
+	progress: AutoFixService.Progress?,
 	imageLoader: ImageLoader,
 	onToggle: (String) -> Unit,
 	onToggleRecommended: () -> Unit,
 	onOpenSource: (LibrarySourceOption) -> Unit,
+	onCancel: () -> Unit,
 	onFix: () -> Unit,
 ) {
+	val isBusy = progress != null
 	val unavailableSources = state.sources.filter(LibrarySourceOption::isUnavailable)
 	val mihonSources = state.sources.filterNot(LibrarySourceOption::isUnavailable)
 
@@ -189,77 +200,99 @@ private fun BrokenSourcesMigrationScreen(
 			}
 		}
 
-		when {
-			state.isLoading -> Box(
-				modifier = Modifier.fillMaxWidth().weight(1f),
-				contentAlignment = Alignment.Center,
-			) {
-				CircularProgressIndicator()
-			}
+		if (progress != null) {
+			MigrationProgressBanner(progress)
+		}
 
-			state.sources.isEmpty() -> Box(
-				modifier = Modifier.fillMaxWidth().weight(1f).padding(24.dp),
-				contentAlignment = Alignment.Center,
-			) {
-				Column(horizontalAlignment = Alignment.CenterHorizontally) {
-					Text(
-						text = stringResource(R.string.no_sources_to_migrate),
-						style = MaterialTheme.typography.titleMedium,
-					)
-					Spacer(Modifier.height(8.dp))
-					Text(
-						text = stringResource(R.string.no_sources_to_migrate_summary),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-					)
+		Box(
+			modifier = Modifier
+				.fillMaxWidth()
+				.weight(1f)
+				.alpha(if (isBusy) 0.38f else 1f),
+		) {
+			when {
+				state.isLoading -> Box(
+					modifier = Modifier.fillMaxSize(),
+					contentAlignment = Alignment.Center,
+				) {
+					CircularProgressIndicator()
+				}
+
+				state.sources.isEmpty() -> Box(
+					modifier = Modifier.fillMaxSize().padding(24.dp),
+					contentAlignment = Alignment.Center,
+				) {
+					Column(horizontalAlignment = Alignment.CenterHorizontally) {
+						Text(
+							text = stringResource(R.string.no_sources_to_migrate),
+							style = MaterialTheme.typography.titleMedium,
+						)
+						Spacer(Modifier.height(8.dp))
+						Text(
+							text = stringResource(R.string.no_sources_to_migrate_summary),
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+						)
+					}
+				}
+
+				else -> LazyColumn(
+					modifier = Modifier
+						.fillMaxSize()
+						.nestedScroll(rememberNestedScrollInteropConnection()),
+				) {
+					if (unavailableSources.isNotEmpty()) {
+						item {
+							SourceSectionHeader(
+								title = stringResource(R.string.recommended),
+								isChecked = unavailableSources.all { it.key in state.selectedSources },
+								onToggle = onToggleRecommended,
+								topPadding = 8.dp,
+							)
+						}
+						items(unavailableSources, key = LibrarySourceOption::key) { source ->
+							SourceCheckboxRow(
+								source = source,
+								imageLoader = imageLoader,
+								isChecked = source.key in state.selectedSources,
+								onToggle = { onToggle(source.key) },
+								onOpenManga = { onOpenSource(source) },
+							)
+							SourceDivider()
+						}
+					}
+					if (mihonSources.isNotEmpty()) {
+						item {
+							SourceSectionHeader(
+								title = stringResource(R.string.mihon_sources),
+								topPadding = 28.dp,
+							)
+						}
+						items(mihonSources, key = LibrarySourceOption::key) { source ->
+							SourceCheckboxRow(
+								source = source,
+								imageLoader = imageLoader,
+								isChecked = source.key in state.selectedSources,
+								onToggle = { onToggle(source.key) },
+								onOpenManga = { onOpenSource(source) },
+							)
+							SourceDivider()
+						}
+					}
+					item { Spacer(Modifier.height(12.dp)) }
 				}
 			}
-
-			else -> LazyColumn(
-				modifier = Modifier
-					.fillMaxWidth()
-					.weight(1f)
-					.nestedScroll(rememberNestedScrollInteropConnection()),
-			) {
-				if (unavailableSources.isNotEmpty()) {
-					item {
-						SourceSectionHeader(
-							title = stringResource(R.string.recommended),
-							isChecked = unavailableSources.all { it.key in state.selectedSources },
-							onToggle = onToggleRecommended,
-							topPadding = 8.dp,
-						)
-					}
-					items(unavailableSources, key = LibrarySourceOption::key) { source ->
-						SourceCheckboxRow(
-							source = source,
-							imageLoader = imageLoader,
-							isChecked = source.key in state.selectedSources,
-							onToggle = { onToggle(source.key) },
-							onOpenManga = { onOpenSource(source) },
-						)
-						SourceDivider()
-					}
-				}
-				if (mihonSources.isNotEmpty()) {
-					item {
-						SourceSectionHeader(
-							title = stringResource(R.string.mihon_sources),
-							topPadding = 28.dp,
-						)
-					}
-					items(mihonSources, key = LibrarySourceOption::key) { source ->
-						SourceCheckboxRow(
-							source = source,
-							imageLoader = imageLoader,
-							isChecked = source.key in state.selectedSources,
-							onToggle = { onToggle(source.key) },
-							onOpenManga = { onOpenSource(source) },
-						)
-						SourceDivider()
-					}
-				}
-				item { Spacer(Modifier.height(12.dp)) }
+			if (isBusy) {
+				// Swallows every tap so nothing can be re-selected mid-migration.
+				Box(
+					modifier = Modifier
+						.matchParentSize()
+						.clickable(
+							interactionSource = remember { MutableInteractionSource() },
+							indication = null,
+							onClick = {},
+						),
+				)
 			}
 		}
 
@@ -271,15 +304,25 @@ private fun BrokenSourcesMigrationScreen(
 			Column(modifier = Modifier.navigationBarsPadding()) {
 				HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 				Button(
-					onClick = onFix,
-					enabled = state.selectedSources.isNotEmpty(),
+					onClick = if (isBusy) onCancel else onFix,
+					enabled = isBusy || state.selectedSources.isNotEmpty(),
+					colors = if (isBusy) {
+						ButtonDefaults.buttonColors(
+							containerColor = MaterialTheme.colorScheme.error,
+							contentColor = MaterialTheme.colorScheme.onError,
+						)
+					} else {
+						ButtonDefaults.buttonColors()
+					},
 					modifier = Modifier
 						.fillMaxWidth()
 						.padding(horizontal = 16.dp, vertical = 12.dp)
 						.height(52.dp),
 				) {
 					Text(
-						if (state.selectedSources.isEmpty()) {
+						if (isBusy) {
+							stringResource(android.R.string.cancel)
+						} else if (state.selectedSources.isEmpty()) {
 							stringResource(R.string.fix)
 						} else {
 							pluralStringResource(
@@ -292,6 +335,55 @@ private fun BrokenSourcesMigrationScreen(
 				}
 			}
 		}
+	}
+}
+
+@Composable
+private fun MigrationProgressBanner(progress: AutoFixService.Progress) {
+	Column {
+		Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = stringResource(R.string.migration_in_progress),
+					style = MaterialTheme.typography.titleSmall,
+					// This screen has no Surface root, so LocalContentColor is still the black default.
+					color = MaterialTheme.colorScheme.onSurface,
+					modifier = Modifier.weight(1f),
+				)
+				Text(
+					text = stringResource(
+						R.string.migration_progress_pattern,
+						progress.done,
+						progress.total,
+					),
+					style = MaterialTheme.typography.labelLarge,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+				)
+			}
+			Spacer(Modifier.height(10.dp))
+			if (progress.total > 0) {
+				LinearProgressIndicator(
+					progress = { progress.done.toFloat() / progress.total },
+					modifier = Modifier.fillMaxWidth(),
+				)
+			} else {
+				LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+			}
+			Spacer(Modifier.height(8.dp))
+			Text(
+				text = stringResource(
+					R.string.migration_progress_summary,
+					progress.fixed,
+					progress.failed,
+				),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+			)
+		}
+		HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 	}
 }
 

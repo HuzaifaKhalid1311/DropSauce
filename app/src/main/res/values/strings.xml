@@ -898,6 +898,9 @@
     <string name="minutes_seconds_short">%1$d m %2$d s</string>
     <string name="fix">Fix</string>
     <string name="migrate_broken_sources">Migrate broken sources</string>
+    <string name="migration_in_progress">Migrating…</string>
+    <string name="migration_progress_pattern" translatable="false">%1$d / %2$d</string>
+    <string name="migration_progress_summary">%1$d replaced, %2$d failed</string>
     <string name="migrate_broken_sources_summary">Replace every affected favorite and history entry with the best working alternative</string>
     <string name="migrate_broken_sources_description">Select the sources you want to repair. Every manga from those sources in favorites or history will be checked and, when broken, migrated to the best working alternative. The migration continues in the background.\n\nRecommended sources are not available or installed through the extension store and are the most likely to need migration.</string>
     <string name="recommended">Recommended</string>

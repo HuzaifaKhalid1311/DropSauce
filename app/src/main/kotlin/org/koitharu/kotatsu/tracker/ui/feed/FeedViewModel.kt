@@ -72,16 +72,15 @@ class FeedViewModel @Inject constructor(
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isFeedSwipeGesturesEnabled)
 
 	@Suppress("USELESS_CAST")
-	val content = combine(
+	private val baseContent = combine(
 		combine(limit, quickFilter.appliedOptions.combineWithSettings(), ::Pair)
 			.flatMapLatest { repository.observeTrackingLog(it.first, it.second) },
 		combine(
 			settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_GESTURES) },
 			isSwipeGesturesEnabled,
 		) { tip, swipe -> tip && swipe },
-		expandedIds,
 		historyRepository.observeAll(),
-	) { list, isTipVisible, expanded, _ ->
+	) { list, isTipVisible, _ ->
 		// Read here rather than combined in: the query above already re-runs on every filter change, and
 		// a second input would render the chips one frame ahead of their results.
 		val filters = quickFilter.appliedOptions.value
@@ -99,11 +98,22 @@ class FeedViewModel @Inject constructor(
 			)
 		} else {
 			isReady.set(true)
-			list.mapListTo(result, expanded)
+			list.mapListTo(result)
 		}
 		result as List<ListModel>
 	}.catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
+	}
+
+	// Expansion is applied downstream, not inside the mapping above: mapListTo hits the database a few
+	// times per entry, so folding it into that combine made every expand/collapse tap re-query the
+	// whole feed before it could redraw.
+	val content = combine(baseContent, expandedIds) { list, expanded ->
+		if (expanded.isEmpty()) {
+			list
+		} else {
+			list.map { if (it is FeedItem && it.id in expanded) it.copy(isExpanded = true) else it }
+		}
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
@@ -229,7 +239,7 @@ class FeedViewModel @Inject constructor(
 		expandedIds.update { if (it.isEmpty()) it else emptySet() }
 	}
 
-	private suspend fun List<TrackingLogItem>.mapListTo(destination: MutableList<ListModel>, expandedIds: Set<Long>) {
+	private suspend fun List<TrackingLogItem>.mapListTo(destination: MutableList<ListModel>) {
 		val feedItems = map { mangaListMapper.toFeedItem(it) }
 		val bucketedItems = zip(feedItems).groupByDateBucket(instantOf = { it.first.createdAt })
 		for ((date, items) in bucketedItems) {
@@ -246,7 +256,7 @@ class FeedViewModel @Inject constructor(
 					index == lastIndex -> FeedItem.GroupPosition.LAST
 					else -> FeedItem.GroupPosition.MIDDLE
 				}
-				destination += feedItem.copy(groupPosition = position, isExpanded = feedItem.id in expandedIds)
+				destination += feedItem.copy(groupPosition = position)
 			}
 		}
 	}

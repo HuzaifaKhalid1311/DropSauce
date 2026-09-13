@@ -14,6 +14,9 @@ import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.alternatives.domain.AutoFixUseCase
@@ -59,19 +62,35 @@ class AutoFixService : CoroutineIntentService() {
 		val ids = intent.getLongArrayExtra(DATA_IDS) ?: intent.getStringArrayExtra(DATA_SOURCES)
 			?.let { database.getMangaDao().findLibraryMangaIdsBySources(it.asList()).toLongArray() }
 			?: error("No manga or sources supplied")
-		for (mangaId in ids) {
-			powerManager.withPartialWakeLock(TAG) {
-				val result = runCatchingCancellable {
-					autoFixUseCase.invoke(mangaId)
-				}
-				if (checkNotificationPermission(CHANNEL_ID)) {
-					// One notification id per manga — startId is shared by every item in this batch,
-					// so notifying with it would let each result overwrite the previous one.
-					val notificationId = mangaId.toInt()
-					val notification = buildNotification(notificationId, result)
-					notificationManager.notify(TAG, notificationId, notification)
+		try {
+			// ponytail: single in-process counter, one batch at a time is the only case that exists
+			currentJob = coroutineContext[Job]
+			progress.value = Progress(0, ids.size, 0, 0)
+			for (mangaId in ids) {
+				powerManager.withPartialWakeLock(TAG) {
+					val result = runCatchingCancellable {
+						autoFixUseCase.invoke(mangaId)
+					}
+					progress.update { current ->
+						val previous = current ?: Progress(0, ids.size, 0, 0)
+						previous.copy(
+							done = previous.done + 1,
+							fixed = previous.fixed + if (result.getOrNull()?.second != null) 1 else 0,
+							failed = previous.failed + if (result.isFailure) 1 else 0,
+						)
+					}
+					if (checkNotificationPermission(CHANNEL_ID)) {
+						// One notification id per manga — startId is shared by every item in this batch,
+						// so notifying with it would let each result overwrite the previous one.
+						val notificationId = mangaId.toInt()
+						val notification = buildNotification(notificationId, result)
+						notificationManager.notify(TAG, notificationId, notification)
+					}
 				}
 			}
+		} finally {
+			currentJob = null
+			progress.value = null
 		}
 	}
 
@@ -183,7 +202,24 @@ class AutoFixService : CoroutineIntentService() {
 		return notification.build()
 	}
 
+	data class Progress(
+		val done: Int,
+		val total: Int,
+		val fixed: Int,
+		val failed: Int,
+	)
+
 	companion object {
+
+		/** Non-null while a batch is running, so UI can show what the background service is doing. */
+		val progress = MutableStateFlow<Progress?>(null)
+
+		private var currentJob: Job? = null
+
+		/** Stops the running batch. The notification's own cancel action goes through the service. */
+		fun cancel() {
+			currentJob?.cancel()
+		}
 
 		private const val DATA_IDS = "ids"
 		private const val DATA_SOURCES = "sources"

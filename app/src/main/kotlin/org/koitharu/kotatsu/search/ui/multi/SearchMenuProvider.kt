@@ -5,6 +5,9 @@ import android.os.Build
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.GravityCompat
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
@@ -19,25 +22,14 @@ class SearchMenuProvider(
 		menuInflater.inflate(R.menu.opt_search_kind, menu)
 	}
 
-	override fun onPrepareMenu(menu: Menu) {
-		super.onPrepareMenu(menu)
-		menu.findItem(
-			when (viewModel.kind) {
-				SearchKind.SIMPLE -> R.id.action_kind_simple
-				SearchKind.TITLE -> R.id.action_kind_title
-				SearchKind.AUTHOR -> R.id.action_kind_author
-				SearchKind.TAG -> R.id.action_kind_tag
-			},
-		)?.isChecked = true
-		menu.findItem(R.id.action_filter_pinned_only)?.run {
-			isChecked = viewModel.isPinnedOnly
-			// Pinned sources are not searched at all in local-only mode.
-			isEnabled = !viewModel.isLocalOnly
-		}
-		menu.findItem(R.id.action_filter_local_only)?.isChecked = viewModel.isLocalOnly
-	}
-
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+		if (menuItem.itemId == R.id.action_search_kind) {
+			// Shown by hand instead of as a <menu> submenu: a submenu of an action bar item pops up
+			// without an anchor, so it lands and animates from the wrong spot. Every other overflow
+			// in the app goes through PopupMenu on its own button.
+			activity.findViewById<View>(R.id.action_search_kind)?.let(::showFilterPopup)
+			return true
+		}
 		when (menuItem.itemId) {
 			R.id.action_filter_pinned_only -> {
 				menuItem.isChecked = !menuItem.isChecked
@@ -48,9 +40,6 @@ class SearchMenuProvider(
 			R.id.action_filter_local_only -> {
 				menuItem.isChecked = !menuItem.isChecked
 				viewModel.setLocalOnly(menuItem.isChecked)
-				// onPrepareMenu only runs when the menu is rebuilt, so without this the pinned item
-				// keeps whatever enabled state it had when the menu was last built.
-				activity.invalidateMenu()
 				return true
 			}
 		}
@@ -71,6 +60,28 @@ class SearchMenuProvider(
 			activity.finishAfterTransition()
 		}
 		return true
+	}
+
+	private fun showFilterPopup(anchor: View) {
+		val popup = PopupMenu(anchor.context, anchor, GravityCompat.END)
+		popup.inflate(R.menu.popup_search_kind)
+		val menu = popup.menu
+		menu.findItem(
+			when (viewModel.kind) {
+				SearchKind.SIMPLE -> R.id.action_kind_simple
+				SearchKind.TITLE -> R.id.action_kind_title
+				SearchKind.AUTHOR -> R.id.action_kind_author
+				SearchKind.TAG -> R.id.action_kind_tag
+			},
+		)?.isChecked = true
+		menu.findItem(R.id.action_filter_pinned_only)?.run {
+			isChecked = viewModel.isPinnedOnly
+			// Pinned sources are not searched at all in local-only mode.
+			isEnabled = !viewModel.isLocalOnly
+		}
+		menu.findItem(R.id.action_filter_local_only)?.isChecked = viewModel.isLocalOnly
+		popup.setOnMenuItemClickListener(::onMenuItemSelected)
+		popup.show()
 	}
 
 	private fun SearchActivity.overrideSearchKindTransition() {
