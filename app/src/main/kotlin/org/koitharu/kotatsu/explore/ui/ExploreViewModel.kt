@@ -264,7 +264,7 @@ class ExploreViewModel @Inject constructor(
 		MangaCompactListModel(
 			manga = manga,
 			override = null,
-			subtitle = manga.tags.joinToString { it.title },
+			progress = null,
 			counter = 0,
 		)
 	}

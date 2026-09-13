@@ -98,13 +98,25 @@
 				tools:text="@tools:sample/lorem/random" />
 
 			<TextView
+				android:id="@+id/textView_source"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="2dp"
+				android:ellipsize="end"
+				android:gravity="center_vertical"
+				android:maxLines="1"
+				android:textAppearance="?attr/textAppearanceBodySmall"
+				android:textColor="?attr/colorPrimary"
+				tools:text="@tools:sample/lorem" />
+
+			<TextView
 				android:id="@+id/textView_tags"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_marginTop="4dp"
 				android:ellipsize="end"
 				android:gravity="center_vertical"
-				android:maxLines="2"
+				android:maxLines="1"
 				android:textAppearance="?attr/textAppearanceBodySmall"
 				app:layout_constraintEnd_toEndOf="parent"
 				app:layout_constraintStart_toEndOf="@+id/imageView_cover"

@@ -17,7 +17,8 @@ import org.koitharu.kotatsu.list.ui.MangaListFragment
 class SuggestionsFragment : MangaListFragment() {
 
 	override val viewModel by viewModels<SuggestionsViewModel>()
-	override val isSwipeRefreshEnabled = false
+	// Pull-to-refresh regenerates the suggestions, same as the "Update" menu item.
+	override val isSwipeRefreshEnabled = true
 
 	override fun onViewBindingCreated(binding: FragmentListBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
@@ -25,6 +26,19 @@ class SuggestionsFragment : MangaListFragment() {
 	}
 
 	override fun onScrolledToEnd() = Unit
+
+	override fun onRefresh() {
+		super.onRefresh()
+		showUpdatingSnackbar()
+	}
+
+	private fun showUpdatingSnackbar() {
+		Snackbar.make(
+			requireViewBinding().recyclerView,
+			R.string.suggestions_updating,
+			Snackbar.LENGTH_LONG,
+		).show()
+	}
 
 	override fun onCreateActionMode(
 		controller: ListSelectionController,
@@ -50,11 +64,7 @@ class SuggestionsFragment : MangaListFragment() {
 		override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
 			R.id.action_update -> {
 				viewModel.updateSuggestions()
-				Snackbar.make(
-					requireViewBinding().recyclerView,
-					R.string.suggestions_updating,
-					Snackbar.LENGTH_LONG,
-				).show()
+				showUpdatingSnackbar()
 				true
 			}
 

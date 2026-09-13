@@ -125,7 +125,7 @@ class MangaListMapper @Inject constructor(
 	) = MangaCompactListModel(
 		manga = manga,
 		override = override,
-		subtitle = manga.tags.joinToString(", ") { it.title },
+		progress = getProgress(manga.id, options),
 		counter = getCounter(manga.id, options),
 	)
 

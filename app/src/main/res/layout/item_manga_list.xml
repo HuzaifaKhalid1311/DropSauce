@@ -25,35 +25,77 @@
 		app:trimImage="true"
 		tools:src="@tools:sample/backgrounds/scenic" />
 
-	<TextView
-		android:id="@+id/textView_title"
+	<!-- Title plus the reading-progress row, centred as a block so a title without progress still
+	     sits on the cover's centre line. -->
+	<LinearLayout
+		android:id="@+id/layout_text"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
 		android:layout_marginStart="16dp"
 		android:layout_marginEnd="8dp"
-		android:ellipsize="end"
-		android:maxLines="1"
-		android:textAppearance="?attr/textAppearanceTitleSmall"
-		app:layout_constraintBottom_toTopOf="@+id/textView_subtitle"
+		android:layout_marginVertical="12dp"
+		android:minHeight="48dp"
+		android:gravity="center_vertical"
+		android:orientation="vertical"
+		app:layout_constraintBottom_toBottomOf="parent"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toEndOf="@+id/imageView_cover"
-		app:layout_constraintTop_toTopOf="@+id/imageView_cover"
-		tools:text="@tools:sample/lorem" />
+		app:layout_constraintTop_toTopOf="parent">
 
-	<TextView
-		android:id="@+id/textView_subtitle"
-		android:layout_width="0dp"
-		android:layout_height="wrap_content"
-		android:layout_marginStart="16dp"
-		android:layout_marginEnd="8dp"
-		android:ellipsize="end"
-		android:maxLines="1"
-		android:textAppearance="?attr/textAppearanceBodySmall"
-		app:layout_constraintBottom_toBottomOf="@+id/imageView_cover"
-		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintStart_toEndOf="@+id/imageView_cover"
-		app:layout_constraintTop_toBottomOf="@+id/textView_title"
-		tools:text="@tools:sample/lorem/random" />
+		<TextView
+			android:id="@+id/textView_title"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="2"
+			android:textAppearance="?attr/textAppearanceTitleSmall"
+			tools:text="@tools:sample/lorem" />
+
+		<!-- Unused by the manga list itself; the scrobbler picker reuses this layout for an alt name. -->
+		<TextView
+			android:id="@+id/textView_subtitle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ellipsize="end"
+			android:maxLines="1"
+			android:textAppearance="?attr/textAppearanceBodySmall"
+			android:visibility="gone"
+			tools:text="@tools:sample/lorem/random"
+			tools:visibility="visible" />
+
+		<LinearLayout
+			android:id="@+id/layout_progress"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="6dp"
+			android:gravity="center_vertical"
+			android:orientation="horizontal"
+			android:visibility="gone"
+			tools:visibility="visible">
+
+			<com.google.android.material.progressindicator.LinearProgressIndicator
+				android:id="@+id/progressBar"
+				style="@style/Widget.Kotatsu.LinearProgressIndicator"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:max="100"
+				app:trackThickness="4dp"
+				tools:progress="45" />
+
+			<TextView
+				android:id="@+id/textView_progress"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="8dp"
+				android:maxLines="1"
+				android:textAppearance="?attr/textAppearanceLabelSmall"
+				android:textColor="?attr/colorOnSurfaceVariant"
+				tools:text="45%" />
+
+		</LinearLayout>
+
+	</LinearLayout>
 
 	<ImageView
 		android:id="@+id/imageView_pin"
@@ -63,7 +105,7 @@
 		android:background="@drawable/bg_pin_badge"
 		android:padding="4dp"
 		app:tint="@android:color/white"
-			android:src="@drawable/ic_pin_small"
+		android:src="@drawable/ic_pin_small"
 		android:visibility="gone"
 		app:layout_constraintEnd_toEndOf="@id/imageView_cover"
 		app:layout_constraintTop_toTopOf="@id/imageView_cover"

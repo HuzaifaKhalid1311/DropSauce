@@ -275,7 +275,7 @@ private fun AppearanceScreen(
 	var searchSuggestions by rememberStringSetPref(AppSettings.KEY_SEARCH_SUGGESTION_TYPES, emptySet())
 	var mainFab by rememberBooleanPref(AppSettings.KEY_MAIN_FAB, true)
 	var navLabels by rememberBooleanPref(AppSettings.KEY_NAV_LABELS, true)
-	var navPinned by rememberBooleanPref(AppSettings.KEY_NAV_PINNED, false)
+	var navPinned by rememberBooleanPref(AppSettings.KEY_NAV_PINNED, true)
 	var navLegacy by rememberBooleanPref(AppSettings.KEY_NAV_LEGACY, false)
 	var exitConfirm by rememberBooleanPref(AppSettings.KEY_EXIT_CONFIRM, false)
 	var dynamicShortcuts by rememberBooleanPref(AppSettings.KEY_SHORTCUTS, true)

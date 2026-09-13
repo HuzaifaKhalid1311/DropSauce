@@ -84,12 +84,13 @@ class SuggestionsViewModel @Inject constructor(
 		emit(listOf(it.toErrorState(canRetry = false)))
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
-	override fun onRefresh() = Unit
+	override fun onRefresh() = updateSuggestions()
 
 	override fun onRetry() = Unit
 
 	fun updateSuggestions() {
-		launchJob(Dispatchers.Default) {
+		// Loading job, not a plain one: the pull-to-refresh spinner is driven by the loading state.
+		launchLoadingJob(Dispatchers.Default) {
 			suggestionsScheduler.startNow()
 		}
 	}
