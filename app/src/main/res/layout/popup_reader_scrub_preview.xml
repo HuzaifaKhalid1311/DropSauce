@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The page thumbnail that floats next to the reader's slider while scrubbing. The outer frame is
+     pure breathing room for the card's elevation shadow: a PopupWindow is sized to its content, so
+     without it the shadow would be clipped off. Card + badge deliberately match item_page_thumb so
+     the preview and the pages grid read as the same object. -->
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:clipChildren="false"
+	android:clipToPadding="false"
+	android:padding="8dp">
+
+	<com.google.android.material.card.MaterialCardView
+		style="?materialCardViewFilledStyle"
+		android:layout_width="@dimen/reader_scrub_preview_width"
+		android:layout_height="@dimen/reader_scrub_preview_height"
+		app:cardBackgroundColor="?colorSurfaceContainerHigh"
+		app:cardCornerRadius="16dp"
+		app:cardElevation="6dp">
+
+		<org.koitharu.kotatsu.image.ui.CoverImageView
+			android:id="@+id/imageView_thumb"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:scaleType="centerCrop"
+			app:decodeRegion="true"
+			app:trimImage="true"
+			tools:ignore="ContentDescription"
+			tools:src="@drawable/ic_placeholder" />
+
+		<TextView
+			android:id="@+id/textView_number"
+			android:layout_width="@dimen/card_indicator_size"
+			android:layout_height="@dimen/card_indicator_size"
+			android:layout_gravity="bottom|end"
+			android:layout_margin="@dimen/card_indicator_offset"
+			android:background="@drawable/bg_badge_accent"
+			android:ellipsize="none"
+			android:gravity="center"
+			android:singleLine="true"
+			android:textAlignment="center"
+			android:textColor="?attr/colorOnTertiary"
+			android:textSize="14sp"
+			tools:text="12" />
+
+	</com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>

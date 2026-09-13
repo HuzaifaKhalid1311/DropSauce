@@ -66,6 +66,7 @@ class ReaderActionsView @JvmOverloads constructor(
 	private var isSliderChanged = false
 	private var isSliderTracking = false
 	private var lastSliderStep = Float.NaN
+	private var scrubPreview: PageScrubPreview? = null
 
 	var isSliderEnabled: Boolean
 		get() = binding.slider.isEnabled
@@ -105,7 +106,23 @@ class ReaderActionsView @JvmOverloads constructor(
 					binding.slider.value = binding.slider.value.roundToInt().toFloat()
 				}
 				binding.slider.stepSize = if (value) 0f else 1f
-				binding.slider.labelBehavior = if (value) LabelFormatter.LABEL_GONE else LabelFormatter.LABEL_FLOATING
+				updateSliderLabel()
+			}
+		}
+
+	/**
+	 * Whether the current chapter can back the slider with page thumbnails. When it can, the
+	 * thumbnail carries the page number itself, so Material's floating value label would only be a
+	 * second chip fighting for the same spot above the thumb.
+	 */
+	var isScrubPreviewEnabled: Boolean = false
+		set(value) {
+			if (field != value) {
+				field = value
+				if (!value) {
+					scrubPreview?.dismiss()
+				}
+				updateSliderLabel()
 			}
 		}
 
@@ -136,9 +153,18 @@ class ReaderActionsView @JvmOverloads constructor(
 		)
 	}
 
+	override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+		super.onWindowFocusChanged(hasWindowFocus)
+		if (!hasWindowFocus) {
+			// A drag interrupted by a call/notification never gets its onStopTrackingTouch.
+			scrubPreview?.dismiss()
+		}
+	}
+
 	override fun onDetachedFromWindow() {
 		settings.unsubscribe(this)
 		context.contentResolver.unregisterContentObserver(rotationObserver)
+		scrubPreview?.dismiss()
 		super.onDetachedFromWindow()
 	}
 
@@ -178,6 +204,7 @@ class ReaderActionsView @JvmOverloads constructor(
 					lastSliderStep = value
 					slider.hapticFeedback(HapticEffect.LIGHT_TICK)
 				}
+				showScrubPreview(value.toInt())
 			} else {
 				listener?.switchPageTo(value.toInt())
 			}
@@ -190,12 +217,31 @@ class ReaderActionsView @JvmOverloads constructor(
 			isSliderTracking = true
 			lastSliderStep = slider.value
 		}
+		showScrubPreview(slider.value.toInt())
 	}
 
 	override fun onStopTrackingTouch(slider: Slider) {
 		isSliderTracking = false
+		scrubPreview?.hide()
 		if (isSliderChanged) {
 			listener?.switchPageTo(slider.value.toInt())
+		}
+	}
+
+	private fun showScrubPreview(index: Int) {
+		if (!isScrubPreviewEnabled) {
+			return
+		}
+		val page = listener?.getPageAt(index) ?: return
+		val preview = scrubPreview ?: PageScrubPreview(binding.slider).also { scrubPreview = it }
+		preview.show(page)
+	}
+
+	private fun updateSliderLabel() {
+		binding.slider.labelBehavior = if (isSliderSmooth || isScrubPreviewEnabled) {
+			LabelFormatter.LABEL_GONE
+		} else {
+			LabelFormatter.LABEL_FLOATING
 		}
 	}
 

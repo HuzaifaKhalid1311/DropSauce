@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.reader.data.TapGridSettings
 import org.koitharu.kotatsu.reader.domain.TapGridArea
+import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.reader.ui.tapgrid.TapAction
 import kotlin.math.sign
 
@@ -132,6 +133,9 @@ class ReaderControlDelegate(
 		fun switchPageBy(delta: Int)
 
 		fun switchPageTo(index: Int)
+
+		/** The page at [index] within the current chapter, or `null` if it cannot be resolved. */
+		fun getPageAt(index: Int): ReaderPage?
 
 		fun switchChapterBy(delta: Int)
 

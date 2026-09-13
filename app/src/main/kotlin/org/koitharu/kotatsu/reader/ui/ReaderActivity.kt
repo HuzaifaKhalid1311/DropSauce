@@ -729,10 +729,17 @@ class ReaderActivity :
             readerManager.currentReader?.switchPageTo(index, true)
             return
         }
-        val pages = viewModel.getCurrentChapterPages()
-        val page = pages?.getOrNull(index) ?: return
-        val chapterId = viewModel.getCurrentState()?.chapterId ?: return
-        onPageSelected(ReaderPage(page, index, chapterId))
+        onPageSelected(getPageAt(index) ?: return)
+    }
+
+    override fun getPageAt(index: Int): ReaderPage? {
+        // EPUB chapters are one scrolling document - there are no per-page images to resolve.
+        if (readerManager.isEpub) {
+            return null
+        }
+        val page = viewModel.getCurrentChapterPages()?.getOrNull(index) ?: return null
+        val chapterId = viewModel.getCurrentState()?.chapterId ?: return null
+        return ReaderPage(page, index, chapterId)
     }
 
     private fun onToolbarLongClick(view: View): Boolean {
@@ -762,9 +769,14 @@ class ReaderActivity :
             supportActionBar?.subtitle = null
             viewBinding.actionsView.setSliderValue(0, 1)
             viewBinding.actionsView.isSliderEnabled = false
+            viewBinding.actionsView.isScrubPreviewEnabled = false
             return
         }
         viewBinding.actionsView.isSliderSmooth = uiState.isEpub && !uiState.isEpubPaged
+        // Only trade Material's value label for the thumbnail when the pages are really resolvable;
+        // otherwise the scrub would show neither.
+        viewBinding.actionsView.isScrubPreviewEnabled = uiState.isSliderAvailable() &&
+            getPageAt(uiState.currentPage) != null
         val chapterTitle = uiState.getChapterTitle(resources)
         supportActionBar?.subtitle = when {
             uiState.incognito -> getString(R.string.incognito_mode)
