@@ -121,44 +121,24 @@ jobs:
 
         echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-    - name: Find previous successful release workflow run
-      id: previous_success
-      uses: actions/github-script@v8
-      with:
-        script: |
-          const owner = context.repo.owner;
-          const repo = context.repo.repo;
-          const workflowId = "release.yml";
-
-          const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
-            owner,
-            repo,
-            workflow_id: workflowId,
-            status: "completed",
-            per_page: 100,
-          });
-
-          const previous = runs.find((run) => run.conclusion === "success" && run.id !== context.runId);
-          core.setOutput("sha", previous ? previous.head_sha : "");
-
     - name: Generate Changelog
       id: changelog
       run: |
-        PREVIOUS_SUCCESS_SHA="${{ steps.previous_success.outputs.sha }}"
         CURRENT_SHA="${{ steps.version_commit.outputs.commit_sha }}"
 
-        if [ -n "$PREVIOUS_SUCCESS_SHA" ]; then
-          git fetch origin "$PREVIOUS_SUCCESS_SHA" 2>/dev/null || true
+        # The new tag does not exist yet, so this resolves to the previous release tag
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 --match 'v*' "$CURRENT_SHA" 2>/dev/null || true)
+
+        if [ -n "$PREVIOUS_TAG" ]; then
+          RANGE="$PREVIOUS_TAG..$CURRENT_SHA"
+        else
+          RANGE="$CURRENT_SHA"
         fi
 
-        if [ -n "$PREVIOUS_SUCCESS_SHA" ] && git cat-file -e "$PREVIOUS_SUCCESS_SHA" 2>/dev/null; then
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_SUCCESS_SHA..$CURRENT_SHA" --no-merges --invert-grep --grep='^chore(release): set versionName ')
-        else
-          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges -n 20)
-        fi
+        CHANGELOG=$(git log --pretty=format:"- %s" --no-merges -n 50 --invert-grep --grep='^chore(release): set versionName ' $RANGE)
 
         if [ -z "$CHANGELOG" ]; then
-          CHANGELOG="- No changes since last successful release workflow run"
+          CHANGELOG="- No changes since ${PREVIOUS_TAG:-the last release}"
         fi
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
@@ -193,16 +173,15 @@ jobs:
         NOTES_FILE="release_notes.md"
 
         cat > "$NOTES_FILE" <<'EOF'
-        ## DropSauce v${{ inputs.version_name }}
+        ### Changelog
+        ${{ steps.changelog.outputs.changelog }}
 
         ### Installation Instructions
         1. Download and install the apk file first
-        2. go to the Explore menu> Manage and click the pen icon to add an extension repo
-        3. install and use the extensions, read, add items to the favorites and ENJOY!
-        If this is your first time using the app, I recommend uninstalling any extension you find when opening the app for the first time and then installing latest extensions from your preferred repository"
+        2. Go to the Explore menu > Manage and click the pen icon to add an extension repo
+        3. Install and use the extensions, read, add items to the favorites and ENJOY!
 
-        ### Changelog
-        ${{ steps.changelog.outputs.changelog }}
+        If this is your first time using the app, I recommend uninstalling any extension you find when opening the app for the first time and then installing latest extensions from your preferred repository.
         EOF
 
         gh release create "$TAG" release/*.apk \
