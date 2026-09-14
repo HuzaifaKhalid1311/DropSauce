@@ -1429,6 +1429,15 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		 * Keys that must never leave the device: credentials, app-lock state and per-install ids.
 		 * Stripped from local backups and cloud sync, both when writing and when applying.
 		 */
+		/**
+		 * Keys that describe THIS device's layout rather than the user's library, so they are never
+		 * carried by a backup or by Drive sync. Syncing them means a snapshot taken on another device
+		 * (or before a default changed) silently flips the setting back at whatever moment a sync runs.
+		 */
+		val DEVICE_LOCAL_KEYS = setOf(
+			KEY_NAV_PINNED,
+		)
+
 		val SENSITIVE_BACKUP_KEYS = setOf(
 			KEY_APP_PASSWORD,
 			KEY_APP_PASSWORD_SALT,

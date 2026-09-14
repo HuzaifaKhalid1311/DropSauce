@@ -1,7 +1,10 @@
 package org.koitharu.kotatsu.settings.compose
 
 import android.content.res.Configuration
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -14,6 +17,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.main.ui.nav.composeColorSchemeFromTheme
@@ -43,9 +47,9 @@ private fun roundVariation(weight: Int) = FontVariation.Settings(
 )
 
 @Composable
-private fun bumpedTypography(family: FontFamily): Typography {
+private fun bumpedTypography(family: FontFamily): Typography = remember(family) {
 	val noPadding = PlatformTextStyle(includeFontPadding = false)
-	return Typography(
+	Typography(
 		displayLarge = TextStyle(
 			fontFamily = family, fontWeight = FontWeight.Bold,
 			fontSize = 48.sp, lineHeight = 56.sp, letterSpacing = 0.sp,
@@ -125,10 +129,30 @@ private fun bumpedTypography(family: FontFamily): Typography {
 }
 
 /**
- * MaterialTheme wrapper that pulls colors from the host Android theme and uses
+ * The app's corner scale, mirroring the Views side (`ShapeAppearance.Kotatsu.Corner*` in
+ * styles.xml) so a Compose dialog and an XML bottom sheet round identically.
+ *
+ * Compose's own defaults are medium=12dp / large=16dp, which is *not* what the rest of the app
+ * uses — without this, every Compose card and sheet was subtly squarer than its Views twin.
+ */
+private val DropSauceShapes = Shapes(
+	extraSmall = RoundedCornerShape(4.dp),
+	small = RoundedCornerShape(8.dp),
+	medium = RoundedCornerShape(16.dp),
+	large = RoundedCornerShape(24.dp),
+	extraLarge = RoundedCornerShape(28.dp),
+)
+
+/**
+ * MaterialExpressiveTheme wrapper that pulls colors from the host Android theme and uses
  * the project's rounded variable-font typography. Use this at the top of any
  * Compose subtree we host inside an existing Fragment/Activity so it inherits
  * the user's chosen theme (Dynamic, Monet, AMOLED, etc).
+ *
+ * Going through [MaterialExpressiveTheme] (rather than plain `MaterialTheme`) is what gives every
+ * material3 component in the app the Expressive spring motion and shapes by default — sheets,
+ * dialogs, switches, sliders, chips and the nav bar all pick it up with no per-screen work.
+ * Read the springs back out via `MaterialTheme.motionScheme` instead of hand-writing `spring(...)`.
  */
 @Composable
 fun DropSauceTheme(content: @Composable () -> Unit) {
@@ -138,5 +162,11 @@ fun DropSauceTheme(content: @Composable () -> Unit) {
 	val scheme = remember(ctx, isDark) { composeColorSchemeFromTheme(ctx, isDark) }
 	val family = GoogleSansRounded
 	val typography = bumpedTypography(family)
-	MaterialTheme(colorScheme = scheme, typography = typography, content = content)
+	MaterialExpressiveTheme(
+		colorScheme = scheme,
+		motionScheme = MotionScheme.expressive(),
+		shapes = DropSauceShapes,
+		typography = typography,
+		content = content,
+	)
 }

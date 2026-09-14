@@ -32,4 +32,7 @@
 	<color name="kotatsu_inverseOnSurface">#F2F0F4</color>
 	<color name="kotatsu_background">#FEFBFF</color>
 	<color name="kotatsu_outline">#757780</color>
+	<!-- Neutral-variant tone 80: the M3 token for dividers, card strokes and outlined borders.
+	     Must stay much lighter than colorOutline or every border in the app reads as heavy. -->
+	<color name="kotatsu_outlineVariant">#C5C6D0</color>
 </resources>

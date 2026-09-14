@@ -8,7 +8,7 @@ import androidx.annotation.IdRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -76,20 +76,18 @@ data class FloatingNavBarColors(
 	val unselectedContent: Int,
 )
 
-// Material 3 "expressive" default spatial spring — snappier than the standard Compose default,
-// keeps icon, color, label-expand, and sibling-resize all on the same beat.
-private val FloatSpec_Float = spring<Float>(
-	dampingRatio = 0.9f,
-	stiffness = 380f,
-)
-private val FloatSpec_Color = spring<Color>(
-	dampingRatio = 0.9f,
-	stiffness = 380f,
-)
-private val FloatSpec_Size = spring<IntSize>(
-	dampingRatio = 0.9f,
-	stiffness = 380f,
-)
+// Motion comes from the app-wide Expressive MotionScheme (see DropSauceTheme) rather than
+// hand-tuned springs, so the nav bar moves on the same beat as sheets, dialogs and the details
+// dock. Spatial specs animate anything that moves or resizes; effects specs animate colour and
+// alpha, which M3 deliberately runs on a different (non-overshooting) curve.
+private val MotionSizeSpec: FiniteAnimationSpec<IntSize>
+	@Composable get() = MaterialTheme.motionScheme.defaultSpatialSpec()
+
+private val MotionAlphaSpec: FiniteAnimationSpec<Float>
+	@Composable get() = MaterialTheme.motionScheme.defaultEffectsSpec()
+
+private val MotionColorSpec: FiniteAnimationSpec<Color>
+	@Composable get() = MaterialTheme.motionScheme.defaultEffectsSpec()
 
 @Composable
 fun FloatingNavBar(
@@ -127,7 +125,7 @@ fun FloatingNavBar(
 					.heightIn(min = 64.dp)
 					.padding(horizontal = 8.dp, vertical = 8.dp)
 					// Smoothly relayout siblings when one pill grows/shrinks horizontally.
-					.animateContentSize(animationSpec = FloatSpec_Size),
+					.animateContentSize(animationSpec = MotionSizeSpec),
 				horizontalArrangement = Arrangement.spacedBy(4.dp),
 				verticalAlignment = Alignment.CenterVertically,
 			) {
@@ -157,10 +155,10 @@ fun FloatingNavBar(
 		// along as the bar resizes, so it always feels part of the same floating toolbar.
 		AnimatedVisibility(
 			visible = showContinue,
-			enter = fadeIn(animationSpec = FloatSpec_Float) +
-				expandHorizontally(animationSpec = FloatSpec_Size, expandFrom = Alignment.Start),
-			exit = fadeOut(animationSpec = FloatSpec_Float) +
-				shrinkHorizontally(animationSpec = FloatSpec_Size, shrinkTowards = Alignment.Start),
+			enter = fadeIn(animationSpec = MotionAlphaSpec) +
+				expandHorizontally(animationSpec = MotionSizeSpec, expandFrom = Alignment.Start),
+			exit = fadeOut(animationSpec = MotionAlphaSpec) +
+				shrinkHorizontally(animationSpec = MotionSizeSpec, shrinkTowards = Alignment.Start),
 		) {
 			FloatingContinueButton(
 				colors = colors,
@@ -186,18 +184,18 @@ private fun FloatingContinueButton(
 ) {
 	val container by animateColorAsState(
 		targetValue = Color(colors.selectedContainer),
-		animationSpec = FloatSpec_Color,
+		animationSpec = MotionColorSpec,
 		label = "continueContainer",
 	)
 	val content by animateColorAsState(
 		targetValue = Color(colors.selectedContent),
-		animationSpec = FloatSpec_Color,
+		animationSpec = MotionColorSpec,
 		label = "continueContent",
 	)
 	val label = stringResource(R.string.continue_reading)
 	val tooltipState = rememberTooltipState()
 	TooltipBox(
-		positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+		positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
 		tooltip = { PlainTooltip { Text(label) } },
 		state = tooltipState,
 	) {
@@ -243,7 +241,7 @@ private fun FloatingNavItem(
 		} else {
 			Color.Transparent
 		},
-		animationSpec = FloatSpec_Color,
+		animationSpec = MotionColorSpec,
 		label = "navItemContainer",
 	)
 	val content by animateColorAsState(
@@ -252,7 +250,7 @@ private fun FloatingNavItem(
 		} else {
 			Color(colors.unselectedContent)
 		},
-		animationSpec = FloatSpec_Color,
+		animationSpec = MotionColorSpec,
 		label = "navItemContent",
 	)
 	val title = stringResource(item.titleRes)
@@ -302,13 +300,13 @@ private fun FloatingNavItem(
 			AnimatedVisibility(
 				visible = selected && showLabel,
 				enter = expandHorizontally(
-					animationSpec = FloatSpec_Size,
+					animationSpec = MotionSizeSpec,
 					expandFrom = Alignment.Start,
-				) + fadeIn(animationSpec = FloatSpec_Float),
+				) + fadeIn(animationSpec = MotionAlphaSpec),
 				exit = shrinkHorizontally(
-					animationSpec = FloatSpec_Size,
+					animationSpec = MotionSizeSpec,
 					shrinkTowards = Alignment.Start,
-				) + fadeOut(animationSpec = FloatSpec_Float),
+				) + fadeOut(animationSpec = MotionAlphaSpec),
 			) {
 				Text(
 					text = title,

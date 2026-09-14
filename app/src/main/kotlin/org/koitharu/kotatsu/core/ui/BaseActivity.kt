@@ -31,6 +31,8 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.koitharu.kotatsu.BuildConfig
+import androidx.core.view.children
+import com.google.android.material.appbar.AppBarLayout
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.nav.AppRouter
@@ -178,11 +180,38 @@ abstract class BaseActivity<B : ViewBinding> :
 			}
 			onApplyWindowInsets(v, modifiedInsets)
 		}
+		applyNavPinnedToAppBar(binding.root)
 		val toolbar = (binding.root.findViewById<View>(R.id.toolbar) as? Toolbar)
 		toolbar?.let {
 			setSupportActionBar(it)
 			it.applyTonalTopBarStyle()
 			takeOverToolbarBackHandling(it)
+		}
+	}
+
+	/**
+	 * "Pin navigation UI" means the top bar does not hide on scroll. Only bars that would scroll
+	 * away completely need pinning: one marked `exitUntilCollapsed` already keeps its toolbar on
+	 * screen, and stripping its scroll flag would freeze the large title expanded instead.
+	 * MainActivity toggles its own app bar live; every other screen is short-lived, so applying
+	 * this once as the content is set is enough.
+	 */
+	private fun applyNavPinnedToAppBar(root: View) {
+		if (!entryPoint.settings.isNavBarPinned) {
+			return
+		}
+		val appBar = root.findViewById<View>(R.id.appbar) as? AppBarLayout ?: return
+		for (child in appBar.children) {
+			val lp = child.layoutParams as? AppBarLayout.LayoutParams ?: continue
+			val flags = lp.scrollFlags
+			if (flags and AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED != 0) {
+				continue
+			}
+			val scrollFlags = flags and AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL.inv()
+			if (scrollFlags != flags) {
+				lp.scrollFlags = scrollFlags
+				child.layoutParams = lp
+			}
 		}
 	}
 

@@ -9,6 +9,7 @@ import androidx.core.view.updatePadding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
@@ -39,6 +40,7 @@ class ScrobblerConfigActivity : BaseActivity<ActivityScrobblerConfigBinding>(),
 
 		val listAdapter = ScrobblingMangaAdapter(this)
 		with(viewBinding.recyclerView) {
+			roundTopCorners(resources.getDimension(R.dimen.list_selector_corner))
 			adapter = listAdapter
 			setHasFixedSize(true)
 			val decoration = TypedListSpacingDecoration(context, false)

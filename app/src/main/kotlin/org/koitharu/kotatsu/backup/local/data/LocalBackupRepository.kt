@@ -300,7 +300,7 @@ class LocalBackupRepository @Inject constructor(
 
 	private fun dumpAppSettings(): Map<String, BackupPrimitive> {
 		val map = settings.getAllValues().toMutableMap()
-		AppSettings.SENSITIVE_BACKUP_KEYS.forEach { map.remove(it) }
+		(AppSettings.SENSITIVE_BACKUP_KEYS + AppSettings.DEVICE_LOCAL_KEYS).forEach { map.remove(it) }
 		return map.mapNotNullToBackupValues()
 	}
 
@@ -463,7 +463,7 @@ class LocalBackupRepository @Inject constructor(
 				.toMutableMap()
 			// Older backups may still carry app-lock state or per-install onboarding ids; drop them
 			// on restore so a backup never brings an app lock or the welcome screen to this device.
-			AppSettings.SENSITIVE_BACKUP_KEYS.forEach { map.remove(it) }
+			(AppSettings.SENSITIVE_BACKUP_KEYS + AppSettings.DEVICE_LOCAL_KEYS).forEach { map.remove(it) }
 			settings.upsertAll(map.toRawMap())
 		}.let { CompositeResult.EMPTY + it }
 	}

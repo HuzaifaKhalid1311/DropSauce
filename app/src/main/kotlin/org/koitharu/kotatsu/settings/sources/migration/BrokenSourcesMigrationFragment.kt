@@ -29,7 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
@@ -215,7 +215,7 @@ private fun BrokenSourcesMigrationScreen(
 					modifier = Modifier.fillMaxSize(),
 					contentAlignment = Alignment.Center,
 				) {
-					CircularProgressIndicator()
+					LoadingIndicator()
 				}
 
 				state.sources.isEmpty() -> Box(

@@ -9,6 +9,7 @@ import androidx.core.view.updatePadding
 import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.nav.router
@@ -54,6 +55,10 @@ class AlternativesActivity : BaseActivity<ActivityAlternativesBinding>(),
 			.addDelegate(ListItemType.STATE_LOADING, loadingStateAD())
 			.addDelegate(ListItemType.FOOTER_BUTTON, buttonFooterAD(this))
 		with(viewBinding.recyclerView) {
+			roundTopCorners(
+				radius = resources.getDimension(R.dimen.tile_corner),
+				extraInset = resources.getDimensionPixelOffset(R.dimen.list_spacing_normal),
+			)
 			setHasFixedSize(true)
 			addItemDecoration(TypedListSpacingDecoration(context, addHorizontalPadding = false))
 			adapter = listAdapter

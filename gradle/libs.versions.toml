@@ -51,7 +51,10 @@ viewpager2 = "1.1.0"
 webkit = "1.15.0"
 workRuntime = "2.11.2"
 window = "1.5.1"
-composeBom = "2024.12.01"
+composeBom = "2026.09.00"
+# material3 ships the Expressive APIs (MotionScheme, MaterialShapes, ButtonGroup, wavy
+# progress, FAB menu) only in the 1.5 line; in 1.4.0 stable they are still Kotlin-internal.
+material3 = "1.5.0-alpha28"
 graphicsShapes = "1.0.1"
 
 [libraries]
@@ -129,7 +132,7 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
-androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 androidx-compose-runtime = { module = "androidx.compose.runtime:runtime" }
 androidx-compose-activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }

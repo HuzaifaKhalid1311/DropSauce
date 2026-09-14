@@ -17,7 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,7 +83,7 @@ class RestoreDialogFragment : ComposeAlertDialogFragment() {
 						.padding(24.dp),
 					contentAlignment = Alignment.Center,
 				) {
-					CircularProgressIndicator()
+					LoadingIndicator()
 				}
 			} else {
 				Column(

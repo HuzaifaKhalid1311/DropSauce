@@ -32,4 +32,6 @@
 	<color name="kotatsu_inverseOnSurface">#1A1B1F</color>
 	<color name="kotatsu_background">#1A1B1F</color>
 	<color name="kotatsu_outline">#8E9099</color>
+	<!-- Neutral-variant tone 30 (see the light counterpart). -->
+	<color name="kotatsu_outlineVariant">#44464F</color>
 </resources>

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
@@ -61,6 +62,10 @@ class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), Recycl
 			// hoisted onto SettingsActivity's shared CoordinatorLayout and blank the right edge of every
 			// settings screen. The list never exceeds a handful of items, so it needs no fast scroller.
 			isFastScrollerEnabled = false
+			roundTopCorners(
+				radius = resources.getDimension(R.dimen.tile_corner),
+				extraInset = resources.getDimensionPixelOffset(R.dimen.tile_margin_horizontal),
+			)
 			setHasFixedSize(true)
 			adapter = navConfigAdapter
 			reorderHelper = ItemTouchHelper(ReorderCallback()).also {

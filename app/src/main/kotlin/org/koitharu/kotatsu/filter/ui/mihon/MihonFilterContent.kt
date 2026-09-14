@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -86,7 +86,7 @@ fun MihonFilterContent(
 			contentAlignment = Alignment.Center,
 		) {
 			if (isLoading) {
-				CircularProgressIndicator()
+				LoadingIndicator()
 			} else {
 				Text(
 					text = stringResource(R.string.no_filters_available),

@@ -92,128 +92,124 @@ fun DetailsExpressiveScreen(
 	actions: DetailsExpressiveActions,
 ) {
 	val manga = details?.toManga()
-	val baseScheme = MaterialTheme.colorScheme
-	val typography = MaterialTheme.typography
 
-	MaterialTheme(colorScheme = baseScheme, typography = typography) {
-		val scheme = MaterialTheme.colorScheme
-		val accentColor = scheme.primary
-		val scrollState = rememberScrollState()
-		val centered = style != DetailsUiMode.COMPACT
+	val scheme = MaterialTheme.colorScheme
+	val accentColor = scheme.primary
+	val scrollState = rememberScrollState()
+	val centered = style != DetailsUiMode.COMPACT
 
-		LaunchedEffect(scrollState) {
-			snapshotFlow { scrollState.value }.collect(onScroll)
+	LaunchedEffect(scrollState) {
+		snapshotFlow { scrollState.value }.collect(onScroll)
+	}
+
+	Box(
+		modifier = Modifier
+			.fillMaxSize()
+			.background(scheme.surface),
+	) {
+		if (isBackdropEnabled && backdropUrl != null) {
+			ExpressiveBackdrop(
+				url = backdropUrl,
+				manga = manga,
+				imageLoader = imageLoader,
+				surface = scheme.surface,
+				blurAmount = backdropBlurAmount,
+			)
 		}
 
-		Box(
+		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.background(scheme.surface),
+				.verticalScroll(scrollState)
+				.padding(bottom = bottomContentPadding + DETAIL_DOCK_RESERVE),
+			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
-			if (isBackdropEnabled && backdropUrl != null) {
-				ExpressiveBackdrop(
-					url = backdropUrl,
-					manga = manga,
-					imageLoader = imageLoader,
-					surface = scheme.surface,
-					blurAmount = backdropBlurAmount,
-				)
-			}
+			// Push the hero clear of the translucent top bar / back button.
+		Spacer(Modifier.height(topInset + if (centered) 84.dp else 72.dp))
 
-			Column(
-				modifier = Modifier
-					.fillMaxSize()
-					.verticalScroll(scrollState)
-					.padding(bottom = bottomContentPadding + DETAIL_DOCK_RESERVE),
-				horizontalAlignment = Alignment.CenterHorizontally,
-			) {
-				// Push the hero clear of the translucent top bar / back button.
-			Spacer(Modifier.height(topInset + if (centered) 84.dp else 72.dp))
+		if (manga == null) {
+			LoadingHero()
+		} else {
+			val favLabel = favouriteLabel ?: stringResource(R.string.add_to_favourites)
+			val isFavourite = favouriteCount > 0
+			HeroSection(
+				centered = centered,
+				manga = manga,
+				details = details,
+				sourceTitle = sourceTitle,
+				accent = accentColor,
+				imageLoader = imageLoader,
+				coverUrl = coverUrl,
+				favouriteLabel = favLabel,
+				isFavourite = isFavourite,
+				onFavouriteClick = { actions.onFavoriteClick(manga) },
+				actions = actions,
+			)
 
-			if (manga == null) {
-				LoadingHero()
-			} else {
-				val favLabel = favouriteLabel ?: stringResource(R.string.add_to_favourites)
-				val isFavourite = favouriteCount > 0
-				HeroSection(
-					centered = centered,
-					manga = manga,
-					details = details,
-					sourceTitle = sourceTitle,
-					accent = accentColor,
-					imageLoader = imageLoader,
-					coverUrl = coverUrl,
-					favouriteLabel = favLabel,
+			if (centered) {
+				Spacer(Modifier.height(20.dp))
+				FavouriteButton(
+					label = favLabel,
 					isFavourite = isFavourite,
-					onFavouriteClick = { actions.onFavoriteClick(manga) },
-					actions = actions,
-				)
-
-				if (centered) {
-					Spacer(Modifier.height(20.dp))
-					FavouriteButton(
-						label = favLabel,
-						isFavourite = isFavourite,
-						accent = accentColor,
-						onClick = { actions.onFavoriteClick(manga) },
-					)
-				}
-
-				Spacer(Modifier.height(8.dp))
-				ProgressCard(historyInfo = historyInfo, isLoading = isLoading, accent = accentColor)
-
-				DescriptionCard(
-					description = details.description,
-					manga = manga,
-					details = details,
 					accent = accentColor,
+					onClick = { actions.onFavoriteClick(manga) },
 				)
-
-				TagsSection(tags = tags, accent = accentColor, onTagClick = actions.onTagClick)
-
-				if (scrobblings.isNotEmpty()) {
-					ScrobblingSection(
-						items = scrobblings,
-						imageLoader = imageLoader,
-						accent = accentColor,
-						onMore = actions.onScrobblingMore,
-						onCardClick = actions.onScrobblingCardClick,
-					)
-				}
-
-				if (related.isNotEmpty()) {
-					RelatedSection(
-						items = related,
-						imageLoader = imageLoader,
-						accent = accentColor,
-						onMore = { actions.onRelatedMore(manga) },
-						onItemClick = actions.onRelatedClick,
-					)
-				}
-
-				if (localSize > 0L) {
-					LocalSizeRow(size = localSize, manga = manga, onClick = actions.onLocalClick)
-				}
-
-					Spacer(Modifier.height(28.dp))
-				}
 			}
 
-				// Floating action dock: a "N chapters" pill stacked above the read FAB. Both pin to the
-				// bottom-end and stay clear of the navigation bar; the modal chapters sheet draws its own
-				// scrim over them, so they read as "behind" the sheet without any extra hide/show logic.
-				ActionDock(
-					historyInfo = historyInfo,
-					isLoading = isLoading,
-					accent = accentColor,
-					actions = actions,
-					modifier = Modifier
-						.align(Alignment.BottomEnd)
-						.padding(end = SCREEN_PADDING, bottom = bottomContentPadding + 16.dp)
-						.dockGlow(scheme.surface),
-				)
+			Spacer(Modifier.height(8.dp))
+			ProgressCard(historyInfo = historyInfo, isLoading = isLoading, accent = accentColor)
 
+			DescriptionCard(
+				description = details.description,
+				manga = manga,
+				details = details,
+				accent = accentColor,
+			)
+
+			TagsSection(tags = tags, accent = accentColor, onTagClick = actions.onTagClick)
+
+			if (scrobblings.isNotEmpty()) {
+				ScrobblingSection(
+					items = scrobblings,
+					imageLoader = imageLoader,
+					accent = accentColor,
+					onMore = actions.onScrobblingMore,
+					onCardClick = actions.onScrobblingCardClick,
+				)
+			}
+
+			if (related.isNotEmpty()) {
+				RelatedSection(
+					items = related,
+					imageLoader = imageLoader,
+					accent = accentColor,
+					onMore = { actions.onRelatedMore(manga) },
+					onItemClick = actions.onRelatedClick,
+				)
+			}
+
+			if (localSize > 0L) {
+				LocalSizeRow(size = localSize, manga = manga, onClick = actions.onLocalClick)
+			}
+
+				Spacer(Modifier.height(28.dp))
+			}
 		}
+
+			// Floating action dock: a "N chapters" pill stacked above the read FAB. Both pin to the
+			// bottom-end and stay clear of the navigation bar; the modal chapters sheet draws its own
+			// scrim over them, so they read as "behind" the sheet without any extra hide/show logic.
+			ActionDock(
+				historyInfo = historyInfo,
+				isLoading = isLoading,
+				accent = accentColor,
+				actions = actions,
+				modifier = Modifier
+					.align(Alignment.BottomEnd)
+					.padding(end = SCREEN_PADDING, bottom = bottomContentPadding + 16.dp)
+					.dockGlow(scheme.surface),
+			)
+
 	}
 }
 

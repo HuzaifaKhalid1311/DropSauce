@@ -864,6 +864,6 @@ class GoogleDriveSyncRepository @Inject constructor(
 		/** Max times to re-merge when another device writes the file mid-sync, before a best-effort write. */
 		const val MAX_CONFLICT_RETRIES = 3
 
-		val EXCLUDED_SETTINGS_KEYS = AppSettings.SENSITIVE_BACKUP_KEYS
+		val EXCLUDED_SETTINGS_KEYS = AppSettings.SENSITIVE_BACKUP_KEYS + AppSettings.DEVICE_LOCAL_KEYS
 	}
 }

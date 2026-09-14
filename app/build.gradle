@@ -148,6 +148,9 @@ kotlin {
 			'-opt-in=coil3.annotation.ExperimentalCoilApi',
 			'-opt-in=coil3.annotation.InternalCoilApi',
 			'-opt-in=kotlinx.serialization.ExperimentalSerializationApi',
+			// The Material 3 Expressive theme + motion scheme are referenced from every Compose
+			// surface in the app (see DropSauceTheme), so opt in once here instead of per file.
+			'-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi',
 			'-Xjspecify-annotations=strict',
 			'-Xannotation-default-target=first-only',
 			'-Xcontext-parameters'

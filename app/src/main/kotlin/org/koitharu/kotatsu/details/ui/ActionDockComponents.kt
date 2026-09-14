@@ -2,9 +2,7 @@ package org.koitharu.kotatsu.details.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -122,7 +120,7 @@ internal fun ReadFab(
 	}
 	val chevronRotation by animateFloatAsState(
 		targetValue = if (expanded) 180f else 0f,
-		animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+		animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
 		label = "fabChevron",
 	)
 
@@ -135,7 +133,7 @@ internal fun ReadFab(
 		color = container,
 		shadowElevation = 6.dp,
 	) {
-		Box(modifier = Modifier.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))) {
+		Box(modifier = Modifier.animateContentSize(animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec())) {
 		Column(
 			modifier = Modifier.width(IntrinsicSize.Max),
 		) {

@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +59,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.util.RoundedTopShape
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -217,12 +218,16 @@ private fun SourceMangaListScreen(
 ) {
 	if (state.isLoading) {
 		Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-			CircularProgressIndicator()
+			LoadingIndicator()
 		}
 		return
 	}
 	LazyColumn(
-		modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+		modifier = Modifier
+			.fillMaxSize()
+			.navigationBarsPadding()
+			// cut rows under the toolbar with a row's own radius, at a row's own edges
+			.clip(RoundedTopShape(radius = 12.dp, inset = 8.dp)),
 	) {
 		items(state.manga, key = Manga::id) { manga ->
 			SourceMangaRow(

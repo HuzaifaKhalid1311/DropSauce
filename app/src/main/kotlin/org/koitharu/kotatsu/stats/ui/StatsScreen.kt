@@ -54,6 +54,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.util.RoundedTopShape
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.stableMangaCoverKey
@@ -108,7 +109,10 @@ fun StatsScreen(
 			)
 		}
 		LazyColumn(
-			modifier = Modifier.fillMaxSize(),
+			modifier = Modifier
+				.fillMaxSize()
+				// cut cards under the toolbar with a card's own radius, at a card's own edges
+				.clip(RoundedTopShape(radius = STATS_CARD_CORNER, inset = STATS_PADDING)),
 			contentPadding = PaddingValues(top = 8.dp, bottom = bottomInset + 32.dp),
 			verticalArrangement = Arrangement.spacedBy(10.dp),
 		) {
