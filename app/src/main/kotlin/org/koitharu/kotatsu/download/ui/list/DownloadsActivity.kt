@@ -91,7 +91,7 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 	}
 
 	override fun onItemClick(item: DownloadItemModel, view: View) {
-		if (selectionController.onItemClick(item.id.mostSignificantBits)) {
+		if (selectionController.onItemClick(view, item.id.mostSignificantBits)) {
 			return
 		}
 		router.openDetails(item.manga ?: return)
@@ -105,8 +105,8 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 		return selectionController.onItemContextClick(view, item.id.mostSignificantBits)
 	}
 
-	override fun onExpandClick(item: DownloadItemModel) {
-		if (!selectionController.onItemClick(item.id.mostSignificantBits)) {
+	override fun onExpandClick(item: DownloadItemModel, view: View) {
+		if (!selectionController.onItemClick(view, item.id.mostSignificantBits)) {
 			viewModel.expandCollapse(item)
 		}
 	}

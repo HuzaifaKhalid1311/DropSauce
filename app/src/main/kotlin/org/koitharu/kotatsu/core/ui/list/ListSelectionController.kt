@@ -78,9 +78,11 @@ class ListSelectionController(
 		return bundle
 	}
 
-	fun onItemClick(id: Long): Boolean {
+	fun onItemClick(view: View?, id: Long): Boolean {
 		if (decoration.checkedItemsCount != 0) {
 			decoration.toggleItemChecked(id)
+			view?.playSelectionPressAnimation(isDeep = false)
+			view?.hapticFeedback(HapticEffect.LIGHT_CLICK)
 			if (decoration.checkedItemsCount == 0) {
 				actionMode?.finish()
 			} else {
@@ -93,17 +95,15 @@ class ListSelectionController(
 	}
 
 	fun onItemLongClick(view: View, id: Long): Boolean {
+		val isFirstSelection = useActionMode && actionMode == null
 		val handled = if (useActionMode) {
 			startSelection(id)
 		} else {
 			onItemContextClick(view, id)
 		}
 		if (handled) {
+			view.playSelectionPressAnimation(isDeep = isFirstSelection)
 			view.hapticFeedback(HapticEffect.LONG_PRESS)
-			view.postDelayed({
-				view.isPressed = false
-				view.jumpDrawablesToCurrentState()
-			}, 250)
 		}
 		return handled
 	}

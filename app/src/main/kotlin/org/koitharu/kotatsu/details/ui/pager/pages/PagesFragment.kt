@@ -178,7 +178,7 @@ class PagesFragment :
 	}
 
 	override fun onItemClick(item: PageThumbnail, view: View) {
-		if (selectionController?.onItemClick(item.page.id) == true) {
+		if (selectionController?.onItemClick(view, item.page.id) == true) {
 			return
 		}
 		val listener = findParentCallback(ReaderNavigationCallback::class.java)

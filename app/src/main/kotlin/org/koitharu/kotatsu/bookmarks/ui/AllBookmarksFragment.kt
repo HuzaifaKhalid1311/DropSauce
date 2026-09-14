@@ -135,7 +135,7 @@ class AllBookmarksFragment :
 	}
 
 	override fun onItemClick(item: Bookmark, view: View) {
-		if (selectionController?.onItemClick(item.pageId) != true) {
+		if (selectionController?.onItemClick(view, item.pageId) != true) {
 			val intent = ReaderIntent.Builder(view.context)
 				.bookmark(item)
 				.incognito()

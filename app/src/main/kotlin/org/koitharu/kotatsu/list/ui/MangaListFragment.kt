@@ -187,7 +187,7 @@ abstract class MangaListFragment :
 	}
 
 	override fun onItemClick(item: MangaListModel, view: View) {
-		if (selectionController?.onItemClick(item.id) != true) {
+		if (selectionController?.onItemClick(view, item.id) != true) {
 			val manga = item.toMangaWithOverride()
 			if ((activity as? MangaListActivity)?.showPreview(manga) != true) {
 				router.openDetails(manga)
@@ -204,13 +204,13 @@ abstract class MangaListFragment :
 	}
 
 	override fun onReadClick(manga: Manga, view: View) {
-		if (selectionController?.onItemClick(manga.id) != true) {
+		if (selectionController?.onItemClick(view, manga.id) != true) {
 			router.openReader(manga)
 		}
 	}
 
 	override fun onTagClick(manga: Manga, tag: MangaTag, view: View) {
-		if (selectionController?.onItemClick(manga.id) != true) {
+		if (selectionController?.onItemClick(view, manga.id) != true) {
 			router.showTagDialog(tag)
 		}
 	}

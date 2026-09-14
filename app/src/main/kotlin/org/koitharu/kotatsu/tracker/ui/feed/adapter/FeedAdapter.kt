@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.tracker.ui.feed.adapter
 
 import android.content.Context
+import android.view.View
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.list.fastscroll.FastScroller
@@ -22,7 +23,7 @@ class FeedAdapter(
 	listener: MangaListListener,
 	feedClickListener: OnListItemClickListener<FeedItem>,
 	onTipClose: (TipModel) -> Unit,
-	onExpandClick: (FeedItem) -> Unit,
+	onExpandClick: (FeedItem, View) -> Unit,
 ) : BaseListAdapter<ListModel>(), FastScroller.SectionIndexer {
 
 	init {

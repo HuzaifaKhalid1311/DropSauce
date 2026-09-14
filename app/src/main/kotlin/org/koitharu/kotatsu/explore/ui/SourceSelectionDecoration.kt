@@ -27,6 +27,9 @@ class SourceSelectionDecoration(context: Context) : AbstractSelectionItemDecorat
 	)
 	private val defaultRadius = context.resources.getDimension(R.dimen.list_selector_corner)
 
+	// the items carry no margins of their own, so keep the same gap between boxes as the manga grid
+	private val padding = context.resources.getDimension(R.dimen.grid_spacing_outer)
+
 	init {
 		hasBackground = false
 		hasForeground = true
@@ -47,6 +50,7 @@ class SourceSelectionDecoration(context: Context) : AbstractSelectionItemDecorat
 		bounds: RectF,
 		state: RecyclerView.State,
 	) {
+		bounds.inset(padding, padding)
 		paint.color = fillColor
 		paint.style = Paint.Style.FILL
 		canvas.drawRoundRect(bounds, defaultRadius, defaultRadius, paint)

@@ -146,7 +146,7 @@ class BookmarksFragment : BaseFragment<FragmentMangaBookmarksBinding>(),
 	}
 
 	override fun onItemClick(item: Bookmark, view: View) {
-		if (selectionController?.onItemClick(item.pageId) == true) {
+		if (selectionController?.onItemClick(view, item.pageId) == true) {
 			return
 		}
 		val listener = findParentCallback(ReaderNavigationCallback::class.java)

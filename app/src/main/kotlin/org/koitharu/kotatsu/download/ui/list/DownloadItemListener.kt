@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.download.ui.list
 
+import android.view.View
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 
 interface DownloadItemListener : OnListItemClickListener<DownloadItemModel> {
@@ -14,5 +15,5 @@ interface DownloadItemListener : OnListItemClickListener<DownloadItemModel> {
 
 	fun onSkipAllClick(item: DownloadItemModel)
 
-	fun onExpandClick(item: DownloadItemModel)
+	fun onExpandClick(item: DownloadItemModel, view: View)
 }

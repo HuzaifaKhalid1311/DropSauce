@@ -10,6 +10,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
+import com.google.android.material.imageview.ShapeableImageView
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.list.decor.AbstractSelectionItemDecoration
 import org.koitharu.kotatsu.core.util.ext.getItem
@@ -42,6 +43,20 @@ open class MangaSelectionDecoration(context: Context) : AbstractSelectionItemDec
 		return item.id
 	}
 
+	/**
+	 * In grid and cover mode the item is the cover, so the overlay has to use the cover's own
+	 * corner size. In list mode the cover is just a thumbnail inside the row and is ignored.
+	 */
+	private fun View.coverCornerSize(): Float? {
+		val cover = findViewById<View>(R.id.imageView_cover) as? ShapeableImageView ?: return null
+		if (cover.width < width - 1) {
+			return null
+		}
+		return cover.shapeAppearanceModel.topLeftCornerSize.getCornerSize(
+			RectF(0f, 0f, cover.width.toFloat(), cover.height.toFloat()),
+		)
+	}
+
 	override fun onDrawForeground(
 		canvas: Canvas,
 		parent: RecyclerView,
@@ -49,7 +64,7 @@ open class MangaSelectionDecoration(context: Context) : AbstractSelectionItemDec
 		bounds: RectF,
 		state: RecyclerView.State,
 	) {
-		val radius = (child as? CardView)?.radius ?: defaultRadius
+		val radius = (child as? CardView)?.radius ?: child.coverCornerSize() ?: defaultRadius
 		paint.color = fillColor
 		paint.style = Paint.Style.FILL
 		canvas.drawRoundRect(bounds, radius, radius, paint)

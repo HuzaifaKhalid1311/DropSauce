@@ -36,6 +36,7 @@ class ChaptersSelectionDecoration(context: Context) : AbstractSelectionItemDecor
 		hasBackground = false
 		hasForeground = true
 		isIncludeDecorAndMargins = false
+		isInsetStrokeVertically = false
 
 		paint.strokeWidth = context.resources.getDimension(R.dimen.selection_stroke_width)
 		checkIcon?.setTint(strokeColor)

@@ -9,16 +9,21 @@ import androidx.collection.MutableLongSet
 import androidx.core.view.children
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
+import org.koitharu.kotatsu.R
 
 abstract class AbstractSelectionItemDecoration : RecyclerView.ItemDecoration() {
 
 	private val bounds = Rect()
 	private val boundsF = RectF()
+	private var halfStrokeWidth = -1f
 	protected val selection = MutableLongSet()
 
 	protected var hasBackground: Boolean = true
 	protected var hasForeground: Boolean = false
 	protected var isIncludeDecorAndMargins: Boolean = true
+
+	/** Off for decorations that merge neighbouring rows into one box and must not leave a seam. */
+	protected var isInsetStrokeVertically: Boolean = true
 
 	val checkedItemsCount: Int
 		get() = selection.size
@@ -85,6 +90,11 @@ abstract class AbstractSelectionItemDecoration : RecyclerView.ItemDecoration() {
 				}
 				boundsF.set(bounds)
 				boundsF.offset(child.translationX, child.translationY)
+				boundsF.applyScaleOf(child)
+				// the stroke is centered on the bounds, so the outer half of it would be clipped
+				// away for items sitting against an edge of the list
+				val halfStroke = halfStrokeWidth(parent)
+				boundsF.inset(halfStroke, if (isInsetStrokeVertically) halfStroke else 0f)
 				if (isOver) {
 					onDrawForeground(canvas, parent, child, boundsF, state)
 				} else {
@@ -93,6 +103,30 @@ abstract class AbstractSelectionItemDecoration : RecyclerView.ItemDecoration() {
 			}
 		}
 		canvas.restoreToCount(checkpoint)
+	}
+
+	private fun halfStrokeWidth(parent: RecyclerView): Float {
+		if (halfStrokeWidth < 0f) {
+			halfStrokeWidth = parent.resources.getDimension(R.dimen.selection_stroke_width) / 2f
+		}
+		return halfStrokeWidth
+	}
+
+	/** Follow the selection squish animation instead of hovering at the item's unscaled size. */
+	private fun RectF.applyScaleOf(child: View) {
+		val scaleX = child.scaleX
+		val scaleY = child.scaleY
+		if (scaleX == 1f && scaleY == 1f) {
+			return
+		}
+		val pivotX = child.left + child.translationX + child.pivotX
+		val pivotY = child.top + child.translationY + child.pivotY
+		set(
+			pivotX + (left - pivotX) * scaleX,
+			pivotY + (top - pivotY) * scaleY,
+			pivotX + (right - pivotX) * scaleX,
+			pivotY + (bottom - pivotY) * scaleY,
+		)
 	}
 
 	abstract fun getItemId(parent: RecyclerView, child: View): Long

@@ -170,7 +170,7 @@ class SearchActivity :
 	}
 
 	override fun onItemClick(item: MangaListModel, view: View) {
-		if (!selectionController.onItemClick(item.id)) {
+		if (!selectionController.onItemClick(view, item.id)) {
 			router.openDetails(item.toMangaWithOverride())
 		}
 	}
@@ -184,13 +184,13 @@ class SearchActivity :
 	}
 
 	override fun onReadClick(manga: Manga, view: View) {
-		if (!selectionController.onItemClick(manga.id)) {
+		if (!selectionController.onItemClick(view, manga.id)) {
 			router.openReader(manga)
 		}
 	}
 
 	override fun onTagClick(manga: Manga, tag: MangaTag, view: View) {
-		if (!selectionController.onItemClick(manga.id)) {
+		if (!selectionController.onItemClick(view, manga.id)) {
 			router.openList(tag)
 		}
 	}

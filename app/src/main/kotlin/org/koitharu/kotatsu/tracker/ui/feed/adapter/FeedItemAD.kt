@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.RippleDrawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -25,7 +26,7 @@ import com.google.android.material.R as materialR
 fun feedItemAD(
 	clickListener: OnListItemClickListener<FeedItem>,
 	detailsClickListener: MangaDetailsClickListener,
-	onExpandClick: (FeedItem) -> Unit,
+	onExpandClick: (FeedItem, View) -> Unit,
 ) = adapterDelegateViewBinding<FeedItem, ListModel, ItemFeedBinding>(
 	{ inflater, parent -> ItemFeedBinding.inflate(inflater, parent, false) },
 ) {
@@ -101,14 +102,14 @@ fun feedItemAD(
 			)
 		}
 		if (isCollapsedSummary) {
-			binding.textViewSummary.setOnClickListener { onExpandClick(item) }
+			binding.textViewSummary.setOnClickListener { v -> onExpandClick(item, v) }
 		} else {
 			binding.textViewSummary.setOnClickListener(null)
 		}
 		binding.layoutChapters.isVisible = chapters.isNotEmpty() && !isCollapsedSummary
 		// an expanded multi-chapter entry collapses back on tap; single-chapter lists stay inert
 		if (chapters.size > 1 && item.isExpanded) {
-			binding.layoutChapters.setOnClickListener { onExpandClick(item) }
+			binding.layoutChapters.setOnClickListener { v -> onExpandClick(item, v) }
 		} else {
 			binding.layoutChapters.setOnClickListener(null)
 			binding.layoutChapters.isClickable = false

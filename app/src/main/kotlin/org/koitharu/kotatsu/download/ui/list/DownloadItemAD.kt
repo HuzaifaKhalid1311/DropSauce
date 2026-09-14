@@ -49,7 +49,7 @@ fun downloadItemAD(
 				R.id.button_skip -> listener.onSkipClick(item)
 				R.id.button_skip_all -> listener.onSkipAllClick(item)
 				R.id.button_pause -> listener.onPauseClick(item)
-				R.id.button_expand -> listener.onExpandClick(item)
+				R.id.button_expand -> listener.onExpandClick(item, v)
 				else -> listener.onItemClick(item, v)
 			}
 		}

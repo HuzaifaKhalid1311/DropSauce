@@ -83,7 +83,7 @@ class FeedFragment :
 			listener = this,
 			feedClickListener = object : OnListItemClickListener<FeedItem> {
 				override fun onItemClick(item: FeedItem, view: View) {
-					if (selectionController?.onItemClick(item.id) != true) {
+					if (selectionController?.onItemClick(view, item.id) != true) {
 						router.openDetails(item.toMangaWithOverride())
 					}
 				}
@@ -93,11 +93,11 @@ class FeedFragment :
 				}
 			},
 			onTipClose = { viewModel.dismissGesturesTip() },
-			onExpandClick = { item ->
+			onExpandClick = { item, view ->
 				val controller = selectionController
 				// in selection mode a tap anywhere on the row toggles selection instead of expanding
 				if (controller != null && controller.count > 0) {
-					controller.onItemClick(item.id)
+					controller.onItemClick(view, item.id)
 				} else {
 					viewModel.toggleExpanded(item)
 				}

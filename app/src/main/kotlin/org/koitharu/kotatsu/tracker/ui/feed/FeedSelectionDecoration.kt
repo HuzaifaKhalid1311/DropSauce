@@ -38,6 +38,7 @@ class FeedSelectionDecoration(context: Context) : AbstractSelectionItemDecoratio
 		hasBackground = false
 		hasForeground = true
 		isIncludeDecorAndMargins = false
+		isInsetStrokeVertically = false
 
 		paint.strokeWidth = context.resources.getDimension(R.dimen.selection_stroke_width)
 	}

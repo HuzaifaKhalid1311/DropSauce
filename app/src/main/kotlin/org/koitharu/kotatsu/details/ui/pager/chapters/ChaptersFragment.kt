@@ -145,7 +145,7 @@ class ChaptersFragment :
 	}
 
 	override fun onItemClick(item: ChapterListItem, view: View) {
-		if (selectionController?.onItemClick(item.chapter.id) == true) {
+		if (selectionController?.onItemClick(view, item.chapter.id) == true) {
 			view.postDelayed({
 				view.isPressed = false
 				view.jumpDrawablesToCurrentState()

@@ -111,14 +111,14 @@ class FavouriteCategoriesActivity :
 			}
 			return
 		}
-		if (selectionController.onItemClick(item.id)) {
+		if (selectionController.onItemClick(view, item.id)) {
 			return
 		}
 		router.openFavorites(item)
 	}
 
 	override fun onEditClick(item: FavouriteCategory, view: View) {
-		if (selectionController.onItemClick(item.id)) {
+		if (selectionController.onItemClick(view, item.id)) {
 			return
 		}
 		router.openFavoriteCategoryEdit(item.id)
