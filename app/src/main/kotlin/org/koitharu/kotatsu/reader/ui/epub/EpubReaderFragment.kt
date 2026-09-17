@@ -1765,8 +1765,11 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			v: Int,
 			fm: Paint.FontMetricsInt,
 		) {
-			fm.descent += extra
-			fm.bottom += extra
+			// Negative extra shrinks the blank line the source markup already puts between paragraphs,
+			// clamped at collapsing it entirely — past that the line would take negative height.
+			val delta = if (extra < 0) -minOf(-extra, fm.descent - fm.ascent) else extra
+			fm.descent += delta
+			fm.bottom += delta
 		}
 	}
 	private class NativeChapter(

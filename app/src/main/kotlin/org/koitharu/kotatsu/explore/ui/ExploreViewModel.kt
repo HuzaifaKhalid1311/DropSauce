@@ -98,6 +98,13 @@ class ExploreViewModel @Inject constructor(
 			buildHeader(if (settings.isSuggestionsEnabled) null else emptyList()),
 		)
 
+	/** Which of the two Explore tabs sits on the left (and is therefore the one that opens first). */
+	var isNovelTabFirst: Boolean
+		get() = settings.isNovelTabFirst
+		set(value) {
+			settings.isNovelTabFirst = value
+		}
+
 	val sources: StateFlow<ExploreSources> = createSourcesFlow()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, loadingSources)
 

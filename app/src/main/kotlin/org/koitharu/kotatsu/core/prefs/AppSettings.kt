@@ -296,7 +296,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	var epubParagraphSpacing: Int
 		get() = prefs.getInt(KEY_EPUB_PARAGRAPH_SPACING, 0)
-		set(value) = prefs.edit { putInt(KEY_EPUB_PARAGRAPH_SPACING, value.coerceIn(0, 48)) }
+		set(value) = prefs.edit { putInt(KEY_EPUB_PARAGRAPH_SPACING, value.coerceIn(-32, 48)) }
 
 	var epubHorizontalPadding: Int
 		get() = prefs.getInt(KEY_EPUB_HORIZONTAL_PADDING, 20)
@@ -354,6 +354,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var isEpubPublisherStyleEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_PUBLISHER_STYLE, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_PUBLISHER_STYLE, value) }
+
+	/** Explore puts the novel sources on the left (and opens there) instead of manga. */
+	var isNovelTabFirst: Boolean
+		get() = prefs.getBoolean(KEY_EXPLORE_NOVEL_TAB_FIRST, false)
+		set(value) = prefs.edit { putBoolean(KEY_EXPLORE_NOVEL_TAB_FIRST, value) }
 
 	var isEpubBionicReadingEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_BIONIC_READING, false)
@@ -1282,6 +1287,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_READER_CONTROLS = "reader_controls_order"
 		private const val KEY_READER_CONTROLS_LEGACY = "reader_controls"
 		const val KEY_READER_MODE = "reader_mode"
+		const val KEY_EXPLORE_NOVEL_TAB_FIRST = "explore_novel_tab_first"
 		const val KEY_EPUB_FONT_SIZE = "epub_font_size"
 		const val KEY_EPUB_FONT_FAMILY = "epub_font_family"
 		const val KEY_EPUB_LINE_HEIGHT = "epub_line_height"

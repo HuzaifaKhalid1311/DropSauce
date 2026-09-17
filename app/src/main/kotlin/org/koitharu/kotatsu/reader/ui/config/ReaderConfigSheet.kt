@@ -583,7 +583,9 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             icon = R.drawable.ic_reader_vertical,
                             title = stringResource(R.string.epub_paragraph_spacing),
                             value = settings.epubParagraphSpacing,
-                            range = 0..48,
+                            // Negative values eat into the blank line EPUBs put between paragraphs, so
+                            // the slider can go all the way down to plain line spacing.
+                            range = -32..48,
                             suffix = " dp",
                             defaultValue = 0,
                             enabled = editable,

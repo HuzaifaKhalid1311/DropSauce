@@ -13,6 +13,8 @@ import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -29,6 +31,7 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.ChoiceDialog
 import org.koitharu.kotatsu.settings.compose.MultiChoiceDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -36,8 +39,10 @@ import org.koitharu.kotatsu.core.ui.util.ActionModeListener
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.ui.util.SpanSizeResolver
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
+import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.recyclerView
@@ -65,6 +70,7 @@ class ExploreFragment :
 
 	/** Page lists, indexed by page position. Both are created up-front by the pager. */
 	private val pages = arrayOfNulls<RecyclerView>(2)
+	private val pageAdapters = arrayOfNulls<ExploreAdapter>(2)
 	private var barsInsets: Insets = Insets.NONE
 
 	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentExploreBinding {
@@ -104,8 +110,16 @@ class ExploreFragment :
 		// screen and let updatePagerHeight replace it with the real content height.
 		binding.pager.updateLayoutParams { height = resources.displayMetrics.heightPixels }
 		TabLayoutMediator(header.tabsKind, binding.pager) { tab, position ->
-			tab.setText(if (position == 1) R.string.store_kind_novel else R.string.store_kind_manga)
+			tab.setText(tabTitle(position))
 		}.attach()
+		// Hold either tab to pick which kind leads.
+		repeat(header.tabsKind.tabCount) { index ->
+			header.tabsKind.getTabAt(index)?.view?.setOnLongClickListener { v ->
+				v.hapticFeedback(HapticEffect.LONG_PRESS)
+				showTabOrderDialog()
+				true
+			}
+		}
 		actionModeDelegate.addListener(this)
 		addMenuProvider(ExploreMenuProvider(router, ::showLanguageFilterDialog))
 		viewModel.headerContent.observe(viewLifecycleOwner, headerAdapter)
@@ -127,7 +141,7 @@ class ExploreFragment :
 		}
 	}
 
-	private fun onPageCreated(recyclerView: RecyclerView, isNovel: Boolean) {
+	private fun onPageCreated(recyclerView: RecyclerView, position: Int) {
 		val adapter = ExploreAdapter(
 			this,
 			this,
@@ -145,10 +159,59 @@ class ExploreFragment :
 			// the height really changed.
 			addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> post(::updatePagerHeight) }
 		}
-		pages[if (isNovel) 1 else 0] = recyclerView
+		pages[position] = recyclerView
+		pageAdapters[position] = adapter
 		viewModel.sources.observe(viewLifecycleOwner) { content ->
-			adapter.emit(content[isNovel])
+			adapter.emit(content[isNovelAt(position)])
 			recyclerView.post(::updatePagerHeight)
+		}
+	}
+
+	/** Which kind the page at [position] shows right now — the only place the tab order is decided. */
+	private fun isNovelAt(position: Int) = (position == 1) != viewModel.isNovelTabFirst
+
+	private fun tabTitle(position: Int) =
+		if (isNovelAt(position)) R.string.store_kind_novel else R.string.store_kind_manga
+
+	/**
+	 * Long-pressing a tab offers to swap the two. Both pages already exist, so the swap is just a
+	 * re-label plus a re-emit into the adapters that are already there - no pager rebuild, and the
+	 * leading tab is the one Explore opens on next time.
+	 */
+	private fun showTabOrderDialog() {
+		val content = requireActivity().findViewById<ViewGroup>(android.R.id.content) ?: return
+		val host = ComposeView(requireContext())
+		content.addView(host)
+		host.setContent {
+			DropSauceTheme {
+				ChoiceDialog(
+					title = stringResource(R.string.explore_tab_order),
+					entries = listOf(
+						stringResource(R.string.store_kind_manga),
+						stringResource(R.string.store_kind_novel),
+					),
+					selectedIndex = if (viewModel.isNovelTabFirst) 1 else 0,
+					onSelect = { index -> applyTabOrder(isNovelFirst = index == 1) },
+					onDismiss = { content.removeView(host) },
+				)
+			}
+		}
+	}
+
+	private fun applyTabOrder(isNovelFirst: Boolean) {
+		if (viewModel.isNovelTabFirst == isNovelFirst) return
+		viewModel.isNovelTabFirst = isNovelFirst
+		val tabs = viewBinding?.header?.tabsKind ?: return
+		repeat(tabs.tabCount) { index ->
+			tabs.getTabAt(index)?.setText(tabTitle(index))
+		}
+		val sources = viewModel.sources.value
+		viewLifecycleOwner.lifecycleScope.launch {
+			pageAdapters.forEachIndexed { index, adapter ->
+				adapter?.emit(sources[isNovelAt(index)])
+			}
+			pages.forEach { it?.scrollToPosition(0) }
+			viewBinding?.pager?.post(::updatePagerHeight)
 		}
 	}
 
@@ -239,6 +302,7 @@ class ExploreFragment :
 	override fun onDestroyView() {
 		actionModeDelegate.removeListener(this)
 		pages.fill(null)
+		pageAdapters.fill(null)
 		manageBadge = null
 		sourceSelectionController = null
 		super.onDestroyView()

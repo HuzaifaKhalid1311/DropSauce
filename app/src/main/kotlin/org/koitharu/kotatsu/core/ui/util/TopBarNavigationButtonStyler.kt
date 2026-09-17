@@ -99,6 +99,9 @@ fun Toolbar.applyTonalNavigationButtonStyle() {
 
 private fun Toolbar.applyTonalNavigationButtonStyleNow() {
 	val navigationButton = findNavigationButton() ?: return
+	// While the back-home pill is open the button owns its own width and icon - re-styling here would
+	// snap both back on the very next layout pass.
+	if (navigationButton.isBackHomeExpanded) return
 	val metrics = TonalBarMetrics(context)
 	navigationButton.updateLayoutSize(
 		width = metrics.cellSize,
@@ -107,6 +110,7 @@ private fun Toolbar.applyTonalNavigationButtonStyleNow() {
 		gravity = Gravity.START or Gravity.CENTER_VERTICAL,
 	)
 	navigationButton.applyTonalCircleButton(metrics)
+	navigationButton.attachBackHomeGesture()
 }
 
 /**
@@ -286,7 +290,7 @@ private fun ImageView.applyTonalCircleButton(metrics: TonalBarMetrics) {
 	updatePaddingTo(metrics.iconInset)
 	if (getTag(R.id.tag_tonal_action_item) == null) {
 		setTag(R.id.tag_tonal_action_item, true)
-		background = context.createCircleButtonBackground()
+		background = context.createCircleButtonBackground(metrics.outerCornerRadius)
 	}
 	forceImageIconTint(metrics)
 }
@@ -387,12 +391,19 @@ private fun Context.tonalSurfaceColor(): Int = ColorUtils.setAlphaComponent(
 	(255 * TONAL_SURFACE_ALPHA).roundToInt(),
 )
 
-/** Translucent circular tonal surface with a circular ripple — the navigation / close button fill. */
-private fun Context.createCircleButtonBackground(): RippleDrawable = RippleDrawable(
-	ColorStateList.valueOf(getThemeColor(android.R.attr.colorControlHighlight)),
-	circle(tonalSurfaceColor()),
-	circle(Color.WHITE),
-)
+/**
+ * Translucent tonal surface for the navigation / close button. A fully-rounded rectangle rather than
+ * an oval: at the button's normal square size the two are indistinguishable, but when the back button
+ * widens into its press-and-hold home pill this stretches into a stadium instead of an ellipse.
+ */
+private fun Context.createCircleButtonBackground(cornerRadius: Float): RippleDrawable {
+	val radii = FloatArray(8) { cornerRadius }
+	return RippleDrawable(
+		ColorStateList.valueOf(getThemeColor(android.R.attr.colorControlHighlight)),
+		roundRect(tonalSurfaceColor(), radii),
+		roundRect(Color.WHITE, radii),
+	)
+}
 
 /**
  * One segment of the connected action group: the tonal fill plus a ripple bounded to the same
@@ -425,11 +436,6 @@ private fun spacerDrawable(widthPx: Int): Drawable = GradientDrawable().apply {
 private fun roundRect(color: Int, radii: FloatArray): GradientDrawable = GradientDrawable().apply {
 	shape = GradientDrawable.RECTANGLE
 	cornerRadii = radii
-	setColor(color)
-}
-
-private fun circle(color: Int): GradientDrawable = GradientDrawable().apply {
-	shape = GradientDrawable.OVAL
 	setColor(color)
 }
 

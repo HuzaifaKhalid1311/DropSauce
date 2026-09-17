@@ -6,12 +6,13 @@ import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.databinding.ItemExploreSourcesPageBinding
 
 /**
- * Two fixed pages for Explore's manga/novel switch. The item view type is the position, so each page
+ * Two fixed pages for Explore's manga/novel switch. Which kind each position shows is decided by the
+ * fragment (see `AppSettings.isNovelTabFirst`), so swapping the order never rebuilds these views. The item view type is the position, so each page
  * view is created exactly once and never recycled into the other page — both stay alive, which is what
  * makes switching instant.
  */
 class ExploreSourcesPagerAdapter(
-	private val onPageCreated: (recyclerView: RecyclerView, isNovel: Boolean) -> Unit,
+	private val onPageCreated: (recyclerView: RecyclerView, position: Int) -> Unit,
 ) : RecyclerView.Adapter<ExploreSourcesPagerAdapter.PageHolder>() {
 
 	override fun getItemCount() = 2
@@ -20,7 +21,7 @@ class ExploreSourcesPagerAdapter(
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PageHolder {
 		val binding = ItemExploreSourcesPageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-		onPageCreated(binding.recyclerView, viewType == 1)
+		onPageCreated(binding.recyclerView, viewType)
 		return PageHolder(binding)
 	}
 

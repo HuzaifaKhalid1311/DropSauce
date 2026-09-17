@@ -429,6 +429,8 @@
     <string name="bookmarks_removed">Bookmarks removed</string>
     <string name="no_external_source_installed">No external source found</string>
     <string name="manage_manga_extensions_from_settings_icon">Install manga or novel extensions from the manage option to start reading</string>
+    <string name="back_home_hint">Lift to go home, slide off to cancel</string>
+    <string name="explore_tab_order">Show first</string>
     <string name="store_kind_manga">Manga</string>
     <string name="store_kind_novel">Novels</string>
     <string name="store_kind_mixed">Manga &amp; novels</string>
