@@ -201,7 +201,8 @@ private fun View.animateWidthTo(
 }
 
 /**
- * A small caption under the pill spelling out the two ways the gesture can end. Purely informative:
+ * A small caption below and to the trailing side of the pill — clear of the thumb — spelling out the
+ * two ways the gesture can end. Purely informative:
  * the window is untouchable and unfocusable, so it never steals the touch that is still in progress.
  */
 private fun ImageButton.showBackHomeHint() {
@@ -226,7 +227,13 @@ private fun ImageButton.showBackHomeHint() {
 		isOutsideTouchable = false
 	}
 	setTag(R.id.tag_back_home_hint, popup)
-	popup.showAsDropDown(this, 0, (resources.displayMetrics.density * 4f).toInt())
+	// Down and to the trailing side rather than straight underneath: directly below the button is
+	// exactly where the thumb doing the holding sits.
+	popup.showAsDropDown(
+		this,
+		resources.getDimensionPixelSize(R.dimen.top_bar_navigation_button_size),
+		(resources.displayMetrics.density * 14f).toInt(),
+	)
 	label.animate().alpha(1f).setDuration(EXPAND_DURATION).start()
 }
 
