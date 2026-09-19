@@ -415,6 +415,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			options and EditorInfoCompat.IME_FLAG_NO_PERSONALIZED_LEARNING.inv()
 		}
 		viewBinding.searchView.getEditText().imeOptions = options
+		viewBinding.cardIncognito.isVisible = isIncognito
 		invalidateOptionsMenu()
 	}
 

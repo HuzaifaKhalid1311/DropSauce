@@ -28,7 +28,7 @@
 	<item
 		android:id="@+id/action_sort_by_name"
 		android:checkable="true"
-		android:icon="@drawable/ic_sort_by_alpha"
+		android:icon="@drawable/ic_sort_numbered"
 		android:title="@string/sort_chapters_by_name"
 		app:showAsAction="never" />
 

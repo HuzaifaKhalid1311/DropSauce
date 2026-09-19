@@ -114,9 +114,16 @@ class ChaptersFragment :
 		kotlinx.coroutines.flow.combine(
 			viewModel.chapters,
 			viewModel.chaptersQuery,
-			viewModel.isDownloadedOnly
-		) { list, query, downloadedOnly ->
-			list.withVolumeHeaders(requireContext(), showMissingChapters = query.isEmpty() && !downloadedOnly)
+			viewModel.isDownloadedOnly,
+			viewModel.isChaptersSortedByName,
+		) { list, query, downloadedOnly, sortedByName ->
+			// Volume headers and "missing chapters" gaps only describe the source's own ordering, so
+			// they are dropped once the list is re-sorted by name.
+			if (sortedByName) {
+				ArrayList<ListModel>(list)
+			} else {
+				list.withVolumeHeaders(requireContext(), showMissingChapters = query.isEmpty() && !downloadedOnly)
+			}
 		}
 			.flowOn(Dispatchers.Default)
 			.observe(viewLifecycleOwner, this::onChaptersChanged)

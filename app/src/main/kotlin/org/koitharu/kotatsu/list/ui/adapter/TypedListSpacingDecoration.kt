@@ -68,7 +68,6 @@ class TypedListSpacingDecoration(
 			ListItemType.NAV_ITEM,
 			ListItemType.CHAPTER_LIST,
 			ListItemType.MISSING_CHAPTERS,
-			ListItemType.INFO,
 			null,
 				-> outRect.set(0)
 

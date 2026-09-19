@@ -23,9 +23,12 @@ import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
+import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.ui.widgets.TipView
 import org.koitharu.kotatsu.core.util.ShareHelper
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
+import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.invalidateNestedItemDecorations
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -109,12 +112,41 @@ class SearchActivity :
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		supportActionBar?.setSubtitle(R.string.search_results)
 
+		setupScopeChips()
 		addMenuProvider(SearchMenuProvider(this, viewModel))
 		viewBinding.statusBarScrim.background = StatusBarScrim.drawable(this)
 		viewModel.hasActiveFilters.observe(this, ::onActiveFiltersChanged)
 
 		viewModel.list.observe(this, adapter)
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.recyclerView, null))
+	}
+
+	private fun setupScopeChips() {
+		viewBinding.chipsScope.onChipClickListener = ChipsView.OnChipClickListener { _, data ->
+			val isNovel = data as? Boolean ?: return@OnChipClickListener
+			if (isNovel != viewModel.novelScope.value) {
+				viewBinding.chipsScope.hapticFeedback(HapticEffect.CLICK)
+				viewModel.setNovelScope(isNovel)
+			}
+		}
+		viewModel.novelScope.observe(this) { isNovel ->
+			viewBinding.chipsScope.setChips(
+				listOf(
+					ChipsView.ChipModel(
+						titleResId = R.string.content_type_manga,
+						icon = R.drawable.ic_scope_manga,
+						isChecked = !isNovel,
+						data = false,
+					),
+					ChipsView.ChipModel(
+						titleResId = R.string.content_type_novel,
+						icon = R.drawable.ic_scope_novel,
+						isChecked = isNovel,
+						data = true,
+					),
+				),
+			)
+		}
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {

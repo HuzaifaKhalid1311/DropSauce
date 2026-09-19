@@ -265,20 +265,6 @@ private fun ExtensionsScreen(
 					)
 				}
 				item { pos ->
-					SegmentedSettingsItem(
-						title = stringResource(R.string.extensions_default_sort),
-						subtitle = stringResource(R.string.extensions_default_sort_summary),
-						labels = browseSortLabels,
-						selectedIndex = browseSortOptions.indexOf(browseSort).coerceAtLeast(0),
-						onSelected = { index ->
-							browseSort = browseSortOptions[index]
-							onBrowseSortOrderChanged(browseSort)
-						},
-						icon = R.drawable.ic_sort_popular,
-						shape = pos.shape,
-					)
-				}
-				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.show_in_grid_view),
 						checked = grid,
@@ -293,6 +279,20 @@ private fun ExtensionsScreen(
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 		item {
 			SettingsGroup(title = stringResource(R.string.filter)) {
+				item { pos ->
+					SegmentedSettingsItem(
+						title = stringResource(R.string.extensions_default_sort),
+						subtitle = stringResource(R.string.extensions_default_sort_summary),
+						labels = browseSortLabels,
+						selectedIndex = browseSortOptions.indexOf(browseSort).coerceAtLeast(0),
+						onSelected = { index ->
+							browseSort = browseSortOptions[index]
+							onBrowseSortOrderChanged(browseSort)
+						},
+						icon = R.drawable.ic_sort_popular,
+						shape = pos.shape,
+					)
+				}
 				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.disable_nsfw),

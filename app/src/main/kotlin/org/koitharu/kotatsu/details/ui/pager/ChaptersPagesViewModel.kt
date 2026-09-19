@@ -370,10 +370,14 @@ abstract class ChaptersPagesViewModel(
 }
 
 /**
- * "Sort by name": natural order on the chapter title ("Chapter 9" before "Chapter 10"), with the
- * volume/number pair as the tiebreaker for sources that ship untitled chapters.
+ * "Sort by name": natural order on the name the row actually shows ("Chapter 9" before "Chapter 10"),
+ * falling back to the chapter number for sources that ship untitled chapters, with volume/number as
+ * the tiebreaker.
  */
 private val CHAPTER_NAME_COMPARATOR: Comparator<ChapterListItem> =
-	compareBy(AlphanumComparator()) { it: ChapterListItem -> it.chapter.title.orEmpty() }
+	compareBy(AlphanumComparator()) { it: ChapterListItem -> it.sortKey() }
 		.thenBy { it.chapter.volume }
 		.thenBy { it.chapter.number }
+
+private fun ChapterListItem.sortKey(): String = chapter.title?.takeIf { it.isNotBlank() }
+	?: chapter.numberString().orEmpty()

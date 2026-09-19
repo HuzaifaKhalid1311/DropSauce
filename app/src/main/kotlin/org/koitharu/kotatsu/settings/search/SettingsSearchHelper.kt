@@ -148,10 +148,10 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, ctx.getString(R.string.appearance)) { crumbs ->
 				addItem(AppSettings.KEY_SOURCES_ORDER, R.string.sort_order, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
-				addItem(AppSettings.KEY_DEFAULT_BROWSE_SORT, R.string.extensions_default_sort, R.string.extensions_default_sort_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_SOURCES_GRID, R.string.show_in_grid_view, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.filter)) { crumbs ->
+				addItem(AppSettings.KEY_DEFAULT_BROWSE_SORT, R.string.extensions_default_sort, R.string.extensions_default_sort_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_DISABLE_NSFW, R.string.disable_nsfw, R.string.disable_nsfw_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_INCOGNITO_NSFW, R.string.incognito_for_nsfw, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.incognito_nsfw_options))
 			}

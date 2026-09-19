@@ -33,6 +33,20 @@
 
 		</FrameLayout>
 
+		<!-- Manga/novel scope. A single-select filter chip row, same language as the genre chips
+		     elsewhere in the app, so it reads as part of the results rather than a bolted-on bar. -->
+		<org.koitharu.kotatsu.core.ui.widgets.ChipsView
+			android:id="@+id/chips_scope"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:clipChildren="false"
+			android:clipToPadding="false"
+			android:paddingHorizontal="@dimen/margin_normal"
+			android:paddingBottom="@dimen/margin_small"
+			app:chipStyle="@style/Widget.Kotatsu.Chip.Filter"
+			app:layout_scrollFlags="scroll|enterAlways"
+			app:singleLine="true" />
+
 	</com.google.android.material.appbar.AppBarLayout>
 
 	<org.koitharu.kotatsu.core.ui.list.fastscroll.FastScrollRecyclerView

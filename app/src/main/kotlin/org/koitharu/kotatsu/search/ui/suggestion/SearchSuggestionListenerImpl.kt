@@ -42,10 +42,6 @@ class SearchSuggestionListenerImpl(
 		router.openSearch(tag.title, SearchKind.TAG)
 	}
 
-	override fun onSearchScopeChanged(isNovel: Boolean) {
-		viewModel.setSearchScope(isNovel)
-	}
-
 	override fun onSourceClick(source: MangaSource) {
 		router.openList(source, null, null)
 	}

@@ -155,6 +155,49 @@
 
 			</LinearLayout>
 
+			<!-- Incognito banner: sits under the search bar on every tab, so the state is visible app-wide. -->
+			<com.google.android.material.card.MaterialCardView
+				android:id="@+id/card_incognito"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginHorizontal="8dp"
+				android:layout_marginBottom="12dp"
+				android:visibility="gone"
+				app:cardBackgroundColor="?attr/colorSecondaryContainer"
+				app:cardCornerRadius="20dp"
+				app:cardElevation="0dp"
+				app:layout_scrollFlags="scroll|enterAlways|snap"
+				app:strokeWidth="0dp">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="center_vertical"
+					android:minHeight="48dp"
+					android:orientation="horizontal"
+					android:paddingHorizontal="16dp"
+					android:paddingVertical="8dp">
+
+					<ImageView
+						android:layout_width="20dp"
+						android:layout_height="20dp"
+						android:layout_marginEnd="12dp"
+						android:importantForAccessibility="no"
+						android:src="@drawable/ic_incognito"
+						app:tint="?attr/colorOnSecondaryContainer" />
+
+					<TextView
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:text="@string/incognito_mode_hint"
+						android:textAppearance="?attr/textAppearanceBodyMedium"
+						android:textColor="?attr/colorOnSecondaryContainer" />
+
+				</LinearLayout>
+
+			</com.google.android.material.card.MaterialCardView>
+
 			<!-- Update prompt: a chat-style bubble whose tail points up at the settings button. -->
 			<LinearLayout
 				android:id="@+id/layout_update_prompt"

@@ -58,7 +58,10 @@ class SearchViewModel @Inject constructor(
 
 	val query = savedStateHandle.get<String>(AppRouter.KEY_QUERY).orEmpty()
 	val kind = savedStateHandle.get<SearchKind>(AppRouter.KEY_KIND) ?: SearchKind.SIMPLE
-	private val isNovelScope = settings.isGlobalSearchNovelScope
+	/** Manga vs novel sources. Picked from the chip row on this screen and remembered for next time. */
+	val novelScope = MutableStateFlow(settings.isGlobalSearchNovelScope)
+	private val isNovelScope: Boolean
+		get() = novelScope.value
 
 	private val pinnedOnly = MutableStateFlow(settings.isSearchPinnedOnly)
 	private val localOnly = MutableStateFlow(settings.isSearchLocalOnly)
@@ -136,6 +139,14 @@ class SearchViewModel @Inject constructor(
 		if (pinnedOnly.value != value) {
 			settings.isSearchPinnedOnly = value
 			pinnedOnly.value = value
+			retry()
+		}
+	}
+
+	fun setNovelScope(value: Boolean) {
+		if (novelScope.value != value) {
+			settings.isGlobalSearchNovelScope = value
+			novelScope.value = value
 			retry()
 		}
 	}
