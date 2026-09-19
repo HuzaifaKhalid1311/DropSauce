@@ -123,40 +123,6 @@
 
 		</LinearLayout>
 
-		<!-- Incognito bubble: one stroked speech-bubble outline (see BubbleOutlineDrawable), its tail
-		     aimed at the overflow button. Hidden while the update prompt is up - both hang off the same
-		     spot under the search bar. -->
-		<LinearLayout
-			android:id="@+id/layout_incognito"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginHorizontal="8dp"
-			android:layout_marginBottom="6dp"
-			android:gravity="center_vertical"
-			android:orientation="horizontal"
-			android:paddingHorizontal="16dp"
-			android:paddingBottom="10dp"
-			android:visibility="gone"
-			app:layout_scrollFlags="scroll|enterAlways|snap">
-
-			<ImageView
-				android:layout_width="20dp"
-				android:layout_height="20dp"
-				android:layout_marginEnd="12dp"
-				android:importantForAccessibility="no"
-				android:src="@drawable/ic_incognito"
-				app:tint="?attr/colorOnSurfaceVariant" />
-
-			<TextView
-				android:layout_width="0dp"
-				android:layout_height="wrap_content"
-				android:layout_weight="1"
-				android:text="@string/incognito_mode_hint"
-				android:textAppearance="?attr/textAppearanceBodyMedium"
-				android:textColor="?attr/colorOnSurfaceVariant" />
-
-		</LinearLayout>
-
 		<!-- Update prompt: a chat-style bubble whose tail points up at the settings button. -->
 		<LinearLayout
 			android:id="@+id/layout_update_prompt"
@@ -232,6 +198,69 @@
 			</com.google.android.material.card.MaterialCardView>
 
 		</LinearLayout>
+
+		<!-- Incognito notice, in the same accent-line style History used to show it in-list. Sits under
+		     the update prompt when both are up, so neither hides the other. -->
+		<androidx.constraintlayout.widget.ConstraintLayout
+			android:id="@+id/layout_incognito"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingStart="8dp"
+			android:paddingEnd="4dp"
+			android:paddingBottom="6dp"
+			android:visibility="gone"
+			app:layout_scrollFlags="scroll|enterAlways|snap">
+
+			<View
+				android:id="@+id/view_incognito_line"
+				android:layout_width="4dp"
+				android:layout_height="0dp"
+				android:layout_marginVertical="2dp"
+				android:background="@drawable/bg_chip"
+				android:backgroundTint="?colorPrimary"
+				app:layout_constraintBottom_toBottomOf="@id/textView_incognito_body"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toTopOf="@id/textView_incognito_title" />
+
+			<TextView
+				android:id="@+id/textView_incognito_title"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="12dp"
+				android:drawablePadding="10dp"
+				android:drawableTint="?attr/colorOnSurface"
+				android:ellipsize="end"
+				android:gravity="center_vertical"
+				android:maxLines="1"
+				android:text="@string/incognito_mode"
+				android:textAppearance="?attr/textAppearanceTitleMedium"
+				app:drawableStartCompat="@drawable/ic_incognito"
+				app:layout_constraintEnd_toStartOf="@id/button_incognito_disable"
+				app:layout_constraintStart_toEndOf="@id/view_incognito_line"
+				app:layout_constraintTop_toTopOf="parent" />
+
+			<TextView
+				android:id="@+id/textView_incognito_body"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="2dp"
+				android:text="@string/incognito_mode_hint"
+				android:textAppearance="?attr/textAppearanceBodyMedium"
+				app:layout_constraintEnd_toEndOf="@id/textView_incognito_title"
+				app:layout_constraintStart_toStartOf="@id/textView_incognito_title"
+				app:layout_constraintTop_toBottomOf="@id/textView_incognito_title" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_incognito_disable"
+				style="@style/Widget.Material3Expressive.Button.OutlinedButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/disable"
+				app:layout_constraintBottom_toBottomOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintTop_toTopOf="parent" />
+
+		</androidx.constraintlayout.widget.ConstraintLayout>
 
 	</com.google.android.material.appbar.AppBarLayout>
 

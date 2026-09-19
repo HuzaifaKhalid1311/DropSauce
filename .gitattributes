@@ -1,0 +1,9 @@
+# Keep GitHub's language bar honest: this is a Kotlin app.
+# Build scaffolding and vendored JS aren't "the project".
+gradlew                             linguist-vendored
+gradlew.bat                         linguist-vendored
+*.gradle                            linguist-vendored
+app/proguard-rules.pro              linguist-vendored
+app/lnreader-libs/**                linguist-vendored
+app/src/main/assets/*.js            linguist-vendored
+*.aidl                              linguist-detectable=false

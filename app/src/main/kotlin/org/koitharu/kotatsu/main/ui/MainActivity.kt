@@ -60,7 +60,6 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.util.BubbleOutlineDrawable
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
 import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
@@ -93,7 +92,6 @@ import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionMenuProvider
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionViewModel
 import org.koitharu.kotatsu.search.ui.suggestion.adapter.SearchSuggestionAdapter
 import javax.inject.Inject
-import com.google.android.material.R as materialR
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNavOwner, ListCheckpointOwner,
@@ -152,7 +150,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 
 		viewBinding.statusBarScrim.background = StatusBarScrim.drawable(this)
-		setupIncognitoBubble()
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
@@ -166,8 +163,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.buttonUpdateDismiss.setOnClickListener {
 			viewModel.appUpdate.value?.let { settings.dismissedUpdateVersion = it.name }
 			viewBinding.layoutUpdatePrompt.isVisible = false
-			updateIncognitoBubble()
 		}
+		viewBinding.buttonIncognitoDisable.setOnClickListener { viewModel.setIncognitoMode(false) }
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch)
 
@@ -220,7 +217,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			viewBinding.badgeSettingsUpdate.visibility = if (update != null) View.VISIBLE else View.GONE
 			viewBinding.layoutUpdatePrompt.isVisible =
 				update != null && update.name != settings.dismissedUpdateVersion
-			updateIncognitoBubble()
 		}
 		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
 		searchSuggestionViewModel.isIncognitoModeEnabled.observe(this, this::onIncognitoModeChanged)
@@ -419,24 +415,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			options and EditorInfoCompat.IME_FLAG_NO_PERSONALIZED_LEARNING.inv()
 		}
 		viewBinding.searchView.getEditText().imeOptions = options
-		updateIncognitoBubble()
+		viewBinding.layoutIncognito.isVisible = isIncognito
 		invalidateOptionsMenu()
-	}
-
-	private fun setupIncognitoBubble() {
-		val bubble = viewBinding.layoutIncognito
-		val outline = BubbleOutlineDrawable.apply(bubble, materialR.attr.colorOutlineVariant)
-		// Re-aimed on every layout pass: the overflow button moves with the layout variant, the nav
-		// rail and RTL, and the bubble is laid out after it.
-		bubble.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-			outline.alignTailTo(viewBinding.buttonOverflow)
-		}
-	}
-
-	/** Both bubbles hang off the same spot under the search bar, so only one of them is ever up. */
-	private fun updateIncognitoBubble() {
-		viewBinding.layoutIncognito.isVisible = searchSuggestionViewModel.isIncognitoModeEnabled.value &&
-			!viewBinding.layoutUpdatePrompt.isVisible
 	}
 
 	private fun onLoadingStateChanged(isLoading: Boolean) {
