@@ -40,6 +40,7 @@ import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.list.ui.model.incognitoInfo
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
 import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -87,15 +88,19 @@ class ExploreViewModel @Inject constructor(
 	val headerContent: StateFlow<List<ListModel>> = combine(
 		getSuggestionFlow(),
 		isRefreshingSuggestions,
-	) { recommendation, isRefreshing ->
+		settings.observeAsFlow(AppSettings.KEY_INCOGNITO_MODE) { isIncognitoModeEnabled },
+	) { recommendation, isRefreshing, isIncognito ->
 		// Drop the stale carousel while refreshing: null renders the skeleton, so the pull visibly
 		// does something instead of leaving the old suggestions sitting there.
-		buildHeader(if (isRefreshing) null else recommendation)
+		buildHeader(if (isRefreshing) null else recommendation, isIncognito)
 	}.withErrorHandling()
 		.stateIn(
 			viewModelScope + Dispatchers.Default,
 			SharingStarted.Eagerly,
-			buildHeader(if (settings.isSuggestionsEnabled) null else emptyList()),
+			buildHeader(
+				if (settings.isSuggestionsEnabled) null else emptyList(),
+				settings.isIncognitoModeEnabled,
+			),
 		)
 
 	/** Which of the two Explore tabs sits on the left (and is therefore the one that opens first). */
@@ -273,7 +278,10 @@ class ExploreViewModel @Inject constructor(
 	 * suggestions block is still rendered, as a skeleton, so the extension list doesn't jump down
 	 * once the carousel arrives a moment later.
 	 */
-	private fun buildHeader(recommendation: List<Manga>?) = buildList(3) {
+	private fun buildHeader(recommendation: List<Manga>?, isIncognito: Boolean) = buildList(4) {
+		if (isIncognito) {
+			add(incognitoInfo)
+		}
 		add(ExploreButtons)
 		if (recommendation == null || recommendation.isNotEmpty()) {
 			add(ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions))

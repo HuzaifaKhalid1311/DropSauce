@@ -116,6 +116,9 @@ import org.koitharu.kotatsu.local.data.isEpub
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.animation.core.animateFloatAsState
 
+/** Base body text size the EPUB reader scales its percentages against (see EpubReaderFragment). */
+private const val EPUB_BASE_TEXT_SIZE_DP = 16f
+
 @AndroidEntryPoint
 class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 
@@ -552,6 +555,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         var bionicReadingEnabled by remember { mutableStateOf(settings.isEpubBionicReadingEnabled) }
         var readingMode by remember { mutableStateOf(settings.epubReadingMode) }
         var isRtl by remember { mutableStateOf(settings.isEpubRtl) }
+        // Hoisted: the line-height card reports its value in dp, which depends on the current text size.
+        var fontSize by remember { mutableIntStateOf(settings.epubFontSize.coerceIn(50, 200)) }
         val pagerState = rememberPagerState(pageCount = { 3 })
         val scope = rememberCoroutineScope()
         val callback = remember { findParentCallback(Callback::class.java) }
@@ -573,6 +578,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                     EpubTextSizeSection(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                         enabled = editable,
+                        textSize = fontSize,
+                        onChange = { fontSize = it },
                     )
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -590,7 +597,18 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                             defaultValue = 0,
                             enabled = editable,
                         ) { settings.epubParagraphSpacing = it }
-                        EpubSliderSection(Modifier.weight(1f), R.drawable.ic_reader_vertical, stringResource(R.string.epub_line_height), settings.epubLineHeight, 100..240, "%", defaultValue = 160, enabled = editable) { settings.epubLineHeight = it }
+                        EpubSliderSection(
+                            modifier = Modifier.weight(1f),
+                            icon = R.drawable.ic_reader_vertical,
+                            title = stringResource(R.string.epub_line_height),
+                            value = settings.epubLineHeight,
+                            range = 100..240,
+                            suffix = "%",
+                            defaultValue = 160,
+                            enabled = editable,
+                            // Shown as the resulting line box in dp rather than the stored percentage.
+                            valueLabel = { "${(EPUB_BASE_TEXT_SIZE_DP * fontSize * it / 10000f).roundToInt()} dp" },
+                        ) { settings.epubLineHeight = it }
                     }
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -788,11 +806,13 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         suffix: String,
         defaultValue: Int,
         enabled: Boolean = true,
+        valueLabel: ((Int) -> String)? = null,
         onChange: (Int) -> Unit,
     ) {
         var current by remember { mutableIntStateOf(value.coerceIn(range)) }
         EpubSettingCard(
-            icon, title, "$current$suffix", modifier = modifier, compact = true, enabled = enabled,
+            icon, title, valueLabel?.invoke(current) ?: "$current$suffix",
+            modifier = modifier, compact = true, enabled = enabled,
             resetEnabled = current != defaultValue,
             onReset = { current = defaultValue.also(onChange) },
         ) {
@@ -1456,20 +1476,26 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
     }
 
     @Composable
-    private fun EpubTextSizeSection(modifier: Modifier = Modifier, enabled: Boolean = true) {
-        var textSize by remember { mutableIntStateOf(settings.epubFontSize.coerceIn(50, 200)) }
+    private fun EpubTextSizeSection(
+        modifier: Modifier = Modifier,
+        enabled: Boolean = true,
+        textSize: Int,
+        onChange: (Int) -> Unit,
+    ) {
         EpubSettingCard(
-            R.drawable.ic_size_large, stringResource(R.string.epub_text_size), "$textSize%",
+            R.drawable.ic_size_large, stringResource(R.string.epub_text_size),
+            // Shown as the resulting body text size in dp rather than the stored percentage.
+            "${(EPUB_BASE_TEXT_SIZE_DP * textSize / 100f).roundToInt()} dp",
             modifier = modifier, compact = true, enabled = enabled,
             resetEnabled = textSize != 100,
-            onReset = { textSize = 100.also { settings.epubFontSize = it } },
+            onReset = { onChange(100.also { settings.epubFontSize = it }) },
         ) {
             EpubContinuousSlider(
                 value = textSize.toFloat(),
                 onValueChange = { value ->
                     val rounded = value.roundToInt()
                     if (rounded != textSize) {
-                        textSize = rounded
+                        onChange(rounded)
                         settings.epubFontSize = rounded
                     }
                 },

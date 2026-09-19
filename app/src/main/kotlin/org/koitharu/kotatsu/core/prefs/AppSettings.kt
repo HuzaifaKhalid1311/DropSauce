@@ -562,6 +562,26 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_GRID_VIEW_CHAPTERS, false)
 		set(value) = prefs.edit { putBoolean(KEY_GRID_VIEW_CHAPTERS, value) }
 
+	// Per-manga, because only a handful of sources hand back a badly ordered chapter list.
+	fun isChaptersSortedByName(mangaId: Long): Boolean =
+		prefs.getBoolean(KEY_SORT_CHAPTERS_BY_NAME + mangaId, false)
+
+	fun setChaptersSortedByName(mangaId: Long, value: Boolean) {
+		prefs.edit {
+			if (value) putBoolean(KEY_SORT_CHAPTERS_BY_NAME + mangaId, true)
+			else remove(KEY_SORT_CHAPTERS_BY_NAME + mangaId)
+		}
+	}
+
+	/**
+	 * Settings ▸ Extensions ▸ Default browse order. Picking it rewrites every installed extension's
+	 * stored sort; this copy is what extensions installed afterwards fall back to.
+	 */
+	var defaultBrowseSortOrder: SortOrder
+		get() = prefs.getEnumValue(KEY_DEFAULT_BROWSE_SORT, SortOrder.POPULARITY)
+			.takeIf { it == SortOrder.POPULARITY || it == SortOrder.UPDATED } ?: SortOrder.POPULARITY
+		set(value) = prefs.edit { putEnumValue(KEY_DEFAULT_BROWSE_SORT, value) }
+
 	val zoomMode: ZoomMode
 		get() = prefs.getEnumValue(KEY_ZOOM_MODE, ZoomMode.FIT_CENTER)
 
@@ -1325,6 +1345,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DETAILS_UI = "details_ui"
 		const val KEY_REVERSE_CHAPTERS = "reverse_chapters"
 		const val KEY_GRID_VIEW_CHAPTERS = "grid_view_chapters"
+		const val KEY_SORT_CHAPTERS_BY_NAME = "sort_chapters_by_name_"
+		const val KEY_DEFAULT_BROWSE_SORT = "default_browse_sort"
 		const val KEY_INCOGNITO_NSFW = "incognito_nsfw"
 		const val KEY_PAGES_NUMBERS = "pages_numbers"
 		const val KEY_SCREENSHOTS_POLICY = "screenshots_policy"

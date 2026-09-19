@@ -22,7 +22,14 @@
 		android:id="@+id/action_downloaded"
 		android:checkable="true"
 		android:icon="@drawable/ic_storage"
-		android:title="@string/on_device"
+		android:title="@string/downloads_only"
+		app:showAsAction="never" />
+
+	<item
+		android:id="@+id/action_sort_by_name"
+		android:checkable="true"
+		android:icon="@drawable/ic_sort_by_alpha"
+		android:title="@string/sort_chapters_by_name"
 		app:showAsAction="never" />
 
 	<item

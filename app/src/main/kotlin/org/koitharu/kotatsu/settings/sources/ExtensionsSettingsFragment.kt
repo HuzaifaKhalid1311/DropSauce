@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -19,10 +20,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.extensions.install.ShizukuExtensionInstaller
 import org.koitharu.kotatsu.parsers.util.names
@@ -33,11 +38,13 @@ import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
+import org.koitharu.kotatsu.settings.compose.SegmentedSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
 import org.koitharu.kotatsu.settings.compose.rememberStringPref
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.settings.sources.migration.BrokenSourcesMigrationFragment
 import rikka.shizuku.Shizuku
 import javax.inject.Inject
@@ -50,6 +57,9 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 
 	@Inject
 	lateinit var shizukuInstaller: ShizukuExtensionInstaller
+
+	@Inject
+	lateinit var sourcesRepository: MangaSourcesRepository
 
 	private val shizukuPermissionListener = object : Shizuku.OnRequestPermissionResultListener {
 		override fun onRequestPermissionResult(requestCode: Int, grantResult: Int) {
@@ -84,6 +94,8 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 					},
 					onShizukuChanged = ::setShizukuEnabled,
 					onSandboxEnabled = ::onSandboxEnabled,
+					browseSortOrder = settings.defaultBrowseSortOrder,
+					onBrowseSortOrderChanged = ::setDefaultBrowseSortOrder,
 				)
 			}
 		}
@@ -109,6 +121,13 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 			}.getOrDefault(true)
 		) {
 			settings.isShizukuInstallerEnabled = false
+		}
+	}
+
+	/** Rewrites every installed extension's stored sort — off the main thread, it touches many files. */
+	private fun setDefaultBrowseSortOrder(order: SortOrder) {
+		viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
+			sourcesRepository.setDefaultBrowseSortOrder(order)
 		}
 	}
 
@@ -155,6 +174,8 @@ private fun ExtensionsScreen(
 	onOpenBrokenSourcesMigration: () -> Unit,
 	onShizukuChanged: (Boolean) -> Unit,
 	onSandboxEnabled: () -> Unit,
+	browseSortOrder: SortOrder,
+	onBrowseSortOrderChanged: (SortOrder) -> Unit,
 ) {
 	val ctx = LocalContext.current
 	val colors = CategoryPalette.forKey("extensions")
@@ -176,6 +197,10 @@ private fun ExtensionsScreen(
 	val shizukuEnabled by rememberBooleanPref(AppSettings.KEY_SHIZUKU_INSTALLER, false)
 	var privateEnabled by rememberBooleanPref(AppSettings.KEY_PRIVATE_INSTALLER, false)
 	var autoUpdateExtensions by rememberBooleanPref(AppSettings.KEY_AUTO_UPDATE_EXTENSIONS, false)
+	var browseSort by remember { mutableStateOf(browseSortOrder) }
+	val browseSortOptions = remember { listOf(SortOrder.POPULARITY, SortOrder.UPDATED) }
+	// "Latest" rather than titleRes' "Updated": it is the name the extensions' own browse tab uses.
+	val browseSortLabels = listOf(stringResource(R.string.popular), stringResource(R.string.latest))
 	var updateNotifications by rememberBooleanPref(AppSettings.KEY_EXTENSION_UPDATE_NOTIFICATIONS, true)
 
 	SettingsScaffold {
@@ -236,6 +261,20 @@ private fun ExtensionsScreen(
 						onValueChange = { sortOrder = it },
 						icon = R.drawable.ic_sort_asc,
 						
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SegmentedSettingsItem(
+						title = stringResource(R.string.extensions_default_sort),
+						subtitle = stringResource(R.string.extensions_default_sort_summary),
+						labels = browseSortLabels,
+						selectedIndex = browseSortOptions.indexOf(browseSort).coerceAtLeast(0),
+						onSelected = { index ->
+							browseSort = browseSortOptions[index]
+							onBrowseSortOrderChanged(browseSort)
+						},
+						icon = R.drawable.ic_sort_popular,
 						shape = pos.shape,
 					)
 				}

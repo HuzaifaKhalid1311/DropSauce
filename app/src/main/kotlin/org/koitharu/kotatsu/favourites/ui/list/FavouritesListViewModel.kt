@@ -35,6 +35,7 @@ import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.ui.MangaListViewModel
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.koitharu.kotatsu.list.ui.model.incognitoInfo
 import org.koitharu.kotatsu.list.ui.model.TIP_UI_SCALING
 import org.koitharu.kotatsu.list.ui.model.uiScalingTip
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
@@ -100,13 +101,14 @@ class FavouritesListViewModel @Inject constructor(
 		combine(
 			refreshTrigger,
 			settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_UI_SCALING) },
-		) { _, isScalingTipVisible -> isScalingTipVisible },
+			settings.observeAsFlow(AppSettings.KEY_INCOGNITO_MODE) { isIncognitoModeEnabled },
+		) { _, isScalingTipVisible, isIncognito -> isScalingTipVisible to isIncognito },
 		pinnedIds,
-	) { list, mode, isScalingTipVisible, pinned ->
+	) { list, mode, (isScalingTipVisible, isIncognito), pinned ->
 		// Filters are read here rather than combined in: observeFavorites() already re-queries on every
 		// filter change, and a second input would render the chips one frame ahead of their results.
 		val filters = quickFilter.appliedOptions.value
-		list.mapList(mode, filters, pinned.takeIfDefaultState(filters), isScalingTipVisible)
+		list.mapList(mode, filters, pinned.takeIfDefaultState(filters), isScalingTipVisible, isIncognito)
 	}.distinctUntilChanged().onEach {
 		isPaginationReady.set(true)
 	}.catch {
@@ -163,6 +165,7 @@ class FavouritesListViewModel @Inject constructor(
 		filters: Set<ListFilterOption>,
 		pinned: List<Long>,
 		isScalingTipVisible: Boolean,
+		isIncognito: Boolean,
 	): List<ListModel> {
 		if (isEmpty()) {
 			return if (filters.isEmpty()) {
@@ -171,11 +174,14 @@ class FavouritesListViewModel @Inject constructor(
 				listOfNotNull(quickFilter.filterItem(filters), getEmptyState(hasFilters = true))
 			}
 		}
-		val result = ArrayList<ListModel>(size + 2)
+		val result = ArrayList<ListModel>(size + 3)
 		if (isScalingTipVisible) {
 			result += uiScalingTip
 		}
 		quickFilter.filterItem(filters)?.let(result::add)
+		if (isIncognito) {
+			result += incognitoInfo
+		}
 		mangaListMapper.toListModelList(result, this, mode, MangaListMapper.NO_FAVORITE)
 		if (pinned.isNotEmpty()) {
 			val pinnedSet = pinned.toSet()

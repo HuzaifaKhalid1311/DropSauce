@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.model.toManga
@@ -50,6 +51,7 @@ class MihonMangaRepository(
 ) : CachingMangaRepository(cache), MihonFilterHost {
 
 	private val sourceSettings = SourceSettings(context, source)
+	private val appSettings = AppSettings(context)
 	private val sourceMetadata = MihonSourceMetadataStore(context)
 
 	companion object {
@@ -88,8 +90,10 @@ class MihonMangaRepository(
 
 	override var defaultSortOrder: SortOrder
 		// Only the two in-app listings can be the browse default; anything else stored by an older
-		// build (e.g. RELEVANCE, which needs a query) falls back to Popular like Mihon's default.
-		get() = sourceSettings.defaultSortOrder?.takeIf { it == SortOrder.POPULARITY || it == SortOrder.UPDATED }
+		// build (e.g. RELEVANCE, which needs a query) falls back to the app-wide default. Sources that
+		// have no stored sort yet (freshly installed) also land on that default.
+		get() = (sourceSettings.defaultSortOrder ?: appSettings.defaultBrowseSortOrder)
+			.takeIf { (it == SortOrder.POPULARITY || it == SortOrder.UPDATED) && it in sortOrders }
 			?: SortOrder.POPULARITY
 		set(value) {
 			sourceSettings.defaultSortOrder = value

@@ -656,6 +656,10 @@
     <string name="list_checkpoint_disable_prompt">Stop showing the “Jump back” button? You can turn it back on in Settings.</string>
     <string name="error_corrupted_file">Invalid data is returned or file is corrupted</string>
     <string name="on_device">On device</string>
+    <string name="downloads_only">Downloads only</string>
+    <string name="sort_chapters_by_name">Sort by name</string>
+    <string name="extensions_default_sort">Default browse order</string>
+    <string name="extensions_default_sort_summary">Applies to every installed extension</string>
     <string name="directories">Directories</string>
     <string name="main_screen_sections">Main screen sections</string>
     <string name="items_limit_exceeded">No more items can be added</string>

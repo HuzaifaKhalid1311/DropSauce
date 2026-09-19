@@ -142,10 +142,10 @@
 			android:id="@+id/badge"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_margin="@dimen/margin_small"
+			android:layout_margin="@dimen/card_indicator_offset"
 			android:visibility="gone"
-			app:layout_constraintEnd_toEndOf="parent"
-			app:layout_constraintTop_toTopOf="parent"
+			app:layout_constraintBottom_toBottomOf="@id/imageView_cover"
+			app:layout_constraintStart_toStartOf="@id/imageView_cover"
 			app:maxCharacterCount="@integer/manga_badge_max_character_count"
 			tools:number="8"
 			tools:visibility="visible" />

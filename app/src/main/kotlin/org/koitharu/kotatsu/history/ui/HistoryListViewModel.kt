@@ -34,7 +34,7 @@ import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.domain.ReadingProgress
 import org.koitharu.kotatsu.list.ui.MangaListViewModel
 import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.InfoModel
+import org.koitharu.kotatsu.list.ui.model.incognitoInfo
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
@@ -190,12 +190,7 @@ class HistoryListViewModel @Inject constructor(
 		}
 		quickFilter.filterItem(filters)?.let(result::add)
 		if (isIncognito) {
-			result += InfoModel(
-				key = AppSettings.KEY_INCOGNITO_MODE,
-				title = R.string.incognito_mode,
-				text = R.string.incognito_mode_hint,
-				icon = R.drawable.ic_incognito,
-			)
+			result += incognitoInfo
 		}
 		val order = sortOrder.value
 		var prevHeader: ListHeader? = null

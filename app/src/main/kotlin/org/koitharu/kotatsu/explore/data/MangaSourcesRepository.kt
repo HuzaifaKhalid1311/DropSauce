@@ -12,6 +12,7 @@ import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageAutonym
@@ -22,6 +23,7 @@ import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.resolveActiveMihonLanguage
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,6 +61,23 @@ class MangaSourcesRepository @Inject constructor(
 		return getPinnedSourceKeys()
 			.mapNotNull { sourcesByKey[it] }
 			.toSet()
+	}
+
+	/**
+	 * Settings ▸ Extensions ▸ Default browse order. Rewrites the stored sort of every installed Mihon
+	 * source (and drops any remembered dynamic sort filter that would contradict it), then keeps the
+	 * choice as the fallback for extensions installed later.
+	 */
+	fun setDefaultBrowseSortOrder(order: SortOrder) {
+		settings.defaultBrowseSortOrder = order
+		for (source in getAllEnabledSources()) {
+			val mihon = source.unwrapMihon() ?: continue
+			SourceSettings(context, mihon).apply {
+				defaultSortOrder = order
+				lastSortTagKey = null
+				lastSortTagTitle = null
+			}
+		}
 	}
 
 	fun getTopSources(limit: Int): List<MangaSource> {

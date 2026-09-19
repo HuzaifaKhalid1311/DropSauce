@@ -52,9 +52,6 @@ class SearchSuggestionViewModel @Inject constructor(
 		valueProducer = { isIncognitoModeEnabled },
 	)
 
-	val isNovelSearchScope: Boolean
-		get() = settings.isGlobalSearchNovelScope
-
 	val suggestion: Flow<List<SearchSuggestionItem>> = combine(
 		query.debounce(DEBOUNCE_TIMEOUT),
 		settings.observeAsFlow(AppSettings.KEY_SEARCH_SUGGESTION_TYPES) { searchSuggestionTypes },
@@ -95,14 +92,22 @@ class SearchSuggestionViewModel @Inject constructor(
 		}
 	}
 
-	fun toggleSearchScope() {
-		settings.isGlobalSearchNovelScope = !settings.isGlobalSearchNovelScope
+	fun setSearchScope(isNovel: Boolean) {
+		settings.isGlobalSearchNovelScope = isNovel
 	}
 
 	private suspend fun buildSearchSuggestion(
 		request: SearchSuggestionRequest,
 	): List<SearchSuggestionItem> = coroutineScope {
+		// With an empty field there is nothing to scope, so the suggestions stay unfiltered and the
+		// switch stays hidden; it appears - and starts filtering - as soon as the user types.
+		val scope = if (request.query.isBlank()) null else request.isNovelScope
 		listOfNotNull(
+			if (scope != null) {
+				async { listOf(SearchSuggestionItem.Scope(scope)) }
+			} else {
+				null
+			},
 			// The genre chip row under the search bar acts as a quick filter, so it follows the
 			// "Show quick filters" appearance setting in addition to the genre suggestion type.
 			if (request.isQuickFilterEnabled && SearchSuggestionType.GENRES in request.types) {
@@ -111,7 +116,7 @@ class SearchSuggestionViewModel @Inject constructor(
 				null
 			},
 			if (SearchSuggestionType.MANGA in request.types) {
-				async { getManga(request.query, request.isNovelScope) }
+				async { getManga(request.query, scope) }
 			} else {
 				null
 			},
@@ -126,12 +131,12 @@ class SearchSuggestionViewModel @Inject constructor(
 				null
 			},
 			if (SearchSuggestionType.SOURCES in request.types) {
-				async { getSources(request.query, request.isNovelScope) }
+				async { getSources(request.query, scope) }
 			} else {
 				null
 			},
 			if (SearchSuggestionType.RECENT_SOURCES in request.types) {
-				async { getRecentSources(request.query, request.isNovelScope) }
+				async { getRecentSources(request.query, scope) }
 			} else {
 				null
 			},
@@ -183,14 +188,14 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	private suspend fun getManga(
 		searchQuery: String,
-		isNovelScope: Boolean,
+		isNovelScope: Boolean?,
 	): List<SearchSuggestionItem> = runCatchingCancellable {
 		val manga = repository.getMangaSuggestion(
 			searchQuery,
 			MAX_MANGA_ITEMS * SEARCH_SCOPE_CANDIDATE_MULTIPLIER,
 			null,
 		)
-			.filter { it.source.isNovelSource == isNovelScope }
+			.filter { isNovelScope == null || it.source.isNovelSource == isNovelScope }
 			.take(MAX_MANGA_ITEMS)
 		if (manga.isEmpty()) {
 			emptyList()
@@ -202,10 +207,10 @@ class SearchSuggestionViewModel @Inject constructor(
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
-	private fun getSources(searchQuery: String, isNovelScope: Boolean): List<SearchSuggestionItem> =
+	private fun getSources(searchQuery: String, isNovelScope: Boolean?): List<SearchSuggestionItem> =
 		runCatchingCancellable {
 			repository.getSourcesSuggestion(searchQuery, Int.MAX_VALUE)
-				.filter { it.isNovelSource == isNovelScope }
+				.filter { isNovelScope == null || it.isNovelSource == isNovelScope }
 				.take(MAX_SOURCES_ITEMS)
 				.map { SearchSuggestionItem.Source(it) }
 		}.getOrElse { e ->
@@ -215,11 +220,11 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	private suspend fun getRecentSources(
 		searchQuery: String,
-		isNovelScope: Boolean,
+		isNovelScope: Boolean?,
 	): List<SearchSuggestionItem> = if (searchQuery.isEmpty()) {
 		runCatchingCancellable {
 			repository.getSourcesSuggestion(Int.MAX_VALUE)
-				.filter { it.isNovelSource == isNovelScope }
+				.filter { isNovelScope == null || it.isNovelSource == isNovelScope }
 				.take(MAX_SOURCES_TIPS_ITEMS)
 				.map { SearchSuggestionItem.SourceTip(it) }
 		}.getOrElse { e ->

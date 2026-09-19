@@ -148,6 +148,7 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, ctx.getString(R.string.appearance)) { crumbs ->
 				addItem(AppSettings.KEY_SOURCES_ORDER, R.string.sort_order, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
+				addItem(AppSettings.KEY_DEFAULT_BROWSE_SORT, R.string.extensions_default_sort, R.string.extensions_default_sort_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_SOURCES_GRID, R.string.show_in_grid_view, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.filter)) { crumbs ->

@@ -10,6 +10,19 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 
 sealed interface SearchSuggestionItem : ListModel {
 
+	/**
+	 * The manga/novel switch pinned above the results. Only shown once there is a query - with an
+	 * empty field the suggestions are unscoped, so there is nothing to switch between.
+	 */
+	data class Scope(
+		val isNovel: Boolean,
+	) : SearchSuggestionItem {
+
+		override fun areItemsTheSame(other: ListModel): Boolean {
+			return other is Scope
+		}
+	}
+
 	data class MangaList(
 		val items: List<Manga>,
 	) : SearchSuggestionItem {

@@ -31,6 +31,7 @@ import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.list.ui.model.incognitoInfo
 import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.list.ui.model.toErrorState
 import org.koitharu.kotatsu.tracker.domain.TrackingRepository
@@ -80,7 +81,8 @@ class FeedViewModel @Inject constructor(
 			isSwipeGesturesEnabled,
 		) { tip, swipe -> tip && swipe },
 		historyRepository.observeAll(),
-	) { list, isTipVisible, _ ->
+		settings.observeAsFlow(AppSettings.KEY_INCOGNITO_MODE) { isIncognitoModeEnabled },
+	) { list, isTipVisible, _, isIncognito ->
 		// Read here rather than combined in: the query above already re-runs on every filter change, and
 		// a second input would render the chips one frame ahead of their results.
 		val filters = quickFilter.appliedOptions.value
@@ -89,6 +91,9 @@ class FeedViewModel @Inject constructor(
 			result += gesturesTip
 		}
 		quickFilter.filterItem(filters)?.let(result::add)
+		if (list.isNotEmpty() && isIncognito) {
+			result += incognitoInfo
+		}
 		if (list.isEmpty()) {
 			result += EmptyState(
 				icon = R.drawable.ic_empty_feed,
