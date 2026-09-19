@@ -5,7 +5,6 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Spannable
 import androidx.activity.result.contract.ActivityResultContracts
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
@@ -164,6 +163,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.buttonUpdateDismiss.setOnClickListener {
 			viewModel.appUpdate.value?.let { settings.dismissedUpdateVersion = it.name }
 			viewBinding.layoutUpdatePrompt.isVisible = false
+			updateIncognitoBubble()
 		}
 		fadingAppbarMediator =
 			FadingAppbarMediator(viewBinding.appbar, viewBinding.layoutSearch)
@@ -217,6 +217,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			viewBinding.badgeSettingsUpdate.visibility = if (update != null) View.VISIBLE else View.GONE
 			viewBinding.layoutUpdatePrompt.isVisible =
 				update != null && update.name != settings.dismissedUpdateVersion
+			updateIncognitoBubble()
 		}
 		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
 		searchSuggestionViewModel.isIncognitoModeEnabled.observe(this, this::onIncognitoModeChanged)
@@ -415,8 +416,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			options and EditorInfoCompat.IME_FLAG_NO_PERSONALIZED_LEARNING.inv()
 		}
 		viewBinding.searchView.getEditText().imeOptions = options
-		viewBinding.cardIncognito.isVisible = isIncognito
+		updateIncognitoBubble()
 		invalidateOptionsMenu()
+	}
+
+	/** Both bubbles hang off the same spot under the search bar, so only one of them is ever up. */
+	private fun updateIncognitoBubble() {
+		viewBinding.layoutIncognito.isVisible = searchSuggestionViewModel.isIncognitoModeEnabled.value &&
+			!viewBinding.layoutUpdatePrompt.isVisible
 	}
 
 	private fun onLoadingStateChanged(isLoading: Boolean) {

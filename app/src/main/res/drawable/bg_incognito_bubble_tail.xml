@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Upward-pointing tail of the incognito bubble, aimed at the overflow button. Stroke only, to
+     match the hollow outlined card it sits on. -->
+<vector
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="16dp"
+	android:height="8dp"
+	android:viewportWidth="16"
+	android:viewportHeight="8"
+	android:tint="?attr/colorOutlineVariant">
+
+	<path
+		android:fillColor="@android:color/transparent"
+		android:pathData="M0.5,8 L8,0.8 L15.5,8"
+		android:strokeColor="@android:color/white"
+		android:strokeLineCap="round"
+		android:strokeLineJoin="round"
+		android:strokeWidth="1" />
+
+</vector>

@@ -154,48 +154,65 @@
 
             </LinearLayout>
 
-            <!-- Incognito banner: sits under the search bar on every tab, so the state is visible app-wide. -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_incognito"
+            <!-- Incognito bubble: a hollow chat bubble whose tail points up at the overflow button.
+                 Hidden while the update prompt is up - two stacked bubbles under the search bar is noise. -->
+            <LinearLayout
+                android:id="@+id/layout_incognito"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                android:layout_marginBottom="12dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingBottom="4dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="?attr/colorSecondaryContainer"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:layout_scrollFlags="scroll|enterAlways|snap"
-                app:strokeWidth="0dp">
+                app:layout_scrollFlags="scroll|enterAlways|snap">
 
-                <LinearLayout
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="8dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="12dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/bg_incognito_bubble_tail" />
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="48dp"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp">
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="?attr/colorOutlineVariant"
+                    app:strokeWidth="1dp">
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginEnd="12dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_incognito"
-                        app:tint="?attr/colorOnSecondaryContainer" />
-
-                    <TextView
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/incognito_mode_hint"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSecondaryContainer" />
+                        android:gravity="center_vertical"
+                        android:minHeight="44dp"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="6dp">
 
-                </LinearLayout>
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_incognito"
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
-            </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/incognito_mode_hint"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
 
             <!-- Update prompt: a chat-style bubble whose tail points up at the settings button. -->
             <LinearLayout
