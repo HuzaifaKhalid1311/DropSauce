@@ -11,7 +11,6 @@ import java.io.File
 
 private const val TYPE_TEXT = "text/plain"
 private const val TYPE_IMAGE = "image/*"
-private const val TYPE_CBZ = "application/x-cbz"
 
 class ShareHelper(private val context: Context) {
 
@@ -40,24 +39,6 @@ class ShareHelper(private val context: Context) {
 			.setType(TYPE_TEXT)
 			.setChooserTitle(R.string.share)
 			.startChooser()
-	}
-
-	fun shareCbz(files: Collection<File>) {
-		if (files.isEmpty()) {
-			return
-		}
-		val intentBuilder = ShareCompat.IntentBuilder(context)
-			.setType(TYPE_CBZ)
-		for (file in files) {
-			val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.files", file)
-			intentBuilder.addStream(uri)
-		}
-		files.singleOrNull()?.let {
-			intentBuilder.setChooserTitle(context.getString(R.string.share_s, it.name))
-		} ?: run {
-			intentBuilder.setChooserTitle(R.string.share)
-		}
-		intentBuilder.startChooser()
 	}
 
 	/**

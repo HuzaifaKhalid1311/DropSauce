@@ -207,10 +207,10 @@ class FeedFragment :
 		val barsInsets = insets.getInsets(typeMask)
 		val paddingVertical = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
 		viewBinding?.recyclerView?.setPadding(
-			left = barsInsets.left,
-			top = paddingVertical,
-			right = barsInsets.right,
-			bottom = barsInsets.bottom + paddingVertical,
+			barsInsets.left,
+			paddingVertical,
+			barsInsets.right,
+			barsInsets.bottom + paddingVertical,
 		)
 		return insets.consumeAll(typeMask)
 	}

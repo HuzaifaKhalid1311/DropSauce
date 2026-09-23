@@ -54,12 +54,12 @@ class FastScrollRecyclerView @JvmOverloads constructor(
 
 	override fun setPadding(left: Int, top: Int, right: Int, bottom: Int) {
 		super.setPadding(left, top, right, bottom)
-		fastScroller.setPadding(left, top, right, bottom)
+		fastScroller.setPadding(left, 0, right, 0)
 	}
 
 	override fun setPaddingRelative(start: Int, top: Int, end: Int, bottom: Int) {
 		super.setPaddingRelative(start, top, end, bottom)
-		fastScroller.setPaddingRelative(start, top, end, bottom)
+		fastScroller.setPaddingRelative(start, 0, end, 0)
 	}
 
 	override fun onAttachedToWindow() {

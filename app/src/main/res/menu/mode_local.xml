@@ -4,9 +4,9 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
-		android:id="@+id/action_share"
-		android:icon="@drawable/ic_share"
-		android:title="@string/share"
+		android:id="@+id/action_favourite"
+		android:icon="@drawable/ic_heart_outline"
+		android:title="@string/add_to_favourites"
 		app:showAsAction="ifRoom|withText" />
 
 	<item

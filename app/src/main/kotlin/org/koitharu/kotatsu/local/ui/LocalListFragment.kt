@@ -9,8 +9,6 @@ import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.view.ActionMode
-import androidx.core.net.toFile
-import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -19,7 +17,6 @@ import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.widgets.TipView
-import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
@@ -103,13 +100,6 @@ class LocalListFragment : MangaListFragment(), FilterCoordinator.Owner {
 		return when (item.itemId) {
 			R.id.action_remove -> {
 				showDeletionConfirm(selectedItemsIds, mode)
-				true
-			}
-
-			R.id.action_share -> {
-				val files = selectedItems.map { it.url.toUri().toFile() }
-				ShareHelper(requireContext()).shareCbz(files)
-				mode?.finish()
 				true
 			}
 

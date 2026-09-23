@@ -102,8 +102,7 @@ class SearchActivity :
 		)
 		viewBinding.recyclerView.roundTopCorners(
 			radius = resources.getDimension(R.dimen.cover_corner_large),
-			extraInset = resources.getDimensionPixelOffset(R.dimen.grid_spacing) +
-				resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer),
+			extraInset = resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer),
 		)
 		viewBinding.recyclerView.adapter = adapter
 		viewBinding.recyclerView.setHasFixedSize(true)
@@ -166,10 +165,10 @@ class SearchActivity :
 			}
 		}
 		viewBinding.recyclerView.setPadding(
-			left = barsInsets.left,
-			top = 0,
-			right = barsInsets.right,
-			bottom = barsInsets.bottom,
+			barsInsets.left,
+			0,
+			barsInsets.right,
+			barsInsets.bottom,
 		)
 		return insets.consumeAllSystemBarsInsets()
 	}

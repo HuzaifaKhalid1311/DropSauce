@@ -44,7 +44,6 @@
 		android:clipToPadding="false"
 		android:nestedScrollingEnabled="false"
 		android:orientation="horizontal"
-		android:paddingHorizontal="@dimen/grid_spacing"
 		app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 	<TextView

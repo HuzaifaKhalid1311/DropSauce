@@ -157,10 +157,10 @@ abstract class MangaListFragment :
 		val barsInsets = insets.getInsets(typeMask)
 		val basePadding = v.resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
 		viewBinding?.recyclerView?.setPadding(
-			left = barsInsets.left + basePadding,
-			top = basePadding,
-			right = barsInsets.right + basePadding,
-			bottom = barsInsets.bottom + basePadding,
+			barsInsets.left + basePadding,
+			basePadding,
+			barsInsets.right + basePadding,
+			barsInsets.bottom + basePadding,
 		)
 		return insets.consumeAll(typeMask)
 	}

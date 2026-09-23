@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
@@ -72,7 +73,12 @@ class FastScroller @JvmOverloads constructor(
 
 	private var bubbleHeight = 0
 	private var handleHeight = 0
-	private var viewHeight = 0
+	// Visible list area inside this view. Applied by offsetting the thumb/bubble, never via padding or
+	// layout: a relayout on every frame fights CoordinatorLayout's app bar and makes it jump.
+	private var insetTop = 0
+	private var insetBottom = 0
+	private val viewHeight: Int
+		get() = height - paddingTop - paddingBottom - insetTop - insetBottom
 	private var offset = 0
 	private var hideScrollbar = true
 	private var showBubble = true
@@ -94,6 +100,13 @@ class FastScroller @JvmOverloads constructor(
 
 	private var fastScrollListener: FastScrollListener? = null
 	private var sectionIndexer: SectionIndexer? = null
+
+	private val locationBuf = IntArray(2)
+
+	// The scroller often lives in a container larger than the list (e.g. the Activity's
+	// CoordinatorLayout that also holds the app bar), so every frame its track is fitted to the
+	// list's visible content area. This keeps it off the top bar and follows the bar as it slides.
+	private val boundsTracker = ViewTreeObserver.OnPreDrawListener { fitToRecyclerView() }
 
 	private val scrollbarHider = Runnable {
 		hideBubble()
@@ -177,15 +190,27 @@ class FastScroller @JvmOverloads constructor(
 		setTrackVisible(showTrack)
 	}
 
-	override fun onSizeChanged(w: Int, h: Int, oldW: Int, oldH: Int) {
-		super.onSizeChanged(w, h, oldW, oldH)
-		viewHeight = h - paddingTop - paddingBottom
+	private fun fitToRecyclerView(): Boolean {
+		val rv = recyclerView ?: return true
+		if (height == 0 || !rv.isAttachedToWindow) return true
+		rv.getLocationInWindow(locationBuf)
+		val rvTop = locationBuf[1]
+		getLocationInWindow(locationBuf)
+		val top = rvTop - locationBuf[1]
+		val newTop = (top + rv.paddingTop).coerceIn(0, height)
+		val newBottom = (height - top - rv.height + rv.paddingBottom).coerceIn(0, height - newTop)
+		if (newTop != insetTop || newBottom != insetBottom) {
+			insetTop = newTop
+			insetBottom = newBottom
+			if (!binding.thumb.isSelected) setViewPositions(rv.scrollProportion)
+		}
+		return true
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
 	override fun onTouchEvent(event: MotionEvent): Boolean {
 		val setYPositions: () -> Unit = {
-			val y = event.y
+			val y = event.y - paddingTop - insetTop
 			setViewPositions(y)
 			setRecyclerViewPosition(y)
 		}
@@ -292,33 +317,13 @@ class FastScroller @JvmOverloads constructor(
 				}
 			}
 
-			is CoordinatorLayout -> {
-				// Anchor to the direct child of CoordinatorLayout that contains the recyclerView,
-				// so the scroller respects AppBarLayout scroll behavior and doesn't overlap the top bar.
-				// When the recyclerView is nested (e.g. it's the root of a fragment inside a
-				// FragmentContainerView), it isn't a direct child of this CoordinatorLayout — anchoring
-				// to its own id crashes resolveAnchorView, so fall back to plain END gravity.
-				val anchorViewId = recyclerView?.let { rv ->
-					val rawId = if (rv.parent === viewGroup) {
-						rv.id
-					} else {
-						rv.ancestors
-							.filterIsInstance<View>()
-							.firstOrNull { v -> v.parent === viewGroup }
-							?.id
-					}
-					rawId?.takeIf { it != View.NO_ID && viewGroup.findViewById<View>(it) != null }
-				} ?: View.NO_ID
-				updateLayoutParams<CoordinatorLayout.LayoutParams> {
-					height = LayoutParams.MATCH_PARENT
-					anchorGravity = GravityCompat.END
-					anchorId = anchorViewId
-					gravity = if (anchorViewId == View.NO_ID) GravityCompat.END else android.view.Gravity.NO_GRAVITY
-					marginStart = offset
-					marginEnd = offset
-					topMargin = offsetTop
-					bottomMargin = offsetBottom
-				}
+			is CoordinatorLayout -> updateLayoutParams<CoordinatorLayout.LayoutParams> {
+				height = LayoutParams.MATCH_PARENT
+				gravity = GravityCompat.END
+				marginStart = offset
+				marginEnd = offset
+				topMargin = offsetTop
+				bottomMargin = offsetBottom
 			}
 
 			is FrameLayout -> updateLayoutParams<FrameLayout.LayoutParams> {
@@ -377,6 +382,7 @@ class FastScroller @JvmOverloads constructor(
 		}
 
 		recyclerView.addOnScrollListener(scrollListener)
+		recyclerView.viewTreeObserver.addOnPreDrawListener(boundsTracker)
 
 		// set initial positions for bubble and thumb
 		post { setViewPositions(this.recyclerView?.scrollProportion ?: 0f) }
@@ -389,6 +395,7 @@ class FastScroller @JvmOverloads constructor(
 	 */
 	fun detachRecyclerView() {
 		recyclerView?.removeOnScrollListener(scrollListener)
+		recyclerView?.viewTreeObserver?.removeOnPreDrawListener(boundsTracker)
 		recyclerView = null
 		if (wasAddedToParent) {
 			wasAddedToParent = false
@@ -519,8 +526,8 @@ class FastScroller @JvmOverloads constructor(
 		val itemCount = recyclerView.adapter?.itemCount ?: 0
 
 		val proportion = when {
-			binding.thumb.y == 0f -> 0f
-			binding.thumb.y + handleHeight >= viewHeight - TRACK_SNAP_RANGE -> 1f
+			binding.thumb.y <= insetTop -> 0f
+			binding.thumb.y - insetTop + handleHeight >= viewHeight - TRACK_SNAP_RANGE -> 1f
 			else -> y / viewHeight.toFloat()
 		}
 
@@ -547,11 +554,11 @@ class FastScroller @JvmOverloads constructor(
 		val bubbleHandleHeight = bubbleHeight + handleHeight / 2f
 
 		if (showBubble && viewHeight >= bubbleHandleHeight) {
-			binding.bubble.y = (y - bubbleHeight).coerceIn(0f, viewHeight - bubbleHandleHeight)
+			binding.bubble.y = insetTop + (y - bubbleHeight).coerceIn(0f, viewHeight - bubbleHandleHeight)
 		}
 
 		if (viewHeight >= handleHeight) {
-			binding.thumb.y = (y - handleHeight / 2).coerceIn(0f, viewHeight - handleHeight.toFloat())
+			binding.thumb.y = insetTop + (y - handleHeight / 2).coerceIn(0f, viewHeight - handleHeight.toFloat())
 		}
 	}
 
