@@ -273,15 +273,17 @@ class FavouritesRepository @Inject constructor(
 	}
 
 	suspend fun addToCategory(categoryId: Long, mangas: Collection<Manga>) {
+		// Distinct, descending timestamps so a batch keeps its given order under the default "newest" sort
+		val now = System.currentTimeMillis()
 		db.withTransaction {
-			for (manga in mangas) {
+			for ((index, manga) in mangas.withIndex()) {
 				val tags = manga.tags.toEntities()
 				db.getTagsDao().upsert(tags)
 				db.getMangaDao().upsert(manga.toEntity(), tags)
 				val entity = FavouriteEntity(
 					mangaId = manga.id,
 					categoryId = categoryId,
-					createdAt = System.currentTimeMillis(),
+					createdAt = now - index,
 					sortKey = 0,
 					deletedAt = 0L,
 					isPinned = false,

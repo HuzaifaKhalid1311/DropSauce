@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.appcompat.view.ActionMode
-import androidx.collection.ArraySet
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -430,7 +429,7 @@ abstract class MangaListFragment :
 	private fun collectSelectedItems(): Set<Manga> {
 		val checkedIds = selectionController?.peekCheckedIds() ?: return emptySet()
 		val items = listAdapter?.items ?: return emptySet()
-		val result = ArraySet<Manga>(checkedIds.size)
+		val result = LinkedHashSet<Manga>(checkedIds.size) // keeps on-screen order
 		for (item in items) {
 			if (item is MangaListModel && item.id in checkedIds) {
 				result.add(item.manga)
