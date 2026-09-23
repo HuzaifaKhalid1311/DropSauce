@@ -52,7 +52,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import android.graphics.Typeface
+import android.text.Spanned
+import android.text.style.StrikethroughSpan
+import android.text.style.StyleSpan
+import android.text.style.URLSpan
+import io.noties.markwon.core.spans.EmphasisSpan
+import io.noties.markwon.core.spans.StrongEmphasisSpan
+import android.text.style.UnderlineSpan
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -86,12 +101,17 @@ internal fun DescriptionCard(
 	details: MangaDetails?,
 	accent: Color,
 ) {
-	val text = description?.toString()?.trim().orEmpty()
+	val linkColor = MaterialTheme.colorScheme.primary
 	// The appearance setting only decides how a long description *starts*; tapping still toggles it
 	// either way, so turning collapsing off doesn't cost you the ability to fold a wall of text away.
 	val collapseEnabled by rememberBooleanPref(AppSettings.KEY_COLLAPSE_DESCRIPTION, true)
 	var expanded by rememberSaveable(collapseEnabled) { mutableStateOf(!collapseEnabled) }
 	var hasOverflow by remember { mutableStateOf(false) }
+	// Links only become tappable once expanded, so a tap on a collapsed description always expands it.
+	val rich = remember(description, linkColor, expanded) {
+		description?.toAnnotatedString(linkColor, linksClickable = expanded) ?: AnnotatedString("")
+	}
+	val text = rich.text
 	val cardColor = MaterialTheme.colorScheme.surfaceContainerHigh
 	val context = LocalContext.current
 	val haptic = LocalHapticFeedback.current
@@ -155,7 +175,7 @@ internal fun DescriptionCard(
 				),
 		) {
 			Text(
-				text = text.ifEmpty { stringResource(R.string.no_description) },
+				text = if (text.isEmpty()) AnnotatedString(stringResource(R.string.no_description)) else rich,
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.onSurfaceVariant,
 				maxLines = if (expanded) Int.MAX_VALUE else 5,
@@ -174,6 +194,42 @@ internal fun DescriptionCard(
 							)
 						),
 				)
+			}
+		}
+	}
+}
+
+// Compose Text can't draw android Spans, so map the ones descriptions use (bold/italic/underline/
+// strike/links) onto an AnnotatedString. Links become tappable via LinkAnnotation.
+private fun CharSequence.toAnnotatedString(linkColor: Color, linksClickable: Boolean): AnnotatedString {
+	val trimmed = trim()
+	if (trimmed !is Spanned) return AnnotatedString(trimmed.toString())
+	return buildAnnotatedString {
+		append(trimmed.toString())
+		for (span in trimmed.getSpans(0, trimmed.length, Any::class.java)) {
+			val start = trimmed.getSpanStart(span)
+			val end = trimmed.getSpanEnd(span)
+			if (start < 0 || end <= start) continue
+			when (span) {
+				is StyleSpan -> addStyle(
+					SpanStyle(
+						fontWeight = if (span.style and Typeface.BOLD != 0) FontWeight.Bold else null,
+						fontStyle = if (span.style and Typeface.ITALIC != 0) FontStyle.Italic else null,
+					),
+					start, end,
+				)
+				is StrongEmphasisSpan -> addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
+				is EmphasisSpan -> addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
+				is UnderlineSpan -> addStyle(SpanStyle(textDecoration = TextDecoration.Underline), start, end)
+				is StrikethroughSpan -> addStyle(SpanStyle(textDecoration = TextDecoration.LineThrough), start, end)
+				is URLSpan -> {
+					val style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)
+					if (linksClickable) {
+						addLink(LinkAnnotation.Url(span.url, TextLinkStyles(style)), start, end)
+					} else {
+						addStyle(style, start, end)
+					}
+				}
 			}
 		}
 	}

@@ -44,7 +44,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
@@ -113,9 +112,7 @@ fun FloatingNavBar(
 		verticalAlignment = Alignment.CenterVertically,
 	) {
 		Surface(
-			modifier = Modifier
-				.shadow(8.dp, RoundedCornerShape(50))
-				.wrapContentWidth(),
+			modifier = Modifier.wrapContentWidth(),
 			shape = RoundedCornerShape(50),
 			color = barColor,
 			contentColor = cs.onSurface,
@@ -204,7 +201,6 @@ private fun FloatingContinueButton(
 			shape = RoundedCornerShape(16.dp),
 			color = container,
 			contentColor = content,
-			shadowElevation = 8.dp,
 			modifier = Modifier
 				.size(56.dp)
 				.semantics { contentDescription = label },

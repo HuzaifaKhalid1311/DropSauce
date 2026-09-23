@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.details.domain
 
+import android.content.Context
 import android.text.Html
 import android.text.SpannableString
 import android.text.Spanned
@@ -7,6 +8,9 @@ import android.text.style.ForegroundColorSpan
 import androidx.core.text.getSpans
 import androidx.core.text.parseAsHtml
 import coil3.request.CachePolicy
+import dagger.hilt.android.qualifiers.ApplicationContext
+import io.noties.markwon.Markwon
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -45,6 +49,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class DetailsLoadUseCase @Inject constructor(
+	@ApplicationContext private val context: Context,
 	private val mangaDataRepository: MangaDataRepository,
 	private val localMangaRepository: LocalMangaRepository,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
@@ -274,28 +279,32 @@ class DetailsLoadUseCase @Inject constructor(
 		}
 	}
 
+	private val markwon by lazy {
+		Markwon.builder(context).usePlugin(SoftBreakAddsNewLinePlugin.create()).build()
+	}
+
 	private suspend fun String.parseAsHtml(withImages: Boolean): CharSequence? {
-		// Many sources deliver plain-text descriptions using literal newlines for paragraphs and
-		// " - " for lists. Html.fromHtml collapses that whitespace into single spaces, producing one
-		// run-on blob. Promote line breaks to <br> unless the text already uses block tags, so real
-		// HTML descriptions are untouched. ponytail: cheap heuristic, mirrors Mihon's eol-as-newline.
-		val html = if (contains("<br", ignoreCase = true) || contains("<p", ignoreCase = true)) {
-			this
-		} else {
-			replace("\n", "<br>")
+		// Sources send either HTML or plain text / Markdown (**bold**, [link](url), "- " lists).
+		// No HTML tags -> render as Markdown so symbols become formatting and literal newlines stay
+		// line breaks. ponytail: tag-sniff heuristic, same idea as Mihon's markdown description.
+		if (!HTML_TAG.containsMatchIn(this)) {
+			return runInterruptible(Dispatchers.Default) {
+				markwon.toMarkdown(this)
+			}.filterSpans().trim().nullIfEmpty()
 		}
 		return if (withImages) {
 			runInterruptible(Dispatchers.IO) {
-				html.parseAsHtml(imageGetter = imageGetter)
+				parseAsHtml(imageGetter = imageGetter)
 			}.filterSpans()
 		} else {
 			runInterruptible(Dispatchers.Default) {
-				html.parseAsHtml()
+				parseAsHtml()
 			}.filterSpans().sanitize()
 		}.trim().nullIfEmpty()
 	}
 
 	private companion object {
+		val HTML_TAG = Regex("</?[a-zA-Z][a-zA-Z0-9]*(\\s[^>]*)?/?>")
 		// Don't auto-refresh details more often than this; pull-to-refresh always bypasses
 		val DETAILS_FRESHNESS_MS = java.util.concurrent.TimeUnit.HOURS.toMillis(12)
 	}
