@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.core.util.ext
 
 import android.content.Context
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.compose.runtime.Composable
@@ -135,4 +137,30 @@ fun View.hapticFeedback(effect: HapticEffect) {
 fun rememberHapticEffect(): (HapticEffect) -> Unit {
 	val view = LocalView.current
 	return remember(view) { { effect: HapticEffect -> view.hapticFeedback(effect) } }
+}
+
+/**
+ * A soft swell that settles into a light tap — reserved for the eye health reminder so it never
+ * feels like an ordinary UI tap. Silently skipped where the vibrator can't play primitives.
+ */
+fun Context.playReminderHaptic() {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !isHapticFeedbackEnabledInApp(this)) {
+		return
+	}
+	val vibrator = getSystemService(VibratorManager::class.java)?.defaultVibrator ?: return
+	val primitives = intArrayOf(
+		VibrationEffect.Composition.PRIMITIVE_SLOW_RISE,
+		VibrationEffect.Composition.PRIMITIVE_QUICK_FALL,
+		VibrationEffect.Composition.PRIMITIVE_TICK,
+	)
+	if (!vibrator.areAllPrimitivesSupported(*primitives)) {
+		return
+	}
+	vibrator.vibrate(
+		VibrationEffect.startComposition()
+			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE, 0.45f)
+			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, 0.4f)
+			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK, 0.7f, 90)
+			.compose(),
+	)
 }

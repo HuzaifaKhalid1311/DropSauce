@@ -1082,6 +1082,12 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isReadingTimeEstimationEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READING_TIME, true)
 
+	val isEyeReminderEnabled: Boolean
+		get() = prefs.getBoolean(KEY_EYE_REMINDER, false)
+
+	val eyeReminderIntervalSeconds: Int
+		get() = prefs.getInt(KEY_EYE_REMINDER_INTERVAL, EYE_REMINDER_DEFAULT_INTERVAL)
+
 	val isPagesSavingAskEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_SAVE_ASK, true)
 
@@ -1430,6 +1436,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DETAILS_BACKDROP_BLUR_AMOUNT = "details_backdrop_blur_amount"
 		const val KEY_VERBOSE_LOGGING = "verbose_logging"
 		const val KEY_READING_TIME = "reading_time"
+		const val KEY_EYE_REMINDER = "eye_reminder"
+		const val KEY_EYE_REMINDER_INTERVAL = "eye_reminder_interval"
+		const val EYE_REMINDER_DEFAULT_INTERVAL = 20 * 60
 		const val KEY_PAGES_SAVE_DIR = "pages_dir"
 		const val KEY_PAGES_SAVE_ASK = "pages_dir_ask"
 		const val KEY_STATS_ENABLED = "stats_on"

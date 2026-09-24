@@ -9,7 +9,12 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.os.SystemClock
 import android.view.ViewGroup
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.viewModels
@@ -23,6 +28,10 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import androidx.lifecycle.lifecycleScope
 import androidx.transition.Fade
 import androidx.transition.Slide
@@ -141,6 +150,8 @@ class ReaderActivity :
     private var isTouchCancelled = false
     private lateinit var readerManager: ReaderManager
     private val hideUiRunnable = Runnable { setUiIsVisible(false) }
+    private var isScrollPausedByEyeReminder = false
+    private var isTtsPausedByEyeReminder = false
 
     // Tracks whether the foldable device is in an unfolded state (half-opened or flat)
     private var isFoldUnfolded: Boolean = false
@@ -255,9 +266,65 @@ class ReaderActivity :
         }
 
         observeWindowLayout()
+        if (settings.isEyeReminderEnabled) setupEyeReminder()
 
         // Apply initial double-mode considering foldable setting
         applyDoubleModeAuto()
+    }
+
+    private fun setupEyeReminder() {
+        val overlay = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            translationZ = 64 * resources.displayMetrics.density // above the app bars
+            setContent {
+                DropSauceTheme {
+                    val visible by viewModel.isEyeReminderVisible.collectAsState()
+                    EyeReminderOverlay(
+                        visible = visible,
+                        intervalSeconds = settings.eyeReminderIntervalSeconds,
+                        onDismiss = ::dismissEyeReminder,
+                    )
+                }
+            }
+        }
+        viewBinding.root.addView(
+            overlay,
+            CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
+        )
+        // Counts only while the reader is on screen; the clock starts again after each dismiss.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                val interval = settings.eyeReminderIntervalSeconds
+                EyeReminderClock.onReaderShown()
+                try {
+                    while (true) {
+                        viewModel.isEyeReminderVisible.first { !it }
+                        val start = SystemClock.elapsedRealtime()
+                        try {
+                            delay(interval * 1000L - EyeReminderClock.readMs)
+                        } finally {
+                            EyeReminderClock.readMs += SystemClock.elapsedRealtime() - start
+                        }
+                        EyeReminderClock.readMs = 0
+                        isScrollPausedByEyeReminder = scrollTimer.isActive.value
+                        isTtsPausedByEyeReminder = tts.isPlaying.value
+                        scrollTimer.setActive(false)
+                        tts.pause()
+                        viewModel.isEyeReminderVisible.value = true
+                    }
+                } finally {
+                    EyeReminderClock.onReaderHidden()
+                }
+            }
+        }
+    }
+
+    private fun dismissEyeReminder() {
+        viewModel.isEyeReminderVisible.value = false
+        if (isScrollPausedByEyeReminder) scrollTimer.setActive(true)
+        if (isTtsPausedByEyeReminder) tts.play()
+        isScrollPausedByEyeReminder = false
+        isTtsPausedByEyeReminder = false
     }
 
     override fun getParentActivityIntent(): Intent? {
@@ -417,6 +484,7 @@ class ReaderActivity :
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (viewModel.isEyeReminderVisible.value) return super.dispatchTouchEvent(ev)
         touchHelper.dispatchTouchEvent(ev)
         if (!viewBinding.timerControl.hasGlobalPoint(ev.rawX.toInt(), ev.rawY.toInt())) {
             scrollTimer.onTouchEvent(ev)
@@ -435,6 +503,7 @@ class ReaderActivity :
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (viewModel.isEyeReminderVisible.value) return super.onKeyDown(keyCode, event)
         return controlDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
     }
 

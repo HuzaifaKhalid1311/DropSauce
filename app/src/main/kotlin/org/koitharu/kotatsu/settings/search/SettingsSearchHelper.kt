@@ -303,6 +303,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_RELATED_MANGA, R.string.related_manga, R.string.related_manga_summary, crumbs, ServicesSettingsFragment::class.java)
 				addItem(AppSettings.KEY_STATS_ENABLED, R.string.reading_stats, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READING_TIME, R.string.reading_time_estimation, R.string.reading_time_estimation_summary, crumbs, ServicesSettingsFragment::class.java)
+				addItem(AppSettings.KEY_EYE_REMINDER, R.string.eye_reminder, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.tracking)) { crumbs ->
 				addItem(AppSettings.KEY_SCROBBLING_PROGRESS_SYNC, R.string.sync_progress_from_tracking, R.string.sync_progress_from_tracking_summary, crumbs, ServicesSettingsFragment::class.java)

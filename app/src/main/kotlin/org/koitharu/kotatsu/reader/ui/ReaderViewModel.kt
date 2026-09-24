@@ -142,6 +142,9 @@ class ReaderViewModel @Inject constructor(
 
     val content = MutableStateFlow(ReaderContent(emptyList(), null))
 
+    // Eye health reminder notice; kept here so it survives a rotation.
+    val isEyeReminderVisible = MutableStateFlow(false)
+
     val pageAnimation = settings.observeAsStateFlow(
         scope = viewModelScope + Dispatchers.Default,
         key = AppSettings.KEY_READER_ANIMATION,

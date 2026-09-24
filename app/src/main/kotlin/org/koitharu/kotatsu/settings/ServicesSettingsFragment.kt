@@ -17,6 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -38,8 +41,9 @@ import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.ui.ScrobblerAuthHelper
+import org.koitharu.kotatsu.reader.ui.eyeReminderDuration
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
-import org.koitharu.kotatsu.settings.compose.CategoryPalette
+import org.koitharu.kotatsu.settings.compose.ChoiceDialog
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
@@ -48,6 +52,7 @@ import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
+import org.koitharu.kotatsu.settings.compose.rememberIntPref
 import org.koitharu.kotatsu.settings.discord.DiscordSettingsFragment
 import javax.inject.Inject
 
@@ -92,10 +97,6 @@ class ServicesSettingsFragment : BaseComposeSettingsFragment(R.string.services) 
 				)
 			}
 		}
-	}
-
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
 	}
 
 	override fun onResume() {
@@ -171,15 +172,36 @@ private fun ServicesScreen(
 	onScrobblerClick: (ScrobblerService) -> Unit,
 	onOpenDiscord: () -> Unit,
 ) {
-	val colors = CategoryPalette.forKey("services")
 	var suggestionsEnabled by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS, false)
 	var relatedManga by rememberBooleanPref(AppSettings.KEY_RELATED_MANGA, true)
 	var statsEnabled by rememberBooleanPref(AppSettings.KEY_STATS_ENABLED, true)
 	var readingTime by rememberBooleanPref(AppSettings.KEY_READING_TIME, true)
 	var syncTrackingProgress by rememberBooleanPref(AppSettings.KEY_SCROBBLING_PROGRESS_SYNC, true)
 
+	var eyeReminder by rememberBooleanPref(AppSettings.KEY_EYE_REMINDER, false)
+	var eyeReminderInterval by rememberIntPref(
+		AppSettings.KEY_EYE_REMINDER_INTERVAL,
+		AppSettings.EYE_REMINDER_DEFAULT_INTERVAL,
+	)
+	var showIntervalDialog by remember { mutableStateOf(false) }
+	val resources = LocalContext.current.resources
+
 	val enabledLabel = stringResource(R.string.enabled)
 	val disabledLabel = stringResource(R.string.disabled)
+
+	if (showIntervalDialog) {
+		val intervals = listOf(15 * 60, 20 * 60, 30 * 60, 45 * 60, 60 * 60)
+		ChoiceDialog(
+			title = stringResource(R.string.eye_reminder_interval),
+			entries = intervals.map { eyeReminderDuration(resources, it) },
+			selectedIndex = intervals.indexOf(eyeReminderInterval),
+			onSelect = {
+				eyeReminderInterval = intervals[it]
+				eyeReminder = true
+			},
+			onDismiss = { showIntervalDialog = false },
+		)
+	}
 
 	SettingsScaffold {
 		item {
@@ -233,8 +255,32 @@ private fun ServicesScreen(
 						checked = readingTime,
 						onCheckedChange = { readingTime = it },
 						icon = R.drawable.ic_timer,
-						
+
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					// Same split row as reading stats: the row picks the interval, the switch toggles.
+					SettingsItem(
+						title = stringResource(R.string.eye_reminder),
+						subtitle = if (eyeReminder) {
+							stringResource(R.string.eye_reminder_summary, eyeReminderDuration(resources, eyeReminderInterval))
+						} else {
+							disabledLabel
+						},
+						icon = R.drawable.ic_eye_tracking,
+						shape = pos.shape,
+						onClick = { showIntervalDialog = true },
+						trailing = {
+							Row(verticalAlignment = Alignment.CenterVertically) {
+								VerticalDivider(modifier = Modifier.height(32.dp))
+								Spacer(Modifier.width(14.dp))
+								Switch(
+									checked = eyeReminder,
+									onCheckedChange = { eyeReminder = it },
+								)
+							}
+						},
 					)
 				}
 			}
