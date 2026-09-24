@@ -158,7 +158,13 @@ class LocalMangaRepository @Inject constructor(
 		}.manga
 		LocalMangaUtil(subject).deleteChapters(ids)
 		val updated = getDetails(subject)
-		localStorageChanges.emit(LocalManga(updated))
+		if (updated.chapters.isNullOrEmpty()) {
+			// Like Mihon, a download with no chapters left is removed outright. The empty archive used
+			// to stay on disk and in the index, so the "downloaded" badge never went away.
+			delete(subject)
+		} else {
+			localStorageChanges.emit(LocalManga(updated))
+		}
 	}
 
 	suspend fun getRemoteManga(localManga: Manga): Manga? {

@@ -258,6 +258,9 @@ abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
 		}
 	}
 
+	/** Skips the slide-out, for when nobody can see it - e.g. another screen already covers this one. */
+	fun dismissWithoutAnimation() = super.dismissAllowingStateLoss()
+
 	/**
 	 * Tries to dismiss the dialog fragment with the bottom sheet animation. Returns true if possible,
 	 * false otherwise.

@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
@@ -25,6 +26,7 @@ import android.text.SpannedString
 import android.text.StaticLayout
 import android.text.TextDirectionHeuristics
 import android.text.TextPaint
+import android.text.TextUtils
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.AlignmentSpan
 import android.text.style.BackgroundColorSpan
@@ -73,6 +75,7 @@ import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -406,6 +409,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		loadingChapters.clear()
 		runCatching { chapterContent?.close() }
 		chapterContent = null
+		// The chapters are only readable through the source closed above; keeping them would make a new
+		// view skip preparing the book and load every chapter it hadn't cached yet as blank.
+		chapters = emptyList()
 		super.onDestroyView()
 	}
 
@@ -549,15 +555,25 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			val source = image.attr("href").ifBlank { image.attr("xlink:href") }
 			if (source.isNotBlank()) svg.replaceWith(image.clone().tagName("img").attr("src", source))
 		}
-		val parsed = SpannableString(
-			HtmlCompat.fromHtml(
-				document.body().html(),
-				HtmlCompat.FROM_HTML_MODE_LEGACY,
-				Html.ImageGetter { source -> loadEpubImage(chapter, source) },
-				null,
-			).trimmed(),
-		)
+		val parsed = HtmlCompat.fromHtml(
+			document.body().html(),
+			HtmlCompat.FROM_HTML_MODE_LEGACY,
+			Html.ImageGetter { source -> loadEpubImage(chapter, source) },
+			null,
+		).trimmed().withPlainSpaces()
 		return SpannedString(parsed).takeIf { it.isNotEmpty() } ?: EMPTY_CHAPTER_TEXT
+	}
+
+	/**
+	 * Justified text overflowed its line whenever the line held a no-break space (`&nbsp;`, all over
+	 * web novels): Android's justifier budgets the extra width for plain spaces only, but the text
+	 * engine then widens no-break spaces too, pushing the last letters past the edge. Same length, so
+	 * offsets (highlights, progress, TTS) are untouched.
+	 */
+	private fun CharSequence.withPlainSpaces(): Spanned {
+		val plain = SpannableString(toString().replace(' ', ' '))
+		if (this is Spanned) TextUtils.copySpansFrom(this, 0, length, null, plain, 0)
+		return plain
 	}
 
 	private fun loadEpubImage(chapter: NativeChapter, source: String): Drawable? = runCatching {
@@ -603,6 +619,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
 				try {
 					ensureChapterLoaded(index)
+					// A failed load stays blank and the rebind below retries it at once; pace that so a
+					// dead connection doesn't become a tight request loop.
+					if (chapters.getOrNull(index)?.content == null) delay(LOAD_RETRY_DELAY_MS)
 				} finally {
 					withContext(Dispatchers.Main) {
 						loadingChapters.remove(index)
@@ -764,6 +783,19 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 					child: View,
 					focused: View?,
 				): Boolean = true
+
+				// Once tapped, a selectable chapter view keeps focus and asks to bring its invisible
+				// cursor on screen after every rebind, which parks that cursor at the chapter start, so
+				// taps yanked the reader back to it. Paged mode never did: ViewPager2 refuses these too.
+				// Only a real selection may scroll, so a dragged handle can still reach past the edge.
+				override fun requestChildRectangleOnScreen(
+					parent: RecyclerView,
+					child: View,
+					rect: Rect,
+					immediate: Boolean,
+					focusedChildVisible: Boolean,
+				): Boolean = (child as? TextView)?.hasSelection() == true &&
+					super.requestChildRectangleOnScreen(parent, child, rect, immediate, focusedChildVisible)
 			}
 			adapter = ChapterAdapter()
 			itemAnimator = null
@@ -1907,6 +1939,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private const val EPUB_FONT_CUSTOM = "custom"
 		private const val MAX_SEARCH_RESULTS = 100
 		private const val PROGRESS_INTERVAL_MS = 50L
+		private const val LOAD_RETRY_DELAY_MS = 3000L
 		private const val PAGE_LOOKAHEAD = 1
 		private const val PRELOAD_RADIUS = 2
 		private const val SCROLL_INFO_BAR_HEIGHT_DP = 24

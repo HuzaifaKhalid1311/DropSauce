@@ -10,7 +10,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableSharedFlow
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.ui.CoroutineIntentService
@@ -19,8 +18,6 @@ import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
 import org.koitharu.kotatsu.core.util.ext.powerManager
 import org.koitharu.kotatsu.core.util.ext.withPartialWakeLock
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
-import org.koitharu.kotatsu.local.data.LocalStorageChanges
-import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.model.Manga
 import javax.inject.Inject
 
@@ -29,10 +26,6 @@ class LocalChaptersRemoveService : CoroutineIntentService() {
 
 	@Inject
 	lateinit var localMangaRepository: LocalMangaRepository
-
-	@Inject
-	@LocalStorageChanges
-	lateinit var localStorageChanges: MutableSharedFlow<LocalManga?>
 
 	override fun onCreate() {
 		super.onCreate()
@@ -50,8 +43,8 @@ class LocalChaptersRemoveService : CoroutineIntentService() {
 		val chaptersIds = intent.getLongArrayExtra(EXTRA_CHAPTERS_IDS)?.toSet() ?: return
 		powerManager.withPartialWakeLock(TAG) {
 			val mangaWithChapters = localMangaRepository.getDetails(manga)
+			// deleteChapters reports the change itself, and the file may be gone now
 			localMangaRepository.deleteChapters(mangaWithChapters, chaptersIds)
-			localStorageChanges.emit(LocalManga(localMangaRepository.getDetails(manga)))
 		}
 	}
 

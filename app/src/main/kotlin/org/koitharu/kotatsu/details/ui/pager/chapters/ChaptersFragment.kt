@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.ReaderIntent
 import org.koitharu.kotatsu.core.nav.dismissParentDialog
+import org.koitharu.kotatsu.core.nav.dismissParentSheetWhenCovered
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
@@ -180,6 +181,7 @@ class ChaptersFragment :
 							.apply { if (peek) peek() }
 							.build(),
 					)
+					dismissParentSheetWhenCovered()
 				}
 				when (viewModel.getChapterOpenMode(item.chapter.id)) {
 					ChaptersPagesViewModel.ChapterOpenMode.NORMAL -> openReader(false)

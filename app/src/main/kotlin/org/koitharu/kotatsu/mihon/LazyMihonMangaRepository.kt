@@ -79,6 +79,12 @@ class LazyMihonMangaRepository(
 
 	override suspend fun getPageUrl(page: MangaPage): String = resolve().getPageUrl(page)
 
+	// Without these the interface defaults answer null: a novel opened before extensions finished
+	// loading got a blank body for every chapter that wasn't downloaded.
+	override suspend fun getChapterHtml(chapter: MangaChapter): String? = resolve().getChapterHtml(chapter)
+
+	override suspend fun getChapterUrl(chapter: MangaChapter): String? = resolve().getChapterUrl(chapter)
+
 	override suspend fun getImageRequestHeaders(imageUrl: String, page: MangaPage): Headers? =
 		resolve().getImageRequestHeaders(imageUrl, page)
 

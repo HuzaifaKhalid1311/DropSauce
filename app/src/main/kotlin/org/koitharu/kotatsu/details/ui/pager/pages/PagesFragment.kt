@@ -24,6 +24,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.ReaderIntent
 import org.koitharu.kotatsu.core.nav.dismissParentDialog
+import org.koitharu.kotatsu.core.nav.dismissParentSheetWhenCovered
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseFragment
@@ -196,6 +197,7 @@ class PagesFragment :
 							.apply { if (peek) peek() }
 							.build(),
 					)
+					dismissParentSheetWhenCovered()
 				}
 				when (parentViewModel.getChapterOpenMode(item.page.chapterId)) {
 					ChaptersPagesViewModel.ChapterOpenMode.NORMAL -> openReader(false)

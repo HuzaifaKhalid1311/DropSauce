@@ -328,7 +328,18 @@ abstract class ChaptersPagesViewModel(
 	}
 
 	private suspend fun onDownloadComplete(downloadedManga: LocalManga?) {
-		downloadedManga ?: return
+		if (downloadedManga == null) {
+			// null = a download was deleted outright (e.g. its last chapter went), so forget ours if it
+			// was the one - its chapters must stop showing as downloaded.
+			mangaDetails.update { details ->
+				if (details?.isLocal == false && details.local?.file?.exists() == false) {
+					details.copy(localManga = null)
+				} else {
+					details
+				}
+			}
+			return
+		}
 		mangaDetails.update {
 			interactor.updateLocal(it, downloadedManga)
 		}
