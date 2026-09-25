@@ -151,6 +151,7 @@ kotlin {
 			// The Material 3 Expressive theme + motion scheme are referenced from every Compose
 			// surface in the app (see DropSauceTheme), so opt in once here instead of per file.
 			'-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi',
+			'-opt-in=org.koitharu.kotatsu.parsers.InternalParsersApi',
 			'-Xjspecify-annotations=strict',
 			'-Xannotation-default-target=first-only',
 			'-Xcontext-parameters'
@@ -159,11 +160,6 @@ kotlin {
 }
 
 dependencies {
-	//noinspection UseTomlInstead
-	implementation("com.github.YakaTeam:kotatsu-parsers:${libs.versions.parsers.get()}") {
-		exclude group: 'org.json', module: 'json'
-	}
-
 	coreLibraryDesugaring libs.desugar.jdk.libs
 	implementation libs.kotlinx.coroutines.android
 	implementation libs.kotlinx.coroutines.core
