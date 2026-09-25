@@ -534,8 +534,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	}
 
 	private fun adjustSearchUI(isOpened: Boolean) {
+		// Pinned nav must stay non-scrolling after the search closes (e.g. returning from search results).
 		val appBarScrollFlags = if (isOpened) {
 			SCROLL_FLAG_NO_SCROLL
+		} else if (settings.isNavBarPinned) {
+			SCROLL_FLAG_ENTER_ALWAYS or SCROLL_FLAG_SNAP
 		} else {
 			SCROLL_FLAG_SCROLL or SCROLL_FLAG_ENTER_ALWAYS or SCROLL_FLAG_SNAP
 		}

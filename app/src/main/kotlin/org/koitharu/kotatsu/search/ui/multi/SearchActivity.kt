@@ -100,9 +100,11 @@ class SearchActivity :
 			sizeResolver = sizeResolver,
 			selectionDecoration = selectionDecoration,
 		)
+		// Covers sit behind two grid_spacing_outer gaps (the row's SpacingItemDecoration + the card's
+		// own margin), so the rounded cut has to be pulled in by both to land on the first cover.
 		viewBinding.recyclerView.roundTopCorners(
 			radius = resources.getDimension(R.dimen.cover_corner_large),
-			extraInset = resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer),
+			extraInset = resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer) * 2,
 		)
 		viewBinding.recyclerView.adapter = adapter
 		viewBinding.recyclerView.setHasFixedSize(true)

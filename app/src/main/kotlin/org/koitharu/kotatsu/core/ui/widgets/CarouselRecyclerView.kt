@@ -4,6 +4,9 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.carousel.CarouselLayoutManager
+import com.google.android.material.carousel.CarouselStrategy
+import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 
 /**
  * A horizontal carousel that always takes its width from its container, never from its content.
@@ -41,5 +44,26 @@ class CarouselRecyclerView @JvmOverloads constructor(
 		val lp = layoutParams as? MarginLayoutParams
 		val width = available - (lp?.leftMargin ?: 0) - (lp?.rightMargin ?: 0)
 		return MeasureSpec.makeMeasureSpec(width.coerceAtLeast(0), MeasureSpec.EXACTLY)
+	}
+}
+
+/**
+ * [CarouselLayoutManager] that survives a layout pass too narrow to fit any item.
+ *
+ * The wide (rail/landscape) layouts lay the carousel out mid-measure at transient widths before the
+ * real one arrives. With side padding, a width that leaves no room for an in-bounds keyline makes
+ * the library shift an all-anchor keyline state and throw "There must be a keyline marked as focal".
+ * That pass is thrown away anyway, so it is skipped; the next pass at the real width recalculates
+ * the keylines normally (the failed recalculation never assigned them).
+ */
+class SafeCarouselLayoutManager(strategy: CarouselStrategy) : CarouselLayoutManager(strategy) {
+
+	override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
+		try {
+			super.onLayoutChildren(recycler, state)
+		} catch (e: IllegalStateException) {
+			// ponytail: catches the library's keyline check; drop it if material fixes narrow widths
+			e.printStackTraceDebug()
+		}
 	}
 }

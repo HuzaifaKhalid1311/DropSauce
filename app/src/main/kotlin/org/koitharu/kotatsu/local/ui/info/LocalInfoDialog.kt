@@ -42,6 +42,7 @@ class LocalInfoDialog : AlertDialogFragment<DialogLocalInfoBinding>(), View.OnCl
 			binding.textViewPath.text = it
 		}
 		binding.chipCleanup.setOnClickListener(this)
+		binding.chipDeleteAll.setOnClickListener(this)
 		combine(viewModel.size, viewModel.availableSize, ::Pair).observe(viewLifecycleOwner) {
 			if (it.first >= 0 && it.second >= 0) {
 				setSegments(it.first, it.second)
@@ -50,8 +51,14 @@ class LocalInfoDialog : AlertDialogFragment<DialogLocalInfoBinding>(), View.OnCl
 			}
 		}
 		viewModel.onCleanedUp.observeEvent(viewLifecycleOwner, ::onCleanedUp)
+		viewModel.onDeletedAll.observeEvent(viewLifecycleOwner) { isLocal ->
+			// A manga opened straight from local storage no longer exists, so its details page goes too
+			if (isLocal) activity?.finishAfterTransition()
+			dismissAllowingStateLoss()
+		}
 		viewModel.isCleaningUp.observe(viewLifecycleOwner) { loading ->
 			binding.chipCleanup.isClickable = !loading
+			binding.chipDeleteAll.isClickable = !loading
 			dialog?.setCancelable(!loading)
 			if (loading) {
 				binding.chipCleanup.setProgressIcon()
@@ -64,6 +71,12 @@ class LocalInfoDialog : AlertDialogFragment<DialogLocalInfoBinding>(), View.OnCl
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.chip_cleanup -> viewModel.cleanup()
+			R.id.chip_delete_all -> MaterialAlertDialogBuilder(v.context)
+				.setTitle(R.string.delete_all_chapters)
+				.setMessage(getString(R.string.text_delete_local_manga, viewModel.title))
+				.setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteAll() }
+				.setNegativeButton(android.R.string.cancel, null)
+				.show()
 		}
 	}
 

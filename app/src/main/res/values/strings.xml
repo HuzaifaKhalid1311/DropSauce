@@ -90,6 +90,7 @@
     <string name="ui_scale_largest">Largest</string>
     <string name="search_on_s">Search on %s</string>
     <string name="delete_manga">Delete manga</string>
+    <string name="delete_all_chapters">Delete all chapters</string>
     <string name="text_delete_local_manga">Permanently delete \"%s\" from device?</string>
     <string name="reader_settings">Reading</string>
     <string name="switch_pages">Switch pages</string>
@@ -637,7 +638,7 @@
     <string name="manage_categories">Manage categories</string>
     <string name="suggestions_wifi_only_summary">Do not update suggestions using metered network connections</string>
     <string name="tracker_wifi_only_summary">Do not check for new chapters using metered network connections</string>
-    <string name="search_hint">Enter manga title, genre or source name</string>
+    <string name="search_hint">Enter title, genre or source name</string>
     <string name="progress">Progress</string>
     <string name="order_added">Added</string>
     <string name="show">Show</string>

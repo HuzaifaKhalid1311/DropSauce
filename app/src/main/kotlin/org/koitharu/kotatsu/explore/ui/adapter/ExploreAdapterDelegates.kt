@@ -5,7 +5,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
-import com.google.android.material.carousel.CarouselLayoutManager
+import org.koitharu.kotatsu.core.ui.widgets.SafeCarouselLayoutManager
 import com.google.android.material.carousel.MultiBrowseCarouselStrategy
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
@@ -52,7 +52,7 @@ fun exploreRecommendationItemAD(
 		.addDelegate(ListItemType.MANGA_CAROUSEL, recommendationCarouselItemAD(itemClickListener))
 	with(binding.recyclerView) {
 		this.adapter = adapter
-		layoutManager = CarouselLayoutManager(MultiBrowseCarouselStrategy())
+		layoutManager = SafeCarouselLayoutManager(MultiBrowseCarouselStrategy())
 		isNestedScrollingEnabled = false
 		clipChildren = false
 		clipToPadding = false

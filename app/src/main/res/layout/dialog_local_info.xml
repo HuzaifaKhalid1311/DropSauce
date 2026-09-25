@@ -53,13 +53,32 @@
 		app:drawableStartCompat="@drawable/bg_rounded_square"
 		app:drawableTint="?colorSecondaryContainer" />
 
-	<com.google.android.material.chip.Chip
-		android:id="@+id/chip_cleanup"
-		style="@style/Widget.Kotatsu.Chip.Assist"
-		android:layout_width="wrap_content"
+	<com.google.android.material.chip.ChipGroup
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="12dp"
-		android:text="@string/delete_read_chapters"
-		app:chipIcon="@drawable/ic_delete" />
+		android:layout_marginTop="12dp">
+
+		<com.google.android.material.chip.Chip
+			android:id="@+id/chip_cleanup"
+			style="@style/Widget.Kotatsu.Chip.Assist"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/delete_read_chapters"
+			app:chipIcon="@drawable/ic_delete" />
+
+		<com.google.android.material.chip.Chip
+			android:id="@+id/chip_delete_all"
+			style="@style/Widget.Kotatsu.Chip.Assist"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/delete_all_chapters"
+			android:textColor="?colorOnError"
+			app:chipBackgroundColor="?colorError"
+			app:chipIcon="@drawable/ic_delete_forever"
+			app:chipIconTint="?colorOnError"
+			app:chipStrokeWidth="0dp"
+			app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
+
+	</com.google.android.material.chip.ChipGroup>
 
 </LinearLayout>

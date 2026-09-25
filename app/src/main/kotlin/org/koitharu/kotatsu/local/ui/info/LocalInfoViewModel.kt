@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.ui.BaseViewModel
@@ -15,6 +16,7 @@ import org.koitharu.kotatsu.core.util.ext.require
 import org.koitharu.kotatsu.core.util.ext.toFileOrNull
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.local.data.LocalStorageManager
+import org.koitharu.kotatsu.local.domain.DeleteLocalMangaUseCase
 import org.koitharu.kotatsu.local.domain.DeleteReadChaptersUseCase
 import javax.inject.Inject
 
@@ -24,12 +26,16 @@ class LocalInfoViewModel @Inject constructor(
 	private val localMangaRepository: LocalMangaRepository,
 	private val storageManager: LocalStorageManager,
 	private val deleteReadChaptersUseCase: DeleteReadChaptersUseCase,
+	private val deleteLocalMangaUseCase: DeleteLocalMangaUseCase,
 ) : BaseViewModel() {
 
 	private val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
+	val title: String get() = manga.title
+
 	val isCleaningUp = MutableStateFlow(false)
 	val onCleanedUp = MutableEventFlow<Pair<Int, Long>>()
+	val onDeletedAll = MutableEventFlow<Boolean>() // true = the local manga itself is gone, not just a saved copy
 
 	val path = MutableStateFlow<String?>(null)
 	val size = MutableStateFlow(-1L)
@@ -48,6 +54,18 @@ class LocalInfoViewModel @Inject constructor(
 				computeSize().join()
 				val newSize = size.value
 				onCleanedUp.call(chaptersCount to oldSize - newSize)
+			} finally {
+				isCleaningUp.value = false
+			}
+		}
+	}
+
+	fun deleteAll() {
+		launchJob(Dispatchers.Default) {
+			try {
+				isCleaningUp.value = true
+				deleteLocalMangaUseCase(manga)
+				onDeletedAll.call(manga.isLocal)
 			} finally {
 				isCleaningUp.value = false
 			}
