@@ -440,9 +440,11 @@ class ReaderActivity :
         if (!isReaderResumed()) return false
         return if (readerManager.isEpub) {
             if (settings.isEpubPagedTapGesturesEnabled && settings.epubReadingMode != EPUB_MODE_SCROLL) {
+                // RTL pages advance leftwards, so the side zones swap.
+                val forward = if (settings.isEpubRtl) -1 else 1
                 when {
-                    horizontalFraction < 1f / 3f -> switchPageBy(-1)
-                    horizontalFraction > 2f / 3f -> switchPageBy(1)
+                    horizontalFraction < 1f / 3f -> switchPageBy(-forward)
+                    horizontalFraction > 2f / 3f -> switchPageBy(forward)
                     else -> toggleUiVisibility()
                 }
             } else {

@@ -5,10 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewStub
+import android.widget.TextView
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -62,6 +65,8 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 			binding.pager,
 			FavouritesTabConfigurationStrategy(pagerAdapter, viewModel, router),
 		).attach()
+		binding.tabs.addOnLayoutChangeListener(alignTabsToCovers)
+		binding.pager.addOnLayoutChangeListener(alignTabsToCovers)
 		binding.stubEmpty.setOnInflateListener(this)
 		if (!isHidden) {
 			attachTabsToAppBar()
@@ -134,6 +139,25 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 			stubEmpty.isVisible = isEmpty
 		}
 	}
+
+	// Shifts the tab strip so the first tab's indicator starts where the leftmost grid cover's
+	// rounded corner ends. Screen coordinates, so insets/nav rail/app-bar reparenting are all covered.
+	private val alignTabsToCovers = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+		val tabs = viewBinding?.tabs ?: return@OnLayoutChangeListener
+		val list = recyclerView ?: return@OnLayoutChangeListener
+		val firstTab = (tabs.getChildAt(0) as? ViewGroup)?.getChildAt(0) as? ViewGroup ?: return@OnLayoutChangeListener
+		// The content-width indicator spans the label, which the tab view centres.
+		val label = firstTab.children.firstOrNull { it is TextView && it.isVisible } ?: return@OnLayoutChangeListener
+		val res = tabs.resources
+		val coverStraightX = list.locationOnScreenX() + list.paddingLeft +
+			res.getDimensionPixelOffset(R.dimen.grid_spacing_outer) +
+			res.getDimensionPixelOffset(R.dimen.cover_corner_large)
+		// ponytail: clamped at 0; a label narrower than the tab's min width can't reach further left.
+		val padding = (coverStraightX - tabs.locationOnScreenX() - firstTab.left - label.left).coerceAtLeast(0)
+		if (padding != tabs.paddingLeft) tabs.updatePadding(left = padding)
+	}
+
+	private fun View.locationOnScreenX() = IntArray(2).also(::getLocationOnScreen)[0]
 
 	private fun findCurrentFragment(): Fragment? {
 		return childFragmentManager.findCurrentPagerFragment(
