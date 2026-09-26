@@ -33,5 +33,9 @@ data class ReaderState(
 		fun encodeEpubOffset(offset: Int): Int = -offset - 1
 
 		fun decodeEpubOffset(scroll: Int): Int? = if (scroll < 0) -scroll - 1 else null
+
+		// EPUB `page` marker for a highlight jump: centre the offset instead of pinning it to the top.
+		// The reader overwrites `page` with its real position on the next progress report.
+		const val EPUB_PAGE_CENTERED = -1
 	}
 }

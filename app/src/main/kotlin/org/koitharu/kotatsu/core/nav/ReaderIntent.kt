@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
+import org.koitharu.kotatsu.bookmarks.domain.epubHighlight
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.reader.ui.ReaderActivity
@@ -48,11 +49,20 @@ value class ReaderIntent private constructor(
 		fun bookmark(bookmark: Bookmark) = manga(
 			bookmark.manga,
 		).state(
-			ReaderState(
-				chapterId = bookmark.chapterId,
-				page = bookmark.page,
-				scroll = bookmark.scroll,
-			),
+			if (bookmark.epubHighlight != null) {
+				// epub highlights keep the exact character offset in `page`; scroll is only a coarse permille
+				ReaderState(
+					chapterId = bookmark.chapterId,
+					page = ReaderState.EPUB_PAGE_CENTERED,
+					scroll = ReaderState.encodeEpubOffset(bookmark.page),
+				)
+			} else {
+				ReaderState(
+					chapterId = bookmark.chapterId,
+					page = bookmark.page,
+					scroll = bookmark.scroll,
+				)
+			},
 		)
 
 		fun build() = ReaderIntent(intent)

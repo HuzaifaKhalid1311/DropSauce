@@ -78,7 +78,7 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		var defaultTab = args.getInt(AppRouter.KEY_TAB, settings.defaultDetailsTab)
 		// EPUB books have text chapters and highlights, but no page thumbnails.
 		val isEpub = viewModel.getMangaOrNull()?.isEpub == true
-		val adapter = ChaptersPagesAdapter(this, settings.isPagesTabEnabled && !isEpub)
+		val adapter = ChaptersPagesAdapter(this, settings.isPagesTabEnabled && !isEpub, isEpub)
 		if (isEpub) {
 			defaultTab = if (defaultTab == TAB_BOOKMARKS) 1 else TAB_CHAPTERS
 		} else if (!adapter.isPagesTabEnabled) {

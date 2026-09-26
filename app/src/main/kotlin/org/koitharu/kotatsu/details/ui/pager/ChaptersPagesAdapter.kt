@@ -12,6 +12,7 @@ import org.koitharu.kotatsu.details.ui.pager.pages.PagesFragment
 class ChaptersPagesAdapter(
 	fragment: Fragment,
 	val isPagesTabEnabled: Boolean,
+	private val isEpub: Boolean,
 ) : FragmentStateAdapter(fragment),
 	TabLayoutMediator.TabConfigurationStrategy {
 
@@ -25,13 +26,13 @@ class ChaptersPagesAdapter(
 	}
 
 	override fun onConfigureTab(tab: TabLayout.Tab, position: Int) {
-		tab.setIcon(
-			when (position) {
-				0 -> R.drawable.ic_list
-				1 -> if (isPagesTabEnabled) R.drawable.ic_grid_outline else R.drawable.ic_bookmark
-				2 -> R.drawable.ic_bookmark
-				else -> 0
-			},
-		)
+		val isPages = position == 1 && isPagesTabEnabled
+		// Novels store text highlights in the bookmarks tab.
+		when {
+			position == 0 -> tab.setIcon(R.drawable.ic_list).setContentDescription(R.string.chapters)
+			isPages -> tab.setIcon(R.drawable.ic_grid_outline).setContentDescription(R.string.pages)
+			isEpub -> tab.setIcon(R.drawable.ic_ink_highlighter).setContentDescription(R.string.highlights)
+			else -> tab.setIcon(R.drawable.ic_bookmark).setContentDescription(R.string.bookmarks)
+		}
 	}
 }

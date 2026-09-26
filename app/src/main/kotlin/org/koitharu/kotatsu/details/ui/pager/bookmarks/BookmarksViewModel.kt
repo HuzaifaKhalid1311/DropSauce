@@ -27,6 +27,7 @@ import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.reader.ui.PageSaveHelper
 import javax.inject.Inject
@@ -60,7 +61,8 @@ class BookmarksViewModel @Inject constructor(
 	fun removeBookmarks(ids: Set<Long>) {
 		launchJob(Dispatchers.Default) {
 			val handle = bookmarksRepository.removeBookmarks(ids)
-			onActionDone.call(ReversibleAction(R.string.bookmarks_removed, handle))
+			val msg = if (manga.value?.isEpub == true) R.string.highlights_removed else R.string.bookmarks_removed
+			onActionDone.call(ReversibleAction(msg, handle))
 		}
 	}
 
@@ -95,11 +97,12 @@ class BookmarksViewModel @Inject constructor(
 			result.addAll(b)
 		}
 		if (result.isEmpty()) {
+			val isEpub = manga.isEpub
 			result.add(
 				EmptyState(
 					icon = 0,
-					textPrimary = R.string.no_bookmarks_yet,
-					textSecondary = R.string.no_bookmarks_summary,
+					textPrimary = if (isEpub) R.string.no_highlights_yet else R.string.no_bookmarks_yet,
+					textSecondary = if (isEpub) R.string.no_highlights_summary else R.string.no_bookmarks_summary,
 					actionStringRes = 0,
 				),
 			)

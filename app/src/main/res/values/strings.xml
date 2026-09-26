@@ -1104,6 +1104,10 @@
 	<string name="highlight_added">Highlight added</string>
 	<string name="remove_highlight">Remove highlight?</string>
 	<string name="remove_highlight_action">Remove highlight</string>
+	<string name="highlights">Highlights</string>
+	<string name="no_highlights_yet">No highlights yet</string>
+	<string name="no_highlights_summary">Hold and select any text while reading to highlight it</string>
+	<string name="highlights_removed">Highlights removed</string>
     <string name="restoring_backup">Restoring backup</string>
     <string name="reader_controls_in_bottom_bar">Reader controls in bottom bar</string>
     <string name="reader_controls_in_bottom_bar_summary">Choose the buttons and their order</string>

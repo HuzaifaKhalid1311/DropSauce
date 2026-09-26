@@ -483,7 +483,11 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			withContext(Dispatchers.IO) { ensureChaptersLoaded(chapter.preloadRange()) }
 			val offset = ReaderState.decodeEpubOffset(state.scroll)
 				?: (chapters[chapter].text.length.toLong() * state.scroll.coerceIn(0, 1000) / 1000).toInt()
-			renderMode(Locator(chapter, offset), state.page.takeIf { isPagedMode })
+			renderMode(
+				Locator(chapter, offset),
+				state.page.takeIf { isPagedMode },
+				centered = state.page == ReaderState.EPUB_PAGE_CENTERED,
+			)
 		} finally {
 			setChapterLoading(false)
 		}
@@ -741,17 +745,18 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		}
 	}
 
-	private fun renderMode(locator: Locator, pageInChapter: Int? = null) {
+	/** [centered] only affects scroll mode: a page in paged mode is fixed, so it just lands on it. */
+	private fun renderMode(locator: Locator, pageInChapter: Int? = null, centered: Boolean = false) {
 		val container = viewBinding?.readerContainer ?: return
 		if (container.width == 0 || container.height == 0) {
-			container.post { renderMode(locator, pageInChapter) }
+			container.post { renderMode(locator, pageInChapter, centered) }
 			return
 		}
 		val alreadyThere = currentLocator() == locator.clamped()
 		lastLocator = locator.clamped()
 		if (!isPagedMode && verticalView != null) {
 			// re-emissions of the same state must not re-snap the scroll position
-			if (!alreadyThere) goTo(lastLocator)
+			if (!alreadyThere) goTo(lastLocator, centered = centered)
 			return
 		}
 		if (isPagedMode && pagerView != null && pages.any {
@@ -769,11 +774,11 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			container.removeAllViews()
 			verticalView = null
 			pagerView = null
-			renderVertical(container, lastLocator)
+			renderVertical(container, lastLocator, centered)
 		}
 	}
 
-	private fun renderVertical(container: FrameLayout, locator: Locator) {
+	private fun renderVertical(container: FrameLayout, locator: Locator, centered: Boolean) {
 		viewBinding?.readerContainer?.isVerticalReadingMode = true
 		chapterDividerPaint.color = foregroundColor
 		val recycler = RecyclerView(requireContext()).apply {
@@ -815,7 +820,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		}
 		verticalView = recycler
 		container.addView(recycler)
-		positionVertical(locator)
+		positionVertical(locator, centered)
 	}
 
 	private fun renderPaged(container: FrameLayout, locator: Locator, pageInChapter: Int? = null) {
@@ -1453,7 +1458,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		return true
 	}
 
-	private fun goTo(locator: Locator, smooth: Boolean = false) {
+	private fun goTo(locator: Locator, smooth: Boolean = false, centered: Boolean = false) {
 		lastLocator = locator.clamped()
 		if (pagerView != null) {
 			val page = pages.indexOfFirst { it.chapter == lastLocator.chapter && lastLocator.offset in it.start until it.end }
@@ -1463,11 +1468,11 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				renderMode(lastLocator)
 			}
 		} else {
-			positionVertical(lastLocator)
+			positionVertical(lastLocator, centered)
 		}
 	}
 
-	private fun positionVertical(locator: Locator) {
+	private fun positionVertical(locator: Locator, centered: Boolean = false) {
 		val target = locator.clamped()
 		val recycler = verticalView ?: return
 		val manager = recycler.layoutManager as LinearLayoutManager
@@ -1477,8 +1482,23 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			val textView = manager.findViewByPosition(target.chapter) as? TextView
 			val layout = textView?.layout
 			if (layout != null) {
-				val offset = target.offset.coerceIn(0, textView.text.length)
-				recycler.scrollBy(0, layout.getLineTop(layout.getLineForOffset(offset)))
+				val length = textView.text.length
+				val offset = target.offset.coerceIn(0, length)
+				val top = layout.getLineTop(layout.getLineForOffset(offset))
+				if (centered) {
+					// Centre the whole highlight starting here; a highlight taller than the screen keeps its
+					// start at the top. Not loaded yet (fresh open race) → centres just its first line.
+					val chapterId = chapters.getOrNull(target.chapter)?.id
+					val end = highlights.firstNotNullOfOrNull { bookmark ->
+						bookmark.epubHighlight?.takeIf { bookmark.chapterId == chapterId && it.start == offset }?.end
+					} ?: (offset + 1)
+					val bottom = layout.getLineBottom(layout.getLineForOffset((end - 1).coerceIn(offset, length)))
+					val viewport = recycler.height - recycler.paddingTop
+					val margin = ((viewport - (bottom - top)) / 2).coerceAtLeast(0)
+					recycler.scrollBy(0, textView.totalPaddingTop + top - margin)
+				} else {
+					recycler.scrollBy(0, top)
+				}
 			}
 			restoring = false
 			notifyProgress()
