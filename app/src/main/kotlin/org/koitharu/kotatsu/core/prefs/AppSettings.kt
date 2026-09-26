@@ -60,7 +60,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	private val json = Json { ignoreUnknownKeys = true }
 	private val onboardingInstallIdFile = File(context.noBackupFilesDir, "onboarding_install_id")
 	private val connectivityManager = context.connectivityManager
-	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges))
+	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges_default))
 
 	init {
 		if (!prefs.getBoolean(KEY_PRELOAD_POLICIES_RESET, false)) {

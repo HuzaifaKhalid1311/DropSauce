@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.list.ui.adapter
 
 import androidx.core.view.isVisible
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
-import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -33,20 +32,15 @@ fun mangaListDetailedItemAD(
 		binding.textViewSource.text = item.source.getTitle(context)
 		binding.imageViewFavicon.setImageAsync(item.source)
 		binding.textViewAuthor.textAndVisible = item.manga.authors.joinToString(", ")
-		binding.progressView.setProgress(
+		binding.corners.progressView.setProgress(
 			value = item.progress,
 			animate = ListModelDiffCallback.PAYLOAD_PROGRESS_CHANGED in payloads,
 		)
-		with(binding.iconsView) {
-			clearIcons()
-			if (item.isSaved) addIcon(R.drawable.ic_storage)
-			if (item.isFavorite) addIcon(R.drawable.ic_heart_outline)
-			isVisible = iconsCount > 0
-		}
-		binding.imageViewPin.isVisible = item.isPinned
+		binding.iconsViewBottom.setMangaBadges(item.isSaved, item.isFavorite)
+		binding.corners.imageViewPin.isVisible = item.isPinned
 		binding.imageViewCover.setImageAsync(item.coverUrl, item.manga)
 		binding.textViewTags.text = item.tags.joinToString(separator = ", ") { it.title ?: "" }
-		binding.badge.number = item.counter
-		binding.badge.isVisible = item.counter > 0
+		binding.corners.badge.number = item.counter
+		binding.corners.badge.isVisible = item.counter > 0
 	}
 }

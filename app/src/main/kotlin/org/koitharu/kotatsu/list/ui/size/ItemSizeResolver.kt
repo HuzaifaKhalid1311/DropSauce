@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.list.ui.size
 
 import android.view.View
 import android.widget.TextView
+import org.koitharu.kotatsu.core.ui.widgets.IconsView
 import org.koitharu.kotatsu.history.ui.util.ReadingProgressView
 
 interface ItemSizeResolver {
@@ -12,5 +13,6 @@ interface ItemSizeResolver {
 		view: View,
 		textView: TextView?,
 		progressView: ReadingProgressView?,
+		iconsView: IconsView?,
 	)
 }

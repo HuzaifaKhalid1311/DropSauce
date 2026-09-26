@@ -26,41 +26,26 @@
 			app:trimImage="true"
 			tools:src="@tools:sample/backgrounds/scenic" />
 
-		<org.koitharu.kotatsu.history.ui.util.ReadingProgressView
-			android:id="@+id/progressView"
-			android:layout_width="wrap_content"
+		<include
+			android:id="@+id/corners"
+			layout="@layout/layout_cover_corners"
+			android:layout_width="0dp"
 			android:layout_height="wrap_content"
-			android:layout_margin="@dimen/card_indicator_offset"
-			app:layout_constraintBottom_toBottomOf="@id/imageView_cover"
-			app:layout_constraintEnd_toEndOf="@id/imageView_cover" />
-
-		<ImageView
-			android:id="@+id/imageView_pin"
-			android:layout_width="26dp"
-			android:layout_height="26dp"
-			android:layout_margin="@dimen/card_indicator_offset"
-			android:background="@drawable/bg_pin_badge"
-			android:padding="4dp"
-			app:tint="@android:color/white"
-			android:src="@drawable/ic_pin_small"
-			android:visibility="gone"
 			app:layout_constraintEnd_toEndOf="@id/imageView_cover"
-			app:layout_constraintTop_toTopOf="@id/imageView_cover"
-			tools:ignore="ContentDescription"
-			tools:visibility="visible" />
-
-		<org.koitharu.kotatsu.core.ui.widgets.IconsView
-			android:id="@+id/iconsView"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_marginTop="10dp"
-			android:background="@drawable/bg_list_icons"
-			android:orientation="horizontal"
-			android:padding="4dp"
-			app:iconSize="14dp"
-			app:iconSpacing="4dp"
 			app:layout_constraintStart_toStartOf="@id/imageView_cover"
 			app:layout_constraintTop_toTopOf="@id/imageView_cover" />
+
+		<!-- The narrow cover can't fit this pill next to the progress one, so here it sits bottom-start
+		     (the corners include keeps its own pill hidden). -->
+		<org.koitharu.kotatsu.core.ui.widgets.IconsView
+			android:id="@+id/iconsView_bottom"
+			style="@style/Widget.Kotatsu.MangaBadges"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_margin="@dimen/card_indicator_offset"
+			android:visibility="gone"
+			app:layout_constraintBottom_toBottomOf="@id/imageView_cover"
+			app:layout_constraintStart_toStartOf="@id/imageView_cover" />
 
 		<!-- Height locked to the cover. Every line is wrap_content *plus* an equal share of the spare
 		     space, so the block spreads evenly without a two-line title ever being clipped. -->
@@ -137,18 +122,6 @@
 				tools:text="@tools:sample/lorem/random" />
 
 		</LinearLayout>
-
-		<org.koitharu.kotatsu.core.ui.widgets.BadgeView
-			android:id="@+id/badge"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_margin="@dimen/card_indicator_offset"
-			android:visibility="gone"
-			app:layout_constraintBottom_toBottomOf="@id/imageView_cover"
-			app:layout_constraintStart_toStartOf="@id/imageView_cover"
-			app:maxCharacterCount="@integer/manga_badge_max_character_count"
-			tools:number="8"
-			tools:visibility="visible" />
 
 	</androidx.constraintlayout.widget.ConstraintLayout>
 

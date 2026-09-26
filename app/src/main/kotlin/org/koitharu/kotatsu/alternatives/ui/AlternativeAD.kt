@@ -49,12 +49,7 @@ fun alternativeAD(
 
 	bind { payloads ->
 		binding.textViewTitle.text = item.mangaModel.title
-		with(binding.iconsView) {
-			clearIcons()
-			if (item.mangaModel.isSaved) addIcon(R.drawable.ic_storage)
-			if (item.mangaModel.isFavorite) addIcon(R.drawable.ic_heart_outline)
-			isVisible = iconsCount > 0
-		}
+		binding.corners.iconsView.setMangaBadges(item.mangaModel.isSaved, item.mangaModel.isFavorite)
 		binding.textViewSubtitle.text = buildSpannedString {
 			if (item.chaptersCount > 0) {
 				append(
@@ -79,7 +74,7 @@ fun alternativeAD(
 				}
 			}
 		}
-		binding.progressView.setProgress(
+		binding.corners.progressView.setProgress(
 			item.mangaModel.progress,
 			ListModelDiffCallback.PAYLOAD_PROGRESS_CHANGED in payloads,
 		)

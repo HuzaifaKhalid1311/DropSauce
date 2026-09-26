@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.history.ui.util
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -29,9 +30,9 @@ class ReadingProgressView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
 	private val hPadding = dp(10f)
-	private val vPadding = dp(5f)
-	private val textSizeNormal = sp(12.5f)
-	private val textSizeSmall = sp(10.5f)
+	private val vPadding = dp(V_PADDING_DP)
+	private val textSizeNormal = sp(TEXT_SIZE_NORMAL_SP)
+	private val textSizeSmall = sp(TEXT_SIZE_SMALL_SP)
 
 	private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
 		color = SCRIM_COLOR
@@ -152,6 +153,26 @@ class ReadingProgressView @JvmOverloads constructor(
 	)
 
 	companion object {
+
+		private const val V_PADDING_DP = 5f
+		private const val TEXT_SIZE_NORMAL_SP = 12.5f
+		private const val TEXT_SIZE_SMALL_SP = 10.5f
+
+		/** The pill's height regardless of its text, so other cover pills can match it. */
+		fun pillHeight(resources: Resources, small: Boolean): Int {
+			val dm = resources.displayMetrics
+			val paint = Paint().apply {
+				typeface = Typeface.DEFAULT_BOLD
+				textSize = TypedValue.applyDimension(
+					TypedValue.COMPLEX_UNIT_SP,
+					if (small) TEXT_SIZE_SMALL_SP else TEXT_SIZE_NORMAL_SP,
+					dm,
+				)
+			}
+			val fm = paint.fontMetrics
+			val vPadding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, V_PADDING_DP, dm)
+			return (fm.descent - fm.ascent + vPadding * 2f).toInt()
+		}
 
 		// Translucent dark "frosted" scrim — keeps the white text legible over any cover.
 		private const val SCRIM_COLOR = 0x99000000.toInt()

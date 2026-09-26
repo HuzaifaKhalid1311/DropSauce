@@ -2,10 +2,8 @@ package org.koitharu.kotatsu.list.ui.adapter
 
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -39,7 +37,7 @@ fun mangaGridItemAD(
 		binding.textViewTitle.attachTitleClickToRead(itemView, onTitleClick)
 	}
 	// The overlay title is the one that adapts to the grid size (white, on the scrim).
-	sizeResolver.attachToView(itemView, binding.textViewTitleOverlay, binding.progressView)
+	sizeResolver.attachToView(itemView, binding.textViewTitleOverlay, binding.corners.progressView, binding.corners.iconsView)
 
 	val density = context.resources.displayMetrics.density
 	val gridMargin = context.resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer)
@@ -78,19 +76,9 @@ fun mangaGridItemAD(
 		binding.textViewTitleOverlay.isVisible = isTitleOverCover
 		binding.viewScrim.isVisible = isTitleOverCover
 		binding.textViewTitle.isVisible = !item.isTitleHidden && !isTitleOverCover
-		binding.progressView.setProgress(item.progress, PAYLOAD_PROGRESS_CHANGED in payloads)
-		binding.imageViewPin.isVisible = item.isPinned
-		// Pill goes top-right when the title is inside the cover, bottom-right when it's below it.
-		// A pin badge always sits top-right, dragging the pill up with it.
-		binding.layoutIndicators.updateLayoutParams<FrameLayout.LayoutParams> {
-			gravity = Gravity.END or if (isTitleOverCover || item.isPinned) Gravity.TOP else Gravity.BOTTOM
-		}
-		with(binding.iconsView) {
-			clearIcons()
-			if (item.isSaved) addIcon(R.drawable.ic_storage)
-			if (item.isFavorite) addIcon(R.drawable.ic_heart_outline)
-			isVisible = iconsCount > 0
-		}
+		binding.corners.progressView.setProgress(item.progress, PAYLOAD_PROGRESS_CHANGED in payloads)
+		binding.corners.imageViewPin.isVisible = item.isPinned
+		binding.corners.iconsView.setMangaBadges(item.isSaved, item.isFavorite)
 		// Load at a stable size derived from the grid cell width (not the transient measured view
 		// size), so covers in the ViewPager2-hosted grids stay sharp after rotation/settling.
 		val coverWidth = sizeResolver.cellWidth - coverMargin * 2
@@ -100,16 +88,7 @@ fun mangaGridItemAD(
 			null
 		}
 		binding.imageViewCover.setImageAsync(item.coverUrl, item.manga)
-		binding.badge.number = item.counter
-		binding.badge.isVisible = item.counter > 0
-		// Counter badge sits at the top-left. Shift the info icons view down if the badge is visible
-		// so they do not overlap.
-		binding.iconsView.updateLayoutParams<FrameLayout.LayoutParams> {
-			topMargin = if (item.counter > 0) {
-				(32f * density).toInt()
-			} else {
-				(16f * density).toInt()
-			}
-		}
+		binding.corners.badge.number = item.counter
+		binding.corners.badge.isVisible = item.counter > 0
 	}
 }

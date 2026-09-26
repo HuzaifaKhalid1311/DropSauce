@@ -1,5 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+	<!-- Frosted saved/favourite pill over manga covers (IconsView) -->
+
+	<style name="Widget.Kotatsu.MangaBadges" parent="">
+		<item name="android:background">@drawable/bg_list_icons</item>
+		<item name="android:orientation">horizontal</item>
+		<item name="android:paddingHorizontal">8dp</item>
+		<item name="iconSpacing">5dp</item>
+	</style>
+
 	<!--AlertDialog-->
 
 	<style name="ThemeOverlay.Kotatsu.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">

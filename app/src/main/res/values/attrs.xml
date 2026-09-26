@@ -132,7 +132,6 @@
 	</declare-styleable>
 
 	<declare-styleable name="IconsView">
-		<attr name="iconSize" />
 		<attr name="iconSpacing" format="dimension" />
 	</declare-styleable>
 

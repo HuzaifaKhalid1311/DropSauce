@@ -76,7 +76,6 @@ fun recommendationCarouselItemAD(
 		itemClickListener.onItemClick(item.manga, v)
 	}
 	binding.progressView.isVisible = false
-	binding.iconsView.isVisible = false
 	binding.badge.isVisible = false
 
 	bind {

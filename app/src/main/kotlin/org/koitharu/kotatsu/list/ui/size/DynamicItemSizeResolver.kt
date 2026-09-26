@@ -10,6 +10,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.widgets.IconsView
 import org.koitharu.kotatsu.history.ui.util.ReadingProgressView
 import kotlin.math.roundToInt
 
@@ -30,9 +31,10 @@ class DynamicItemSizeResolver(
 	override fun attachToView(
 		view: View,
 		textView: TextView?,
-		progressView: ReadingProgressView?
+		progressView: ReadingProgressView?,
+		iconsView: IconsView?,
 	) {
-		val observer = SizeObserver(view, textView, progressView)
+		val observer = SizeObserver(view, textView, progressView, iconsView)
 		view.addOnAttachStateChangeListener(observer)
 		lifecycleOwner.lifecycle.addObserver(observer)
 		if (view.isAttachedToWindow) {
@@ -44,6 +46,7 @@ class DynamicItemSizeResolver(
 		private val view: View,
 		private val textView: TextView?,
 		private val progressView: ReadingProgressView?,
+		private val iconsView: IconsView?,
 	) : DefaultLifecycleObserver, SharedPreferences.OnSharedPreferenceChangeListener, View.OnAttachStateChangeListener {
 
 		private val widthThreshold = view.resources.getDimensionPixelSize(R.dimen.small_grid_width)
@@ -83,6 +86,7 @@ class DynamicItemSizeResolver(
 				}
 			}
 			progressView?.adjustSize(newWidth)
+			iconsView?.setSmall(newWidth < widthThreshold)
 		}
 
 		private fun ReadingProgressView.adjustSize(width: Int) {

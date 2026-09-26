@@ -20,6 +20,9 @@
 	<color name="common_green">#388E3C</color>
 	<color name="common_red">#D32F2F</color>
 	<color name="common_yellow">#FBC02D</color>
+	<!-- Icons in the frosted saved/favourite pill over covers -->
+	<color name="list_badge_favourite">#FF8FAB</color>
+	<color name="list_badge_saved">#8FD0FF</color>
 
 	<!-- Widget chart label — explicit so the bitmap renderer always gets the right color -->
 </resources>

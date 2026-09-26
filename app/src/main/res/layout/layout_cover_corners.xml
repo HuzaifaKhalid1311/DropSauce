@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Top corners of a manga cover, shared by the grid, detailed list and alternatives cards.
+     Top-start: saved/favourite pill. Top-end: pin + reading progress, new-chapters counter below.
+     CoverCornersLayout drops the pill under the top-end column when both don't fit side by side. -->
+<org.koitharu.kotatsu.core.ui.widgets.CoverCornersLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:padding="@dimen/card_indicator_offset">
+
+	<org.koitharu.kotatsu.core.ui.widgets.IconsView
+		android:id="@+id/iconsView"
+		style="@style/Widget.Kotatsu.MangaBadges"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="top|start"
+		android:layout_marginEnd="4dp"
+		android:layout_marginBottom="4dp"
+		android:visibility="gone"
+		tools:visibility="visible" />
+
+	<LinearLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="top|end"
+		android:gravity="end"
+		android:orientation="vertical">
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="center_vertical"
+			android:orientation="horizontal">
+
+			<ImageView
+				android:id="@+id/imageView_pin"
+				android:layout_width="26dp"
+				android:layout_height="26dp"
+				android:layout_marginEnd="4dp"
+				android:background="@drawable/bg_pin_badge"
+				android:padding="4dp"
+				android:src="@drawable/ic_pin_small"
+				android:visibility="gone"
+				app:tint="@android:color/white"
+				tools:ignore="ContentDescription"
+				tools:visibility="visible" />
+
+			<org.koitharu.kotatsu.history.ui.util.ReadingProgressView
+				android:id="@+id/progressView"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content" />
+
+		</LinearLayout>
+
+		<org.koitharu.kotatsu.core.ui.widgets.BadgeView
+			android:id="@+id/badge"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="4dp"
+			android:visibility="gone"
+			app:maxCharacterCount="@integer/manga_badge_max_character_count"
+			tools:number="8"
+			tools:visibility="visible" />
+
+	</LinearLayout>
+
+</org.koitharu.kotatsu.core.ui.widgets.CoverCornersLayout>

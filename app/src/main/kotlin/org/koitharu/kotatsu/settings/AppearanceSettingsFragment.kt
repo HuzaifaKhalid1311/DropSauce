@@ -266,7 +266,8 @@ private fun AppearanceScreen(
 	var quickFilter by rememberBooleanPref(AppSettings.KEY_QUICK_FILTER, true)
 	var listCheckpoint by rememberBooleanPref(AppSettings.KEY_LIST_CHECKPOINT, true)
 	var readingIndicator by rememberReadingIndicatorPref(AppSettings.KEY_PROGRESS_INDICATORS)
-	var mangaListBadges by rememberStringSetPref(AppSettings.KEY_MANGA_LIST_BADGES, emptySet())
+	val badgeDefaults = remember { ctx.resources.getStringArray(R.array.values_list_badges_default).toSet() }
+	var mangaListBadges by rememberStringSetPref(AppSettings.KEY_MANGA_LIST_BADGES, badgeDefaults)
 
 	var descriptionCollapse by rememberBooleanPref(AppSettings.KEY_COLLAPSE_DESCRIPTION, true)
 	var pagesTab by rememberBooleanPref(AppSettings.KEY_PAGES_TAB, true)

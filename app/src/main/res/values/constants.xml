@@ -63,6 +63,10 @@
 		<item>4</item>
 		<item>1</item>
 	</string-array>
+	<!-- Badges enabled until the user changes the setting: favourite only -->
+	<string-array name="values_list_badges_default" translatable="false">
+		<item>4</item>
+	</string-array>
 	<string-array name="values_reading_indicator_modes" translatable="false">
 		<item>NONE</item>
 		<item>PERCENT_READ</item>

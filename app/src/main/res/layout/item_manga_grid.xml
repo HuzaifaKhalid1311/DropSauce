@@ -2,8 +2,9 @@
 <!-- App-wide manga card (Material 3 Expressive). The cover rounds itself (no MaterialCardView
      wrapper, so Coil's CoverSizeResolver measures it reliably). The title is either overlaid on a
      dark-accent scrim inside the cover (textView_title_overlay) or shown below it (textView_title),
-     toggled by the "title over cover" setting. Root width + the overlay title appearance are set by
-     ItemSizeResolver; the scrim drawable + the overlay title's end margin are set in the adapter. -->
+     toggled by the "title over cover" setting. The cover's top corners (saved/favourite pill,
+     pin, progress, new-chapters counter) come from layout_cover_corners. Root width, the overlay
+     title appearance and the pill size are set by ItemSizeResolver; the scrim is set in the adapter. -->
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -39,30 +40,6 @@
 			android:layout_gravity="bottom"
 			tools:background="#CC000000" />
 
-		<org.koitharu.kotatsu.core.ui.widgets.IconsView
-			android:id="@+id/iconsView"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_gravity="top|start"
-			android:layout_marginStart="0dp"
-			android:layout_marginTop="16dp"
-			android:background="@drawable/bg_list_icons"
-			android:orientation="horizontal"
-			android:padding="4dp"
-			app:iconSize="14dp"
-			app:iconSpacing="4dp" />
-
-		<org.koitharu.kotatsu.core.ui.widgets.BadgeView
-			android:id="@+id/badge"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_gravity="top|start"
-			android:layout_margin="@dimen/margin_small"
-			android:visibility="gone"
-			app:maxCharacterCount="@integer/manga_badge_max_character_count"
-			tools:number="8"
-			tools:visibility="visible" />
-
 		<TextView
 			android:id="@+id/textView_title_overlay"
 			android:layout_width="match_parent"
@@ -77,34 +54,12 @@
 			android:textAppearance="@style/TextAppearance.Kotatsu.GridTitle.Overlay"
 			tools:text="@tools:sample/lorem" />
 
-		<LinearLayout
-			android:id="@+id/layout_indicators"
-			android:layout_width="wrap_content"
+		<include
+			android:id="@+id/corners"
+			layout="@layout/layout_cover_corners"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_gravity="top|end"
-			android:layout_margin="@dimen/card_indicator_offset"
-			android:gravity="center_vertical"
-			android:orientation="horizontal">
-
-			<ImageView
-				android:id="@+id/imageView_pin"
-				android:layout_width="26dp"
-				android:layout_height="26dp"
-				android:layout_marginEnd="4dp"
-				android:background="@drawable/bg_pin_badge"
-				android:padding="4dp"
-				app:tint="@android:color/white"
-			android:src="@drawable/ic_pin_small"
-				android:visibility="gone"
-				tools:ignore="ContentDescription"
-				tools:visibility="visible" />
-
-			<org.koitharu.kotatsu.history.ui.util.ReadingProgressView
-				android:id="@+id/progressView"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content" />
-
-		</LinearLayout>
+			android:layout_gravity="top" />
 
 	</FrameLayout>
 
