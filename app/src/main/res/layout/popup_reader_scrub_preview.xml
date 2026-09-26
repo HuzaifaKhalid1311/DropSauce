@@ -21,7 +21,7 @@
 		app:cardCornerRadius="16dp"
 		app:cardElevation="6dp"
 		app:strokeColor="?colorOutline"
-		app:strokeWidth="1dp">
+		app:strokeWidth="2dp">
 
 		<org.koitharu.kotatsu.image.ui.CoverImageView
 			android:id="@+id/imageView_thumb"
