@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import org.koitharu.kotatsu.widget.continuereading.ContinueReadingWidget
 import org.koitharu.kotatsu.widget.history.HistoryWidget
 import org.koitharu.kotatsu.widget.stats.StatsWidget
+import org.koitharu.kotatsu.widget.stats.StreakWidget
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +29,7 @@ class WidgetRefreshObserver @Inject constructor(
 		}
 		if (STATS_TABLES.any { it in tables }) {
 			nudgeWidgets(context, StatsWidget::class.java)
+			nudgeWidgets(context, StreakWidget::class.java)
 		}
 	}
 

@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.widget.stats
 
 import org.koitharu.kotatsu.core.db.MangaDatabase
+import org.koitharu.kotatsu.stats.data.calculateStreaks
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -8,6 +10,7 @@ data class StatsSnapshot(
 	val todayMillis: Long,
 	val weekMillis: Long,
 	val streakDays: Int,
+	val longestStreakDays: Int,
 	val dailyMillis: LongArray,
 	val todayBucket: Int,
 ) {
@@ -30,11 +33,13 @@ suspend fun MangaDatabase.loadStatsSnapshot(): StatsSnapshot {
 	val todayBucket = ((startOfToday - startOfWeek) / TimeUnit.DAYS.toMillis(1))
 		.toInt().coerceIn(0, 6)
 	val todayMillis = daily[todayBucket]
-	val streak = computeStreak(daily, todayBucket)
+	// Same all-time streak as the statistics screen (with no category filter), not just this week.
+	val (streak, longest) = calculateStreaks(dao.getSessions(0L, emptySet()), ZoneId.systemDefault())
 	return StatsSnapshot(
 		todayMillis = todayMillis,
 		weekMillis = weekMillis,
 		streakDays = streak,
+		longestStreakDays = longest,
 		dailyMillis = daily,
 		todayBucket = todayBucket,
 	)
@@ -60,24 +65,6 @@ private fun addEntryDurationByDay(
 		daily[bucket] += partEnd - cursor
 		cursor = partEnd
 	}
-}
-
-/**
- * Counts consecutive days with reading, ending at [todayBucket]. If today hasn't started
- * yet, we step back to yesterday so a streak isn't broken just because the user hasn't
- * read this morning.
- */
-private fun computeStreak(daily: LongArray, todayBucket: Int): Int {
-	if (daily.isEmpty()) return 0
-	var start = todayBucket.coerceIn(0, daily.size - 1)
-	if (daily[start] == 0L && start > 0) {
-		start--
-	}
-	var streak = 0
-	for (i in start downTo 0) {
-		if (daily[i] > 0) streak++ else break
-	}
-	return streak
 }
 
 private fun startOfDayMillis(now: Long): Long {

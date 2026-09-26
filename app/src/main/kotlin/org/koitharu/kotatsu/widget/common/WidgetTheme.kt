@@ -30,6 +30,7 @@ class WidgetColors(
 	val surfaceContainerHighest: Int,
 	val primary: Int,
 	val primaryContainer: Int,
+	val tertiary: Int,
 	val onPrimary: Int,
 	val onPrimaryContainer: Int,
 	val onSurface: Int,
@@ -104,6 +105,7 @@ object WidgetTheme {
 			},
 			primary = color(androidx.appcompat.R.attr.colorPrimary, R.color.kotatsu_primary),
 			primaryContainer = color(materialR.attr.colorPrimaryContainer, R.color.kotatsu_primaryContainer),
+			tertiary = color(materialR.attr.colorTertiary, R.color.kotatsu_tertiary),
 			onPrimary = color(materialR.attr.colorOnPrimary, R.color.kotatsu_onPrimary),
 			onPrimaryContainer = color(materialR.attr.colorOnPrimaryContainer, R.color.kotatsu_onPrimaryContainer),
 			onSurface = color(materialR.attr.colorOnSurface, R.color.kotatsu_onSurface),
@@ -117,18 +119,26 @@ object WidgetTheme {
 	 */
 	@RequiresApi(Build.VERSION_CODES.S)
 	fun apply(views: RemoteViews, colors: WidgetColors) {
-		views.textColor(colors.onSurface, R.id.widget_header_title, R.id.widget_title, R.id.widget_stats_today_value)
+		views.textColor(
+			colors.onSurface,
+			R.id.widget_header_title,
+			R.id.widget_title,
+			R.id.widget_stats_today_value,
+			R.id.widget_streak_value,
+		)
 		views.textColor(
 			colors.onSurfaceVariant,
 			R.id.widget_subtitle,
 			R.id.widget_chapter,
 			R.id.widget_stats_subtitle,
+			R.id.widget_streak_label,
 			R.id.widget_empty,
 			R.id.widget_empty_hint,
 			R.id.widget_empty_text,
 		)
 		views.textColor(colors.onPrimary, R.id.widget_cta_text)
-		views.textColor(colors.onPrimaryContainer, R.id.widget_stats_chip)
+		views.textColor(colors.onPrimaryContainer, R.id.widget_stats_chip, R.id.widget_streak_best_value)
+		views.iconTint(colors.onPrimaryContainer, R.id.widget_streak_best_icon)
 
 		views.iconTint(colors.onSurface, R.id.widget_header_icon, R.id.widget_settings)
 		views.iconTint(
@@ -144,6 +154,7 @@ object WidgetTheme {
 			colors.surfaceContainer,
 			R.id.widget_root,
 			R.id.widget_stats_root,
+			R.id.widget_streak_root,
 			R.id.widget_continue_reading_empty_root,
 		)
 		views.backgroundTint(colors.surfaceContainerHigh, R.id.widget_item_body)
@@ -157,7 +168,7 @@ object WidgetTheme {
 		// `widget_cta_icon` only carries a background in the compact layout; tinting a null
 		// background elsewhere is a no-op.
 		views.backgroundTint(colors.primary, R.id.widget_cta, R.id.widget_cta_icon, R.id.widget_play)
-		views.backgroundTint(colors.primaryContainer, R.id.widget_stats_chip)
+		views.backgroundTint(colors.primaryContainer, R.id.widget_stats_chip, R.id.widget_streak_best)
 
 		views.setColorStateList(R.id.widget_progress, "setProgressTintList", ColorStateList.valueOf(colors.primary))
 		views.setColorStateList(

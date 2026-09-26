@@ -404,6 +404,21 @@
 		</receiver>
 
 		<receiver
+			android:name="org.koitharu.kotatsu.widget.stats.StreakWidget"
+			android:exported="true"
+			android:label="@string/widget_streak">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<action android:name="android.intent.action.CONFIGURATION_CHANGED" />
+				<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+			</intent-filter>
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/appwidget_streak" />
+		</receiver>
+
+		<receiver
 			android:name="org.koitharu.kotatsu.widget.favorites.FavoritesWidget"
 			android:exported="true"
 			android:label="@string/widget_favorites">

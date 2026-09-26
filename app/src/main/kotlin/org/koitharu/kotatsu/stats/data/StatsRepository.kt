@@ -190,28 +190,6 @@ class StatsRepository @Inject constructor(
 		}
 	}
 
-	/** Current and longest run of consecutive days with any reading on them, in the local zone. */
-	private fun calculateStreaks(sessions: List<StatsEntity>, zone: ZoneId): Pair<Int, Int> {
-		val days = sessions
-			.mapTo(TreeSet()) { Instant.ofEpochMilli(it.startedAt).atZone(zone).toLocalDate() }
-		if (days.isEmpty()) {
-			return 0 to 0
-		}
-		var longest = 0
-		var run = 0
-		var previous: LocalDate? = null
-		for (day in days) {
-			run = if (previous != null && previous.plusDays(1) == day) run + 1 else 1
-			if (run > longest) longest = run
-			previous = day
-		}
-		val today = LocalDate.now(zone)
-		// A streak stays alive until the day after the last session ends, so reading yesterday but
-		// not (yet) today still counts.
-		val current = if (days.last() == today || days.last() == today.minusDays(1)) run else 0
-		return current to longest
-	}
-
 	suspend fun getChapterReadingStats(): ChapterReadingStats = db.withTransaction {
 		val dao = db.getStatsDao()
 		ChapterReadingStats(
@@ -246,6 +224,31 @@ class StatsRepository @Inject constructor(
 			flowOf(false)
 		}
 	}.distinctUntilChanged()
+}
+
+/**
+ * Current and longest run of consecutive days with any reading on them, in the local zone.
+ * Shared with the home-screen widget so both always show the same streak.
+ */
+internal fun calculateStreaks(sessions: List<StatsEntity>, zone: ZoneId): Pair<Int, Int> {
+	val days = sessions
+		.mapTo(TreeSet()) { Instant.ofEpochMilli(it.startedAt).atZone(zone).toLocalDate() }
+	if (days.isEmpty()) {
+		return 0 to 0
+	}
+	var longest = 0
+	var run = 0
+	var previous: LocalDate? = null
+	for (day in days) {
+		run = if (previous != null && previous.plusDays(1) == day) run + 1 else 1
+		if (run > longest) longest = run
+		previous = day
+	}
+	val today = LocalDate.now(zone)
+	// A streak stays alive until the day after the last session ends, so reading yesterday but
+	// not (yet) today still counts.
+	val current = if (days.last() == today || days.last() == today.minusDays(1)) run else 0
+	return current to longest
 }
 
 /** Mutable running totals for one title while the period's sessions are being walked once. */

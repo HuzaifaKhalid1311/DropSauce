@@ -10,12 +10,14 @@ import org.koitharu.kotatsu.widget.continuereading.ContinueReadingWidget
 import org.koitharu.kotatsu.widget.favorites.FavoritesWidget
 import org.koitharu.kotatsu.widget.history.HistoryWidget
 import org.koitharu.kotatsu.widget.stats.StatsWidget
+import org.koitharu.kotatsu.widget.stats.StreakWidget
 
 private val ALL_PROVIDERS = arrayOf(
 	ContinueReadingWidget::class.java,
 	FavoritesWidget::class.java,
 	HistoryWidget::class.java,
 	StatsWidget::class.java,
+	StreakWidget::class.java,
 )
 
 /** Asks every pinned instance of [providerClass] to redraw itself. */

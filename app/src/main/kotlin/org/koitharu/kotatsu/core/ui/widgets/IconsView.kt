@@ -40,8 +40,8 @@ class IconsView @JvmOverloads constructor(
 
 	fun setMangaBadges(isSaved: Boolean, isFavorite: Boolean) {
 		repeat(childCount) { i -> getChildAt(i).isVisible = false }
-		if (isSaved) addIcon(R.drawable.ic_storage_filled, savedTint)
 		if (isFavorite) addIcon(R.drawable.ic_heart, favouriteTint)
+		if (isSaved) addIcon(R.drawable.ic_storage_filled, savedTint)
 		isVisible = isSaved || isFavorite
 	}
 

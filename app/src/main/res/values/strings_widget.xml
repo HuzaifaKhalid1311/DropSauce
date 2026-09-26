@@ -16,6 +16,12 @@
 	<string name="widget_stats_minutes_short">%1$d min</string>
 	<string name="widget_stats_hours_short">%1$dh %2$dm</string>
 
+	<!-- Streak Widget -->
+	<string name="widget_streak">Reading Streak</string>
+	<string name="widget_streak_description">Your current reading streak and personal best</string>
+	<string name="widget_streak_days">day streak</string>
+	<string name="widget_streak_best">Best streak</string>
+
 	<!-- Favorites Widget -->
 	<string name="widget_favorites">Favorites</string>
 	<string name="widget_favorites_description">Pin up to 3 favorite manga to your home screen</string>
