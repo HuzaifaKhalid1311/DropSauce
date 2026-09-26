@@ -81,8 +81,9 @@ class ListSelectionController(
 	fun onItemClick(view: View?, id: Long): Boolean {
 		if (decoration.checkedItemsCount != 0) {
 			decoration.toggleItemChecked(id)
-			view?.playSelectionPressAnimation(isDeep = false)
-			view?.hapticFeedback(HapticEffect.LIGHT_CLICK)
+			val isChecked = id in decoration.checkedItemsIds
+			view?.playSelectionPressAnimation(if (isChecked) SelectionPress.SELECT else SelectionPress.DESELECT)
+			view?.hapticFeedback(if (isChecked) HapticEffect.LIGHT_CLICK else HapticEffect.DESELECT)
 			if (decoration.checkedItemsCount == 0) {
 				actionMode?.finish()
 			} else {
@@ -102,7 +103,7 @@ class ListSelectionController(
 			onItemContextClick(view, id)
 		}
 		if (handled) {
-			view.playSelectionPressAnimation(isDeep = isFirstSelection)
+			view.playSelectionPressAnimation(if (isFirstSelection) SelectionPress.ENTER else SelectionPress.SELECT)
 			view.hapticFeedback(HapticEffect.LONG_PRESS)
 		}
 		return handled

@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.core.util.ext
 
 import android.content.Context
 import android.os.Build
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.view.HapticFeedbackConstants
@@ -39,6 +40,9 @@ enum class HapticEffect {
 
 	/** Turning a binary control off. */
 	TOGGLE_OFF,
+
+	/** Taking an item out of a multi-selection: a soft, fading double tick, unlike the single select tap. */
+	DESELECT,
 
 	/** A committed, successful action (selection confirmed, page / chapter switched). */
 	CONFIRM,
@@ -79,7 +83,7 @@ private fun HapticEffect.toConstant(): Int = when (this) {
 		else -> HapticFeedbackConstants.VIRTUAL_KEY
 	}
 
-	HapticEffect.TOGGLE_OFF -> when {
+	HapticEffect.TOGGLE_OFF, HapticEffect.DESELECT -> when {
 		Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> HapticFeedbackConstants.TOGGLE_OFF
 		else -> HapticFeedbackConstants.CLOCK_TICK
 	}
@@ -125,7 +129,32 @@ fun View.hapticFeedback(effect: HapticEffect) {
 	if (!isHapticFeedbackEnabledInApp(context)) {
 		return
 	}
+	if (effect == HapticEffect.DESELECT && context.playDeselectHaptic()) {
+		return
+	}
 	performHapticFeedback(effect.toConstant(), HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING)
+}
+
+/**
+ * Two ticks, the second softer, so a deselect reads as "letting go". Plays as touch feedback so the
+ * system touch-haptics setting still applies. Returns false where primitives aren't available.
+ */
+private fun Context.playDeselectHaptic(): Boolean {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+		return false
+	}
+	val vibrator = getSystemService(VibratorManager::class.java)?.defaultVibrator ?: return false
+	if (!vibrator.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_TICK)) {
+		return false
+	}
+	vibrator.vibrate(
+		VibrationEffect.startComposition()
+			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK, 0.6f)
+			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK, 0.25f, 55)
+			.compose(),
+		VibrationAttributes.createForUsage(VibrationAttributes.USAGE_TOUCH),
+	)
+	return true
 }
 
 /**
