@@ -53,7 +53,8 @@ class TypedListSpacingDecoration(
 			// Carousel items carry their own margins in the item layout.
 			ListItemType.MANGA_CAROUSEL -> outRect.set(0)
 
-			ListItemType.EXPLORE_BUTTONS -> outRect.set(spacingNormal)
+			// No top offset: the container's top padding alone matches the gap under the search bar on the other tabs.
+			ListItemType.EXPLORE_BUTTONS -> outRect.set(spacingNormal, 0, spacingNormal, spacingNormal)
 
 			ListItemType.FOOTER_LOADING,
 			ListItemType.FOOTER_ERROR,

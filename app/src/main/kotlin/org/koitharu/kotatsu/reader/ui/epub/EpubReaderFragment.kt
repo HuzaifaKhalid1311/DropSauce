@@ -56,6 +56,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withTranslation
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.view.WindowInsetsCompat
@@ -1661,6 +1663,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private val selectionBackgroundColor = highlightColor
 		private var selectionBackgroundSpan: SelectionBackgroundSpan? = null
 		private var suppressDoubleTap = false
+		private var justifiedSource: Layout? = null
+		private var justifiedLayout: Layout? = null
 		private val doubleTapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
 			override fun onDown(e: MotionEvent): Boolean = true
 
@@ -1681,6 +1685,51 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				setTextSelectHandleRight(createSelectionHandle())
 				setTextSelectHandle(createSelectionHandle())
 			}
+		}
+
+		override fun onDraw(canvas: Canvas) {
+			val justified = compatJustifiedLayout() ?: return super.onDraw(canvas)
+			// What TextView.onDraw does for this view (top gravity, no drawables, never scrolled), minus
+			// drawing its own unjustified layout. Selection is our LineBackgroundSpan, so it draws too.
+			paint.color = currentTextColor
+			paint.drawableState = drawableState
+			canvas.withClip(compoundPaddingLeft, 0, width - compoundPaddingRight, height - extendedPaddingBottom) {
+				withTranslation(compoundPaddingLeft.toFloat(), extendedPaddingTop.toFloat()) { justified.draw(this) }
+			}
+		}
+
+		/**
+		 * Android 8-14 never justify selectable text. Its DynamicLayout gives the justification mode to
+		 * the line breaker - which then lets lines run up to a third of a space too long, expecting them
+		 * to be squeezed back when drawn - but not to the drawing. So lines came out ragged, and the
+		 * overlong ones lost their last letters past the edge. Draw a StaticLayout with the very same line
+		 * breaks instead: it does justify. Android 15 fixed DynamicLayout itself.
+		 */
+		private fun compatJustifiedLayout(): Layout? {
+			if (Build.VERSION.SDK_INT > Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return null
+			if (justificationMode != Layout.JUSTIFICATION_MODE_INTER_WORD) return null
+			// TextView swaps in a new layout on every text, width or style change, so identity is the key.
+			val source = layout ?: return null
+			if (source !== justifiedSource) {
+				justifiedSource = source
+				justifiedLayout = StaticLayout.Builder.obtain(source.text, 0, source.text.length, paint, source.width)
+					.setAlignment(source.alignment)
+					.setTextDirection(
+						when {
+							Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> textDirectionHeuristic
+							textDirection == View.TEXT_DIRECTION_RTL -> TextDirectionHeuristics.RTL
+							else -> TextDirectionHeuristics.FIRSTSTRONG_LTR
+						},
+					)
+					.setLineSpacing(lineSpacingExtra, lineSpacingMultiplier)
+					.setIncludePad(includeFontPadding)
+					.setBreakStrategy(breakStrategy)
+					.setHyphenationFrequency(hyphenationFrequency)
+					.setJustificationMode(justificationMode)
+					.apply { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) setUseLineSpacingFromFallbacks(isFallbackLineSpacing) }
+					.build()
+			}
+			return justifiedLayout
 		}
 
 		override fun onTouchEvent(event: MotionEvent): Boolean {
