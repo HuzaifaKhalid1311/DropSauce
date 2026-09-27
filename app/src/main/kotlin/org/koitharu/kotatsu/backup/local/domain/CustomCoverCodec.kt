@@ -29,7 +29,14 @@ class CustomCoverCodec @Inject constructor(
 
 	class EncodedCover(val data: String, val extension: String?)
 
-	suspend fun read(url: String?): EncodedCover? {
+	class RawCover(val bytes: ByteArray, val extension: String?)
+
+	suspend fun read(url: String?): EncodedCover? = readRaw(url)?.let {
+		EncodedCover(data = Base64.encodeToString(it.bytes, Base64.NO_WRAP), extension = it.extension)
+	}
+
+	/** Bytes of a locally stored custom cover, or null when [url] isn't a local file/content uri. */
+	suspend fun readRaw(url: String?): RawCover? {
 		val uri = url?.toUriOrNull() ?: return null
 		if (!uri.isFileUri() && uri.scheme != "content") {
 			return null
@@ -47,10 +54,7 @@ class CustomCoverCodec @Inject constructor(
 					?: context.contentResolver.getType(uri)
 						?.toMimeTypeOrNull()
 						?.let(MimeTypes::getExtension)
-				EncodedCover(
-					data = Base64.encodeToString(bytes, Base64.NO_WRAP),
-					extension = extension,
-				)
+				RawCover(bytes, extension)
 			}.onFailure {
 				Log.w(TAG, "failed to read custom cover '$url'", it)
 			}.getOrNull()
@@ -62,17 +66,23 @@ class CustomCoverCodec @Inject constructor(
 		coverData: String,
 		coverFileExtension: String?,
 		previousUrl: String?,
+	): String? = runCatching { Base64.decode(coverData, Base64.DEFAULT) }
+		.getOrNull()
+		?.let { materialize(mangaId, it, coverFileExtension, previousUrl) }
+
+	/** Writes [bytes] as this device's copy of a custom cover and returns its uri. */
+	suspend fun materialize(
+		mangaId: Long,
+		bytes: ByteArray,
+		coverFileExtension: String?,
+		previousUrl: String?,
 	): String? = withContext(Dispatchers.IO) {
 		runCatching {
-			val bytes = Base64.decode(coverData, Base64.DEFAULT)
 			val directory = context.getExternalFilesDir(COVERS_DIR) ?: return@runCatching null
 			if (!directory.exists() && !directory.mkdirs()) {
 				return@runCatching null
 			}
-			val digest = MessageDigest.getInstance("SHA-256")
-				.digest(bytes)
-				.take(12)
-				.joinToString("") { "%02x".format(it) }
+			val digest = sha256(bytes).take(24)
 			val extension = coverFileExtension
 				?.takeIf { it.isSafeFileExtension() }
 				?.let { ".$it" }
@@ -108,9 +118,15 @@ class CustomCoverCodec @Inject constructor(
 	private fun String.isSafeFileExtension(): Boolean =
 		length in 1..10 && all { it.isLetterOrDigit() }
 
-	private companion object {
-		const val TAG = "CustomCoverCodec"
-		const val COVERS_DIR = "covers"
-		const val SYNCED_COVER_PREFIX = "sync_"
+	companion object {
+
+		/** Hex SHA-256 — the content address of a cover in the sync store. */
+		fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
+			.digest(bytes)
+			.joinToString("") { "%02x".format(it) }
+
+		private const val TAG = "CustomCoverCodec"
+		private const val COVERS_DIR = "covers"
+		private const val SYNCED_COVER_PREFIX = "sync_"
 	}
 }

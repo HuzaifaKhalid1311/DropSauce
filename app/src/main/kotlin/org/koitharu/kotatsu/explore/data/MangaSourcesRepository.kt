@@ -52,6 +52,10 @@ class MangaSourcesRepository @Inject constructor(
 	private val usageRefresh = MutableStateFlow(0)
 	private val pinnedRefresh = MutableStateFlow(0)
 
+	// Any write refreshes the lists, including one made by Drive sync.
+	private val usageListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> usageRefresh.value++ }
+	private val pinnedListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> pinnedRefresh.value++ }
+
 	fun getEnabledSources(): List<MangaSource> {
 		return buildSortedSourceInfoList(getAllEnabledSources()).map { it.mangaSource }
 	}
@@ -112,10 +116,8 @@ class MangaSourcesRepository @Inject constructor(
 			}
 		}
 		setPinnedSourceKeys(updated)
-		pinnedRefresh.value++
 		return ReversibleHandle {
 			setPinnedSourceKeys(before)
-			pinnedRefresh.value++
 		}
 	}
 
@@ -137,13 +139,14 @@ class MangaSourcesRepository @Inject constructor(
 	}
 
 	private val usagePrefs: SharedPreferences by lazy {
-		context.getSharedPreferences("source_usage", Context.MODE_PRIVATE)
+		context.getSharedPreferences("source_usage", Context.MODE_PRIVATE).also {
+			it.registerOnSharedPreferenceChangeListener(usageListener)
+		}
 	}
 
 	fun trackUsage(source: MangaSource) {
 		val key = sourceKeyOf(source)
 		usagePrefs.edit().putLong(key, System.currentTimeMillis()).apply()
-		usageRefresh.value++
 	}
 
 	private fun getLastUsedTimestamp(source: MangaSource): Long {
@@ -152,7 +155,9 @@ class MangaSourcesRepository @Inject constructor(
 	}
 
 	private val sourceStatePrefs: SharedPreferences by lazy {
-		context.getSharedPreferences("source_state", Context.MODE_PRIVATE)
+		context.getSharedPreferences("source_state", Context.MODE_PRIVATE).also {
+			it.registerOnSharedPreferenceChangeListener(pinnedListener)
+		}
 	}
 
 	private fun sourceKeyOf(source: MangaSource): String = when (source) {

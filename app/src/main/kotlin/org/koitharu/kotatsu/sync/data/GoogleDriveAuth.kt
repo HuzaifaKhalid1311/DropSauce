@@ -4,6 +4,7 @@ package org.koitharu.kotatsu.sync.data
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -16,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import org.koitharu.kotatsu.sync.domain.SyncApiException
 import org.koitharu.kotatsu.sync.domain.SyncSignInRequiredException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,7 +37,7 @@ class GoogleDriveAuth @Inject constructor(
 	private val signInClient by lazy {
 		val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
 			.requestEmail()
-			.requestScopes(Scope(SCOPE_APPDATA), Scope(SCOPE_FILE))
+			.requestScopes(Scope(SCOPE_APPDATA))
 			.build()
 		GoogleSignIn.getClient(context, options)
 	}
@@ -66,9 +68,17 @@ class GoogleDriveAuth @Inject constructor(
 		}
 	}
 
-	/** Clears a cached token the server rejected so the next [requireAccessToken] fetches a fresh one. */
-	fun invalidateToken(token: String) {
-		runCatching { GoogleAuthUtil.clearToken(context, token) }
+	/** Runs [block] with an access token; a cached token the server rejects (401) is refreshed once. */
+	suspend fun <T> withToken(block: suspend (token: String) -> T): T {
+		val token = requireAccessToken()
+		return try {
+			block(token)
+		} catch (e: SyncApiException) {
+			if (e.code != 401) throw e
+			Log.w(TAG, "token rejected (401), refreshing")
+			runCatching { GoogleAuthUtil.clearToken(context, token) }
+			block(requireAccessToken())
+		}
 	}
 
 	private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
@@ -79,8 +89,8 @@ class GoogleDriveAuth @Inject constructor(
 
 	companion object {
 
+		private const val TAG = "GDriveSync"
 		const val SCOPE_APPDATA = "https://www.googleapis.com/auth/drive.appdata"
-		const val SCOPE_FILE = "https://www.googleapis.com/auth/drive.file"
-		private const val OAUTH2_SCOPE = "oauth2:$SCOPE_APPDATA $SCOPE_FILE"
+		private const val OAUTH2_SCOPE = "oauth2:$SCOPE_APPDATA"
 	}
 }

@@ -43,11 +43,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import coil3.ImageLoader
@@ -104,15 +99,9 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 					onSyncNow = viewModel::syncNow,
 					onIntervalChange = viewModel::setInterval,
 					onWifiOnlyChange = viewModel::setWifiOnly,
-					onSyncOnStartChange = viewModel::setSyncOnStart,
-					onDeletionSyncDisabledChange = viewModel::setDeletionSyncDisabled,
 					onContentChange = viewModel::setEnabledContent,
 					onToggleEmailHidden = viewModel::setEmailHidden,
 					onDeleteData = viewModel::deleteAllData,
-					onOpenLocalBackup = {
-						(requireActivity() as org.koitharu.kotatsu.settings.SettingsActivity)
-							.openFragment(org.koitharu.kotatsu.settings.BackupSettingsFragment::class.java, null, false)
-					},
 				)
 			}
 		}
@@ -156,12 +145,9 @@ private fun SyncScreen(
 	onSyncNow: () -> Unit,
 	onIntervalChange: (Int) -> Unit,
 	onWifiOnlyChange: (Boolean) -> Unit,
-	onSyncOnStartChange: (Boolean) -> Unit,
-	onDeletionSyncDisabledChange: (Boolean) -> Unit,
 	onContentChange: (Set<String>) -> Unit,
 	onToggleEmailHidden: (Boolean) -> Unit,
 	onDeleteData: () -> Unit,
-	onOpenLocalBackup: () -> Unit,
 ) {
 	val colors = CategoryPalette.forKey("sync")
 	var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -217,27 +203,39 @@ private fun SyncScreen(
 		}
 
 		if (state.isSignedIn) {
-			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
-			item {
-				LocalBackupSafetyNote(onOpenLocalBackup)
+			if (state.isLegacyDeviceActive) {
+				item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+				item {
+					PlainInfoSettingsItem(
+						text = stringResource(R.string.sync_legacy_device),
+						icon = R.drawable.ic_info_outline,
+					)
+				}
 			}
+
 			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
-			// Sync now + status
+			// Sync: keeps every device the same, all by itself. The status row doubles as "sync now".
 			item {
-				SettingsGroup {
+				SettingsGroup(title = stringResource(R.string.sync_section_sync)) {
 					item { pos ->
-						val subtitle = when {
+						val title = when {
 							isSyncing -> stringResource(R.string.sync_syncing)
 							state.lastError != null -> stringResource(R.string.sync_error)
+							state.lastSyncTimestamp > 0L -> stringResource(R.string.sync_up_to_date)
+							else -> stringResource(R.string.sync_never)
+						}
+						val subtitle = when {
+							isSyncing -> null
+							state.lastError != null -> stringResource(R.string.sync_tap_retry)
 							state.lastSyncTimestamp > 0L -> stringResource(
 								R.string.sync_last,
 								DateUtils.getRelativeTimeSpanString(state.lastSyncTimestamp).toString(),
 							)
 
-							else -> stringResource(R.string.sync_never)
+							else -> stringResource(R.string.sync_tap_to_sync)
 						}
 						ActionSettingsItem(
-							title = stringResource(R.string.sync_now),
+							title = title,
 							subtitle = subtitle,
 							icon = R.drawable.ic_sync,
 							shape = pos.shape,
@@ -245,13 +243,30 @@ private fun SyncScreen(
 							onClick = onSyncNow,
 						)
 					}
+					item { pos ->
+						MultiSelectSettingsItem(
+							title = stringResource(R.string.sync_what),
+							entries = contentEntries,
+							entryValues = contentValues,
+							selectedValues = state.enabledContent,
+							onValuesChange = onContentChange,
+							icon = R.drawable.ic_backup_restore,
+							shape = pos.shape,
+						)
+					}
 				}
+			}
+			item {
+				PlainInfoSettingsItem(
+					text = stringResource(R.string.sync_section_sync_info),
+					icon = R.drawable.ic_info_outline,
+				)
 			}
 
 			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
-			// Options
+			// Things that already happen by themselves — only for people who want control.
 			item {
-				SettingsGroup(title = stringResource(R.string.options)) {
+				SettingsGroup(title = stringResource(R.string.advanced)) {
 					item { pos ->
 						ListSettingsItem(
 							title = stringResource(R.string.sync_frequency),
@@ -272,44 +287,6 @@ private fun SyncScreen(
 							shape = pos.shape,
 						)
 					}
-					item { pos ->
-						SwitchSettingsItem(
-							title = stringResource(R.string.sync_on_start),
-							subtitle = stringResource(R.string.sync_on_start_summary),
-							checked = state.isSyncOnStart,
-							onCheckedChange = onSyncOnStartChange,
-							icon = R.drawable.ic_play,
-							shape = pos.shape,
-						)
-					}
-					item { pos ->
-						SwitchSettingsItem(
-							title = stringResource(R.string.sync_disable_deletion),
-							subtitle = stringResource(R.string.sync_disable_deletion_summary),
-							checked = state.isDeletionSyncDisabled,
-							onCheckedChange = onDeletionSyncDisabledChange,
-							icon = R.drawable.ic_lock,
-							shape = pos.shape,
-						)
-					}
-					item { pos ->
-						MultiSelectSettingsItem(
-							title = stringResource(R.string.sync_what),
-							entries = contentEntries,
-							entryValues = contentValues,
-							selectedValues = state.enabledContent,
-							onValuesChange = onContentChange,
-							icon = R.drawable.ic_backup_restore,
-							shape = pos.shape,
-						)
-					}
-				}
-			}
-
-			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
-			// Danger zone
-			item {
-				SettingsGroup {
 					item { pos ->
 						ActionSettingsItem(
 							title = stringResource(R.string.sync_delete_data),
@@ -337,27 +314,6 @@ private fun SyncScreen(
 			onDismiss = { showDeleteConfirm = false },
 		)
 	}
-}
-
-@Composable
-private fun LocalBackupSafetyNote(onOpenLocalBackup: () -> Unit) {
-	val message = stringResource(R.string.sync_local_backup_note)
-	val link = stringResource(R.string.local_backup)
-	val linkStart = message.indexOf(link).coerceAtLeast(0)
-	PlainInfoSettingsItem(
-		text = buildAnnotatedString {
-			append(message.substring(0, linkStart))
-			withLink(
-				LinkAnnotation.Clickable(
-					tag = "local_backup",
-					styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-					linkInteractionListener = { onOpenLocalBackup() },
-				),
-			) { append(link) }
-			append(message.substring((linkStart + link.length).coerceAtMost(message.length)))
-		},
-		icon = R.drawable.ic_info_outline,
-	)
 }
 
 @Composable

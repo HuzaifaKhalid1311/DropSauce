@@ -70,6 +70,9 @@ class ExtensionStoreRegistry @Inject constructor(
 	fun reconcileOwnerships(systemPackages: Set<String>, sandboxPackages: Set<String>) =
 		update { it.reconcileOwnerships(systemPackages, sandboxPackages) }
 
+	/** Drive sync's way in, under the same lock as local edits. */
+	fun applySynced(transform: (ExtensionStoreRegistryState) -> ExtensionStoreRegistryState) = update(transform)
+
 	fun findStore(storeId: String): ExtensionStoreRecord? = state.stores.firstOrNull { it.id == storeId }
 
 	fun containsStoreUrl(indexUrl: String): Boolean = state.containsStoreUrl(indexUrl)

@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.settings.work
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,6 +12,7 @@ import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
 import org.koitharu.kotatsu.sync.data.SyncSettings
+import org.koitharu.kotatsu.sync.work.SyncTrigger
 import org.koitharu.kotatsu.sync.work.SyncWorker
 import org.koitharu.kotatsu.tracker.work.TrackWorker
 import javax.inject.Inject
@@ -22,11 +22,11 @@ import javax.inject.Singleton
 class WorkScheduleManager @Inject constructor(
 	private val settings: AppSettings,
 	private val syncSettings: SyncSettings,
-	private val workManager: WorkManager,
 	private val suggestionScheduler: SuggestionsWorker.Scheduler,
 	private val trackerScheduler: TrackWorker.Scheduler,
 	private val backupScheduler: PeriodicalBackupWorker.Scheduler,
 	private val syncScheduler: SyncWorker.Scheduler,
+	private val syncTrigger: SyncTrigger,
 	private val extensionUpdateScheduler: ExtensionUpdateWorker.Scheduler,
 	@ApplicationContext private val context: Context,
 ) : SharedPreferences.OnSharedPreferenceChangeListener {
@@ -73,6 +73,7 @@ class WorkScheduleManager @Inject constructor(
 
 	fun init() {
 		settings.subscribe(this)
+		syncTrigger.init()
 		processLifecycleScope.launch(Dispatchers.Default) {
 			updateWorkerImpl(trackerScheduler, settings.isTrackerEnabled, true)
 			updateWorkerImpl(suggestionScheduler, settings.isSuggestionsEnabled, true)
@@ -81,8 +82,8 @@ class WorkScheduleManager @Inject constructor(
 				isEnabled = settings.isPeriodicalBackupEnabled && settings.periodicalBackupDirectory != null,
 				force = false,
 			)
-			// Sync interval lives in its own prefs file (not observed here); just re-assert the
-			// schedule on app start, and optionally kick off a one-shot sync if the user opted in.
+			// Sync interval lives in its own prefs file (not observed here); just re-assert the schedule.
+			// Foreground/background syncs are driven by SyncTrigger.
 			updateWorkerImpl(
 				scheduler = syncScheduler,
 				isEnabled = syncSettings.isSignedIn && syncSettings.intervalMinutes > 0,
@@ -92,9 +93,6 @@ class WorkScheduleManager @Inject constructor(
 			updateWorkerImpl(extensionUpdateScheduler, extensionUpdatesEnabled, force = false)
 			if (extensionUpdatesEnabled) {
 				extensionUpdateScheduler.startNow()
-			}
-			if (syncSettings.isSignedIn && syncSettings.isSyncOnStart) {
-				SyncWorker.enqueueManual(workManager)
 			}
 		}
 	}

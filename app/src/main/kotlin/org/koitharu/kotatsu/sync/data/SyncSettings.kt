@@ -4,21 +4,31 @@ import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.koitharu.kotatsu.sync.data.model.SyncContent
+import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Persistent settings for Google Drive sync, kept in their own prefs file so they don't get caught
- * up in the app-settings backup/restore. No OAuth tokens are stored here — those are managed by
- * Google Play Services and fetched on demand.
+ * Persistent settings for Google Drive sync, in their own prefs file so they never travel with the
+ * synced or backed-up app settings. No OAuth tokens are stored here — Play Services manages those.
  */
 @Singleton
 class SyncSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-	/** Email of the signed-in Google account, or null when signed out. */
+	// In noBackupFilesDir: an Android auto-backup restored onto a second phone must not give it this
+	// device's id, or both would write the same replica.
+	private val deviceIdFile = File(context.noBackupFilesDir, "sync_device_id")
+
+	init {
+		// Settings of the previous sync implementation.
+		if (prefs.contains(KEY_LEGACY_CONFIG_HASH) || prefs.contains(KEY_LEGACY_DEVICE_ID)) {
+			prefs.edit { LEGACY_KEYS.forEach { remove(it) } }
+		}
+	}
+
 	var accountEmail: String?
 		get() = prefs.getString(KEY_ACCOUNT_EMAIL, null)
 		set(value) = prefs.edit { putString(KEY_ACCOUNT_EMAIL, value) }
@@ -27,12 +37,11 @@ class SyncSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_ACCOUNT_NAME, null)
 		set(value) = prefs.edit { putString(KEY_ACCOUNT_NAME, value) }
 
-	/** URL of the signed-in account's profile picture, or null. */
 	var accountPhotoUrl: String?
 		get() = prefs.getString(KEY_ACCOUNT_PHOTO, null)
 		set(value) = prefs.edit { putString(KEY_ACCOUNT_PHOTO, value) }
 
-	/** When true the account email is blurred in the UI. */
+	/** When true the account name and email are blurred in the UI. */
 	var isEmailHidden: Boolean
 		get() = prefs.getBoolean(KEY_EMAIL_HIDDEN, false)
 		set(value) = prefs.edit { putBoolean(KEY_EMAIL_HIDDEN, value) }
@@ -40,13 +49,12 @@ class SyncSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isSignedIn: Boolean
 		get() = !accountEmail.isNullOrEmpty()
 
-	/** Stable per-install id, used to decide whether the remote snapshot came from this device. */
-	val deviceId: String
-		get() = prefs.getString(KEY_DEVICE_ID, null) ?: UUID.randomUUID().toString().also {
-			prefs.edit { putString(KEY_DEVICE_ID, it) }
-		}
+	val deviceId: String by lazy {
+		deviceIdFile.takeIf { it.isFile }?.readText()?.trim()?.takeIf { it.isNotEmpty() }
+			?: UUID.randomUUID().toString().replace("-", "").also { deviceIdFile.writeText(it) }
+	}
 
-	/** Periodic sync interval in minutes; 0 means manual-only. Defaults to every 6 hours. */
+	/** Background sync interval in minutes; 0 turns background sync off. Defaults to every 6 hours. */
 	var intervalMinutes: Int
 		get() = prefs.getString(KEY_INTERVAL, "360")?.toIntOrNull() ?: 360
 		set(value) = prefs.edit { putString(KEY_INTERVAL, value.toString()) }
@@ -54,18 +62,6 @@ class SyncSettings @Inject constructor(@ApplicationContext context: Context) {
 	var isWifiOnly: Boolean
 		get() = prefs.getBoolean(KEY_WIFI_ONLY, false)
 		set(value) = prefs.edit { putBoolean(KEY_WIFI_ONLY, value) }
-
-	var isSyncOnStart: Boolean
-		get() = prefs.getBoolean(KEY_SYNC_ON_START, true)
-		set(value) = prefs.edit { putBoolean(KEY_SYNC_ON_START, value) }
-
-	/**
-	 * Keeps favorite/history deletions local instead of uploading them to other devices.
-	 * Enabled by default so an accidental deletion cannot fan out through sync.
-	 */
-	var isDeletionSyncDisabled: Boolean
-		get() = prefs.getBoolean(KEY_DISABLE_DELETION_SYNC, true)
-		set(value) = prefs.edit { putBoolean(KEY_DISABLE_DELETION_SYNC, value) }
 
 	var enabledContent: Set<String>
 		get() = prefs.getStringSet(KEY_CONTENT, null) ?: SyncContent.DEFAULT
@@ -79,33 +75,55 @@ class SyncSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_LAST_ERROR, null)
 		set(value) = prefs.edit { putString(KEY_LAST_ERROR, value) }
 
-	/** Local revision of the config bundle (settings/covers/etc.), bumped when its content changes. */
-	var configRevision: Long
-		get() = prefs.getLong(KEY_CONFIG_REVISION, 0L)
-		set(value) = prefs.edit { putLong(KEY_CONFIG_REVISION, value) }
+	/** sha-1 of the replica content last uploaded, to skip identical uploads. */
+	var lastUploadHash: String?
+		get() = prefs.getString(KEY_UPLOAD_HASH, null)
+		set(value) = prefs.edit { putString(KEY_UPLOAD_HASH, value) }
 
-	/** Hash of the config bundle at the last sync, to detect local config changes. */
-	var configHash: String?
-		get() = prefs.getString(KEY_CONFIG_HASH, null)
-		set(value) = prefs.edit { putString(KEY_CONFIG_HASH, value) }
+	/** Change-tracking fingerprint at the last replica build; equal means nothing changed locally. */
+	var lastBuildFingerprint: String?
+		get() = prefs.getString(KEY_BUILD_FINGERPRINT, null)
+		set(value) = prefs.edit { putString(KEY_BUILD_FINGERPRINT, value) }
 
-	// Feed rows (track_logs) have no soft-delete column, so a locally-deleted feed item is
-	// indistinguishable from a not-yet-seen remote one during merge. This per-device baseline records
-	// the feed identities present at the last successful sync; the diff against the current local set
-	// tells us what was deleted here, so deletions can be honoured instead of resurrected.
-	var lastSyncedFeedIds: Set<String>
-		get() = prefs.getStringSet(KEY_FEED_BASELINE, null).orEmpty()
-		set(value) = prefs.edit { putStringSet(KEY_FEED_BASELINE, value) }
+	/** The "what to sync" selection the last successful sync ran with. */
+	var lastSyncedContent: Set<String>?
+		get() = prefs.getStringSet(KEY_SYNCED_CONTENT, null)
+		set(value) = prefs.edit { putStringSet(KEY_SYNCED_CONTENT, value) }
 
-	fun clearAccount() = prefs.edit {
-		remove(KEY_ACCOUNT_EMAIL)
-		remove(KEY_ACCOUNT_NAME)
-		remove(KEY_ACCOUNT_PHOTO)
+	var lastHousekeeping: Long
+		get() = prefs.getLong(KEY_HOUSEKEEPING, 0L)
+		set(value) = prefs.edit { putLong(KEY_HOUSEKEEPING, value) }
+
+	/** When this install first synced with replicas; an older-format file written later means an old app. */
+	var replicaSince: Long
+		get() = prefs.getLong(KEY_REPLICA_SINCE, 0L)
+		set(value) = prefs.edit { putLong(KEY_REPLICA_SINCE, value) }
+
+	/** Last time the old single-file format was written by a not-yet-updated device, or 0. */
+	var legacyWriterSeenAt: Long
+		get() = prefs.getLong(KEY_LEGACY_WRITER, 0L)
+		set(value) = prefs.edit { putLong(KEY_LEGACY_WRITER, value) }
+
+	/** Forget everything tied to the Drive account (not user preferences like interval or content). */
+	fun clearAccount() {
+		prefs.edit {
+			remove(KEY_ACCOUNT_EMAIL)
+			remove(KEY_ACCOUNT_NAME)
+			remove(KEY_ACCOUNT_PHOTO)
+			remove(KEY_LAST_ERROR)
+		}
+		clearRemoteState()
+	}
+
+	/** Forget what is in Drive, so the next sync re-reads and re-uploads everything. */
+	fun clearRemoteState() = prefs.edit {
 		remove(KEY_LAST_SYNC)
-		remove(KEY_LAST_ERROR)
-		remove(KEY_CONFIG_REVISION)
-		remove(KEY_CONFIG_HASH)
-		remove(KEY_FEED_BASELINE)
+		remove(KEY_UPLOAD_HASH)
+		remove(KEY_BUILD_FINGERPRINT)
+		remove(KEY_LEGACY_WRITER)
+		remove(KEY_SYNCED_CONTENT)
+		remove(KEY_HOUSEKEEPING)
+		remove(KEY_REPLICA_SINCE) // the next sync joins that cloud again
 	}
 
 	companion object {
@@ -115,16 +133,27 @@ class SyncSettings @Inject constructor(@ApplicationContext context: Context) {
 		private const val KEY_ACCOUNT_NAME = "account_name"
 		private const val KEY_ACCOUNT_PHOTO = "account_photo"
 		private const val KEY_EMAIL_HIDDEN = "email_hidden"
-		private const val KEY_DEVICE_ID = "device_id"
-		const val KEY_INTERVAL = "interval"
-		const val KEY_WIFI_ONLY = "wifi_only"
-		const val KEY_SYNC_ON_START = "sync_on_start"
-		const val KEY_DISABLE_DELETION_SYNC = "disable_deletion_sync"
-		const val KEY_CONTENT = "content"
+		private const val KEY_INTERVAL = "interval"
+		private const val KEY_WIFI_ONLY = "wifi_only"
+		private const val KEY_CONTENT = "content"
 		private const val KEY_LAST_SYNC = "last_sync"
 		private const val KEY_LAST_ERROR = "last_error"
-		private const val KEY_CONFIG_REVISION = "config_revision"
-		private const val KEY_CONFIG_HASH = "config_hash"
-		private const val KEY_FEED_BASELINE = "feed_baseline"
+		private const val KEY_UPLOAD_HASH = "upload_hash"
+		private const val KEY_BUILD_FINGERPRINT = "build_fingerprint"
+		private const val KEY_HOUSEKEEPING = "housekeeping"
+		private const val KEY_SYNCED_CONTENT = "synced_content"
+		private const val KEY_REPLICA_SINCE = "replica_since"
+		private const val KEY_LEGACY_WRITER = "legacy_writer"
+
+		private const val KEY_LEGACY_CONFIG_HASH = "config_hash"
+		private const val KEY_LEGACY_DEVICE_ID = "device_id"
+		private val LEGACY_KEYS = arrayOf(
+			KEY_LEGACY_DEVICE_ID,
+			KEY_LEGACY_CONFIG_HASH,
+			"config_revision",
+			"feed_baseline",
+			"sync_on_start",
+			"disable_deletion_sync",
+		)
 	}
 }

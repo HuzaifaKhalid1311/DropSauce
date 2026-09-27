@@ -104,6 +104,7 @@ class WelcomeViewModel @Inject constructor(
 			if (account != null) {
 				syncRepository.onSignedIn(account.email, account.displayName, account.photoUrl?.toString())
 				syncScheduler.schedule()
+				syncScheduler.syncSoon() // bring the library over now, not at the next periodic run
 				onGoogleSignInCompleted.call(true)
 			} else {
 				onGoogleSignInCompleted.call(false)

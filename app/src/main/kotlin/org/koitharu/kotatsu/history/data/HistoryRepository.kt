@@ -175,23 +175,7 @@ class HistoryRepository @Inject constructor(
 				deletedAt = 0L,
 			),
 		)
-		val unreadLogs = db.getTrackLogsDao().findUnreadByManga(manga.id)
-		if (unreadLogs.isNotEmpty()) {
-			val allChapters = db.getChaptersDao().findAll(manga.id)
-			val lastReadChapterIndex = allChapters.indexOfFirst { it.chapterId == chapterId }
-			if (lastReadChapterIndex != -1) {
-				for (log in unreadLogs) {
-					val logChapterIds = log.chapterIds.split('\n').mapNotNull { it.toLongOrNull() }
-					val allLogChaptersRead = logChapterIds.all { chId ->
-						val chIndex = allChapters.indexOfFirst { it.chapterId == chId }
-						chIndex != -1 && chIndex <= lastReadChapterIndex
-					}
-					if (allLogChaptersRead) {
-						db.getTrackLogsDao().markLogAsRead(log.id)
-					}
-				}
-			}
-		}
+		db.markFeedReadUpTo(manga.id, chapterId)
 		newChaptersUseCaseProvider.get()(manga, chapterId)
 		if (updateScrobblers) {
 			scrobblers.forEach { it.tryScrobble(manga, chapterId) }
@@ -290,6 +274,29 @@ class HistoryRepository @Inject constructor(
 	}
 
 	private fun HistoryWithManga.toManga() = manga.toManga(tags.toMangaTags(), null)
+}
+
+/** Marks feed entries whose chapters all lie at or before [chapterId] as read. DB-only. */
+suspend fun MangaDatabase.markFeedReadUpTo(mangaId: Long, chapterId: Long) {
+	val unreadLogs = getTrackLogsDao().findUnreadByManga(mangaId)
+	if (unreadLogs.isEmpty()) {
+		return
+	}
+	val allChapters = getChaptersDao().findAll(mangaId)
+	val lastReadChapterIndex = allChapters.indexOfFirst { it.chapterId == chapterId }
+	if (lastReadChapterIndex == -1) {
+		return
+	}
+	for (log in unreadLogs) {
+		val logChapterIds = log.chapterIds.split('\n').mapNotNull { it.toLongOrNull() }
+		val allLogChaptersRead = logChapterIds.all { chId ->
+			val chIndex = allChapters.indexOfFirst { it.chapterId == chId }
+			chIndex != -1 && chIndex <= lastReadChapterIndex
+		}
+		if (allLogChaptersRead) {
+			getTrackLogsDao().markLogAsRead(log.id)
+		}
+	}
 }
 
 internal fun canAdvanceFromTracking(

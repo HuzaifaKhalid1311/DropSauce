@@ -27,11 +27,10 @@ data class SyncUiState(
 	val isEmailHidden: Boolean = false,
 	val intervalMinutes: Int = 0,
 	val isWifiOnly: Boolean = false,
-	val isSyncOnStart: Boolean = false,
-	val isDeletionSyncDisabled: Boolean = true,
 	val enabledContent: Set<String> = SyncContent.DEFAULT,
 	val lastSyncTimestamp: Long = 0L,
 	val lastError: String? = null,
+	val isLegacyDeviceActive: Boolean = false,
 )
 
 sealed interface SyncEvent {
@@ -49,6 +48,7 @@ class SyncSettingsViewModel @Inject constructor(
 ) : BaseViewModel() {
 
 	val uiState = MutableStateFlow(readState())
+
 	val isSyncing = repository.isSyncing
 	val events = MutableEventFlow<SyncEvent>()
 
@@ -82,7 +82,7 @@ class SyncSettingsViewModel @Inject constructor(
 
 	/** Runs a sync in the foreground and reports the outcome to the user. */
 	private suspend fun runSync() {
-		when (val result = repository.sync()) {
+		when (val result = repository.sync(force = true)) {
 			is SyncResult.Success -> events.call(SyncEvent.Message(R.string.sync_completed))
 			is SyncResult.SignInRequired -> events.call(SyncEvent.Error(null))
 			is SyncResult.Error -> events.call(SyncEvent.Error(result.message))
@@ -112,16 +112,6 @@ class SyncSettingsViewModel @Inject constructor(
 	fun setWifiOnly(value: Boolean) {
 		syncSettings.isWifiOnly = value
 		launchJob(Dispatchers.Default) { scheduler.schedule() }
-		refresh()
-	}
-
-	fun setSyncOnStart(value: Boolean) {
-		syncSettings.isSyncOnStart = value
-		refresh()
-	}
-
-	fun setDeletionSyncDisabled(value: Boolean) {
-		syncSettings.isDeletionSyncDisabled = value
 		refresh()
 	}
 
@@ -158,10 +148,14 @@ class SyncSettingsViewModel @Inject constructor(
 		isEmailHidden = syncSettings.isEmailHidden,
 		intervalMinutes = syncSettings.intervalMinutes,
 		isWifiOnly = syncSettings.isWifiOnly,
-		isSyncOnStart = syncSettings.isSyncOnStart,
-		isDeletionSyncDisabled = syncSettings.isDeletionSyncDisabled,
 		enabledContent = syncSettings.enabledContent,
 		lastSyncTimestamp = syncSettings.lastSyncTimestamp,
 		lastError = syncSettings.lastSyncError,
+		isLegacyDeviceActive = System.currentTimeMillis() - syncSettings.legacyWriterSeenAt < LEGACY_NOTICE_MS,
 	)
+
+	private companion object {
+
+		const val LEGACY_NOTICE_MS = 14L * 24 * 60 * 60 * 1000
+	}
 }

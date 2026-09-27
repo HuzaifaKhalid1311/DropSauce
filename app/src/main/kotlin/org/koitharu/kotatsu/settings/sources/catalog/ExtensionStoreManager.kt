@@ -108,7 +108,9 @@ class ExtensionStoreManager @Inject constructor(
 	suspend fun initialize(forceRefresh: Boolean = false) = mutex.withLock {
 		withContext(Dispatchers.IO) {
 			val migrationPerformed = ensureMigrated()
-			if (!initialized || forceRefresh) {
+			// Drive sync can add or remove stores behind our back.
+			val isStale = registry.state.stores.map { it.id } != mutableStates.value.map { it.store.id }
+			if (!initialized || forceRefresh || isStale) {
 				refreshLocked(shouldForceStoreRefresh(forceRefresh, migrationPerformed))
 				initialized = true
 			}

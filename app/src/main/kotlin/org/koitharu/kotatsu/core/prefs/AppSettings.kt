@@ -1496,6 +1496,64 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			KEY_ONBOARDING_INSTALL_ID,
 		)
 
+		/**
+		 * Kept out of Drive sync (but not backups): this device's layout, storage locations, installer
+		 * capabilities, caches and one-shot flags. Several are written by the app itself, so syncing them
+		 * would make background writes look like user edits.
+		 */
+		private val SYNC_LOCAL_KEYS = setOf(
+			KEY_GRID_SIZE,
+			KEY_GRID_SIZE_PAGES,
+			KEY_GRID_SPACING_INCREASED,
+			KEY_GRID_VIEW_CHAPTERS,
+			KEY_LIST_MODE,
+			KEY_LIST_MODE_HISTORY,
+			KEY_LIST_MODE_FAVORITES,
+			KEY_LIST_MODE_SUGGESTIONS,
+			KEY_SOURCES_GRID,
+			KEY_UI_SCALE,
+			KEY_UI_SCALE_RESET,
+			KEY_NAV_MAIN,
+			KEY_NAV_LABELS,
+			KEY_NAV_LEGACY,
+			KEY_NAV_PINNED_RESET,
+			KEY_READER_DOUBLE_FOLDABLE,
+			KEY_32BIT_COLOR,
+			KEY_LOCAL_STORAGE,
+			KEY_LOCAL_MANGA_DIRS,
+			KEY_PAGES_SAVE_DIR,
+			KEY_EPUB_CUSTOM_FONT_NAME,
+			KEY_EPUB_CUSTOM_FONT_REVISION,
+			KEY_BACKUP_PERIODICAL_ENABLED,
+			KEY_BACKUP_PERIODICAL_OUTPUT,
+			KEY_BACKUP_PERIODICAL_FREQ,
+			KEY_BACKUP_PERIODICAL_TRIM,
+			KEY_BACKUP_PERIODICAL_COUNT,
+			KEY_SHIZUKU_INSTALLER,
+			KEY_PRIVATE_INSTALLER,
+			KEY_AUTO_UPDATE_EXTENSIONS,
+			KEY_PROXY_TYPE,
+			KEY_PROXY_ADDRESS,
+			KEY_PROXY_PORT,
+			KEY_VERBOSE_LOGGING,
+			KEY_DISCORD_TOKEN,
+			KEY_EXTENSION_UPDATES_AVAILABLE,
+			KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME,
+			KEY_MIHON_REPO_INFOS,
+			KEY_EXTENSION_STORE_REGISTRY, // synced store by store instead (SyncedStores)
+			KEY_EXTENSION_STORE_MIGRATED,
+			KEY_NOVEL_SOURCE_IDS,
+			KEY_DETAILS_LAST_TAB,
+			KEY_APP_VERSION,
+			KEY_UPDATE_PROMPT_DISMISSED,
+			KEY_PRELOAD_POLICIES_RESET,
+		)
+
+		fun isSyncableKey(key: String): Boolean = key !in SENSITIVE_BACKUP_KEYS &&
+			key !in DEVICE_LOCAL_KEYS &&
+			key !in SYNC_LOCAL_KEYS &&
+			!key.startsWith(KEY_LIST_CHECKPOINT + '_') // per-list scroll positions
+
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"
 		const val KEY_CLEAR_MANGA_DATA = "manga_data_clear"

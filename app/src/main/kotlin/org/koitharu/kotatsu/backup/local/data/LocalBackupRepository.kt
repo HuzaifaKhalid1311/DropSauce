@@ -29,14 +29,17 @@ import org.koitharu.kotatsu.backup.local.data.model.CategoryBackup
 import org.koitharu.kotatsu.backup.local.data.model.ChapterBackup
 import org.koitharu.kotatsu.backup.local.data.model.FavouriteBackup
 import org.koitharu.kotatsu.backup.local.data.model.FeedBackup
+import org.koitharu.kotatsu.backup.local.data.model.FeedLogBackup
 import org.koitharu.kotatsu.backup.local.data.model.HistoryBackup
 import org.koitharu.kotatsu.backup.local.data.model.MangaBackup
 import org.koitharu.kotatsu.backup.local.data.model.MangaPrefsBackup
+import org.koitharu.kotatsu.backup.local.data.model.MangaPrefsDataBackup
 import org.koitharu.kotatsu.backup.local.data.model.MangaWithChaptersBackup
 import org.koitharu.kotatsu.backup.local.data.model.ScrobblingBackup
 import org.koitharu.kotatsu.backup.local.data.model.SourceBackup
 import org.koitharu.kotatsu.backup.local.data.model.SourceSettingsBackup
 import org.koitharu.kotatsu.backup.local.data.model.StatsBackup
+import org.koitharu.kotatsu.backup.local.data.model.TrackBackup
 import org.koitharu.kotatsu.backup.local.domain.BackupSection
 import org.koitharu.kotatsu.backup.local.domain.CustomCoverCodec
 import org.koitharu.kotatsu.core.db.MangaDatabase
@@ -46,10 +49,8 @@ import org.koitharu.kotatsu.core.util.CompositeResult
 import org.koitharu.kotatsu.core.util.progress.Progress
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.reader.data.TapGridSettings
-import org.koitharu.kotatsu.sync.data.model.SyncFeedEntry
-import org.koitharu.kotatsu.sync.data.model.SyncMangaPrefs
-import org.koitharu.kotatsu.sync.data.model.SyncTrack
-import org.koitharu.kotatsu.sync.domain.SyncMerger
+import org.koitharu.kotatsu.sync.data.db.SyncTriggers
+import org.koitharu.kotatsu.sync.data.model.FeedKeys
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.ZipEntry
@@ -96,11 +97,16 @@ class LocalBackupRepository @Inject constructor(
 					serializer = serializer(),
 				)
 
-				BackupSection.CATEGORIES -> output.writeJsonArray(
-					section = BackupSection.CATEGORIES,
-					data = database.getFavouriteCategoriesDao().findAll().asFlow().map(::CategoryBackup),
-					serializer = serializer(),
-				)
+				BackupSection.CATEGORIES -> {
+					val uids = database.getSyncDao().findRows(SyncTriggers.CATEGORIES).associate { it.pk to it.syncKey }
+					output.writeJsonArray(
+						section = BackupSection.CATEGORIES,
+						data = database.getFavouriteCategoriesDao().findAll().asFlow().map {
+							CategoryBackup(it, uids[it.categoryId.toString()])
+						},
+						serializer = serializer(),
+					)
+				}
 
 				BackupSection.FAVOURITES -> output.writeJsonArray(
 					section = BackupSection.FAVOURITES,
@@ -198,6 +204,7 @@ class LocalBackupRepository @Inject constructor(
 
 					BackupSection.CATEGORIES -> input.readJsonArray<CategoryBackup>(serializer()).restoreToDb {
 						getFavouriteCategoriesDao().upsert(it.toEntity())
+						it.uid?.let { uid -> getSyncDao().setKey(SyncTriggers.CATEGORIES, it.categoryId.toString(), uid) }
 					}
 
 					BackupSection.FAVOURITES -> input.readJsonArray<FavouriteBackup>(serializer()).restoreToDb {
@@ -351,10 +358,10 @@ class LocalBackupRepository @Inject constructor(
 		suspend fun mangaOf(id: Long): MangaBackup? =
 			mangaCache.getOrPut(id) { mangaDao.find(id)?.let(::MangaBackup) }
 		val tracks = database.getTracksDao().findAllForSync().mapNotNull { entity ->
-			mangaOf(entity.mangaId)?.let { SyncTrack(entity, it) }
+			mangaOf(entity.mangaId)?.let { TrackBackup(entity, it) }
 		}
 		val logs = database.getTrackLogsDao().findAllForSync().mapNotNull { entity ->
-			mangaOf(entity.mangaId)?.let { SyncFeedEntry(entity, it) }
+			mangaOf(entity.mangaId)?.let { FeedLogBackup(entity, it) }
 		}
 		return FeedBackup(tracks = tracks, logs = logs)
 	}
@@ -367,7 +374,7 @@ class LocalBackupRepository @Inject constructor(
 			emit(
 				MangaPrefsBackup(
 					manga = MangaBackup(manga),
-					prefs = SyncMangaPrefs(
+					prefs = MangaPrefsDataBackup(
 						entity = entity,
 						coverData = cover?.data,
 						coverFileExtension = cover?.extension,
@@ -382,16 +389,16 @@ class LocalBackupRepository @Inject constructor(
 			val backup = json.decodeFromString<FeedBackup>(input.readBytes().decodeToString())
 			val logsDao = database.getTrackLogsDao()
 			// Local log ids are per-device autoincrement, so match by the stable cross-device
-			// identity (manga id + chapter titles) to keep repeated restores from duplicating the feed.
+			// identity (manga id + chapters) to keep repeated restores from duplicating the feed.
 			val existing = logsDao.findAllForSync()
-				.mapTo(HashSet()) { SyncMerger.feedIdentity(it.mangaId, it.chapters) }
+				.mapTo(HashSet()) { FeedKeys.of(it.mangaId, it.chapterIds, it.chapters) }
 			database.withTransaction {
 				for (track in backup.tracks) {
 					database.upsertMangaBackup(track.manga)
 					database.getTracksDao().upsert(track.toEntity())
 				}
 				for (log in backup.logs) {
-					if (!existing.add(SyncMerger.feedIdentity(log))) {
+					if (!existing.add(FeedKeys.of(log.mangaId, log.chapterIds, log.chapters))) {
 						continue
 					}
 					database.upsertMangaBackup(log.manga)

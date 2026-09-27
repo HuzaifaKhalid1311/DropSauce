@@ -17,6 +17,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -27,8 +28,6 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
-import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.core.util.ext.trySetForeground
 import org.koitharu.kotatsu.settings.work.PeriodicWorkScheduler
 import org.koitharu.kotatsu.sync.data.SyncSettings
 import org.koitharu.kotatsu.sync.domain.GoogleDriveSyncRepository
@@ -36,6 +35,7 @@ import org.koitharu.kotatsu.sync.domain.SyncResult
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+/** Background sync: the periodic fallback and the push when the app goes to the background. */
 @HiltWorker
 class SyncWorker @AssistedInject constructor(
 	@Assisted context: Context,
@@ -45,24 +45,16 @@ class SyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, workerParams) {
 
 	override suspend fun doWork(): Result {
-		trySetForeground()
-		return try {
-			when (val result = repository.sync()) {
-				is SyncResult.Success -> Result.success()
-				is SyncResult.SignInRequired -> {
-					// Background sync is dead until the user re-consents — say so instead of
-					// failing silently forever.
-					if (syncSettings.isSignedIn) {
-						showSignInRequiredNotification()
-					}
-					Result.failure()
-				}
-				is SyncResult.Error ->
-					if (result.retryable && runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
+		// Waits for a sync the app may still be running, so changes made right before leaving it go out.
+		return when (val result = repository.sync(force = true)) {
+			is SyncResult.Success -> Result.success()
+			is SyncResult.SignInRequired -> {
+				// Background sync is dead until the user re-consents — say so instead of failing forever.
+				if (syncSettings.isSignedIn) showSignInRequiredNotification()
+				Result.failure()
 			}
-		} catch (e: Exception) {
-			e.printStackTraceDebug()
-			if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
+
+			is SyncResult.Error -> if (result.retryable && runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()
 		}
 	}
 
@@ -122,11 +114,8 @@ class SyncWorker @AssistedInject constructor(
 			if (intervalMinutes <= 0 || !syncSettings.isSignedIn) {
 				return unschedule()
 			}
-			val constraints = Constraints.Builder()
-				.setRequiredNetworkType(if (syncSettings.isWifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
-				.build()
 			val request = PeriodicWorkRequestBuilder<SyncWorker>(intervalMinutes.toLong(), TimeUnit.MINUTES)
-				.setConstraints(constraints)
+				.setConstraints(constraints(syncSettings.isWifiOnly))
 				.addTag(TAG_PERIODIC)
 				.setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.MINUTES)
 				.build()
@@ -139,6 +128,22 @@ class SyncWorker @AssistedInject constructor(
 
 		override suspend fun isScheduled(): Boolean =
 			workManager.awaitUniqueWorkInfoByName(TAG_PERIODIC).any { !it.state.isFinished }
+
+		/** Runs a sync as soon as the network allows, surviving the app process being killed. */
+		fun syncSoon() {
+			val request = OneTimeWorkRequestBuilder<SyncWorker>()
+				.setConstraints(constraints(syncSettings.isWifiOnly))
+				.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+				.addTag(TAG_SOON)
+				.setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.SECONDS)
+				.build()
+			// Append rather than replace: a sync already running is never cut off half-way.
+			workManager.enqueueUniqueWork(TAG_SOON, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
+		}
+
+		private fun constraints(isWifiOnly: Boolean) = Constraints.Builder()
+			.setRequiredNetworkType(if (isWifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
+			.build()
 	}
 
 	companion object {
@@ -147,20 +152,8 @@ class SyncWorker @AssistedInject constructor(
 		private const val FOREGROUND_NOTIFICATION_ID = 45
 		private const val SIGN_IN_NOTIFICATION_ID = 46
 		private const val TAG_PERIODIC = "gdrive_sync_periodic"
-		private const val TAG_MANUAL = "gdrive_sync_manual"
+		private const val TAG_SOON = "gdrive_sync_soon"
 		private const val MAX_ATTEMPTS = 3
-
-		fun enqueueManual(workManager: WorkManager) {
-			val constraints = Constraints.Builder()
-				.setRequiredNetworkType(NetworkType.CONNECTED)
-				.build()
-			val request = OneTimeWorkRequestBuilder<SyncWorker>()
-				.setConstraints(constraints)
-				.addTag(TAG_MANUAL)
-				.setBackoffCriteria(BackoffPolicy.LINEAR, 30, TimeUnit.SECONDS)
-				.build()
-			workManager.enqueueUniqueWork(TAG_MANUAL, ExistingWorkPolicy.KEEP, request)
-		}
 
 		fun createNotificationChannel(context: Context) {
 			val channel = NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)

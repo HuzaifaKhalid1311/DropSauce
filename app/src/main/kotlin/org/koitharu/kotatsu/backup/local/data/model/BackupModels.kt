@@ -16,9 +16,9 @@ import org.koitharu.kotatsu.history.data.HistoryEntity
 import org.koitharu.kotatsu.history.data.HistoryWithManga
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.stats.data.StatsEntity
-import org.koitharu.kotatsu.sync.data.model.SyncFeedEntry
-import org.koitharu.kotatsu.sync.data.model.SyncMangaPrefs
-import org.koitharu.kotatsu.sync.data.model.SyncTrack
+import org.koitharu.kotatsu.core.db.entity.MangaPrefsEntity
+import org.koitharu.kotatsu.tracker.data.TrackEntity
+import org.koitharu.kotatsu.tracker.data.TrackLogEntity
 
 @Serializable
 class BackupIndex(
@@ -83,6 +83,7 @@ class MangaBackup(
 	@SerialName("source") val source: String,
 	@SerialName("source_title") val sourceTitle: String? = null,
 	@SerialName("tags") val tags: Set<TagBackup> = emptySet(),
+	@SerialName("details_updated_at") val detailsUpdatedAt: Long = 0L,
 ) {
 
 	constructor(entity: MangaWithTags) : this(
@@ -102,6 +103,7 @@ class MangaBackup(
 		source = entity.manga.source,
 		sourceTitle = entity.manga.sourceTitle,
 		tags = entity.tags.map(::TagBackup).toSet(),
+		detailsUpdatedAt = entity.manga.detailsUpdatedAt,
 	)
 
 	fun toEntity() = MangaEntity(
@@ -120,6 +122,7 @@ class MangaBackup(
 		description = description,
 		source = source,
 		sourceTitle = sourceTitle,
+		detailsUpdatedAt = detailsUpdatedAt,
 	)
 }
 
@@ -183,9 +186,11 @@ class CategoryBackup(
 	@SerialName("track") val track: Boolean = true,
 	@SerialName("download_new_chapters") val downloadNewChapters: Boolean = false,
 	@SerialName("show_in_lib") val isVisibleInLibrary: Boolean = true,
+	/** Cross-device category identity used by Drive sync; restoring it keeps the category the same one. */
+	@SerialName("uid") val uid: String? = null,
 ) {
 
-	constructor(entity: FavouriteCategoryEntity) : this(
+	constructor(entity: FavouriteCategoryEntity, uid: String? = null) : this(
 		categoryId = entity.categoryId,
 		createdAt = entity.createdAt,
 		sortKey = entity.sortKey,
@@ -194,6 +199,7 @@ class CategoryBackup(
 		track = entity.track,
 		downloadNewChapters = entity.downloadNewChapters,
 		isVisibleInLibrary = entity.isVisibleInLibrary,
+		uid = uid,
 	)
 
 	fun toEntity() = FavouriteCategoryEntity(
@@ -420,19 +426,134 @@ class SourceBackup(
 /** New-chapters feed: tracked state per manga plus the visible feed entries. */
 @Serializable
 class FeedBackup(
-	@SerialName("tracks") val tracks: List<SyncTrack> = emptyList(),
-	@SerialName("logs") val logs: List<SyncFeedEntry> = emptyList(),
+	@SerialName("tracks") val tracks: List<TrackBackup> = emptyList(),
+	@SerialName("logs") val logs: List<FeedLogBackup> = emptyList(),
 )
 
-/**
- * Per-manga overrides (custom cover/title/reader prefs). Reuses the sync model, which carries the
- * cover as base64 [SyncMangaPrefs.coverData] so it can be re-materialized on another device.
- */
+/** A visible feed entry. Local ids are per-device, so the manga plus its chapters identify it. */
+@Serializable
+class FeedLogBackup(
+	@SerialName("manga_id") val mangaId: Long,
+	@SerialName("chapters") val chapters: String,
+	@SerialName("chapter_ids") val chapterIds: String = "",
+	@SerialName("created_at") val createdAt: Long,
+	@SerialName("unread") val isUnread: Boolean,
+	@SerialName("manga") val manga: MangaBackup,
+) {
+
+	constructor(entity: TrackLogEntity, manga: MangaBackup) : this(
+		mangaId = entity.mangaId,
+		chapters = entity.chapters,
+		chapterIds = entity.chapterIds,
+		createdAt = entity.createdAt,
+		isUnread = entity.isUnread,
+		manga = manga,
+	)
+
+	fun toEntity() = TrackLogEntity(
+		mangaId = mangaId,
+		chapters = chapters,
+		chapterIds = chapterIds,
+		createdAt = createdAt,
+		isUnread = isUnread,
+	)
+}
+
+@Serializable
+class TrackBackup(
+	@SerialName("manga_id") val mangaId: Long,
+	@SerialName("last_chapter_id") val lastChapterId: Long,
+	@SerialName("chapters_new") val newChapters: Int,
+	@SerialName("last_check_time") val lastCheckTime: Long,
+	@SerialName("last_chapter_date") val lastChapterDate: Long,
+	@SerialName("last_result") val lastResult: Int,
+	@SerialName("last_error") val lastError: String? = null,
+	@SerialName("manga") val manga: MangaBackup,
+) {
+
+	constructor(entity: TrackEntity, manga: MangaBackup) : this(
+		mangaId = entity.mangaId,
+		lastChapterId = entity.lastChapterId,
+		newChapters = entity.newChapters,
+		lastCheckTime = entity.lastCheckTime,
+		lastChapterDate = entity.lastChapterDate,
+		lastResult = entity.lastResult,
+		lastError = entity.lastError,
+		manga = manga,
+	)
+
+	fun toEntity() = TrackEntity(
+		mangaId = mangaId,
+		lastChapterId = lastChapterId,
+		newChapters = newChapters,
+		lastCheckTime = lastCheckTime,
+		lastChapterDate = lastChapterDate,
+		lastResult = lastResult,
+		lastError = lastError,
+	)
+}
+
+/** Per-manga overrides (custom cover/title/reader prefs); a local cover travels as base64 [MangaPrefsDataBackup.coverData]. */
 @Serializable
 class MangaPrefsBackup(
 	@SerialName("manga") val manga: MangaBackup,
-	@SerialName("prefs") val prefs: SyncMangaPrefs,
+	@SerialName("prefs") val prefs: MangaPrefsDataBackup,
 )
+
+@Serializable
+class MangaPrefsDataBackup(
+	@SerialName("manga_id") val mangaId: Long,
+	@SerialName("mode") val mode: Int,
+	@SerialName("cf_brightness") val cfBrightness: Float,
+	@SerialName("cf_contrast") val cfContrast: Float,
+	@SerialName("cf_invert") val cfInvert: Boolean,
+	@SerialName("cf_grayscale") val cfGrayscale: Boolean,
+	@SerialName("cf_book") val cfBookEffect: Boolean,
+	@SerialName("title_override") val titleOverride: String? = null,
+	@SerialName("description_override") val descriptionOverride: String? = null,
+	@SerialName("cover_override") val coverUrlOverride: String? = null,
+	@SerialName("cover_data") val coverData: String? = null,
+	@SerialName("cover_extension") val coverFileExtension: String? = null,
+	@SerialName("content_rating_override") val contentRatingOverride: String? = null,
+	@SerialName("merge_scanlators") val mergeScanlators: Boolean = false,
+) {
+
+	constructor(
+		entity: MangaPrefsEntity,
+		coverData: String? = null,
+		coverFileExtension: String? = null,
+	) : this(
+		mangaId = entity.mangaId,
+		mode = entity.mode,
+		cfBrightness = entity.cfBrightness,
+		cfContrast = entity.cfContrast,
+		cfInvert = entity.cfInvert,
+		cfGrayscale = entity.cfGrayscale,
+		cfBookEffect = entity.cfBookEffect,
+		titleOverride = entity.titleOverride,
+		descriptionOverride = entity.descriptionOverride,
+		coverUrlOverride = entity.coverUrlOverride.takeIf { coverData == null },
+		coverData = coverData,
+		coverFileExtension = coverFileExtension,
+		contentRatingOverride = entity.contentRatingOverride,
+		mergeScanlators = entity.mergeScanlators,
+	)
+
+	fun toEntity(resolvedCoverUrl: String? = coverUrlOverride) = MangaPrefsEntity(
+		mangaId = mangaId,
+		mode = mode,
+		cfBrightness = cfBrightness,
+		cfContrast = cfContrast,
+		cfInvert = cfInvert,
+		cfGrayscale = cfGrayscale,
+		cfBookEffect = cfBookEffect,
+		titleOverride = titleOverride,
+		descriptionOverride = descriptionOverride,
+		coverUrlOverride = resolvedCoverUrl,
+		contentRatingOverride = contentRatingOverride,
+		mergeScanlators = mergeScanlators,
+	)
+}
 
 @Serializable
 class SourceSettingsBackup(

@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.sync.data.db.SyncTriggers
 
 class DatabasePrePopulateCallback(private val resources: Resources) : RoomDatabase.Callback() {
 
@@ -22,5 +23,11 @@ class DatabasePrePopulateCallback(private val resources: Resources) : RoomDataba
 				0L,
 			)
 		)
+	}
+
+	// After onCreate on purpose: the pre-populated category stays untracked (version 0), so on a fresh
+	// install it never outranks the same category coming from another device.
+	override fun onOpen(db: SupportSQLiteDatabase) {
+		SyncTriggers.create(db)
 	}
 }
