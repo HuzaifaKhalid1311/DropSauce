@@ -218,7 +218,7 @@ fun DetailsExpressiveScreen(
  * Drawn from the dock's own bounds and deliberately spills past them — a round falloff has no
  * visible edge, unlike a rectangular scrim.
  */
-private fun Modifier.dockGlow(surface: Color) = drawBehind {
+internal fun Modifier.dockGlow(surface: Color) = drawBehind {
 	val rx = size.width * 0.62f
 	val ry = size.height * 0.60f
 	val brush = Brush.radialGradient(
