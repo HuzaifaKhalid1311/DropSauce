@@ -126,8 +126,19 @@ open class RemoteListViewModel @Inject constructor(
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, listOf(LoadingState))
 
 	init {
+		// Only filter/sort changes need coalescing: debouncing the first value too held back every
+		// source's first page by the full interval. A filter preset by the opener lands right after
+		// the first value, so that case keeps the wait rather than loading an unfiltered page first.
+		var loadFirstValueNow = savedStateHandle.get<Boolean>(RemoteListFragment.ARG_PRESET_FILTER) != true
 		filterCoordinator.observe()
-			.debounce(FILTER_MIN_INTERVAL)
+			.debounce {
+				if (loadFirstValueNow) {
+					loadFirstValueNow = false
+					0L
+				} else {
+					FILTER_MIN_INTERVAL
+				}
+			}
 			.onEach { filterState ->
 				loadingJob?.cancelAndJoin()
 				mangaList.value = null

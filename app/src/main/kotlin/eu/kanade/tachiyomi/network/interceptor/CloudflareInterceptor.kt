@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.network.interceptor
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -28,6 +29,11 @@ class CloudflareInterceptor(
 	override fun shouldIntercept(response: Response): Boolean {
 		if (response.code !in ERROR_CODES || response.header("Server") !in SERVER_CHECK) {
 			return false
+		}
+		// Current Mihon: cf-mitigated is Cloudflare's official challenge marker. The page check below
+		// stays as a fallback so nothing handled before is missed.
+		if (response.header("cf-mitigated") == "challenge") {
+			return true
 		}
 		val document = Jsoup.parse(
 			response.peekBody(Long.MAX_VALUE).string(),
@@ -68,6 +74,18 @@ class CloudflareInterceptor(
 		executor.execute {
 			val view = createWebView(originalRequest)
 			webView = view
+			// As in current Mihon: a challenge that needs a tap can't be solved here, so stop waiting
+			// instead of sitting out the full 30 seconds before the user is offered the WebView.
+			view.addJavascriptInterface(
+				object {
+					@Suppress("unused")
+					@JavascriptInterface
+					fun interactiveDetected() {
+						latch.countDown()
+					}
+				},
+				"mihon",
+			)
 			view.webViewClient = object : WebViewClient() {
 				override fun onPageFinished(view: WebView, url: String) {
 					val newCookie = cookieManager.get(requestUrl.toHttpUrl())
@@ -76,8 +94,21 @@ class CloudflareInterceptor(
 						cloudflareBypassed = true
 						latch.countDown()
 					}
-					if (url == requestUrl && !challengeFound) {
-						latch.countDown()
+					if (url == requestUrl) {
+						if (!challengeFound) {
+							latch.countDown()
+						} else {
+							view.evaluateJavascript(
+								"""
+									addEventListener("message", ({data}) => {
+										if (data?.source === "cloudflare-challenge" && data?.event === "interactiveBegin") {
+											mihon.interactiveDetected();
+										}
+									})
+								""".trimIndent(),
+								null,
+							)
+						}
 					}
 				}
 

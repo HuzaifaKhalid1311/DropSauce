@@ -454,7 +454,7 @@ class ReaderViewModel @Inject constructor(
             var exception: Exception? = null
             var loadedDetails: MangaDetails? = null
             try {
-                detailsLoadUseCase(intent, force = false)
+                detailsLoadUseCase(intent, force = false, canUseStored = ::isStoredCopyEnough)
                     .collect { details ->
                         loadedDetails = details
                         if (mangaDetails.value == null) {
@@ -531,6 +531,19 @@ class ReaderViewModel @Inject constructor(
                 errorEvent.call(e)
             }
         }
+    }
+
+    /**
+     * Like Mihon's reader, read from the stored chapters instead of re-fetching the source on open:
+     * the refresh competed with the chapter's own requests and held prefetch back until it finished.
+     * Resuming the newest known chapter still refreshes, since that may reveal the next one.
+     */
+    private suspend fun isStoredCopyEnough(manga: Manga): Boolean {
+        val chapterId = savedStateHandle.get<ReaderState>(ReaderIntent.EXTRA_STATE)?.chapterId
+            ?: historyRepository.getOne(manga)?.chapterId
+            ?: return false
+        val chapter = manga.findChapterById(chapterId) ?: return false
+        return manga.getChapters(chapter.branch).lastOrNull()?.id != chapter.id
     }
 
     @AnyThread

@@ -66,6 +66,7 @@ class MihonExtensionManager @Inject constructor(
 		context = context,
 		scope = scope,
 		loadResults = { ctx -> loader.loadExtensions(ctx, settings.isPrivateInstallEnabled) },
+		isExtensionPackage = { ctx, pkgName -> MihonExtensionLoader.isExtensionPackage(ctx, pkgName) },
 		successOf = { it as? MihonLoadResult.Success },
 		errorOf = { it as? MihonLoadResult.Error },
 		untrustedPackageNameOf = { (it as? MihonLoadResult.Untrusted)?.pkgName },

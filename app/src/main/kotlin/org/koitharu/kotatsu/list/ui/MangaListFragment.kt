@@ -118,7 +118,10 @@ abstract class MangaListFragment :
 			registryOwner = this,
 			callback = this,
 		)
-		paginationListener = PaginationScrollListener(4, this)
+		// Ask for the next page ~25 items ahead, like Mihon's paging prefetch distance. Starting only
+		// 4 items (about one grid row) before the end showed the loading footer for the whole network
+		// round trip on every page.
+		paginationListener = PaginationScrollListener(PAGINATION_PREFETCH_ITEMS, this)
 		with(binding.recyclerView) {
 			setHasFixedSize(true)
 			adapter = listAdapter
@@ -461,3 +464,4 @@ abstract class MangaListFragment :
 }
 
 private const val COMPACT_SPAN_COUNT = 2
+private const val PAGINATION_PREFETCH_ITEMS = 25

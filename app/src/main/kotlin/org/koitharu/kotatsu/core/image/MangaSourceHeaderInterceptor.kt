@@ -3,6 +3,8 @@ package org.koitharu.kotatsu.core.image
 import coil3.intercept.Interceptor
 import coil3.network.httpHeaders
 import coil3.request.ImageResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.network.CommonHeaders
@@ -25,6 +27,8 @@ class MangaSourceHeaderInterceptor(
 	override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
 		val mangaSource = chain.request.extras[mangaSourceKey]?.unwrap() ?: return chain.proceed()
 		val request = chain.request
+		// Interceptors run on the caller's (main) thread; the first WebView UA read may start WebView.
+		if (mangaSource is LnMangaSource) withContext(Dispatchers.Default) { lnUserAgent }
 		val newHeaders = request.httpHeaders.newBuilder()
 			.set(CommonHeaders.MANGA_SOURCE, mangaSource.name)
 			.apply {

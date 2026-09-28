@@ -58,6 +58,7 @@ import org.koitharu.kotatsu.local.data.FaviconCache
 import org.koitharu.kotatsu.local.data.LocalStorageCache
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.PageCache
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.main.domain.CoverRestoreInterceptor
 import org.koitharu.kotatsu.main.ui.protect.AppProtectHelper
@@ -106,6 +107,7 @@ interface AppModule {
 			networkStateProvider: Provider<NetworkState>,
 			webViewExecutorProvider: Provider<WebViewExecutor>,
 			captchaHandler: CaptchaHandler,
+			mihonExtensionManagerProvider: Provider<MihonExtensionManager>,
 		): ImageLoader {
 			val diskCacheFactory = {
 				val rootDir = context.externalCacheDir ?: context.cacheDir
@@ -117,7 +119,11 @@ interface AppModule {
 				okHttpClientProvider.get().newBuilder().cache(null).build()
 			}
 			return ImageLoader.Builder(context)
-				.interceptorCoroutineContext(Dispatchers.Default)
+				// Interceptors keep Coil's default context, as in Mihon: a memory-cache hit then
+				// lands in the same frame. Hopping to Dispatchers.Default showed the placeholder for
+				// a frame first, so even cached covers blinked in. Fetch/decode limits are Mihon's.
+				.fetcherCoroutineContext(Dispatchers.IO.limitedParallelism(8))
+				.decoderCoroutineContext(Dispatchers.IO.limitedParallelism(3))
 				.diskCache(diskCacheFactory)
 				.logger(if (BuildConfig.DEBUG) DebugLogger() else null)
 				.allowRgb565(context.isLowRamDevice())
@@ -126,7 +132,7 @@ interface AppModule {
 					// Must precede the default network fetcher so Mihon-source covers/thumbnails are
 					// fetched through the extension's own client + headers (avoids 403/Cloudflare
 					// blocks on sources like Comick). Returns null for non-Mihon data, falling through.
-					add(MihonImageFetcher.Factory())
+					add(MihonImageFetcher.Factory(mihonExtensionManagerProvider))
 					add(
 						OkHttpNetworkFetcherFactory(
 							callFactory = okHttpClientLazy::value,

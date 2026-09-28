@@ -7,7 +7,6 @@ sealed class PageState {
 	data object Empty : PageState()
 
 	data class Loading(
-		val preview: ImageSource?,
 		val progress: Int,
 	) : PageState()
 

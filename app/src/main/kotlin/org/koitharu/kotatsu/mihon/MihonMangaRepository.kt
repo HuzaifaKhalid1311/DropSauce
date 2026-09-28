@@ -79,6 +79,13 @@ class MihonMangaRepository(
 
 	private val paginationStates = java.util.concurrent.ConcurrentHashMap<String, PaginationState>()
 
+	// Mihon resolves a page's image url once and keeps it on the Page (and in its on-disk page
+	// list). Re-resolving on every load repeated the extension's html request per page view, even
+	// when the image was already in the page cache. Keyed by the mihon://resolve page url; a failed
+	// image fetch drops its entry so a retry resolves again.
+	// ponytail: never evicted; one short string per resolved page this session.
+	private val resolvedImageUrls = java.util.concurrent.ConcurrentHashMap<String, String>()
+
 	private fun paginationKey(order: SortOrder?, filter: MangaListFilter?): String =
 		"$order|${filter?.query}|${filter?.tags}|${filter?.tagsExclude}"
 
@@ -146,10 +153,10 @@ class MihonMangaRepository(
 		state.hasMorePages = mangasPage.hasNextPage
 
 		val httpSource = mihonSource as? HttpSource
+		// New-API extensions stash the manga id in memo and require it back in getMangaUpdate.
+		// Kotatsu's Manga model can't carry it, so sidecar it now — details restores it.
+		sourceMetadata.saveMemos(source.sourceId, mangasPage.mangas)
 		mangasPage.mangas.map { sManga ->
-			// New-API extensions stash the manga id in memo and require it back in getMangaUpdate.
-			// Kotatsu's Manga model can't carry it, so sidecar it now — details restores it.
-			sourceMetadata.saveMemo(source.sourceId, sManga.url, sManga)
 			sManga.toManga(
 				source = source,
 				publicUrl = httpSource?.getMangaUrl(sManga).orEmpty(),
@@ -334,7 +341,9 @@ class MihonMangaRepository(
 		val httpSource = mihonSource as? HttpSource ?: return@withContext page.url
 		val ref = page.url.toMihonPageRef() ?: return@withContext page.url
 		when (ref.host) {
-			MIHON_RESOLVE_HOST -> httpSource.getImageUrl(Page(ref.index, ref.pageUrl))
+			MIHON_RESOLVE_HOST -> resolvedImageUrls.getOrPut(page.url) {
+				httpSource.getImageUrl(Page(ref.index, ref.pageUrl))
+			}
 			MIHON_IMAGE_HOST -> ref.imageUrl ?: page.url
 			else -> page.url
 		}
@@ -372,7 +381,12 @@ class MihonMangaRepository(
 					.build()
 			}
 			val httpSource = mihonSource as? HttpSource ?: return@withContext null
-			httpSource.getImage(page.toMihonPage(pageUrl))
+			try {
+				httpSource.getImage(page.toMihonPage(pageUrl))
+			} catch (e: Exception) {
+				resolvedImageUrls.remove(page.url)
+				throw e
+			}
 		}
 
 	/** OkHttp requires an absolute url on the synthetic response above; chapter paths are relative. */
@@ -534,10 +548,10 @@ class MihonMangaRepository(
 				mihonSource.fetchRelatedMangaList(seed.toSourceManga())
 			}.getOrDefault(emptyList())
 			if (extensionRelated.isNotEmpty()) {
-				return@withContext extensionRelated
-					.distinctBy { it.url }
+				val items = extensionRelated.distinctBy { it.url }
+				sourceMetadata.saveMemos(source.sourceId, items)
+				return@withContext items
 					.map { item ->
-						sourceMetadata.saveMemo(source.sourceId, item.url, item)
 						item.toManga(
 							source = source,
 							publicUrl = httpSource?.getMangaUrl(item).orEmpty(),
@@ -562,10 +576,10 @@ class MihonMangaRepository(
 		}
 
 		val seedTags = tags.map { it.title.lowercase() }.toSet()
-		page.mangas
-			.filter { it.url != seed.url }
+		val candidates = page.mangas.filter { it.url != seed.url }
+		sourceMetadata.saveMemos(source.sourceId, candidates)
+		candidates
 			.map { sManga ->
-				sourceMetadata.saveMemo(source.sourceId, sManga.url, sManga)
 				sManga.toManga(
 					source = source,
 					publicUrl = httpSource?.getMangaUrl(sManga).orEmpty(),

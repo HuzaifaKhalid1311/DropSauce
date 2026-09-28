@@ -266,8 +266,11 @@ internal fun CoverCard(
 		}
 		// Refresh the source cover even while an override hides it, so reverting shows the current
 		// one straight away instead of a stale copy.
+		// Not for extension covers: their fetcher caches by url like Mihon (a changed cover comes
+		// with a new url), so this only re-downloaded the same image on every open, competing with
+		// the details request.
 		val refreshUrl = if (isSourceCover) coverUrl else keyManga.coverUrl
-		if (forceRefresh && isRemoteCoverUrl(refreshUrl)) {
+		if (forceRefresh && isRemoteCoverUrl(refreshUrl) && !manga.source.name.startsWith("MIHON_")) {
 			LaunchedEffect(manga.id, refreshUrl) {
 				imageLoader.enqueue(
 					ImageRequest.Builder(ctx)

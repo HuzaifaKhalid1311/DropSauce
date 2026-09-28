@@ -12,12 +12,17 @@ import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.CacheControl
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
+import org.koitharu.kotatsu.core.model.MangaSource
+import org.koitharu.kotatsu.core.model.MissingMangaSource
 import org.koitharu.kotatsu.core.model.unwrap
 import org.koitharu.kotatsu.core.util.ext.mangaSourceKey
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
+import javax.inject.Provider
 import coil3.Uri as CoilUri
 
 /**
@@ -30,14 +35,15 @@ import coil3.Uri as CoilUri
  * fetcher restores parity: same client, same headers as the read path.
  */
 class MihonImageFetcher(
-	private val httpSource: HttpSource,
-	private val url: String,
+	private val data: CoilUri,
 	private val options: Options,
 	private val imageLoader: ImageLoader,
 	private val diskCacheKeyLazy: Lazy<String?>,
+	/** Null when the extension turned out not to be installed. */
+	private val httpSource: suspend () -> HttpSource?,
 ) : Fetcher {
 
-	override suspend fun fetch(): FetchResult {
+	override suspend fun fetch(): FetchResult? {
 		val diskCacheKey = diskCacheKeyLazy.value
 		readFromDiskCache(diskCacheKey)?.let { snapshot ->
 			return SourceFetchResult(
@@ -46,9 +52,12 @@ class MihonImageFetcher(
 				dataSource = DataSource.DISK,
 			)
 		}
+		val httpSource = httpSource() ?: return fetchWithNextFetcher()
 		val request = Request.Builder()
-			.url(url)
+			.url(data.toString())
 			.headers(httpSource.headers)
+			// Like Mihon: the image is kept in Coil's disk cache, so don't store it in OkHttp's too.
+			.cacheControl(CACHE_CONTROL_NO_STORE)
 			.build()
 		val response = withContext(Dispatchers.IO) {
 			httpSource.client.newCall(request).awaitSuccess()
@@ -75,6 +84,13 @@ class MihonImageFetcher(
 			response.closeQuietly()
 			throw e
 		}
+	}
+
+	/** What would have run without this fetcher: the default network fetcher with the app client. */
+	private suspend fun fetchWithNextFetcher(): FetchResult? {
+		val components = imageLoader.components
+		val index = components.fetcherFactories.indexOfFirst { it.first is Factory }
+		return components.newFetcher(data, options, imageLoader, index + 1)?.first?.fetch()
 	}
 
 	private fun readFromDiskCache(key: String?): DiskCache.Snapshot? {
@@ -109,22 +125,47 @@ class MihonImageFetcher(
 		closeable = this,
 	)
 
-	class Factory : Fetcher.Factory<CoilUri> {
+	class Factory(
+		private val extensionManager: Provider<MihonExtensionManager>,
+	) : Fetcher.Factory<CoilUri> {
 
 		override fun create(data: CoilUri, options: Options, imageLoader: ImageLoader): Fetcher? {
 			val scheme = data.scheme
 			if (scheme != "http" && scheme != "https") {
 				return null
 			}
-			val source = options.extras[mangaSourceKey]?.unwrap() as? MihonMangaSource ?: return null
-			val httpSource = source.catalogueSource as? HttpSource ?: return null
+			val httpSource: suspend () -> HttpSource? = when (val source = options.extras[mangaSourceKey]?.unwrap()) {
+				is MihonMangaSource -> {
+					val resolved = source.catalogueSource as? HttpSource ?: return null
+					{ resolved }
+				}
+				// Covers requested at app start, before extensions finished loading (the library
+				// lists). Like Mihon's cover fetcher, serve the disk cache straight away and wait for
+				// the extension only on a miss - instead of fetching through the app's client, which
+				// some sources reject, under a key the extension path never reads back.
+				is MissingMangaSource -> {
+					if (!source.name.startsWith("MIHON_")) return null
+					val manager = extensionManager.get()
+					if (manager.isReady.value) return null
+					{
+						manager.ensureReady()
+						(MangaSource(source.name) as? MihonMangaSource)?.catalogueSource as? HttpSource
+					}
+				}
+				else -> return null
+			}
 			return MihonImageFetcher(
-				httpSource = httpSource,
-				url = data.toString(),
+				data = data,
 				options = options,
 				imageLoader = imageLoader,
 				diskCacheKeyLazy = lazy { imageLoader.components.key(data, options) },
+				httpSource = httpSource,
 			)
 		}
+	}
+
+	private companion object {
+
+		val CACHE_CONTROL_NO_STORE: CacheControl = CacheControl.Builder().noStore().build()
 	}
 }

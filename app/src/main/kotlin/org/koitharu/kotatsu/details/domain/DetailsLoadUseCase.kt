@@ -60,7 +60,15 @@ class DetailsLoadUseCase @Inject constructor(
 	private val checkNewChaptersUseCase: Provider<CheckNewChaptersUseCase>,
 ) {
 
-	operator fun invoke(intent: MangaIntent, force: Boolean): Flow<MangaDetails> = flow {
+	/**
+	 * @param canUseStored when it accepts the stored copy (which has chapters), that copy is final and
+	 * the source is not asked, however old it is.
+	 */
+	operator fun invoke(
+		intent: MangaIntent,
+		force: Boolean,
+		canUseStored: (suspend (Manga) -> Boolean)? = null,
+	): Flow<MangaDetails> = flow {
 		val manga = requireNotNull(mangaDataRepository.resolveIntent(intent, withChapters = true)) {
 			"Cannot resolve intent $intent"
 		}
@@ -85,7 +93,7 @@ class DetailsLoadUseCase @Inject constructor(
 		if (manga.isLocal) {
 			loadLocal(manga, override, force)
 		} else {
-			loadRemote(manga, override, force, savedManga)
+			loadRemote(manga, override, force, savedManga, canUseStored)
 		}
 	}.map { details ->
 		// per-manga "merge scanlators": collapse all branches into one so the whole app
@@ -161,11 +169,14 @@ class DetailsLoadUseCase @Inject constructor(
 		override: MangaOverride?,
 		force: Boolean,
 		savedManga: LocalManga?,
+		canUseStored: (suspend (Manga) -> Boolean)?,
 	) = coroutineScope {
 		// Skip the background refresh entirely if details were fetched recently enough
 		// (either by opening this screen or by the new-chapters tracker) — the DB copy is fresh.
-		if (!force && !manga.chapters.isNullOrEmpty() &&
-			System.currentTimeMillis() - mangaDataRepository.getDetailsUpdatedAt(manga.id) < DETAILS_FRESHNESS_MS
+		if (!force && !manga.chapters.isNullOrEmpty() && (
+				System.currentTimeMillis() - mangaDataRepository.getDetailsUpdatedAt(manga.id) < DETAILS_FRESHNESS_MS ||
+					canUseStored?.invoke(manga) == true
+				)
 		) {
 			emit(
 				MangaDetails(

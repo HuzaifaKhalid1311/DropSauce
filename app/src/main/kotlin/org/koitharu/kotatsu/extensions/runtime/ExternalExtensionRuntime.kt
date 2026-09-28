@@ -114,11 +114,19 @@ fun getExternalExtensionLanguageAutonym(langCode: String): String {
 fun registerExternalExtensionPackageObserver(
 	context: Context,
 	scope: CoroutineScope,
+	isRelevantPackage: (String) -> Boolean,
 	onPackageChanged: suspend () -> Unit,
 ): BroadcastReceiver {
 	val receiver = object : BroadcastReceiver() {
 		override fun onReceive(context: Context?, intent: Intent?) {
-			scope.launch { onPackageChanged() }
+			val pkgName = intent?.data?.schemeSpecificPart
+			// Like Mihon, only extension packages matter: any app update on the device used to
+			// trigger a full extension reload while the user was browsing.
+			scope.launch {
+				if (pkgName == null || isRelevantPackage(pkgName)) {
+					onPackageChanged()
+				}
+			}
 		}
 	}
 	ContextCompat.registerReceiver(
@@ -234,10 +242,10 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 	private val loadMutex = Mutex()
 
 	@Synchronized
-	fun initialize(loadAction: suspend () -> Unit) {
+	fun initialize(isRelevantPackage: (String) -> Boolean, loadAction: suspend () -> Unit) {
 		if (isInitialized) return
 		isInitialized = true
-		registerPackageObserver(loadAction)
+		registerPackageObserver(isRelevantPackage, loadAction)
 		scope.launch { loadAction() }
 	}
 
@@ -278,17 +286,19 @@ class ExternalExtensionManagerRuntime<ResultT, SuccessT, ErrorT, SourceT, Wrappe
 	fun getSourceCount(): Int = sourceCache.size
 	fun hasExtensions(): Boolean = installedExtensions.value.isNotEmpty()
 
-	private fun registerPackageObserver(loadAction: suspend () -> Unit) {
+	private fun registerPackageObserver(isRelevantPackage: (String) -> Boolean, loadAction: suspend () -> Unit) {
 		if (isPackageObserverRegistered) return
-		registerExternalExtensionPackageObserver(context, scope, loadAction)
+		registerExternalExtensionPackageObserver(context, scope, isRelevantPackage, loadAction)
 		isPackageObserverRegistered = true
 	}
 }
 
 class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, CatalogueT : SourceT, WrappedSourceT>(
-	context: Context,
+	private val context: Context,
 	scope: CoroutineScope,
 	private val loadResults: suspend (Context) -> List<ResultT>,
+	/** Whether an installed package is an extension; checked on package broadcasts. */
+	private val isExtensionPackage: (Context, String) -> Boolean,
 	private val successOf: (ResultT) -> SuccessT?,
 	private val errorOf: (ResultT) -> ErrorT?,
 	private val untrustedPackageNameOf: (ResultT) -> String?,
@@ -314,7 +324,14 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 	val isReady: StateFlow<Boolean> = runtime.isReady
 
 	fun initialize() {
-		runtime.initialize(::loadExtensions)
+		// A removed package can't be queried any more, so also match the ones currently loaded.
+		runtime.initialize(
+			isRelevantPackage = { pkgName ->
+				installedExtensions.value.any { successPackageName(it) == pkgName } ||
+					isExtensionPackage(context, pkgName)
+			},
+			loadAction = ::loadExtensions,
+		)
 	}
 
 	suspend fun loadExtensions() {

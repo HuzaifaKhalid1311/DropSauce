@@ -9,12 +9,6 @@ import androidx.collection.LongSparseArray
 import androidx.collection.set
 import androidx.core.net.toFile
 import androidx.core.net.toUri
-import coil3.BitmapImage
-import coil3.Image
-import coil3.ImageLoader
-import coil3.request.ImageRequest
-import coil3.request.transformations
-import coil3.toBitmap
 import com.davemorrissey.labs.subscaleview.ImageSource
 import dagger.hilt.android.ActivityRetainedLifecycle
 import dagger.hilt.android.scopes.ActivityRetainedScoped
@@ -43,7 +37,6 @@ import org.koitharu.kotatsu.core.network.imageproxy.ImageProxyInterceptor
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.image.TrimTransformation
 import org.koitharu.kotatsu.core.util.FileSize
 import org.koitharu.kotatsu.core.util.MimeTypes
 import org.koitharu.kotatsu.core.util.ext.URI_SCHEME_ZIP
@@ -57,7 +50,6 @@ import org.koitharu.kotatsu.core.util.ext.isNotEmpty
 import org.koitharu.kotatsu.core.util.ext.isPowerSaveMode
 import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.core.util.ext.lifecycleScope
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.ramAvailable
 import org.koitharu.kotatsu.core.util.ext.toMimeType
@@ -85,7 +77,6 @@ class PageLoader @Inject constructor(
 	lifecycle: ActivityRetainedLifecycle,
 	@MangaHttpClient private val okHttp: OkHttpClient,
 	@PageCache private val cache: LocalStorageCache,
-	private val coil: ImageLoader,
 	private val settings: AppSettings,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
@@ -130,19 +121,6 @@ class PageLoader @Inject constructor(
 		if (counter.get() == 0) {
 			onIdle()
 		}
-	}
-
-	suspend fun loadPreview(page: MangaPage): ImageSource? {
-		val preview = page.preview
-		if (preview.isNullOrEmpty()) {
-			return null
-		}
-		val request = ImageRequest.Builder(context)
-			.data(preview)
-			.mangaSourceExtra(page.source)
-			.transformations(TrimTransformation())
-			.build()
-		return coil.execute(request).image?.toImageSource()
 	}
 
 	fun loadPageAsync(page: MangaPage, force: Boolean): ProgressDeferred<Uri, Float> {
@@ -299,12 +277,6 @@ class PageLoader @Inject constructor(
 
 	private fun isLowRam(): Boolean {
 		return context.ramAvailable <= FileSize.MEGABYTES.convert(PREFETCH_MIN_RAM_MB, FileSize.BYTES)
-	}
-
-	private fun Image.toImageSource(): ImageSource = if (this is BitmapImage) {
-		ImageSource.cachedBitmap(toBitmap())
-	} else {
-		ImageSource.bitmap(toBitmap())
 	}
 
 	private fun Deferred<Uri>.isValid(): Boolean {

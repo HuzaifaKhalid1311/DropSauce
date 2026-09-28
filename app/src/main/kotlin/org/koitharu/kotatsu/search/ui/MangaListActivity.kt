@@ -308,6 +308,11 @@ class MangaListActivity :
 				} else {
 					RemoteListFragment.newInstance(source)
 				}
+				if (filter != null || sortOrder != null) {
+					fragment.arguments = (fragment.arguments ?: Bundle()).apply {
+						putBoolean(RemoteListFragment.ARG_PRESET_FILTER, true)
+					}
+				}
 				replace(R.id.container, fragment)
 				runOnCommit { initFilter(fragment) }
 				if (filter != null || sortOrder != null) {

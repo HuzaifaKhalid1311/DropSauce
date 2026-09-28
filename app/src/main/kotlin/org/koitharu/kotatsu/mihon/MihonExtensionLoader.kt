@@ -23,6 +23,7 @@ import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 import eu.kanade.tachiyomi.util.lang.Hash
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +31,17 @@ import javax.inject.Singleton
 class MihonExtensionLoader @Inject constructor(
 	private val injektBridge: Lazy<KotoInjektBridge>,
 ) {
+
+	/**
+	 * Like Mihon, an extension whose APK hasn't changed is reused rather than re-created on every
+	 * reload (any app install/update on the device, private-mode toggles, pull-to-refresh...). A
+	 * fresh instance threw away each source's client, rate limiter and in-memory session state,
+	 * repeated all class loading while details/covers waited, and left the old copy alive in
+	 * cached repositories next to the new one.
+	 */
+	private val loadedExtensions = ConcurrentHashMap<String, LoadedExtension>()
+
+	private class LoadedExtension(val apkPath: String?, val result: MihonLoadResult.Success)
 
 	companion object {
 		private const val TAG = "MihonExtensionLoader"
@@ -203,6 +215,17 @@ class MihonExtensionLoader @Inject constructor(
 				PackageManager.GET_SIGNATURES or
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES else 0
 
+		fun isExtensionPackage(context: Context, pkgName: String): Boolean = try {
+			@Suppress("DEPRECATION")
+			val pkgInfo = context.packageManager.getPackageInfo(
+				pkgName,
+				PackageManager.GET_META_DATA or PackageManager.GET_CONFIGURATIONS,
+			)
+			isPackageAnExtensionStatic(pkgInfo)
+		} catch (_: PackageManager.NameNotFoundException) {
+			false
+		}
+
 		internal fun isPackageAnExtensionStatic(pkgInfo: PackageInfo): Boolean {
 			val appInfo = pkgInfo.applicationInfo ?: return false
 			val hasFeature = pkgInfo.reqFeatures?.any { it.name in EXTENSION_FEATURES } == true
@@ -273,7 +296,7 @@ class MihonExtensionLoader @Inject constructor(
 
 	suspend fun loadExtensions(context: Context, privateMode: Boolean = false): List<MihonLoadResult> = withContext(Dispatchers.IO) {
 		injektBridge.get().initialize()
-		if (privateMode) {
+		val results = if (privateMode) {
 			loadPrivateExtensions(context)
 		} else {
 			getInstalledPackages(context.packageManager)
@@ -281,6 +304,10 @@ class MihonExtensionLoader @Inject constructor(
 				.map { pkgInfo -> async { loadExtension(context, pkgInfo, isShared = true) } }
 				.awaitAll()
 		}
+		// Forget uninstalled (or now failing) extensions so their class loaders can be collected.
+		val loaded = results.mapNotNullTo(HashSet()) { (it as? MihonLoadResult.Success)?.pkgName }
+		loadedExtensions.keys.retainAll(loaded)
+		results
 	}
 
 	private suspend fun loadPrivateExtensions(context: Context): List<MihonLoadResult> = coroutineScope {
@@ -382,6 +409,15 @@ class MihonExtensionLoader @Inject constructor(
 	private fun loadExtension(context: Context, pkgInfo: PackageInfo, isShared: Boolean = true): MihonLoadResult {
 		val appInfo = pkgInfo.applicationInfo
 			?: return buildLoggedError(pkgInfo.packageName, "No ApplicationInfo")
+		val versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo)
+		loadedExtensions[pkgInfo.packageName]?.let { loaded ->
+			// sourceDir changes on every (re)install, which also catches a same-version reinstall.
+			if (loaded.apkPath == appInfo.sourceDir && loaded.result.versionCode == versionCode &&
+				loaded.result.isShared == isShared
+			) {
+				return loaded.result
+			}
+		}
 		val metaData = appInfo.metaData
 			?: return buildLoggedError(pkgInfo.packageName, "No manifest metadata")
 		val versionName = pkgInfo.versionName
@@ -434,7 +470,7 @@ class MihonExtensionLoader @Inject constructor(
 		return MihonLoadResult.Success(
 			pkgName = pkgInfo.packageName,
 			appName = appName,
-			versionCode = PackageInfoCompat.getLongVersionCode(pkgInfo),
+			versionCode = versionCode,
 			versionName = versionName,
 			libVersion = libVersion,
 			// Mihon derives an installed extension's language from the sources it actually
@@ -450,7 +486,7 @@ class MihonExtensionLoader @Inject constructor(
 			isNsfw = readNsfwFlag(metaData),
 			sources = sources,
 			isShared = isShared,
-		)
+		).also { loadedExtensions[pkgInfo.packageName] = LoadedExtension(appInfo.sourceDir, it) }
 	}
 
 	private fun instantiateSource(className: String, classLoader: ClassLoader): Any {

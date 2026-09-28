@@ -74,7 +74,11 @@ data class ReaderSettings(
 	@CheckResult
 	fun applyBitmapConfig(ssiv: SubsamplingScaleImageView): Boolean {
 		val config = bitmapConfig
-		return if (ssiv.regionDecoderFactory.bitmapConfig != config) {
+		val factory = ssiv.regionDecoderFactory
+		// Check the type too: the view starts with stock RGB_565 Skia factories, so comparing only
+		// the config left the default 16-bit setting on the single-threaded stock decoder, without
+		// the AVIF handling below.
+		return if (factory !is AvifCapableRegionDecoder.Factory || factory.bitmapConfig != config) {
 			// AVIF-capable factories: sources like Mangago serve AVIF mislabelled as image/jpeg,
 			// which the stock Skia/platform decoders can't handle. These delegate all other formats
 			// to the same Skia decoders unchanged.

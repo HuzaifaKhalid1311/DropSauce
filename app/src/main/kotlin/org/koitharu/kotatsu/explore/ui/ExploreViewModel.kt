@@ -115,7 +115,7 @@ class ExploreViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			// Ensure extensions are loaded so the source list is populated.
 			// This is a no-op if extensions are already loading or ready.
-			sourcesRepository.reloadMihonSources()
+			sourcesRepository.ensureMihonSourcesLoaded()
 		}
 		launchJob(Dispatchers.Default) {
 			if (!settings.isSuggestionsEnabled && settings.isTipEnabled(TIP_SUGGESTIONS)) {

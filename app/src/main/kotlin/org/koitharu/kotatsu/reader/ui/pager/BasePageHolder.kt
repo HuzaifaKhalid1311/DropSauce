@@ -235,10 +235,6 @@ abstract class BasePageHolder<B : ViewBinding>(
 			is PageState.Loading -> {
 				bindingInfo.textViewStatus.isVisible = false
 				showProgress(state.progress)
-				if (state.preview != null && ssiv.getState() == null) {
-					settings.applyBitmapConfig(ssiv)
-					ssiv.setImage(state.preview)
-				}
 			}
 
 			is PageState.Shown -> ssiv.post { applyUpscale() }

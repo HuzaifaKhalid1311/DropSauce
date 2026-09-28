@@ -135,19 +135,12 @@ class PageViewModel(
 
 	@WorkerThread
 	private suspend fun doLoad(data: MangaPage, force: Boolean) = coroutineScope {
-		state.value = PageState.Loading(null, -1)
-		val previewJob = launch {
-			val preview = loader.loadPreview(data) ?: return@launch
-			state.update {
-				if (it is PageState.Loading) it.copy(preview = preview) else it
-			}
-		}
+		state.value = PageState.Loading(-1)
 		try {
 			val task = loader.loadPageAsync(data, force)
 			val progressObserver = observeProgress(this, task.progressAsFlow())
 			val uri = task.await()
 			progressObserver.cancelAndJoin()
-			previewJob.cancel()
 			cachedBounds = if (settingsProducer.value.isPagesCropEnabled(isWebtoon)) {
 				loader.getTrimmedBounds(uri)
 			} else {

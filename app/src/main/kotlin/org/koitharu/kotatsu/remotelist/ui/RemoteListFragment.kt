@@ -227,6 +227,9 @@ class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner {
 
         const val ARG_SOURCE = "provider"
 
+        /** Set when the opener applies a filter/sort right after creation (see MangaListActivity). */
+        const val ARG_PRESET_FILTER = "preset_filter"
+
         fun newInstance(source: MangaSource) = RemoteListFragment().withArgs(1) {
             putString(ARG_SOURCE, source.name)
         }

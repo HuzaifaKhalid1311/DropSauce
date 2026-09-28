@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -165,16 +167,22 @@ class DetailsViewModel @Inject constructor(
 		.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
 
-	val relatedManga: StateFlow<List<MangaListModel>> = manga.mapLatest {
-		if (it != null && settings.isRelatedMangaEnabled) {
-			mangaListMapper.toListModelList(
-				manga = relatedMangaUseCase(it).orEmpty(),
-				mode = ListMode.GRID,
-			)
-		} else {
-			emptyList()
-		}
-	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
+	// Waits for the loaded details. Started from the list item, it raced the details request against
+	// the same source (and its rate limit), and searched without the tags only details carry.
+	val relatedManga: StateFlow<List<MangaListModel>> = mangaDetails
+		.filter { it?.isLoaded == true }
+		.map { it?.toManga() }
+		.distinctUntilChangedBy { it?.id }
+		.mapLatest {
+			if (it != null && settings.isRelatedMangaEnabled) {
+				mangaListMapper.toListModelList(
+					manga = relatedMangaUseCase(it).orEmpty(),
+					mode = ListMode.GRID,
+				)
+			} else {
+				emptyList()
+			}
+		}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, emptyList())
 
 	val tags = manga.mapLatest {
 		mangaListMapper.mapTags(it?.tags.orEmpty())

@@ -5,6 +5,7 @@ import androidx.collection.LongSet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -166,25 +167,31 @@ class SearchViewModel @Inject constructor(
 		searchJob = launchLoadingJob(Dispatchers.Default) {
 			prevJob?.cancelAndJoin()
 			try {
+				// Source requests start right away instead of after the local phase (a full storage
+				// scan with many downloads); their results still land below the local sections.
+				val localDone = CompletableDeferred<Unit>()
+				val remoteJobs = if (localOnly.value) {
+					emptyList()
+				} else {
+					val sources = if (pinnedOnly.value) {
+						sourcesRepository.getPinnedSources().toList()
+					} else {
+						sourcesRepository.getEnabledSources()
+					}.filter { it.isNovelSource == isNovelScope }
+					val semaphore = Semaphore(MAX_PARALLELISM)
+					sources.map { source ->
+						launch {
+							val result = semaphore.withPermit { searchSource(source) }
+							localDone.await()
+							appendResult(result)
+						}
+					}
+				}
 				appendResult(searchFavorites())
 				appendResult(searchHistory())
 				appendResult(searchLocal())
-				if (localOnly.value) {
-					return@launchLoadingJob
-				}
-				val sources = if (pinnedOnly.value) {
-					sourcesRepository.getPinnedSources().toList()
-				} else {
-					sourcesRepository.getEnabledSources()
-				}.filter { it.isNovelSource == isNovelScope }
-				val semaphore = Semaphore(MAX_PARALLELISM)
-				sources.map { source ->
-					launch {
-						semaphore.withPermit {
-							appendResult(searchSource(source))
-						}
-					}
-				}.joinAll()
+				localDone.complete(Unit)
+				remoteJobs.joinAll()
 			} finally {
 				if (generation == searchGeneration) {
 					isSearching.value = false

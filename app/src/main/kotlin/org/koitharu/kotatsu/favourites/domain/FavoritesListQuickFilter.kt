@@ -20,8 +20,6 @@ class FavoritesListQuickFilter @AssistedInject constructor(
 	private val mihonExtensionManager: MihonExtensionManager,
 ) : MangaListQuickFilter(settings) {
 
-	private var didRefreshExtensions = false
-
 	init {
 		setFilterOption(ListFilterOption.Downloaded, !networkState.value)
 	}
@@ -62,8 +60,9 @@ class FavoritesListQuickFilter @AssistedInject constructor(
 	}
 
 	private suspend fun getSourceOptions(): List<ListFilterOption.Source> {
-		mihonExtensionManager.ensureReady(forceRefresh = !didRefreshExtensions)
-		didRefreshExtensions = true
+		// Installs are picked up by the package observer; forcing a reload here re-scanned every
+		// package each time a favourites category page was created.
+		mihonExtensionManager.ensureReady()
 		val installedSources = mihonExtensionManager.getMihonMangaSources()
 		return repository.findSources(categoryId).mapNotNull { source ->
 			installedSources.firstOrNull { it == source }

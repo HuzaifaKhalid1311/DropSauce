@@ -5,6 +5,9 @@ import android.util.Size
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runInterruptible
 import okhttp3.OkHttpClient
 import org.koitharu.kotatsu.core.network.MangaHttpClient
@@ -65,21 +68,21 @@ class DetectReaderModeUseCase @Inject constructor(
 	 * pages and double-page spreads don't represent the typical page dimensions.
 	 */
 	private suspend fun guessMangaIsWebtoon(repository: MangaRepository, pages: List<MangaPage>): Boolean {
-		val sampleIndices = getSampleIndices(pages.size)
-		var webtoonVotes = 0
-		var totalVotes = 0
-		for (index in sampleIndices) {
-			val page = pages.getOrNull(index) ?: continue
-			val isWebtoon = runCatchingCancellable {
-				val url = repository.getPageUrl(page)
-				val size = getImageSize(url, page, repository)
-				size.width * MIN_WEBTOON_RATIO < size.height
-			}.getOrNull() ?: continue
-			totalVotes++
-			if (isWebtoon) webtoonVotes++
+		// The reader waits for this before loading the first page, so sample concurrently: one by
+		// one it cost up to three sequential image round trips on every first open.
+		val votes = coroutineScope {
+			getSampleIndices(pages.size).mapNotNull(pages::getOrNull).map { page ->
+				async {
+					runCatchingCancellable {
+						val url = repository.getPageUrl(page)
+						val size = getImageSize(url, page, repository)
+						size.width * MIN_WEBTOON_RATIO < size.height
+					}.getOrNull()
+				}
+			}.awaitAll().filterNotNull()
 		}
-		check(totalVotes > 0) { "No pages could be sampled for webtoon detection" }
-		return webtoonVotes * 2 > totalVotes
+		check(votes.isNotEmpty()) { "No pages could be sampled for webtoon detection" }
+		return votes.count { it } * 2 > votes.size
 	}
 
 	private suspend fun getImageSize(url: String, page: MangaPage, repository: MangaRepository): Size {
