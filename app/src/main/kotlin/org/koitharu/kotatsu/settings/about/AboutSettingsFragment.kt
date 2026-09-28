@@ -101,6 +101,7 @@ class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
 		try {
 			requireContext().contentResolver.openOutputStream(uri)?.use { output ->
 				output.write(content.toByteArray(Charsets.UTF_8))
+				viewModel.onLogSaved()
 			}
 		} catch (_: Exception) {
 			Snackbar.make(requireView(), R.string.error_occurred, Snackbar.LENGTH_SHORT).show()
@@ -256,9 +257,9 @@ private fun AboutScreen(
 					SwitchSettingsItem(
 						title = "Verbose logging",
 						subtitle = if (isVerboseLogging) {
-							"Recording — turn off to save log as .txt"
+							"Recording, even across restarts and crashes. Turn off to save the log"
 						} else {
-							"Off by default to preserve performance"
+							"Record an issue to send to the developer"
 						},
 						icon = R.drawable.ic_script,
 						shape = pos.shape,

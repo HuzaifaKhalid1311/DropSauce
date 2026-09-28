@@ -13,7 +13,6 @@
 		android:layout_height="wrap_content"
 		android:layout_marginTop="-10dp"
 		android:background="@null"
-		android:clipToPadding="false"
 		app:tabGravity="start"
 		app:tabMode="scrollable" />
 

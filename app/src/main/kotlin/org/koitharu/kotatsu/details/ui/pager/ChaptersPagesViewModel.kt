@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import okio.FileNotFoundException
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
+import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.toChipModel
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
@@ -282,9 +283,12 @@ abstract class ChaptersPagesViewModel(
 	}
 
 	fun openChapterInBrowser(chapterId: Long) {
-		val chapter = chapters.value.firstOrNull { it.chapter.id == chapterId }?.chapter ?: return
+		// Downloaded chapters replace their online twins in the merged list and carry a local file path
+		// as their url, so resolve the chapter from the source's own (online) manga instead.
+		val manga = mangaDetails.value?.sourceManga?.takeUnless { it.isLocal } ?: return
+		val chapter = manga.findChapterById(chapterId) ?: return
 		launchJob(Dispatchers.Default) {
-			val url = mangaRepositoryFactory.create(requireManga().source).getChapterUrl(chapter)
+			val url = mangaRepositoryFactory.create(manga.source).getChapterUrl(chapter)
 			if (!url.isNullOrEmpty()) {
 				onOpenChapterInBrowser.call(url)
 			}

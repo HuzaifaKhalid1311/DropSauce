@@ -15,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -45,6 +46,9 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
     lateinit var migrationManager: KotatsuMigrationManager
 
     private var permissionStates by mutableStateOf(OnboardingPermissions(false, false, false))
+
+    // Bumped whenever sign-in or a restore succeeds, so the sync slide moves on by itself.
+    private var syncStepDone by mutableIntStateOf(0)
 
     private val restoreTachiyomiLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument(),
@@ -88,11 +92,13 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
                 if (success) R.string.sync_completed else R.string.sync_error,
                 Toast.LENGTH_LONG,
             ).show()
+            if (success) syncStepDone++
         }
         viewModel.onBackupRestored.observeEvent(this) { result ->
             val text = if (result.error != null) {
                 result.error.getDisplayMessage(resources)
             } else {
+                syncStepDone++
                 getString(R.string.data_restored_success)
             }
             Toast.makeText(this, text, Toast.LENGTH_LONG).show()
@@ -105,6 +111,11 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
         }
         migrationManager.onCompleted.observeEvent(this) { summary ->
             showKotatsuMigrationCompleteDialog(summary)
+        }
+        // A DropSauce restore runs in a background service (with its own progress notification),
+        // so the step counts as done once it has started.
+        supportFragmentManager.setFragmentResultListener(RestoreDialogFragment.RESULT_STARTED, this) { _, _ ->
+            syncStepDone++
         }
 
         refreshPermissionStates()
@@ -141,6 +152,7 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
                     storageSummary = storage,
                     isLoading = loading,
                     permissions = permissionStates,
+                    syncStepDone = syncStepDone,
                     actions = OnboardingActions(
                         onThemeChange = { mode ->
                             viewModel.setTheme(mode)

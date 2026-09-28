@@ -192,7 +192,9 @@ class FastScroller @JvmOverloads constructor(
 
 	private fun fitToRecyclerView(): Boolean {
 		val rv = recyclerView ?: return true
-		if (height == 0 || !rv.isAttachedToWindow) return true
+		// A squeezed parent (e.g. a RelativeLayout shorter than the row the list sits below) can lay
+		// the scroller out with a negative height; there is no track to fit then.
+		if (height <= 0 || !rv.isAttachedToWindow) return true
 		rv.getLocationInWindow(locationBuf)
 		val rvTop = locationBuf[1]
 		getLocationInWindow(locationBuf)

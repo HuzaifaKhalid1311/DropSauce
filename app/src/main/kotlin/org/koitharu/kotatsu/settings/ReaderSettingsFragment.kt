@@ -386,7 +386,6 @@ private fun ReaderScreen(
 						selectedValues = readerCrop,
 						onValuesChange = { readerCrop = it },
 						icon = R.drawable.ic_crop,
-						
 						shape = pos.shape,
 					)
 				}

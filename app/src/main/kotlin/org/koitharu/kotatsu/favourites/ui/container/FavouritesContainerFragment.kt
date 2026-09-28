@@ -142,11 +142,15 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 
 	// Shifts the tab strip so the first tab's indicator starts where the leftmost grid cover's
 	// rounded corner ends. Screen coordinates, so insets/nav rail/app-bar reparenting are all covered.
+	// The inset goes on the inner tab strip, not the TabLayout: TabLayout stretches the strip to its own
+	// full width, so TabLayout padding would add a phantom scroll range and the selected-tab centring
+	// would slide the strip left on every swipe even when all categories fit.
 	private val alignTabsToCovers = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
 		val binding = viewBinding ?: return@OnLayoutChangeListener
 		val tabs = binding.tabs
 		val list = recyclerView ?: return@OnLayoutChangeListener
-		val firstTab = (tabs.getChildAt(0) as? ViewGroup)?.getChildAt(0) as? ViewGroup ?: return@OnLayoutChangeListener
+		val strip = tabs.getChildAt(0) as? ViewGroup ?: return@OnLayoutChangeListener
+		val firstTab = strip.getChildAt(0) as? ViewGroup ?: return@OnLayoutChangeListener
 		// The content-width indicator spans the label, which the tab view centres.
 		val label = firstTab.children.firstOrNull { it is TextView && it.isVisible } ?: return@OnLayoutChangeListener
 		val res = tabs.resources
@@ -155,8 +159,9 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 			res.getDimensionPixelOffset(R.dimen.grid_spacing_outer) +
 			res.getDimensionPixelOffset(R.dimen.cover_corner_large)
 		// ponytail: clamped at 0; a label narrower than the tab's min width can't reach further left.
-		val padding = (coverStraightX - tabs.locationOnScreenX() - firstTab.left - label.left).coerceAtLeast(0)
-		if (padding != tabs.paddingLeft) tabs.updatePadding(left = padding)
+		val padding = (coverStraightX - tabs.locationOnScreenX() - tabs.paddingLeft -
+			(firstTab.left - strip.paddingLeft) - label.left).coerceAtLeast(0)
+		if (padding != strip.paddingLeft) strip.updatePadding(left = padding)
 	}
 
 	private fun View.locationOnScreenX() = IntArray(2).also(::getLocationOnScreen)[0]

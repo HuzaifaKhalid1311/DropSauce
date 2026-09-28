@@ -5,11 +5,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import androidx.core.view.updatePadding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.tabs.TabLayout
@@ -22,6 +23,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_COLLAPSED
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_DRAGGING
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_EXPANDED
+import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_HIDDEN
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior.Companion.STATE_SETTLING
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetCallback
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
@@ -128,15 +130,37 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		// In the details screen the sheet opens at a centred, half-expanded position. Keep nested list
 		// swipes for the RecyclerViews; only direct drags on the header/toolbar should move the sheet.
 		if (viewModel is DetailsViewModel) {
-			sheetDialog?.behavior?.apply {
-				isFitToContents = false
-				isHideable = true
-				setDraggableOnNestedScroll(false)
-				skipCollapsed = true
-				halfExpandedRatio = HALF_EXPANDED_RATIO
-				state = BottomSheetBehavior.STATE_HALF_EXPANDED
-			}
+			setHalfExpanded()
 		}
+		sheetDialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+			?.viewTreeObserver?.addOnPreDrawListener(fitPagerToScreen)
+	}
+
+	override fun onStop() {
+		dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+			?.viewTreeObserver?.removeOnPreDrawListener(fitPagerToScreen)
+		super.onStop()
+	}
+
+	// The sheet is match_parent tall, so short of full screen its bottom hangs off-screen and the lists'
+	// last items (and the fast-scroll track's end) can't be reached. Pad the pager up to the screen edge.
+	// Runs before every draw because the offset moves on drag, settle and first layout alike.
+	// While the sheet is moving the pager may only grow (so rising content is revealed live); it is
+	// trimmed once the sheet rests. Otherwise dragging the sheet away would squeeze the lists to
+	// nothing, and the only part that changes is off-screen anyway.
+	private val fitPagerToScreen = ViewTreeObserver.OnPreDrawListener {
+		val sheet = dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
+		val parent = sheet?.parent as? View
+		val touchBlock = viewBinding?.layoutTouchBlock
+		if (sheet != null && parent != null && touchBlock != null) {
+			val offScreen = (sheet.bottom - parent.height).coerceAtLeast(0)
+			val hidden = when (behavior?.state) {
+				STATE_DRAGGING, STATE_SETTLING, STATE_HIDDEN -> minOf(offScreen, touchBlock.paddingBottom)
+				else -> offScreen
+			}
+			if (hidden != touchBlock.paddingBottom) touchBlock.updatePadding(bottom = hidden)
+		}
+		true
 	}
 
 	private fun applyDetailsSheetSurface(sheetDialog: BottomSheetDialog?) {
@@ -263,11 +287,5 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		const val TAB_CHAPTERS = 0
 		const val TAB_PAGES = 1
 		const val TAB_BOOKMARKS = 2
-
-		// How much of the screen height the sheet covers when it first opens at the centre position.
-		private const val HALF_EXPANDED_RATIO = 0.62f
-
-		// Slide offset (0 = centre/half, 1 = full screen) at which the drag handle starts collapsing.
-		// Kept above the half-expanded resting offset so the handle stays full at the centre position.
 	}
 }

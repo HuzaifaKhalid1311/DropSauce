@@ -69,6 +69,7 @@ import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.settings.compose.ColorSchemePickerRow
 
 private const val PAGE_COUNT = 4
+private const val SYNC_PAGE = 2
 private val CARD_SHAPE = RoundedCornerShape(24.dp)
 private val SCREEN_PADDING = 20.dp
 
@@ -109,10 +110,17 @@ fun OnboardingScreen(
     storageSummary: String?,
     isLoading: Boolean,
     permissions: OnboardingPermissions,
+    syncStepDone: Int,
     actions: OnboardingActions,
 ) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val scope = rememberCoroutineScope()
+    // A successful sign-in or restore finishes the sync slide, so move on to the next one.
+    LaunchedEffect(syncStepDone) {
+        if (syncStepDone > 0 && pagerState.currentPage == SYNC_PAGE) {
+            pagerState.animateScrollToPage(SYNC_PAGE + 1)
+        }
+    }
     val isLastPage by remember { derivedStateOf { pagerState.currentPage == PAGE_COUNT - 1 } }
     val backEnabled by remember { derivedStateOf { pagerState.currentPage > 0 } }
 

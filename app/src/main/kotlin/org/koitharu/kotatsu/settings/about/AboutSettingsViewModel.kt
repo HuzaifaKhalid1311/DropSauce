@@ -34,12 +34,6 @@ class AboutSettingsViewModel @Inject constructor(
 	private val _isVerboseLogging = MutableStateFlow(settings.isVerboseLoggingEnabled)
 	val isVerboseLogging: StateFlow<Boolean> = _isVerboseLogging
 
-	init {
-		if (settings.isVerboseLoggingEnabled) {
-			appLogger.setEnabled(true)
-		}
-	}
-
 	fun checkForUpdates() {
 		launchLoadingJob {
 			val update = appUpdateRepository.fetchUpdate()
@@ -50,15 +44,22 @@ class AboutSettingsViewModel @Inject constructor(
 	fun setVerboseLogging(enabled: Boolean) {
 		settings.isVerboseLoggingEnabled = enabled
 		_isVerboseLogging.value = enabled
-		if (enabled) {
-			appLogger.setEnabled(true)
-		} else {
-			launchJob(Dispatchers.Default) {
-				val content = appLogger.stopAndDrainToString()
+		launchJob(Dispatchers.Default) {
+			if (enabled) {
+				appLogger.startNewRecording()
+			} else {
+				val content = appLogger.stopAndExport()
 				if (content.isNotBlank()) {
 					onExportLog.call(content)
 				}
 			}
+		}
+	}
+
+	/** The exported log reached its file, so the recording can go; an unsaved one is kept until the next. */
+	fun onLogSaved() {
+		launchJob(Dispatchers.Default) {
+			appLogger.clear()
 		}
 	}
 }

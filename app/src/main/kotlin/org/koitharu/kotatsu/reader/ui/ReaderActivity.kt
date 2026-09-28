@@ -59,6 +59,7 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.epubHighlight
 import org.koitharu.kotatsu.core.exceptions.resolve.DialogErrorObserver
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
+import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -815,6 +816,7 @@ class ReaderActivity :
 
     private fun onToolbarLongClick(view: View): Boolean {
         val chapterId = viewModel.getCurrentState()?.chapterId ?: return false
+        if (viewModel.getSourceMangaOrNull()?.isLocal != false) return false // no online copy to open
         view.hapticFeedback(HapticEffect.LONG_PRESS)
         PopupMenu(view.context, view, Gravity.START).run {
             inflate(R.menu.opt_browser)

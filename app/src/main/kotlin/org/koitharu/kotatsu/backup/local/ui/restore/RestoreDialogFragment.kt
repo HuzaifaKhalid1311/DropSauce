@@ -30,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -134,6 +135,7 @@ class RestoreDialogFragment : ComposeAlertDialogFragment() {
 					if (started) R.string.restoring_backup else R.string.error_occurred,
 					Toast.LENGTH_SHORT,
 				).show()
+				if (started) setFragmentResult(RESULT_STARTED, Bundle.EMPTY)
 				dismiss()
 			}
 			Spacer(Modifier.size(8.dp))
@@ -168,6 +170,9 @@ class RestoreDialogFragment : ComposeAlertDialogFragment() {
 	companion object {
 
 		private const val TAG = "RestoreDialogFragment"
+
+		/** Fragment result key, sent once the restore service has been started. */
+		const val RESULT_STARTED = "restore_started"
 
 		fun show(fm: FragmentManager, uri: Uri) {
 			RestoreDialogFragment().withArgs(1) {

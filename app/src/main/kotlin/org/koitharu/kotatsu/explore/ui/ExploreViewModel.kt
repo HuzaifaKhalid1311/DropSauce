@@ -306,7 +306,7 @@ class ExploreViewModel @Inject constructor(
 
 		private const val TIP_SUGGESTIONS = "suggestions"
 		private const val TIP_LANGUAGES = "languages_note"
-		private const val SUGGESTIONS_COUNT = 8
+		const val SUGGESTIONS_COUNT = 12
 		private const val NO_ACTION_STRING_RES = 0
 
 		private val loadingSources = ExploreSources(listOf(LoadingState), listOf(LoadingState))

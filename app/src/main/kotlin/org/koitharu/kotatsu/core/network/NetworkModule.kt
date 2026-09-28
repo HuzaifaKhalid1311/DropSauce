@@ -12,6 +12,7 @@ import okhttp3.CookieJar
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import org.koitharu.kotatsu.BuildConfig
+import org.koitharu.kotatsu.core.logs.RecordingHttpLogInterceptor
 import org.koitharu.kotatsu.core.network.cookies.AndroidCookieJar
 import org.koitharu.kotatsu.core.network.cookies.MutableCookieJar
 import org.koitharu.kotatsu.core.network.cookies.PreferencesCookieJar
@@ -92,6 +93,7 @@ interface NetworkModule {
 				installExtraCertificates(contextProvider.get())
 			}
 			cache(cache)
+			addInterceptor(RecordingHttpLogInterceptor()) // outermost: sees each call's final outcome
 			addInterceptor(GZipInterceptor())
 			addInterceptor(CloudFlareInterceptor())
 			addInterceptor(RateLimitInterceptor())
