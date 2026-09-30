@@ -153,6 +153,7 @@ class ReaderActivity :
     private val hideUiRunnable = Runnable { setUiIsVisible(false) }
     private var isScrollPausedByEyeReminder = false
     private var isTtsPausedByEyeReminder = false
+    private var isTimerFabShown = false
 
     // Tracks whether the foldable device is in an unfolded state (half-opened or flat)
     private var isFoldUnfolded: Boolean = false
@@ -185,7 +186,7 @@ class ReaderActivity :
             updateScrollTimerButton()
             if (it) {
                 scrollTimer.setActive(false)
-                ReaderTtsService.start(this, viewModel.getMangaOrNull()?.title.orEmpty())
+                ReaderTtsService.start(this, viewModel.getMangaOrNull())
             }
         }
         if (resources.getBoolean(R.bool.is_tablet)) {
@@ -391,9 +392,7 @@ class ReaderActivity :
     override fun onClick(v: View) {
         when (v.id) {
             // One floating button for both: whichever of the two is running owns it.
-            R.id.button_timer -> if (tts.isPlaying.value) {
-                viewBinding.ttsControl.showOrHide()
-            } else if (readerManager.isEpub && settings.isReaderTtsFabVisible) {
+            R.id.button_timer_fab -> if (isTtsFab()) {
                 onTextToSpeechClick()
             } else {
                 onScrollTimerClick(isLongClick = false)
@@ -915,21 +914,23 @@ class ReaderActivity :
 
     private fun updateScrollTimerButton() {
         val button = viewBinding.buttonTimerFab ?: return
-        // The TTS face of the FAB is sticky: once speech has been started it stays offered on every
-        // novel until it is explicitly stopped, so resuming it doesn't mean digging through the menu.
-        val isTts = tts.isPlaying.value ||
-            (readerManager.isEpub && settings.isReaderTtsFabVisible)
+        val isTts = isTtsFab()
         val isButtonVisible = (scrollTimer.isActive.value || isTts)
             && settings.isReaderAutoscrollFabVisible
             && !viewBinding.timerControl.isVisible
             && !viewBinding.ttsControl.isVisible
         button.setIconResource(if (isTts) R.drawable.ic_voice_over else R.drawable.ic_timelapse)
-        if (button.isVisible == isButtonVisible) {
+        // Compare against where the button is heading, not isVisible: mid fade-out it is still
+        // visible, so a "show" arriving then was dropped and the fade finished hiding it for good.
+        if (isTimerFabShown == isButtonVisible) {
             return
         }
+        isTimerFabShown = isButtonVisible
         // Nothing to fade before the view is attached: ViewPropertyAnimator would never run its
         // end action, leaving the button stuck at whatever the layout started it as.
         if (!isAnimationsEnabled || !button.isAttachedToWindow) {
+            button.animate().cancel()
+            button.alpha = 1f
             button.isVisible = isButtonVisible
             return
         }
@@ -939,7 +940,7 @@ class ReaderActivity :
         // queued — which is what made the bottom area flash instead of animating.
         button.animate().cancel()
         if (isButtonVisible) {
-            button.alpha = 0f
+            if (!button.isVisible) button.alpha = 0f
             button.isVisible = true
             button.animate().alpha(1f).setDuration(FAB_FADE_DURATION).start()
         } else {
@@ -949,6 +950,13 @@ class ReaderActivity :
             }.start()
         }
     }
+
+    /**
+     * The TTS face of the FAB is sticky: once speech has been started it stays for the whole session
+     * (paused, between chapters) and on every novel until it is explicitly stopped.
+     */
+    private fun isTtsFab() = tts.isPlaying.value || tts.isAttached ||
+        (readerManager.isEpub && settings.isReaderTtsFabVisible)
 
     // Observe foldable window layout to auto-enable double-page if configured
     private fun observeWindowLayout() {

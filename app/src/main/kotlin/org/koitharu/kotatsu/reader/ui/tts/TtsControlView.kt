@@ -91,6 +91,8 @@ class TtsControlView @JvmOverloads constructor(
 		get() = listOf(
 			binding.buttonVoice0,
 			binding.buttonVoice1,
+			binding.buttonVoice2,
+			binding.buttonVoice3,
 		)
 
 	/**

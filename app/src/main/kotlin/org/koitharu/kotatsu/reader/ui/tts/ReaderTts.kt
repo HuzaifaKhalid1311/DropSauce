@@ -66,23 +66,29 @@ class ReaderTts @Inject constructor(
 	fun voicePresets(): List<Voice> {
 		val all = tts?.takeIf { isInitialized }?.voices ?: return emptyList()
 		val language = spokenLocale().language
-		val speakers = all.asSequence()
-			.filterNot { it.isInstallRequired() }
-			.filter { it.locale.language == language }
+		val installed = all.filter { !it.isInstallRequired() && it.locale.language == language }
+		val speakers = installed
 			.sortedWith(compareByDescending<Voice> { it.quality }.thenBy { it.latency }.thenBy { it.name })
 			// One entry per speaker: engines list the same voice once per variant, and four rows of
 			// the same person is what made the picker useless.
-			.distinctBy { it.name.substringBeforeLast('-') }
-			.toList()
-		android.util.Log.d("ReaderTts", "All speakers (${speakers.size}): ${speakers.map { it.name }}")
-		if (speakers.size <= MAX_PRESETS) {
-			return speakers
+			.distinctBy { it.speakerId() }
+		if (speakers.size <= 2) {
+			return speakers.map { it.offlineVariant(installed) }
 		}
-		// Based on the original 4-preset spread, pick presets at index 1 and 3 (old Voice 2 and Voice 4).
-		val fourPresets = List(4) { speakers[it * (speakers.size - 1) / 3] }
-		val picked = listOf(fourPresets[1], fourPresets[3]).distinct()
-		android.util.Log.d("ReaderTts", "Picked presets (${picked.size}): ${picked.map { it.name }}")
-		return picked
+		// Slots 1-2 are the original pair (old Voice 2 and Voice 4 of a spread over the whole list),
+		// kept where they were so nobody's chosen voice changes.
+		val spread = List(4) { speakers[it * (speakers.size - 1) / 3] }
+		val picked = mutableListOf(spread[1], spread[3])
+		// Slots 3-4: a woman and a man who aren't already on the list, the device's own accent first.
+		val country = Locale.getDefault().country
+		for (female in listOf(true, false)) {
+			speakers.filter { it !in picked && it.isFemale() == female }
+				.minByOrNull { if (it.locale.country.equals(country, ignoreCase = true)) 0 else 1 }
+				?.let(picked::add)
+		}
+		// Engine keeps gender to itself: still hand out distinct people, from the rest of the spread.
+		(spread + speakers).distinct().filterNot { it in picked }.take(MAX_PRESETS - picked.size).let(picked::addAll)
+		return picked.take(MAX_PRESETS).map { it.offlineVariant(installed) }
 	}
 
 	fun selectedVoiceIndex(): Int = settings.epubTtsVoiceIndex.coerceIn(0, MAX_PRESETS - 1)
@@ -282,11 +288,54 @@ class ReaderTts @Inject constructor(
 	}
 }
 
-private const val MAX_PRESETS = 2
+private const val MAX_PRESETS = 4
 private val WHITESPACE = Regex("""\s+""")
 
 private fun Voice.isInstallRequired(): Boolean =
 	features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) == true
+
+/** "en-us-x-sfg-local" and "en-us-x-sfg-network" are the same person. */
+private fun Voice.speakerId(): String = name.substringBeforeLast('-')
+
+/**
+ * The on-device copy of the same speaker when there is one: a network voice goes silent the moment
+ * the connection drops, which is exactly when a commute or a flight starts.
+ */
+private fun Voice.offlineVariant(voices: List<Voice>): Voice =
+	if (!isNetworkConnectionRequired) this else voices.firstOrNull {
+		!it.isNetworkConnectionRequired && it.speakerId() == speakerId()
+	} ?: this
+
+/**
+ * Engines don't expose gender, so read it off the name. Older Google builds and Samsung tag it
+ * ("…#female_1-local", "en-US-SMTf00"); current Google voices only carry a speaker code.
+ * ponytail: code table only covers Google's English speakers; other voices fall back to the spread.
+ */
+private fun Voice.isFemale(): Boolean? {
+	val lower = name.lowercase(Locale.ROOT)
+	return when {
+		"#female" in lower || "smtf" in lower -> true
+		"#male" in lower || "smtm" in lower -> false
+		else -> when (lower.split('-').getOrNull(3)) {
+			in GOOGLE_FEMALE -> true
+			in GOOGLE_MALE -> false
+			else -> null
+		}
+	}
+}
+
+private val GOOGLE_FEMALE = setOf(
+	"sfg", "iob", "iog", "tpc", "tpf", // en-US
+	"gba", "gbc", "gbg", // en-GB
+	"afh", "aua", "auc", // en-AU
+	"ahp", "cxx", "ene", // en-IN
+)
+private val GOOGLE_MALE = setOf(
+	"iol", "iom", "tpd", // en-US
+	"gbb", "gbd", "rjs", // en-GB
+	"aub", "aud", // en-AU
+	"end", // en-IN
+)
 
 /**
  * Cheap script sniff. Only tells apart the scripts that map to a different voice; anything Latin

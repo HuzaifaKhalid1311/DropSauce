@@ -1931,8 +1931,13 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		}
 
 		override fun imageData(chapterUrl: String, source: String): Any? {
-			// A downloaded novel keeps its illustrations as absolute urls; let coil fetch those.
-			if (source.startsWith("http://", true) || source.startsWith("https://", true)) return source
+			// A downloaded novel keeps its illustrations as absolute urls; let coil fetch those. Inline
+			// data: images too - resolving one against the site turned it into a 404.
+			if (source.startsWith("http://", true) || source.startsWith("https://", true) ||
+				source.startsWith("data:", true)
+			) {
+				return source
+			}
 			val uri = chapterUrl.toUri()
 			if (uri.isZipUri()) {
 				val entryName = resolveEpubEntry(uri.fragment.orEmpty(), source)
