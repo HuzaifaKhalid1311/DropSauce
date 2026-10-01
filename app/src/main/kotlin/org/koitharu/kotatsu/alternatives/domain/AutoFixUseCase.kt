@@ -53,7 +53,7 @@ class AutoFixUseCase @Inject constructor(
 		val repo = mangaRepositoryFactory.create(source)
 		val details = if (this.chapters != null) this else repo.getDetails(this)
 		val firstChapter = details.chapters?.firstOrNull() ?: return@runCatchingCancellable false
-		val pageUrl = repo.getPageUrl(repo.getPages(firstChapter).first())
+		val pageUrl = repo.getPageUrl(repo.getPages(details, firstChapter).first())
 		// Most sources expose a fetchable http(s) page url. Some extensions (e.g. MangaDex) return a
 		// relative imageUrl whose host is resolved internally by getImage(), so a non-blank url from
 		// an external source still indicates a healthy, page-serving source.

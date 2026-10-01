@@ -47,12 +47,16 @@ interface MangaRepository {
 
 	suspend fun getDetails(manga: Manga): Manga
 
-	suspend fun getPages(chapter: MangaChapter): List<MangaPage>
+	/**
+	 * [manga] is the one [chapter] belongs to. Like Mihon, a chapter url is only unique within its
+	 * manga (AllAnime uses the bare chapter number), so per-chapter state is keyed by both.
+	 */
+	suspend fun getPages(manga: Manga, chapter: MangaChapter): List<MangaPage>
 
 	suspend fun getPageUrl(page: MangaPage): String
 
-	/** Public web URL for a single [chapter], or null for sources without a browsable chapter page. */
-	suspend fun getChapterUrl(chapter: MangaChapter): String? = null
+	/** Public web URL for a single [chapter] of [manga], or null for sources without a browsable chapter page. */
+	suspend fun getChapterUrl(manga: Manga, chapter: MangaChapter): String? = null
 
 	/**
 	 * Returns [chapter]'s content as html for text sources (web novels), or null for image sources.

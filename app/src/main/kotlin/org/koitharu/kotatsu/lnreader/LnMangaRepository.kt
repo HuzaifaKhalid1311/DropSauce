@@ -139,7 +139,7 @@ class LnMangaRepository(
 	 * One synthetic page per chapter, mirroring `LocalMangaParser`'s epub handling: an empty page list
 	 * makes `ReaderViewModel` abort the reader. The html is deliberately NOT fetched here.
 	 */
-	override suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage> = listOf(
+	override suspend fun getPagesImpl(manga: Manga, chapter: MangaChapter): List<MangaPage> = listOf(
 		MangaPage(id = chapter.id, url = chapter.url, preview = null, source = source),
 	)
 
@@ -168,7 +168,7 @@ class LnMangaRepository(
 	 * falling back to resolving the path keeps "open in browser" working on every plugin instead of
 	 * only the few that implement it.
 	 */
-	override suspend fun getChapterUrl(chapter: MangaChapter): String? {
+	override suspend fun getChapterUrl(manga: Manga, chapter: MangaChapter): String? {
 		if (source.plugin.hasResolveUrl) {
 			pluginManager.ensureLoaded(source.pluginId)
 			jsHost.resolveUrl(source.pluginId, chapter.url, false)

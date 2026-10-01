@@ -30,7 +30,6 @@ import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.resolveActiveMihonLanguage
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.SortOrder
@@ -212,7 +211,7 @@ class DeveloperExtensionTestRunner @Inject constructor(
 		}
 
 		val pages = requiredStage(stages, STAGE_PAGES) {
-			findUsablePages(repository, details.chapters.orEmpty())
+			findUsablePages(repository, details)
 		} ?: return result(target, source, stages, started)
 
 		requiredStage(stages, STAGE_IMAGE) {
@@ -282,12 +281,12 @@ class DeveloperExtensionTestRunner @Inject constructor(
 
 	private suspend fun findUsablePages(
 		repository: MangaRepository,
-		chapters: List<MangaChapter>,
+		manga: Manga,
 	): List<MangaPage> {
 		var lastFailure: Throwable? = null
-		for (chapter in chapters.asReversed().take(MAX_CHAPTER_ATTEMPTS)) {
+		for (chapter in manga.chapters.orEmpty().asReversed().take(MAX_CHAPTER_ATTEMPTS)) {
 			try {
-				val pages = repository.getPages(chapter)
+				val pages = repository.getPages(manga, chapter)
 				if (pages.isNotEmpty()) return pages
 				lastFailure = IllegalStateException("Chapter returned no pages")
 			} catch (e: Throwable) {

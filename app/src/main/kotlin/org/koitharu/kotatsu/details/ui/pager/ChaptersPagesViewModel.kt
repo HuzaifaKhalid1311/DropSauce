@@ -288,7 +288,7 @@ abstract class ChaptersPagesViewModel(
 		val manga = mangaDetails.value?.sourceManga?.takeUnless { it.isLocal } ?: return
 		val chapter = manga.findChapterById(chapterId) ?: return
 		launchJob(Dispatchers.Default) {
-			val url = mangaRepositoryFactory.create(manga.source).getChapterUrl(chapter)
+			val url = mangaRepositoryFactory.create(manga.source).getChapterUrl(manga, chapter)
 			if (!url.isNullOrEmpty()) {
 				onOpenChapterInBrowser.call(url)
 			}

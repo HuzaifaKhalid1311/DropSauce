@@ -40,6 +40,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import tachiyomi.domain.chapter.service.ChapterRecognition
 import java.util.EnumSet
 
@@ -182,7 +183,7 @@ class MihonMangaRepository(
 
 	private suspend fun getDetailsInner(manga: Manga): Manga {
 		val sManga = manga.toSourceManga()
-		val existingChapters = manga.chapters.orEmpty().map { it.toSourceChapter() }
+		val existingChapters = manga.chapters.orEmpty().map { it.toSourceChapter(manga) }
 		// Route through the extension's combined API exactly like Mihon. Modern sources can override
 		// this directly; CatalogueSource's legacy default concurrently bridges both RxJava calls.
 		// Swallowing a detail failure and returning stale data makes broken sources appear healthy,
@@ -223,9 +224,10 @@ class MihonMangaRepository(
 		Log.d(TAG, "rawChapters count: ${rawChapters.size} (unique: ${uniqueChapters.size}), source: ${source.name}")
 
 		// New-API extensions carry the chapter id in SChapter.memo (getPageList throws "Refresh
-		// Chapter List" without it). Kotatsu's chapter model drops it, so sidecar it by chapter url.
+		// Chapter List" without it). Kotatsu's chapter model drops it, so sidecar it by manga + chapter url.
 		sourceMetadata.saveChapterMemos(
 			source.sourceId,
+			sManga.url,
 			uniqueChapters.filter { it.memo.isNotEmpty() }.associate { it.url to it.memo },
 		)
 
@@ -277,7 +279,7 @@ class MihonMangaRepository(
 		).copy(id = manga.id)
 	}
 
-	override suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage> = withContext(Dispatchers.IO) {
+	override suspend fun getPagesImpl(manga: Manga, chapter: MangaChapter): List<MangaPage> = withContext(Dispatchers.IO) {
 		// A novel chapter is one "page" of prose, fetched later by getChapterHtml. Same shape as the
 		// LNReader repository so the text reader treats both kinds of novel identically, and no
 		// network call happens here.
@@ -286,7 +288,14 @@ class MihonMangaRepository(
 				MangaPage(id = chapter.id, url = chapter.url, preview = null, source = source),
 			)
 		}
-		val sChapter = chapter.toSourceChapter()
+		if (sourceMetadata.restoreChapterMemo(source.sourceId, manga.url, chapter.url) == null &&
+			sourceMetadata.restoreLegacyChapterMemo(source.sourceId, chapter.url) != null
+		) {
+			// Only a memo saved before they were per-manga, possibly another manga's chapter with the
+			// same url. One details load re-saves this manga's own; if it fails, the old one is used.
+			runCatchingCancellable { getDetails(manga) }
+		}
+		val sChapter = chapter.toSourceChapter(manga)
 		// Match Mihon and delegate retry policy to the source's own OkHttp client.
 		val rawPages = try {
 			mihonSource.getPageList(sChapter)
@@ -349,9 +358,9 @@ class MihonMangaRepository(
 		}
 	}
 
-	override suspend fun getChapterUrl(chapter: MangaChapter): String? = withContext(Dispatchers.IO) {
+	override suspend fun getChapterUrl(manga: Manga, chapter: MangaChapter): String? = withContext(Dispatchers.IO) {
 		val httpSource = mihonSource as? HttpSource ?: return@withContext null
-		runCatching { httpSource.getChapterUrl(chapter.toSourceChapter()) }.getOrNull()?.takeIf { it.isNotBlank() }
+		runCatching { httpSource.getChapterUrl(chapter.toSourceChapter(manga)) }.getOrNull()?.takeIf { it.isNotBlank() }
 	}
 
 	override suspend fun getImageRequestHeaders(imageUrl: String, page: MangaPage): Headers? {
@@ -595,8 +604,10 @@ class MihonMangaRepository(
 		sourceMetadata.restore(this@MihonMangaRepository.source.sourceId, url, it)
 	}
 
-	private fun MangaChapter.toSourceChapter() = toSChapter().also { sChapter ->
-		sourceMetadata.restoreChapterMemo(this@MihonMangaRepository.source.sourceId, url)?.let { sChapter.memo = it }
+	private fun MangaChapter.toSourceChapter(manga: Manga) = toSChapter().also { sChapter ->
+		val sourceId = this@MihonMangaRepository.source.sourceId
+		(sourceMetadata.restoreChapterMemo(sourceId, manga.url, url) ?: sourceMetadata.restoreLegacyChapterMemo(sourceId, url))
+			?.let { sChapter.memo = it }
 	}
 }
 

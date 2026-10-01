@@ -23,7 +23,7 @@ class MarkAsReadUseCase @Inject constructor(
 			manga
 		}
 		val lastChapter = checkNotNull(details.chapters).last()
-		val pages = repo.getPages(lastChapter)
+		val pages = repo.getPages(details, lastChapter)
 		historyRepository.addOrUpdate(
 			manga = details,
 			chapterId = lastChapter.id,

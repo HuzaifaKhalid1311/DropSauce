@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.details.data.MangaDetails
+import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
@@ -23,10 +24,14 @@ class ChaptersLoader @Inject constructor(
 	private val chapterPages = ChapterPages()
 	private val mutex = Mutex()
 
+	@Volatile
+	private var manga: Manga? = null
+
 	val size: Int
 		get() = chapters.size()
 
 	suspend fun init(manga: MangaDetails) = mutex.withLock {
+		this.manga = manga.sourceManga
 		chapters.clear()
 		manga.allChapters.forEach {
 			chapters.put(it.id, it)
@@ -97,7 +102,7 @@ class ChaptersLoader @Inject constructor(
 	private suspend fun loadChapter(chapterId: Long): List<ReaderPage> {
 		val chapter = checkNotNull(chapters[chapterId]) { "Requested chapter not found" }
 		val repo = mangaRepositoryFactory.create(chapter.source)
-		return repo.getPages(chapter).mapIndexed { index, page ->
+		return repo.getPages(checkNotNull(manga), chapter).mapIndexed { index, page ->
 			ReaderPage(page, index, chapterId)
 		}
 	}

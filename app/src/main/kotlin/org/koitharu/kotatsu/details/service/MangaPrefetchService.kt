@@ -42,6 +42,8 @@ class MangaPrefetchService : CoroutineIntentService() {
 			)
 
 			ACTION_PREFETCH_PAGES -> prefetchPages(
+				manga = intent.getParcelableExtraCompat<ParcelableManga>(EXTRA_MANGA)?.manga
+					?: return,
 				chapter = intent.getParcelableExtraCompat<ParcelableChapter>(EXTRA_CHAPTER)?.chapter
 					?: return,
 			)
@@ -57,9 +59,9 @@ class MangaPrefetchService : CoroutineIntentService() {
 		runCatchingCancellable { source.getDetails(manga) }
 	}
 
-	private suspend fun prefetchPages(chapter: MangaChapter) {
+	private suspend fun prefetchPages(manga: Manga, chapter: MangaChapter) {
 		val source = mangaRepositoryFactory.create(chapter.source)
-		runCatchingCancellable { source.getPages(chapter) }
+		runCatchingCancellable { source.getPages(manga, chapter) }
 	}
 
 	private suspend fun prefetchLast() {
@@ -77,13 +79,13 @@ class MangaPrefetchService : CoroutineIntentService() {
 		} else {
 			chapters.findById(history.chapterId) ?: chapters.firstOrNull()
 		} ?: return
-		runCatchingCancellable { repo.getPages(chapter) }
+		runCatchingCancellable { repo.getPages(details, chapter) }
 	}
 
 	companion object {
 
 		private const val EXTRA_MANGA = "manga"
-		private const val EXTRA_CHAPTER = "manga"
+		private const val EXTRA_CHAPTER = "chapter"
 		private const val ACTION_PREFETCH_DETAILS = "details"
 		private const val ACTION_PREFETCH_PAGES = "pages"
 		private const val ACTION_PREFETCH_LAST = "last"
@@ -96,10 +98,11 @@ class MangaPrefetchService : CoroutineIntentService() {
 			tryStart(context, intent)
 		}
 
-		fun prefetchPages(context: Context, chapter: MangaChapter) {
+		fun prefetchPages(context: Context, manga: Manga, chapter: MangaChapter) {
 			if (!isPrefetchAvailable(context, chapter.source)) return
 			val intent = Intent(context, MangaPrefetchService::class.java)
 			intent.action = ACTION_PREFETCH_PAGES
+			intent.putExtra(EXTRA_MANGA, ParcelableManga(manga))
 			intent.putExtra(EXTRA_CHAPTER, ParcelableChapter(chapter))
 			tryStart(context, intent)
 		}

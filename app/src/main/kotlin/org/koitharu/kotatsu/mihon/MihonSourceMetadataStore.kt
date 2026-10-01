@@ -21,11 +21,7 @@ internal class MihonSourceMetadataStore(context: Context) {
 
 	fun restore(sourceId: Long, mangaUrl: String, manga: SManga) {
 		val prefix = keyPrefix(sourceId, mangaUrl)
-		preferences.getString(prefix + KEY_MEMO, null)?.let { encoded ->
-			runCatching { json.parseToJsonElement(encoded).jsonObject }
-				.getOrNull()
-				?.let { manga.memo = it }
-		}
+		readMemo(prefix + KEY_MEMO)?.let { manga.memo = it }
 		preferences.getString(prefix + KEY_UPDATE_STRATEGY, null)
 			?.let { runCatching { UpdateStrategy.valueOf(it) }.getOrNull() }
 			?.let { manga.update_strategy = it }
@@ -77,18 +73,29 @@ internal class MihonSourceMetadataStore(context: Context) {
 	/**
 	 * New-API extensions (KeiSource/Iken) store the chapter id in SChapter.memo and throw
 	 * "Refresh Chapter List" in getPageList when it is missing. Kotatsu's chapter model cannot
-	 * carry it, so persist it per (source, chapter url) like the manga sidecar above.
+	 * carry it, so persist it per (source, manga url, chapter url) - Mihon keeps it on the chapter
+	 * row of its manga. A chapter url alone is not unique: AllAnime's is the bare chapter number,
+	 * so every manga's chapter 12 used to share one memo and opened whichever manga saved it last.
 	 */
-	fun restoreChapterMemo(sourceId: Long, chapterUrl: String): JsonObject? =
-		preferences.getString(keyPrefix(sourceId, chapterUrl) + KEY_MEMO, null)?.let { encoded ->
-			runCatching { json.parseToJsonElement(encoded).jsonObject }.getOrNull()
-		}
+	fun restoreChapterMemo(sourceId: Long, mangaUrl: String, chapterUrl: String): JsonObject? =
+		readMemo(chapterMemoKey(sourceId, mangaUrl, chapterUrl))
+
+	/**
+	 * A memo saved before they were scoped to their manga. Correct for most sources, but for one
+	 * whose chapter urls repeat across manga it may belong to whichever manga saved it last.
+	 */
+	fun restoreLegacyChapterMemo(sourceId: Long, chapterUrl: String): JsonObject? =
+		readMemo(keyPrefix(sourceId, chapterUrl) + KEY_MEMO)
+
+	private fun readMemo(key: String): JsonObject? = preferences.getString(key, null)?.let { encoded ->
+		runCatching { json.parseToJsonElement(encoded).jsonObject }.getOrNull()
+	}
 
 	// ponytail: one prefs entry per chapter, unbounded growth; move to a Room table if the
 	// prefs file ever gets noticeably large.
-	fun saveChapterMemos(sourceId: Long, memos: Map<String, JsonObject>) {
+	fun saveChapterMemos(sourceId: Long, mangaUrl: String, memos: Map<String, JsonObject>) {
 		val changed = memos.mapNotNull { (chapterUrl, memo) ->
-			val key = keyPrefix(sourceId, chapterUrl) + KEY_MEMO
+			val key = chapterMemoKey(sourceId, mangaUrl, chapterUrl)
 			val value = memo.toString()
 			if (preferences.getString(key, null) == value) null else key to value
 		}
@@ -100,6 +107,10 @@ internal class MihonSourceMetadataStore(context: Context) {
 
 	private fun keyPrefix(sourceId: Long, mangaUrl: String): String =
 		Hash.sha256("$sourceId\n$mangaUrl") + "."
+
+	// Urls never contain '\n', so this can't collide with a manga's own keyPrefix.
+	private fun chapterMemoKey(sourceId: Long, mangaUrl: String, chapterUrl: String): String =
+		keyPrefix(sourceId, "$mangaUrl\n$chapterUrl") + KEY_MEMO
 
 	private companion object {
 		const val STORAGE_NAME = "mihon_source_metadata"

@@ -138,7 +138,7 @@ class LocalMangaRepository @Inject constructor(
 		else -> LocalMangaParser(manga.url.toUri()).getManga(withDetails = true).manga
 	}
 
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+	override suspend fun getPages(manga: Manga, chapter: MangaChapter): List<MangaPage> {
 		return LocalMangaParser(chapter.url.toUri()).getPages(chapter)
 	}
 

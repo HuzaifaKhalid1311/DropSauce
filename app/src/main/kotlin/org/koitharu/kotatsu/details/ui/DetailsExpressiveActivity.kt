@@ -37,6 +37,7 @@ import org.koitharu.kotatsu.details.service.MangaPrefetchService
 import org.koitharu.kotatsu.details.ui.model.ChapterListItem
 import org.koitharu.kotatsu.download.ui.worker.DownloadStartedObserver
 import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
 import org.koitharu.kotatsu.settings.compose.rememberDetailsBackdropBlurPref
 import coil3.ImageLoader
@@ -119,7 +120,7 @@ class DetailsExpressiveActivity :
 		viewModel.onDownloadStarted
 			.filterNot { router.isChapterPagesSheetShown() }
 			.observeEvent(this, DownloadStartedObserver(viewBinding.composeView))
-		viewModel.chapters.observe(this, PrefetchObserver(this))
+		viewModel.chapters.observe(this, PrefetchObserver(this, viewModel::getSourceMangaOrNull))
 	}
 
 	override fun onProvideAssistContent(outContent: AssistContent) {
@@ -265,13 +266,15 @@ class DetailsExpressiveActivity :
 
 	private class PrefetchObserver(
 		private val context: android.content.Context,
+		private val manga: () -> Manga?,
 	) : kotlinx.coroutines.flow.FlowCollector<List<ChapterListItem>?> {
 		private var isCalled = false
 		override suspend fun emit(value: List<ChapterListItem>?) {
 			if (value.isNullOrEmpty() || isCalled) return
+			val manga = manga() ?: return
 			isCalled = true
 			val item = value.find { it.isCurrent } ?: value.first()
-			MangaPrefetchService.prefetchPages(context, item.chapter)
+			MangaPrefetchService.prefetchPages(context, manga, item.chapter)
 		}
 	}
 }

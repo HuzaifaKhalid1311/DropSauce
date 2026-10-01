@@ -75,7 +75,7 @@ class LazyMihonMangaRepository(
 
 	override suspend fun getFreshDetails(manga: Manga): Manga = resolve(manga).getFreshDetails(manga)
 
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> = resolve().getPages(chapter)
+	override suspend fun getPages(manga: Manga, chapter: MangaChapter): List<MangaPage> = resolve().getPages(manga, chapter)
 
 	override suspend fun getPageUrl(page: MangaPage): String = resolve().getPageUrl(page)
 
@@ -83,7 +83,8 @@ class LazyMihonMangaRepository(
 	// loading got a blank body for every chapter that wasn't downloaded.
 	override suspend fun getChapterHtml(chapter: MangaChapter): String? = resolve().getChapterHtml(chapter)
 
-	override suspend fun getChapterUrl(chapter: MangaChapter): String? = resolve().getChapterUrl(chapter)
+	override suspend fun getChapterUrl(manga: Manga, chapter: MangaChapter): String? =
+		resolve().getChapterUrl(manga, chapter)
 
 	override suspend fun getImageRequestHeaders(imageUrl: String, page: MangaPage): Headers? =
 		resolve().getImageRequestHeaders(imageUrl, page)

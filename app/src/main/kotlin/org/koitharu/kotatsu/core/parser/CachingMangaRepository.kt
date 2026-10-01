@@ -32,12 +32,14 @@ abstract class CachingMangaRepository(
 
 	final override suspend fun getFreshDetails(manga: Manga): Manga = getDetails(manga, CachePolicy.WRITE_ONLY)
 
-	final override suspend fun getPages(chapter: MangaChapter): List<MangaPage> = pagesMutex.withLock(chapter.id) {
-		cache.getPages(source, chapter.url)?.let { return it }
+	final override suspend fun getPages(manga: Manga, chapter: MangaChapter): List<MangaPage> = pagesMutex.withLock(chapter.id) {
+		// Same key as Mihon's ChapterCache: chapter "12" of two manga must not share a page list.
+		val key = manga.url + "\n" + chapter.url
+		cache.getPages(source, key)?.let { return it }
 		val pages = asyncSafe {
-			getPagesImpl(chapter).distinctById()
+			getPagesImpl(manga, chapter).distinctById()
 		}
-		cache.putPages(source, chapter.url, pages)
+		cache.putPages(source, key, pages)
 		pages
 	}.await()
 
@@ -71,7 +73,7 @@ abstract class CachingMangaRepository(
 
 	protected abstract suspend fun getRelatedMangaImpl(seed: Manga): List<Manga>
 
-	protected abstract suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage>
+	protected abstract suspend fun getPagesImpl(manga: Manga, chapter: MangaChapter): List<MangaPage>
 
 	private suspend fun <T> asyncSafe(block: suspend CoroutineScope.() -> T): SafeDeferred<T> {
 		var dispatcher = currentCoroutineContext()[ContinuationInterceptor] as? CoroutineDispatcher
