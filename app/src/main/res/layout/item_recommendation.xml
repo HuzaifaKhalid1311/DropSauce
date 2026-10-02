@@ -2,13 +2,14 @@
 <!-- Explore "Suggestions" block: a Material 3 multi-browse carousel of cover posters
      (CarouselLayoutManager + MultiBrowseCarouselStrategy are set in code). Until the suggestions
      load it holds blank skeleton tiles, so the list doesn't jump and the skeleton matches exactly.
-     Side padding puts the first tile on the page's 8dp content edge: -8dp bleed + 11dp padding
-     + the tile's own 5dp margin. -->
+     Side padding puts the first tile on the page's 8dp content edge: -8dp bleed + 14dp padding
+     + the tile's own 2dp margin (the same 4dp gap as the cover grids). Height fits the 200dp cover
+     plus a two-line title. -->
 <FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
-	android:layout_height="232dp"
+	android:layout_height="244dp"
 	android:layout_marginStart="@dimen/list_spacing_normal_negative"
 	android:layout_marginEnd="@dimen/list_spacing_normal_negative"
 	android:layout_marginBottom="@dimen/margin_small">
@@ -21,7 +22,7 @@
 		android:clipToPadding="false"
 		android:nestedScrollingEnabled="false"
 		android:orientation="horizontal"
-		android:paddingHorizontal="11dp"
+		android:paddingHorizontal="14dp"
 		tools:listitem="@layout/item_manga_carousel" />
 
 </FrameLayout>

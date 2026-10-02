@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.tracker.domain
 
 import android.util.Log
 import org.koitharu.kotatsu.BuildConfig
+import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.withMergedBranches
@@ -54,9 +55,7 @@ class CheckNewChaptersUseCase @Inject constructor(
 	suspend operator fun invoke(manga: Manga, currentChapterId: Long) = mutex.withLock(manga.id) {
 		runCatchingCancellable {
 			repository.updateTracks()
-			val details = getFullManga(manga).let {
-				if (mangaDataRepository.isScanlatorsMerged(manga.id)) it.withMergedBranches() else it
-			}
+			val details = getFullManga(manga).withMergedBranches(mangaDataRepository.getScanlatorMerge(manga.id))
 			var track = repository.getTrackOrNull(manga) ?: return@withLock
 			val branch = checkNotNull(details.chapters?.findById(currentChapterId)).branch
 			val chapters = details.getChapters(branch)
@@ -91,9 +90,9 @@ class CheckNewChaptersUseCase @Inject constructor(
 	}
 
 	private suspend fun invokeImpl(track: MangaTracking): MangaUpdates = runCatchingCancellable {
-		val isMerged = mangaDataRepository.isScanlatorsMerged(track.manga.id)
-		val details = getFullManga(track.manga).let { if (isMerged) it.withMergedBranches() else it }
-		val branch = if (isMerged) null else getBranch(details, track.lastChapterId)
+		val merge = mangaDataRepository.getScanlatorMerge(track.manga.id)
+		val details = getFullManga(track.manga).withMergedBranches(merge)
+		val branch = if (merge == ScanlatorMerge.All) null else getBranch(details, track.lastChapterId)
 		compare(track, details, branch)
 	}.getOrElse { error ->
 		MangaUpdates.Failure(

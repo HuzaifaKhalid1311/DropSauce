@@ -516,6 +516,7 @@ class MangaPrefsDataBackup(
 	@SerialName("cover_extension") val coverFileExtension: String? = null,
 	@SerialName("content_rating_override") val contentRatingOverride: String? = null,
 	@SerialName("merge_scanlators") val mergeScanlators: Boolean = false,
+	@SerialName("merged_scanlators") val mergedScanlators: String? = null,
 ) {
 
 	constructor(
@@ -537,6 +538,7 @@ class MangaPrefsDataBackup(
 		coverFileExtension = coverFileExtension,
 		contentRatingOverride = entity.contentRatingOverride,
 		mergeScanlators = entity.mergeScanlators,
+		mergedScanlators = entity.mergedScanlators,
 	)
 
 	fun toEntity(resolvedCoverUrl: String? = coverUrlOverride) = MangaPrefsEntity(
@@ -552,6 +554,7 @@ class MangaPrefsDataBackup(
 		coverUrlOverride = resolvedCoverUrl,
 		contentRatingOverride = contentRatingOverride,
 		mergeScanlators = mergeScanlators,
+		mergedScanlators = mergedScanlators,
 	)
 }
 

@@ -96,13 +96,9 @@ class DetailsLoadUseCase @Inject constructor(
 			loadRemote(manga, override, force, savedManga, canUseStored)
 		}
 	}.map { details ->
-		// per-manga "merge scanlators": collapse all branches into one so the whole app
-		// (chapter list, reader, page picker) treats the manga as a single entity
-		if (mangaDataRepository.isScanlatorsMerged(details.id)) {
-			details.withMergedBranches()
-		} else {
-			details
-		}
+		// per-manga "merge scanlators": fold the picked branches into one so the whole app
+		// (chapter list, reader, page picker) treats them as a single entity
+		details.withMergedBranches(mangaDataRepository.getScanlatorMerge(details.id))
 	}.distinctUntilChanged()
 		.flowOn(Dispatchers.Default)
 

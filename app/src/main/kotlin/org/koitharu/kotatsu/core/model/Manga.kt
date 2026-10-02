@@ -108,26 +108,53 @@ fun Manga.getPreferredBranch(history: MangaHistory?): String? {
 	return groups.maxByOrNull { it.value.size }?.key
 }
 
+/** Per-manga "merge scanlators": which branches (scanlators/translations) fold into one chapter list. */
+sealed interface ScanlatorMerge {
+
+	data object None : ScanlatorMerge
+
+	/** Every branch, including ones a source adds later. */
+	data object All : ScanlatorMerge
+
+	/** Just these branches (two or more); the rest stay separate. */
+	data class Some(val branches: Set<String?>) : ScanlatorMerge
+}
+
 /**
- * Merge all branches (scanlators/translations) into a single one, Mihon-style:
- * the manga behaves as a single entity with one combined chapter list.
+ * Fold the [merge]d branches into a single one, Mihon-style: they behave as one entity with one
+ * combined chapter list.
  */
-fun Manga.withMergedBranches(): Manga {
-	val merged = chapters?.mergedBranches() ?: return this
+fun Manga.withMergedBranches(merge: ScanlatorMerge): Manga {
+	val merged = chapters?.mergedBranches(merge) ?: return this
 	return if (merged === chapters) this else copy(chapters = merged)
 }
 
-fun List<MangaChapter>.mergedBranches(): List<MangaChapter> {
+fun List<MangaChapter>.mergedBranches(merge: ScanlatorMerge): List<MangaChapter> {
+	val selected = when (merge) {
+		ScanlatorMerge.None -> return this
+		ScanlatorMerge.All -> null
+		is ScanlatorMerge.Some -> merge.branches
+	}
 	if (isEmpty() || all { it.branch == null }) {
 		return this
 	}
-	val merged = map { it.copy(branch = null) }
+	val picked = if (selected == null) this else filter { it.branch in selected }
+	val rest = if (selected == null) emptyList() else filter { it.branch !in selected }
+	val pickedBranches = picked.mapTo(LinkedHashSet()) { it.branch }
+	if (selected != null && pickedBranches.size < 2) {
+		return this // the source no longer has two of them, nothing to fold
+	}
+	// Everything folded -> one nameless branch, so the branch chips disappear. Otherwise the folded
+	// group shows as one more branch, named after its members.
+	val name = if (rest.isEmpty()) null else pickedBranches.filterNotNull().joinToString(" + ")
+	val merged = picked.map { it.copy(branch = name) }
 	// sort only when every chapter carries a number; otherwise keep the concatenated order
-	return if (merged.all { it.number > 0f }) {
+	val sorted = if (merged.all { it.number > 0f }) {
 		merged.sortedWith(compareBy({ it.volume }, { it.number }))
 	} else {
 		merged
 	}
+	return rest + sorted
 }
 
 val Manga.isLocal: Boolean

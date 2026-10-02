@@ -31,5 +31,8 @@ data class MangaPrefsEntity(
 	@ColumnInfo(name = "cover_override") val coverUrlOverride: String?,
 	@ColumnInfo(name = "description_override") val descriptionOverride: String? = null,
 	@ColumnInfo(name = "content_rating_override") val contentRatingOverride: String?,
+	/** true = every scanlator is merged; [mergedScanlators] is only read when this is false. */
 	@ColumnInfo(name = "merge_scanlators", defaultValue = "0") val mergeScanlators: Boolean = false,
+	/** JSON array of the merged branch names (null = unnamed branch), for a partial merge. */
+	@ColumnInfo(name = "merged_scanlators") val mergedScanlators: String? = null,
 )

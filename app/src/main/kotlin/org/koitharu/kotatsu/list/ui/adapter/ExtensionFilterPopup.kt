@@ -31,6 +31,8 @@ import androidx.appcompat.R as appcompatR
 
 internal object ExtensionFilterPopup {
 
+	private const val VISIBLE_ROWS = 6
+
 	fun show(
 		anchor: View,
 		filter: ExtensionFilter,
@@ -41,10 +43,8 @@ internal object ExtensionFilterPopup {
 		val rows = ArrayList<Row>(filter.options.size)
 		val selectedSourceNames = filter.selectedOptions.mapTo(HashSet()) { it.mangaSource.name }
 		val resetButton = createResetButton(context)
-		val content = LinearLayout(context).apply {
+		val list = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
-			layoutParams = ViewGroup.LayoutParams(popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
-			addView(createHeader(context), LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			for (option in filter.options) {
 				val row = createRow(
 					context = context,
@@ -58,6 +58,21 @@ internal object ExtensionFilterPopup {
 				rows += row.binding
 				addView(row.view, LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			}
+		}
+		// Only the extension list scrolls; the header and Reset stay put. Past VISIBLE_ROWS the list
+		// is capped with half of the next row peeking out, so it reads as scrollable.
+		val rowHeight = context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_min_height)
+		val listScroll = MaxHeightScrollView(context).apply {
+			if (filter.options.size > VISIBLE_ROWS) {
+				maxHeight = rowHeight * VISIBLE_ROWS + rowHeight / 2
+			}
+			isVerticalScrollBarEnabled = true
+			addView(list, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+		}
+		val content = LinearLayout(context).apply {
+			orientation = LinearLayout.VERTICAL
+			addView(createHeader(context), LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+			addView(listScroll, LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			addView(
 				resetButton,
 				LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -76,13 +91,7 @@ internal object ExtensionFilterPopup {
 		}
 		updateResetButton(resetButton, selectedSourceNames.isNotEmpty())
 
-		val scrollView = MaxHeightScrollView(context).apply {
-			maxHeight = context.resources.resolveDp(420)
-			addView(content, ViewGroup.LayoutParams(popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT))
-			isFillViewport = false
-			clipToPadding = false
-		}
-		PopupWindow(scrollView, popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
+		PopupWindow(content, popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
 			setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.m3_menu_background))
 			isOutsideTouchable = true
 			elevation = context.resources.resolveDp(8).toFloat()
@@ -247,8 +256,15 @@ internal object ExtensionFilterPopup {
 		var maxHeight = 0
 
 		override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+			val parentHeight = MeasureSpec.getSize(heightMeasureSpec)
 			val resolvedHeight = if (maxHeight > 0) {
-				MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST)
+				// Never past what the parent offers (e.g. a short landscape screen).
+				val limit = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) {
+					maxHeight
+				} else {
+					minOf(maxHeight, parentHeight)
+				}
+				MeasureSpec.makeMeasureSpec(limit, MeasureSpec.AT_MOST)
 			} else {
 				heightMeasureSpec
 			}

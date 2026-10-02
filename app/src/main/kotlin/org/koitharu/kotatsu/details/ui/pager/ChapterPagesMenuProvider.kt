@@ -13,7 +13,10 @@ import com.google.android.material.slider.LabelFormatter
 import com.google.android.material.slider.Slider
 import com.google.android.material.slider.TickVisibilityMode
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.dialog.showMultiChoiceDialog
+import org.koitharu.kotatsu.core.util.LocaleStringComparator
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
 import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
 import org.koitharu.kotatsu.core.util.ext.setValueRounded
@@ -73,12 +76,9 @@ class ChapterPagesMenuProvider(
 			item.isVisible = viewModel.mangaDetails.value?.local != null
 			item.isChecked = viewModel.isDownloadedOnly.value
 		}
-		menu.findItem(R.id.action_merge_scanlators)?.let { item ->
-			val isMerged = viewModel.isScanlatorsMerged.value
-			// only offer it when there is something to merge (or to unmerge)
-			item.isVisible = isMerged || (viewModel.mangaDetails.value?.chapters?.size ?: 0) > 1
-			item.isChecked = isMerged
-		}
+		// only offer it when the source has more than one scanlator to merge (or unmerge)
+		menu.findItem(R.id.action_merge_scanlators)?.isVisible =
+			(viewModel.mangaDetails.value?.scanlators?.size ?: 0) > 1
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
@@ -103,11 +103,54 @@ class ChapterPagesMenuProvider(
 		}
 
 		R.id.action_merge_scanlators -> {
-			viewModel.setScanlatorsMerged(!menuItem.isChecked)
+			showMergeScanlatorsDialog()
 			true
 		}
 
 		else -> false
+	}
+
+	/**
+	 * Pick which scanlators fold into one combined list; the rest keep their own tabs. Ticking all of
+	 * them is "merge everything" (scanlators the source adds later are merged too).
+	 */
+	private fun showMergeScanlatorsDialog() {
+		val context = pager.context
+		val scanlators = viewModel.mangaDetails.value?.scanlators?.entries
+			?.sortedWith(compareBy(LocaleStringComparator()) { it.key })
+			?: return
+		val merge = viewModel.scanlatorMerge.value
+		showMultiChoiceDialog(
+			context = context,
+			icon = R.drawable.ic_merge,
+			title = context.getString(R.string.merge_scanlators),
+			message = context.getString(R.string.merge_scanlators_summary),
+			options = scanlators.map { (name, count) ->
+				context.getString(
+					R.string.scanlator_with_chapters,
+					name ?: context.getString(R.string.system_default),
+					context.resources.getQuantityString(R.plurals.chapters, count, count),
+				)
+			},
+			selectedIndices = scanlators.indices.filterTo(HashSet()) { index ->
+				when (merge) {
+					ScanlatorMerge.None -> false
+					ScanlatorMerge.All -> true
+					is ScanlatorMerge.Some -> scanlators[index].key in merge.branches
+				}
+			},
+			confirmLabel = context.getString(R.string.apply),
+			isValid = { it.size != 1 }, // one scanlator alone has nothing to merge with
+			onConfirm = { selected ->
+				viewModel.setScanlatorMerge(
+					when (selected.size) {
+						0 -> ScanlatorMerge.None
+						scanlators.size -> ScanlatorMerge.All
+						else -> ScanlatorMerge.Some(selected.mapTo(HashSet()) { scanlators[it].key })
+					},
+				)
+			},
+		)
 	}
 
 	override val backPreviewTarget: View?

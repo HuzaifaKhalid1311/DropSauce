@@ -33,17 +33,17 @@
 		app:showAsAction="never" />
 
 	<item
-		android:id="@+id/action_merge_scanlators"
-		android:checkable="true"
-		android:icon="@drawable/ic_merge"
-		android:title="@string/merge_scanlators"
-		app:showAsAction="never" />
-
-	<item
 		android:id="@+id/action_grid_view"
 		android:checkable="true"
 		android:icon="@drawable/ic_grid"
 		android:title="@string/chapters_grid_view"
+		app:showAsAction="never" />
+
+	<!-- Opens a picker rather than toggling, so it sits after the tick-box items. -->
+	<item
+		android:id="@+id/action_merge_scanlators"
+		android:icon="@drawable/ic_merge"
+		android:title="@string/merge_scanlators"
 		app:showAsAction="never" />
 
 </menu>

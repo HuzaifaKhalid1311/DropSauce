@@ -93,7 +93,7 @@ object SyncTriggers {
 			pk = "%.manga_id",
 			columns = listOf(
 				"mode", "cf_brightness", "cf_contrast", "cf_invert", "cf_grayscale", "cf_book", "title_override",
-				"cover_override", "description_override", "content_rating_override", "merge_scanlators",
+				"cover_override", "description_override", "content_rating_override", "merge_scanlators", "merged_scanlators",
 			),
 			isSoftDelete = false,
 		),

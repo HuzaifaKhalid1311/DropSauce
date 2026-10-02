@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -490,21 +491,26 @@ internal fun RelatedSection(
 	onItemClick: (MangaListModel) -> Unit,
 ) {
 	SectionHeader(title = stringResource(R.string.related_manga), action = stringResource(R.string.show_all), accent = accent, onAction = onMore)
+	// Mirrors Explore's suggestions carousel (item_recommendation / item_manga_carousel): same tile
+	// size, 4dp grid gap, free scrolling, and a mask over cover + title with square bottom corners.
 	val carouselState = rememberCarouselState { items.size }
 	HorizontalMultiBrowseCarousel(
 		state = carouselState,
 		preferredItemWidth = 150.dp,
-		itemSpacing = 10.dp,
-		flingBehavior = CarouselDefaults.multiBrowseFlingBehavior(state = carouselState),
-		contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = SCREEN_PADDING),
+		itemSpacing = 4.dp,
+		flingBehavior = CarouselDefaults.noSnapFlingBehavior(),
+		contentPadding = PaddingValues(horizontal = SCREEN_PADDING),
 		modifier = Modifier
 			.fillMaxWidth()
-			.height(232.dp),
+			.height(244.dp),
 	) { i ->
 		val item = items.getOrNull(i) ?: return@HorizontalMultiBrowseCarousel
 		val context = LocalContext.current
 		Column(
-			modifier = Modifier.clickable { onItemClick(item) },
+			modifier = Modifier
+				.fillMaxSize()
+				.maskClip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+				.clickable { onItemClick(item) },
 		) {
 			AsyncImage(
 				model = remember(item.coverUrl, item.source) {
@@ -520,14 +526,15 @@ internal fun RelatedSection(
 				modifier = Modifier
 					.height(200.dp)
 					.fillMaxWidth()
-					.maskClip(RoundedCornerShape(20.dp)),
+					.maskClip(RoundedCornerShape(20.dp))
+					.background(MaterialTheme.colorScheme.surfaceContainer),
 			)
 			Spacer(Modifier.height(8.dp))
 			Text(
 				text = item.title,
 				style = MaterialTheme.typography.labelMedium,
 				color = MaterialTheme.colorScheme.onSurface,
-				maxLines = 1,
+				maxLines = 2,
 				overflow = TextOverflow.Ellipsis,
 				modifier = Modifier.padding(start = 8.dp, end = 4.dp),
 			)

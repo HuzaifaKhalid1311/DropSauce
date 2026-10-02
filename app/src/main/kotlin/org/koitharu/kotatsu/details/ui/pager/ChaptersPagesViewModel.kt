@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import okio.FileNotFoundException
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
+import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.toChipModel
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
@@ -183,7 +184,7 @@ abstract class ChaptersPagesViewModel(
 		}
 	}
 
-	val isScanlatorsMerged = MutableStateFlow(false)
+	val scanlatorMerge = MutableStateFlow<ScanlatorMerge>(ScanlatorMerge.None)
 
 	init {
 		launchJob(Dispatchers.Default) {
@@ -192,18 +193,18 @@ abstract class ChaptersPagesViewModel(
 		}
 		launchJob(Dispatchers.Default) {
 			val id = mangaDetails.filterNotNull().first().id
-			isScanlatorsMerged.value = mangaDataRepository.isScanlatorsMerged(id)
+			scanlatorMerge.value = mangaDataRepository.getScanlatorMerge(id)
 			isChaptersSortedByName.value = settings.isChaptersSortedByName(id)
 		}
 	}
 
 	abstract fun reload()
 
-	fun setScanlatorsMerged(isMerged: Boolean) {
+	fun setScanlatorMerge(merge: ScanlatorMerge) {
 		launchJob(Dispatchers.Default) {
 			val manga = mangaDetails.requireValue().sourceManga
-			mangaDataRepository.setScanlatorsMerged(manga, isMerged)
-			isScanlatorsMerged.value = isMerged
+			mangaDataRepository.setScanlatorMerge(manga, merge)
+			scanlatorMerge.value = merge
 			selectedBranch.value = null
 			reload()
 		}

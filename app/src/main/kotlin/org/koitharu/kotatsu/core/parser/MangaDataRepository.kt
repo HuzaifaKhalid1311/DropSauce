@@ -20,7 +20,12 @@ import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.db.entity.toManga
 import org.koitharu.kotatsu.core.db.entity.toMangaChapters
 import org.koitharu.kotatsu.core.db.entity.toMangaTags
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 import org.koitharu.kotatsu.core.model.LocalMangaSource
+import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.model.MangaSource as ResolveMangaSource
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.nav.MangaIntent
@@ -78,15 +83,29 @@ class MangaDataRepository @Inject constructor(
 		return db.getPreferencesDao().find(mangaId)?.getColorFilterOrNull()
 	}
 
-	suspend fun isScanlatorsMerged(mangaId: Long): Boolean {
-		return db.getPreferencesDao().find(mangaId)?.mergeScanlators == true
+	suspend fun getScanlatorMerge(mangaId: Long): ScanlatorMerge {
+		val entity = db.getPreferencesDao().find(mangaId) ?: return ScanlatorMerge.None
+		if (entity.mergeScanlators) {
+			return ScanlatorMerge.All
+		}
+		val branches = entity.mergedScanlators?.let {
+			runCatching { Json.decodeFromString(scanlatorsSerializer, it) }.getOrNull()
+		}
+		return if (branches != null && branches.size >= 2) ScanlatorMerge.Some(branches.toSet()) else ScanlatorMerge.None
 	}
 
-	suspend fun setScanlatorsMerged(manga: Manga, isMerged: Boolean) {
+	suspend fun setScanlatorMerge(manga: Manga, merge: ScanlatorMerge) {
 		db.withTransaction {
 			storeMangaLocked(manga, replaceExisting = false)
 			val entity = db.getPreferencesDao().find(manga.id) ?: newEntity(manga.id)
-			db.getPreferencesDao().upsert(entity.copy(mergeScanlators = isMerged))
+			db.getPreferencesDao().upsert(
+				entity.copy(
+					mergeScanlators = merge == ScanlatorMerge.All,
+					mergedScanlators = (merge as? ScanlatorMerge.Some)?.let {
+						Json.encodeToString(scanlatorsSerializer, it.branches.toList())
+					},
+				),
+			)
 		}
 	}
 
@@ -348,3 +367,5 @@ class MangaDataRepository @Inject constructor(
 		mergeScanlators = false,
 	)
 }
+
+private val scanlatorsSerializer = ListSerializer(String.serializer().nullable)

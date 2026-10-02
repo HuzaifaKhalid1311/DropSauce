@@ -155,6 +155,7 @@ data class RMangaPrefs(
 	@SerialName("cover_ext") val coverExtension: String? = null,
 	@SerialName("content_rating_override") val contentRatingOverride: String? = null,
 	@SerialName("merge_scanlators") val mergeScanlators: Boolean = false,
+	@SerialName("merged_scanlators") val mergedScanlators: String? = null,
 	@SerialName("v") override val v: Long,
 ) : SyncRecord {
 	override val key get() = mangaId.toString()

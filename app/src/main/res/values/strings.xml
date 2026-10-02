@@ -141,6 +141,8 @@
     <string name="update">Update</string>
     <string name="stop_update">Stop update</string>
     <string name="merge_scanlators">Merge scanlators</string>
+    <string name="merge_scanlators_summary">Ticked scanlators show as one combined chapter list.</string>
+    <string name="scanlator_with_chapters">%1$s · %2$s</string>
     <string name="marked_as_read">Marked as read</string>
     <string name="mark_as_read">Mark as read</string>
     <string name="feed_entry_removed">Removed</string>

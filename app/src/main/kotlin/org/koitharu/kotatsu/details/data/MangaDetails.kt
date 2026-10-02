@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.details.data
 
+import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.model.getLocale
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.withMergedBranches
@@ -20,6 +21,8 @@ data class MangaDetails(
     private val override: MangaOverride?,
     private val sourceDescription: CharSequence?,
     val isLoaded: Boolean,
+    /** Chapter count per branch as the source has them, before "merge scanlators" folded any. */
+    private val unmergedBranches: Map<String?, Int>? = null,
 ) {
 
     /** A user-typed description always wins over whatever the source provides. */
@@ -92,9 +95,14 @@ data class MangaDetails(
 
     fun withOverride(override: MangaOverride?) = copy(override = override)
 
-    fun withMergedBranches() = copy(
-        manga = manga.withMergedBranches(),
-        localManga = localManga?.let { it.copy(manga = it.manga.withMergedBranches()) },
+    /** Every branch with its chapter count, as the source has them (ignoring "merge scanlators"). */
+    val scanlators: Map<String?, Int>
+        get() = unmergedBranches ?: chapters.mapValues { it.value.size }
+
+    fun withMergedBranches(merge: ScanlatorMerge) = if (merge == ScanlatorMerge.None) this else copy(
+        manga = manga.withMergedBranches(merge),
+        localManga = localManga?.let { it.copy(manga = it.manga.withMergedBranches(merge)) },
+        unmergedBranches = scanlators,
     )
 
 	fun coverUrl(preferLarge: Boolean = false): String? =

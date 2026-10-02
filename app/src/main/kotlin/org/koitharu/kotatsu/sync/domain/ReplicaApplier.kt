@@ -301,6 +301,7 @@ class ReplicaApplier @Inject constructor(
 						descriptionOverride = p.descriptionOverride,
 						contentRatingOverride = p.contentRatingOverride,
 						mergeScanlators = p.mergeScanlators,
+						mergedScanlators = p.mergedScanlators,
 					),
 				)
 				stamp(SyncTriggers.MANGA_PREFS, pk, p.v)

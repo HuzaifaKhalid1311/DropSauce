@@ -54,6 +54,7 @@ import org.koitharu.kotatsu.core.db.migrations.Migration34To35
 import org.koitharu.kotatsu.core.db.migrations.Migration35To36
 import org.koitharu.kotatsu.core.db.migrations.Migration36To37
 import org.koitharu.kotatsu.core.db.migrations.Migration37To38
+import org.koitharu.kotatsu.core.db.migrations.Migration38To39
 import org.koitharu.kotatsu.core.db.migrations.Migration2To3
 import org.koitharu.kotatsu.core.db.migrations.Migration3To4
 import org.koitharu.kotatsu.core.db.migrations.Migration4To5
@@ -85,7 +86,7 @@ import org.koitharu.kotatsu.tracker.data.TrackEntity
 import org.koitharu.kotatsu.tracker.data.TrackLogEntity
 import org.koitharu.kotatsu.tracker.data.TracksDao
 
-const val DATABASE_VERSION = 38
+const val DATABASE_VERSION = 39
 
 @Database(
 	entities = [
@@ -170,6 +171,7 @@ fun getDatabaseMigrations(context: Context): Array<Migration> = arrayOf(
 	Migration35To36(),
 	Migration36To37(),
 	Migration37To38(),
+	Migration38To39(),
 )
 
 fun MangaDatabase(context: Context): MangaDatabase = Room

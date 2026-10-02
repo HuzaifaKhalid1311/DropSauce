@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -291,6 +293,75 @@ fun showActionChoiceDialog(
 			}
 			Spacer(Modifier.height(8.dp))
 			ExpressiveDialogTextButton(text = dismissLabel, onClick = dismiss)
+		}
+	}
+}
+
+/**
+ * Expressive multi-choice picker: checkbox [options] with the initial [selectedIndices], confirmed by a
+ * pill button ([confirmLabel]) that is enabled only while [isValid] accepts the selection.
+ * [onConfirm] receives the checked indices — the dialog dismisses first.
+ */
+fun showMultiChoiceDialog(
+	context: Context,
+	@DrawableRes icon: Int,
+	title: String,
+	message: String? = null,
+	options: List<String>,
+	selectedIndices: Set<Int>,
+	confirmLabel: String,
+	isValid: (Set<Int>) -> Boolean = { true },
+	onConfirm: (Set<Int>) -> Unit,
+) {
+	showComposeDialog(context) { dismiss ->
+		var selection by remember { mutableStateOf(selectedIndices) }
+		ExpressiveDialogCard(
+			icon = painterResource(icon),
+			title = title,
+			message = message,
+		) {
+			Column(
+				modifier = Modifier
+					.heightIn(max = 320.dp)
+					.verticalScroll(rememberScrollState()),
+			) {
+				options.forEachIndexed { index, option ->
+					val checked = index in selection
+					val toggle = { selection = if (checked) selection - index else selection + index }
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.heightIn(min = 52.dp)
+							.clip(RoundedCornerShape(16.dp))
+							.clickable(onClick = toggle)
+							.padding(horizontal = 8.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						Checkbox(checked = checked, onCheckedChange = { toggle() })
+						Spacer(Modifier.size(8.dp))
+						Text(
+							text = option,
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onSurface,
+							modifier = Modifier.fillMaxWidth(),
+						)
+					}
+				}
+			}
+			Spacer(Modifier.height(16.dp))
+			ExpressivePillButton(
+				text = confirmLabel,
+				enabled = isValid(selection),
+				onClick = {
+					dismiss()
+					onConfirm(selection)
+				},
+			)
+			Spacer(Modifier.height(8.dp))
+			ExpressiveDialogTextButton(
+				text = context.getString(android.R.string.cancel),
+				onClick = dismiss,
+			)
 		}
 	}
 }

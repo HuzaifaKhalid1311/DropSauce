@@ -77,9 +77,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 
 	private suspend fun getDeletionTask(manga: LocalManga, keep: Int): DeletionTask? {
 		val history = historyRepository.getOne(manga.manga) ?: return null
-		val chapters = getAllChapters(manga).let {
-			if (mangaDataRepository.isScanlatorsMerged(manga.manga.id)) it.mergedBranches() else it
-		}
+		val chapters = getAllChapters(manga).mergedBranches(mangaDataRepository.getScanlatorMerge(manga.manga.id))
 		if (chapters.isEmpty()) {
 			return null
 		}

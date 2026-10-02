@@ -233,6 +233,7 @@ class ReplicaBuilder @Inject constructor(
 					coverExtension = cover?.extension,
 					contentRatingOverride = p.contentRatingOverride,
 					mergeScanlators = p.mergeScanlators,
+					mergedScanlators = p.mergedScanlators,
 					v = v[p.mangaId.toString()]?.version ?: 0L,
 				)
 			}
