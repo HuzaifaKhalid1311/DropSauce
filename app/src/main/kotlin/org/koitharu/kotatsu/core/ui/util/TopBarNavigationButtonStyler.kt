@@ -282,8 +282,10 @@ private fun TextView.forceCompoundIcon(metrics: TonalBarMetrics) {
  * can run on every layout/style pass without churn.
  */
 private fun ImageView.applyTonalCircleButton(metrics: TonalBarMetrics) {
-	minimumWidth = 0
-	minimumHeight = 0
+	// setMinimumWidth/Height always request a layout, even for the same value; unguarded, this
+	// (run from a layout listener) re-laid out the toolbar every frame.
+	if (minimumWidth != 0) minimumWidth = 0
+	if (minimumHeight != 0) minimumHeight = 0
 	if (scaleType != ImageView.ScaleType.FIT_CENTER) {
 		scaleType = ImageView.ScaleType.FIT_CENTER
 	}

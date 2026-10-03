@@ -12,6 +12,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.cache.SafeDeferred
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.util.MultiMutex
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -35,13 +36,20 @@ abstract class CachingMangaRepository(
 	final override suspend fun getPages(manga: Manga, chapter: MangaChapter): List<MangaPage> = pagesMutex.withLock(chapter.id) {
 		// Same key as Mihon's ChapterCache: chapter "12" of two manga must not share a page list.
 		val key = manga.url + "\n" + chapter.url
-		cache.getPages(source, key)?.let { return it }
+		cache.getPages(source, key)?.let {
+			logPages(manga, chapter, it, "cache hit")
+			return it
+		}
 		val pages = asyncSafe {
 			getPagesImpl(manga, chapter).distinctById()
 		}
 		cache.putPages(source, key, pages)
 		pages
-	}.await()
+	}.await().also { logPages(manga, chapter, it, "fetched") }
+
+	private fun logPages(manga: Manga, chapter: MangaChapter, pages: List<MangaPage>, origin: String) = breadcrumb(TAG) {
+		"getPages ${source.name}: manga=${manga.url} chapter=${chapter.url} -> ${pages.size} pages ($origin)"
+	}
 
 	final override suspend fun getRelated(seed: Manga): List<Manga> = relatedMangaMutex.withLock(seed.id) {
 		cache.getRelatedManga(source, seed.url)?.let { return it }
@@ -103,3 +111,5 @@ abstract class CachingMangaRepository(
 		return result
 	}
 }
+
+private const val TAG = "MangaRepository"

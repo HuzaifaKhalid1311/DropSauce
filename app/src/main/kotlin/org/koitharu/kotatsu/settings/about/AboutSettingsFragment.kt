@@ -257,9 +257,9 @@ private fun AboutScreen(
 					SwitchSettingsItem(
 						title = "Verbose logging",
 						subtitle = if (isVerboseLogging) {
-							"Recording, even across restarts and crashes. Turn off to save the log"
+							"Recording, even across restarts and crashes. Reproduce the issue now, then turn off to save the log"
 						} else {
-							"Record an issue to send to the developer"
+							"Turn on first, then reproduce the issue, then turn off to save a log for the developer"
 						},
 						icon = R.drawable.ic_script,
 						shape = pos.shape,

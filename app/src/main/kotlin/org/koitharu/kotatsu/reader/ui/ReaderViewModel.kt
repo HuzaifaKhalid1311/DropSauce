@@ -31,6 +31,7 @@ import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
 import org.koitharu.kotatsu.core.exceptions.EmptyMangaException
 import org.koitharu.kotatsu.core.model.getPreferredBranch
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.nav.MangaIntent
 import org.koitharu.kotatsu.core.nav.ReaderIntent
 import org.koitharu.kotatsu.core.os.AppShortcutManager
@@ -730,7 +731,8 @@ class ReaderViewModel @Inject constructor(
         val requestedState: ReaderState? = savedStateHandle[ReaderIntent.EXTRA_STATE]
         if (requestedState != null) {
             when {
-                manga.findChapterById(requestedState.chapterId) != null -> return requestedState
+                manga.findChapterById(requestedState.chapterId) != null ->
+                    return requestedState.logChosen(manga, isLoaded, "intent extra")
                 !isLoaded -> return null
             }
         }
@@ -744,18 +746,27 @@ class ReaderViewModel @Inject constructor(
                 chapter == null -> if (!isLoaded) return null
                 // specified branch is requested
                 ReaderIntent.EXTRA_BRANCH in savedStateHandle -> return if (chapter.branch == requestedBranch) {
-                    ReaderState(history)
+                    ReaderState(history).logChosen(manga, isLoaded, "history")
                 } else {
-                    ReaderState(manga, requestedBranch)
+                    ReaderState(manga, requestedBranch).logChosen(manga, isLoaded, "start of branch $requestedBranch")
                 }
 
-                else -> return ReaderState(history)
+                else -> return ReaderState(history).logChosen(manga, isLoaded, "history")
             }
         }
 
         // start from beginning
         val preferredBranch = requestedBranch ?: manga.getPreferredBranch(null)
-        return ReaderState(manga, preferredBranch)
+        return ReaderState(manga, preferredBranch).logChosen(manga, isLoaded, "start of manga")
+    }
+
+    private fun ReaderState.logChosen(manga: Manga, isLoaded: Boolean, origin: String) = also {
+        breadcrumb("Reader") {
+            val chapter = manga.findChapterById(chapterId)
+            "open \"${manga.title}\" ${manga.source.name} id=${manga.id} url=${manga.url}: chapter id=$chapterId " +
+                "url=${chapter?.url} number=${chapter?.number} page=$page, from $origin " +
+                "(details: ${if (isLoaded) "loaded" else "stored snapshot"})"
+        }
     }
 
     private fun Exception.mergeWith(other: Exception?): Exception = if (other == null) {

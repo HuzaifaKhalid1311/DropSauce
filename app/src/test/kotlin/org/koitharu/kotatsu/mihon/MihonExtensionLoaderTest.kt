@@ -43,4 +43,14 @@ class MihonExtensionLoaderTest {
 		assertFalse(MihonExtensionLoader.isSupportedLibVersion(1.9))
 		assertFalse(MihonExtensionLoader.isSupportedLibVersion(2.0))
 	}
+
+	@Test
+	fun `parseLibVersion ignores manifest Float and uses the version name`() {
+		// Manifest decimals arrive as Float; widening 1.4f gives 1.3999…, which would fail the range check.
+		val libVersion = MihonExtensionLoader.parseLibVersion(1.4f, "1.4.12")
+		assertEquals(1.4, libVersion!!, 0.0)
+		assertTrue(MihonExtensionLoader.isSupportedLibVersion(libVersion))
+		assertEquals(1.5, MihonExtensionLoader.parseLibVersion(null, "1.5.3")!!, 0.0)
+		assertEquals(1.6, MihonExtensionLoader.parseLibVersion(1.6, "1.4.2")!!, 0.0)
+	}
 }

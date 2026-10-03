@@ -22,6 +22,7 @@ import org.koitharu.kotatsu.core.exceptions.InteractiveActionRequiredException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
@@ -293,9 +294,18 @@ class MihonMangaRepository(
 		) {
 			// Only a memo saved before they were per-manga, possibly another manga's chapter with the
 			// same url. One details load re-saves this manga's own; if it fails, the old one is used.
+			breadcrumb(TAG) { "${source.name}: only a legacy memo for chapter=${chapter.url}, refreshing details of manga=${manga.url}" }
 			runCatchingCancellable { getDetails(manga) }
 		}
 		val sChapter = chapter.toSourceChapter(manga)
+		breadcrumb(TAG) {
+			val memo = when {
+				sChapter.memo.isEmpty() -> "none"
+				sourceMetadata.restoreChapterMemo(source.sourceId, manga.url, chapter.url) != null -> "per-manga"
+				else -> "legacy fallback"
+			}
+			"getPageList ${source.name}: manga=${manga.url} chapter=${chapter.url} memo=$memo"
+		}
 		// Match Mihon and delegate retry policy to the source's own OkHttp client.
 		val rawPages = try {
 			mihonSource.getPageList(sChapter)

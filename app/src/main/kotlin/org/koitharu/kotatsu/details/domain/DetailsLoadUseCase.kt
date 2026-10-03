@@ -30,6 +30,7 @@ import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.ui.model.MangaOverride
 import org.koitharu.kotatsu.core.util.ext.sanitize
 import org.koitharu.kotatsu.details.data.MangaDetails
@@ -174,6 +175,7 @@ class DetailsLoadUseCase @Inject constructor(
 					canUseStored?.invoke(manga) == true
 				)
 		) {
+			breadcrumb(TAG) { "details ${manga.source.name} id=${manga.id} url=${manga.url}: stored copy used, no refresh" }
 			emit(
 				MangaDetails(
 					manga = manga,
@@ -203,6 +205,9 @@ class DetailsLoadUseCase @Inject constructor(
 		}
 		val remoteResult = remoteDeferred.await()
 		if (remoteResult.isFailure) {
+			breadcrumb(TAG) {
+				"details ${manga.source.name} id=${manga.id} url=${manga.url}: refresh failed, stored copy kept (${remoteResult.exceptionOrNull()})"
+			}
 			// Emit a terminal "loaded" state with whatever we have cached so the UI
 			// shows the manga's info before the error snackbar appears.
 			emit(
@@ -217,6 +222,9 @@ class DetailsLoadUseCase @Inject constructor(
 			)
 		}
 		val remoteDetails = remoteResult.getOrThrow()  // re-throws so the caller shows error
+		breadcrumb(TAG) {
+			"details ${manga.source.name} id=${manga.id} url=${manga.url}: refreshed, ${remoteDetails.chapters?.size ?: 0} chapters"
+		}
 		val mangaDetails = MangaDetails(
 			manga = remoteDetails,
 			localManga = localManga,
@@ -311,6 +319,7 @@ class DetailsLoadUseCase @Inject constructor(
 	}
 
 	private companion object {
+		const val TAG = "DetailsLoad"
 		val HTML_TAG = Regex("</?[a-zA-Z][a-zA-Z0-9]*(\\s[^>]*)?/?>")
 		// Don't auto-refresh details more often than this; pull-to-refresh always bypasses
 		val DETAILS_FRESHNESS_MS = java.util.concurrent.TimeUnit.HOURS.toMillis(12)

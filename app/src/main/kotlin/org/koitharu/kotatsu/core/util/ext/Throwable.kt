@@ -27,6 +27,8 @@ import org.koitharu.kotatsu.core.exceptions.ProxyConfigException
 import org.koitharu.kotatsu.core.exceptions.UnsupportedFileException
 import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
 import org.koitharu.kotatsu.core.exceptions.WrapperIOException
+import org.koitharu.kotatsu.core.logs.AppLogger
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.parsers.ErrorMessages.FILTER_BOTH_LOCALE_GENRES_NOT_SUPPORTED
@@ -56,8 +58,24 @@ private const val IMAGE_FORMAT_NOT_SUPPORTED = "Image format not supported"
 
 private val FNFE_MESSAGE_REGEX = Regex("^(/[^\\s:]+)?.+?\\s([A-Z]{2,6})?\\s.+$")
 
-fun Throwable.getDisplayMessage(resources: Resources): String = getDisplayMessageOrNull(resources)
-    ?: resources.getString(R.string.error_occurred)
+fun Throwable.getDisplayMessage(resources: Resources): String {
+    val displayMessage = getDisplayMessageOrNull(resources) ?: resources.getString(R.string.error_occurred)
+    // Every error the UI shows routes through here, so this is where "what went wrong" enters a log.
+    if (AppLogger.isRecording) logShownError(displayMessage)
+    return displayMessage
+}
+
+// The same error is often rendered repeatedly (list rebinds, retries); log it once per streak.
+@Volatile
+private var lastShownError: String? = null
+
+private fun Throwable.logShownError(displayMessage: String) {
+    val line = "user saw \"$displayMessage\" <- $this"
+    if (line == lastShownError) return
+    lastShownError = line
+    breadcrumb("UserError") { line }
+    printStackTraceDebug()
+}
 
 private fun Throwable.getDisplayMessageOrNull(resources: Resources): String? = when (this) {
     is CancellationException -> cause?.getDisplayMessageOrNull(resources) ?: message

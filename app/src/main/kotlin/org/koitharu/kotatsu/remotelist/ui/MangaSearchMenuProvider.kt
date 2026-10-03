@@ -8,6 +8,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.core.view.inputmethod.EditorInfoCompat
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
@@ -38,6 +39,7 @@ class MangaSearchMenuProvider(
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean = false
 
 	override fun onQueryTextSubmit(query: String?): Boolean {
+		breadcrumb("Search") { "in-source search \"$query\"" }
 		val snapshot = filter.snapshot()
 		if (!query.isNullOrEmpty() && !filter.capabilities.isSearchWithFiltersSupported && snapshot.listFilter.hasNonSearchOptions()) {
 			filter.set(MangaListFilter(query = query))

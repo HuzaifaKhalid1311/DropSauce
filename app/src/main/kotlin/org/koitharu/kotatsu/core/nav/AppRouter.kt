@@ -29,6 +29,7 @@ import org.koitharu.kotatsu.browser.BrowserActivity
 import org.koitharu.kotatsu.browser.cloudflare.CloudFlareActivity
 import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.MissingMangaSource
@@ -153,6 +154,7 @@ class AppRouter private constructor(
     fun openList(tag: MangaTag) = openList(tag.source, MangaListFilter(tags = setOf(tag)), null)
 
     fun openSearch(query: String, kind: SearchKind = SearchKind.SIMPLE) {
+        breadcrumb("Search") { "global $kind search \"$query\"" }
         startActivity(
             Intent(contextOrNull() ?: return, SearchActivity::class.java)
                 .putExtra(KEY_QUERY, query)
@@ -160,9 +162,13 @@ class AppRouter private constructor(
         )
     }
 
-    fun openSearch(source: MangaSource, query: String) = openList(source, MangaListFilter(query = query), null)
+    fun openSearch(source: MangaSource, query: String) {
+        breadcrumb("Search") { "${source.name} search \"$query\"" }
+        openList(source, MangaListFilter(query = query), null)
+    }
 
     fun openDetails(manga: Manga) {
+        breadcrumb("Open") { "details \"${manga.title}\" ${manga.source.name} id=${manga.id} url=${manga.url}" }
         val context = contextOrNull() ?: return
         val intent = detailsIntent(context, manga)
         startActivity(intent)

@@ -1,12 +1,17 @@
 package org.koitharu.kotatsu.core
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.ComponentName
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.os.Environment
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.room.InvalidationTracker
 import androidx.work.Configuration
@@ -22,10 +27,13 @@ import org.acra.ktx.initAcra
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.logs.AppLogger
+import org.koitharu.kotatsu.core.logs.UserActionLogger
+import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.os.AppValidator
 import org.koitharu.kotatsu.core.os.RomCompat
 import org.koitharu.kotatsu.settings.sources.catalog.EXTENSION_APK_PREFIX
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
 import org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
@@ -138,6 +146,25 @@ open class BaseApp : Application(), Configuration.Provider {
 		activityLifecycleCallbacks.forEach {
 			registerActivityLifecycleCallbacks(it)
 		}
+		// Verbose logging: which screens, sheets and dialogs the user moves through, and what they tap.
+		// Installed for every activity; each line is only written while a log is being recorded.
+		registerActivityLifecycleCallbacks(object : DefaultActivityLifecycleCallbacks {
+			override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+				UserActionLogger.install(activity)
+				(activity as? FragmentActivity)?.supportFragmentManager?.registerFragmentLifecycleCallbacks(
+					object : FragmentManager.FragmentLifecycleCallbacks() {
+						override fun onFragmentResumed(fm: FragmentManager, f: Fragment) = breadcrumb("Screen") {
+							"${activity.javaClass.simpleName} > ${f.javaClass.simpleName}"
+						}
+					},
+					true,
+				)
+			}
+
+			override fun onActivityResumed(activity: Activity) = breadcrumb("Screen") {
+				activity.javaClass.simpleName
+			}
+		})
 	}
 
 	private fun cleanupDownloadedExtensionApks() {
