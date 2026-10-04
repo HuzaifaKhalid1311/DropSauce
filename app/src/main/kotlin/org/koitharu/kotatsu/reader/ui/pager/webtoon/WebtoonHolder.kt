@@ -39,7 +39,7 @@ class WebtoonHolder(
 			scrollTo(
 				when {
 					scrollToRestore != 0 -> scrollToRestore
-					itemView.top < 0 -> getScrollRange()
+					itemView.bottom <= 0 -> getScrollRange()
 					else -> 0
 				},
 			)

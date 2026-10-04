@@ -57,7 +57,6 @@ class WebtoonReaderFragment : BaseReaderFragment<FragmentReaderWebtoonBinding>()
 	override fun onViewBindingCreated(binding: FragmentReaderWebtoonBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
 		with(binding.recyclerView) {
-			setHasFixedSize(true)
 			adapter = readerAdapter
 			addOnPageScrollListener(this@WebtoonReaderFragment)
 			recyclerLifecycleDispatcher = RecyclerViewLifecycleDispatcher().also {

@@ -95,14 +95,14 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 				if (consumedByChild < dy) {
 					if (childCount > 1) {
 						val nextChild = getChildAt(1) as WebtoonFrameLayout
-						val unconsumed =
-							dy - consumedByChild - nextChild.top //will be consumed by scroll
+						val scrollNeededToAlign = nextChild.top.coerceAtLeast(0)
+						val unconsumed = dy - consumedByChild - scrollNeededToAlign
 						if (unconsumed > 0) {
 							consumedByChild += nextChild.dispatchVerticalScroll(unconsumed)
 						}
 					}
 				}
-				return consumedByChild
+				return consumedByChild.coerceAtMost(dy)
 			}
 
 			dy < 0 -> {
@@ -111,14 +111,14 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 				if (consumedByChild > dy) {
 					if (childCount > 1) {
 						val nextChild = getChildAt(childCount - 2) as WebtoonFrameLayout
-						val unconsumed =
-							dy - consumedByChild + (height - nextChild.bottom) //will be consumed by scroll
+						val scrollNeededToAlign = (height - nextChild.bottom).coerceAtLeast(0)
+						val unconsumed = dy - consumedByChild + scrollNeededToAlign
 						if (unconsumed < 0) {
 							consumedByChild += nextChild.dispatchVerticalScroll(unconsumed)
 						}
 					}
 				}
-				return consumedByChild
+				return consumedByChild.coerceAtLeast(dy)
 			}
 		}
 		return 0
