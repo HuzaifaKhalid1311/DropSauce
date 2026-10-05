@@ -1470,15 +1470,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_ONBOARDING_INSTALL_ID = "onboarding_install_id"
 
 		/**
-		 * Keys that describe THIS device's layout rather than the user's library, so they are never
-		 * carried by a backup or by Drive sync. Syncing them means a snapshot taken on another device
-		 * (or before a default changed) silently flips the setting back at whatever moment a sync runs.
-		 */
-		val DEVICE_LOCAL_KEYS = setOf(
-			KEY_NAV_PINNED,
-		)
-
-		/**
 		 * Keys that must never leave the device: credentials, app-lock state and per-install ids.
 		 * Stripped from local backups and cloud sync, both when writing and when applying.
 		 */
@@ -1497,28 +1488,14 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		)
 
 		/**
-		 * Kept out of Drive sync (but not backups): this device's layout, storage locations, installer
-		 * capabilities, caches and one-shot flags. Several are written by the app itself, so syncing them
-		 * would make background writes look like user edits.
+		 * Kept out of Drive sync (but not backups): every user-facing setting syncs except app lock
+		 * ([SENSITIVE_BACKUP_KEYS]). What stays here only makes sense on this device (storage folders,
+		 * installer capabilities, a font file) or is written by the app itself (caches, one-shot flags),
+		 * where syncing would make background writes look like user edits.
 		 */
 		private val SYNC_LOCAL_KEYS = setOf(
-			KEY_GRID_SIZE,
-			KEY_GRID_SIZE_PAGES,
-			KEY_GRID_SPACING_INCREASED,
-			KEY_GRID_VIEW_CHAPTERS,
-			KEY_LIST_MODE,
-			KEY_LIST_MODE_HISTORY,
-			KEY_LIST_MODE_FAVORITES,
-			KEY_LIST_MODE_SUGGESTIONS,
-			KEY_SOURCES_GRID,
-			KEY_UI_SCALE,
 			KEY_UI_SCALE_RESET,
-			KEY_NAV_MAIN,
-			KEY_NAV_LABELS,
-			KEY_NAV_LEGACY,
 			KEY_NAV_PINNED_RESET,
-			KEY_READER_DOUBLE_FOLDABLE,
-			KEY_32BIT_COLOR,
 			KEY_LOCAL_STORAGE,
 			KEY_LOCAL_MANGA_DIRS,
 			KEY_PAGES_SAVE_DIR,
@@ -1531,11 +1508,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			KEY_BACKUP_PERIODICAL_COUNT,
 			KEY_SHIZUKU_INSTALLER,
 			KEY_PRIVATE_INSTALLER,
-			KEY_AUTO_UPDATE_EXTENSIONS,
-			KEY_PROXY_TYPE,
-			KEY_PROXY_ADDRESS,
-			KEY_PROXY_PORT,
-			KEY_VERBOSE_LOGGING,
 			KEY_DISCORD_TOKEN,
 			KEY_EXTENSION_UPDATES_AVAILABLE,
 			KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME,
@@ -1550,7 +1522,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		)
 
 		fun isSyncableKey(key: String): Boolean = key !in SENSITIVE_BACKUP_KEYS &&
-			key !in DEVICE_LOCAL_KEYS &&
 			key !in SYNC_LOCAL_KEYS &&
 			!key.startsWith(KEY_LIST_CHECKPOINT + '_') // per-list scroll positions
 

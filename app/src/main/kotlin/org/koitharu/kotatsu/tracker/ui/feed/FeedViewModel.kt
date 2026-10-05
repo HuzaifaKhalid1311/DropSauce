@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.MangaDatabase
-import org.koitharu.kotatsu.core.db.entity.toMangaChapters
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
@@ -51,7 +49,6 @@ class FeedViewModel @Inject constructor(
 	private val mangaListMapper: MangaListMapper,
 	private val quickFilter: UpdatesListQuickFilter,
 	private val historyRepository: HistoryRepository,
-	private val db: MangaDatabase,
 ) : BaseViewModel(), QuickFilterListener by quickFilter {
 
 	init {
@@ -176,45 +173,9 @@ class FeedViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun markAsReadImpl(item: FeedItem): ReversibleHandle {
-		// Snapshot undo state before anything mutates: the history jump below re-computes the
-		// new-chapters counter to zero, so markLogsRead must capture it first.
-		val priorHistory = db.getHistoryDao().find(item.manga.id)
-		val logsHandle = repository.markLogsRead(item.manga.id)
-
-		val allChapters = db.getChaptersDao().findAll(item.manga.id)
-		val latestFeedChapterEntity = item.chapters
-			.mapNotNull { ch -> allChapters.find { it.chapterId == ch.id } }
-			.maxByOrNull { it.index }
-
-		if (latestFeedChapterEntity != null) {
-			val chapterIndex = allChapters.indexOfFirst { it.chapterId == latestFeedChapterEntity.chapterId }
-			val percent = (chapterIndex + 1) / allChapters.size.toFloat()
-
-			val mangaChapters = allChapters.toMangaChapters()
-			val mangaWithChapters = item.manga.copy(chapters = mangaChapters)
-
-			historyRepository.addOrUpdate(
-				manga = mangaWithChapters,
-				chapterId = latestFeedChapterEntity.chapterId,
-				page = 0,
-				scroll = 0,
-				percent = percent,
-				force = true,
-			)
-		}
-
-		return ReversibleHandle {
-			// Restore the reading position first: the feed dot derives per-chapter "new" state
-			// from history, so restoring the unread flags alone leaves the row looking read.
-			if (priorHistory != null) {
-				db.getHistoryDao().upsert(priorHistory)
-			} else {
-				db.getHistoryDao().delete(item.manga.id)
-			}
-			logsHandle.reverse()
-		}
-	}
+	// Only dismisses the update (dot + counter). Never moves the reading position: jumping history to the
+	// newest feed chapter pinned progress at 100% and skipped every chapter the reader hadn't reached yet.
+	private suspend fun markAsReadImpl(item: FeedItem): ReversibleHandle = repository.markLogsRead(item.manga.id)
 
 	fun remove(item: FeedItem) {
 		launchJob(Dispatchers.Default) {
