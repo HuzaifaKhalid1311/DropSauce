@@ -562,7 +562,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			storeId = storeState.store.id,
 			action = SourceCatalogItem.Extension.Action.INSTALL,
 			isPrivateMode = false,
-			lnCatalog = available.filter { it.isLnPlugin },
+			catalog = available,
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
 		val installedItems = buildStoreInstalledItems(
@@ -671,7 +671,7 @@ class SourcesCatalogViewModel @Inject constructor(
 		storeId: String,
 		action: SourceCatalogItem.Extension.Action,
 		isPrivateMode: Boolean,
-		lnCatalog: List<ExternalExtensionRepoEntry>,
+		catalog: List<ExternalExtensionRepoEntry>,
 	): List<SourceCatalogItem.Extension> {
 		val sources = runCatching {
 			mangaDatabase.getMangaDao().findExternalSourcesInLibrary()
@@ -682,8 +682,8 @@ class SourcesCatalogViewModel @Inject constructor(
 		// below: the library stores the plugin id itself, which is exactly what the index is keyed by.
 		val wantedPlugins = sources.filter { it.startsWith(LN_SOURCE_PREFIX) }
 			.mapTo(HashSet()) { it.removePrefix(LN_SOURCE_PREFIX) }
-		for (entry in lnCatalog) {
-			if (entry.packageName !in wantedPlugins) continue
+		for (entry in catalog) {
+			if (!entry.isLnPlugin || entry.packageName !in wantedPlugins) continue
 			if (lnPluginManager.isInstalled(entry.packageName)) continue
 			if (!matchesExtensionQuery(query, entry.name, entry.packageName)) continue
 			out += SourceCatalogItem.Extension(
@@ -705,9 +705,10 @@ class SourcesCatalogViewModel @Inject constructor(
 				subtitle = appContext.getString(R.string.recommended_extension_subtitle),
 				action = action,
 				isInProgress = pkg in inProgress,
-				// Real extension icon when a repo is configured; otherwise the row falls back to a
-				// generated favicon (handled in the adapter).
-				iconUrl = repoUrl?.takeIf { it.isNotBlank() }?.let { externalRepoRepository.resolveIconUrl(it, pkg) },
+				// Same resolution as the Available rows: the index's own icon url wins, the repo's
+				// conventional icon path is only a fallback.
+				iconUrl = catalog.firstOrNull { it.packageName == pkg }?.iconUrl
+					?: repoUrl?.takeIf { it.isNotBlank() }?.let { externalRepoRepository.resolveIconUrl(it, pkg) },
 				storeId = storeId,
 				isPrivateMode = isPrivateMode,
 			)
@@ -752,7 +753,7 @@ class SourcesCatalogViewModel @Inject constructor(
 			storeId = storeState.store.id,
 			action = SourceCatalogItem.Extension.Action.ENABLE,
 			isPrivateMode = true,
-			lnCatalog = available.filter { it.isLnPlugin },
+			catalog = available,
 		)
 		val recommendedPackages = recommended.mapTo(HashSet(recommended.size)) { it.packageName }
 		val installedItems = buildStoreInstalledItems(

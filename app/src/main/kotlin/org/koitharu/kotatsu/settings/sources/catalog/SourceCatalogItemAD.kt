@@ -112,12 +112,12 @@ fun sourceCatalogItemExtensionAD(
 		if (isInstalled && !isLnPlugin) {
 			binding.imageViewIcon.setImageFromUrlAsync(
 				url = extensionPackageFaviconUri(item.packageName),
-				fallbackName = sourceIconName ?: item.packageName,
+				fallbackName = item.title,
 			)
 		} else if (iconUrl != null) {
 			binding.imageViewIcon.setImageFromUrlAsync(
 				url = iconUrl,
-				fallbackName = sourceIconName ?: item.packageName,
+				fallbackName = item.title,
 			)
 		} else if (sourceIconName != null) {
 			binding.imageViewIcon.setImageAsync(MangaSource(sourceIconName))
@@ -129,7 +129,7 @@ fun sourceCatalogItemExtensionAD(
 				FaviconDrawable(
 					context = context,
 					styleResId = R.style.FaviconDrawable_Small,
-					name = item.packageName,
+					name = item.title,
 				),
 			)
 		}
