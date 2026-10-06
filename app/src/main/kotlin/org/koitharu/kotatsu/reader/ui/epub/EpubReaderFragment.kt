@@ -126,6 +126,7 @@ import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import java.io.Closeable
 import java.io.File
 import java.net.URI
+import java.text.BreakIterator
 import java.time.Instant
 import java.util.UUID
 import java.util.zip.ZipFile
@@ -1170,7 +1171,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		)
 	}
 
-	private fun addHighlight(selection: SelectedText) {
+	private fun addHighlight(selection: SelectedText, showToast: Boolean = true) {
 		val manga = viewModel.getMangaOrNull() ?: return
 		val chapter = chapters.getOrNull(selection.chapter) ?: return
 		if (highlights.any {
@@ -1190,8 +1191,33 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		)
 		viewLifecycleOwner.lifecycleScope.launch {
 			withContext(Dispatchers.IO) { bookmarksRepository.addBookmark(bookmark) }
-			Toast.makeText(requireContext(), R.string.highlight_added, Toast.LENGTH_SHORT).show()
+			if (showToast) Toast.makeText(requireContext(), R.string.highlight_added, Toast.LENGTH_SHORT).show()
 		}
+	}
+
+	/** Highlight pick mode (armed from the reader dock): the tapped sentence becomes a highlight. */
+	private fun highlightSentenceAt(textView: TextView, event: MotionEvent) {
+		val location = textView.tag as? TextLocation ?: return
+		val offset = offsetAt(textView, event) ?: return
+		val text = chapters.getOrNull(location.chapter)?.text?.toString() ?: return
+		val at = (location.baseOffset + offset).coerceIn(0, text.lastIndex)
+		// Sentences never cross a paragraph, so break within the tapped paragraph only.
+		val paragraphStart = paragraphStart(text, at)
+		val paragraphEnd = text.indexOf('\n', at).let { if (it < 0) text.length else it }
+		if (paragraphStart >= paragraphEnd) return // tapped the blank line between paragraphs
+		val sentences = BreakIterator.getSentenceInstance()
+		sentences.setText(text.substring(paragraphStart, paragraphEnd))
+		var end = sentences.following(at - paragraphStart)
+		if (end == BreakIterator.DONE) end = paragraphEnd - paragraphStart
+		var start = sentences.previous().coerceAtLeast(0) + paragraphStart
+		end += paragraphStart
+		while (start < end && text[start].isWhitespace()) start++
+		while (end > start && text[end - 1].isWhitespace()) end--
+		if (start == end) return
+		viewModel.isHighlightPicking.value = false
+		val selection = SelectedText(location.chapter, start, end, text.substring(start, end))
+		// the sentence lighting up is the feedback - no toast
+		if (selectedHighlight(selection) == null) addHighlight(selection, showToast = false)
 	}
 
 	private fun selectedHighlight(selection: SelectedText): Bookmark? {
@@ -1225,6 +1251,10 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				// Swallow the tap so it doesn't also turn the page or toggle the UI; RecyclerView
 				// still intercepts drags, so scrolling to find a paragraph keeps working.
 				if (event.actionMasked == MotionEvent.ACTION_UP) startTtsAtTap(textView, event)
+				return@setOnTouchListener true
+			}
+			if (viewModel.isHighlightPicking.value) {
+				if (event.actionMasked == MotionEvent.ACTION_UP) highlightSentenceAt(textView, event)
 				return@setOnTouchListener true
 			}
 			when (event.actionMasked) {

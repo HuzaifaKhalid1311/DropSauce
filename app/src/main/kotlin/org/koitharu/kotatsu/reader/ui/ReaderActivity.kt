@@ -174,6 +174,10 @@ class ReaderActivity :
         idlingDetector.bindToLifecycle(this)
         screenOrientationHelper.applySettings()
         viewModel.isBookmarkAdded.observe(this) { viewBinding.actionsView.isBookmarkAdded = it }
+        viewModel.isHighlightPicking.observe(this) {
+            viewBinding.actionsView.isHighlightPicking = it
+            if (it) viewBinding.toastView.show(R.string.tap_sentence_to_highlight) else viewBinding.toastView.hide()
+        }
         scrollTimer.isActive.observe(this) {
             updateScrollTimerButton()
             viewBinding.actionsView.setTimerActive(it)
@@ -430,6 +434,8 @@ class ReaderActivity :
         }
         if (isLoading && hasPages) {
             viewBinding.toastView.show(R.string.loading_)
+        } else if (viewModel.isHighlightPicking.value) {
+            viewBinding.toastView.show(R.string.tap_sentence_to_highlight)
         } else {
             viewBinding.toastView.hide()
         }
@@ -735,6 +741,11 @@ class ReaderActivity :
     }
 
     override fun onBookmarkClick() {
+        // Novels have no pages to bookmark: the button arms highlight pick mode instead.
+        if (readerManager.isEpub) {
+            viewModel.isHighlightPicking.value = !viewModel.isHighlightPicking.value
+            return
+        }
         // Only buzz when adding a bookmark (not when removing one).
         if (viewModel.isBookmarkAdded.value != true) {
             viewBinding.actionsView.hapticFeedback(HapticEffect.CONFIRM)
@@ -845,6 +856,7 @@ class ReaderActivity :
             return
         }
         viewBinding.actionsView.isSliderSmooth = uiState.isEpub && !uiState.isEpubPaged
+        viewBinding.actionsView.isHighlightMode = uiState.isEpub
         // Only trade Material's value label for the thumbnail when the pages are really resolvable;
         // otherwise the scrub would show neither.
         viewBinding.actionsView.isScrubPreviewEnabled = uiState.isSliderAvailable() &&

@@ -139,6 +139,9 @@ class ReaderViewModel @Inject constructor(
 
     // Peek mode: the reader works as usual but never writes reading progress (history) —
     // used when the user just looks into a chapter away from their current position.
+    /** Novels: the dock's highlight button armed - the next tapped sentence becomes a highlight. */
+    val isHighlightPicking = MutableStateFlow(false)
+
     val isPeekMode = MutableStateFlow(savedStateHandle.get<Boolean>(ReaderIntent.EXTRA_PEEK) == true)
 
     val content = MutableStateFlow(ReaderContent(emptyList(), null))

@@ -95,6 +95,23 @@ class ReaderActionsView @JvmOverloads constructor(
 			}
 		}
 
+	// Novels: the bookmark slot becomes "highlight", which arms a tap-a-sentence pick
+	var isHighlightMode: Boolean = false
+		set(value) {
+			if (field != value) {
+				field = value
+				updateBookmarkButton()
+			}
+		}
+
+	var isHighlightPicking: Boolean = false
+		set(value) {
+			if (field != value) {
+				field = value
+				updateBookmarkButton()
+			}
+		}
+
 	var listener: OnInteractionListener? = null
 
 	// EPUB: the slider is a smooth in-chapter scrollbar - no tick stops, no label, live seeking
@@ -328,6 +345,13 @@ class ReaderActionsView @JvmOverloads constructor(
 
 	private fun updateBookmarkButton() {
 		val button = binding.buttonBookmark
+		if (isHighlightMode) {
+			button.setIconResource(
+				if (isHighlightPicking) R.drawable.ic_ink_highlighter_filled else R.drawable.ic_ink_highlighter,
+			)
+			button.setContentDescriptionAndTooltip(R.string.highlight)
+			return
+		}
 		button.setIconResource(
 			if (isBookmarkAdded) R.drawable.ic_bookmark_added else R.drawable.ic_bookmark,
 		)

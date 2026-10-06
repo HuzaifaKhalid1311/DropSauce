@@ -1103,6 +1103,8 @@
 	<string name="dictionary_example">Example</string>
 	<string name="dictionary_synonyms">Synonyms</string>
 	<string name="highlight">Highlight</string>
+	<string name="highlight_in_novels">Highlight when reading novels</string>
+	<string name="tap_sentence_to_highlight">Tap a sentence to highlight it</string>
 	<string name="highlight_added">Highlight added</string>
 	<string name="remove_highlight">Remove highlight?</string>
 	<string name="remove_highlight_action">Remove highlight</string>

@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.R
 enum class ReaderControl(
 	@StringRes val titleResId: Int,
 	@DrawableRes val iconResId: Int,
+	@StringRes val summaryResId: Int = 0,
 ) {
 
 	PREV_CHAPTER(R.string.prev_chapter, R.drawable.ic_prev),
@@ -22,7 +23,7 @@ enum class ReaderControl(
 	SCREEN_ROTATION(R.string.screen_orientation, R.drawable.ic_screen_rotation),
 	SAVE_PAGE(R.string.save_page, R.drawable.ic_save),
 	TIMER(R.string.automatic_scroll, R.drawable.ic_timer),
-	BOOKMARK(R.string.bookmark_add, R.drawable.ic_bookmark);
+	BOOKMARK(R.string.bookmark_add, R.drawable.ic_bookmark, R.string.highlight_in_novels);
 
 	companion object {
 
