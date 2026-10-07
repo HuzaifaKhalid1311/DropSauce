@@ -18,6 +18,7 @@ import okio.buffer
 import okio.sink
 import org.koitharu.kotatsu.core.exceptions.UnsupportedFileException
 import org.koitharu.kotatsu.core.util.ext.openSource
+import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.resolveName
 import org.koitharu.kotatsu.core.util.ext.writeAllCancellable
 import org.koitharu.kotatsu.local.data.hasPdfExtension
@@ -26,6 +27,7 @@ import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.local.data.isSupportedArchive
 import org.koitharu.kotatsu.local.data.input.LocalMangaParser
 import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.io.IOException
 import java.util.Locale
@@ -128,8 +130,11 @@ class SingleMangaImporter @Inject constructor(
 		// A Mihon downloads root or source folder holds many titles, each of which becomes its own manga
 		val mangaDirs = root.findMangaDirs(contentResolver)
 		if (mangaDirs.isNotEmpty()) {
-			// Two sources can hold the same title, so each one needs a folder of its own here
-			mangaDirs.map { importMangaDirectory(it, unique = true) }
+			// Two sources can hold the same title, so each one needs a folder of its own here.
+			// One unreadable title must not cost the rest of the batch; only an all-failed batch fails.
+			val results = mangaDirs.map { runCatchingCancellable { importMangaDirectory(it, unique = true) } }
+			results.forEach { it.exceptionOrNull()?.printStackTraceDebug() }
+			results.mapNotNull { it.getOrNull() }.ifEmpty { listOf(results.first().getOrThrow()) }
 		} else {
 			listOf(importMangaDirectory(root, unique = false))
 		}
@@ -140,33 +145,38 @@ class SingleMangaImporter @Inject constructor(
 		val pdfFiles = allFiles
 			.filter { it.isFile && hasPdfExtension(it.name ?: "") }
 			.sortedBy { it.name }
-
-		if (pdfFiles.isNotEmpty()) {
-			val dest = destinationDir(root.requireName(), unique)
-			dest.mkdir()
-			for (pdfFile in pdfFiles) {
-				val chapterName = pdfFile.name!!.substringBeforeLast('.')
-				val cbzFile = File(dest, "$chapterName.cbz")
-				try {
-					contentResolver.openFileDescriptor(pdfFile.uri, "r")?.use { pfd ->
-						renderPdfToCbz(pfd, cbzFile)
-					} ?: throw IOException("Cannot open PDF: ${pdfFile.name}")
-				} catch (e: Exception) {
-					cbzFile.delete()
-					throw e
-				}
-			}
-			return LocalMangaParser(dest).getManga(withDetails = false)
-		}
-
 		val dest = destinationDir(root.requireName(), unique)
 		dest.mkdir()
-		for (docFile in allFiles) {
-			docFile.copyTo(dest)
+		try {
+			if (pdfFiles.isNotEmpty()) {
+				for (pdfFile in pdfFiles) {
+					val chapterName = pdfFile.name!!.substringBeforeLast('.')
+					val cbzFile = File(dest, "$chapterName.cbz")
+					try {
+						contentResolver.openFileDescriptor(pdfFile.uri, "r")?.use { pfd ->
+							renderPdfToCbz(pfd, cbzFile)
+						} ?: throw IOException("Cannot open PDF: ${pdfFile.name}")
+					} catch (e: Exception) {
+						cbzFile.delete()
+						throw e
+					}
+				}
+			} else {
+				for (docFile in allFiles) {
+					docFile.copyTo(dest)
+				}
+				// No-op unless the folder came from Mihon and carries ComicInfo.xml
+				runInterruptible { writeMihonIndex(dest) }
+			}
+			return LocalMangaParser(dest).getManga(withDetails = false)
+		} catch (e: Exception) {
+			// A half-copied fresh folder would show up as a broken title. A re-import merges into an
+			// existing folder, which must never be wiped.
+			if (unique) {
+				dest.deleteRecursively()
+			}
+			throw e
 		}
-		// No-op unless the folder came from Mihon and carries ComicInfo.xml
-		runInterruptible { writeMihonIndex(dest) }
-		return LocalMangaParser(dest).getManga(withDetails = false)
 	}
 
 	private suspend fun DocumentFile.copyTo(destDir: File) {

@@ -457,6 +457,7 @@ class ReaderViewModel @Inject constructor(
         loadingJob = launchLoadingJob(Dispatchers.Default + EventExceptionHandler(onLoadingError)) {
             var exception: Exception? = null
             var loadedDetails: MangaDetails? = null
+            var isChapterEmpty = false
             try {
                 detailsLoadUseCase(intent, force = false, canUseStored = ::isStoredCopyEnough)
                     .collect { details ->
@@ -468,6 +469,7 @@ class ReaderViewModel @Inject constructor(
                         val manga = details.toManga()
                         // obtain state
                         if (readingState.value == null) {
+                            isChapterEmpty = false // only the latest attempt's outcome counts
                             val newState = getStateFromIntent(manga, details.isLoaded)
                             if (newState == null) {
                                 return@collect // manga not loaded yet if cannot get state
@@ -481,6 +483,8 @@ class ReaderViewModel @Inject constructor(
                             readerMode.value = mode
                             try {
                                 if (!chaptersLoader.loadSingleChapter(newState.chapterId)) {
+                                    // The source answered without error but with zero pages
+                                    isChapterEmpty = true
                                     readingState.value = null
                                     return@collect
                                 }
@@ -512,23 +516,18 @@ class ReaderViewModel @Inject constructor(
                 if (loadedManga != null) {
                     mangaDetails.value = loadedManga.filterChapters(selectedBranch.value)
                 }
-                val loadingError = when {
-                    exception != null -> exception
-                    loadedManga == null || !loadedManga.isLoaded -> null
-                    loadedManga.isRestricted -> EmptyMangaException(
-                        EmptyMangaReason.RESTRICTED,
-                        loadedManga.toManga(),
-                        null,
-                    )
-
-                    loadedManga.allChapters.isEmpty() -> EmptyMangaException(
-                        EmptyMangaReason.NO_CHAPTERS,
-                        loadedManga.toManga(),
-                        null,
-                    )
-
-                    else -> null
-                } ?: IllegalStateException("Unable to load manga. This should never happen. Please report")
+                // loadedManga is only null when the details flow emitted nothing, which it never does
+                // without throwing; the generic "An error occurred" covers that
+                val loadingError = exception ?: loadedManga?.let { details ->
+                    val reason = when {
+                        isChapterEmpty -> EmptyMangaReason.NO_PAGES
+                        !details.isLoaded -> EmptyMangaReason.LOADING_ERROR
+                        details.isRestricted -> EmptyMangaReason.RESTRICTED
+                        details.allChapters.isEmpty() -> EmptyMangaReason.NO_CHAPTERS
+                        else -> EmptyMangaReason.LOADING_ERROR
+                    }
+                    EmptyMangaException(reason, details.toManga(), null)
+                } ?: IllegalStateException()
                 onLoadingError.call(loadingError)
             } else exception?.let { e ->
                 // manga has been loaded but error occurred
@@ -727,8 +726,7 @@ class ReaderViewModel @Inject constructor(
         // A referenced chapter can be missing from the pre-refresh database snapshot (isLoaded ==
         // false) — return null and wait for the refreshed emission. Once the source list is loaded,
         // a still-missing chapter means the source really dropped it (scanlator removed, url
-        // changed): fall through to the next strategy instead of failing the whole reader with
-        // "Unable to load manga. This should never happen".
+        // changed): fall through to the next strategy instead of failing the whole reader.
 
         // specific state is requested
         val requestedState: ReaderState? = savedStateHandle[ReaderIntent.EXTRA_STATE]

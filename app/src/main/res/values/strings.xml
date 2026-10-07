@@ -1217,6 +1217,8 @@
     <string name="manga_restricted_description">This manga is not available to read in this source. Try searching for it in other sources or opening it in a browser for more information</string>
     <string name="no_chapters_in_manga">This manga does not contain any chapters</string>
     <string name="chapters_load_failed">Failed to load chapter list</string>
+    <string name="chapter_no_content">This chapter has no content. The source returned nothing</string>
+    <string name="chapter_no_pages">This chapter has no pages. It may be locked, or the source returned nothing</string>
     <string name="storage_and_network">Storage and network</string>
     <string name="data_removal">Data removal</string>
     <string name="privacy">Privacy</string>
