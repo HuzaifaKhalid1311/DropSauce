@@ -187,17 +187,19 @@ public fun String.levenshteinDistance(other: String): Int {
 		return this.length
 	}
 
-	val lhsLength = this.length + 1
-	val rhsLength = other.length + 1
+	val (s1, s2) = if (length <= other.length) this to other else other to this
+	val s1Length = s1.length
+	val s2Length = s2.length
 
-	var cost = Array(lhsLength) { it }
-	var newCost = Array(lhsLength) { 0 }
+	var cost = IntArray(s1Length + 1) { it }
+	var newCost = IntArray(s1Length + 1)
 
-	for (i in 1 until rhsLength) {
+	for (i in 1..s2Length) {
 		newCost[0] = i
+		val c2 = s2[i - 1]
 
-		for (j in 1 until lhsLength) {
-			val match = if (this[j - 1] == other[i - 1]) 0 else 1
+		for (j in 1..s1Length) {
+			val match = if (s1[j - 1] == c2) 0 else 1
 
 			val costReplace = cost[j - 1] + match
 			val costInsert = cost[j] + 1
@@ -211,7 +213,7 @@ public fun String.levenshteinDistance(other: String): Int {
 		newCost = swap
 	}
 
-	return cost[lhsLength - 1]
+	return cost[s1Length]
 }
 
 /**
@@ -221,8 +223,66 @@ public fun String.almostEquals(other: String, threshold: Float): Boolean {
 	if (threshold <= 0f) {
 		return equals(other, ignoreCase = true)
 	}
-	val diff = lowercase().levenshteinDistance(other.lowercase()) / ((length + other.length) / 2f)
+	if (equals(other, ignoreCase = true)) {
+		return true
+	}
+	val avgLen = (length + other.length) / 2f
+	val maxAllowedDiff = threshold * avgLen
+	if (kotlin.math.abs(length - other.length) > maxAllowedDiff) {
+		return false
+	}
+	val diff = caseInsensitiveLevenshteinDistance(other, maxAllowedDiff.toInt() + 1) / avgLen
 	return diff < threshold
+}
+
+public fun String.caseInsensitiveLevenshteinDistance(other: String, maxDistance: Int = Int.MAX_VALUE): Int {
+	if (equals(other, ignoreCase = true)) {
+		return 0
+	}
+	val len1 = length
+	val len2 = other.length
+	if (len1 == 0) return len2
+	if (len2 == 0) return len1
+	if (kotlin.math.abs(len1 - len2) > maxDistance) {
+		return maxDistance + 1
+	}
+
+	val (s1, s2) = if (len1 <= len2) this to other else other to this
+	val s1Length = s1.length
+	val s2Length = s2.length
+
+	var cost = IntArray(s1Length + 1) { it }
+	var newCost = IntArray(s1Length + 1)
+
+	for (i in 1..s2Length) {
+		newCost[0] = i
+		val c2 = s2[i - 1]
+		var minRowCost = newCost[0]
+
+		for (j in 1..s1Length) {
+			val match = if (s1[j - 1].equals(c2, ignoreCase = true)) 0 else 1
+
+			val costReplace = cost[j - 1] + match
+			val costInsert = cost[j] + 1
+			val costDelete = newCost[j - 1] + 1
+
+			val c = min(min(costInsert, costDelete), costReplace)
+			newCost[j] = c
+			if (c < minRowCost) {
+				minRowCost = c
+			}
+		}
+
+		if (minRowCost > maxDistance) {
+			return maxDistance + 1
+		}
+
+		val swap = cost
+		cost = newCost
+		newCost = swap
+	}
+
+	return cost[s1Length]
 }
 
 public fun String.isNumeric(): Boolean = all { c -> c.isDigit() }

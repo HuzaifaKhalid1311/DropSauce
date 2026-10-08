@@ -184,7 +184,12 @@ public data class Manga(
 		return chapters?.filter { x -> x.branch == branch }.orEmpty()
 	}
 
-	public fun findChapterById(id: Long): MangaChapter? = chapters?.findById(id)
+	private val chaptersById: Map<Long, MangaChapter>? by lazy(LazyThreadSafetyMode.PUBLICATION) {
+		chapters?.associateBy { it.id }
+	}
+
+	public fun findChapterById(id: Long): MangaChapter? =
+		chaptersById?.get(id) ?: chapters?.findById(id)
 
 	public fun requireChapterById(id: Long): MangaChapter = findChapterById(id)
 		?: throw NoSuchElementException("Chapter with id $id not found")

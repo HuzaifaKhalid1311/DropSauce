@@ -77,14 +77,21 @@ data class ExtensionStoreRegistryState(
 	val ownerships: List<ExtensionStoreOwnership> = emptyList(),
 ) {
 
+	private val cachedStoreUrls: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
+		stores.map { normalizeExtensionStoreUrl(it.indexUrl).lowercase() }.toSet()
+	}
+
+	private val cachedBaseRepoUrls: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
+		stores.mapNotNull {
+			getBaseRepoUrl(normalizeExtensionStoreUrl(it.indexUrl)).lowercase().takeIf(String::isNotBlank)
+		}.toSet()
+	}
+
 	fun containsStoreUrl(indexUrl: String): Boolean {
-		val normalizedUrl = normalizeExtensionStoreUrl(indexUrl)
-		val base = getBaseRepoUrl(normalizedUrl)
-		return stores.any {
-			val storeNormalized = normalizeExtensionStoreUrl(it.indexUrl)
-			storeNormalized.equals(normalizedUrl, ignoreCase = true) ||
-				(base.isNotBlank() && getBaseRepoUrl(storeNormalized).equals(base, ignoreCase = true))
-		}
+		val normalizedUrl = normalizeExtensionStoreUrl(indexUrl).lowercase()
+		if (cachedStoreUrls.contains(normalizedUrl)) return true
+		val base = getBaseRepoUrl(normalizedUrl).lowercase()
+		return base.isNotBlank() && cachedBaseRepoUrls.contains(base)
 	}
 
 	fun add(store: ExtensionStoreRecord): Result<ExtensionStoreRegistryState> {

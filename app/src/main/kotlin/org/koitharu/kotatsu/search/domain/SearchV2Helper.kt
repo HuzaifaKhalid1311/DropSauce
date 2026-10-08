@@ -14,6 +14,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.almostEquals
+import org.koitharu.kotatsu.parsers.util.caseInsensitiveLevenshteinDistance
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 
@@ -97,8 +98,8 @@ class SearchV2Helper @AssistedInject constructor(
 			SearchKind.SIMPLE,
 			SearchKind.TITLE -> sortBy { m ->
 				minOf(
-					m.title.levenshteinDistance(query),
-					m.altTitles.firstOrNull()?.levenshteinDistance(query) ?: Int.MAX_VALUE,
+					m.title.caseInsensitiveLevenshteinDistance(query),
+					m.altTitles.firstOrNull()?.caseInsensitiveLevenshteinDistance(query) ?: Int.MAX_VALUE,
 				)
 			}
 
