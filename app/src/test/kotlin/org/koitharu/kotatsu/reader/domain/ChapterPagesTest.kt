@@ -29,6 +29,18 @@ class ChapterPagesTest {
 	}
 
 	@Test
+	fun removeFirst_singleChapter() {
+		val pages = ChapterPages()
+		pages.addLast(1L, List(5) { page(1L) })
+		pages.removeFirst()
+		assertEquals(0, pages.chaptersSize)
+		assertEquals(0, pages.size)
+		// Removing when already empty should not throw
+		pages.removeFirst()
+		assertEquals(0, pages.chaptersSize)
+	}
+
+	@Test
 	fun removeLast() {
 		val pages = ChapterPages()
 		pages.addLast(1L, List(12) { page(1L) })
@@ -37,6 +49,18 @@ class ChapterPagesTest {
 		pages.removeLast()
 		assertEquals(2, pages.chaptersSize)
 		assertEquals(12 + 17, pages.size)
+	}
+
+	@Test
+	fun removeLast_singleChapter() {
+		val pages = ChapterPages()
+		pages.addLast(1L, List(5) { page(1L) })
+		pages.removeLast()
+		assertEquals(0, pages.chaptersSize)
+		assertEquals(0, pages.size)
+		// Removing when already empty should not throw
+		pages.removeLast()
+		assertEquals(0, pages.chaptersSize)
 	}
 
 	@Test

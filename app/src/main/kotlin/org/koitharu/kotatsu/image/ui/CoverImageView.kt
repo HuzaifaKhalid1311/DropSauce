@@ -263,10 +263,16 @@ class CoverImageView @JvmOverloads constructor(
 				}
 
 				height == null -> {
+					if (!view.hasAspectRatio) {
+						return null
+					}
 					height = Dimension(width!!.px * view.aspectRationHeight / view.aspectRationWidth)
 				}
 
 				width == null -> {
+					if (!view.hasAspectRatio) {
+						return null
+					}
 					width = Dimension(height.px * view.aspectRationWidth / view.aspectRationHeight)
 				}
 			}

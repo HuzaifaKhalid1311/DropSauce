@@ -560,8 +560,8 @@ class ReaderViewModel @Inject constructor(
     }
 
     private fun <T> List<T>.trySublist(fromIndex: Int, toIndex: Int): List<T> {
-        val fromIndexBounded = fromIndex.coerceAtMost(lastIndex)
-        val toIndexBounded = toIndex.coerceIn(fromIndexBounded, lastIndex)
+        val fromIndexBounded = fromIndex.coerceIn(0, size)
+        val toIndexBounded = toIndex.coerceIn(fromIndexBounded, size)
         return if (fromIndexBounded == toIndexBounded) {
             emptyList()
         } else {

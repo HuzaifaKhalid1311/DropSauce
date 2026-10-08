@@ -104,7 +104,9 @@ constructor(
 				if (oldHistory != null) {
 					val newHistory = makeNewHistory(oldDetails, newDetails, oldHistory)
 					historyDao.delete(oldDetails.id)
-					historyDao.upsert(newHistory)
+					if (newHistory != null) {
+						historyDao.upsert(newHistory)
+					}
 					newHistory
 				} else {
 					null
@@ -162,13 +164,19 @@ constructor(
 		oldManga: Manga,
 		newManga: Manga,
 		history: HistoryEntity,
-	): HistoryEntity {
+	): HistoryEntity? {
+		if (newManga.chapters.isNullOrEmpty()) {
+			return null
+		}
 		if (oldManga.chapters.isNullOrEmpty()) { // probably broken manga/source
 			val branch = newManga.getPreferredBranch(null)
-			val chapters = checkNotNull(newManga.getChapters(branch))
+			val chapters = newManga.getChapters(branch).ifEmpty { newManga.chapters.orEmpty() }
+			if (chapters.isEmpty()) {
+				return null
+			}
 			val currentChapter =
 				if (history.percent in 0f..1f) {
-					chapters[(chapters.lastIndex * history.percent).toInt()]
+					chapters[(chapters.lastIndex * history.percent).toInt().coerceIn(0, chapters.lastIndex)]
 				} else {
 					chapters.first()
 				}
@@ -185,29 +193,34 @@ constructor(
 			)
 		}
 		val branch = oldManga.getPreferredBranch(history.toMangaHistory())
-		val oldChapters = checkNotNull(oldManga.getChapters(branch))
+		val oldChapters = oldManga.getChapters(branch).ifEmpty { oldManga.chapters.orEmpty() }
+		if (oldChapters.isEmpty()) {
+			return null
+		}
 		var index = oldChapters.indexOfFirst { it.id == history.chapterId }
 		if (index < 0) {
 			index =
 				if (history.percent in 0f..1f) {
-					(oldChapters.lastIndex * history.percent).toInt()
+					(oldChapters.lastIndex * history.percent).toInt().coerceIn(0, oldChapters.lastIndex)
 				} else {
 					0
 				}
 		}
-		val newChapters = checkNotNull(newManga.chapters).groupBy { it.branch }
+		val newChapters = newManga.chapters.orEmpty().groupBy { it.branch }
 		val newBranch =
 			if (newChapters.containsKey(branch)) {
 				branch
 			} else {
 				newManga.getPreferredBranch(null)
 			}
-		val newChapterId =
-			checkNotNull(newChapters[newBranch])
-				.let {
-					val oldChapter = oldChapters[index]
-					it.findByNumber(oldChapter.volume, oldChapter.number) ?: it.getOrNull(index) ?: it.last()
-				}.id
+		val branchChapters = newChapters[newBranch].orEmpty().ifEmpty { newManga.chapters.orEmpty() }
+		if (branchChapters.isEmpty()) {
+			return null
+		}
+		val oldChapter = oldChapters.getOrNull(index) ?: oldChapters.first()
+		val newChapterId = (branchChapters.findByNumber(oldChapter.volume, oldChapter.number)
+			?: branchChapters.getOrNull(index)
+			?: branchChapters.last()).id
 
 		return HistoryEntity(
 			mangaId = newManga.id,
@@ -220,7 +233,7 @@ constructor(
 			// so resetting it here would wipe the progress bar for no reason.
 			percent = history.percent,
 			deletedAt = 0,
-			chaptersCount = checkNotNull(newChapters[newBranch]).size,
+			chaptersCount = branchChapters.size,
 		)
 	}
 

@@ -146,16 +146,16 @@ class SingleMangaImporter @Inject constructor(
 			.filter { it.isFile && hasPdfExtension(it.name ?: "") }
 			.sortedBy { it.name }
 		val dest = destinationDir(root.requireName(), unique)
-		dest.mkdir()
+		dest.mkdirs()
 		try {
 			if (pdfFiles.isNotEmpty()) {
 				for (pdfFile in pdfFiles) {
-					val chapterName = pdfFile.name!!.substringBeforeLast('.')
+					val chapterName = pdfFile.requireName().substringBeforeLast('.')
 					val cbzFile = File(dest, "$chapterName.cbz")
 					try {
 						contentResolver.openFileDescriptor(pdfFile.uri, "r")?.use { pfd ->
 							renderPdfToCbz(pfd, cbzFile)
-						} ?: throw IOException("Cannot open PDF: ${pdfFile.name}")
+						} ?: throw IOException("Cannot open PDF: ${pdfFile.requireName()}")
 					} catch (e: Exception) {
 						cbzFile.delete()
 						throw e
@@ -185,7 +185,7 @@ class SingleMangaImporter @Inject constructor(
 		}
 		if (isDirectory) {
 			val subDir = File(destDir, requireName())
-			subDir.mkdir()
+			subDir.mkdirs()
 			for (docFile in listFiles()) {
 				docFile.copyTo(subDir)
 			}

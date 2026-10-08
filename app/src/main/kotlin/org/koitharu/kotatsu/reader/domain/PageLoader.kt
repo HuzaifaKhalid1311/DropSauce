@@ -109,7 +109,8 @@ class PageLoader @Inject constructor(
 	fun prefetch(pages: List<ReaderPage>) = loaderScope.launch {
 		prefetchLock.withLock {
 			for (page in pages.asReversed()) {
-				if (tasks.containsKey(page.id)) {
+				val isAlreadyLoading = synchronized(tasks) { tasks.containsKey(page.id) }
+				if (isAlreadyLoading) {
 					continue
 				}
 				prefetchQueue.offerFirst(page.toMangaPage())
@@ -124,7 +125,7 @@ class PageLoader @Inject constructor(
 	}
 
 	fun loadPageAsync(page: MangaPage, force: Boolean): ProgressDeferred<Uri, Float> {
-		var task = tasks[page.id]?.takeIf { it.isValid() }
+		var task = synchronized(tasks) { tasks[page.id]?.takeIf { it.isValid() } }
 		if (force) {
 			task?.cancel()
 		} else if (task?.isCancelled == false) {
@@ -178,7 +179,9 @@ class PageLoader @Inject constructor(
 	}
 
 	suspend fun invalidate(clearCache: Boolean) {
-		tasks.clear()
+		synchronized(tasks) {
+			tasks.clear()
+		}
 		loaderScope.cancelChildrenAndJoin()
 		if (clearCache) {
 			cache.clear()

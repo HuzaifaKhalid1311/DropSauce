@@ -153,9 +153,13 @@ class LocalMangaZipOutput(
 				val subject = LocalMangaZipOutput(file, manga)
 				try {
 					ZipFile(subject.rootFile).use { zip ->
-						val index = MangaIndex(zip.readText(zip.getEntry(ENTRY_NAME_INDEX)))
+						val indexEntry = zip.getEntry(ENTRY_NAME_INDEX)
+							?: throw java.io.IOException("Archive does not contain $ENTRY_NAME_INDEX")
+						val index = MangaIndex(zip.readText(indexEntry))
 						idsToRemove.forEach { id -> index.removeChapter(id) }
-						val patterns = requireNotNull(index.getMangaInfo()?.chapters).map {
+						val chapters = index.getMangaInfo()?.chapters
+							?: throw java.io.IOException("No chapters found in index")
+						val patterns = chapters.map {
 							index.getChapterNamesPattern(it)
 						}
 						val coverEntryName = index.getCoverEntry()

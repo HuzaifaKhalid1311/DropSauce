@@ -118,6 +118,7 @@ class LocalMangaDirOutput(
 		check(victimsIds.isEmpty()) {
 			"${victimsIds.size} of ${ids.size} chapters was not removed: not found"
 		}
+		flushIndex()
 	}
 
 	private suspend fun ZipOutput.flushAndFinish() = runInterruptible(Dispatchers.IO) {
