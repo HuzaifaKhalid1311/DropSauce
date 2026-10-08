@@ -42,75 +42,169 @@ class ExternalExtensionRepoRepository @Inject constructor(
 				.filterNot { it.lang in MihonExtensionLoader.HIDDEN_LANGUAGES }
 		}
 
-	suspend fun validateStore(repoUrl: String, forceRefresh: Boolean = true): ValidatedExtensionStore {
-		val normalizedUrl = normalizeExtensionStoreUrl(repoUrl)
-		require(normalizedUrl.startsWith("https://")) { "Store index URL must use HTTPS" }
-		val catalog = getExtensions(normalizedUrl, forceRefresh)
-		val info = fetchIndexRepoInfo(normalizedUrl, forceRefresh) ?: fetchRepoInfo(normalizedUrl, forceRefresh)
-		return ValidatedExtensionStore(
-			store = ExtensionStoreRecord(
-				id = stableExtensionStoreId(normalizedUrl),
-				indexUrl = normalizedUrl,
-				name = info?.name ?: extensionStoreUrlLabel(normalizedUrl),
-				shortName = info?.shortName,
-				fingerprint = info?.fingerprint,
-				website = info?.website,
-				discord = info?.discord,
-			),
-			catalog = catalog,
-		)
+	suspend fun validateStore(repoUrl: String, forceRefresh: Boolean = true): ValidatedExtensionStore =
+		withContext(Dispatchers.IO) {
+			val normalizedUrl = normalizeExtensionStoreUrl(repoUrl)
+			require(normalizedUrl.startsWith("https://")) { "Store index URL must use HTTPS" }
+
+			val resolvedTarget = if (!normalizedUrl.endsWith(".pb", ignoreCase = true)) {
+				resolveRepoJsonTarget(normalizedUrl, forceRefresh)
+			} else {
+				null
+			}
+
+			val targetIndexUrl = resolvedTarget?.indexUrl ?: buildIndexUrl(normalizedUrl)
+			var storeData = loadStoreData(targetIndexUrl, forceRefresh, cacheOnly = false)
+
+			// Safeguard against deprecated stub index.min.json (e.g. Keiyoushi dummy notice)
+			if (
+				storeData.catalog.isNotEmpty() &&
+				storeData.catalog.all { it.packageName in DEPRECATED_DUMMY_PACKAGES }
+			) {
+				val pbCandidateUrl = "${getBaseUrl(targetIndexUrl)}/index.pb"
+				val pbStoreData = runCatching {
+					loadStoreData(pbCandidateUrl, forceRefresh, cacheOnly = false)
+				}.getOrNull()
+				if (pbStoreData != null && pbStoreData.catalog.isNotEmpty()) {
+					storeData = pbStoreData
+				}
+			}
+
+			val effectiveIndexUrl = storeData.resolvedUrl ?: targetIndexUrl
+			val info = storeData.info ?: resolvedTarget?.repoInfo ?: fetchRepoInfo(effectiveIndexUrl, forceRefresh)
+
+			ValidatedExtensionStore(
+				store = ExtensionStoreRecord(
+					id = stableExtensionStoreId(effectiveIndexUrl),
+					indexUrl = effectiveIndexUrl,
+					name = info?.name ?: extensionStoreUrlLabel(effectiveIndexUrl),
+					shortName = info?.shortName,
+					fingerprint = info?.fingerprint,
+					website = info?.website,
+					discord = info?.discord,
+				),
+				catalog = storeData.catalog.filterNot { it.lang in MihonExtensionLoader.HIDDEN_LANGUAGES },
+			)
+		}
+
+	private fun resolveRepoJsonTarget(
+		repoUrl: String,
+		forceRefresh: Boolean,
+	): ResolvedStoreTarget? {
+		val baseUrl = getBaseUrl(repoUrl)
+		val repoJsonUrl = "$baseUrl/repo.json"
+		val bytes = runCatching { fetchBytes(repoJsonUrl, forceRefresh) }.getOrNull() ?: return null
+		val text = bytes.decodeToString()
+		val repoJson = runCatching { json.decodeFromString<ExternalRepoJson>(text) }.getOrNull()
+		val repoInfo = parseRepoInfo(repoUrl, text)
+		val indexV2 = repoJson?.indexV2?.takeIf(String::isNotBlank)?.let { resolveIndexV2Url(baseUrl, it) }
+		return if (indexV2 != null) {
+			ResolvedStoreTarget(indexUrl = indexV2, repoInfo = repoInfo)
+		} else {
+			ResolvedStoreTarget(indexUrl = buildIndexUrl(repoUrl), repoInfo = repoInfo)
+		}
+	}
+
+	private fun resolveIndexV2Url(baseUrl: String, indexV2: String): String {
+		if (indexV2.startsWith("https://", ignoreCase = true) || indexV2.startsWith("http://", ignoreCase = true)) {
+			return indexV2
+		}
+		val base = baseUrl.trimEnd('/')
+		val relative = indexV2.trimStart('/')
+		return "$base/$relative"
 	}
 
 	private fun loadEntries(
 		url: String,
 		forceRefresh: Boolean,
 		cacheOnly: Boolean,
-		depth: Int,
+		depth: Int = 0,
 	): List<ExternalExtensionRepoEntry> {
-		if (depth > MAX_INDEX_HOPS) return emptyList() // guard against index_v2 / list-url cycles
-		val bytes = fetchBytes(url, forceRefresh, cacheOnly) ?: return emptyList()
+		val data = loadStoreData(url, forceRefresh, cacheOnly, depth)
+		if (data.catalog.isNotEmpty() && data.catalog.all { it.packageName in DEPRECATED_DUMMY_PACKAGES } && depth < MAX_INDEX_HOPS) {
+			val pbCandidateUrl = "${getBaseUrl(url)}/index.pb"
+			val pbData = runCatching { loadStoreData(pbCandidateUrl, forceRefresh, cacheOnly, depth + 1) }.getOrNull()
+			if (!pbData?.catalog.isNullOrEmpty()) {
+				return pbData.catalog
+			}
+		}
+		return data.catalog
+	}
+
+	private fun loadStoreData(
+		url: String,
+		forceRefresh: Boolean,
+		cacheOnly: Boolean,
+		depth: Int = 0,
+	): LoadedStoreData {
+		if (depth > MAX_INDEX_HOPS) return LoadedStoreData(emptyList())
+		val bytes = fetchBytes(url, forceRefresh, cacheOnly) ?: return LoadedStoreData(emptyList())
 		return when (bytes.firstOrNull()) {
 			OPEN_BRACKET -> {
 				val text = bytes.decodeToString()
-				// A '[' body is either a legacy Mihon index or an LNReader plugin index. The shapes are
-				// disjoint (no pkg/apk/code in the latter), so a failed decode IS the discriminator.
 				val asMihon = runCatching { json.decodeFromString<List<ExternalExtensionRepoEntry>>(text) }
-				asMihon.getOrNull() ?: runCatching {
+				val catalog = asMihon.getOrNull() ?: runCatching {
 					json.decodeFromString<List<LnStoreEntry>>(text).map(LnStoreEntry::toRepoEntry)
 				}.getOrElse { lnError ->
-					// Neither shape fits, so the index is simply malformed. Surface the Mihon error: it
-					// names the missing apk/pkg field, which is the actionable one for the common case.
 					throw asMihon.exceptionOrNull() ?: lnError
 				}
+				LoadedStoreData(catalog = catalog, resolvedUrl = url)
 			}
 			OPEN_BRACE -> {
 				val text = bytes.decodeToString()
 				val repoJson = runCatching { json.decodeFromString<ExternalRepoJson>(text) }.getOrNull()
-				// A '{' body is either a repo.json (meta / index_v2 pointer) or a store object.
 				if (repoJson != null && (repoJson.indexV2 != null || repoJson.meta.signingKeyFingerprint.isNotBlank())) {
-					loadEntries(
-						repoJson.indexV2 ?: "${getBaseUrl(url)}/index.min.json",
-						forceRefresh,
-						cacheOnly,
-						depth + 1,
+					val targetUrl = repoJson.indexV2?.let { resolveIndexV2Url(getBaseUrl(url), it) }
+						?: "${getBaseUrl(url)}/index.min.json"
+					val next = loadStoreData(targetUrl, forceRefresh, cacheOnly, depth + 1)
+					val info = parseRepoInfo(url, text)
+					next.copy(
+						info = next.info ?: info,
+						resolvedUrl = next.resolvedUrl ?: targetUrl,
 					)
 				} else {
-					storeEntries(json.decodeFromString<NetworkExtensionStore>(text), forceRefresh, cacheOnly, depth)
+					val store = json.decodeFromString<NetworkExtensionStore>(text)
+					LoadedStoreData(
+						catalog = storeEntries(store, forceRefresh, cacheOnly, depth),
+						info = store.toExternalRepoInfo(url),
+						resolvedUrl = url,
+					)
 				}
 			}
-			null -> emptyList()
+			null -> LoadedStoreData(emptyList())
 			else -> {
 				val store = runCatching { protoBuf.decodeFromByteArray<NetworkExtensionStore>(bytes) }.getOrNull()
 				if (store != null && (store.extensionList != null || store.extensionListUrl != null)) {
-					storeEntries(store, forceRefresh, cacheOnly, depth)
+					LoadedStoreData(
+						catalog = storeEntries(store, forceRefresh, cacheOnly, depth),
+						info = store.toExternalRepoInfo(url),
+						resolvedUrl = url,
+					)
 				} else {
 					val list = runCatching { protoBuf.decodeFromByteArray<NetworkExtensionStore.ExtensionList>(bytes) }.getOrNull()
-					list?.extensions?.map(NetworkExtensionStore.Extension::toRepoEntry)
+					val catalog = list?.extensions?.map(NetworkExtensionStore.Extension::toRepoEntry)
 						?: storeEntries(store ?: NetworkExtensionStore(), forceRefresh, cacheOnly, depth)
+					LoadedStoreData(
+						catalog = catalog,
+						info = store?.toExternalRepoInfo(url),
+						resolvedUrl = url,
+					)
 				}
 			}
 		}
 	}
+
+	private fun NetworkExtensionStore.toExternalRepoInfo(url: String): ExternalRepoInfo? =
+		takeIf { it.name.isNotBlank() && it.signingKey.isNotBlank() }?.let {
+			ExternalRepoInfo(
+				url = url,
+				name = it.name,
+				shortName = it.badgeLabel.ifBlank { null },
+				fingerprint = it.signingKey,
+				website = it.contact?.website?.takeIf(String::isNotBlank),
+				discord = it.contact?.discord?.takeIf(String::isNotBlank),
+			)
+		}
 
 	private fun storeEntries(
 		store: NetworkExtensionStore,
@@ -170,25 +264,7 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		forceRefresh: Boolean,
 	): ExternalRepoInfo? = withContext(Dispatchers.IO) {
 		runCatching {
-			val bytes = fetchBytes(buildIndexUrl(repoUrl), forceRefresh) ?: return@runCatching null
-			val store = when (bytes.firstOrNull()) {
-				OPEN_BRACE -> {
-					parseRepoInfo(repoUrl, bytes.decodeToString())?.let { return@runCatching it }
-					json.decodeFromString<NetworkExtensionStore>(bytes.decodeToString())
-				}
-				OPEN_BRACKET, null -> return@runCatching null
-				else -> protoBuf.decodeFromByteArray<NetworkExtensionStore>(bytes)
-			}
-			store.takeIf { it.name.isNotBlank() && it.signingKey.isNotBlank() }?.let {
-				ExternalRepoInfo(
-					url = repoUrl,
-					name = it.name,
-					shortName = it.badgeLabel.ifBlank { null },
-					fingerprint = it.signingKey,
-					website = it.contact?.website?.takeIf(String::isNotBlank),
-					discord = it.contact?.discord?.takeIf(String::isNotBlank),
-				)
-			}
+			loadStoreData(buildIndexUrl(repoUrl), forceRefresh, cacheOnly = false).info
 		}.getOrNull()
 	}
 
@@ -237,7 +313,22 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		}
 	}
 
+	private data class LoadedStoreData(
+		val catalog: List<ExternalExtensionRepoEntry>,
+		val info: ExternalRepoInfo? = null,
+		val resolvedUrl: String? = null,
+	)
+
+	private data class ResolvedStoreTarget(
+		val indexUrl: String,
+		val repoInfo: ExternalRepoInfo? = null,
+	)
+
 	private companion object {
+		val DEPRECATED_DUMMY_PACKAGES = setOf(
+			"eu.kanade.tachiyomi.extension.all.keiyoushi",
+			"eu.kanade.tachiyomi.extension.all.mihon",
+		)
 		const val OPEN_BRACKET: Byte = 91 // '[' — legacy JSON array index
 		const val OPEN_BRACE: Byte = 123 // '{' — JSON object (repo.json or store); else protobuf
 		const val MAX_INDEX_HOPS = 3
