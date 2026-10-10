@@ -79,12 +79,7 @@ data class ExtensionStoreRegistryState(
 
 	fun containsStoreUrl(indexUrl: String): Boolean {
 		val normalizedUrl = normalizeExtensionStoreUrl(indexUrl)
-		val base = getBaseRepoUrl(normalizedUrl)
-		return stores.any {
-			val storeNormalized = normalizeExtensionStoreUrl(it.indexUrl)
-			storeNormalized.equals(normalizedUrl, ignoreCase = true) ||
-				(base.isNotBlank() && getBaseRepoUrl(storeNormalized).equals(base, ignoreCase = true))
-		}
+		return stores.any { normalizeExtensionStoreUrl(it.indexUrl).equals(normalizedUrl, ignoreCase = true) }
 	}
 
 	fun add(store: ExtensionStoreRecord): Result<ExtensionStoreRegistryState> {
@@ -199,15 +194,6 @@ fun normalizeExtensionStoreUrl(value: String): String {
 			null,
 		).toString()
 	}.getOrDefault(withIndex)
-}
-
-fun getBaseRepoUrl(url: String): String {
-	val trimmed = url.trim().trimEnd('/')
-	return when {
-		trimmed.endsWith(".json", ignoreCase = true) || trimmed.endsWith(".pb", ignoreCase = true) ->
-			trimmed.substringBeforeLast('/')
-		else -> trimmed
-	}
 }
 
 fun migrateLegacyExtensionStores(
