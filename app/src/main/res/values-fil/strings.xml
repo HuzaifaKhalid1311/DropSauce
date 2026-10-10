@@ -382,12 +382,10 @@
     <string name="frequency_once_per_month">Isang beses bawat buwan</string>
     <string name="backups_output_directory">Output na directory ng mga backup</string>
     <string name="last_successful_backup">Huling matagumpay na pag-backup: %s</string>
-    <string name="sources_catalog">Katalugo ng mga source</string>
     <string name="content_type_comics">Mga Comic</string>
     <string name="no_manga_sources_found">Walang available na manga source na nahanap base sa iyong query</string>
     <string name="lock_screen_rotation">Rotation ng lock screen</string>
     <string name="manual">Manu-mano</string>
-    <string name="disable_nsfw_summary">Di paganahin ang mga source na NSFW at itago ang manga na pang-matanda mula sa listahan kung maaari</string>
     <string name="content_type_other">Iba pa</string>
     <string name="error_multiple_states_not_supported">Ang pag-filter ayon sa maraming estado ay hindi sinusuportahan ng manga source na ito</string>
     <string name="reader_optimize">Bawasan ang pagkonsumo ng memory</string>

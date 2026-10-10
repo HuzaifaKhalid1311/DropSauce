@@ -14,13 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
@@ -37,6 +38,7 @@ import org.koitharu.kotatsu.core.ui.sheet.SheetSegmentedSelector
 import org.koitharu.kotatsu.core.ui.sheet.SheetSwitchRow
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.databinding.SheetListModeBinding
+import org.koitharu.kotatsu.list.ui.GridColumns
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import kotlin.math.roundToInt
 
@@ -75,7 +77,11 @@ class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 		var mode by remember { mutableStateOf(viewModel.listMode) }
 		var isTitleOverCover by remember { mutableStateOf(viewModel.isTitleOverCover) }
 		var isGridSpacingIncreased by remember { mutableStateOf(viewModel.isGridSpacingIncreased) }
-		var gridSize by remember { mutableFloatStateOf(viewModel.gridSize.toFloat()) }
+		val gridWidth = remember { GridColumns.referenceWidth(resources) }
+		val maxColumns = remember { GridColumns.maxColumns(resources, gridWidth) }
+		var columns by remember {
+			mutableIntStateOf(GridColumns.columnsFor(resources, gridWidth, viewModel.gridSize / 100f))
+		}
 		var isGroupingEnabled by remember { mutableStateOf(viewModel.isGroupingEnabled) }
 		val isGroupingAvailable = viewModel.isGroupingAvailable
 		val isGridMode = mode == ListMode.GRID || mode == ListMode.COVER_ONLY
@@ -127,14 +133,22 @@ class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 			) {
 				SheetSection(
 					title = stringResource(R.string.grid_size),
-					value = "${gridSize.roundToInt()}%",
+					value = pluralStringResource(R.plurals.items_per_row, columns, columns),
 				) {
+					// Bigger covers to the right, as before: the rightmost stop is one per row.
 					Slider(
-						value = gridSize,
-						valueRange = GRID_SIZE_MIN..GRID_SIZE_MAX,
-						onValueChange = {
-							gridSize = it
-							viewModel.gridSize = it.roundToInt()
+						value = (maxColumns + 1 - columns).toFloat(),
+						valueRange = 1f..maxColumns.toFloat(),
+						steps = maxColumns - 2,
+						onValueChange = { position ->
+							columns = maxColumns + 1 - position.roundToInt()
+						},
+						// Written once the thumb settles, so the list behind doesn't re-lay out mid-drag
+						// The saved size is left alone unless the count really changed.
+						onValueChangeFinished = {
+							if (columns != GridColumns.columnsFor(resources, gridWidth, viewModel.gridSize / 100f)) {
+								viewModel.gridSize = GridColumns.gridSizeFor(resources, gridWidth, columns)
+							}
 						},
 						modifier = Modifier.padding(horizontal = SheetContentPadding),
 					)
@@ -158,9 +172,6 @@ class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 	}
 
 	private companion object {
-
-		const val GRID_SIZE_MIN = 50f
-		const val GRID_SIZE_MAX = 150f
 
 		/** Mode tiles in display order: the mode, its label and its icon. */
 		val LIST_MODES = listOf(

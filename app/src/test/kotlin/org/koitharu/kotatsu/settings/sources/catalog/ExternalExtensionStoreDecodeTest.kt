@@ -7,6 +7,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.koitharu.kotatsu.core.model.ContentWarning
 
 class ExternalExtensionStoreDecodeTest {
 
@@ -48,14 +49,14 @@ class ExternalExtensionStoreDecodeTest {
 	}
 
 	@Test
-	fun `extension maps onto repo entry with absolute urls and nsfw flag`() {
+	fun `extension maps onto repo entry with absolute urls and content warning`() {
 		val entry = sampleStore.extensionList!!.extensions.first().toRepoEntry()
 		assertEquals("eu.kanade.tachiyomi.extension.en.cool", entry.packageName)
 		assertEquals("https://repo.example/apk/cool.apk", entry.apkName) // absolute; resolveApkUrl passes through
 		assertEquals("https://repo.example/icon/cool.png", entry.iconUrl)
 		assertEquals("en", entry.lang)
 		assertEquals(12L, entry.versionCode)
-		assertEquals(1, entry.isNsfw) // NSFW >= MIXED
+		assertEquals(ContentWarning.NSFW, entry.contentWarning)
 		assertEquals("42", entry.sources.single().id)
 	}
 
@@ -64,7 +65,7 @@ class ExternalExtensionStoreDecodeTest {
 		val entry = sampleStore.extensionList!!.extensions.first()
 			.copy(contentWarning = NetworkExtensionStore.ContentWarning.SAFE)
 			.toRepoEntry()
-		assertEquals(0, entry.isNsfw)
+		assertEquals(ContentWarning.SAFE, entry.contentWarning)
 	}
 
 	@Test
@@ -78,7 +79,7 @@ class ExternalExtensionStoreDecodeTest {
 		val store = json.decodeFromString<NetworkExtensionStore>(body)
 		val entry = store.extensionList!!.extensions.first().toRepoEntry()
 		assertEquals("p", entry.packageName)
-		assertEquals(1, entry.isNsfw) // MIXED
+		assertEquals(ContentWarning.MIXED, entry.contentWarning)
 		assertEquals("fr", entry.lang)
 	}
 

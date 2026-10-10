@@ -28,6 +28,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import org.koitharu.kotatsu.core.model.ContentWarning
 
 @Singleton
 class MihonExtensionLoader @Inject constructor(
@@ -268,8 +269,19 @@ class MihonExtensionLoader @Inject constructor(
 		private const val TSUNDOKU_CLASS_PREFIX = "app.tsundoku.extension."
 		private const val MIHON_CLASS_PREFIX = "eu.kanade.tachiyomi.extension."
 
-		internal fun readNsfwFlag(metaData: Bundle): Boolean {
-			if (metaData.getInt(METADATA_CONTENT_WARNING, 0) > 0) return true
+		/** Newer extensions declare a [ContentWarning] (1 = mixed, 2 = 18+); older ones only an nsfw flag. */
+		internal fun readContentWarning(metaData: Bundle): ContentWarning {
+			if (metaData.containsKey(METADATA_CONTENT_WARNING)) {
+				return when (metaData.getInt(METADATA_CONTENT_WARNING, 0)) {
+					1 -> ContentWarning.MIXED
+					2 -> ContentWarning.NSFW
+					else -> ContentWarning.SAFE
+				}
+			}
+			return if (readNsfwFlag(metaData)) ContentWarning.NSFW else ContentWarning.SAFE
+		}
+
+		private fun readNsfwFlag(metaData: Bundle): Boolean {
 			val key = METADATA_NSFW_KEYS.firstOrNull { metaData.containsKey(it) } ?: return false
 			return runCatching {
 				parseNsfwFlag(metaData.getInt(key))
@@ -416,7 +428,7 @@ class MihonExtensionLoader @Inject constructor(
 			versionName = versionName,
 			libVersion = libVersion,
 			lang = lang,
-			isNsfw = readNsfwFlag(metaData),
+			contentWarning = readContentWarning(metaData),
 			sourceClassName = sourceClassName,
 			apkPath = appInfo.sourceDir ?: return null,
 			signatures = getSignatures(pkgInfo),
@@ -501,7 +513,7 @@ class MihonExtensionLoader @Inject constructor(
 					else -> "all"
 				}
 			},
-			isNsfw = readNsfwFlag(metaData),
+			contentWarning = readContentWarning(metaData),
 			sources = sources,
 			isShared = isShared,
 		).also { loadedExtensions[pkgInfo.packageName] = LoadedExtension(appInfo.sourceDir, it) }

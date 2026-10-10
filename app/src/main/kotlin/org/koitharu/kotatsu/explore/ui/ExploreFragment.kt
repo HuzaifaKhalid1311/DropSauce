@@ -27,6 +27,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.LocalMangaSource
+import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.homeUrl
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
@@ -97,7 +99,7 @@ class ExploreFragment :
 			layoutManager = LinearLayoutManager(context)
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 		}
-		header.buttonManage.setOnClickListener { router.openSourcesCatalog(isExternalOnly = true) }
+		header.buttonManage.setOnClickListener { router.openSourcesCatalog() }
 
 		binding.pager.adapter = ExploreSourcesPagerAdapter(::onPageCreated)
 		binding.pager.offscreenPageLimit = 1
@@ -251,6 +253,14 @@ class ExploreFragment :
 			binding.pager.post(::updatePagerHeight)
 			return
 		}
+		// Measuring a page by hand while its list still has unapplied changes corrupts its view holders
+		// (an extension filter change re-emits Explore while it sits hidden behind the store). Such a
+		// page lays itself out once it's shown, and its layout listener calls this again.
+		if (binding.root.windowVisibility != View.VISIBLE ||
+			pages.any { it != null && it.isAttachedToWindow && it.hasPendingAdapterUpdates() }
+		) {
+			return
+		}
 		val widthSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
 		val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
 		val height = pages.maxOf { page ->
@@ -322,7 +332,7 @@ class ExploreFragment :
 		if (item.payload == R.id.nav_suggestions) {
 			router.openSuggestions()
 		} else {
-			router.openSourcesCatalog(isExternalOnly = true)
+			router.openSourcesCatalog()
 		}
 	}
 
@@ -341,6 +351,19 @@ class ExploreFragment :
 		router.openList(item.source, null, null)
 	}
 
+	override fun onSourceSettingsClick(item: MangaSourceItem) {
+		router.openSourceSettings(item.source)
+	}
+
+	override fun onSourceWebsiteClick(item: MangaSourceItem) {
+		val url = item.source.homeUrl
+		if (url == null) {
+			Snackbar.make(requireViewBinding().pager, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
+			return
+		}
+		router.openBrowser(url = url, source = item.source, title = item.source.getTitle(requireContext()))
+	}
+
 	override fun onItemLongClick(item: MangaSourceItem, view: View): Boolean {
 		return sourceSelectionController?.onItemLongClick(view, item.id) == true
 	}
@@ -352,7 +375,7 @@ class ExploreFragment :
 	override fun onRetryClick(error: Throwable) = Unit
 
 	override fun onEmptyActionClick() {
-		router.openSourcesCatalog(isExternalOnly = true)
+		router.openSourcesCatalog()
 	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {

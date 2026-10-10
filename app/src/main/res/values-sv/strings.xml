@@ -322,7 +322,6 @@
     <string name="frequency_every_day">Varje dag</string>
     <string name="last_successful_backup">Senast lyckad säkerhetskopia: %s</string>
     <string name="manual">Manuell</string>
-    <string name="disable_nsfw_summary">Inaktivera vuxenkällor och visa om möjligt inte manga för vuxna i listan</string>
     <string name="state_paused">Pausad</string>
     <string name="reader_optimize">Minska minnesanvändning</string>
     <string name="reader_optimize_summary">Minska kvalitén på sidor som inte visas för att använda mindre minne</string>
@@ -392,7 +391,6 @@
     <string name="reader_zoom_buttons">Visa zoomknappar</string>
     <string name="categories">Kategorier</string>
     <string name="content_type_other">Annat</string>
-    <string name="sources_catalog">Källkatalog</string>
     <string name="no_manga_sources_found">Inga tillgängliga mangakällor hittades med din sökning</string>
     <string name="error_filter_locale_genre_not_supported">Filtrering efter både genre och språk stöds inte av denna källa</string>
     <string name="genres_search_hint">Börja skriva in namnet på genren</string>

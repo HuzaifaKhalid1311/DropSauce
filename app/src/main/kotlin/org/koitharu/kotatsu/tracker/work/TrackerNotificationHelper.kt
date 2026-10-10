@@ -1,9 +1,13 @@
 package org.koitharu.kotatsu.tracker.work
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.VISIBILITY_PRIVATE
@@ -13,6 +17,7 @@ import androidx.core.app.PendingIntentCompat
 import androidx.core.content.ContextCompat
 import coil3.ImageLoader
 import coil3.request.ImageRequest
+import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.model.getLocalizedTitle
@@ -20,11 +25,13 @@ import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
+import org.koitharu.kotatsu.core.util.ext.getNotificationIconSize
 import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
+import org.koitharu.kotatsu.core.util.ext.goAsync
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.toBitmapOrNull
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.tracker.domain.TrackingRepository
+import org.koitharu.kotatsu.tracker.domain.model.MangaUpdates
 import javax.inject.Inject
 
 class TrackerNotificationHelper @Inject constructor(
@@ -33,8 +40,9 @@ class TrackerNotificationHelper @Inject constructor(
 	private val coil: ImageLoader,
 ) {
 
+	private val manager by lazy { NotificationManagerCompat.from(applicationContext) }
+
 	fun getAreNotificationsEnabled(): Boolean {
-		val manager = NotificationManagerCompat.from(applicationContext)
 		if (!manager.areNotificationsEnabled()) {
 			return false
 		}
@@ -42,14 +50,63 @@ class TrackerNotificationHelper @Inject constructor(
 		return channel == null || channel.importance != NotificationManager.IMPORTANCE_NONE
 	}
 
-	suspend fun createNotification(manga: Manga, newChapters: List<MangaChapter>): NotificationInfo? {
-		if (newChapters.isEmpty() || !applicationContext.checkNotificationPermission(CHANNEL_ID)) {
-			return null
+	/**
+	 * Posts one manga's new chapters into the bundle the moment they're found, the way a chat app groups
+	 * messages: the summary is re-posted to count it in, then the manga's own silent child goes under it.
+	 * Only [alert] makes a sound, so a check rings once. Children still in the tray from earlier checks
+	 * stay in the bundle; a manga updated again replaces its own child.
+	 *
+	 * @return whether anything was posted
+	 */
+	suspend fun showNewChaptersNotification(update: MangaUpdates.Success, alert: Boolean): Boolean {
+		if (update.newChapters.isEmpty() || isHidden(update) || !applicationContext.checkNotificationPermission(CHANNEL_ID)) {
+			return false
 		}
-		if (manga.isNsfw() && (settings.isTrackerNsfwDisabled || settings.isNsfwContentDisabled)) {
-			return null
+		postNewChaptersNotification(update, alert)
+		return true
+	}
+
+	/** Removes one manga's notification and silently re-syncs the summary with the children left. */
+	fun cancelNotification(id: Int) {
+		manager.cancel(TAG, id)
+		// The cancelled child can still be listed as active for a moment, so drop it explicitly
+		val items = getActiveChildren().filterNot { it.id == id }
+		if (items.isEmpty()) {
+			manager.cancel(TAG, GROUP_NOTIFICATION_ID)
+		} else if (applicationContext.checkNotificationPermission(CHANNEL_ID)) {
+			postGroupNotification(items, isSilent = true)
 		}
-		val id = manga.url.hashCode()
+	}
+
+	@RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+	private fun postGroupNotification(items: List<SummaryItem>, isSilent: Boolean) {
+		manager.notify(TAG, GROUP_NOTIFICATION_ID, createGroupNotification(items, isSilent))
+	}
+
+	@RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+	private suspend fun postNewChaptersNotification(update: MangaUpdates.Success, alert: Boolean) {
+		// Summary from older app versions, posted under the worker's tag
+		manager.cancel(LEGACY_GROUP_TAG, GROUP_NOTIFICATION_ID)
+		// Built first (it loads the cover) so the summary and its new child land back to back
+		val child = createNotification(update)
+		val item = SummaryItem(
+			id = update.notificationId(),
+			title = update.manga.title,
+			newChapters = update.newChapters.size,
+			isNsfw = update.manga.isNsfw(),
+		)
+		postGroupNotification(listOf(item) + getActiveChildren().filterNot { it.id == item.id }, isSilent = !alert)
+		manager.notify(TAG, item.id, child)
+	}
+
+	private fun isHidden(updates: MangaUpdates.Success): Boolean {
+		return updates.manga.isNsfw() && (settings.isTrackerNsfwDisabled || settings.isNsfwContentDisabled)
+	}
+
+	private suspend fun createNotification(updates: MangaUpdates.Success): Notification {
+		val manga = updates.manga
+		val newChapters = updates.newChapters
+		val id = updates.notificationId()
 		val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
 		val summary = applicationContext.resources.getQuantityStringSafe(
 			R.plurals.new_chapters,
@@ -64,12 +121,14 @@ class TrackerNotificationHelper @Inject constructor(
 				coil.execute(
 					ImageRequest.Builder(applicationContext)
 						.data(manga.coverUrl)
+						.size(applicationContext.resources.getNotificationIconSize())
 						.mangaSourceExtra(manga.source)
 						.build(),
 				).toBitmapOrNull(),
 			)
 			setSmallIcon(R.drawable.read_notification)
 			setGroup(GROUP_NEW_CHAPTERS)
+			setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
 			val style = NotificationCompat.InboxStyle(this)
 			for (chapter in newChapters) {
 				style.addLine(chapter.getLocalizedTitle(applicationContext.resources))
@@ -87,34 +146,42 @@ class TrackerNotificationHelper @Inject constructor(
 					false,
 				),
 			)
+			addAction(
+				R.drawable.ic_playlist_add_check,
+				applicationContext.getString(R.string.mark_as_read),
+				PendingIntentCompat.getBroadcast(
+					applicationContext,
+					id,
+					Intent(applicationContext, MarkAsReadReceiver::class.java)
+						.putExtra(AppRouter.KEY_ID, manga.id)
+						.putExtra(EXTRA_NOTIFICATION_ID, id),
+					PendingIntent.FLAG_UPDATE_CURRENT,
+					false,
+				),
+			)
 			setVisibility(if (manga.isNsfw()) VISIBILITY_SECRET else VISIBILITY_PRIVATE)
 			setShortcutId(manga.id.toString())
 			applyCommonSettings(this)
 		}
-		return NotificationInfo(id, TAG, builder.build(), manga, newChapters.size)
+		return builder.build()
 	}
 
-	fun createGroupNotification(
-		notifications: List<NotificationInfo>
-	): Notification? {
-		if (notifications.size <= 1) {
-			return null
-		}
-		val newChaptersCount = notifications.sumOf { it.newChapters }
+	private fun createGroupNotification(items: List<SummaryItem>, isSilent: Boolean): Notification {
+		val newChaptersCount = items.sumOf { it.newChapters }
 		val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
 		with(builder) {
 			val title = applicationContext.resources.getQuantityStringSafe(
-				R.plurals.new_chapters,
-				newChaptersCount,
-				newChaptersCount,
+				R.plurals.manga_updated,
+				items.size,
+				items.size,
 			)
 			setContentTitle(title)
-			setContentText(notifications.joinToString { it.manga.title })
+			setContentText(items.joinToString { it.title })
 			setSmallIcon(R.drawable.read_notification)
 			val style = NotificationCompat.InboxStyle(this)
-			for (item in notifications) {
+			for (item in items) {
 				style.addLine(
-					applicationContext.getString(R.string.new_chapters_pattern, item.manga.title, item.newChapters),
+					applicationContext.getString(R.string.new_chapters_pattern, item.title, item.newChapters),
 				)
 			}
 			style.setBigContentTitle(title)
@@ -122,13 +189,9 @@ class TrackerNotificationHelper @Inject constructor(
 			setNumber(newChaptersCount)
 			setGroup(GROUP_NEW_CHAPTERS)
 			setGroupSummary(true)
-			setVisibility(
-				if (notifications.any { it.manga.isNsfw() }) {
-					VISIBILITY_SECRET
-				} else {
-					VISIBILITY_PRIVATE
-				},
-			)
+			setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+			setSilent(isSilent)
+			setVisibility(if (items.any { it.isNsfw }) VISIBILITY_SECRET else VISIBILITY_PRIVATE)
 			val intent = AppRouter.mangaUpdatesIntent(applicationContext)
 			setContentIntent(
 				PendingIntentCompat.getActivity(
@@ -143,6 +206,22 @@ class TrackerNotificationHelper @Inject constructor(
 		}
 		return builder.build()
 	}
+
+	private fun getActiveChildren(): List<SummaryItem> = manager.activeNotifications.mapNotNull { sbn ->
+		val notification = sbn.notification
+		if (sbn.tag != TAG || sbn.id == GROUP_NOTIFICATION_ID || notification.group != GROUP_NEW_CHAPTERS) {
+			return@mapNotNull null
+		}
+		val title = notification.extras.getCharSequence(NotificationCompat.EXTRA_TITLE) ?: return@mapNotNull null
+		SummaryItem(
+			id = sbn.id,
+			title = title.toString(),
+			newChapters = notification.number,
+			isNsfw = notification.visibility == VISIBILITY_SECRET,
+		)
+	}
+
+	private fun MangaUpdates.Success.notificationId() = manga.url.hashCode()
 
 	fun createFailedChecksNotification(failedCount: Int): Notification? {
 		if (failedCount <= 0 ||
@@ -181,7 +260,6 @@ class TrackerNotificationHelper @Inject constructor(
 	}
 
 	fun updateChannels() {
-		val manager = NotificationManagerCompat.from(applicationContext)
 		manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
 		manager.deleteNotificationChannel(LEGACY_CHANNEL_ID_HISTORY)
 		manager.deleteNotificationChannelGroup(LEGACY_CHANNELS_GROUP_ID)
@@ -201,13 +279,35 @@ class TrackerNotificationHelper @Inject constructor(
 		builder.priority = NotificationCompat.PRIORITY_DEFAULT
 	}
 
-	class NotificationInfo(
+	private class SummaryItem(
 		val id: Int,
-		val tag: String,
-		val notification: Notification,
-		val manga: Manga,
+		val title: String,
 		val newChapters: Int,
+		val isNsfw: Boolean,
 	)
+
+	/** "Mark as read" on a manga's new-chapters notification: same as marking it read in the Updates feed. */
+	@AndroidEntryPoint
+	class MarkAsReadReceiver : BroadcastReceiver() {
+
+		@Inject
+		lateinit var trackingRepository: TrackingRepository
+
+		@Inject
+		lateinit var notificationHelper: TrackerNotificationHelper
+
+		override fun onReceive(context: Context?, intent: Intent?) {
+			val mangaId = intent?.getLongExtra(AppRouter.KEY_ID, 0L) ?: return
+			val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, GROUP_NOTIFICATION_ID)
+			if (mangaId == 0L || notificationId == GROUP_NOTIFICATION_ID) {
+				return
+			}
+			notificationHelper.cancelNotification(notificationId)
+			goAsync {
+				trackingRepository.clearUpdates(setOf(mangaId))
+			}
+		}
+	}
 
 	companion object {
 
@@ -218,6 +318,8 @@ class TrackerNotificationHelper @Inject constructor(
 		const val TAG = "tracker"
 		const val TAG_FAILED_CHECKS = "tracker_failed_checks"
 
+		private const val EXTRA_NOTIFICATION_ID = "notification_id"
+		private const val LEGACY_GROUP_TAG = "tracking"
 		private const val LEGACY_CHANNELS_GROUP_ID = "trackers"
 		private const val LEGACY_CHANNEL_ID_HISTORY = "track_history"
 		private const val LEGACY_CHANNEL_ID = "tracking"

@@ -383,7 +383,6 @@
     <string name="state_abandoned">Caiu</string>
     <string name="keep_screen_on">Manter a tela ligada</string>
     <string name="keep_screen_on_summary">Não desligue a tela enquanto estiver lendo mangá</string>
-    <string name="sources_catalog">Catálogo de fontes</string>
     <string name="frequency_every_day">Diariamente</string>
     <string name="content_type_manga">Mangá</string>
     <string name="error_multiple_states_not_supported">A filtragem por múltiplos estados não é suportada por esta fonte</string>
@@ -411,7 +410,6 @@
     <string name="frequency_once_per_month">Uma vez por mês</string>
     <string name="reader_optimize_summary">Reduzir a qualidade das páginas fora do ecrã para usar menos memória</string>
     <string name="color_correction_apply_text">Essas configurações podem ser aplicadas globalmente ou apenas ao mangá atual. Se aplicadas globalmente, as configurações individuais não serão substituídas.</string>
-    <string name="disable_nsfw_summary">Desative as fontes NSFW e oculte os mangás adultos da lista, se possível</string>
     <string name="backup_date_">Data de backup: %s</string>
     <string name="state">Estado</string>
     <string name="grayscale">Tons de Cinzento</string>

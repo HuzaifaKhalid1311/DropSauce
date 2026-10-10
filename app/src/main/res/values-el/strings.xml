@@ -210,7 +210,6 @@
     <string name="by_name_reverse">Όνομα - αντεστρεμένα</string>
     <string name="advanced">Για προχωρημένους</string>
     <string name="content_type_other">Άλλα</string>
-    <string name="sources_catalog">Κατάλογος πηγών</string>
     <string name="no_manga_sources_found">Η αναζήτηση σας δεν επέφερε διαθέσιμα manga</string>
     <string name="user_agent">Επικεφαλίδα UserAgent</string>
     <string name="history_cleared">Το ιστορικό καθαρίστηκε</string>
@@ -335,7 +334,6 @@
     <string name="color_theme">Χρωματικός συνδυασμός</string>
     <string name="state_abandoned">Παρατήθηκε</string>
     <string name="manual">Χειροκίνητα</string>
-    <string name="disable_nsfw_summary">Απενεργοποίηση NSFW πηγών και απόκρυψη manga για ενηλίκους από την λίστα αν είναι δυνατό</string>
     <string name="pause">Παύση</string>
     <string name="resume">Συνέχιση</string>
     <string name="paused">Σε παύση</string>

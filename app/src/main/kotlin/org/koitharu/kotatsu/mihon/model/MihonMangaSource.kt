@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.mihon.model
 
 import eu.kanade.tachiyomi.source.CatalogueSource
+import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageAutonym
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
@@ -10,7 +11,7 @@ private const val NOVEL_PACKAGE_MARKER = "novelextension."
 data class MihonMangaSource(
 	val catalogueSource: CatalogueSource,
 	val pkgName: String,
-	val isNsfw: Boolean = false,
+	val contentWarning: ContentWarning = ContentWarning.SAFE,
 	/** True when this source has sibling language variants in the same package. */
 	val hasLanguageSuffix: Boolean = false,
 ) : MangaSource {

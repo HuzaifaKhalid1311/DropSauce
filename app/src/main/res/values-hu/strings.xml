@@ -412,9 +412,7 @@
     <string name="lock_screen_rotation">Képernyő forgatásának zárolása</string>
     <string name="content_type_comics">Képregények</string>
     <string name="content_type_other">Egyéb</string>
-    <string name="sources_catalog">Források katalógusa</string>
     <string name="manual">Manuális</string>
-    <string name="disable_nsfw_summary">NSFW források letiltása és a felnőtt manga tartalmak elrejtése a listából, ha lehetséges</string>
     <string name="state_paused">Szüneteltetve</string>
     <string name="reader_optimize">Memória-felhasználás csökkentése (béta)</string>
     <string name="reader_optimize_summary">Csökkentsd a nem látható oldalak minőségét, hogy kevesebb memóriát használj</string>

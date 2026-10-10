@@ -27,7 +27,7 @@ class ExploreAdapter(
 			exploreRecommendationItemAD(mangaClickListener),
 		)
 		addDelegate(ListItemType.HEADER, listHeaderAD(listener))
-		addDelegate(ListItemType.EXPLORE_SOURCE_LIST, exploreSourceListItemAD(clickListener))
+		addDelegate(ListItemType.EXPLORE_SOURCE_LIST, exploreSourceListItemAD(clickListener, listener))
 		addDelegate(ListItemType.EXPLORE_SOURCE_GRID, exploreSourceGridItemAD(clickListener))
 		addDelegate(ListItemType.STATE_EMPTY, emptyStateListAD(listener))
 		addDelegate(ListItemType.STATE_LOADING, loadingStateAD())

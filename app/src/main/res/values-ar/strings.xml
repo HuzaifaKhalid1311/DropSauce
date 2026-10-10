@@ -377,7 +377,6 @@
     <string name="download_option_all_unread">جميع الفصول غير المقروءة</string>
     <string name="manage_categories">إدارة القوائم</string>
     <string name="advanced">مُتقدم</string>
-    <string name="sources_catalog">قائمة المصادر</string>
     <string name="keep_screen_on">إبقاء الشاشة قيد التشغيل</string>
     <string name="keep_screen_on_summary">إبقاء الشاشة قيد التشغيل اثناء القرائه</string>
     <string name="content_type_manga">مانجا</string>
@@ -403,7 +402,6 @@
     <string name="last_successful_backup">آخر نسخ احتياطي ناجح: %s</string>
     <string name="lock_screen_rotation">قفل دوران الشاشة</string>
     <string name="error_multiple_genres_not_supported">لا يدعم مصدر المانجا هذا التصفية حسب التصنيفات المتعددة</string>
-    <string name="disable_nsfw_summary">قم بتعطيل مصادر NSFW وإخفاء المانجا للبالغين من القائمة إن أمكن</string>
     <string name="reader_optimize_summary">قم بتقليل جودة الصفحات الموجودة خارج الشاشة لاستخدام ذاكرة أقل</string>
     <string name="error_multiple_states_not_supported">لا يدعم مصدر المانجا هذا التصفية حسب الحالات المتعددة</string>
     <string name="error_search_not_supported">البحث غير مدعوم من مصدر المانجا هذا</string>

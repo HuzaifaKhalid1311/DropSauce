@@ -64,7 +64,6 @@ import org.koitharu.kotatsu.tracker.domain.CheckNewChaptersUseCase
 import org.koitharu.kotatsu.tracker.domain.GetTracksUseCase
 import org.koitharu.kotatsu.tracker.domain.model.MangaTracking
 import org.koitharu.kotatsu.tracker.domain.model.MangaUpdates
-import org.koitharu.kotatsu.tracker.work.TrackerNotificationHelper.NotificationInfo
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
@@ -121,7 +120,7 @@ class TrackWorker @AssistedInject constructor(
 	@CheckResult
 	private suspend fun checkUpdatesAsync(tracks: List<MangaTracking>) {
 		val semaphore = Semaphore(MAX_PARALLELISM)
-		val groupNotifications = mutableListOf<NotificationInfo>()
+		var hasAlerted = false
 		var failedChecks = 0
 		var isCancelled = false
 
@@ -168,24 +167,11 @@ class TrackWorker @AssistedInject constructor(
 					is MangaUpdates.Success -> {
 						processDownload(it)
 
-						if (it.isValid && it.isNotEmpty()) {
-							val notificationInfo = notificationHelper.createNotification(
-								manga = it.manga,
-								newChapters = it.newChapters,
-							)
-
-							if (notificationInfo != null &&
-								applicationContext.checkNotificationPermission(TrackerNotificationHelper.CHANNEL_ID)) {
-								notificationManager.notify(
-									notificationInfo.tag,
-									notificationInfo.id,
-									notificationInfo.notification
-								)
-
-								synchronized(groupNotifications) {
-									groupNotifications.add(notificationInfo)
-								}
-							}
+						// Shown right away, grouped with the others; only the check's first one rings
+						if (it.isValid && it.isNotEmpty() &&
+							notificationHelper.showNewChaptersNotification(it, alert = !hasAlerted)
+						) {
+							hasAlerted = true
 						}
 					}
 				}
@@ -196,17 +182,6 @@ class TrackWorker @AssistedInject constructor(
 			e.printStackTraceDebug()
 		} finally {
 			withContext(NonCancellable) {
-				if (groupNotifications.size > 1 &&
-					applicationContext.checkNotificationPermission(TrackerNotificationHelper.CHANNEL_ID)) {
-					val groupNotification = notificationHelper.createGroupNotification(groupNotifications)
-					if (groupNotification != null) {
-						notificationManager.notify(
-							TAG,
-							TrackerNotificationHelper.GROUP_NOTIFICATION_ID,
-							groupNotification
-						)
-					}
-				}
 				if (!isCancelled && failedChecks > 0 &&
 					applicationContext.checkNotificationPermission(TrackerNotificationHelper.CHANNEL_ID)) {
 					notificationHelper.createFailedChecksNotification(failedChecks)?.let { notification ->

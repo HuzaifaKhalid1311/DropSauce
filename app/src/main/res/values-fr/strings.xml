@@ -364,7 +364,6 @@
     <string name="advanced">Avancé</string>
     <string name="zoom_out">Réduire</string>
     <string name="manga_list">Liste des mangas</string>
-    <string name="sources_catalog">Sources catalogue</string>
     <string name="frequency_every_day">Tous les jours</string>
     <string name="categories">Catégories</string>
     <string name="list_options">Options de liste</string>
@@ -391,7 +390,6 @@
     <string name="manual">Manuel</string>
     <string name="reader_optimize_summary">Réduire la qualité des pages hors écran pour utiliser moins de mémoire</string>
     <string name="enhanced_colors">mode couleur 32-bit</string>
-    <string name="disable_nsfw_summary">Désactiver les sources explicites et masquer les mangas pour adultes de la liste si possible</string>
     <string name="keep_screen_on_summary">Ne pas désactiver l\'écran pendant que vous lisez des mangas</string>
     <string name="state">État</string>
     <string name="last_successful_backup">Dernière sauvegarde réussie : %s</string>

@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.source.model.SManga
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.model.toManga
 import org.koitharu.kotatsu.parsers.model.ContentRating
@@ -19,7 +20,7 @@ class MihonDataConvertersTest {
 			genre = "Action, Comedy"
 		}
 
-		assertNull(manga.toManga(source(isNsfw = true)).contentRating)
+		assertNull(manga.toManga(source(ContentWarning.NSFW)).contentRating)
 	}
 
 	@Test
@@ -30,10 +31,10 @@ class MihonDataConvertersTest {
 			genre = "Romance, 18+"
 		}
 
-		assertEquals(ContentRating.ADULT, manga.toManga(source(isNsfw = true)).contentRating)
+		assertEquals(ContentRating.ADULT, manga.toManga(source(ContentWarning.NSFW)).contentRating)
 	}
 
-	private fun source(isNsfw: Boolean) = MihonMangaSource(
+	private fun source(contentWarning: ContentWarning) = MihonMangaSource(
 		catalogueSource = object : CatalogueSource {
 			override val id = 1L
 			override val name = "Test"
@@ -41,6 +42,6 @@ class MihonDataConvertersTest {
 			override val supportsLatest = false
 		},
 		pkgName = "test.extension",
-		isNsfw = isNsfw,
+		contentWarning = contentWarning,
 	)
 }

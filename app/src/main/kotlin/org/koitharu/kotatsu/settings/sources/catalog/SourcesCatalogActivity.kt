@@ -71,6 +71,7 @@ import java.io.File
 import java.io.IOException
 import java.util.Locale
 import javax.inject.Inject
+import org.koitharu.kotatsu.core.model.ContentWarning
 
 /** Prefix of the extension apks cached in [android.content.Context.getCacheDir] while installing. */
 internal const val EXTENSION_APK_PREFIX = "extension_"
@@ -106,9 +107,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	lateinit var httpClient: OkHttpClient
 
 	private val viewModel by viewModels<SourcesCatalogViewModel>()
-	private val isExternalOnly by lazy(LazyThreadSafetyMode.NONE) {
-		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, false) == true
-	}
 	private val isAutoMigrate by lazy(LazyThreadSafetyMode.NONE) {
 		intent?.getBooleanExtra(AppRouter.KEY_SOURCE_CATALOG_AUTO_MIGRATE, false) == true
 	}
@@ -174,9 +172,6 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		clearOldApks()
 		setContentView(ActivitySourcesCatalogBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
-		if (isExternalOnly) {
-			title = getString(R.string.extension_management)
-		}
 		pagesAdapter = SourcesCatalogPagesAdapter(
 			extensionActionListener = this,
 			headerClickListener = this,
@@ -288,11 +283,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			viewModel.appliedFilter,
 			viewModel.contentTypes,
 			viewModel.locales,
-			viewModel.isNsfwDisabled,
-		) { filter, contentTypes, locales, isNsfwDisabled ->
-			CatalogUiState(filter, contentTypes, locales, isNsfwDisabled)
+			viewModel.contentFilter,
+		) { filter, contentTypes, locales, contentFilter ->
+			CatalogUiState(filter, contentTypes, locales, contentFilter)
 		}.observe(this) {
-			updateFilers(it.filter, it.contentTypes, it.locales, it.isNsfwDisabled)
+			updateFilers(it.filter, it.contentTypes, it.locales, it.contentFilter)
 		}
 		addMenuProvider(SourcesCatalogMenuProvider(this, viewModel, this))
 		if (!settings.isShizukuInstallerEnabled && !settings.isPrivateInstallEnabled) {
@@ -351,7 +346,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	override fun onChipClick(chip: Chip, data: Any?) {
 		when (data) {
 			is ContentType -> viewModel.setContentType(data, !chip.isChecked)
-			FilterChip.NSFW_DISABLED -> viewModel.setNsfwDisabled(!chip.isChecked)
+			FilterChip.CONTENT -> viewModel.cycleContentFilter()
 			FilterChip.LOCALE -> showLocalesMenu(chip)
 			else -> Unit
 		}
@@ -410,7 +405,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		appliedFilter: SourcesCatalogFilter,
 		contentTypes: List<ContentType>,
 		locales: Set<String?>,
-		isNsfwDisabled: Boolean,
+		contentFilter: ContentWarning,
 	) {
 		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
 		if (locales.size > 1) {
@@ -422,11 +417,13 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 				data = FilterChip.LOCALE,
 			)
 		}
+		// One chip cycling All -> SFW & Mixed -> SFW only; it reads as active whenever something is hidden
 		chips += ChipModel(
-			title = getString(R.string.disable_nsfw),
+			titleResId = contentFilter.filterTitleResId,
 			icon = R.drawable.ic_nsfw,
-			isChecked = isNsfwDisabled,
-			data = FilterChip.NSFW_DISABLED,
+			isChecked = contentFilter != ContentWarning.NSFW,
+			isCheckedIconVisible = false,
+			data = FilterChip.CONTENT,
 		)
 		contentTypes.mapTo(chips) { type ->
 			ChipModel(
@@ -464,12 +461,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val filter: SourcesCatalogFilter,
 		val contentTypes: List<ContentType>,
 		val locales: Set<String?>,
-		val isNsfwDisabled: Boolean,
+		val contentFilter: ContentWarning,
 	)
 
 	private enum class FilterChip {
 		LOCALE,
-		NSFW_DISABLED,
+		CONTENT,
 	}
 
 	private fun updateScrollToTopVisibility() {

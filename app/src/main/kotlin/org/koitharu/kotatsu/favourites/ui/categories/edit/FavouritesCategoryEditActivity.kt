@@ -36,7 +36,8 @@ class FavouritesCategoryEditActivity :
 	private val viewModel by viewModels<FavouritesCategoryEditViewModel>()
 
 	private val name = mutableStateOf("")
-	private val sortOrder = mutableStateOf(ListSortOrder.NEWEST)
+	// Lazy: the view model (and the default sort it holds) is only reachable once the activity is attached.
+	private val sortOrder by lazy { mutableStateOf(viewModel.defaultSortOrder) }
 	private val isTrackerEnabled = mutableStateOf(true)
 	private val isDownloadEnabled = mutableStateOf(false)
 	private val isShelfEnabled = mutableStateOf(true)
@@ -51,12 +52,13 @@ class FavouritesCategoryEditActivity :
 	 * differs. Re-read from the category on every emission — after a config change the form is
 	 * restored from the bundle, but the baseline still has to come from the stored category.
 	 */
-	private var baseline = FormState()
+	private lateinit var baseline: FormState
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityCategoryEditBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = true)
+		baseline = FormState(sortOrder = viewModel.defaultSortOrder)
 		viewBinding.buttonDone.setOnClickListener(this)
 		viewBinding.composeView.setViewCompositionStrategy(
 			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
@@ -197,7 +199,7 @@ class FavouritesCategoryEditActivity :
 	/** Snapshot of the editable fields, compared by value to tell whether anything was changed. */
 	private data class FormState(
 		val name: String = "",
-		val sortOrder: ListSortOrder = ListSortOrder.NEWEST,
+		val sortOrder: ListSortOrder,
 		val isTrackerEnabled: Boolean = true,
 		val isDownloadEnabled: Boolean = false,
 		val isShelfEnabled: Boolean = true,

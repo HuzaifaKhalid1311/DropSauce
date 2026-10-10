@@ -29,7 +29,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
@@ -235,7 +234,6 @@ class ExtensionUpdateWorker @AssistedInject constructor(
 		notificationManager.createNotificationChannel(channel)
 
 		val intent = Intent(applicationContext, SourcesCatalogActivity::class.java)
-			.putExtra(AppRouter.KEY_SOURCE_CATALOG_EXTERNAL_ONLY, true)
 		val contentIntent = PendingIntentCompat.getActivity(
 			applicationContext,
 			0,

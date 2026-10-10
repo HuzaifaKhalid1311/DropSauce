@@ -388,9 +388,7 @@
     <string name="last_successful_backup">Poslední úspěšná záloha: %s</string>
     <string name="lock_screen_rotation">Uzamknout otáčení obrazovky</string>
     <string name="content_type_other">Jiné</string>
-    <string name="sources_catalog">Katalog zdrojů</string>
     <string name="manual">Ručně</string>
-    <string name="disable_nsfw_summary">Zakázat NSFW zdroje a skrýt mangy pro dospělé ze seznamu, je-li to možné</string>
     <string name="error_multiple_genres_not_supported">Filtrování podle více žánrů tento zdroj mang nepodporuje</string>
     <string name="error_multiple_states_not_supported">Filtrování podle více stavů tento zdroj mang nepodporuje</string>
     <string name="error_search_not_supported">Hledání není v tomto zdroji mang podporovaný</string>

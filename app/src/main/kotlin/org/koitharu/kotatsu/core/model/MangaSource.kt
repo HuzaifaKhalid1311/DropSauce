@@ -9,8 +9,10 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.text.inSpans
+import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.util.ext.isHttpUrl
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
 import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
@@ -82,11 +84,20 @@ fun MangaSource(name: String?, sourceTitle: String?): MangaSource {
 
 fun Collection<String>.toMangaSources() = map(::MangaSource)
 
+/** Only 18+ extensions count as a whole; in a [ContentWarning.MIXED] one each manga's own rating decides. */
 fun MangaSource.isNsfw(): Boolean = when (this) {
 	is MangaSourceInfo -> mangaSource.isNsfw()
-	is MihonMangaSource -> isNsfw
+	is MihonMangaSource -> contentWarning == ContentWarning.NSFW
 	else -> false
 }
+
+/** The site a source browses, to open it in the in-app browser; null when it has no web home. */
+val MangaSource.homeUrl: String?
+	get() = when (val source = unwrap()) {
+		is MihonMangaSource -> (source.catalogueSource as? HttpSource)?.baseUrl
+		is LnMangaSource -> source.plugin.site
+		else -> null
+	}?.takeIf { it.isHttpUrl() }
 
 val MangaSource.isBroken: Boolean
 	get() = when (unwrap()) {

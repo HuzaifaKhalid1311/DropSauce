@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.prefs.AppProtectionTimeout
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -65,6 +66,7 @@ import org.koitharu.kotatsu.settings.compose.rememberStringSetPref
 import org.koitharu.kotatsu.settings.nav.NavConfigFragment
 import org.koitharu.kotatsu.settings.protect.showProtectMethodDialog
 import javax.inject.Inject
+import org.koitharu.kotatsu.list.ui.GridColumns
 
 @AndroidEntryPoint
 class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearance) {
@@ -123,6 +125,7 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 							isFromRoot = false,
 						)
 					},
+					onOpenCategories = { router.openFavoriteCategories() },
 					onProtectToggle = ::onProtectToggle,
 				)
 			}
@@ -215,6 +218,7 @@ private fun AppearanceScreen(
 	onOpenLocaleSettings: () -> Unit,
 	onOpenDetailsAppearance: () -> Unit,
 	onOpenNavConfig: () -> Unit,
+	onOpenCategories: () -> Unit,
 	onProtectToggle: (Boolean) -> Unit,
 ) {
 	val ctx = LocalContext.current
@@ -263,6 +267,8 @@ private fun AppearanceScreen(
 	var locale by rememberStringPref(AppSettings.KEY_APP_LOCALE, "")
 	var listMode by rememberStringPref(AppSettings.KEY_LIST_MODE, ListMode.GRID.name)
 	var gridSize by rememberIntPref(AppSettings.KEY_GRID_SIZE, 100)
+	val gridWidth = remember { GridColumns.referenceWidth(ctx.resources) }
+	val maxGridColumns = remember { GridColumns.maxColumns(ctx.resources, gridWidth) }
 	var quickFilter by rememberBooleanPref(AppSettings.KEY_QUICK_FILTER, true)
 	var listCheckpoint by rememberBooleanPref(AppSettings.KEY_LIST_CHECKPOINT, true)
 	var readingIndicator by rememberReadingIndicatorPref(AppSettings.KEY_PROGRESS_INDICATORS)
@@ -416,14 +422,24 @@ private fun AppearanceScreen(
 					)
 				}
 				item { pos ->
+					// Picked as items per row, bigger covers to the right; stored as the matching size.
+					val columns = GridColumns.columnsFor(ctx.resources, gridWidth, gridSize / 100f)
 					SliderSettingsItem(
 						title = stringResource(R.string.grid_size),
-						value = gridSize,
-						valueFrom = 50,
-						valueTo = 150,
-						stepSize = 5,
-						unitSuffix = "%",
-						onValueChange = { gridSize = it },
+						value = maxGridColumns + 1 - columns,
+						valueFrom = 1,
+						valueTo = maxGridColumns,
+						stepSize = 1,
+						valueLabel = { position ->
+							val count = maxGridColumns + 1 - position
+							ctx.resources.getQuantityString(R.plurals.items_per_row, count, count)
+						},
+						onValueChange = { position ->
+							val count = maxGridColumns + 1 - position
+							if (count != columns) {
+								gridSize = GridColumns.gridSizeFor(ctx.resources, gridWidth, count)
+							}
+						},
 						icon = R.drawable.ic_grid,
 						
 						shape = pos.shape,
@@ -473,6 +489,14 @@ private fun AppearanceScreen(
 						icon = R.drawable.ic_tag,
 						
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					NavigationSettingsItem(
+						title = stringResource(R.string.manage_categories),
+						icon = R.drawable.ic_label,
+						shape = pos.shape,
+						onClick = onOpenCategories,
 					)
 				}
 			}

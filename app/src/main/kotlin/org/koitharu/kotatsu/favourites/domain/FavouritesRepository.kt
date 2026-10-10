@@ -263,6 +263,10 @@ class FavouritesRepository @Inject constructor(
 		db.getFavouriteCategoriesDao().updateOrder(id, order.name)
 	}
 
+	suspend fun setAllCategoriesOrder(order: ListSortOrder) {
+		db.getFavouriteCategoriesDao().updateOrderForAll(order.name)
+	}
+
 	suspend fun reorderCategories(orderedIds: List<Long>) {
 		val dao = db.getFavouriteCategoriesDao()
 		db.withTransaction {

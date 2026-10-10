@@ -404,14 +404,12 @@
     <string name="this_month">Осы ай</string>
     <string name="proxy">Прокси</string>
     <string name="error_no_space_left">Жадта бос орын қалмады</string>
-    <string name="sources_catalog">Дереккөз каталогы</string>
     <string name="content_type_manga">Маңга</string>
     <string name="content_type_hentai">Хентай</string>
     <string name="content_type_comics">Комикс</string>
     <string name="no_manga_sources_found">Іздеуіңіз бойынша дереккөз табылмады</string>
     <string name="lock_screen_rotation">Экран бұрылуын бұғаттау</string>
     <string name="manual">Қолмен реттеу</string>
-    <string name="disable_nsfw_summary">ҰЯТСЫЗ маңга дереккөзін өшіріп, тізімнен жасырып тастау</string>
     <string name="content_type_other">Басқа</string>
     <string name="skip">Өткізіп жіберу</string>
     <string name="email_password_enter_hint">Жалғастыру үшін email поштаңыз бен құпиясөзіңізді жазыңыз</string>

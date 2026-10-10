@@ -29,6 +29,9 @@ class FavouritesCategoryEditViewModel @Inject constructor(
 
 	private val categoryId = savedStateHandle[AppRouter.KEY_ID] ?: NO_ID
 
+	/** Sort a brand-new category starts with, picked in the categories manager. */
+	val defaultSortOrder: ListSortOrder = settings.defaultCategorySortOrder
+
 	val onSaved = MutableEventFlow<Unit>()
 	val category = MutableStateFlow<FavouriteCategory?>(null)
 

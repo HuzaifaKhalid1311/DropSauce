@@ -12,6 +12,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import org.koitharu.kotatsu.mihon.model.MihonLoadResult
 
@@ -158,7 +159,7 @@ class ExternalExtensionRepoRepositoryTest {
 			versionName = "1.4.1",
 			libVersion = 1.4,
 			lang = "en",
-			isNsfw = false,
+			contentWarning = ContentWarning.SAFE,
 			sources = emptyList(),
 		)
 		assertTrue(repoEntry(versionCode = 10, versionName = "1.5.0").isNewerThan(loaded))
@@ -180,7 +181,7 @@ class ExternalExtensionRepoRepositoryTest {
 		versionName = "1.4.1",
 		libVersion = 1.4,
 		lang = "en",
-		isNsfw = false,
+		contentWarning = ContentWarning.SAFE,
 		sourceClassName = "ExampleSource",
 		apkPath = "/example.apk",
 	)

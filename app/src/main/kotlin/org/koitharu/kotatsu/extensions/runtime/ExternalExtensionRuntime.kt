@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Locale
+import org.koitharu.kotatsu.core.model.ContentWarning
 
 /**
  * The BCP-47 code for an extension's declared language, or null if it isn't one we can resolve.
@@ -159,18 +160,18 @@ fun <ResultT, SuccessT, ErrorT, SourceT, CatalogueSourceT : SourceT, WrappedSour
 	untrustedPackageNameOf: (ResultT) -> String?,
 	successSources: (SuccessT) -> List<SourceT>,
 	successPackageName: (SuccessT) -> String,
-	successIsNsfw: (SuccessT) -> Boolean,
+	successContentWarning: (SuccessT) -> ContentWarning,
 	sourceId: (SourceT) -> Long,
 	asCatalogueSource: (SourceT) -> CatalogueSourceT?,
 	catalogueSourceName: (CatalogueSourceT) -> String,
-	buildWrappedSource: (CatalogueSourceT, String, Boolean, Boolean) -> WrappedSourceT,
+	buildWrappedSource: (CatalogueSourceT, String, ContentWarning, Boolean) -> WrappedSourceT,
 	onError: (ErrorT) -> Unit = {},
 	onUntrusted: (String) -> Unit = {},
 ): ProcessedExternalExtensions<SuccessT, ErrorT, SourceT, WrappedSourceT> {
 	val successful = mutableListOf<SuccessT>()
 	val failed = mutableListOf<ErrorT>()
 	val sourceById = linkedMapOf<Long, SourceT>()
-	val catalogueSources = mutableListOf<Triple<CatalogueSourceT, String, Boolean>>()
+	val catalogueSources = mutableListOf<Triple<CatalogueSourceT, String, ContentWarning>>()
 	val untrustedPackages = mutableListOf<String>()
 
 	results.forEach { result ->
@@ -183,7 +184,7 @@ fun <ResultT, SuccessT, ErrorT, SourceT, CatalogueSourceT : SourceT, WrappedSour
 				successSources(success).forEach { source ->
 					sourceById[sourceId(source)] = source
 					asCatalogueSource(source)?.let {
-						catalogueSources += Triple(it, successPackageName(success), successIsNsfw(success))
+						catalogueSources += Triple(it, successPackageName(success), successContentWarning(success))
 					}
 				}
 			}
@@ -200,11 +201,11 @@ fun <ResultT, SuccessT, ErrorT, SourceT, CatalogueSourceT : SourceT, WrappedSour
 
 	val nameCount = catalogueSources.groupingBy { catalogueSourceName(it.first) }.eachCount()
 	val wrappedSourceById = linkedMapOf<Long, WrappedSourceT>()
-	catalogueSources.forEach { (catalogueSource, pkgName, isNsfw) ->
+	catalogueSources.forEach { (catalogueSource, pkgName, contentWarning) ->
 		wrappedSourceById[sourceId(catalogueSource)] = buildWrappedSource(
 			catalogueSource,
 			pkgName,
-			isNsfw,
+			contentWarning,
 			(nameCount[catalogueSourceName(catalogueSource)] ?: 0) > 1,
 		)
 	}
@@ -304,13 +305,13 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 	private val untrustedPackageNameOf: (ResultT) -> String?,
 	private val successSources: (SuccessT) -> List<SourceT>,
 	private val successPackageName: (SuccessT) -> String,
-	private val successIsNsfw: (SuccessT) -> Boolean,
+	private val successContentWarning: (SuccessT) -> ContentWarning,
 	private val successCatalogueSources: (SuccessT) -> List<CatalogueT>,
 	private val sourceId: (SourceT) -> Long,
 	private val asCatalogueSource: (SourceT) -> CatalogueT?,
 	private val catalogueSourceName: (CatalogueT) -> String,
 	private val catalogueSourceLang: (CatalogueT) -> String,
-	private val buildWrappedSource: (CatalogueT, String, Boolean, Boolean) -> WrappedSourceT,
+	private val buildWrappedSource: (CatalogueT, String, ContentWarning, Boolean) -> WrappedSourceT,
 	private val sourceNamePrefix: String,
 	private val errorPackageName: (ErrorT) -> String,
 	private val errorMessage: (ErrorT) -> String,
@@ -343,7 +344,7 @@ class ExternalExtensionManagerFacade<ResultT, SuccessT, ErrorT, SourceT, Catalog
 				untrustedPackageNameOf = untrustedPackageNameOf,
 				successSources = successSources,
 				successPackageName = successPackageName,
-				successIsNsfw = successIsNsfw,
+				successContentWarning = successContentWarning,
 				sourceId = sourceId,
 				asCatalogueSource = asCatalogueSource,
 				catalogueSourceName = catalogueSourceName,

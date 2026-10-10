@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.favourites.ui.categories
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.viewModels
@@ -98,6 +100,20 @@ class FavouriteCategoriesActivity :
 		return insets.consumeAllSystemBarsInsets()
 	}
 
+	override fun onCreateOptionsMenu(menu: Menu): Boolean {
+		menuInflater.inflate(R.menu.opt_categories, menu)
+		return super.onCreateOptionsMenu(menu)
+	}
+
+	override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+		R.id.action_default_sort -> {
+			router.showCategoriesSortSheet()
+			true
+		}
+
+		else -> super.onOptionsItemSelected(item)
+	}
+
 	override fun onClick(v: View) {
 		when (v.id) {
 			R.id.fab_add -> router.openFavoriteCategoryCreate()
@@ -159,7 +175,6 @@ class FavouriteCategoriesActivity :
 
 	private suspend fun onCategoriesChanged(categories: List<ListModel>) {
 		adapter.emit(categories)
-		invalidateOptionsMenu()
 	}
 
 	private inner class ReorderHelperCallback : ItemTouchHelper.SimpleCallback(

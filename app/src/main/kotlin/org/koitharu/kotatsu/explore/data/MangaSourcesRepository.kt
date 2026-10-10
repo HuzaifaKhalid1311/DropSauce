@@ -229,11 +229,11 @@ class MangaSourcesRepository @Inject constructor(
 	private fun getActiveMihonSources(): List<MihonMangaSource> {
 		val manager = mihonExtensionManager ?: return emptyList()
 		manager.initialize()
-		val hideNsfw = settings.isNsfwContentDisabled
+		val contentFilter = settings.contentFilter
 		val hiddenPackages = settings.mihonHiddenPackages
 		val appLang = appLanguage
 		return manager.getMihonMangaSources()
-			.filterNot { hideNsfw && it.isNsfw }
+			.filter { it.contentWarning <= contentFilter }
 			.filterNot { it.pkgName in hiddenPackages }
 			.groupBy { it.pkgName to it.catalogueSource.name }
 			.mapNotNull { (key, group) ->
@@ -356,11 +356,8 @@ class MangaSourcesRepository @Inject constructor(
 	private fun getAllMihonSources(): List<MihonMangaSource> {
 		val manager = mihonExtensionManager ?: return emptyList()
 		manager.initialize()
-		val sources = manager.getMihonMangaSources()
-		val hideNsfw = settings.isNsfwContentDisabled
-		return sources.filter { source ->
-			!hideNsfw || !source.isNsfw
-		}
+		val contentFilter = settings.contentFilter
+		return manager.getMihonMangaSources().filter { it.contentWarning <= contentFilter }
 	}
 
 	fun observeMihonSources(): Flow<List<MihonMangaSource>> {
@@ -370,7 +367,7 @@ class MangaSourcesRepository @Inject constructor(
 			manager.installedExtensions,
 			manager.isLoading,
 			settings.observeAsFlow(AppSettings.KEY_MIHON_PER_EXT_ACTIVE_LANG) { mihonPerExtActiveLangs },
-			settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled },
+			settings.observeAsFlow(AppSettings.KEY_CONTENT_FILTER) { contentFilter },
 			settings.observeAsFlow(AppSettings.KEY_MIHON_HIDDEN_PACKAGES) { mihonHiddenPackages },
 			settings.observeAsFlow(AppSettings.KEY_HIDDEN_SOURCE_LANGUAGES) { hiddenSourceLanguages },
 		) { _: Array<Any?> ->
@@ -402,7 +399,7 @@ class MangaSourcesRepository @Inject constructor(
 		return combine(
 			manager.installedExtensions,
 			manager.isLoading,
-			settings.observeAsFlow(AppSettings.KEY_DISABLE_NSFW) { isNsfwContentDisabled },
+			settings.observeAsFlow(AppSettings.KEY_CONTENT_FILTER) { contentFilter },
 		) { _: Any?, _: Any?, _: Any? ->
 			getAllMihonSources()
 		}.distinctUntilChanged()

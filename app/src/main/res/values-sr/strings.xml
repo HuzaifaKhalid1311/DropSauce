@@ -122,7 +122,6 @@
     <string name="zoom_in">Увећај</string>
     <string name="captcha_required_summary">%s захтева да се реши формулар (captcha) да би исправно функционисао</string>
     <string name="status_re_reading">Поново читам</string>
-    <string name="sources_catalog">Каталог извора</string>
     <string name="download_option_all_unread">Сва непрочитана поглавља</string>
     <string name="detect_reader_mode">Самостално уочи режим читача</string>
     <string name="frequency_every_day">Сваки дан</string>
@@ -327,7 +326,6 @@
     <string name="background">Позадина</string>
     <string name="suggestions_excluded_genres">Изостави жанрове</string>
     <string name="canceled">Отказано</string>
-    <string name="disable_nsfw_summary">Онемогућите изворе садржаја за одрасле и сакријте мангу за одрасле са листе ако је могуће</string>
     <string name="hide">Сакриј</string>
     <string name="downloads_removed">Преузимања су уклоњена</string>
     <string name="yesterday">Јуче</string>

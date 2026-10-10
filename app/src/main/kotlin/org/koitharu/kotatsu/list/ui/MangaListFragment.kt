@@ -129,6 +129,14 @@ abstract class MangaListFragment :
 			addItemDecoration(TypedListSpacingDecoration(context, false))
 			addOnScrollListener(checkNotNull(paginationListener))
 			fastScroller.setFastScrollListener(this@MangaListFragment)
+			// In every mode, so the grid size picker knows the real width even before a grid was shown.
+			// Narrow transient widths from a settling ViewPager are skipped.
+			addOnLayoutChangeListener { v, left, _, right, _, _, _, _, _ ->
+				val width = right - left
+				if (width * 2 >= v.resources.displayMetrics.widthPixels) {
+					GridColumns.lastGridWidth = width
+				}
+			}
 		}
 		with(binding.swipeRefreshLayout) {
 			setOnRefreshListener(this@MangaListFragment)

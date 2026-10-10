@@ -46,7 +46,7 @@ class DetailsErrorObserver(
 		when {
 			isRecommended -> {
 				snackbar.setAction(R.string.extensions) {
-					router()?.openSourcesCatalog(isExternalOnly = true)
+					router()?.openSourcesCatalog()
 				}
 			}
 

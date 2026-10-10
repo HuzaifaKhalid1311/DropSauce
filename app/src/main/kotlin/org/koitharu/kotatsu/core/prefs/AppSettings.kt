@@ -28,6 +28,7 @@ import org.koitharu.kotatsu.mihon.model.ExternalRepoInfo
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistryState
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.core.model.ZoomMode
 import org.koitharu.kotatsu.core.network.DoHProvider
 import org.koitharu.kotatsu.core.prefs.DetailsUiMode.COMPACT
@@ -254,9 +255,21 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getEnumValue(KEY_LIST_MODE_FAVORITES, listMode)
 		set(value) = prefs.edit { putEnumValue(KEY_LIST_MODE_FAVORITES, value) }
 
-	var isNsfwContentDisabled: Boolean
-		get() = prefs.getBoolean(KEY_DISABLE_NSFW, false)
-		set(value) = prefs.edit { putBoolean(KEY_DISABLE_NSFW, value) }
+	/**
+	 * The most adult [ContentWarning] whose extensions are shown: all of them, up to Mixed, or SFW only.
+	 * Falls back to the old single "Disable NSFW" switch, which meant SFW only.
+	 */
+	var contentFilter: ContentWarning
+		get() = prefs.getString(KEY_CONTENT_FILTER, null)?.let { x -> ContentWarning.entries.find { it.name == x } }
+			?: if (prefs.getBoolean(KEY_DISABLE_NSFW_LEGACY, false)) ContentWarning.SAFE else ContentWarning.NSFW
+		set(value) = prefs.edit {
+			putString(KEY_CONTENT_FILTER, value.name)
+			remove(KEY_DISABLE_NSFW_LEGACY)
+		}
+
+	/** Adult manga are hidden wherever 18+ extensions are. */
+	val isNsfwContentDisabled: Boolean
+		get() = contentFilter < ContentWarning.NSFW
 
 	var appLocales: LocaleListCompat
 		get() {
@@ -1000,6 +1013,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getEnumValue(KEY_FAVORITES_ORDER, ListSortOrder.NEWEST)
 		set(value) = prefs.edit { putEnumValue(KEY_FAVORITES_ORDER, value) }
 
+	/** Sort given to new categories; picking one also rewrites every existing category's sort. */
+	var defaultCategorySortOrder: ListSortOrder
+		get() = prefs.getEnumValue(KEY_CATEGORY_DEFAULT_ORDER, ListSortOrder.NEWEST)
+		set(value) = prefs.edit { putEnumValue(KEY_CATEGORY_DEFAULT_ORDER, value) }
+
 	// comma-joined in pin order, oldest pin first
 	fun getPinnedFavourites(categoryId: Long): List<Long> =
 		prefs.getString(KEY_FAVORITES_PINNED + categoryId, null)
@@ -1387,6 +1405,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_LOCAL_LIST_ORDER = "local_order"
 		const val KEY_HISTORY_ORDER = "history_order"
 		const val KEY_FAVORITES_ORDER = "fav_order"
+		const val KEY_CATEGORY_DEFAULT_ORDER = "category_default_order"
 		const val KEY_FAVORITES_PINNED = "fav_pinned_order_"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
 		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"
@@ -1411,7 +1430,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PROXY_PASSWORD = "proxy_password"
 		const val KEY_IMAGES_PROXY = "images_proxy_2"
 		const val KEY_LOCAL_MANGA_DIRS = "local_manga_dirs"
-		const val KEY_DISABLE_NSFW = "no_nsfw"
+		const val KEY_CONTENT_FILTER = "content_filter"
+		const val KEY_DISABLE_NSFW_LEGACY = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
 		const val KEY_SCROBBLING_PROGRESS_SYNC = "scrobbling_progress_sync"
 		const val KEY_NAV_MAIN = "nav_main"

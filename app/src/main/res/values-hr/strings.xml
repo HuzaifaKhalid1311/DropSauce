@@ -277,9 +277,7 @@
     <string name="frequency_every_day">Svaki dan</string>
     <string name="content_type_comics">Stripovi</string>
     <string name="content_type_other">Ostalo</string>
-    <string name="sources_catalog">Katalog izvora</string>
     <string name="no_manga_sources_found">Vašim upitom nisu pronađeni dostupni izvori mangi</string>
-    <string name="disable_nsfw_summary">Onemogućite NSFW izvore i sakrijte mangu za odrasle s popisa ako je moguće</string>
     <string name="state_paused">Pauzirano</string>
     <string name="reader_optimize">Smanjite potrošnju memorije</string>
     <string name="reader_optimize_summary">Smanjite kvalitetu stranica izvan zaslona kako biste koristili manje memorije</string>

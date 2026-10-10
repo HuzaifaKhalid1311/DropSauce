@@ -394,7 +394,6 @@
     <string name="frequency_once_per_month">Ayda 1 kere</string>
     <string name="backups_output_directory">Yedekleme konumu</string>
     <string name="last_successful_backup">Son başarılı yedekleme: %s</string>
-    <string name="sources_catalog">Kaynak kataloğu</string>
     <string name="reader_optimize">Bellek kullanımını düşür</string>
     <string name="reader_optimize_summary">Daha az bellek kullanımı için ekran dışı sayfaların çözünürlüğünü düşür</string>
     <string name="state_paused">Durduruldu</string>
@@ -406,7 +405,6 @@
     <string name="lock_screen_rotation">Ekran döndürmeyi kilitle</string>
     <string name="error_search_not_supported">Arama bu manga kaynağı tarafından desteklenmemektedir</string>
     <string name="manual">Manuel</string>
-    <string name="disable_nsfw_summary">NSFW kaynakları devre dışı bırak ve yetişkinlere yönelik mangaları listeden gizle</string>
     <string name="state">Durum</string>
     <string name="error_filter_states_genre_not_supported">Hem türlere hem de duruma göre filtreleme bu kaynak tarafından desteklenmiyor</string>
     <string name="error_filter_locale_genre_not_supported">Hem türlere hem de yerel ayara göre filtreleme bu kaynak tarafından desteklenmiyor</string>

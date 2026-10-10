@@ -409,9 +409,7 @@
     <string name="content_type_comics">Komik</string>
     <string name="content_type_hentai">matang</string>
     <string name="content_type_other">Yang lain</string>
-    <string name="sources_catalog">Sumber Katalog</string>
     <string name="no_manga_sources_found">Tiada sumber manga yang ada yang dijumpai oleh pertanyaan anda</string>
-    <string name="disable_nsfw_summary">Lumpuhkan sumber NSFW dan sembunyikan manga dewasa dari senarai jika boleh</string>
     <string name="state_paused">Jeda</string>
     <string name="reader_optimize">Kurangkan Penggunaan Memori</string>
     <string name="reader_optimize_summary">Kurangkan kualiti halaman offscreen untuk menggunakan memori yang kurang</string>

@@ -48,6 +48,9 @@ abstract class FavouriteCategoriesDao {
 	@Query("UPDATE favourite_categories SET `order` = :order WHERE category_id = :id")
 	abstract suspend fun updateOrder(id: Long, order: String)
 
+	@Query("UPDATE favourite_categories SET `order` = :order WHERE deleted_at = 0")
+	abstract suspend fun updateOrderForAll(order: String)
+
 	@Query("UPDATE favourite_categories SET `track` = :isEnabled WHERE category_id = :id")
 	abstract suspend fun updateTracking(id: Long, isEnabled: Boolean)
 

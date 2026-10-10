@@ -354,6 +354,22 @@
 		<item name="scrollerOffset">@dimen/grid_spacing_outer</item>
 	</style>
 
+	<!-- SFW / Mixed / 18+ tag right after an extension name -->
+	<style name="Widget.Kotatsu.ContentWarningTag" parent="">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_marginStart">6dp</item>
+		<item name="android:background">@drawable/bg_content_warning</item>
+		<item name="android:paddingStart">6dp</item>
+		<item name="android:paddingEnd">6dp</item>
+		<item name="android:paddingTop">1dp</item>
+		<item name="android:paddingBottom">1dp</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:textAppearance">?attr/textAppearanceLabelSmall</item>
+		<item name="android:textStyle">bold</item>
+		<item name="android:visibility">gone</item>
+	</style>
+
 	<style name="Widget.Kotatsu.BadgeView" parent="">
 		<item name="android:textColor">@macro/m3_comp_badge_large_label_text_color</item>
 		<item name="android:minWidth">@dimen/m3_badge_with_text_size</item>

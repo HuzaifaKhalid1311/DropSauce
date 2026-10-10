@@ -391,7 +391,6 @@
     <string name="content_type_comics">Komiks</string>
     <string name="content_type_other">Inne</string>
     <string name="reader_optimize">Zmniejsz użycie pamięci</string>
-    <string name="sources_catalog">Katalog źródeł</string>
     <string name="skip">Pomiń</string>
     <string name="grayscale">Odcienie szarości</string>
     <string name="mark_as_completed">Oznacz jako kompletne</string>
@@ -406,7 +405,6 @@
     <string name="switch_pages_volume_buttons">Włącz przyciski głośności</string>
     <string name="fullscreen_mode">Tryb pełnoekranowy</string>
     <string name="apply">Zastosuj</string>
-    <string name="disable_nsfw_summary">Wyłącz źródła NSFW i ukryj mangi dla dorosłych z list jeśli to możliwe</string>
     <string name="single_cbz_file">Pojedynczy plik CBZ</string>
     <string name="suggestions_unavailable_text">Funkcjonalność sugestii jest wyłączona</string>
     <string name="reading_time_estimation">Pokaż przewidywany czas czytania</string>

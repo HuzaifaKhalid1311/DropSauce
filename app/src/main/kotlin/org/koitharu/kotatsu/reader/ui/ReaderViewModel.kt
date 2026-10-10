@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -46,6 +47,7 @@ import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.firstNotNull
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
+import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.requireValue
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.details.domain.DetailsInteractor
@@ -81,6 +83,7 @@ import javax.inject.Inject
 private const val BOUNDS_PAGE_OFFSET = 2
 private const val PREFETCH_LIMIT = 10
 private const val EPUB_SLIDER_MAX = 1000
+private const val AUTOSAVE_INTERVAL_MS = 2000L
 
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
@@ -120,6 +123,11 @@ class ReaderViewModel @Inject constructor(
     private var pageSaveJob: Job? = null
     private var bookmarkJob: Job? = null
     private var stateChangeJob: Job? = null
+    private var autoSaveJob: Job? = null
+
+    // Chapter of the last history write, so an autosave knows whether trackers must hear about it
+    @Volatile
+    private var savedChapterId = 0L
 
     init {
         mangaDetails.value = intent.manga?.let { MangaDetails(it) }
@@ -261,6 +269,7 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun saveCurrentState(state: ReaderState? = null) {
+        autoSaveJob?.cancel() // this save is the newer, exact one
         if (state != null) {
             readingState.value = state
             savedStateHandle[ReaderIntent.EXTRA_STATE] = state
@@ -269,6 +278,7 @@ class ReaderViewModel @Inject constructor(
             return
         }
         val readerState = state ?: readingState.value ?: return
+        savedChapterId = readerState.chapterId
         historyUpdateUseCase.invokeAsync(
             manga = getMangaOrNull() ?: return,
             readerState = readerState,
@@ -373,10 +383,19 @@ class ReaderViewModel @Inject constructor(
                 return@launchJob // TODO
             }
             val centerPos = (lowerPos + upperPos) / 2
+            val prevState = readingState.value
             pages.getOrNull(centerPos)?.let { page ->
                 readingState.update { cs ->
-                    cs?.copy(chapterId = page.chapterId, page = page.index)
+                    if (cs == null || cs.chapterId == page.chapterId && cs.page == page.index) {
+                        cs
+                    } else {
+                        // the scroll offset belonged to the previous page
+                        cs.copy(chapterId = page.chapterId, page = page.index, scroll = 0)
+                    }
                 }
+            }
+            if (readingState.value != prevState) {
+                scheduleAutoSave()
             }
             notifyStateChanged()
             if (pages.isEmpty() || loadingJob?.isActive == true) {
@@ -501,6 +520,7 @@ class ReaderViewModel @Inject constructor(
                             readingState.value?.let {
                                 val percent = computePercent(it)
                                 historyUpdateUseCase(manga, it, percent)
+                                savedChapterId = it.chapterId
                             }
                         }
                         notifyStateChanged()
@@ -579,6 +599,7 @@ class ReaderViewModel @Inject constructor(
         // Chapter buttons update readingState before the EPUB surface reports its position. The
         // toolbar is UI state, so compare against that instead of the already-updated reader state.
         val chapterChanged = uiState.value?.chapter?.id != chapterId
+        val prevState = readingState.value
         readingState.update {
             it?.copy(
                 chapterId = chapterId,
@@ -586,11 +607,47 @@ class ReaderViewModel @Inject constructor(
                 scroll = ReaderState.encodeEpubOffset(charOffset),
             )
         }
+        if (readingState.value != prevState) {
+            scheduleAutoSave()
+        }
         updateEpubProgressUi(chapterPm, page, pageCount)
         if (chapterChanged) {
             launchJob(Dispatchers.Default) {
                 notifyStateChanged()
                 updateEpubProgressUi(chapterPm, page, pageCount)
+            }
+        }
+    }
+
+    /**
+     * Writes the position while reading instead of only on pause or idle: scrolling keeps resetting
+     * the idle timer, and TTS or auto-scroll move on without any touch. A new chapter is written at
+     * once and reaches the trackers; within a chapter the position is written quietly, at most every
+     * [AUTOSAVE_INTERVAL_MS]. The pause and idle saves still write the exact view state.
+     */
+    @AnyThread
+    private fun scheduleAutoSave() {
+        val chapterId = readingState.value?.chapterId ?: return
+        val isNewChapter = chapterId != savedChapterId
+        if (isNewChapter) {
+            savedChapterId = chapterId // claimed now so the next progress reports don't repeat it
+            autoSaveJob?.cancel()
+        } else if (autoSaveJob?.isActive == true) {
+            return // the pending save picks up the latest position when it fires
+        }
+        autoSaveJob = launchJob(Dispatchers.Default) {
+            if (!isNewChapter) {
+                delay(AUTOSAVE_INTERVAL_MS)
+            }
+            if (isIncognitoMode.value != false || isPeekMode.value) {
+                return@launchJob
+            }
+            val manga = getMangaOrNull() ?: return@launchJob
+            val state = readingState.value ?: return@launchJob
+            runCatchingCancellable {
+                historyUpdateUseCase(manga, state, computePercent(state), notify = isNewChapter)
+            }.onFailure {
+                it.printStackTraceDebug()
             }
         }
     }

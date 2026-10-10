@@ -418,9 +418,7 @@
     <string name="content_type_hentai">ヘンタイ</string>
     <string name="content_type_comics">コミック</string>
     <string name="content_type_other">その他</string>
-    <string name="sources_catalog">ソースカタログ</string>
     <string name="no_manga_sources_found">お探しの漫画が見つかりませんでした</string>
-    <string name="disable_nsfw_summary">NSFWを無効化し、可能であれば成人向け漫画をリストから非表示にする</string>
     <string name="state_paused">ポーズ</string>
     <string name="reader_optimize">メモリ消費の削減(ベータ版)</string>
     <string name="error_multiple_genres_not_supported">このマンガソースでは、複数のジャンルによるフィルタリングはサポートされていません</string>

@@ -48,6 +48,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.settings.sources.migration.BrokenSourcesMigrationFragment
 import rikka.shizuku.Shizuku
 import javax.inject.Inject
+import org.koitharu.kotatsu.core.model.ContentWarning
 
 @AndroidEntryPoint
 class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensions) {
@@ -83,7 +84,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 		setContent {
 			DropSauceTheme {
 				ExtensionsScreen(
-					onOpenCatalog = { router.openSourcesCatalog(isExternalOnly = true) },
+					onOpenCatalog = { router.openSourcesCatalog() },
 					onOpenStores = router::openExtensionStores,
 					onOpenBrokenSourcesMigration = {
 						(requireActivity() as SettingsActivity).openFragment(
@@ -96,6 +97,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 					onSandboxEnabled = ::onSandboxEnabled,
 					browseSortOrder = settings.defaultBrowseSortOrder,
 					onBrowseSortOrderChanged = ::setDefaultBrowseSortOrder,
+					contentFilter = settings.contentFilter,
 				)
 			}
 		}
@@ -132,7 +134,7 @@ class ExtensionsSettingsFragment : BaseComposeSettingsFragment(R.string.extensio
 	}
 
 	private fun onSandboxEnabled() {
-		router.openSourcesCatalog(isExternalOnly = true, autoMigrate = true)
+		router.openSourcesCatalog(autoMigrate = true)
 	}
 
 	private fun setShizukuEnabled(enabled: Boolean) {
@@ -176,6 +178,7 @@ private fun ExtensionsScreen(
 	onSandboxEnabled: () -> Unit,
 	browseSortOrder: SortOrder,
 	onBrowseSortOrderChanged: (SortOrder) -> Unit,
+	contentFilter: ContentWarning,
 ) {
 	val ctx = LocalContext.current
 	val colors = CategoryPalette.forKey("extensions")
@@ -192,7 +195,11 @@ private fun ExtensionsScreen(
 
 	var sortOrder by rememberStringPref(AppSettings.KEY_SOURCES_ORDER, SourcesSortOrder.ALPHABETIC.name)
 	var grid by rememberBooleanPref(AppSettings.KEY_SOURCES_GRID, true)
-	var noNsfw by rememberBooleanPref(AppSettings.KEY_DISABLE_NSFW, false)
+	// Most permissive first, the same order the store's filter chip cycles through
+	val contentFilterLevels = remember { ContentWarning.entries.reversed() }
+	val contentFilterLabels = contentFilterLevels.map { stringResource(it.filterTitleResId) }
+	// Seeded from AppSettings so the old "Disable NSFW" choice shows until this is first changed.
+	var contentFilterName by rememberStringPref(AppSettings.KEY_CONTENT_FILTER, contentFilter.name)
 	var incognitoNsfw by rememberStringPref(AppSettings.KEY_INCOGNITO_NSFW, "ASK")
 	val shizukuEnabled by rememberBooleanPref(AppSettings.KEY_SHIZUKU_INSTALLER, false)
 	var privateEnabled by rememberBooleanPref(AppSettings.KEY_PRIVATE_INSTALLER, false)
@@ -218,7 +225,7 @@ private fun ExtensionsScreen(
 				}
 				item { pos ->
 					ActionSettingsItem(
-						title = stringResource(R.string.manage_stores),
+						title = stringResource(R.string.extension_stores),
 						subtitle = stringResource(R.string.manage_stores_summary),
 						icon = R.drawable.ic_storefront,
 						shape = pos.shape,
@@ -294,13 +301,13 @@ private fun ExtensionsScreen(
 					)
 				}
 				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.disable_nsfw),
-						subtitle = stringResource(R.string.disable_nsfw_summary),
-						checked = noNsfw,
-						onCheckedChange = { noNsfw = it },
+					ListSettingsItem(
+						title = stringResource(R.string.show_extensions),
+						entries = contentFilterLabels,
+						entryValues = remember { contentFilterLevels.map { it.name } },
+						selectedValue = contentFilterName,
+						onValueChange = { contentFilterName = it },
 						icon = R.drawable.ic_nsfw,
-						
 						shape = pos.shape,
 					)
 				}

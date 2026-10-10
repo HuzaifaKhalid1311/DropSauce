@@ -9,6 +9,7 @@
 	<color name="ic_launcher_background">#1a1a1a</color>
 	<color name="common_green">#81C784</color>
 	<color name="common_yellow">#FFF176</color>
+	<color name="content_warning_mixed">#FFD54F</color>
 	<color name="common_red">#E57373</color>
 	<color name="dim_lite">#66FFFFFF</color>
 

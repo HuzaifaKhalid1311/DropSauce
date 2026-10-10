@@ -51,14 +51,37 @@
 		android:layout_weight="1"
 		android:orientation="vertical">
 
-		<TextView
-			android:id="@+id/textView_title"
+		<!-- Packed chain: the tag follows the name, and a long name shrinks rather than pushing it out -->
+		<androidx.constraintlayout.widget.ConstraintLayout
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:ellipsize="end"
-			android:singleLine="true"
-			android:textAppearance="?attr/textAppearanceTitleSmall"
-			tools:text="@tools:sample/lorem[15]" />
+			android:layout_height="wrap_content">
+
+			<TextView
+				android:id="@+id/textView_title"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:ellipsize="end"
+				android:singleLine="true"
+				android:textAppearance="?attr/textAppearanceTitleSmall"
+				app:layout_constrainedWidth="true"
+				app:layout_constraintBottom_toBottomOf="parent"
+				app:layout_constraintEnd_toStartOf="@id/textView_contentWarning"
+				app:layout_constraintHorizontal_bias="0"
+				app:layout_constraintHorizontal_chainStyle="packed"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toTopOf="parent"
+				tools:text="@tools:sample/lorem[15]" />
+
+			<TextView
+				android:id="@+id/textView_contentWarning"
+				style="@style/Widget.Kotatsu.ContentWarningTag"
+				app:layout_constraintBottom_toBottomOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintStart_toEndOf="@id/textView_title"
+				app:layout_constraintTop_toTopOf="parent"
+				tools:text="@string/nsfw"
+				tools:visibility="visible" />
+		</androidx.constraintlayout.widget.ConstraintLayout>
 
 		<TextView
 			android:id="@+id/textView_description"
@@ -117,7 +140,7 @@
 			android:padding="0dp"
 			android:tooltipText="@string/settings"
 			android:visibility="gone"
-			app:icon="@drawable/ic_settings"
+			app:icon="@drawable/ic_extension_settings"
 			app:iconGravity="textStart"
 			app:iconPadding="0dp"
 			app:iconSize="22dp" />

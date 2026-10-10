@@ -227,11 +227,11 @@
 		</activity>
 		<activity
 			android:name="org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogActivity"
-			android:label="@string/sources_catalog" />
+			android:label="@string/manage_extensions" />
 		<activity
 			android:name="org.koitharu.kotatsu.settings.sources.catalog.stores.ExtensionStoresActivity"
 			android:exported="true"
-			android:label="@string/manage_stores"
+			android:label="@string/extension_stores"
 			android:launchMode="singleTop">
 			<intent-filter tools:ignore="IntentFilterUniqueDataAttributes">
 				<action android:name="android.intent.action.VIEW" />
@@ -369,6 +369,10 @@
 				<action android:name="org.koitharu.kotatsu.CAPTCHA_DISCARD" />
 			</intent-filter>
 		</receiver>
+
+		<receiver
+			android:name="org.koitharu.kotatsu.tracker.work.TrackerNotificationHelper$MarkAsReadReceiver"
+			android:exported="false" />
 
 		<!-- Home screen widgets -->
 		<receiver

@@ -380,7 +380,6 @@
     <string name="content_type_comics">漫畫</string>
     <string name="content_type_manga">日本漫畫</string>
     <string name="content_type_other">其它</string>
-    <string name="sources_catalog">來源目錄</string>
     <string name="skip">略過</string>
     <string name="rating_safe">安全</string>
     <string name="lock_screen_rotation">鎖定畫面方向</string>
@@ -419,7 +418,6 @@
     <string name="vertical">垂直</string>
     <string name="category_hidden_done">主屏上看不到此分類，可通過選單 → 管理分類來訪問</string>
     <string name="state_abandoned">拖入</string>
-    <string name="disable_nsfw_summary">禁用NSFW圖源並儘可能從列表中隱藏成人漫畫</string>
     <string name="last_read">最後閱讀</string>
     <string name="content_type_hentai">紳士漫畫</string>
     <string name="grayscale">灰階</string>

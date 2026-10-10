@@ -292,7 +292,6 @@
     <string name="download_started">Download iniziato</string>
     <string name="zoom_in">Ingrandire</string>
     <string name="captcha_required_summary">%s richiede il completamento di un captcha per funzionare correttamente</string>
-    <string name="sources_catalog">Catalogo fonti</string>
     <string name="download_option_all_unread">Tutti i capitoli non letti</string>
     <string name="frequency_every_day">Ogni giorno</string>
     <string name="categories">Categorie</string>
@@ -387,7 +386,6 @@
     <string name="enhanced_colors">Modalità colori 32-bit</string>
     <string name="folder_with_images_import_description">Puoi selezionare una cartella contenente archivi o immagini. Ogni archivio (o sottocartella) sarà riconosciuto come singolo capitolo.</string>
     <string name="background">Sfondo</string>
-    <string name="disable_nsfw_summary">Disabilita fonti per adulti e nascondi manga per adulti dalla lista se possibile</string>
     <string name="downloads_removed">I download sono stati rimossi</string>
     <string name="no_access_to_file">Non hai accesso a questo file o cartella</string>
     <string name="restore_summary">Ripristina backup creato in precedenza</string>

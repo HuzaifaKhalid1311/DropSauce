@@ -56,4 +56,12 @@
 		<item quantity="one">%1$d more title to review</item>
 		<item quantity="other">%1$d more titles to review</item>
 	</plurals>
+	<plurals name="manga_updated">
+		<item quantity="one">%1$d manga updated</item>
+		<item quantity="other">%1$d manga updated</item>
+	</plurals>
+	<plurals name="items_per_row">
+		<item quantity="one">%d per row</item>
+		<item quantity="other">%d per row</item>
+	</plurals>
 </resources>

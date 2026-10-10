@@ -13,7 +13,7 @@
 	<item
 		android:id="@+id/action_repo"
 		android:icon="@drawable/ic_edit"
-		android:title="@string/manage_repo"
+		android:title="@string/extension_stores"
 		app:showAsAction="ifRoom" />
 
 </menu>

@@ -188,7 +188,6 @@
     <string name="periodic_backups">அவ்வப்போது காப்புப்பிரதிகள்</string>
     <string name="frequency_every_day">தினமும்</string>
     <string name="lock_screen_rotation">பூட்டு திரை சுழற்சி</string>
-    <string name="sources_catalog">ஆதாரங்கள் பட்டியல்</string>
     <string name="state">மாநிலம்</string>
     <string name="error_search_not_supported">இந்த மங்கா மூலத்தால் தேடலை ஆதரிக்கவில்லை</string>
     <string name="genres_search_hint">வகை பெயரைத் தட்டச்சு செய்யத் தொடங்குங்கள்</string>
@@ -465,7 +464,6 @@
     <string name="content_type_comics">காமிக்ச்</string>
     <string name="no_manga_sources_found">உங்கள் வினவலால் கிடைக்கக்கூடிய மங்கா ஆதாரங்கள் எதுவும் இல்லை</string>
     <string name="manual">கையேடு</string>
-    <string name="disable_nsfw_summary">NSFW ஆதாரங்களை முடக்கி, முடிந்தால் வயதுவந்த மங்காவை பட்டியலிலிருந்து மறைக்கவும்</string>
     <string name="state_paused">இடைநிறுத்தப்பட்டது</string>
     <string name="reader_optimize">நினைவக நுகர்வு குறைக்க (பீட்டா)</string>
     <string name="reader_optimize_summary">குறைந்த நினைவகத்தைப் பயன்படுத்த ஆஃப்ச்கிரீன் பக்கங்களின் தரத்தை குறைக்கவும்</string>

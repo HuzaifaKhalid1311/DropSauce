@@ -48,6 +48,7 @@ import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
 import javax.inject.Inject
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
@@ -211,18 +212,20 @@ class ExploreViewModel @Inject constructor(
 		isGrid,
 		sourcesRepository.observeHasMultiLanguageSources(),
 		settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_LANGUAGES) },
+		extensionStoreManager.packagesWithUpdates,
 	) { args ->
 		val allSources = args[0] as List<MangaSourceInfo>
 		val isExtensionsLoading = args[1] as Boolean
 		val isGrid = args[2] as Boolean
 		val hasMultiLanguageSources = args[3] as Boolean
 		val isLanguageTipEnabled = args[4] as Boolean
+		val packagesWithUpdates = args[5] as Set<String>
 		ExploreSources(
 			manga = buildSourcesPage(
-				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, false,
+				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, packagesWithUpdates, false,
 			),
 			novel = buildSourcesPage(
-				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, true,
+				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, packagesWithUpdates, true,
 			),
 		)
 	}.withErrorHandling()
@@ -233,12 +236,16 @@ class ExploreViewModel @Inject constructor(
 		isGrid: Boolean,
 		hasMultiLanguageSources: Boolean,
 		isLanguageTipEnabled: Boolean,
+		packagesWithUpdates: Set<String>,
 		isNovelShown: Boolean,
 	): List<ListModel> {
 		val result = ArrayList<ListModel>(sources.size + 2)
 		val shown = sources.filter { it.isNovelSource == isNovelShown }
 		when {
-			shown.isNotEmpty() -> shown.mapTo(result) { MangaSourceItem(it, isGrid) }
+			shown.isNotEmpty() -> shown.mapTo(result) {
+				val pkgName = (it.mangaSource as? MihonMangaSource)?.pkgName
+				MangaSourceItem(it, isGrid, hasUpdate = pkgName != null && pkgName in packagesWithUpdates)
+			}
 			// Novels can also come from extension APKs now, so the spinner belongs on both tabs —
 			// otherwise the novels tab claims nothing is installed while the scan is still running.
 			isExtensionsLoading -> result += LoadingState

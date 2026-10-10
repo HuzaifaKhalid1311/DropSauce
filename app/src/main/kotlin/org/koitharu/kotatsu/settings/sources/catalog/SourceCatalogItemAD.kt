@@ -3,13 +3,13 @@ package org.koitharu.kotatsu.settings.sources.catalog
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
 import androidx.appcompat.widget.TooltipCompat
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.shape.CornerFamily
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.parser.favicon.extensionPackageFaviconUri
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
+import org.koitharu.kotatsu.core.ui.widgets.applyConnectedActionShapes
+import org.koitharu.kotatsu.core.ui.widgets.bindContentWarning
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
@@ -98,6 +98,7 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewAdd.contentDescription = actionDescription
 		TooltipCompat.setTooltipText(binding.imageViewAdd, actionDescription)
 		binding.textViewTitle.text = item.title
+		binding.textViewContentWarning.bindContentWarning(item.contentWarning)
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
 		binding.imageViewIcon.applyExternalSourceStyle(true)
@@ -134,37 +135,6 @@ fun sourceCatalogItemExtensionAD(
 			)
 		}
 	}
-}
-
-private fun android.view.ViewGroup.applyConnectedActionShapes(outerCornerSize: Float, innerCornerSize: Float) {
-	val buttons = sequenceOf(0, 1, 2)
-		.mapNotNull { getChildAt(it) as? MaterialButton }
-		.filter { it.isVisible }
-		.toList()
-	buttons.forEachIndexed { index, button ->
-		button.applyConnectedActionShape(
-			isFirst = index == 0,
-			isLast = index == buttons.lastIndex,
-			outerCornerSize = outerCornerSize,
-			innerCornerSize = innerCornerSize,
-		)
-	}
-}
-
-private fun MaterialButton.applyConnectedActionShape(
-	isFirst: Boolean,
-	isLast: Boolean,
-	outerCornerSize: Float,
-	innerCornerSize: Float,
-) {
-	val leftCornerSize = if (isFirst) outerCornerSize else innerCornerSize
-	val rightCornerSize = if (isLast) outerCornerSize else innerCornerSize
-	shapeAppearanceModel = shapeAppearanceModel.toBuilder()
-		.setTopLeftCorner(CornerFamily.ROUNDED, leftCornerSize)
-		.setBottomLeftCorner(CornerFamily.ROUNDED, leftCornerSize)
-		.setTopRightCorner(CornerFamily.ROUNDED, rightCornerSize)
-		.setBottomRightCorner(CornerFamily.ROUNDED, rightCornerSize)
-		.build()
 }
 
 fun sourceCatalogItemHintAD() = adapterDelegateViewBinding<SourceCatalogItem.Hint, ListModel, ItemEmptyCardBinding>(

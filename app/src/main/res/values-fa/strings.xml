@@ -415,10 +415,8 @@
     <string name="content_type_hentai">هنتای</string>
     <string name="content_type_comics">کامیک بوک</string>
     <string name="content_type_other">دیگر</string>
-    <string name="sources_catalog">کاتالوگ منابع</string>
     <string name="no_manga_sources_found">هیچ منبع فعال بر اساس جستجوی شما یافت نشد</string>
     <string name="manual">دستی</string>
-    <string name="disable_nsfw_summary">در صورت امکان مانگای بزرگسالان و منابع NSFW را غیر فعال کنید</string>
     <string name="state_paused">متوقف شده</string>
     <string name="reader_optimize">کاهش مصرف حافظه (آزمایشی)</string>
     <string name="reader_optimize_summary">کاهش کیفیت صفحات خارج از صفحه برای استفاده کمتر از حافظه</string>

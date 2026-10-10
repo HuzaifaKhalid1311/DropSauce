@@ -9,6 +9,7 @@ import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
 import org.koitharu.kotatsu.core.ui.widgets.SafeCarouselLayoutManager
+import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.carousel.MultiBrowseCarouselStrategy
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
@@ -19,6 +20,7 @@ import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
+import org.koitharu.kotatsu.core.ui.widgets.bindContentWarning
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.setTooltipCompat
 import org.koitharu.kotatsu.databinding.ItemExploreButtonsBinding
@@ -31,10 +33,13 @@ import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
+import org.koitharu.kotatsu.list.ui.adapter.bindBadge
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
+import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.Manga
 import kotlin.math.roundToInt
+import org.koitharu.kotatsu.core.ui.widgets.applyConnectedActionShapes
 
 fun exploreButtonsAD(
 	clickListener: View.OnClickListener,
@@ -133,6 +138,7 @@ private fun ItemMangaCarouselBinding.clipCoverToMask() {
 
 fun exploreSourceListItemAD(
 	listener: OnListItemClickListener<MangaSourceItem>,
+	actionListener: ExploreListEventListener,
 ) = adapterDelegateViewBinding<MangaSourceItem, ListModel, ItemExploreSourceListBinding>(
 	{ layoutInflater, parent ->
 		ItemExploreSourceListBinding.inflate(
@@ -145,12 +151,26 @@ fun exploreSourceListItemAD(
 ) {
 
 	AdapterDelegateClickListenerAdapter(this, listener).attach(itemView)
+	binding.buttonWebsite.setOnClickListener { actionListener.onSourceWebsiteClick(item) }
+	binding.buttonSettings.setOnClickListener { actionListener.onSourceSettingsClick(item) }
+	val outerCornerSize = context.resources.getDimensionPixelSize(R.dimen.extension_action_button_size) / 2f
+	val innerCornerSize = 8f * context.resources.displayMetrics.density
 	val iconPinned = ContextCompat.getDrawable(context, R.drawable.ic_pin_small)
+	var updateBadge: BadgeDrawable? = null
 
 	bind {
+		binding.textViewContentWarning.bindContentWarning(
+			(item.source.mangaSource as? MihonMangaSource)?.contentWarning,
+		)
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.textViewSubtitle.text = item.source.getSummary(context)
+		updateBadge = binding.imageViewIcon.bindBadge(updateBadge, if (item.hasUpdate) "" else null)
+		// Re-applied after layout too, like the Manage extensions rows: the group restyles its children
+		binding.buttonGroupActions.applyConnectedActionShapes(outerCornerSize, innerCornerSize)
+		binding.buttonGroupActions.post {
+			binding.buttonGroupActions.applyConnectedActionShapes(outerCornerSize, innerCornerSize)
+		}
 		binding.imageViewIcon.applyExternalSourceStyle(item.source.mangaSource.isExternalSource())
 		val inset = sourceIconInsetPx(
 			binding.imageViewIcon.layoutParams.width,

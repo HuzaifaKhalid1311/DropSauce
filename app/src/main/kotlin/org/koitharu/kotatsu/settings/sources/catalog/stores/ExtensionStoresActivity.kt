@@ -41,7 +41,7 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityExtensionStoresBinding.inflate(layoutInflater))
-		title = getString(R.string.manage_stores)
+		title = getString(R.string.extension_stores)
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		adapter = ExtensionStoresAdapter(this)
 		viewBinding.recyclerView.roundTopCorners(

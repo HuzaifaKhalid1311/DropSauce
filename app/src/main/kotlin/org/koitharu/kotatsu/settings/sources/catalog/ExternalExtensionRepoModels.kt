@@ -2,10 +2,12 @@ package org.koitharu.kotatsu.settings.sources.catalog
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNames
 import kotlinx.serialization.protobuf.ProtoNumber
+import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLangCode
 import org.koitharu.kotatsu.mihon.model.ExternalRepoInfo
 import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
@@ -19,7 +21,8 @@ data class ExternalExtensionRepoEntry(
 	@SerialName("lang") val lang: String? = null,
 	@SerialName("code") val versionCode: Long,
 	@SerialName("version") val versionName: String,
-	@SerialName("nsfw") val isNsfw: Int = 0,
+	/** Legacy `index.min.json` flag. It is only 0/1, so these stores can't tell Mixed apart. */
+	@SerialName("nsfw") val nsfw: Int = 0,
 	/** The catalogue sources this extension provides — lets us map a `MIHON_<id>` library entry
 	 *  back to its installable package + display name regardless of where the entry came from. */
 	@SerialName("sources") val sources: List<ExternalExtensionRepoSource> = emptyList(),
@@ -27,7 +30,13 @@ data class ExternalExtensionRepoEntry(
 	@SerialName("iconUrl") val iconUrl: String? = null,
 	/** Set by novel-extension stores (Tsundoku's index). Manga repos omit it. */
 	@SerialName("isNovel") val isNovel: Boolean = false,
-)
+	/** Set when mapping a newer store, which knows Mixed; legacy indexes leave it null and fall back to [nsfw]. */
+	@Transient val storeContentWarning: ContentWarning? = null,
+) {
+
+	val contentWarning: ContentWarning
+		get() = storeContentWarning ?: if (nsfw == 1) ContentWarning.NSFW else ContentWarning.SAFE
+}
 
 /**
  * An entry in an LNReader plugin index — a plain JSON array of these. It is told apart from a legacy
@@ -174,8 +183,11 @@ internal fun NetworkExtensionStore.Extension.toRepoEntry(): ExternalExtensionRep
 		},
 		versionCode = versionCode,
 		versionName = versionName,
-		// contentWarning replaced the old nsfw bool; MIXED/NSFW map to the existing nsfw flag.
-		isNsfw = if (contentWarning >= NetworkExtensionStore.ContentWarning.MIXED) 1 else 0,
+		storeContentWarning = when (contentWarning) {
+			NetworkExtensionStore.ContentWarning.MIXED -> ContentWarning.MIXED
+			NetworkExtensionStore.ContentWarning.NSFW -> ContentWarning.NSFW
+			else -> ContentWarning.SAFE
+		},
 		sources = sources.map { ExternalExtensionRepoSource(id = it.id.toString(), name = it.name, lang = it.language) },
 		iconUrl = resources.iconUrl.ifBlank { null },
 		isNovel = isNovel,

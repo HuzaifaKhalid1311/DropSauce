@@ -405,13 +405,11 @@
     <string name="last_successful_backup">Останнє успішне резервне копіювання: %s</string>
     <string name="backups_output_directory">Вихідний каталог резервних копій</string>
     <string name="lock_screen_rotation">Блокування повороту екрану</string>
-    <string name="sources_catalog">Каталог джерел</string>
     <string name="content_type_manga">Манґа</string>
     <string name="content_type_hentai">Хентай</string>
     <string name="content_type_comics">Комікси</string>
     <string name="no_manga_sources_found">За вашим запитом не знайдено доступних джерел манґи</string>
     <string name="manual">Вручну</string>
-    <string name="disable_nsfw_summary">Вимкніть джерела NSFW і приховайте манґу для дорослих зі списку, якщо можливо</string>
     <string name="content_type_other">Інший</string>
     <string name="state_paused">Призупинено</string>
     <string name="error_multiple_states_not_supported">Фільтрування за кількома станами не підтримується цим джерелом манґи</string>

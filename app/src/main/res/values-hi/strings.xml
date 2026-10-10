@@ -330,10 +330,8 @@
     <string name="content_type_hentai">हेंताई</string>
     <string name="content_type_comics">कॉमिक्स</string>
     <string name="content_type_other">अन्य</string>
-    <string name="sources_catalog">स्रोत कैटलॉग</string>
     <string name="no_manga_sources_found">आपकी क्वेरी से कोई उपलब्ध मंगा स्रोत नहीं मिला</string>
     <string name="manual">हस्तचालित</string>
-    <string name="disable_nsfw_summary">यदि संभव हो तो NSFW स्रोतों को अक्षम करें और वयस्क मंगा को सूची से छिपाएं</string>
     <string name="state_paused">विरामित</string>
     <string name="reader_optimize">मेमोरी खपत कम करें (बीटा)</string>
     <string name="state">अवस्था</string>

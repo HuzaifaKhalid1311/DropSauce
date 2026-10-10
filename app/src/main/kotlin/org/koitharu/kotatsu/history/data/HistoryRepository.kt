@@ -2,9 +2,15 @@ package org.koitharu.kotatsu.history.data
 
 import androidx.room.withTransaction
 import dagger.Reusable
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.db.entity.toManga
@@ -37,6 +43,9 @@ import org.koitharu.kotatsu.tracker.domain.CheckNewChaptersUseCase
 import kotlin.math.ceil
 import javax.inject.Inject
 import javax.inject.Provider
+
+/** Process-wide: the repository is @Reusable, so instances aren't shared. */
+private val writeMutex = Mutex()
 
 @Reusable
 class HistoryRepository @Inject constructor(
@@ -112,15 +121,37 @@ class HistoryRepository @Inject constructor(
 		}
 	}
 
-	suspend fun addOrUpdate(manga: Manga, chapterId: Long, page: Int, scroll: Int, percent: Float, force: Boolean) {
+	/**
+	 * @param notify run the new-chapters check and the scrobblers afterwards. Both only look at the
+	 * chapter, so the reader's in-chapter autosaves skip them instead of hitting trackers every few seconds.
+	 */
+	suspend fun addOrUpdate(
+		manga: Manga,
+		chapterId: Long,
+		page: Int,
+		scroll: Int,
+		percent: Float,
+		force: Boolean,
+		notify: Boolean = true,
+	) {
 		if (!force && shouldSkip(manga)) {
 			return
 		}
 		assert(manga.chapters != null)
-		db.withTransaction {
-			addOrUpdateLocked(manga, chapterId, page, scroll, percent)
+		// One write at a time, in the order they were asked for: a reader autosave landing after the
+		// pause save that replaced it would roll the position back. Trackers run outside the lock.
+		writeMutex.withLock {
+			// cancelled while waiting = superseded by a newer save of the same position
+			currentCoroutineContext().ensureActive()
+			withContext(NonCancellable) {
+				db.withTransaction {
+					addOrUpdateLocked(manga, chapterId, page, scroll, percent)
+				}
+			}
 		}
-		onHistoryChanged(manga, chapterId, updateScrobblers = true)
+		if (notify) {
+			onHistoryChanged(manga, chapterId, updateScrobblers = true)
+		}
 	}
 
 	suspend fun advanceFromTracking(

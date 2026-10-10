@@ -72,14 +72,14 @@ class MihonExtensionManager @Inject constructor(
 		untrustedPackageNameOf = { (it as? MihonLoadResult.Untrusted)?.pkgName },
 		successSources = { it.sources },
 		successPackageName = { it.pkgName },
-		successIsNsfw = { it.isNsfw },
+		successContentWarning = { it.contentWarning },
 		successCatalogueSources = { it.catalogueSources },
 		sourceId = { it.id },
 		asCatalogueSource = { it as? CatalogueSource },
 		catalogueSourceName = { it.name },
 		catalogueSourceLang = { it.lang },
-		buildWrappedSource = { catalogueSource, pkgName, isNsfw, hasLanguageSuffix ->
-			MihonMangaSource(catalogueSource, pkgName, isNsfw, hasLanguageSuffix)
+		buildWrappedSource = { catalogueSource, pkgName, contentWarning, hasLanguageSuffix ->
+			MihonMangaSource(catalogueSource, pkgName, contentWarning, hasLanguageSuffix)
 		},
 		sourceNamePrefix = "MIHON_",
 		errorPackageName = { it.pkgName },

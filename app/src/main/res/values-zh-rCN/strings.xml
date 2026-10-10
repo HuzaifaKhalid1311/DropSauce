@@ -398,7 +398,6 @@
     <string name="content_type_comics">美漫</string>
     <string name="content_type_other">其他</string>
     <string name="content_type_manga">日漫</string>
-    <string name="sources_catalog">图源目录</string>
     <string name="content_type_hentai">成人</string>
     <string name="no_manga_sources_found">未搜索到可用图源</string>
     <string name="downloads_settings_info">若出现服务器阻塞的情况，可在图源设置中为每个图源单独启用限速下载功能</string>
@@ -419,7 +418,6 @@
     <string name="online_variant">在线版本</string>
     <string name="state_abandoned">已腰斩</string>
     <string name="manual">手动</string>
-    <string name="disable_nsfw_summary">关闭含有成人内容的图源并尽可能从列表中隐藏成人漫画</string>
     <string name="error_filter_locale_genre_not_supported">此图源不支持同时按类别和区域筛选</string>
     <string name="error_filter_states_genre_not_supported">此图源不支持同时按类别和状态筛选</string>
     <string name="genres_search_hint">请输入类别名称</string>

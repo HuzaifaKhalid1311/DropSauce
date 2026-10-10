@@ -370,7 +370,6 @@
     <string name="frequency_twice_per_month">Hai lần mỗi tháng</string>
     <string name="categories">Thể loại</string>
     <string name="lock_screen_rotation">Khoá hướng màn hình</string>
-    <string name="disable_nsfw_summary">Tắt các nguồn NSFW và ẩn các manga người lớn từ danh sách (nếu khả thi)</string>
     <string name="reader_optimize">Giảm tiêu tốn bộ nhớ</string>
     <string name="reader_optimize_summary">Giảm chất lượng các trang chưa hiển thị để dùng ít bộ nhớ hơn</string>
     <string name="genres_search_hint">Nhập tên thể loại</string>
@@ -433,7 +432,6 @@
     <string name="periodic_backups_enable">Bật sao lưu định kì</string>
     <string name="last_successful_backup">Lần sao lưu thành công gần nhất: %s</string>
     <string name="content_type_other">Khác</string>
-    <string name="sources_catalog">Danh mục nguồn</string>
     <string name="state_paused">Tạm dừng</string>
     <string name="error_multiple_genres_not_supported">Lọc với nhiều thể loại không được hỗ trợ trên nguồn truyện này</string>
     <string name="error_multiple_states_not_supported">Lọc với nhiều trạng thái không được hỗ trợ bởi nguồn này</string>

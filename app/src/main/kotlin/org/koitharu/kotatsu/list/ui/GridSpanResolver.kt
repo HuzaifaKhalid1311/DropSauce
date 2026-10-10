@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.R
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 class GridSpanResolver(
 	resources: Resources,
@@ -18,6 +17,7 @@ class GridSpanResolver(
 	private val gridWidth = resources.getDimension(R.dimen.preferred_grid_width)
 	private val spacing = resources.getDimension(R.dimen.grid_spacing)
 	private var cellWidth = -1f
+	private var scaleFactor = 1f
 
 	override fun onLayoutChange(
 		v: View?,
@@ -48,17 +48,19 @@ class GridSpanResolver(
 	}
 
 	fun setGridSize(scaleFactor: Float, rv: RecyclerView) {
+		this.scaleFactor = scaleFactor
 		cellWidth = (gridWidth * scaleFactor) + spacing
 		val lm = rv.layoutManager as? GridLayoutManager ?: return
-		val innerWidth = lm.width - lm.paddingEnd - lm.paddingStart
-		if (innerWidth >= cellWidth) {
-			resolveGridSpanCount(innerWidth)
+		// The full width, like onLayoutChange measures: with the inner one the two could disagree on
+		// a borderline size and flip the column count back and forth.
+		val width = lm.width
+		if (width >= cellWidth) {
+			resolveGridSpanCount(width)
 			lm.spanCount = spanCount
 		}
 	}
 
 	private fun resolveGridSpanCount(width: Int) {
-		val estimatedCount = (width / cellWidth).roundToInt()
-		spanCount = estimatedCount.coerceAtLeast(2)
+		spanCount = GridColumns.spanCount(width, cellWidth, scaleFactor)
 	}
 }

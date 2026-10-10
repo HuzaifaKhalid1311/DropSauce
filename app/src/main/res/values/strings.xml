@@ -104,6 +104,7 @@
     <string name="external_storage">External storage</string>
     <string name="app_update_available">A new version of the app is available</string>
     <string name="open_in_browser">Open WebView</string>
+    <string name="open_website">Open website</string>
     <string name="back_to_top">Back to top</string>
     <string name="notifications">Notifications</string>
     <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d of %2$d on</string>
@@ -401,8 +402,7 @@
     <string name="last_2_hours">Last 2 hours</string>
     <string name="history_cleared">History cleared</string>
     <string name="manage">Manage</string>
-    <string name="manage_repo">Manage stores</string>
-    <string name="manage_stores">Manage stores</string>
+    <string name="extension_stores">Extension stores</string>
     <string name="manage_stores_summary">Add, edit, remove, and refresh extension stores</string>
     <string name="add_store">Add store</string>
     <string name="edit_store">Edit store</string>
@@ -638,6 +638,8 @@
     <string name="data_not_restored">Data was not restored</string>
     <string name="data_not_restored_text">Make sure you have selected the correct backup file</string>
     <string name="manage_categories">Manage categories</string>
+    <string name="default_category_sort">Default sorting order</string>
+    <string name="default_category_sort_summary">Picking an order applies it to all your existing categories, replacing the sort each one has now, and to every new category you create. The \"All favorites\" tab keeps its own sort.</string>
     <string name="suggestions_wifi_only_summary">Do not update suggestions using metered network connections</string>
     <string name="tracker_wifi_only_summary">Do not check for new chapters using metered network connections</string>
     <string name="search_hint">Enter title, genre or source name</string>
@@ -695,8 +697,7 @@
     <string name="content_type_hentai">Hentai</string>
     <string name="content_type_comics">Comics</string>
     <string name="content_type_other">Other</string>
-    <string name="sources_catalog">Sources catalog</string>
-    <string name="extension_management">Extension store</string>
+    <string name="extension_settings">Extension settings</string>
     <string name="extensions_repo_required">Store index url required</string>
     <string name="no_repo_detected">No store index url detected</string>
     <string name="click_edit_icon_add_extension_repo">Click on the edit icon to add a store index url</string>
@@ -709,7 +710,6 @@
     <string name="available_to_install">Available to install</string>
     <string name="no_manga_sources_found">No available manga extensions found by your query</string>
     <string name="manual">Manual</string>
-    <string name="disable_nsfw_summary">Disable NSFW sources and hide adult manga from list if possible</string>
     <string name="state_paused">Paused</string>
     <string name="reader_upscale">AI upscaling</string>
     <string name="reader_upscale_summary">Sharpen low-resolution pages on the GPU using an Anime4K-based shader. Android 13+</string>
@@ -984,6 +984,11 @@
     <string name="show_quick_filters">Show quick filters</string>
     <string name="show_quick_filters_summary">Provides the ability to filter manga lists by certain parameters</string>
     <string name="sfw">SFW</string>
+    <string name="content_warning_mixed">Mixed</string>
+    <string name="show_extensions">Show extensions</string>
+    <string name="content_filter_all">Show all</string>
+    <string name="content_filter_mixed">SFW &amp; Mixed</string>
+    <string name="content_filter_sfw">SFW only</string>
     <string name="skip_all">Skip all</string>
     <string name="stuck">Stuck</string>
     <string name="not_in_favorites">Not in favorites</string>

@@ -395,7 +395,6 @@
     <string name="enhanced_colors">mode warna 32-bit</string>
     <string name="last_successful_backup">Cadangan sukses terakhir: %s</string>
     <string name="backups_output_directory">Direktori keluaran cadangan</string>
-    <string name="sources_catalog">Sumber katalog</string>
     <string name="rating_safe">Aman</string>
     <string name="content_type_hentai">Dewasa</string>
     <string name="error_filter_states_genre_not_supported">Filter berdasarkan genre dan status tidak didukung untuk sumber ini</string>
@@ -415,7 +414,6 @@
     <string name="error_search_not_supported">Pencarian tidak didukung untuk sumber manga ini</string>
     <string name="state_upcoming">Mendatang</string>
     <string name="color_correction_apply_text">Pengaturan ini dapat diterapkan secara menyeluruh atau hanya pada manga saat ini. Jika diterapkan secara menyeluruh, pengaturan pada manga tidak akan ditimpa.</string>
-    <string name="disable_nsfw_summary">Nonaktifkan sumber TAUSB dan sembunyikan manga dewasa dari daftar jika memungkinkan</string>
     <string name="content_rating">Peringkat konten</string>
     <string name="backup_date_">Tanggal dicadangkan %s</string>
     <string name="state">Status</string>

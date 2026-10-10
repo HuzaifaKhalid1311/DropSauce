@@ -6,7 +6,7 @@
 		android:id="@+id/action_manage"
 		android:icon="@drawable/ic_list_group"
 		android:orderInCategory="48"
-		android:title="@string/favourites_categories"
+		android:title="@string/manage_categories"
 		android:titleCondensed="@string/categories" />
 
 </menu>

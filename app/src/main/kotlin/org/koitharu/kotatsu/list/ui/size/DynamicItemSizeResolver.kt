@@ -26,7 +26,9 @@ class DynamicItemSizeResolver(
 		get() = settings.gridSize / 100f
 
 	override val cellWidth: Int
-		get() = (gridWidth * scaleFactor).roundToInt()
+		// Fixed-width rows (search) stay within the old 150% ceiling: the grid's single-column sizes
+		// would make a horizontal row show barely one card.
+		get() = (gridWidth * if (adjustWidth) scaleFactor.coerceAtMost(MAX_ROW_SCALE) else scaleFactor).roundToInt()
 
 	override fun attachToView(
 		view: View,
@@ -106,5 +108,10 @@ class DynamicItemSizeResolver(
 				requestLayout()
 			}
 		}
+	}
+
+	private companion object {
+
+		const val MAX_ROW_SCALE = 1.5f
 	}
 }

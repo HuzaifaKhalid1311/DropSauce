@@ -394,7 +394,6 @@
     <string name="keep_screen_on_summary">Não desligar a tela enquanto estiver lendo a obra</string>
     <string name="last_successful_backup">Último backup bem-sucedido: %s</string>
     <string name="backups_output_directory">Local de saída de backups</string>
-    <string name="sources_catalog">Catálogo de fontes</string>
     <string name="content_type_manga">Obra</string>
     <string name="error_multiple_states_not_supported">A filtragem por múltiplas situações não é suportada por esta fonte</string>
     <string name="content_type_comics">Quadrinhos</string>
@@ -404,7 +403,6 @@
     <string name="lock_screen_rotation">Travar rotação de tela</string>
     <string name="error_search_not_supported">Pesquisar não é suportado por esta fonte</string>
     <string name="reader_optimize_summary">Reduzir a qualidade das páginas fora da tela para usar menos memória</string>
-    <string name="disable_nsfw_summary">Desative as fontes NSFW e oculte os mangás adultos da lista, se possível</string>
     <string name="state">Situação</string>
     <string name="state_paused">Pausada</string>
     <string name="content_type_other">Outros</string>
