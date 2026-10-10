@@ -16,10 +16,11 @@ class ChapterPages private constructor(private val pages: ArrayDeque<ReaderPage>
 
 	@Synchronized
 	fun removeFirst() {
+		if (pages.isEmpty()) return
 		val chapterId = pages.first().chapterId
 		indices.remove(chapterId)
 		var delta = 0
-		while (pages.first().chapterId == chapterId) {
+		while (pages.isNotEmpty() && pages.first().chapterId == chapterId) {
 			pages.removeFirst()
 			delta--
 		}
@@ -28,9 +29,10 @@ class ChapterPages private constructor(private val pages: ArrayDeque<ReaderPage>
 
 	@Synchronized
 	fun removeLast() {
+		if (pages.isEmpty()) return
 		val chapterId = pages.last().chapterId
 		indices.remove(chapterId)
-		while (pages.last().chapterId == chapterId) {
+		while (pages.isNotEmpty() && pages.last().chapterId == chapterId) {
 			pages.removeLast()
 		}
 	}

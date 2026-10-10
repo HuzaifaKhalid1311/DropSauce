@@ -215,26 +215,28 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 		}
 
 		override fun onPull(deltaDistance: Float, displacement: Float) {
+			val threshold = maxOf(pullThreshold, 0.001f)
 			if (direction == DIRECTION_TOP) {
 				pullProgressTop = (pullProgressTop + deltaDistance).coerceAtLeast(0f)
-				pullListener.onPullProgressTop(pullProgressTop / pullThreshold)
+				pullListener.onPullProgressTop(pullProgressTop / threshold)
 			} else if (direction == DIRECTION_BOTTOM) {
 				pullProgressBottom = (pullProgressBottom + deltaDistance).coerceAtLeast(0f)
-				pullListener.onPullProgressBottom(pullProgressBottom / pullThreshold)
+				pullListener.onPullProgressBottom(pullProgressBottom / threshold)
 			}
 		}
 
 		override fun onRelease() {
 			var triggered = false
+			val threshold = maxOf(pullThreshold, 0.001f)
 			if (direction == DIRECTION_TOP) {
-				if (pullProgressTop >= pullThreshold) {
+				if (pullProgressTop >= threshold) {
 					pullListener.onPullTriggeredTop()
 					triggered = true
 				}
 				pullProgressTop = 0f
 				pullListener.onPullProgressTop(0f)
 			} else if (direction == DIRECTION_BOTTOM) {
-				if (pullProgressBottom >= pullThreshold) {
+				if (pullProgressBottom >= threshold) {
 					pullListener.onPullTriggeredBottom()
 					triggered = true
 				}

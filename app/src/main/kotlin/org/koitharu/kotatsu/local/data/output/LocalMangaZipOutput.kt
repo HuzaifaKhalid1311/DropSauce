@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.local.data.MangaIndex
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import java.io.File
+import java.io.IOException
 import java.util.zip.ZipFile
 
 class LocalMangaZipOutput(
@@ -153,9 +154,13 @@ class LocalMangaZipOutput(
 				val subject = LocalMangaZipOutput(file, manga)
 				try {
 					ZipFile(subject.rootFile).use { zip ->
-						val index = MangaIndex(zip.readText(zip.getEntry(ENTRY_NAME_INDEX)))
+						val indexEntry = zip.getEntry(ENTRY_NAME_INDEX)
+							?: throw IOException("Archive does not contain $ENTRY_NAME_INDEX")
+						val index = MangaIndex(zip.readText(indexEntry))
 						idsToRemove.forEach { id -> index.removeChapter(id) }
-						val patterns = requireNotNull(index.getMangaInfo()?.chapters).map {
+						val chapters = index.getMangaInfo()?.chapters
+							?: throw IOException("No chapters found in index")
+						val patterns = chapters.map {
 							index.getChapterNamesPattern(it)
 						}
 						val coverEntryName = index.getCoverEntry()

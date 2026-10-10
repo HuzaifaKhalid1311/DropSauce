@@ -22,12 +22,12 @@ class MarkAsReadUseCase @Inject constructor(
 		} else {
 			manga
 		}
-		val lastChapter = checkNotNull(details.chapters).last()
+		val lastChapter = details.chapters?.lastOrNull() ?: return
 		val pages = repo.getPages(details, lastChapter)
 		historyRepository.addOrUpdate(
 			manga = details,
 			chapterId = lastChapter.id,
-			page = pages.lastIndex,
+			page = maxOf(0, pages.lastIndex),
 			scroll = 0,
 			percent = 1f,
 			force = true,

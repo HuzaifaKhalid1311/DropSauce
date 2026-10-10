@@ -16,6 +16,8 @@ import okhttp3.CacheControl
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
+import okio.ForwardingSource
+import okio.buffer
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.MissingMangaSource
 import org.koitharu.kotatsu.core.model.unwrap
@@ -75,8 +77,17 @@ class MihonImageFetcher(
 				)
 			}
 			// No disk cache available — stream the response directly to the decoder.
+			val forwardingSource = object : ForwardingSource(response.body.source()) {
+				override fun close() {
+					try {
+						super.close()
+					} finally {
+						response.closeQuietly()
+					}
+				}
+			}.buffer()
 			return SourceFetchResult(
-				source = ImageSource(response.body.source(), options.fileSystem),
+				source = ImageSource(forwardingSource, options.fileSystem),
 				mimeType = response.body.contentType()?.toString(),
 				dataSource = DataSource.NETWORK,
 			)

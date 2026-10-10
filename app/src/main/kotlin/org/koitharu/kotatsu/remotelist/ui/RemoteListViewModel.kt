@@ -250,9 +250,12 @@ open class RemoteListViewModel @Inject constructor(
 		}
 		randomJob = launchLoadingJob(Dispatchers.Default) {
 			isRandomLoading.value = true
-			val manga = exploreRepository.findRandomManga(source, 16)
-			onOpenManga.call(manga)
-			isRandomLoading.value = false
+			try {
+				val manga = exploreRepository.findRandomManga(source, 16)
+				onOpenManga.call(manga)
+			} finally {
+				isRandomLoading.value = false
+			}
 		}
 	}
 
