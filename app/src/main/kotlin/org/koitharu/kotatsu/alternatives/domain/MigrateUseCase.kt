@@ -104,9 +104,7 @@ constructor(
 				if (oldHistory != null) {
 					val newHistory = makeNewHistory(oldDetails, newDetails, oldHistory)
 					historyDao.delete(oldDetails.id)
-					if (newHistory != null) {
-						historyDao.upsert(newHistory)
-					}
+					historyDao.upsert(newHistory)
 					newHistory
 				} else {
 					null
@@ -164,16 +162,13 @@ constructor(
 		oldManga: Manga,
 		newManga: Manga,
 		history: HistoryEntity,
-	): HistoryEntity? {
-		if (newManga.chapters.isNullOrEmpty()) {
-			return null
-		}
+	): HistoryEntity {
+		// Nothing to point the progress at: fail the migration (the transaction rolls back and the old
+		// entry stays intact) rather than migrating it with its reading history silently dropped.
+		check(!newManga.chapters.isNullOrEmpty()) { "${newManga.title} has no chapters on the new source" }
 		if (oldManga.chapters.isNullOrEmpty()) { // probably broken manga/source
 			val branch = newManga.getPreferredBranch(null)
 			val chapters = newManga.getChapters(branch).ifEmpty { newManga.chapters.orEmpty() }
-			if (chapters.isEmpty()) {
-				return null
-			}
 			val currentChapter =
 				if (history.percent in 0f..1f) {
 					chapters[(chapters.lastIndex * history.percent).toInt().coerceIn(0, chapters.lastIndex)]
@@ -194,9 +189,6 @@ constructor(
 		}
 		val branch = oldManga.getPreferredBranch(history.toMangaHistory())
 		val oldChapters = oldManga.getChapters(branch).ifEmpty { oldManga.chapters.orEmpty() }
-		if (oldChapters.isEmpty()) {
-			return null
-		}
 		var index = oldChapters.indexOfFirst { it.id == history.chapterId }
 		if (index < 0) {
 			index =
@@ -214,10 +206,7 @@ constructor(
 				newManga.getPreferredBranch(null)
 			}
 		val branchChapters = newChapters[newBranch].orEmpty().ifEmpty { newManga.chapters.orEmpty() }
-		if (branchChapters.isEmpty()) {
-			return null
-		}
-		val oldChapter = oldChapters.getOrNull(index) ?: oldChapters.first()
+		val oldChapter = oldChapters[index]
 		val newChapterId = (branchChapters.findByNumber(oldChapter.volume, oldChapter.number)
 			?: branchChapters.getOrNull(index)
 			?: branchChapters.last()).id

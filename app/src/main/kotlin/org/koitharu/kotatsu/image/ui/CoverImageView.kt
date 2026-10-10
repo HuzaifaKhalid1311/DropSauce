@@ -262,17 +262,14 @@ class CoverImageView @JvmOverloads constructor(
 					return null
 				}
 
+				// Without an aspect ratio the missing side is unknown, as in Coil's own ViewSizeResolver.
+				!view.hasAspectRatio -> return Size(width ?: Dimension.Undefined, height ?: Dimension.Undefined)
+
 				height == null -> {
-					if (!view.hasAspectRatio) {
-						return null
-					}
 					height = Dimension(width!!.px * view.aspectRationHeight / view.aspectRationWidth)
 				}
 
 				width == null -> {
-					if (!view.hasAspectRatio) {
-						return null
-					}
 					width = Dimension(height.px * view.aspectRationWidth / view.aspectRationHeight)
 				}
 			}
