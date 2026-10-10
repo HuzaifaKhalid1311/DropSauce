@@ -1,5 +1,9 @@
 package org.koitharu.kotatsu.settings.sources.catalog
 
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Response
@@ -181,17 +185,132 @@ class ExternalExtensionRepoRepositoryTest {
 		apkPath = "/example.apk",
 	)
 
+	@Test
+	fun `validation discovers index_v2 from repo_json and follows protobuf index`() {
+		val sampleProtoBytes = ProtoBuf.encodeToByteArray(
+			NetworkExtensionStore(
+				name = "Keiyoushi Test",
+				signingKey = "feed1234",
+				extensionList = NetworkExtensionStore.ExtensionList(
+					listOf(
+						NetworkExtensionStore.Extension(
+							name = "Toonily",
+							packageName = "eu.kanade.tachiyomi.extension.en.toonily",
+							versionCode = 1,
+							versionName = "1.4.0",
+						),
+					),
+				),
+			),
+		)
+
+		val client = clientReturningBytes { path ->
+			when {
+				path.endsWith("/repo.json") ->
+					"""{"meta":{"name":"Keiyoushi Test","signingKeyFingerprint":"feed1234"},"index_v2":"https://example.com/repo/index.pb"}""".toByteArray()
+				path.endsWith("/index.pb") ->
+					sampleProtoBytes
+				else -> null
+			}
+		}
+
+		val result = kotlinx.coroutines.runBlocking {
+			ExternalExtensionRepoRepository(client).validateStore("https://example.com/repo")
+		}
+
+		assertEquals("Keiyoushi Test", result.store.name)
+		assertEquals("feed1234", result.store.fingerprint)
+		assertEquals("https://example.com/repo/index.pb", result.store.indexUrl)
+		assertEquals(1, result.catalog.size)
+		assertEquals("eu.kanade.tachiyomi.extension.en.toonily", result.catalog.single().packageName)
+	}
+
+	@Test
+	fun `validation discovers index_v2 from repo_json when given index_min_json url`() {
+		val sampleProtoBytes = ProtoBuf.encodeToByteArray(
+			NetworkExtensionStore(
+				name = "Keiyoushi Test",
+				signingKey = "feed1234",
+				extensionList = NetworkExtensionStore.ExtensionList(
+					listOf(
+						NetworkExtensionStore.Extension(
+							name = "Toonily",
+							packageName = "eu.kanade.tachiyomi.extension.en.toonily",
+							versionCode = 1,
+							versionName = "1.4.0",
+						),
+					),
+				),
+			),
+		)
+
+		val client = clientReturningBytes { path ->
+			when {
+				path.endsWith("/repo.json") ->
+					"""{"meta":{"name":"Keiyoushi Test","signingKeyFingerprint":"feed1234"},"index_v2":"https://example.com/repo/index.pb"}""".toByteArray()
+				path.endsWith("/index.pb") ->
+					sampleProtoBytes
+				else ->
+					"""[{"name":"Outdated App","pkg":"tachiyomi-all.outdated","apk":"outdated.apk","code":1,"version":"0.1.0"}]""".toByteArray()
+			}
+		}
+
+		val result = kotlinx.coroutines.runBlocking {
+			ExternalExtensionRepoRepository(client).validateStore("https://example.com/repo/index.min.json")
+		}
+
+		assertEquals("https://example.com/repo/index.pb", result.store.indexUrl)
+		assertEquals("eu.kanade.tachiyomi.extension.en.toonily", result.catalog.single().packageName)
+	}
+
+	@Test
+	fun `validation decompresses gzipped protobuf response`() {
+		val rawProto = ProtoBuf.encodeToByteArray(
+			NetworkExtensionStore(
+				name = "Gzip Store",
+				signingKey = "gz123",
+				extensionList = NetworkExtensionStore.ExtensionList(
+					listOf(
+						NetworkExtensionStore.Extension(
+							name = "Toonily",
+							packageName = "eu.kanade.tachiyomi.extension.en.toonily",
+							versionCode = 1,
+							versionName = "1.4.0",
+						),
+					),
+				),
+			),
+		)
+		val gzippedBytes = ByteArrayOutputStream().also { byteStream ->
+			GZIPOutputStream(byteStream).use { it.write(rawProto) }
+		}.toByteArray()
+
+		val client = clientReturningBytes { path ->
+			if (path.endsWith("/index.pb")) gzippedBytes else null
+		}
+
+		val result = kotlinx.coroutines.runBlocking {
+			ExternalExtensionRepoRepository(client).validateStore("https://example.com/repo/index.pb")
+		}
+
+		assertEquals("Gzip Store", result.store.name)
+		assertEquals("eu.kanade.tachiyomi.extension.en.toonily", result.catalog.single().packageName)
+	}
+
 	private fun clientReturning(body: (String) -> String?): OkHttpClient =
+		clientReturningBytes { path -> body(path)?.toByteArray() }
+
+	private fun clientReturningBytes(body: (String) -> ByteArray?): OkHttpClient =
 		OkHttpClient.Builder()
 			.addInterceptor { chain ->
 				val request = chain.request()
-				val responseBody = body(request.url.encodedPath)
+				val responseBytes = body(request.url.encodedPath)
 				Response.Builder()
 					.request(request)
 					.protocol(Protocol.HTTP_1_1)
-					.code(if (responseBody == null) 404 else 200)
-					.message(if (responseBody == null) "Not Found" else "OK")
-					.body((responseBody ?: "").toResponseBody())
+					.code(if (responseBytes == null) 404 else 200)
+					.message(if (responseBytes == null) "Not Found" else "OK")
+					.body(responseBytes?.toResponseBody() ?: "".toResponseBody())
 					.build()
 			}
 			.build()

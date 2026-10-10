@@ -45,13 +45,21 @@ class ExternalExtensionRepoRepository @Inject constructor(
 	suspend fun validateStore(repoUrl: String, forceRefresh: Boolean = true): ValidatedExtensionStore {
 		val normalizedUrl = normalizeExtensionStoreUrl(repoUrl)
 		require(normalizedUrl.startsWith("https://")) { "Store index URL must use HTTPS" }
-		val catalog = getExtensions(normalizedUrl, forceRefresh)
-		val info = fetchIndexRepoInfo(normalizedUrl, forceRefresh) ?: fetchRepoInfo(normalizedUrl, forceRefresh)
+		val isLegacy = normalizedUrl.endsWith("/index.min.json", ignoreCase = true)
+		val repoJson = if (isLegacy) fetchRepoJson(normalizedUrl, forceRefresh) else null
+		// As in Mihon: a legacy repo whose repo.json names an index_v2 has moved there (Keiyoushi's
+		// index.min.json is now just an "update your app" stub). Refresh saves this url, so stores
+		// added under the old link switch over on their own, keeping their id.
+		val indexUrl = repoJson?.let(::parseIndexV2) ?: normalizedUrl
+		val catalog = getExtensions(indexUrl, forceRefresh)
+		val info = fetchIndexRepoInfo(indexUrl, forceRefresh)
+			?: (if (isLegacy) repoJson else fetchRepoJson(normalizedUrl, forceRefresh))
+				?.let { parseRepoInfo(normalizedUrl, it) }
 		return ValidatedExtensionStore(
 			store = ExtensionStoreRecord(
-				id = stableExtensionStoreId(normalizedUrl),
-				indexUrl = normalizedUrl,
-				name = info?.name ?: extensionStoreUrlLabel(normalizedUrl),
+				id = stableExtensionStoreId(indexUrl),
+				indexUrl = indexUrl,
+				name = info?.name ?: extensionStoreUrlLabel(indexUrl),
 				shortName = info?.shortName,
 				fingerprint = info?.fingerprint,
 				website = info?.website,
@@ -151,19 +159,18 @@ class ExternalExtensionRepoRepository @Inject constructor(
 		}
 
 	/**
-	 * Fetches the repo's `repo.json` for its authoritative name + signing fingerprint. Returns null
-	 * if the repo doesn't publish one (or it's unreachable) — callers then fall back to URL-derived
-	 * naming and install-time provenance.
+	 * Fetches the repo's `repo.json` (authoritative name + signing fingerprint, and the `index_v2`
+	 * pointer of a migrated repo). Returns null if the repo doesn't publish one (or it's unreachable) —
+	 * callers then fall back to URL-derived naming and install-time provenance.
 	 */
-	suspend fun fetchRepoInfo(
-		repoUrl: String,
-		forceRefresh: Boolean = false,
-	): ExternalRepoInfo? = withContext(Dispatchers.IO) {
-		runCatching {
-			val bytes = fetchBytes("${getBaseUrl(repoUrl)}/repo.json", forceRefresh) ?: return@runCatching null
-			parseRepoInfo(repoUrl, bytes.decodeToString())
-		}.getOrNull()
+	private suspend fun fetchRepoJson(repoUrl: String, forceRefresh: Boolean): String? = withContext(Dispatchers.IO) {
+		runCatching { fetchBytes("${getBaseUrl(repoUrl)}/repo.json", forceRefresh)?.decodeToString() }.getOrNull()
 	}
+
+	private fun parseIndexV2(repoJson: String): String? =
+		runCatching { json.decodeFromString<ExternalRepoJson>(repoJson).indexV2 }.getOrNull()
+			?.let(::normalizeExtensionStoreUrl)
+			?.takeIf { it.startsWith("https://") }
 
 	private suspend fun fetchIndexRepoInfo(
 		repoUrl: String,
