@@ -15,7 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.list.ui.sort.SortRow
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
+import androidx.compose.material3.SheetValue
 
 /**
  * Content of [FavouritesCategoryEditActivity]. The activity still owns the toolbar and its Save
@@ -157,7 +158,7 @@ private fun SortOrderSheet(
 ) {
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
-		sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+		sheetState = rememberBottomSheetState(SheetValue.Hidden, setOf(SheetValue.Hidden, SheetValue.Expanded)),
 		shape = RoundedCornerShape(topStart = SHEET_CORNER, topEnd = SHEET_CORNER),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 	) {

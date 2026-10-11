@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.sync.ui
 
+import android.app.PendingIntent
 import android.content.Intent
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,7 +12,6 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
-import org.koitharu.kotatsu.sync.data.GoogleDriveAuth
 import org.koitharu.kotatsu.sync.data.SyncSettings
 import org.koitharu.kotatsu.sync.data.model.SyncContent
 import org.koitharu.kotatsu.sync.domain.GoogleDriveSyncRepository
@@ -34,7 +34,7 @@ data class SyncUiState(
 )
 
 sealed interface SyncEvent {
-	data class LaunchSignIn(val intent: Intent) : SyncEvent
+	data class LaunchSignIn(val consent: PendingIntent) : SyncEvent
 	data class Message(val resId: Int) : SyncEvent
 	data class Error(val message: String?) : SyncEvent
 }
@@ -43,7 +43,6 @@ sealed interface SyncEvent {
 class SyncSettingsViewModel @Inject constructor(
 	private val syncSettings: SyncSettings,
 	private val repository: GoogleDriveSyncRepository,
-	private val auth: GoogleDriveAuth,
 	private val scheduler: SyncWorker.Scheduler,
 ) : BaseViewModel() {
 
@@ -62,22 +61,33 @@ class SyncSettingsViewModel @Inject constructor(
 	}
 
 	fun signIn() {
-		events.call(SyncEvent.LaunchSignIn(auth.signInIntent))
-	}
-
-	fun onSignInResult(data: Intent?) {
 		launchLoadingJob(Dispatchers.Default) {
-			val account = try {
-				auth.accountFromIntent(data)
+			val consent = try {
+				repository.beginSignIn()
 			} catch (e: Exception) {
 				events.call(SyncEvent.Error(e.message ?: e.javaClass.simpleName))
 				return@launchLoadingJob
 			}
-			repository.onSignedIn(account.email, account.displayName, account.photoUrl?.toString())
-			refresh()
-			scheduler.schedule()
-			runSync() // pull existing data right away, surfacing any error
+			if (consent != null) events.call(SyncEvent.LaunchSignIn(consent)) else onSignedIn()
 		}
+	}
+
+	fun onSignInResult(data: Intent?) {
+		launchLoadingJob(Dispatchers.Default) {
+			try {
+				repository.finishSignIn(data)
+			} catch (e: Exception) {
+				events.call(SyncEvent.Error(e.message ?: e.javaClass.simpleName))
+				return@launchLoadingJob
+			}
+			onSignedIn()
+		}
+	}
+
+	private suspend fun onSignedIn() {
+		refresh()
+		scheduler.schedule()
+		runSync() // pull existing data right away, surfacing any error
 	}
 
 	/** Runs a sync in the foreground and reports the outcome to the user. */

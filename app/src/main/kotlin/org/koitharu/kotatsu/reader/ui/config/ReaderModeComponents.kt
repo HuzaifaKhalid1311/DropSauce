@@ -43,6 +43,7 @@ import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.ui.sheet.SheetSegment
 import org.koitharu.kotatsu.core.ui.sheet.SheetSegmentedSelector
 import kotlin.math.roundToInt
+import org.koitharu.kotatsu.core.ui.util.syncedSliderState
 
 @Composable
 internal fun ReadModeSection(
@@ -199,9 +200,8 @@ internal fun DoublePageConfigSection(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Spacer(modifier = Modifier.width(38.dp))
                         Slider(
-                            value = sensitivity,
+                            state = syncedSliderState(sensitivity, 0f..100f),
                             onValueChange = onSensitivityChange,
-                            valueRange = 0f..100f,
                             enabled = isModeStandardOrReversed && isDoubleOnLandscape,
                             modifier = Modifier.weight(1f),
                         )

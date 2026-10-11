@@ -32,6 +32,9 @@ class HistoryWidget : AppWidgetProvider() {
 		for (widgetId in appWidgetIds) {
 			val isGrid = HistoryWidgetPrefs.isGrid(context, widgetId)
 			appWidgetManager.updateAppWidget(widgetId, buildViews(context, widgetId, isGrid))
+			// The items come from a RemoteViewsService; the RemoteCollectionItems replacement would
+			// need every cover loaded up front, so the service-based API stays.
+			@Suppress("DEPRECATION")
 			appWidgetManager.notifyAppWidgetViewDataChanged(widgetId, collectionId(isGrid))
 		}
 	}
@@ -93,6 +96,7 @@ class HistoryWidget : AppWidgetProvider() {
 			// instance (and thus one stale item set) between several pinned widgets; the style is
 			// part of it so switching styles rebuilds the items instead of reusing the old ones.
 			.setData(Uri.parse("kotatsu://widget/history/$widgetId/${if (isGrid) "grid" else "list"}"))
+		@Suppress("DEPRECATION") // see onUpdate
 		views.setRemoteAdapter(collectionId, adapterIntent)
 		views.setEmptyView(collectionId, R.id.widget_empty)
 		views.setPendingIntentTemplate(collectionId, clickTemplate(context, widgetId))

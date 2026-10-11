@@ -1,7 +1,10 @@
 package org.koitharu.kotatsu.sync.domain
 
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import com.google.android.gms.auth.api.identity.AuthorizationResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -66,11 +69,26 @@ class GoogleDriveSyncRepository @Inject constructor(
 	val isSyncing = MutableStateFlow(false)
 	private val syncMutex = Mutex()
 
-	/** Records the signed-in account. Email/name/photo come straight from GoogleSignIn — no network call. */
-	fun onSignedIn(email: String?, displayName: String?, photoUrl: String?) {
-		syncSettings.accountEmail = email?.ifBlank { null } ?: "Google Drive"
-		syncSettings.accountName = displayName
-		syncSettings.accountPhotoUrl = photoUrl
+	/**
+	 * Starts connecting Drive: returns the account chooser / consent screen to launch (then pass its
+	 * result to [finishSignIn]), or null when access was already granted and the account is recorded.
+	 */
+	suspend fun beginSignIn(): PendingIntent? {
+		val result = auth.authorize()
+		if (result.hasResolution()) return result.pendingIntent
+		onAuthorized(result)
+		return null
+	}
+
+	/** Completes [beginSignIn] with the consent screen's result; throws if access wasn't granted. */
+	suspend fun finishSignIn(data: Intent?) = onAuthorized(auth.resultFromIntent(data))
+
+	private suspend fun onAuthorized(result: AuthorizationResult) {
+		val token = result.accessToken ?: throw SyncSignInRequiredException()
+		val user = api.userInfo(token)
+		syncSettings.accountEmail = user.email?.ifBlank { null } ?: "Google Drive"
+		syncSettings.accountName = user.name
+		syncSettings.accountPhotoUrl = user.picture
 		Log.i(TAG, "signed in as ${syncSettings.accountEmail}")
 	}
 

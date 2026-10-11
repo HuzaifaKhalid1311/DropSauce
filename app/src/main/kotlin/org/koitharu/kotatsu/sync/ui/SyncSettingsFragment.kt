@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.sync.ui
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -8,6 +9,7 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -75,9 +77,9 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 	private val viewModel by viewModels<SyncSettingsViewModel>()
 
 	private val signInLauncher = registerForActivityResult(
-		ActivityResultContracts.StartActivityForResult(),
+		ActivityResultContracts.StartIntentSenderForResult(),
 	) { result ->
-		viewModel.onSignInResult(result.data)
+		if (result.resultCode == Activity.RESULT_OK) viewModel.onSignInResult(result.data)
 	}
 
 	override fun onCreateView(
@@ -111,7 +113,7 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 		super.onViewCreated(view, savedInstanceState)
 		viewModel.events.observeEvent(viewLifecycleOwner) { event ->
 			when (event) {
-				is SyncEvent.LaunchSignIn -> signInLauncher.launch(event.intent)
+				is SyncEvent.LaunchSignIn -> signInLauncher.launch(IntentSenderRequest.Builder(event.consent).build())
 
 				is SyncEvent.Message ->
 					Snackbar.make(requireView(), event.resId, Snackbar.LENGTH_SHORT).show()

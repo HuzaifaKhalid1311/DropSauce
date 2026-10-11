@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
@@ -63,8 +64,8 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
     }
 
     private val googleSignInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result -> viewModel.handleGoogleSignInResult(result.data) }
+        ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result -> if (result.resultCode == RESULT_OK) viewModel.handleGoogleSignInResult(result.data) }
 
     private val installPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -83,8 +84,8 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
         setContentView(ActivityOnboardingBinding.inflate(layoutInflater))
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        viewModel.onGoogleSignInLaunch.observeEvent(this) { intent ->
-            googleSignInLauncher.launch(intent)
+        viewModel.onGoogleSignInLaunch.observeEvent(this) { consent ->
+            googleSignInLauncher.launch(IntentSenderRequest.Builder(consent).build())
         }
         viewModel.onGoogleSignInCompleted.observeEvent(this) { success ->
             Toast.makeText(

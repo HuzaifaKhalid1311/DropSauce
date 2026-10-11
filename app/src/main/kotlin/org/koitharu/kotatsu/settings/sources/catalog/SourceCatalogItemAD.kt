@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.parser.favicon.extensionPackageFaviconUri
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.widgets.applyConnectedActionShapes
-import org.koitharu.kotatsu.core.ui.widgets.bindContentWarning
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
@@ -98,7 +97,6 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewAdd.contentDescription = actionDescription
 		TooltipCompat.setTooltipText(binding.imageViewAdd, actionDescription)
 		binding.textViewTitle.text = item.title
-		binding.textViewContentWarning.bindContentWarning(item.contentWarning)
 		binding.textViewDescription.text = item.subtitle
 		binding.textViewDescription.drawableStart = null
 		binding.imageViewIcon.applyExternalSourceStyle(true)

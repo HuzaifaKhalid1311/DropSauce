@@ -397,7 +397,6 @@ internal fun StatPills(
 					when (manga.contentRating) {
 						ContentRating.SUGGESTIVE -> Pill(text = "16+", accent = accent)
 						ContentRating.ADULT -> Pill(text = "18+", accent = accent)
-						else -> Unit
 					}
 				}
 				manga.state?.let { state ->

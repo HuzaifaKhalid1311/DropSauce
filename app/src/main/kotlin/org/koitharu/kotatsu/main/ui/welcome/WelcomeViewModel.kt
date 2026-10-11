@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.main.ui.welcome
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,7 @@ import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.local.data.LocalStorageManager
-import org.koitharu.kotatsu.sync.data.GoogleDriveAuth
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.sync.domain.GoogleDriveSyncRepository
 import org.koitharu.kotatsu.sync.work.SyncWorker
 import javax.inject.Inject
@@ -28,7 +29,6 @@ class WelcomeViewModel @Inject constructor(
 	private val settings: AppSettings,
 	private val storageManager: LocalStorageManager,
 	private val backupManager: MihonBackupManager,
-	private val googleDriveAuth: GoogleDriveAuth,
 	private val syncRepository: GoogleDriveSyncRepository,
 	private val syncScheduler: SyncWorker.Scheduler,
 ) : BaseViewModel() {
@@ -38,7 +38,7 @@ class WelcomeViewModel @Inject constructor(
 	val isAmoledEnabled = MutableStateFlow(settings.isAmoledTheme)
 	val storageSummary = MutableStateFlow<String?>(null)
 	val onBackupRestored = MutableEventFlow<RestoreBackupResult>()
-	val onGoogleSignInLaunch = MutableEventFlow<Intent>()
+	val onGoogleSignInLaunch = MutableEventFlow<PendingIntent>()
 	val onGoogleSignInCompleted = MutableEventFlow<Boolean>()
 
 	init {
@@ -95,21 +95,27 @@ class WelcomeViewModel @Inject constructor(
 	}
 
 	fun launchGoogleSignIn() {
-		onGoogleSignInLaunch.call(googleDriveAuth.signInIntent)
+		launchLoadingJob(Dispatchers.Default) {
+			runCatchingCancellable { syncRepository.beginSignIn() }
+				.onSuccess { consent -> if (consent != null) onGoogleSignInLaunch.call(consent) else onGoogleSignedIn() }
+				.onFailure { onGoogleSignInCompleted.call(false) }
+		}
 	}
 
 	fun handleGoogleSignInResult(data: Intent?) {
 		launchLoadingJob(Dispatchers.Default) {
-			val account = runCatching { googleDriveAuth.accountFromIntent(data) }.getOrNull()
-			if (account != null) {
-				syncRepository.onSignedIn(account.email, account.displayName, account.photoUrl?.toString())
-				syncScheduler.schedule()
-				syncScheduler.syncSoon() // bring the library over now, not at the next periodic run
-				onGoogleSignInCompleted.call(true)
+			if (runCatchingCancellable { syncRepository.finishSignIn(data) }.isSuccess) {
+				onGoogleSignedIn()
 			} else {
 				onGoogleSignInCompleted.call(false)
 			}
 		}
+	}
+
+	private suspend fun onGoogleSignedIn() {
+		syncScheduler.schedule()
+		syncScheduler.syncSoon() // bring the library over now, not at the next periodic run
+		onGoogleSignInCompleted.call(true)
 	}
 
 	fun completeOnboarding() {

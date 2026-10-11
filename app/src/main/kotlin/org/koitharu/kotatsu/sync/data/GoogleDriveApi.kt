@@ -74,6 +74,19 @@ class GoogleDriveApi @Inject constructor(
 		@SerialName("nextPageToken") val nextPageToken: String? = null,
 	)
 
+	@Serializable
+	class UserInfo(
+		@SerialName("email") val email: String? = null,
+		@SerialName("name") val name: String? = null,
+		@SerialName("picture") val picture: String? = null,
+	)
+
+	/** Email, name and photo of the account the token belongs to. */
+	suspend fun userInfo(token: String): UserInfo {
+		val request = Request.Builder().url(USER_INFO_URL).get().authorize(token).build()
+		return execute(request) { it.parse<UserInfo>() }
+	}
+
 	/** Every file in the hidden app folder. */
 	suspend fun listAppData(token: String): List<DriveFile> {
 		val result = ArrayList<DriveFile>()
@@ -199,6 +212,7 @@ class GoogleDriveApi @Inject constructor(
 		private const val FILE_FIELDS = "id,name,modifiedTime,md5Checksum"
 		private const val DRIVE_BASE = "https://www.googleapis.com/drive/v3"
 		private const val UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
+		private const val USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 		private const val SIMPLE_UPLOAD_LIMIT = 5L * 1024 * 1024
 		private const val MAX_ATTEMPTS = 3
 		private const val RETRY_DELAY_MS = 1500L

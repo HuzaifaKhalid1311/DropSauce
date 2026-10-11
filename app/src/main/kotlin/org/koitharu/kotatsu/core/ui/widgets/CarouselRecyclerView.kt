@@ -1,11 +1,15 @@
 package org.koitharu.kotatsu.core.ui.widgets
 
 import android.content.Context
+import android.graphics.Rect
+import android.graphics.RectF
 import android.util.AttributeSet
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.carousel.CarouselLayoutManager
 import com.google.android.material.carousel.CarouselStrategy
+import com.google.android.material.carousel.MaskableFrameLayout
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 
 /**
@@ -64,6 +68,56 @@ class SafeCarouselLayoutManager(strategy: CarouselStrategy) : CarouselLayoutMana
 		} catch (e: IllegalStateException) {
 			// ponytail: catches the library's keyline check; drop it if material fixes narrow widths
 			e.printStackTraceDebug()
+		}
+	}
+}
+
+/**
+ * Carousel item whose mask also stops short of the carousel's visible edges.
+ *
+ * Tiles scrolling off the side are cut by whatever clips the carousel (its bounds, the screen), which
+ * leaves a straight edge. Shrinking the mask to the visible part, minus the carousel's 4dp tile gap,
+ * puts its rounded corners there instead, with the same gap to the edge as between tiles.
+ */
+class EdgeMaskableFrameLayout @JvmOverloads constructor(
+	context: Context,
+	attrs: AttributeSet? = null,
+	defStyleAttr: Int = 0,
+) : MaskableFrameLayout(context, attrs, defStyleAttr) {
+
+	private val rawMask = RectF()
+	private val clampedMask = RectF()
+	private val visibleRect = Rect()
+	private val edgeGap = 4f * resources.displayMetrics.density
+	private var hasRawMask = false
+
+	override fun setMaskRectF(maskRect: RectF) {
+		rawMask.set(maskRect)
+		hasRawMask = true
+		applyMask()
+	}
+
+	override fun offsetLeftAndRight(offset: Int) {
+		super.offsetLeftAndRight(offset)
+		applyMask()
+	}
+
+	override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+		super.onLayout(changed, left, top, right, bottom)
+		applyMask()
+	}
+
+	private fun applyMask() {
+		if (!hasRawMask) return
+		clampedMask.set(rawMask)
+		val carousel = parent as? View
+		if (carousel != null && carousel.getLocalVisibleRect(visibleRect)) {
+			clampedMask.left = rawMask.left.coerceAtLeast(visibleRect.left + edgeGap - x)
+			clampedMask.right = rawMask.right.coerceAtMost(visibleRect.right - edgeGap - x)
+				.coerceAtLeast(clampedMask.left)
+		}
+		if (clampedMask != maskRectF) {
+			super.setMaskRectF(clampedMask)
 		}
 	}
 }

@@ -13,6 +13,7 @@ import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.carousel.MultiBrowseCarouselStrategy
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.descriptionSuffix
 import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isExternalSource
@@ -20,7 +21,6 @@ import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.list.AdapterDelegateClickListenerAdapter
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.widgets.bindContentWarning
 import org.koitharu.kotatsu.core.util.ext.drawableStart
 import org.koitharu.kotatsu.core.util.ext.setTooltipCompat
 import org.koitharu.kotatsu.databinding.ItemExploreButtonsBinding
@@ -159,12 +159,10 @@ fun exploreSourceListItemAD(
 	var updateBadge: BadgeDrawable? = null
 
 	bind {
-		binding.textViewContentWarning.bindContentWarning(
-			(item.source.mangaSource as? MihonMangaSource)?.contentWarning,
-		)
 		binding.textViewTitle.text = item.source.getTitle(context)
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
-		binding.textViewSubtitle.text = item.source.getSummary(context)
+		binding.textViewSubtitle.text = item.source.getSummary(context) +
+			(item.source.mangaSource as? MihonMangaSource)?.contentWarning?.descriptionSuffix(context).orEmpty()
 		updateBadge = binding.imageViewIcon.bindBadge(updateBadge, if (item.hasUpdate) "" else null)
 		// Re-applied after layout too, like the Manage extensions rows: the group restyles its children
 		binding.buttonGroupActions.applyConnectedActionShapes(outerCornerSize, innerCornerSize)

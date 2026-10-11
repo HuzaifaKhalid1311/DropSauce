@@ -18,7 +18,7 @@ class HistoryUpdateUseCase @Inject constructor(
 	private val historyRepository: HistoryRepository,
 ) {
 
-	suspend operator fun invoke(manga: Manga, readerState: ReaderState, percent: Float, notify: Boolean = true) {
+	suspend operator fun invoke(manga: Manga, readerState: ReaderState, percent: Float) {
 		historyRepository.addOrUpdate(
 			manga = manga,
 			chapterId = readerState.chapterId,
@@ -26,7 +26,6 @@ class HistoryUpdateUseCase @Inject constructor(
 			scroll = readerState.scroll,
 			percent = percent,
 			force = false,
-			notify = notify,
 		)
 	}
 

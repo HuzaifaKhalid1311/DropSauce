@@ -41,6 +41,7 @@ import org.koitharu.kotatsu.databinding.SheetListModeBinding
 import org.koitharu.kotatsu.list.ui.GridColumns
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import kotlin.math.roundToInt
+import org.koitharu.kotatsu.core.ui.util.syncedSliderState
 
 @AndroidEntryPoint
 class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
@@ -137,9 +138,7 @@ class ListConfigBottomSheet : BaseAdaptiveSheet<SheetListModeBinding>() {
 				) {
 					// Bigger covers to the right, as before: the rightmost stop is one per row.
 					Slider(
-						value = (maxColumns + 1 - columns).toFloat(),
-						valueRange = 1f..maxColumns.toFloat(),
-						steps = maxColumns - 2,
+						state = syncedSliderState((maxColumns + 1 - columns).toFloat(), 1f..maxColumns.toFloat(), maxColumns - 2),
 						onValueChange = { position ->
 							columns = maxColumns + 1 - position.roundToInt()
 						},

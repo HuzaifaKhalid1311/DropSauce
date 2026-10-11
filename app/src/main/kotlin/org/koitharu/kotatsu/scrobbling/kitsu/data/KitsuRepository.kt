@@ -273,7 +273,7 @@ class KitsuRepository(
 		throw IOException("$title: $detail")
 	}
 
-	private fun JSONObject.getAsLong(name: String): Long = when (val rawValue = opt(name)) {
+	private fun JSONObject.getAsLong(name: String): Long = when (val rawValue: Any? = opt(name)) {
 		is Long -> rawValue
 		is Number -> rawValue.toLong()
 		is String -> rawValue.toLong()

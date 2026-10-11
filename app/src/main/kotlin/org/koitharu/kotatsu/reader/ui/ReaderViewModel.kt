@@ -83,7 +83,7 @@ import javax.inject.Inject
 private const val BOUNDS_PAGE_OFFSET = 2
 private const val PREFETCH_LIMIT = 10
 private const val EPUB_SLIDER_MAX = 1000
-private const val AUTOSAVE_INTERVAL_MS = 2000L
+private const val AUTOSAVE_INTERVAL_MS = 5000L
 
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
@@ -622,7 +622,8 @@ class ReaderViewModel @Inject constructor(
     /**
      * Writes the position while reading instead of only on pause or idle: scrolling keeps resetting
      * the idle timer, and TTS or auto-scroll move on without any touch. A new chapter is written at
-     * once and reaches the trackers; within a chapter the position is written quietly, at most every
+     * once and reaches the trackers; within a chapter only the position on the history entry is
+     * updated (no manga/feed rewrite, so other screens don't reload), at most every
      * [AUTOSAVE_INTERVAL_MS]. The pause and idle saves still write the exact view state.
      */
     @AnyThread
@@ -645,7 +646,11 @@ class ReaderViewModel @Inject constructor(
             val manga = getMangaOrNull() ?: return@launchJob
             val state = readingState.value ?: return@launchJob
             runCatchingCancellable {
-                historyUpdateUseCase(manga, state, computePercent(state), notify = isNewChapter)
+                if (isNewChapter) {
+                    historyUpdateUseCase(manga, state, computePercent(state))
+                } else {
+                    historyRepository.updatePosition(manga, state.chapterId, state.page, state.scroll, computePercent(state))
+                }
             }.onFailure {
                 it.printStackTraceDebug()
             }

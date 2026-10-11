@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.settings.sources.catalog
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.list.ui.model.ListModel
 
 sealed interface SourceCatalogItem : ListModel {
@@ -13,8 +12,6 @@ sealed interface SourceCatalogItem : ListModel {
 		val title: String,
 		val subtitle: String,
 		val action: Action,
-		/** Null when the store doesn't say, e.g. for novel plugins. */
-		val contentWarning: ContentWarning? = null,
 		val isInProgress: Boolean = false,
 		val iconUrl: String? = null,
 		val sourceIconName: String? = null,

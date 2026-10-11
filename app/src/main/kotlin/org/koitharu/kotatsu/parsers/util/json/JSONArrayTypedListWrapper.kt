@@ -11,7 +11,7 @@ internal class JSONArrayTypedListWrapper<T : Any>(
 
 	override fun containsAll(elements: Collection<T>): Boolean = elements.all { contains(it) }
 
-	override fun get(index: Int): T = typeClass.cast(jsonArray[index])
+	override fun get(index: Int): T = typeClass.cast(jsonArray[index])!!
 
 	override fun indexOf(element: T): Int {
 		repeat(jsonArray.length()) { i ->

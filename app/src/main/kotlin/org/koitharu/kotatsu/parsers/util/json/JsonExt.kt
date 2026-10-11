@@ -75,7 +75,7 @@ public fun JSONObject.getStringOrNull(name: String): String? = opt(name)?.takeUn
 }?.toString()?.nullIfEmpty()
 
 public fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean {
-	return when (val rawValue = opt(name)) {
+	return when (val rawValue: Any? = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Boolean -> rawValue
 		is Number -> rawValue.toInt() != 0
@@ -85,7 +85,7 @@ public fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): 
 }
 
 public fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long {
-	return when (val rawValue = opt(name)) {
+	return when (val rawValue: Any? = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Long -> rawValue
 		is Number -> rawValue.toLong()
@@ -95,7 +95,7 @@ public fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long {
 }
 
 public fun JSONObject.getIntOrDefault(name: String, defaultValue: Int): Int {
-	return when (val rawValue = opt(name)) {
+	return when (val rawValue: Any? = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Int -> rawValue
 		is Number -> rawValue.toInt()
@@ -105,7 +105,7 @@ public fun JSONObject.getIntOrDefault(name: String, defaultValue: Int): Int {
 }
 
 public fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Double {
-	return when (val rawValue = opt(name)) {
+	return when (val rawValue: Any? = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Double -> rawValue
 		is Number -> rawValue.toDouble()
@@ -115,7 +115,7 @@ public fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Do
 }
 
 public fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Float {
-	return when (val rawValue = opt(name)) {
+	return when (val rawValue: Any? = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Float -> rawValue
 		is Number -> rawValue.toFloat()

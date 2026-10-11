@@ -169,7 +169,7 @@ fun Manga.chaptersCount(): Int {
 	}
 	val counters = MutableObjectIntMap<String?>()
 	var max = 0
-	chapters?.forEach { x ->
+	chapters.forEach { x ->
 		val c = counters.getOrDefault(x.branch, 0) + 1
 		counters[x.branch] = c
 		if (max < c) {

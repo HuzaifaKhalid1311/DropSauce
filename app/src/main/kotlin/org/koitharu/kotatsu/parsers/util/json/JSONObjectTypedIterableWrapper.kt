@@ -16,7 +16,7 @@ internal class JSONObjectTypedIterableWrapper<T : Any>(
 		override fun hasNext(): Boolean = keyIterator.hasNext()
 
 		override fun next(): Map.Entry<String, T> = keyIterator.next().let { key ->
-			JSONEntry(key, typeClass.cast(json.get(key)))
+			JSONEntry(key, typeClass.cast(json.get(key))!!)
 		}
 	}
 

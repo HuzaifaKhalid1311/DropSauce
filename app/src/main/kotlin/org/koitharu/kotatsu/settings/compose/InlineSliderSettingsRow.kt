@@ -34,6 +34,7 @@ import kotlin.math.roundToInt
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
+import org.koitharu.kotatsu.core.ui.util.syncedSliderState
 
 /**
  * A settings row that hosts a Slider directly inline (no dialog). The slider sits below
@@ -96,7 +97,7 @@ internal fun InlineSliderSettingsRow(
 				)
 			}
 			Slider(
-				value = current,
+				state = syncedSliderState(current, valueFrom.toFloat()..valueTo.toFloat(), steps),
 				onValueChange = {
 					current = it
 					val snapped = it.roundToInt().toFloat()
@@ -109,8 +110,6 @@ internal fun InlineSliderSettingsRow(
 					haptic(HapticEffect.GESTURE_END)
 					onValueChange(current.roundToInt())
 				},
-				valueRange = valueFrom.toFloat()..valueTo.toFloat(),
-				steps = steps,
 				enabled = enabled,
 				modifier = Modifier
 					.fillMaxWidth()

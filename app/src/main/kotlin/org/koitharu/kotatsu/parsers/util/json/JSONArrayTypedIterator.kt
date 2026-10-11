@@ -29,5 +29,5 @@ internal class JSONArrayTypedIterator<T : Any>(
 
 	override fun previousIndex(): Int = index - 1
 
-	private fun get(i: Int): T = typeClass.cast(array[i])
+	private fun get(i: Int): T = typeClass.cast(array[i])!!
 }

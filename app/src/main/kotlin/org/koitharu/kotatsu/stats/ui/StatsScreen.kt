@@ -28,7 +28,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -65,6 +65,7 @@ import org.koitharu.kotatsu.stats.domain.StatsPeriod
 import org.koitharu.kotatsu.stats.domain.StatsRecord
 import java.time.ZoneId
 import kotlin.math.roundToInt
+import androidx.compose.material3.SheetValue
 
 /**
  * Material 3 Expressive reading statistics: a headline activity card with a tappable chart, four
@@ -362,7 +363,7 @@ private fun OtherMangaSheet(
 	val accent = MaterialTheme.colorScheme.secondary
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
-		sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+		sheetState = rememberBottomSheetState(SheetValue.Hidden, setOf(SheetValue.Hidden, SheetValue.Expanded)),
 		shape = RoundedCornerShape(topStart = STATS_CARD_CORNER, topEnd = STATS_CARD_CORNER),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 	) {

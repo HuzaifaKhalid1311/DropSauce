@@ -37,6 +37,7 @@ import java.util.EnumSet
 import java.util.LinkedHashSet
 import javax.inject.Inject
 import org.koitharu.kotatsu.core.model.ContentWarning
+import org.koitharu.kotatsu.core.model.descriptionSuffix
 
 @HiltViewModel
 class SourcesCatalogViewModel @Inject constructor(
@@ -417,9 +418,9 @@ class SourcesCatalogViewModel @Inject constructor(
 						append(" • ")
 						append(entry.versionName)
 						append(ownerSuffix)
+						append(entry.contentWarning.descriptionSuffix(appContext))
 					},
 					action = SourceCatalogItem.Extension.Action.UPDATE,
-					contentWarning = entry.contentWarning,
 					isInProgress = entry.packageName in inProgress,
 					iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(owner.indexUrl, entry.packageName),
 					sourceIconName = source?.name,
@@ -437,13 +438,13 @@ class SourcesCatalogViewModel @Inject constructor(
 					append(" • ")
 					append(local.versionName)
 					append(ownerSuffix)
+					append(local.contentWarning.descriptionSuffix(appContext))
 				},
 				action = if (mode == ExtensionInstallMode.SANDBOX) {
 					SourceCatalogItem.Extension.Action.DISABLE
 				} else {
 					SourceCatalogItem.Extension.Action.UNINSTALL
 				},
-				contentWarning = local.contentWarning,
 				isInProgress = local.pkgName in inProgress,
 				iconUrl = entry?.iconUrl ?: owner?.let {
 					externalRepoRepository.resolveIconUrl(it.indexUrl, local.pkgName)
@@ -610,6 +611,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 				append(" • ")
 				append(entry.versionName)
+				append(entry.contentWarning.descriptionSuffix(appContext))
 			}
 			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			availableItems += SourceCatalogItem.Extension(
@@ -617,7 +619,6 @@ class SourcesCatalogViewModel @Inject constructor(
 				title = extensionDisplayName(entry.name),
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.INSTALL,
-				contentWarning = entry.contentWarning,
 				isInProgress = entry.packageName in inProgressPackages,
 				iconUrl = iconUrl,
 				sourceIconName = source?.name,
@@ -710,7 +711,6 @@ class SourcesCatalogViewModel @Inject constructor(
 				title = displayName,
 				subtitle = appContext.getString(R.string.recommended_extension_subtitle),
 				action = action,
-				contentWarning = catalog.firstOrNull { it.packageName == pkg }?.contentWarning,
 				isInProgress = pkg in inProgress,
 				// Same resolution as the Available rows: the index's own icon url wins, the repo's
 				// conventional icon path is only a fallback.
@@ -810,6 +810,7 @@ class SourcesCatalogViewModel @Inject constructor(
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 				append(" • ")
 				append(entry.versionName)
+				append(entry.contentWarning.descriptionSuffix(appContext))
 			}
 			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			disabledItems += SourceCatalogItem.Extension(
@@ -817,7 +818,6 @@ class SourcesCatalogViewModel @Inject constructor(
 				title = extensionDisplayName(entry.name),
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.ENABLE,
-				contentWarning = entry.contentWarning,
 				isInProgress = entry.packageName in inProgressPackages,
 				iconUrl = iconUrl,
 				sourceIconName = source?.name,
@@ -877,10 +877,10 @@ class SourcesCatalogViewModel @Inject constructor(
 						append(getExternalExtensionLanguageDisplayName(local.lang))
 						append(" • ").append(local.versionName)
 						append(" • ").append(owner.displayName)
+						append(local.contentWarning.descriptionSuffix(appContext))
 					},
 					action = if (privateMode) SourceCatalogItem.Extension.Action.DISABLE
 					else SourceCatalogItem.Extension.Action.UNINSTALL,
-					contentWarning = local.contentWarning,
 					isInProgress = local.pkgName in installingPackages.value,
 					iconUrl = entry?.iconUrl ?: externalRepoRepository.resolveIconUrl(owner.indexUrl, local.pkgName),
 					sourceIconName = source?.name,

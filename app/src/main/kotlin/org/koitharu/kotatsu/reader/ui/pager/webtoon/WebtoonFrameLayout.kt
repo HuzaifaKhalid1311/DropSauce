@@ -14,7 +14,7 @@ class WebtoonFrameLayout @JvmOverloads constructor(
 
 	private var _target: WebtoonImageView? = null
 	val target: WebtoonImageView
-		get() = _target ?: findViewById<WebtoonImageView?>(R.id.ssiv).also {
+		get() = _target ?: findViewById<WebtoonImageView>(R.id.ssiv).also {
 			_target = it
 		}
 

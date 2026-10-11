@@ -24,7 +24,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +48,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
+import androidx.compose.material3.SheetValue
 
 /** What the tracker can hand over, in the order the editor shows those fields. */
 enum class ImportField(val titleResId: Int) {
@@ -82,7 +83,7 @@ fun TrackerImportSheet(
 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
-		sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+		sheetState = rememberBottomSheetState(SheetValue.Hidden, setOf(SheetValue.Hidden, SheetValue.Expanded)),
 		shape = RoundedCornerShape(topStart = SHEET_CORNER, topEnd = SHEET_CORNER),
 		containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 	) {

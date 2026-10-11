@@ -60,6 +60,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
+import androidx.compose.material3.TooltipAnchorPosition
 
 data class FloatingNavBarItem(
 	@IdRes val id: Int,
@@ -192,7 +193,7 @@ private fun FloatingContinueButton(
 	val label = stringResource(R.string.continue_reading)
 	val tooltipState = rememberTooltipState()
 	TooltipBox(
-		positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+		positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
 		tooltip = { PlainTooltip { Text(label) } },
 		state = tooltipState,
 	) {

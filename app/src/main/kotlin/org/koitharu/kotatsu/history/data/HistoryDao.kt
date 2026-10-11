@@ -141,6 +141,19 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 		updatedAt: Long,
 	): Int
 
+	/** Moves the position within the chapter already saved; 0 rows = that chapter isn't the saved one. */
+	@Query(
+		"UPDATE history SET page = :page, scroll = :scroll, percent = :percent, updated_at = :updatedAt WHERE manga_id = :mangaId AND chapter_id = :chapterId AND deleted_at = 0",
+	)
+	abstract suspend fun updatePosition(
+		mangaId: Long,
+		chapterId: Long,
+		page: Int,
+		scroll: Float,
+		percent: Float,
+		updatedAt: Long,
+	): Int
+
 	suspend fun delete(mangaId: Long) = setDeletedAt(mangaId, System.currentTimeMillis())
 
 	suspend fun recover(mangaId: Long) = setDeletedAt(mangaId, 0L)

@@ -52,6 +52,8 @@ import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import kotlin.math.roundToInt
 import com.google.android.material.R as materialR
+import org.koitharu.kotatsu.core.ui.util.syncedSliderState
+import org.koitharu.kotatsu.core.ui.util.syncedRangeSliderState
 
 class FilterSheetFragment : BaseAdaptiveSheet<SheetFilterBinding>(), AdaptiveSheetCallback {
 
@@ -342,8 +344,7 @@ class FilterSheetFragment : BaseAdaptiveSheet<SheetFilterBinding>(), AdaptiveShe
 					value = if (selected == YEAR_UNKNOWN) stringResource(R.string.any) else selected.toString(),
 				) {
 					Slider(
-						value = if (selected == YEAR_UNKNOWN) from else selected.toFloat().coerceIn(from, to),
-						valueRange = from..to,
+						state = syncedSliderState(if (selected == YEAR_UNKNOWN) from else selected.toFloat().coerceIn(from, to), from..to),
 						onValueChange = { value ->
 							// The low end of the track means "any year", as on the slider it replaces.
 							filter.setYear(if (value <= from) YEAR_UNKNOWN else value.roundToInt())
@@ -366,8 +367,7 @@ class FilterSheetFragment : BaseAdaptiveSheet<SheetFilterBinding>(), AdaptiveShe
 					),
 				) {
 					RangeSlider(
-						value = selectedFrom..selectedTo,
-						valueRange = from..to,
+						state = syncedRangeSliderState(selectedFrom..selectedTo, from..to),
 						onValueChange = { range ->
 							// Either handle parked against the track edge means "unbounded" on that side.
 							filter.setYearRange(

@@ -154,6 +154,39 @@ class HistoryRepository @Inject constructor(
 		}
 	}
 
+	/**
+	 * Saves only the position inside the chapter that is already stored. Rewriting the manga, its
+	 * tags and the feed on every reader autosave made the library, history and feed reload while
+	 * reading. Falls back to [addOrUpdate] when there is no entry for this chapter yet.
+	 */
+	suspend fun updatePosition(
+		manga: Manga,
+		chapterId: Long,
+		page: Int,
+		scroll: Int,
+		percent: Float,
+	) {
+		if (shouldSkip(manga)) {
+			return
+		}
+		val updated = writeMutex.withLock {
+			currentCoroutineContext().ensureActive()
+			withContext(NonCancellable) {
+				db.getHistoryDao().updatePosition(
+					mangaId = manga.id,
+					chapterId = chapterId,
+					page = page,
+					scroll = scroll.toFloat(),
+					percent = percent,
+					updatedAt = System.currentTimeMillis(),
+				)
+			}
+		}
+		if (updated == 0) {
+			addOrUpdate(manga, chapterId, page, scroll, percent, force = false, notify = false)
+		}
+	}
+
 	suspend fun advanceFromTracking(
 		manga: Manga,
 		chapters: List<MangaChapter>,

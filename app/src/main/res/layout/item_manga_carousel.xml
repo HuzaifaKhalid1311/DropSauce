@@ -2,7 +2,7 @@
 <!-- Material 3 Expressive carousel item: a MaskableFrameLayout (required so the
      CarouselLayoutManager can mask/unmask it on scroll) styled as a rounded poster card
      with a full-bleed cover and the title beneath it. -->
-<com.google.android.material.carousel.MaskableFrameLayout
+<org.koitharu.kotatsu.core.ui.widgets.EdgeMaskableFrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
@@ -72,4 +72,4 @@
 
 	</LinearLayout>
 
-</com.google.android.material.carousel.MaskableFrameLayout>
+</org.koitharu.kotatsu.core.ui.widgets.EdgeMaskableFrameLayout>

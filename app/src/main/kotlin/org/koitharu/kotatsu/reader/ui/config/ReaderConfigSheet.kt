@@ -50,7 +50,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -115,6 +115,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import org.koitharu.kotatsu.local.data.isEpub
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.animation.core.animateFloatAsState
+import org.koitharu.kotatsu.core.ui.util.syncedSliderState
+import androidx.compose.material3.SheetValue
 
 /** Base body text size the EPUB reader scales its percentages against (see EpubReaderFragment). */
 private const val EPUB_BASE_TEXT_SIZE_DP = 16f
@@ -837,10 +839,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         enabled: Boolean,
     ) {
         Slider(
-            value = value,
+            state = syncedSliderState(value, valueRange),
             onValueChange = onValueChange,
-            valueRange = valueRange,
-            steps = 0,
             enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -1131,7 +1131,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun EpubThemeSheet(onDismiss: () -> Unit) {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val sheetState = rememberBottomSheetState(SheetValue.Hidden, setOf(SheetValue.Hidden, SheetValue.Expanded))
         val scope = rememberCoroutineScope()
         val dismissAnimated: () -> Unit = {
             scope.launch {
@@ -1389,7 +1389,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
     ) {
         Column(modifier) {
             Text(stringResource(R.string.epub_color_saturation), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Slider(value = value, onValueChange = onChange, enabled = enabled, valueRange = 0f..1f)
+            Slider(state = syncedSliderState(value), onValueChange = onChange, enabled = enabled)
         }
     }
 
