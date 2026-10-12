@@ -494,7 +494,6 @@
     <string name="delete_read_chapters_summary">ローカルストレージから既読のチャプターを削除して空き容量を増やす</string>
     <string name="delete_read_chapters_prompt">これにより、ローカルストレージから既読としてマークされた全てのチャプターが完全に削除されます。後で再ダウンロードすることは可能ですが、インポートされたチャプターは永久に失われる可能性があります。</string>
     <string name="delete_read_chapters_auto">既読のチャプターを自動的に削除する</string>
-    <string name="runs_on_app_start">kotatsuの起動時に実行</string>
     <string name="unread">未読</string>
     <string name="unsupported_source">このマンガソースはサポートされていません</string>
     <string name="show_pages_thumbs">サムネイルを表示</string>

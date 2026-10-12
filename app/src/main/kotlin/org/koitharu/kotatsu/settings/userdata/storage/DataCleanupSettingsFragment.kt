@@ -267,7 +267,7 @@ private fun DataCleanupScreen(
 				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.delete_read_chapters_auto),
-						subtitle = stringResource(R.string.runs_on_app_start),
+						subtitle = stringResource(R.string.delete_read_chapters_auto_summary),
 						checked = auto,
 						onCheckedChange = { auto = it },
 						icon = R.drawable.ic_timer_run,

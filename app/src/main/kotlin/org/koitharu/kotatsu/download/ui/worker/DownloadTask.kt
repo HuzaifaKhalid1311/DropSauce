@@ -35,6 +35,7 @@ class DownloadTask(
 		.putLongArray(CHAPTERS, chaptersIds ?: LongArray(0))
 		.putString(DESTINATION, destination?.path)
 		.putString(FORMAT, format?.name)
+		.putBoolean(ALLOW_METERED, allowMeteredNetwork)
 		.build()
 
 	override fun equals(other: Any?): Boolean {

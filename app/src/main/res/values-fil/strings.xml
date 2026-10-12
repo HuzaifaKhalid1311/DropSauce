@@ -483,7 +483,6 @@
     <string name="migration_completed">Natapos na ang paglilipat</string>
     <string name="delete_read_chapters_summary">Tanggalin ang mga kabanata na nabasa mo na mula sa lokal na storage upang magbakante ng espasyo</string>
     <string name="delete_read_chapters_prompt">Permanente nitong tatanggalin ang lahat ng kabanata na minarkahan bilang nabasa mula sa iyong lokal na storage. Maaari mong muling i-download ito sa ibang pagkakataon, ngunit ang mga na-import na kabanata ay maaaring mawala nang tuluyan</string>
-    <string name="runs_on_app_start">Tatakbo kapag nagsimula ang aplikasyon</string>
     <string name="order_oldest">Pinakaluma</string>
     <string name="unsupported_source">Ang manga source na ito ay hindi suportado</string>
     <string name="show_pages_thumbs">Ipakita ang mga thumbnail ng pahina</string>

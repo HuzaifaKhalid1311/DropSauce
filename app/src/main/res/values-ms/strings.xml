@@ -502,7 +502,6 @@
     <string name="delete_read_chapters_summary">Padamkan bab yang telah anda baca dari simpanan tempatan untuk membebaskan ruang</string>
     <string name="delete_read_chapters_prompt">Ini akan memadamkan semua bab yang ditandakan secara kekal seperti yang dibaca dari storan tempatan anda. Anda boleh memuat turun semula kemudian, tetapi bab yang diimport mungkin hilang selama-lamanya</string>
     <string name="delete_read_chapters_auto">Padam Baca Bab secara automatik</string>
-    <string name="runs_on_app_start">Berjalan ketika aplikasi bermula</string>
     <string name="order_oldest">Tertua</string>
     <string name="long_ago_read">Lama dahulu baca</string>
     <string name="unread">Belum dibaca</string>

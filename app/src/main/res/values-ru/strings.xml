@@ -508,7 +508,6 @@
     <string name="delete_read_chapters_summary">Удалите главы, которые вы уже прочитали, из локального хранилища, чтобы освободить место</string>
     <string name="delete_read_chapters_auto">Автоматически удалять прочитанные главы</string>
     <string name="long_ago_read">Давно прочитанная</string>
-    <string name="runs_on_app_start">Запускается при запуске приложения</string>
     <string name="unread">Непрочитанная</string>
     <string name="order_oldest">Самые старые</string>
     <string name="delete_read_chapters_prompt">Это приведёт к безвозвратному удалению всех глав, помеченных как прочитанные, из вашего локального хранилища. Вы можете повторно загрузить их позже, но импортированные главы могут быть потеряны навсегда</string>

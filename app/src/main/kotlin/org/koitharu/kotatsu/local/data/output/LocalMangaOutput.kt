@@ -28,6 +28,13 @@ sealed class LocalMangaOutput(
 
 	abstract suspend fun flushChapter(chapter: MangaChapter): Boolean
 
+	/**
+	 * Drops a chapter that failed partway, so its pages never end up saved as a complete chapter.
+	 * Only a folder download stores a chapter before it is flushed; the single-file outputs only
+	 * index what was flushed.
+	 */
+	open suspend fun discardChapter(chapter: MangaChapter) = Unit
+
 	abstract suspend fun finish()
 
 	abstract suspend fun cleanup()

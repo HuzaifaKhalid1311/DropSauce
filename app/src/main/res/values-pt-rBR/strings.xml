@@ -490,7 +490,6 @@
     <string name="delete_read_chapters">Apagar capítulos lidos</string>
     <string name="delete_read_chapters_summary">Apagar capítulos lidos do armazenamento local para liberar espaço</string>
     <string name="delete_read_chapters_auto">Apagar capítulos lidos automaticamente</string>
-    <string name="runs_on_app_start">É executado quando o aplicativo é iniciado</string>
     <string name="show_pages_thumbs">Mostrar miniaturas das páginas</string>
     <string name="show_pages_thumbs_summary">Ativar aba de \"Páginas\" na tela de detalhes</string>
     <string name="migrate">Migrar</string>

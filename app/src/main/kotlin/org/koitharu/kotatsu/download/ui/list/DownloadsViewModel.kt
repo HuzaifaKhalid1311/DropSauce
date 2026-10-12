@@ -94,6 +94,12 @@ class DownloadsViewModel @Inject constructor(
 		}
 	}
 
+	fun retry(id: UUID) {
+		launchJob(Dispatchers.Default) {
+			workScheduler.retry(id)
+		}
+	}
+
 	fun cancel(ids: Set<Long>) {
 		launchJob(Dispatchers.Default) {
 			val snapshot = works.value ?: return@launchJob

@@ -75,6 +75,15 @@ class ChaptersLoader @Inject constructor(
 		}
 	}
 
+	/** Chapters whose download was just deleted are read from the source again. */
+	suspend fun onDownloadsDeleted(ids: Set<Long>) = mutex.withLock {
+		manga?.chapters?.forEach {
+			if (it.id in ids) {
+				chapters.put(it.id, it)
+			}
+		}
+	}
+
 	fun peekChapter(chapterId: Long): MangaChapter? = chapters[chapterId]
 
 	// All reads below go through synchronized(chapterPages) — the same monitor ChapterPages' own

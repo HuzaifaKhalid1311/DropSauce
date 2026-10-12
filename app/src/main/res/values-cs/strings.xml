@@ -495,7 +495,6 @@
     <string name="no_chapters_deleted">Nebyly odstraněny žádné kapitoly</string>
     <string name="chapters_deleted_pattern">Odstraněn %1$s, smazán %2$s</string>
     <string name="delete_read_chapters_auto">Odstraňovat přečtené kapitoly automaticky</string>
-    <string name="runs_on_app_start">Spouští se při spuštění aplikace</string>
     <string name="webtoon_gaps">Mezery v režimu webtoon</string>
     <string name="webtoon_gaps_summary">Zobrazit svislé mezery mezi stránkami v režimu webtoon</string>
     <string name="location">Umístění</string>

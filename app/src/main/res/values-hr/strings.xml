@@ -336,7 +336,6 @@
     <string name="delete_read_chapters_summary">Izbrišite poglavlja koja ste već pročitali iz lokalne pohrane kako biste oslobodili prostor</string>
     <string name="delete_read_chapters_prompt">Ovo će trajno izbrisati sva poglavlja označena kao pročitana iz vaše lokalne pohrane. Kasnije ga možete ponovo preuzeti, ali uvezena poglavlja mogu biti zauvijek izgubljena</string>
     <string name="delete_read_chapters_auto">Automatski izbrišite pročitana poglavlja</string>
-    <string name="runs_on_app_start">Pokreće se kada se aplikacija pokrene</string>
     <string name="order_oldest">Najstariji</string>
     <string name="long_ago_read">Davno pročitano</string>
     <string name="unread">Nepročitano</string>

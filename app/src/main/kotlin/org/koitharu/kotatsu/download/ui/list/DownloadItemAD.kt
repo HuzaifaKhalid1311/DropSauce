@@ -45,7 +45,7 @@ fun downloadItemAD(
 		override fun onClick(v: View) {
 			when (v.id) {
 				R.id.button_cancel -> listener.onCancelClick(item)
-				R.id.button_resume -> listener.onResumeClick(item)
+				R.id.button_resume -> if (item.canRetry) listener.onRetryClick(item) else listener.onResumeClick(item)
 				R.id.button_skip -> listener.onSkipClick(item)
 				R.id.button_skip_all -> listener.onSkipAllClick(item)
 				R.id.button_pause -> listener.onPauseClick(item)
@@ -192,7 +192,8 @@ fun downloadItemAD(
 				binding.textViewPercent.isVisible = false
 				binding.textViewDetails.textAndVisible = item.getErrorMessage(context)
 				binding.buttonCancel.isVisible = false
-				binding.buttonResume.isVisible = false
+				binding.buttonResume.isVisible = true
+				binding.buttonResume.setText(R.string.retry)
 				binding.buttonSkip.isVisible = false
 				binding.buttonSkipAll.isVisible = false
 				binding.buttonPause.isVisible = false

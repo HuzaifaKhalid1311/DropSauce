@@ -499,7 +499,6 @@
     <string name="chapters_grid_view">网格视图</string>
     <string name="delete_read_chapters_prompt">将会删除所有储存在本地并被标记为已读的章节，可之后再重新下载，但已导入的章节将永久丢失</string>
     <string name="delete_read_chapters_auto">自动删除已读章节</string>
-    <string name="runs_on_app_start">启动应用时开始删除</string>
     <string name="migrate_confirmation">将会把历史记录和收藏中 \"%2$s\" 图源的 \"%1$s\" 替换成 \"%4$s\" 图源的 \"%3$s\"（若资源存在）</string>
     <string name="unread">阅读进度（升序）</string>
     <string name="order_oldest">最旧</string>

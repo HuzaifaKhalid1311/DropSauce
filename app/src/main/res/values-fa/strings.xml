@@ -513,6 +513,5 @@
     <string name="delete_read_chapters_summary">فصل های خوانده شده برای آزاد سازی فضا ذخیره سازی حذف کنید</string>
     <string name="delete_read_chapters_prompt">این کار تمام فصل هایی که به عنوان خوانده شده علامت گزاری شده اند را برای همیشه پاک خواهد کرد. شما میتونید بعدا آن هارا دانلود کنید اما فصل های افزوده‌شده ممکن است برای همیشه پاک شوند</string>
     <string name="delete_read_chapters_auto">حذف فصل های خوانده شده به صورت خودکار</string>
-    <string name="runs_on_app_start">با آغاز برنامه اجرا می‌شود</string>
     <string name="order_oldest">قدیمی ترین</string>
 </resources>

@@ -123,6 +123,10 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 		scheduler.resume(item.id)
 	}
 
+	override fun onRetryClick(item: DownloadItemModel) {
+		viewModel.retry(item.id)
+	}
+
 	override fun onSkipClick(item: DownloadItemModel) {
 		scheduler.skip(item.id)
 	}

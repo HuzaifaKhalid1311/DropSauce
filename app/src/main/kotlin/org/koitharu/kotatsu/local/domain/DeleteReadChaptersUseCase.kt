@@ -75,23 +75,32 @@ class DeleteReadChaptersUseCase @Inject constructor(
 		}.fold(0) { acc, x -> acc + x }
 	}
 
+	/**
+	 * The reader's pass of the automatic cleanup, run as you move from chapter to chapter. The reader
+	 * already has the chapter list and the downloaded copy, so nothing is fetched from the source.
+	 * Chapters in [exclude] are left alone.
+	 *
+	 * @return ids of the deleted chapters
+	 */
+	suspend fun deleteBehind(
+		localManga: LocalManga,
+		chapters: List<MangaChapter>,
+		currentChapterId: Long,
+		exclude: Set<Long>,
+	): Set<Long> {
+		val downloaded = localManga.manga.chapters?.ids() ?: return emptySet()
+		val ids = chaptersBehind(chapters, currentChapterId, settings.localChaptersCleanupKeep)
+			.mapNotNullTo(HashSet()) { x -> x.id.takeIf { it in downloaded && it !in exclude } }
+		if (ids.isNotEmpty()) {
+			localMangaRepository.deleteChapters(localManga.manga, ids)
+		}
+		return ids
+	}
+
 	private suspend fun getDeletionTask(manga: LocalManga, keep: Int): DeletionTask? {
 		val history = historyRepository.getOne(manga.manga) ?: return null
 		val chapters = getAllChapters(manga).mergedBranches(mangaDataRepository.getScanlatorMerge(manga.manga.id))
-		if (chapters.isEmpty()) {
-			return null
-		}
-		val branch = (chapters.findById(history.chapterId) ?: return null).branch
-		val branchChapters = chapters.filter { x -> x.branch == branch }
-		val currentIndex = branchChapters.indexOfFirst { it.id == history.chapterId }
-		val filteredChapters = if (currentIndex >= 0) {
-			// Keep the current chapter plus `keep` chapters behind it as a safety margin;
-			// everything further back is deleted. keep = 0 deletes everything before the
-			// current chapter.
-			branchChapters.take((currentIndex - keep).coerceAtLeast(0))
-		} else {
-			emptyList()
-		}
+		val filteredChapters = chaptersBehind(chapters, history.chapterId, keep)
 		return if (filteredChapters.isEmpty()) {
 			null
 		} else {
@@ -100,6 +109,16 @@ class DeleteReadChaptersUseCase @Inject constructor(
 				chaptersIds = filteredChapters.ids(),
 			)
 		}
+	}
+
+	private fun chaptersBehind(chapters: List<MangaChapter>, currentChapterId: Long, keep: Int): List<MangaChapter> {
+		val branch = (chapters.findById(currentChapterId) ?: return emptyList()).branch
+		val branchChapters = chapters.filter { x -> x.branch == branch }
+		val currentIndex = branchChapters.indexOfFirst { it.id == currentChapterId }
+		// Keep the current chapter plus `keep` chapters behind it as a safety margin;
+		// everything further back is deleted. keep = 0 deletes everything before the
+		// current chapter.
+		return branchChapters.take((currentIndex - keep).coerceAtLeast(0))
 	}
 
 	private suspend fun getAllChapters(manga: LocalManga): List<MangaChapter> = runCatchingCancellable {

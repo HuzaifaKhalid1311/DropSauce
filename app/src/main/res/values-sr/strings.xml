@@ -509,7 +509,6 @@
     <string name="no_chapters_deleted">Ниједно поглавље није избрисано</string>
     <string name="chapters_deleted_pattern">Уклоњено %1$s, избрисано %2$s</string>
     <string name="delete_read_chapters_auto">Аутоматски избриши прочитана поглавља</string>
-    <string name="runs_on_app_start">Ради када се апликација покрене</string>
     <string name="order_oldest">Најстарије</string>
     <string name="unsupported_source">Овај извор манге није подржан</string>
     <string name="show_pages_thumbs">Прикажи сличице страница</string>

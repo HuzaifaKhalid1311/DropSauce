@@ -503,7 +503,6 @@
     <string name="order_oldest">Legrégebbi</string>
     <string name="long_ago_read">Rég olvasva</string>
     <string name="unread">Olvasatlan</string>
-    <string name="runs_on_app_start">Futtatás amikor az alkalmazás elindul</string>
     <string name="unsupported_source">Ez a manga forrás nem támogatott</string>
     <string name="all_languages">Összes nyelv</string>
     <string name="screenshots_block_incognito">Blokkold inkognitó módban</string>

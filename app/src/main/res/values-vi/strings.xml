@@ -491,7 +491,6 @@
     <string name="other_manga">Manga khác</string>
     <string name="chapters_deleted_pattern">Đã xoá %1$s, làm sạch %2$s</string>
     <string name="delete_read_chapters_auto">Xoá các chương đã đọc tự động</string>
-    <string name="runs_on_app_start">Chạy khi ứng dụng được khởi chạy</string>
     <string name="order_oldest">Cũ nhất</string>
     <string name="unread">Chưa đọc</string>
     <string name="unsupported_backup_message">Vui lòng chọn một tệp sao lưu Kotatsu / DropSauce hợp lệ</string>

@@ -215,7 +215,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_COOKIES_CLEAR, R.string.clear_cookies, R.string.clear_cookies_summary, crumbs + ctx.getString(R.string.data_removal), DataCleanupSettingsFragment::class.java)
 				addItem(AppSettings.KEY_WEBVIEW_CLEAR, R.string.clear_browser_data, R.string.clear_browser_data_summary, crumbs + ctx.getString(R.string.data_removal), DataCleanupSettingsFragment::class.java)
 				addItem(AppSettings.KEY_CHAPTERS_CLEAR, R.string.delete_read_chapters, R.string.delete_read_chapters_summary, crumbs + ctx.getString(R.string.data_removal), DataCleanupSettingsFragment::class.java)
-				addItem(AppSettings.KEY_CHAPTERS_CLEAR_AUTO, R.string.delete_read_chapters_auto, R.string.runs_on_app_start, crumbs + ctx.getString(R.string.data_removal), DataCleanupSettingsFragment::class.java)
+				addItem(AppSettings.KEY_CHAPTERS_CLEAR_AUTO, R.string.delete_read_chapters_auto, R.string.delete_read_chapters_auto_summary, crumbs + ctx.getString(R.string.data_removal), DataCleanupSettingsFragment::class.java)
 				addItem(AppSettings.KEY_CHAPTERS_CLEAR_KEEP, R.string.delete_read_chapters_keep, R.string.delete_read_chapters_keep_immediate, crumbs + ctx.getString(R.string.data_removal), DataCleanupSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Network") { crumbs ->

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -26,7 +27,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
@@ -48,6 +52,7 @@ import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.firstNotNull
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.core.util.ext.requireValue
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.details.domain.DetailsInteractor
@@ -62,11 +67,13 @@ import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.local.domain.DeleteLocalMangaUseCase
+import org.koitharu.kotatsu.local.domain.DeleteReadChaptersUseCase
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.parsers.util.sizeOrZero
 import org.koitharu.kotatsu.reader.domain.ChaptersLoader
@@ -100,6 +107,7 @@ class ReaderViewModel @Inject constructor(
     private val detectReaderModeUseCase: DetectReaderModeUseCase,
     private val statsCollector: StatsCollector,
     private val discordRpc: DiscordRpc,
+    private val deleteReadChaptersUseCase: DeleteReadChaptersUseCase,
     @LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
     interactor: DetailsInteractor,
     deleteLocalMangaUseCase: DeleteLocalMangaUseCase,
@@ -128,6 +136,11 @@ class ReaderViewModel @Inject constructor(
     // Chapter of the last history write, so an autosave knows whether trackers must hear about it
     @Volatile
     private var savedChapterId = 0L
+
+    // Runs the read-chapters cleanup one pass at a time and remembers what it deleted, since the
+    // reader's copy of the download only catches up once the deletion has been announced
+    private val readChaptersCleanupLock = Mutex()
+    private val deletedChapterIds = HashSet<Long>()
 
     init {
         mangaDetails.value = intent.manga?.let { MangaDetails(it) }
@@ -233,6 +246,20 @@ class ReaderViewModel @Inject constructor(
                 appShortcutManager.notifyMangaOpened(mangaId)
             }
         }
+        launchJob(Dispatchers.Default) {
+            combine(
+                readingState.mapNotNull { it?.chapterId }.distinctUntilChanged(),
+                mangaDetails.map { it?.local }.distinctUntilChanged(),
+                isIncognitoMode,
+            ) { _, _, _ -> }.collect {
+                deleteReadChapters(isClosing = false)
+            }
+        }
+    }
+
+    override fun onCleared() {
+        deleteReadChapters(isClosing = true)
+        super.onCleared()
     }
 
     override fun reload() {
@@ -653,6 +680,39 @@ class ReaderViewModel @Inject constructor(
                 }
             }.onFailure {
                 it.printStackTraceDebug()
+            }
+        }
+    }
+
+    /**
+     * Automatic cleanup of read chapters, run as you move between chapters and once more when the
+     * reader closes. Chapters the reader still has loaded wait for that last pass, and so does a
+     * download kept as a single file: cleaning it rewrites the file the reader is reading from.
+     */
+    private fun deleteReadChapters(isClosing: Boolean) {
+        if (!settings.isAutoLocalChaptersCleanupEnabled || isIncognitoMode.value != false || isPeekMode.value) {
+            return
+        }
+        // Outlives the reader, so neither the last pass nor one cut short by closing it is lost
+        processLifecycleScope.launch(Dispatchers.Default) {
+            readChaptersCleanupLock.withLock {
+                val details = mangaDetails.value ?: return@withLock
+                val local = details.local?.takeIf { isClosing || it.file.isDirectory } ?: return@withLock
+                val chapterId = readingState.value?.chapterId ?: return@withLock
+                val inUse = if (isClosing) emptySet() else chaptersLoader.snapshot().mapToSet { it.chapterId }
+                runCatchingCancellable {
+                    deleteReadChaptersUseCase.deleteBehind(
+                        localManga = local,
+                        chapters = details.allChapters,
+                        currentChapterId = chapterId,
+                        exclude = inUse + deletedChapterIds,
+                    )
+                }.onSuccess { ids ->
+                    deletedChapterIds += ids
+                    chaptersLoader.onDownloadsDeleted(ids)
+                }.onFailure {
+                    it.printStackTraceDebug()
+                }
             }
         }
     }

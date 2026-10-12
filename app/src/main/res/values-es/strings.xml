@@ -493,7 +493,6 @@
     <string name="manga_migration">Migración del manga</string>
     <string name="migration_completed">Migración realizada</string>
     <string name="delete_read_chapters_auto">Borrar automáticamente los capítulos leídos</string>
-    <string name="runs_on_app_start">Se ejecuta cuando se inicia la aplicación</string>
     <string name="chapters_grid_view">Vista en cuadrícula</string>
     <string name="order_oldest">Más antigua</string>
     <string name="long_ago_read">Leído hace mucho tiempo</string>

@@ -464,7 +464,6 @@
     <string name="reader_fullscreen_summary">Nascondi le barre di stato e di notifica</string>
     <string name="check_for_new_chapters_disabled">Il controllo di nuovi capitoli è disabilitato</string>
     <string name="delete_read_chapters_auto">Elimina i capitoli già letti automaticamente</string>
-    <string name="runs_on_app_start">Esegui quando l\'applicazione viene avviata</string>
     <string name="unread">Non letto</string>
     <string name="show_pages_thumbs">Mostra le anteprime delle pagine</string>
     <string name="show_pages_thumbs_summary">Abilita la tab \"Pagine\" nella schermata di dettaglio</string>

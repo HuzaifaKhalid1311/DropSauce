@@ -491,7 +491,6 @@
     <string name="last_used">Dernière utilisation</string>
     <string name="missing_storage_permission">Il n\'y a aucune autorisation pour accéder aux mangas sur le stockage externe</string>
     <string name="pin_navigation_ui">Épingler l\'interface de navigation</string>
-    <string name="runs_on_app_start">S\'exécute au démarrage de l\'application</string>
     <string name="show_pages_thumbs_summary">Active l\'onglet \"Pages\" sur l\'écran de détails</string>
     <string name="webtoon_gaps">Séparateurs en mode webtoon</string>
     <string name="webtoon_gaps_summary">Afficher des espaces verticaux entre les pages en mode webtoon</string>

@@ -474,7 +474,6 @@
     <string name="migrate_confirmation">Manga \"%1$s\" aus \"%2$s\" wird mit \"%3$s\" aus \"%4$s\" in deinem Verlauf und Favoriten (sofern vorhanden) ersetzt</string>
     <string name="manga_migration">Manga Migrierung</string>
     <string name="delete_read_chapters_auto">Lösche gelesene Kapitel automatisch</string>
-    <string name="runs_on_app_start">Wird ausgeführt wenn die App gestartet wird</string>
     <string name="week">Woche</string>
     <string name="month">Monat</string>
     <string name="empty_stats_text">Es sind keine Statistiken für die ausgewählte Zeitspanne vorhanden</string>

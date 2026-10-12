@@ -499,7 +499,6 @@
     <string name="delete_read_chapters_summary">स्थान खाली करने के लिए स्थानीय स्टोरेज से उन अध्यायों को मिटा दें जिन्हें आप पढ़ चुके हैं</string>
     <string name="delete_read_chapters_prompt">यह आपके स्थानीय स्टोरेज से पढ़े गए के रूप में चिह्नित सभी अध्यायों को स्थायी रूप से मिटा देगा। आप इसे बाद में पुनः डाउनलोड कर सकते हैं, लेकिन आयातित अध्याय हमेशा के लिए खो सकते हैं</string>
     <string name="delete_read_chapters_auto">पढ़े गए अध्याय स्वचालित रूप से मिटाएं</string>
-    <string name="runs_on_app_start">एप्लिकेशन प्रारंभ होने पर चलता है</string>
     <string name="chapters_grid_view">ग्रिड दृश्य</string>
     <string name="order_oldest">सबसे पुराना</string>
     <string name="long_ago_read">बहुत पहले पढ़ा था</string>

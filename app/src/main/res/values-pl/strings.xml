@@ -495,7 +495,6 @@
     <string name="delete_read_chapters_prompt">Spowoduje to trwałe usunięcie wszystkich rozdziałów oznaczonych jako przeczytane z pamięci lokalnej. Możesz je pobrać ponownie później, ale zaimportowane rozdziały mogą zostać utracone na zawsze</string>
     <string name="chapters_grid_view">Widok siatki</string>
     <string name="delete_read_chapters_auto">Automatyczne usuwanie przeczytanych rozdziałów</string>
-    <string name="runs_on_app_start">Wykonaj podczas uruchamiania aplikacji</string>
     <string name="order_oldest">Najstarszy</string>
     <string name="long_ago_read">Przeczytane dawno temu</string>
     <string name="unread">Nieprzeczytany</string>

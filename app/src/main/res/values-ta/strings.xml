@@ -542,7 +542,6 @@
     <string name="delete_read_chapters_summary">உள்ளக சேமிப்பகத்திலிருந்து நீங்கள் ஏற்கனவே படித்த அத்தியாயங்களை நீக்கவும்</string>
     <string name="delete_read_chapters_prompt">இது உங்கள் உள்ளக சேமிப்பகத்திலிருந்து வாசிக்கப்பட்டதாக குறிக்கப்பட்ட அனைத்து அத்தியாயங்களையும் நிரந்தரமாக நீக்கும். நீங்கள் அதை பின்னர் மீண்டும் ஏற்றலாம், ஆனால் இறக்குமதி செய்யப்பட்ட அத்தியாயங்கள் என்றென்றும் இழக்கப்படலாம்</string>
     <string name="delete_read_chapters_auto">வாசிப்பு அத்தியாயங்களை தானாக நீக்குங்கள்</string>
-    <string name="runs_on_app_start">பயன்பாடு தொடங்கும் போது இயங்கும்</string>
     <string name="order_oldest">பழமையானது</string>
     <string name="long_ago_read">நீண்ட காலத்திற்கு முன்பு படியுங்கள்</string>
     <string name="unread">படிக்காதது</string>

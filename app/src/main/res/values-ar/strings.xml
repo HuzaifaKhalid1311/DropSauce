@@ -540,7 +540,6 @@
     <string name="authors">المؤلفون</string>
     <string name="disable_connectivity_check_summary">تخطي التحقق من الاتصال في حالة وجود مشكلات في الاتصال (على سبيل المثال، الانتقال إلى وضع عدم الاتصال بالإنترنت على الرغم من اتصال الشبكة)</string>
     <string name="ignore_ssl_errors_summary">يمكنك تعطيل التحقق من شهادات SSL في حالة مواجهة مشكلات متعلقة بـ SSL عند الوصول إلى موارد الشبكة. قد يؤثر هذا على أمانك. مطلوب إعادة تشغيل التطبيق بعد تغيير هذا الإعداد.</string>
-    <string name="runs_on_app_start">يعمل عند بدء تشغيل التطبيق</string>
     <string name="error_no_data_received">لم يتم تلقي أي بيانات من الخادم</string>
     <string name="disable">تعطيل</string>
     <string name="unsupported_source">مصدر المانجا هذا غير مدعوم</string>

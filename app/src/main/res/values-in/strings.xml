@@ -507,7 +507,6 @@
     <string name="delete_read_chapters_summary">Hapus bab yang telah Anda baca dari penyimpanan lokal untuk mengosongkan ruang</string>
     <string name="migrate">Migrasi</string>
     <string name="delete_read_chapters_auto">Otomatis hapus bab yang sudah dibaca</string>
-    <string name="runs_on_app_start">Berjalan saat aplikasi dimulai</string>
     <string name="delete_read_chapters">Hapus bab yang sudah dibaca</string>
     <string name="no_chapters_deleted">Tidak ada bab yang dihapus</string>
     <string name="order_oldest">Terlama</string>

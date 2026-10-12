@@ -11,6 +11,8 @@ interface DownloadItemListener : OnListItemClickListener<DownloadItemModel> {
 
 	fun onResumeClick(item: DownloadItemModel)
 
+	fun onRetryClick(item: DownloadItemModel)
+
 	fun onSkipClick(item: DownloadItemModel)
 
 	fun onSkipAllClick(item: DownloadItemModel)

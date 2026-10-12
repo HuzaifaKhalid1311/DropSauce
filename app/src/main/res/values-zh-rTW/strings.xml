@@ -473,7 +473,6 @@
     <string name="unsupported_backup_message">請選擇一個適當的 DropSauce 備份檔案</string>
     <string name="last_used">最後使用</string>
     <string name="delete_read_chapters_auto">自動刪除已讀章節</string>
-    <string name="runs_on_app_start">當應用程式啟動時運行</string>
     <string name="minutes_short">%d 分</string>
     <string name="hours_minutes_short">%1$d 時 %2$d 分</string>
     <string name="hours_short">%d 時</string>

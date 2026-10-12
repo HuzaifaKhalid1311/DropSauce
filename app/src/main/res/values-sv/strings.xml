@@ -561,7 +561,6 @@
     <string name="external_source">Extern/tillägg</string>
     <string name="reading_time_estimation">Visa beräknad lästid</string>
     <string name="start_download">Påbörja nedladdning</string>
-    <string name="runs_on_app_start">Körs när applikationen startar</string>
     <string name="last_used">Senast använd</string>
     <string name="webtoon_gaps">Springor i webtoon-läge</string>
     <string name="order_oldest">Äldsta</string>

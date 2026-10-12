@@ -46,6 +46,9 @@ data class DownloadItemModel(
 	val canResume: Boolean
 		get() = workState == WorkInfo.State.RUNNING && isPaused
 
+	val canRetry: Boolean
+		get() = workState == WorkInfo.State.FAILED
+
 	fun getEtaString(): CharSequence? = if (hasEta) {
 		DateUtils.getRelativeTimeSpanString(
 			eta,

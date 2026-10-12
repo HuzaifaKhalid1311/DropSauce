@@ -496,7 +496,6 @@
     <string name="delete_read_chapters_prompt">Bu işlem, okundu olarak işaretlenen tüm bölümleri yerel depolama alanınızdan kalıcı olarak silecektir. Daha sonra yeniden indirebilirsiniz, ancak içe aktarılan bölümler sonsuza kadar kaybolabilir</string>
     <string name="chapters_grid_view">Izgara görünümü</string>
     <string name="delete_read_chapters_auto">Okunan bölümleri otomatik olarak sil</string>
-    <string name="runs_on_app_start">Uygulama başladığında çalışır</string>
     <string name="order_oldest">En eski</string>
     <string name="long_ago_read">Uzun zaman önce okundu</string>
     <string name="unread">Okunmadı</string>

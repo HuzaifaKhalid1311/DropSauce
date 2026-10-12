@@ -509,7 +509,6 @@
     <string name="order_oldest">Найстаріша</string>
     <string name="long_ago_read">Давно прочитана</string>
     <string name="unread">Непрочитана</string>
-    <string name="runs_on_app_start">Запускається під час запуску застосунка</string>
     <string name="delete_read_chapters_auto">Автоматично видаляти прочитані розділи</string>
     <string name="delete_read_chapters_prompt">Це призведе до остаточного видалення всіх розділів, позначених як прочитані, з вашого локального сховища. Ви можете завантажити їх пізніше, але імпортовані розділи можуть бути втрачені назавжди</string>
     <string name="unsupported_source">Це джерело манґи не підтримується</string>
