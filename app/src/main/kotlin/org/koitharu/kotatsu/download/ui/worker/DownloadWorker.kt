@@ -80,7 +80,6 @@ import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.local.data.LocalStorageCache
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.PageCache
-import org.koitharu.kotatsu.local.data.TempFileFilter
 import org.koitharu.kotatsu.local.data.input.LocalMangaParser
 import org.koitharu.kotatsu.local.data.output.LocalMangaOutput
 import org.koitharu.kotatsu.local.domain.MangaLock
@@ -292,9 +291,10 @@ class DownloadWorker @AssistedInject constructor(
 							localStorageChanges.emit(LocalMangaParser(output.rootFile).getManga(withDetails = false))
 						}.onFailure(Throwable::printStackTraceDebug)
 					}
-					destination.listFiles(TempFileFilter())?.forEach {
-						it.deleteAwait()
-					}
+					// Only this download's own page files: other downloads share the folder and their
+					// in-progress archives are .tmp files too, so a blanket sweep broke them mid-write.
+					destination.listFiles { f -> f.name.startsWith(tempFilePrefix) && f.name.endsWith(".tmp") }
+						?.forEach { it.deleteAwait() }
 				}
 			}
 		}
@@ -498,9 +498,12 @@ class DownloadWorker @AssistedInject constructor(
 		}
 	}
 
+	private val tempFilePrefix = "dl-$id-"
+
 	private fun File.createTempFile(ext: String?) = File(
 		this,
 		buildString {
+			append(tempFilePrefix)
 			append(UUID.randomUUID().toString())
 			if (!ext.isNullOrEmpty()) {
 				append('.')
