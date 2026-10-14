@@ -39,8 +39,10 @@ class WebtoonHolder(
 			scrollTo(
 				when {
 					scrollToRestore != 0 -> scrollToRestore
-					itemView.bottom <= 0 -> getScrollRange()
-					else -> 0
+					// also re-run on quality/settings changes: a page cut by the top edge must show its bottom
+					itemView.top < 0 -> getScrollRange()
+					itemView.top > 0 -> 0
+					else -> getScroll()
 				},
 			)
 			scrollToRestore = 0

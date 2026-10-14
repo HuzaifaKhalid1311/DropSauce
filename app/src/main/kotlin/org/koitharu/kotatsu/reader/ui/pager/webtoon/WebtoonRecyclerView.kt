@@ -89,12 +89,15 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 			return 0
 		}
 		when {
+			// Pages kept attached off-screen by the layout manager's extra space must not take the scroll,
+			// or the visible page gets moved mid-scroll and its neighbour sticks to the screen edge.
 			dy > 0 -> {
-				val child = getChildAt(0) as WebtoonFrameLayout
+				val first = (0 until childCount).firstOrNull { getChildAt(it).bottom > 0 } ?: return 0
+				val child = getChildAt(first) as WebtoonFrameLayout
 				var consumedByChild = child.dispatchVerticalScroll(dy)
 				if (consumedByChild < dy) {
-					if (childCount > 1) {
-						val nextChild = getChildAt(1) as WebtoonFrameLayout
+					if (first + 1 < childCount) {
+						val nextChild = getChildAt(first + 1) as WebtoonFrameLayout
 						val scrollNeededToAlign = nextChild.top.coerceAtLeast(0)
 						val unconsumed = dy - consumedByChild - scrollNeededToAlign
 						if (unconsumed > 0) {
@@ -106,11 +109,12 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 			}
 
 			dy < 0 -> {
-				val child = getChildAt(childCount - 1) as WebtoonFrameLayout
+				val last = (childCount - 1 downTo 0).firstOrNull { getChildAt(it).top < height } ?: return 0
+				val child = getChildAt(last) as WebtoonFrameLayout
 				var consumedByChild = child.dispatchVerticalScroll(dy)
 				if (consumedByChild > dy) {
-					if (childCount > 1) {
-						val nextChild = getChildAt(childCount - 2) as WebtoonFrameLayout
+					if (last > 0) {
+						val nextChild = getChildAt(last - 1) as WebtoonFrameLayout
 						val scrollNeededToAlign = (height - nextChild.bottom).coerceAtLeast(0)
 						val unconsumed = dy - consumedByChild + scrollNeededToAlign
 						if (unconsumed < 0) {
