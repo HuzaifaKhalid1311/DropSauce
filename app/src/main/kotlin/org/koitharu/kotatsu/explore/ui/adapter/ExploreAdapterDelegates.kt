@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
+import org.koitharu.kotatsu.core.ui.widgets.CarouselRecyclerView
 import org.koitharu.kotatsu.core.ui.widgets.SafeCarouselLayoutManager
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.carousel.MultiBrowseCarouselStrategy
@@ -35,7 +36,7 @@ import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.list.ui.adapter.bindBadge
 import org.koitharu.kotatsu.list.ui.model.ListModel
-import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
+import org.koitharu.kotatsu.list.ui.model.MangaListModel
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.Manga
 import kotlin.math.roundToInt
@@ -58,13 +59,7 @@ fun exploreRecommendationItemAD(
 	{ layoutInflater, parent -> ItemRecommendationBinding.inflate(layoutInflater, parent, false) },
 ) {
 
-	val adapter = BaseListAdapter<ListModel>()
-		.addDelegate(ListItemType.MANGA_CAROUSEL, recommendationCarouselItemAD(itemClickListener))
-		.addDelegate(ListItemType.STATE_LOADING, carouselSkeletonItemAD())
-	with(binding.recyclerView) {
-		this.adapter = adapter
-		layoutManager = SafeCarouselLayoutManager(MultiBrowseCarouselStrategy())
-	}
+	val adapter = binding.recyclerView.setUpMangaCarousel(itemClickListener)
 
 	bind {
 		// Still loading: fill the real carousel with blank tiles, so the skeleton has exactly the
@@ -73,22 +68,34 @@ fun exploreRecommendationItemAD(
 	}
 }
 
-fun recommendationCarouselItemAD(
+/** Shared by Explore's suggestions and the details page's related titles, so both look the same. */
+fun CarouselRecyclerView.setUpMangaCarousel(
 	itemClickListener: OnListItemClickListener<Manga>,
-) = adapterDelegateViewBinding<MangaCompactListModel, ListModel, ItemMangaCarouselBinding>(
+): BaseListAdapter<ListModel> {
+	val adapter = BaseListAdapter<ListModel>()
+		.addDelegate(ListItemType.MANGA_CAROUSEL, recommendationCarouselItemAD(itemClickListener))
+		.addDelegate(ListItemType.STATE_LOADING, carouselSkeletonItemAD())
+	this.adapter = adapter
+	layoutManager = SafeCarouselLayoutManager(MultiBrowseCarouselStrategy())
+	return adapter
+}
+
+private fun recommendationCarouselItemAD(
+	itemClickListener: OnListItemClickListener<Manga>,
+) = adapterDelegateViewBinding<MangaListModel, ListModel, ItemMangaCarouselBinding>(
 	{ layoutInflater, parent -> ItemMangaCarouselBinding.inflate(layoutInflater, parent, false) },
 ) {
 
 	binding.root.setOnClickListener { v ->
-		itemClickListener.onItemClick(item.manga, v)
+		itemClickListener.onItemClick(item.toMangaWithOverride(), v)
 	}
 	binding.progressView.isVisible = false
 	binding.badge.isVisible = false
 	binding.clipCoverToMask()
 
 	bind {
-		binding.textViewTitle.text = item.manga.title
-		binding.imageViewCover.setImageAsync(item.manga.coverUrl, item.manga.source)
+		binding.textViewTitle.text = item.title
+		binding.imageViewCover.setImageAsync(item.coverUrl, item.source)
 	}
 }
 

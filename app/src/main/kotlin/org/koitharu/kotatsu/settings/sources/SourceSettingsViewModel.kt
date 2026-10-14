@@ -1,8 +1,10 @@
 package org.koitharu.kotatsu.settings.sources
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.R
@@ -18,10 +20,13 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.lnreader.LnPluginManager
+import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.mihon.resolveActiveMihonLanguage
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
+import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import java.util.Locale
 import javax.inject.Inject
 
@@ -33,6 +38,8 @@ class SourceSettingsViewModel @Inject constructor(
 	private val mihonExtensionManager: MihonExtensionManager,
 	private val cookieJar: MutableCookieJar,
 	private val lnPluginManager: LnPluginManager,
+	private val storeManager: ExtensionStoreManager,
+	@ApplicationContext private val context: Context,
 ) : BaseViewModel(), SharedPreferences.OnSharedPreferenceChangeListener {
 
 	val source = MangaSource(savedStateHandle.get<String>(AppRouter.KEY_SOURCE))
@@ -83,6 +90,19 @@ class SourceSettingsViewModel @Inject constructor(
 	fun deleteNovelPlugin(pluginId: String) {
 		launchJob(Dispatchers.Default) {
 			lnPluginManager.uninstall(pluginId)
+			onPluginDeleted.call(Unit)
+		}
+	}
+
+	/** Sandbox extensions live in app storage, so they're deleted directly instead of via the system uninstaller. */
+	val isSandboxInstall: Boolean
+		get() = settings.isPrivateInstallEnabled
+
+	fun deleteSandboxExtension(pkgName: String) {
+		launchJob(Dispatchers.Default) {
+			MihonExtensionLoader.uninstallPrivateExtension(context, pkgName)
+			storeManager.removeOwner(ExtensionInstallMode.SANDBOX, pkgName)
+			mihonExtensionManager.loadExtensions()
 			onPluginDeleted.call(Unit)
 		}
 	}

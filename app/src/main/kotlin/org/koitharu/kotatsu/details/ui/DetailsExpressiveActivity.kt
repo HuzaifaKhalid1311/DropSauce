@@ -158,7 +158,7 @@ class DetailsExpressiveActivity :
 			},
 			onScrobblingCardClick = { index -> router.showScrobblingInfoSheet(index) },
 			onRelatedMore = { manga -> router.openRelated(manga) },
-			onRelatedClick = { item -> router.openDetails(item.toMangaWithOverride()) },
+			onRelatedClick = { manga -> router.openDetails(manga) },
 			onReadClick = { openReader(isIncognitoMode = false) },
 			onIncognitoClick = { openReader(isIncognitoMode = true) },
 			onForgetHistoryClick = { viewModel.removeFromHistory() },

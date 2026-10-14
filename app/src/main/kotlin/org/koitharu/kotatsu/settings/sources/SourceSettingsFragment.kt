@@ -250,6 +250,15 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 	}
 
 	private fun uninstallExtension(packageName: String) {
+		if (viewModel.isSandboxInstall) {
+			buildAlertDialog(context ?: return) {
+				setTitle(R.string.uninstall)
+				setMessage(viewModel.source.getTitle(context))
+				setNegativeButton(android.R.string.cancel, null)
+				setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteSandboxExtension(packageName) }
+			}.show()
+			return
+		}
 		val uri = Uri.fromParts("package", packageName, null)
 		val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			Intent.ACTION_DELETE

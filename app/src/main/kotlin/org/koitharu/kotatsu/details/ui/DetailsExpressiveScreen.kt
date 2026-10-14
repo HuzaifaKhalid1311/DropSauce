@@ -61,7 +61,7 @@ class DetailsExpressiveActions(
 	val onScrobblingMore: () -> Unit,
 	val onScrobblingCardClick: (Int) -> Unit,
 	val onRelatedMore: (Manga) -> Unit,
-	val onRelatedClick: (MangaListModel) -> Unit,
+	val onRelatedClick: (Manga) -> Unit,
 	val onReadClick: () -> Unit,
 	val onIncognitoClick: () -> Unit,
 	val onForgetHistoryClick: () -> Unit,
@@ -181,7 +181,6 @@ fun DetailsExpressiveScreen(
 			if (related.isNotEmpty()) {
 				RelatedSection(
 					items = related,
-					imageLoader = imageLoader,
 					accent = accentColor,
 					onMore = { actions.onRelatedMore(manga) },
 					onItemClick = actions.onRelatedClick,

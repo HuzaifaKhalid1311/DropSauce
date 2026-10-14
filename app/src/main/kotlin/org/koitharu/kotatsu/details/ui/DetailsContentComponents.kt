@@ -25,16 +25,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.CarouselDefaults
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,6 +50,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
+import android.view.LayoutInflater
+import androidx.core.view.updatePadding
+import androidx.recyclerview.widget.RecyclerView
+import org.koitharu.kotatsu.core.ui.BaseListAdapter
+import org.koitharu.kotatsu.databinding.ItemRecommendationBinding
+import org.koitharu.kotatsu.explore.ui.adapter.setUpMangaCarousel
+import org.koitharu.kotatsu.list.ui.model.ListModel
 import android.graphics.Typeface
 import android.text.Spanned
 import android.text.style.StrikethroughSpan
@@ -74,7 +79,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
 import coil3.request.crossfade
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -84,7 +88,6 @@ import org.koitharu.kotatsu.core.util.FileSize
 import android.os.Build
 import eu.kanade.tachiyomi.util.system.toast
 import org.koitharu.kotatsu.core.util.ext.copyToClipboard
-import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.list.ui.model.MangaListModel
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -481,66 +484,39 @@ internal fun ScrobblingSection(
 	Spacer(Modifier.height(8.dp))
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RelatedSection(
 	items: List<MangaListModel>,
-	imageLoader: ImageLoader,
 	accent: Color,
 	onMore: () -> Unit,
-	onItemClick: (MangaListModel) -> Unit,
+	onItemClick: (Manga) -> Unit,
 ) {
 	SectionHeader(title = stringResource(R.string.related_manga), action = stringResource(R.string.show_all), accent = accent, onAction = onMore)
-	// Mirrors Explore's suggestions carousel (item_recommendation / item_manga_carousel): same tile
-	// size, 4dp grid gap, free scrolling, and a mask over cover + title with square bottom corners.
-	val carouselState = rememberCarouselState { items.size }
-	HorizontalMultiBrowseCarousel(
-		state = carouselState,
-		preferredItemWidth = 150.dp,
-		itemSpacing = 4.dp,
-		flingBehavior = CarouselDefaults.noSnapFlingBehavior(),
-		contentPadding = PaddingValues(horizontal = SCREEN_PADDING),
+	val currentOnItemClick by rememberUpdatedState(onItemClick)
+	// Explore's list clips the carousel 8dp inside the screen, and tiles stop 4dp short of that
+	// clip: the 8dp inset here gives the same 12dp edge gap. The first tile still sits on the page's
+	// content edge: inset + side padding + the tile's own 2dp margin.
+	val sidePadding = with(LocalDensity.current) { (SCREEN_PADDING - RELATED_EDGE_INSET - 2.dp).roundToPx() }
+	// Explore's suggestions carousel itself, so both look and scroll exactly the same.
+	AndroidView(
+		factory = { context ->
+			val binding = ItemRecommendationBinding.inflate(LayoutInflater.from(context))
+			binding.recyclerView.updatePadding(left = sidePadding, right = sidePadding)
+			binding.recyclerView.setUpMangaCarousel { manga, _ -> currentOnItemClick(manga) }
+			binding.root
+		},
+		update = { root ->
+			@Suppress("UNCHECKED_CAST")
+			(root.findViewById<RecyclerView>(R.id.recyclerView).adapter as BaseListAdapter<ListModel>).items = items
+		},
 		modifier = Modifier
 			.fillMaxWidth()
+			.padding(horizontal = RELATED_EDGE_INSET)
 			.height(244.dp),
-	) { i ->
-		val item = items.getOrNull(i) ?: return@HorizontalMultiBrowseCarousel
-		val context = LocalContext.current
-		Column(
-			modifier = Modifier
-				.fillMaxSize()
-				.maskClip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-				.clickable { onItemClick(item) },
-		) {
-			AsyncImage(
-				model = remember(item.coverUrl, item.source) {
-					ImageRequest.Builder(context)
-						.data(item.coverUrl)
-						.crossfade(true)
-						.mangaSourceExtra(item.source)
-						.build()
-				},
-				imageLoader = imageLoader,
-				contentDescription = null,
-				contentScale = ContentScale.Crop,
-				modifier = Modifier
-					.height(200.dp)
-					.fillMaxWidth()
-					.maskClip(RoundedCornerShape(20.dp))
-					.background(MaterialTheme.colorScheme.surfaceContainer),
-			)
-			Spacer(Modifier.height(8.dp))
-			Text(
-				text = item.title,
-				style = MaterialTheme.typography.labelMedium,
-				color = MaterialTheme.colorScheme.onSurface,
-				maxLines = 2,
-				overflow = TextOverflow.Ellipsis,
-				modifier = Modifier.padding(start = 8.dp, end = 4.dp),
-			)
-		}
-	}
+	)
 }
+
+private val RELATED_EDGE_INSET = 8.dp
 
 @Composable
 internal fun LocalSizeRow(size: Long, manga: Manga, onClick: (Manga) -> Unit) {

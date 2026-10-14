@@ -7,7 +7,9 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingStatus
 import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuRepository
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class KitsuScrobbler @Inject constructor(
 	repository: KitsuRepository,
 	db: MangaDatabase,

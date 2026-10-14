@@ -17,8 +17,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -281,7 +282,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         }
         var currentMode by remember { mutableStateOf(mode) }
 
-        // Pager State for 2 pages (0: Options, 1: Info)
+        // 0: Reading, 1: More
         val pagerState = rememberPagerState(pageCount = { 2 })
         val scope = rememberCoroutineScope()
 
@@ -341,7 +342,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         verticalAlignment = Alignment.Top,
                     ) { page ->
                         when (page) {
-                            0 -> { // Options Page
+                            0 -> { // Reading page
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -359,62 +360,74 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                         },
                                     )
 
-                                    DoublePageConfigSection(
-                                        isModeStandardOrReversed = currentMode == ReaderMode.STANDARD || currentMode == ReaderMode.REVERSED,
-                                        isDoubleOnLandscape = isDoubleOnLandscape,
-                                        onDoubleOnLandscapeChange = { enabled ->
-                                            settings.isReaderDoubleOnLandscape = enabled
-                                            isDoubleOnLandscape = enabled
-                                            callback?.onDoubleModeChanged(enabled)
-                                        },
-                                        isDoubleOnFoldable = isDoubleOnFoldable,
-                                        onDoubleOnFoldableChange = { enabled ->
-                                            settings.isReaderDoubleOnFoldable = enabled
-                                            isDoubleOnFoldable = enabled
-                                            callback?.onDoubleModeChanged(settings.isReaderDoubleOnLandscape)
-                                        },
-                                        sensitivity = sensitivity,
-                                        onSensitivityChange = { value ->
-                                            settings.readerDoublePagesSensitivity = value / 100f
-                                            sensitivity = value
-                                        },
-                                    )
+                                    // An invisible copy of the two-page card sizes this page, so the sheet
+                                    // keeps the height it had when that card lived here.
+                                    Box {
+                                        Box(
+                                            Modifier
+                                                .alpha(0f)
+                                                .clearAndSetSemantics {},
+                                        ) {
+                                            DoublePageConfigSection(
+                                                isModeStandardOrReversed = false,
+                                                isDoubleOnLandscape = isDoubleOnLandscape,
+                                                onDoubleOnLandscapeChange = {},
+                                                isDoubleOnFoldable = isDoubleOnFoldable,
+                                                onDoubleOnFoldableChange = {},
+                                                sensitivity = sensitivity,
+                                                onSensitivityChange = {},
+                                            )
+                                        }
+                                        ReadingToolsSection(
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                                .padding(horizontal = 16.dp),
+                                            isBookmarkAdded = isBookmarkAdded,
+                                            onScrollTimerClick = {
+                                                callback?.onScrollTimerClick(false)
+                                                dismissAllowingStateLoss()
+                                            },
+                                            onSaveClick = {
+                                                callback?.onSavePageClick()
+                                                dismissAllowingStateLoss()
+                                            },
+                                            onBookmarkClick = {
+                                                viewModel.toggleBookmark()
+                                            },
+                                            onSettingsClick = {
+                                                router.openReaderSettings()
+                                                dismissAllowingStateLoss()
+                                            },
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.height(70.dp))
                                 }
                             }
 
-                            1 -> { // Info & Tools Page
-                                // The grid takes the whole page height so it ends flush with the
-                                // bottom, but never less than its floor: on a short landscape page
-                                // the surrounding scroll takes over instead of squashing the cards.
-                                val gridHeight = with(density) { (pagerHeightPx.toDp() - 86.dp) }
-                                    .coerceAtLeast(TOOL_GRID_MIN_HEIGHT)
+                            1 -> { // More page
+                                // The tool row takes whatever the two-page card leaves of the pinned
+                                // height, so this page ends flush with the Reading page.
+                                var cardHeightPx by remember { mutableIntStateOf(0) }
+                                val toolsHeight = with(density) { (pagerHeightPx - cardHeightPx).toDp() - 102.dp }
+                                    .coerceAtLeast(TOOL_ROW_MIN_HEIGHT)
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState())
-                                        .padding(horizontal = 16.dp),
+                                        .verticalScroll(rememberScrollState()),
                                     verticalArrangement = Arrangement.spacedBy(16.dp),
                                 ) {
-                                    ToolsGridSection(
-                                        modifier = Modifier.height(gridHeight),
+                                    MoreToolsRow(
+                                        modifier = Modifier
+                                            .height(toolsHeight)
+                                            .padding(horizontal = 16.dp),
                                         isAutoRotationEnabled = isAutoRotationEnabled,
-                                        isBookmarkAdded = isBookmarkAdded,
-                                        onSaveClick = {
-                                            callback?.onSavePageClick()
-                                            dismissAllowingStateLoss()
-                                        },
                                         onShareClick = {
                                             callback?.onSharePageClick()
                                             dismissAllowingStateLoss()
                                         },
                                         onOrientationClick = {
                                             orientationHelper.toggleScreenOrientation()
-                                        },
-                                        onScrollTimerClick = {
-                                            callback?.onScrollTimerClick(false)
-                                            dismissAllowingStateLoss()
                                         },
                                         onColorFilterClick = {
                                             val page = viewModel.getCurrentPage()
@@ -423,14 +436,30 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                                 router.openColorFilterConfig(manga, page)
                                             }
                                         },
-                                        onBookmarkClick = {
-                                            viewModel.toggleBookmark()
-                                        },
-                                        onSettingsClick = {
-                                            router.openReaderSettings()
-                                            dismissAllowingStateLoss()
-                                        },
-                                                                            )
+                                    )
+
+                                    Box(Modifier.onSizeChanged { cardHeightPx = it.height }) {
+                                        DoublePageConfigSection(
+                                            isModeStandardOrReversed = currentMode == ReaderMode.STANDARD || currentMode == ReaderMode.REVERSED,
+                                            isDoubleOnLandscape = isDoubleOnLandscape,
+                                            onDoubleOnLandscapeChange = { enabled ->
+                                                settings.isReaderDoubleOnLandscape = enabled
+                                                isDoubleOnLandscape = enabled
+                                                callback?.onDoubleModeChanged(enabled)
+                                            },
+                                            isDoubleOnFoldable = isDoubleOnFoldable,
+                                            onDoubleOnFoldableChange = { enabled ->
+                                                settings.isReaderDoubleOnFoldable = enabled
+                                                isDoubleOnFoldable = enabled
+                                                callback?.onDoubleModeChanged(settings.isReaderDoubleOnLandscape)
+                                            },
+                                            sensitivity = sensitivity,
+                                            onSensitivityChange = { value ->
+                                                settings.readerDoublePagesSensitivity = value / 100f
+                                                sensitivity = value
+                                            },
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.height(70.dp))
                                 }
@@ -463,8 +492,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         currentPage: Int,
         onTabClick: (Int) -> Unit,
         tabs: List<Triple<String, Int, Int>> = listOf(
-            Triple("Read Mode", R.drawable.ic_book_page, 0),
-            Triple("Tools", R.drawable.ic_grid, 1),
+            Triple(stringResource(R.string.epub_reading_tab), R.drawable.ic_book_page, 0),
+            Triple(stringResource(R.string.more), R.drawable.ic_grid, 1),
         ),
         modifier: Modifier = Modifier,
     ) {
@@ -1505,77 +1534,23 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         }
     }
 
-    /**
-     * Floor for the three-row Tools grid. The pager pins every page to the Read Mode page's height,
-     * which in landscape is the short viewport of a scrolling page - well under what the cards need.
-     */
-    private val TOOL_GRID_MIN_HEIGHT = 336.dp
+    /** Floor for the More page's tool row: below it the cards would clip their two-line labels. */
+    private val TOOL_ROW_MIN_HEIGHT = 96.dp
 
+    /** Reading page: the actions used mid-chapter, as a 2x2 grid that fills the height it is given. */
     @Composable
-    private fun ToolsGridSection(
-        isAutoRotationEnabled: Boolean,
+    private fun ReadingToolsSection(
         isBookmarkAdded: Boolean,
-        onSaveClick: () -> Unit,
-        onShareClick: () -> Unit,
-        onOrientationClick: () -> Unit,
         onScrollTimerClick: () -> Unit,
-        onColorFilterClick: () -> Unit,
+        onSaveClick: () -> Unit,
         onBookmarkClick: () -> Unit,
         onSettingsClick: () -> Unit,
         modifier: Modifier = Modifier,
     ) {
-        // Determine rotation values
-        val rotationTitle = if (isAutoRotationEnabled) {
-            R.string.lock_screen_rotation
-        } else {
-            R.string.rotate_screen
-        }
-        val rotationIcon = if (isAutoRotationEnabled) {
-            R.drawable.ic_screen_rotation_lock
-        } else {
-            R.drawable.ic_screen_rotation
-        }
-        // Rows split the height they are given equally, so the grid ends flush with the page and
-        // leaves no dead space. The caller is responsible for never handing it less than
-        // TOOL_GRID_MIN_HEIGHT - below that the cards would collapse and clip their labels.
         Column(
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Row 1: Save Page, Share Page, Rotation
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                ToolPillCard(
-                    icon = R.drawable.ic_save,
-                    label = stringResource(R.string.save_page),
-                    onClick = onSaveClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-                ToolPillCard(
-                    icon = R.drawable.ic_share,
-                    label = stringResource(R.string.share_page),
-                    onClick = onShareClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-                ToolPillCard(
-                    icon = rotationIcon,
-                    label = stringResource(rotationTitle),
-                    onClick = onOrientationClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-            }
-
-            // Row 2: Scroll Timer, Color correction (Squares)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1591,16 +1566,15 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         .fillMaxHeight(),
                 )
                 ToolGridCard(
-                    icon = R.drawable.ic_appearance,
-                    label = stringResource(R.string.color_correction),
-                    onClick = onColorFilterClick,
+                    icon = R.drawable.ic_save,
+                    label = stringResource(R.string.save_page),
+                    onClick = onSaveClick,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
                 )
             }
-
-            // Row 3: Settings Card (Wide) | Bookmark Button (Round)
+            // Same pair as before the reorganisation: wide Settings card, round icon-only bookmark.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1610,7 +1584,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                 ToolWideCard(
                     icon = R.drawable.ic_settings,
                     title = stringResource(R.string.settings),
-                    subtitle = "Advanced reader options",
+                    subtitle = stringResource(R.string.reader_settings_summary),
                     onClick = onSettingsClick,
                     modifier = Modifier
                         .weight(1f)
@@ -1628,6 +1602,43 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                     iconSize = 42.dp,
                 )
             }
+        }
+    }
+
+    /** More page: one row of the less frequent actions, above the two-page card. */
+    @Composable
+    private fun MoreToolsRow(
+        isAutoRotationEnabled: Boolean,
+        onShareClick: () -> Unit,
+        onOrientationClick: () -> Unit,
+        onColorFilterClick: () -> Unit,
+        modifier: Modifier = Modifier,
+    ) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            val itemModifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+            ToolPillCard(
+                icon = R.drawable.ic_share,
+                label = stringResource(R.string.share_page),
+                onClick = onShareClick,
+                modifier = itemModifier,
+            )
+            ToolPillCard(
+                icon = if (isAutoRotationEnabled) R.drawable.ic_screen_rotation_lock else R.drawable.ic_screen_rotation,
+                label = stringResource(if (isAutoRotationEnabled) R.string.lock_screen_rotation else R.string.rotate_screen),
+                onClick = onOrientationClick,
+                modifier = itemModifier,
+            )
+            ToolPillCard(
+                icon = R.drawable.ic_appearance,
+                label = stringResource(R.string.color_correction),
+                onClick = onColorFilterClick,
+                modifier = itemModifier,
+            )
         }
     }
 
@@ -1704,6 +1715,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
             }
         }
     }
+
 
     @Composable
     private fun ToolGridCard(
