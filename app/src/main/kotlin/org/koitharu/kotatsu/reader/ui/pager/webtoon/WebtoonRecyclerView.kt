@@ -57,6 +57,22 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 		detachedViews.remove(child)
 	}
 
+	override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+		super.onLayout(changed, l, t, r, b)
+		// Pages reused after a jump keep their old inner scroll; a page cut by an edge must show the side facing the screen.
+		forEach { child ->
+			val ssiv = (child as WebtoonFrameLayout).target
+			val target = when {
+				child.top < 0 -> ssiv.getScrollRange()
+				child.top > 0 -> 0
+				else -> return@forEach
+			}
+			if (ssiv.getScroll() != target) {
+				ssiv.scrollBy(target - ssiv.getScroll())
+			}
+		}
+	}
+
 	override fun startNestedScroll(axes: Int) = startNestedScroll(axes, TYPE_TOUCH)
 
 	override fun startNestedScroll(axes: Int, type: Int): Boolean = isNotEmpty()
