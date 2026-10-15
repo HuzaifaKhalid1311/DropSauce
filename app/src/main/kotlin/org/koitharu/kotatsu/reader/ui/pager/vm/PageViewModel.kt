@@ -43,6 +43,10 @@ class PageViewModel(
 	private var job: Job? = null
 	private var cachedBounds: Rect? = null
 
+	/** Size check for "rotate wide pages", done before the image is shown so it can be rotated up front. */
+	var isWidePage = false
+		private set
+
 	val state = MutableStateFlow<PageState>(PageState.Empty)
 
 	fun isLoading() = job?.isActive == true
@@ -122,6 +126,7 @@ class PageViewModel(
 				} else {
 					null
 				}
+				isWidePage = checkWide(newUri)
 				state.value = PageState.Loaded(newUri.toImageSource(cachedBounds), isConverted = true)
 			} catch (ce: CancellationException) {
 				throw ce
@@ -146,6 +151,7 @@ class PageViewModel(
 			} else {
 				null
 			}
+			isWidePage = checkWide(uri)
 			state.value = PageState.Loaded(uri.toImageSource(cachedBounds), isConverted = false)
 		} catch (e: CancellationException) {
 			throw e
@@ -171,6 +177,13 @@ class PageViewModel(
 				}
 			}
 		}.launchIn(scope)
+
+	// Checked even while the option is off, so switching it on applies to pages already loaded
+	private suspend fun checkWide(uri: Uri): Boolean {
+		if (isWebtoon) return false
+		val bounds = cachedBounds ?: return loader.isWideImage(uri)
+		return bounds.width() > bounds.height()
+	}
 
 	private fun Uri.toImageSource(bounds: Rect?): ImageSource {
 		val source = ImageSource.uri(this)

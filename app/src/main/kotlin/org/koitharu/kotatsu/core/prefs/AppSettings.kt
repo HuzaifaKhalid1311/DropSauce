@@ -409,6 +409,12 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_EPUB_CUSTOM_FONT_REVISION, 0)
 		set(value) = prefs.edit { putInt(KEY_EPUB_CUSTOM_FONT_REVISION, value) }
 
+	val isReaderRotateWideEnabled: Boolean
+		get() = prefs.getBoolean(KEY_READER_ROTATE_WIDE, false)
+
+	val isReaderRotateWideInverted: Boolean
+		get() = prefs.getBoolean(KEY_READER_ROTATE_WIDE_INVERT, false)
+
 	val isReaderZoomButtonsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READER_ZOOM_BUTTONS, false)
 
@@ -1363,6 +1369,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val EPUB_CUSTOM_FONT_FILE = "epub_custom_font"
 		const val KEY_READER_MODE_DETECT = "reader_mode_detect"
 		const val KEY_READER_CROP = "reader_crop"
+		const val KEY_READER_ROTATE_WIDE = "reader_rotate_wide"
+		const val KEY_READER_ROTATE_WIDE_INVERT = "reader_rotate_wide_invert"
 		const val KEY_PROTECT_APP = "protect_app"
 		const val KEY_PROTECT_APP_TIMEOUT = "protect_app_timeout"
 		const val KEY_APP_PASSWORD = "app_password"

@@ -38,6 +38,8 @@ data class ReaderSettings(
 	val isPagesNumbersEnabled: Boolean,
 	val isPagesCropEnabledStandard: Boolean,
 	val isPagesCropEnabledWebtoon: Boolean,
+	val isRotateWideEnabled: Boolean,
+	val isRotateWideInverted: Boolean,
 ) {
 
 	private constructor(settings: AppSettings, colorFilterOverride: ReaderColorFilter?) : this(
@@ -54,6 +56,8 @@ data class ReaderSettings(
 		isPagesNumbersEnabled = settings.isPagesNumbersEnabled,
 		isPagesCropEnabledStandard = settings.isPagesCropEnabled(ReaderMode.STANDARD),
 		isPagesCropEnabledWebtoon = settings.isPagesCropEnabled(ReaderMode.WEBTOON),
+		isRotateWideEnabled = settings.isReaderRotateWideEnabled,
+		isRotateWideInverted = settings.isReaderRotateWideInverted,
 	)
 
 	fun applyBackground(view: View) {
@@ -108,6 +112,8 @@ data class ReaderSettings(
 			AppSettings.KEY_CF_INVERTED,
 			AppSettings.KEY_CF_GRAYSCALE,
 			AppSettings.KEY_READER_CROP,
+			AppSettings.KEY_READER_ROTATE_WIDE,
+			AppSettings.KEY_READER_ROTATE_WIDE_INVERT,
 		)
 		private var job: Job? = null
 

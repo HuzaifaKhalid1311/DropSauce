@@ -41,6 +41,9 @@ class DoublePageHolder(
 		binding.ssiv.panLimit = SubsamplingScaleImageView.PAN_LIMIT_INSIDE
 	}
 
+	// Spreads already fit side by side here
+	override fun pageOrientation() = SubsamplingScaleImageView.ORIENTATION_0
+
 	override fun onBind(data: ReaderPage) {
 		super.onBind(data)
 		binding.root.setPaddingRelative(

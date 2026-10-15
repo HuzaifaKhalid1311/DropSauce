@@ -63,6 +63,12 @@ open class PageHolder(
 		return insets
 	}
 
+	override fun pageOrientation() = when {
+		!settings.isRotateWideEnabled || !viewModel.isWidePage -> SubsamplingScaleImageView.ORIENTATION_0
+		settings.isRotateWideInverted -> SubsamplingScaleImageView.ORIENTATION_270
+		else -> SubsamplingScaleImageView.ORIENTATION_90
+	}
+
 	override fun onConfigChanged(settings: ReaderSettings) {
 		super.onConfigChanged(settings)
 		binding.textViewNumber.isVisible = settings.isPagesNumbersEnabled
@@ -76,8 +82,8 @@ open class PageHolder(
 
 	override fun onReady() {
 		binding.ssiv.maxScale = 2f * maxOf(
-			binding.ssiv.width / binding.ssiv.sWidth.toFloat(),
-			binding.ssiv.height / binding.ssiv.sHeight.toFloat(),
+			binding.ssiv.width / binding.ssiv.shownWidth.toFloat(),
+			binding.ssiv.height / binding.ssiv.shownHeight.toFloat(),
 		)
 		binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 		when (settings.zoomMode) {
@@ -88,19 +94,19 @@ open class PageHolder(
 
 			ZoomMode.FIT_HEIGHT -> {
 				binding.ssiv.minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
-				binding.ssiv.minScale = binding.ssiv.height / binding.ssiv.sHeight.toFloat()
+				binding.ssiv.minScale = binding.ssiv.height / binding.ssiv.shownHeight.toFloat()
 				binding.ssiv.setScaleAndCenter(
 					binding.ssiv.minScale,
-					PointF(0f, binding.ssiv.sHeight / 2f),
+					PointF(0f, binding.ssiv.shownHeight / 2f),
 				)
 			}
 
 			ZoomMode.FIT_WIDTH -> {
 				binding.ssiv.minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
-				binding.ssiv.minScale = binding.ssiv.width / binding.ssiv.sWidth.toFloat()
+				binding.ssiv.minScale = binding.ssiv.width / binding.ssiv.shownWidth.toFloat()
 				binding.ssiv.setScaleAndCenter(
 					binding.ssiv.minScale,
-					PointF(binding.ssiv.sWidth / 2f, 0f),
+					PointF(binding.ssiv.shownWidth / 2f, 0f),
 				)
 			}
 

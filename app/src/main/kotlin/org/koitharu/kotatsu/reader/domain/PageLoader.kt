@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.reader.domain
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
 import androidx.annotation.AnyThread
@@ -167,6 +168,21 @@ class PageLoader @Inject constructor(
 			uri
 		}
 	}
+
+	/** Wider than tall, i.e. a double-page spread. False when the size can't be read (e.g. a format BitmapFactory doesn't know). */
+	suspend fun isWideImage(uri: Uri): Boolean = runCatchingCancellable {
+		runInterruptible(Dispatchers.IO) {
+			val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+			if (uri.isZipUri()) {
+				ZipFile(uri.schemeSpecificPart).use { zip ->
+					zip.getInputStream(zip.getEntry(uri.fragment)).use { BitmapFactory.decodeStream(it, null, options) }
+				}
+			} else {
+				context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
+			}
+			options.outWidth > options.outHeight
+		}
+	}.getOrDefault(false)
 
 	suspend fun getTrimmedBounds(uri: Uri): Rect? = runCatchingCancellable {
 		edgeDetector.getBounds(ImageSource.uri(uri))

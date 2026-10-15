@@ -125,6 +125,8 @@ private fun ReaderScreen(
 	var readerOptimize by rememberBooleanPref(AppSettings.KEY_READER_OPTIMIZE, false)
 	var readerUpscale by rememberBooleanPref(AppSettings.KEY_READER_UPSCALE, false)
 	var readerCrop by rememberStringSetPref(AppSettings.KEY_READER_CROP, emptySet())
+	var readerRotateWide by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE, false)
+	var readerRotateWideInvert by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE_INVERT, false)
 	var readerFullscreen by rememberBooleanPref(AppSettings.KEY_READER_FULLSCREEN, true)
 	var readerOrientation by rememberStringPref(
 		AppSettings.KEY_READER_ORIENTATION,
@@ -388,6 +390,28 @@ private fun ReaderScreen(
 						icon = R.drawable.ic_crop,
 						shape = pos.shape,
 					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.rotate_wide_pages),
+						subtitle = stringResource(R.string.rotate_wide_pages_summary),
+						checked = readerRotateWide,
+						onCheckedChange = { readerRotateWide = it },
+						icon = R.drawable.ic_rotate_90_degrees_cw,
+						shape = pos.shape,
+					)
+				}
+				if (readerRotateWide) {
+					item { pos ->
+						SwitchSettingsItem(
+							title = stringResource(R.string.rotate_wide_pages_invert),
+							subtitle = stringResource(R.string.rotate_wide_pages_invert_summary),
+							checked = readerRotateWideInvert,
+							onCheckedChange = { readerRotateWideInvert = it },
+							icon = R.drawable.ic_rotate_90_degrees_ccw,
+							shape = pos.shape,
+						)
+					}
 				}
 			}
 		}

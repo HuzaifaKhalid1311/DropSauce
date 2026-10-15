@@ -89,7 +89,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 	@CallSuper
 	protected open fun onConfigChanged(settings: ReaderSettings) {
 		settings.applyBackground(itemView)
-		if (settings.applyBitmapConfig(ssiv)) {
+		if (settings.applyBitmapConfig(ssiv) || ssiv.orientation != pageOrientation()) {
 			reloadImage()
 		} else if (viewModel.state.value is PageState.Shown) {
 			onReady()
@@ -101,8 +101,12 @@ abstract class BasePageHolder<B : ViewBinding>(
 	fun reloadImage() {
 		val source = (viewModel.state.value as? PageState.Shown)?.source ?: return
 		settings.applyBitmapConfig(ssiv)
+		ssiv.orientation = pageOrientation()
 		ssiv.setImage(source)
 	}
+
+	/** Set before the image so the view lays it out rotated from the start. */
+	protected open fun pageOrientation(): Int = SubsamplingScaleImageView.ORIENTATION_0
 
 	fun bind(data: ReaderPage) {
 		if (boundData?.id != data.id) {
@@ -229,6 +233,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 				bindingInfo.textViewStatus.setText(R.string.preparing_)
 				bindingInfo.textViewStatus.isVisible = true
 				settings.applyBitmapConfig(ssiv)
+				ssiv.orientation = pageOrientation()
 				ssiv.setImage(state.source)
 			}
 
@@ -248,7 +253,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 		// gate on the page's native resolution vs screen, not the current zoom level,
 		// so high-res pages never get processed no matter how far the user zooms in
 		val fitScale = if (ssiv.isReady && ssiv.sWidth > 0) {
-			ssiv.width / ssiv.sWidth.toFloat()
+			ssiv.width / ssiv.shownWidth.toFloat()
 		} else {
 			0f
 		}
@@ -275,6 +280,16 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 		const val PROGRESS_MODE_DELAY = 500L
 	}
+
+	// sWidth/sHeight ignore the view's rotation; these are the page's sizes as shown
+	private val SubsamplingScaleImageView.isSideways: Boolean
+		get() = orientation == SubsamplingScaleImageView.ORIENTATION_90 || orientation == SubsamplingScaleImageView.ORIENTATION_270
+
+	protected val SubsamplingScaleImageView.shownWidth: Int
+		get() = if (isSideways) sHeight else sWidth
+
+	protected val SubsamplingScaleImageView.shownHeight: Int
+		get() = if (isSideways) sWidth else sHeight
 
 	protected fun SubsamplingScaleImageView.applyDownSampling(isForeground: Boolean) {
 		downSampling = when {
