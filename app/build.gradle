@@ -23,8 +23,8 @@ android {
 		applicationId = 'org.haziffe.dropsauce'
 		minSdk = 26
 		targetSdk = 37
-		versionCode = 76
-		versionName = '1.0.0'
+		versionCode = 77
+		versionName = '1.0.1'
 		testInstrumentationRunner = 'org.koitharu.kotatsu.HiltTestRunner'
 		ksp {
 			arg('room.generateKotlin', 'true')
