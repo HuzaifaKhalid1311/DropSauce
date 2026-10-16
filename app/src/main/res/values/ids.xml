@@ -24,6 +24,7 @@
 	<item name="tag_back_home_background" type="id" />
 	<item name="tag_back_home_reopened" type="id" />
 	<item name="tag_back_home_hint" type="id" />
+	<item name="tag_action_mode_padding" type="id" />
 	<item name="tag_tonal_action_item" type="id" />
 	<item name="tag_tonal_action_icon" type="id" />
 	<item name="tag_tonal_action_tint_color" type="id" />

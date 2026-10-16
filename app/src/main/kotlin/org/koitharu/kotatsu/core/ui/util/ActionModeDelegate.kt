@@ -9,9 +9,9 @@ import android.view.Window
 import android.widget.ImageView
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.ActionBarContextView
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.children
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
@@ -60,8 +60,7 @@ class ActionModeDelegate(
 			// the bar paint the whole area in the window background, matching every other top bar.
 			val actionModeColor = backgroundColorResolver(window)
 			// Ignore visibility: with the "hide status bar" setting the rest of the UI still lays out
-			// with the status-bar height (see BaseActivity.setContentView), so the bar must too —
-			// otherwise it collapses to y=0 and AppCompat's status guard paints over it.
+			// with the status-bar height (see BaseActivity.setContentView), so the bar must too.
 			val statusBarHeight = ViewCompat.getRootWindowInsets(window.decorView)
 				?.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.statusBars())?.top ?: 0
 			window.decorView.findViewById<ActionBarContextView?>(androidx.appcompat.R.id.action_mode_bar)?.apply {
@@ -136,16 +135,24 @@ class ActionModeDelegate(
 			setBackgroundColor(color)
 		}
 		var needsLayout = false
+		// Since AppCompat 1.8 the bar adds the visible system-bar insets on top of any padding set here
+		// (and to its content height), so only our own share is tracked and compared. Comparing the
+		// total padding never matched, which skipped every frame and froze the screen in selection mode.
+		val ownPadding = getTag(R.id.tag_action_mode_padding) as? Insets ?: Insets.NONE
+		val insetTop = paddingTop - ownPadding.top
 		// Inset the bar's content to match the regular top bars: the close "X" gets its start inset from
 		// its own margin (which ActionBarContextView honours), but the action pill's end margin is
 		// ignored by this view's layout — its end inset has to come from the bar's end padding instead.
 		val edgeInset = resources.getDimensionPixelSize(R.dimen.top_bar_navigation_button_margin_start)
-		if (paddingTop != statusBarHeight || paddingStart != 0 || paddingEnd != edgeInset) {
-			setPaddingRelative(0, statusBarHeight, edgeInset, paddingBottom)
+		// Stored as (start, top, end, bottom).
+		val padding = Insets.of(0, (statusBarHeight - insetTop).coerceAtLeast(0), edgeInset, 0)
+		if (padding != ownPadding) {
+			setPaddingRelative(padding.left, padding.top, padding.right, padding.bottom)
+			setTag(R.id.tag_action_mode_padding, padding)
 			needsLayout = true
 		}
-		if (contentHeight != totalHeight) {
-			setContentHeight(totalHeight)
+		if (contentHeight != actionBarHeight + padding.top) {
+			setContentHeight(actionBarHeight + padding.top)
 			needsLayout = true
 		}
 		if (minimumHeight != totalHeight) {
@@ -158,30 +165,10 @@ class ActionModeDelegate(
 			layoutParams = params
 			needsLayout = true
 		}
-		hideStatusGuard(statusBarHeight)
 		if (needsLayout) {
 			requestLayout()
 		}
 		return needsLayout
-	}
-
-	// AppCompat draws an anonymous status guard above overlaid action modes.
-	private fun ActionBarContextView.hideStatusGuard(statusBarHeight: Int) {
-		findStatusGuard(statusBarHeight)?.visibility = View.GONE
-	}
-
-	private fun ActionBarContextView.findStatusGuard(statusBarHeight: Int): View? {
-		if (statusBarHeight == 0) {
-			return null
-		}
-		val parentView = parent as? ViewGroup ?: return null
-		return parentView.children.firstOrNull { child ->
-			if (child === this || child.id != View.NO_ID) {
-				return@firstOrNull false
-			}
-			val params = child.layoutParams as? ViewGroup.MarginLayoutParams ?: return@firstOrNull false
-			params.height == statusBarHeight && params.topMargin == 0
-		}
 	}
 
 	private fun ActionBarContextView.keepActionModeEdgeToEdge(
