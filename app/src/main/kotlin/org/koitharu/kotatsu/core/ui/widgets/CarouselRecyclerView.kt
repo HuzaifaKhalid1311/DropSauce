@@ -55,8 +55,10 @@ class CarouselRecyclerView @JvmOverloads constructor(
  * [CarouselLayoutManager] that survives a layout pass too narrow to fit any item.
  *
  * The wide (rail/landscape) layouts lay the carousel out mid-measure at transient widths before the
- * real one arrives. With side padding, a width that leaves no room for an in-bounds keyline makes
- * the library shift an all-anchor keyline state and throw "There must be a keyline marked as focal".
+ * real one arrives. With side padding, the library shrinks every keyline by the padding: a width
+ * that leaves no room at all throws "There must be a keyline marked as focal", one that leaves only
+ * a few pixels shrinks the focal item below the edge anchor and throws "Keylines after the last
+ * focal keyline must be ordered by decreasing masked item size" (e.g. rotating to landscape).
  * That pass is thrown away anyway, so it is skipped; the next pass at the real width recalculates
  * the keylines normally (the failed recalculation never assigned them).
  */
@@ -65,8 +67,9 @@ class SafeCarouselLayoutManager(strategy: CarouselStrategy) : CarouselLayoutMana
 	override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
 		try {
 			super.onLayoutChildren(recycler, state)
-		} catch (e: IllegalStateException) {
-			// ponytail: catches the library's keyline check; drop it if material fixes narrow widths
+		} catch (e: RuntimeException) {
+			// shortcut: catches the library's keyline checks; drop it if material fixes narrow widths
+			if (e !is IllegalStateException && e !is IllegalArgumentException) throw e
 			e.printStackTraceDebug()
 		}
 	}
