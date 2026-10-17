@@ -74,6 +74,7 @@ class ExploreFragment :
 	private val pages = arrayOfNulls<RecyclerView>(2)
 	private val pageAdapters = arrayOfNulls<ExploreAdapter>(2)
 	private var barsInsets: Insets = Insets.NONE
+	private var isMeasuringPages = false
 
 	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentExploreBinding {
 		return FragmentExploreBinding.inflate(inflater, container, false)
@@ -159,7 +160,9 @@ class ExploreFragment :
 			// The empty state sizes itself one layout pass late (it centers on the display), so the height
 			// measured right after emit() can be stale. Re-measuring on every page layout is a no-op unless
 			// the height really changed.
-			addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> post(::updatePagerHeight) }
+			addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+				if (!isMeasuringPages) post(::updatePagerHeight)
+			}
 		}
 		pages[position] = recyclerView
 		pageAdapters[position] = adapter
@@ -263,12 +266,19 @@ class ExploreFragment :
 		}
 		val widthSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
 		val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+		// A list's measure only does the first half of its layout; the second half normally follows in the
+		// same frame. Left half-done, the next adapter change skips its pre-layout step and drops a still
+		// animating row as a detached view, which crashes when its animation ends. So finish the pass in
+		// place right away (the layout callback it fires must not schedule another measure).
+		isMeasuringPages = true
 		val height = pages.maxOf { page ->
 			page?.let {
 				it.measure(widthSpec, heightSpec)
+				it.layout(it.left, it.top, it.right, it.bottom)
 				it.measuredHeight
 			} ?: 0
 		}
+		isMeasuringPages = false
 		if (height > 0 && binding.pager.layoutParams.height != height) {
 			binding.pager.updateLayoutParams { this.height = height }
 		}
