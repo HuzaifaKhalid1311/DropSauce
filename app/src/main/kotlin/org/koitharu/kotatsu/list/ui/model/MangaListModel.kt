@@ -48,8 +48,16 @@ sealed class MangaListModel : ListModel {
 	}
 
 	override fun getChangePayload(previousState: ListModel): Any? = when {
-		previousState !is MangaListModel || previousState.manga != manga -> null
-		previousState.counter != counter -> PAYLOAD_ANYTHING_CHANGED
+		previousState !is MangaListModel || !isSameManga(previousState.manga) -> null
+		previousState.counter != counter || previousState.manga != manga -> PAYLOAD_ANYTHING_CHANGED
 		else -> null
 	}
+
+	/**
+	 * Also true when only the source got resolved: library lists read before extensions finished loading
+	 * are mapped again once they have. Such an item is rebound in place, as the change animation would
+	 * blink the whole list.
+	 */
+	protected fun isSameManga(previous: Manga): Boolean = previous == manga ||
+		previous.source.name == manga.source.name && previous.copy(source = manga.source) == manga
 }

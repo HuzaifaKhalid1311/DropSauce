@@ -40,6 +40,7 @@ import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.TIP_UI_SCALING
 import org.koitharu.kotatsu.list.ui.model.uiScalingTip
 import org.koitharu.kotatsu.list.ui.model.toErrorState
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
@@ -57,6 +58,7 @@ class HistoryListViewModel @Inject constructor(
 	private val mangaListMapper: MangaListMapper,
 	private val markAsReadUseCase: MarkAsReadUseCase,
 	private val quickFilter: HistoryListQuickFilter,
+	private val mihonExtensionManager: MihonExtensionManager,
 	mangaDataRepository: MangaDataRepository,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), QuickFilterListener by quickFilter {
@@ -159,7 +161,9 @@ class HistoryListViewModel @Inject constructor(
 		sortOrder,
 		quickFilter.appliedOptions.combineWithSettings(),
 		limit,
-	) { order, filters, limit ->
+		// Query again once extensions are loaded: entries read before that carry an unresolved source.
+		mihonExtensionManager.isReady,
+	) { order, filters, limit, _ ->
 		isPaginationReady.set(false)
 		repository.observeAllWithHistory(order, filters, limit)
 	}.flattenLatest()

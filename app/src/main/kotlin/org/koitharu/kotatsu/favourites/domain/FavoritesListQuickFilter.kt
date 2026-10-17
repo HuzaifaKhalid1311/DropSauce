@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.MangaListQuickFilter
 import org.koitharu.kotatsu.list.ui.model.ExtensionFilter
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.parsers.model.MangaSource
 
 class FavoritesListQuickFilter @AssistedInject constructor(
 	@Assisted private val categoryId: Long,
@@ -35,9 +36,17 @@ class FavoritesListQuickFilter @AssistedInject constructor(
 	override suspend fun getAdditionalChips(
 		selectedOptions: Set<ListFilterOption>,
 	): List<ChipsView.ChipModel> {
-		val options = getSourceOptions()
-		pruneStaleSourceFilters(selectedOptions, options)
-		if (options.isEmpty()) {
+		// Not awaited: the list would stay empty until every extension had loaded. Until then the chip
+		// shows with nothing to pick yet, so it doesn't pop in late; the list is mapped again once they are.
+		mihonExtensionManager.initialize()
+		val isReady = mihonExtensionManager.isReady.value
+		val sources = repository.findSources(categoryId)
+		val options = if (isReady) {
+			getSourceOptions(sources).also { pruneStaleSourceFilters(selectedOptions, it) }
+		} else {
+			emptyList()
+		}
+		if (options.isEmpty() && (isReady || sources.none { it.name.startsWith("MIHON_") })) {
 			return emptyList()
 		}
 		val selectedSourceNames = selectedOptions
@@ -59,12 +68,9 @@ class FavoritesListQuickFilter @AssistedInject constructor(
 		)
 	}
 
-	private suspend fun getSourceOptions(): List<ListFilterOption.Source> {
-		// Installs are picked up by the package observer; forcing a reload here re-scanned every
-		// package each time a favourites category page was created.
-		mihonExtensionManager.ensureReady()
+	private fun getSourceOptions(sources: List<MangaSource>): List<ListFilterOption.Source> {
 		val installedSources = mihonExtensionManager.getMihonMangaSources()
-		return repository.findSources(categoryId).mapNotNull { source ->
+		return sources.mapNotNull { source ->
 			installedSources.firstOrNull { it == source }
 		}.distinctBy {
 			it.name

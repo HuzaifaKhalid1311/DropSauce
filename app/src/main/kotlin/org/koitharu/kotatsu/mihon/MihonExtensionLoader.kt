@@ -48,6 +48,13 @@ class MihonExtensionLoader @Inject constructor(
 
 	companion object {
 		private const val TAG = "MihonExtensionLoader"
+
+		// Opening class loaders and creating sources is CPU-heavy. One coroutine per extension on the
+		// plain IO pool ran dozens at once at launch, starving the UI thread while the first screens drew.
+		private val loadDispatcher = Dispatchers.IO.limitedParallelism(
+			(Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1),
+		)
+
 		private const val EXTENSION_FEATURE = "tachiyomi.extension"
 
 		/**
@@ -326,7 +333,7 @@ class MihonExtensionLoader @Inject constructor(
 		} else {
 			getInstalledPackages(context.packageManager)
 				.filter(::isPackageAnExtension)
-				.map { pkgInfo -> async { loadExtension(context, pkgInfo, isShared = true) } }
+				.map { pkgInfo -> async(loadDispatcher) { loadExtension(context, pkgInfo, isShared = true) } }
 				.awaitAll()
 		}
 		// Forget uninstalled (or now failing) extensions so their class loaders can be collected.
@@ -348,7 +355,7 @@ class MihonExtensionLoader @Inject constructor(
 			?: emptyList()
 		if (privateFiles.isEmpty()) return@coroutineScope emptyList()
 		privateFiles.map { file ->
-			async {
+			async(loadDispatcher) {
 				if (file.canWrite()) file.setReadOnly()
 				val pkgInfo = pkgManager.getPackageArchiveInfo(file.absolutePath, packageFlags)
 				if (pkgInfo == null || !isPackageAnExtension(pkgInfo)) {

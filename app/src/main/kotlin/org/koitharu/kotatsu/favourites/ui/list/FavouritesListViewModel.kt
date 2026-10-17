@@ -43,6 +43,7 @@ import org.koitharu.kotatsu.list.ui.model.MangaGridModel
 import org.koitharu.kotatsu.list.ui.model.MangaListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.toErrorState
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
@@ -60,6 +61,7 @@ class FavouritesListViewModel @Inject constructor(
 	private val markAsReadUseCase: MarkAsReadUseCase,
 	quickFilterFactory: FavoritesListQuickFilter.Factory,
 	private val settings: AppSettings,
+	private val mihonExtensionManager: MihonExtensionManager,
 	mangaDataRepository: MangaDataRepository,
 	@LocalStorageChanges localStorageChanges: SharedFlow<LocalManga?>,
 ) : MangaListViewModel(settings, mangaDataRepository, localStorageChanges), QuickFilterListener {
@@ -204,13 +206,15 @@ class FavouritesListViewModel @Inject constructor(
 		settings.setPinnedFavourites(categoryId, updated)
 	}
 
+	// Queried again once extensions are loaded: entries read before that carry an unresolved source.
 	private fun observeFavorites() = if (categoryId == NO_ID) {
 		combine(
 			sortOrder.filterNotNull(),
 			quickFilter.appliedOptions.combineWithSettings(),
 			limit,
 			pinnedIds,
-		) { order, filters, limit, pinned ->
+			mihonExtensionManager.isReady,
+		) { order, filters, limit, pinned, _ ->
 			isPaginationReady.set(false)
 			repository.observeAll(order, filters, limit, pinned.takeIfDefaultState(filters))
 		}.flattenLatest()
@@ -219,7 +223,8 @@ class FavouritesListViewModel @Inject constructor(
 			quickFilter.appliedOptions.combineWithSettings(),
 			limit,
 			pinnedIds,
-		) { filters, limit, pinned ->
+			mihonExtensionManager.isReady,
+		) { filters, limit, pinned, _ ->
 			repository.observeAll(categoryId, filters, limit, pinned.takeIfDefaultState(filters))
 		}.flattenLatest()
 	}

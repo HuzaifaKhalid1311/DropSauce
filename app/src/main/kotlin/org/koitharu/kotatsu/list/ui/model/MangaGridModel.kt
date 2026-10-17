@@ -20,7 +20,7 @@ data class MangaGridModel(
 ) : MangaListModel() {
 
 	override fun getChangePayload(previousState: ListModel): Any? = when {
-		previousState !is MangaGridModel || previousState.manga != manga -> null
+		previousState !is MangaGridModel || !isSameManga(previousState.manga) -> null
 
 		previousState.progress != progress -> PAYLOAD_PROGRESS_CHANGED
 		previousState.isFavorite != isFavorite ||

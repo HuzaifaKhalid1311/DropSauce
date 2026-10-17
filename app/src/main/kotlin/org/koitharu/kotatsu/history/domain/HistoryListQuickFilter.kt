@@ -33,9 +33,9 @@ class HistoryListQuickFilter @Inject constructor(
 		repository.getPopularTags(3).mapTo(this) {
 			ListFilterOption.Tag(it)
 		}
-		// Ensure extensions are loaded before reading source names from the DB, so
-		// MangaSource("MIHON_<id>") resolves to a real MihonMangaSource with a display name.
-		mihonExtensionManager.ensureReady()
+		// Not awaited: the list would stay empty until every extension had loaded. A chip's name is
+		// read on each mapping, and the list is mapped again once they are loaded.
+		mihonExtensionManager.initialize()
 		repository.getPopularSources(3).mapTo(this) {
 			ListFilterOption.Source(it)
 		}

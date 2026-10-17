@@ -150,16 +150,14 @@ class MihonImageFetcher(
 					val resolved = source.catalogueSource as? HttpSource ?: return null
 					{ resolved }
 				}
-				// Covers requested at app start, before extensions finished loading (the library
-				// lists). Like Mihon's cover fetcher, serve the disk cache straight away and wait for
-				// the extension only on a miss - instead of fetching through the app's client, which
-				// some sources reject, under a key the extension path never reads back.
+				// Library list entries mapped before extensions finished loading - they keep this source
+				// after loading too. Like Mihon's cover fetcher, serve the disk cache straight away and
+				// wait for the extension only on a miss - instead of fetching through the app's client,
+				// which some sources reject, under a key the extension path never reads back.
 				is MissingMangaSource -> {
 					if (!source.name.startsWith("MIHON_")) return null
-					val manager = extensionManager.get()
-					if (manager.isReady.value) return null
 					{
-						manager.ensureReady()
+						extensionManager.get().ensureReady()
 						(MangaSource(source.name) as? MihonMangaSource)?.catalogueSource as? HttpSource
 					}
 				}
