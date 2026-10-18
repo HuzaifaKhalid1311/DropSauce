@@ -74,7 +74,7 @@
     <string name="_import">Import</string>
     <string name="delete">Delete</string>
     <string name="operation_not_supported">This operation is not supported</string>
-    <string name="text_file_not_supported">Only .cbz, .zip, .pdf and .epub files are supported</string>
+    <string name="text_file_not_supported">Only .cbz, .cbr, .zip, .pdf and .epub files are supported</string>
     <string name="no_description">No description</string>
     <string name="clear_pages_cache">Clear page cache</string>
     <string name="text_file_sizes">B|kB|MB|GB|TB</string>
@@ -517,7 +517,7 @@
     <string name="extension_download_failed">Extension download failed. Check your connection and try again.</string>
     <string name="user_agent">UserAgent header</string>
     <string name="settings_apply_restart_required">Please restart the application to apply these changes</string>
-    <string name="comics_archive_import_description">Select one or more .cbz, .zip, .pdf or .epub files. Each file is imported as a separate title: PDFs are converted to comic pages, EPUB books keep their text chapters.</string>
+    <string name="comics_archive_import_description">Select one or more .cbz, .cbr, .zip, .pdf or .epub files. Each file is imported as a separate title: PDFs are converted to comic pages, EPUB books keep their text chapters.</string>
     <string name="folder_with_images_import_description">Select a folder to import as a single title. PDF files inside become chapters, EPUB files become volumes, otherwise each archive or subfolder becomes a chapter.</string>
     <string name="epub_text_size">Text size</string>
 	<string name="epub_font_family">Font</string>

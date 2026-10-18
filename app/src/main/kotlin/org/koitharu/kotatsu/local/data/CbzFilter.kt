@@ -14,6 +14,10 @@ private fun isPdfExtension(ext: String?): Boolean {
 	return ext.equals("pdf", ignoreCase = true)
 }
 
+private fun isRarExtension(ext: String?): Boolean {
+	return ext.equals("cbr", ignoreCase = true) || ext.equals("rar", ignoreCase = true)
+}
+
 private fun isEpubExtension(ext: String?): Boolean {
 	return ext.equals("epub", ignoreCase = true)
 }
@@ -28,6 +32,12 @@ fun hasPdfExtension(string: String): Boolean {
 	return isPdfExtension(ext)
 }
 
+/** CBR is only an import format: the importer repacks it into a CBZ. */
+fun hasRarExtension(string: String): Boolean {
+	val ext = string.substringAfterLast('.', "")
+	return isRarExtension(ext)
+}
+
 fun hasEpubExtension(string: String): Boolean {
 	val ext = string.substringAfterLast('.', "")
 	return isEpubExtension(ext)
@@ -35,7 +45,7 @@ fun hasEpubExtension(string: String): Boolean {
 
 fun isSupportedArchive(string: String): Boolean {
 	val ext = string.substringAfterLast('.', "")
-	return isZipExtension(ext) || isPdfExtension(ext) || isEpubExtension(ext)
+	return isZipExtension(ext) || isPdfExtension(ext) || isRarExtension(ext) || isEpubExtension(ext)
 }
 
 /** Deep enough for `book/volume/chapter/page.jpg`, shallow enough not to walk a whole memory card. */
@@ -65,7 +75,7 @@ fun hasImageExtension(string: String): Boolean {
 }
 
 private val File.isMangaContentFile: Boolean
-	get() = isSupportedArchive(name) || hasImageExtension(name)
+	get() = (isSupportedArchive(name) && !hasRarExtension(name)) || hasImageExtension(name)
 
 val File.isZipArchive: Boolean
 	get() = isFile && isZipExtension(extension)

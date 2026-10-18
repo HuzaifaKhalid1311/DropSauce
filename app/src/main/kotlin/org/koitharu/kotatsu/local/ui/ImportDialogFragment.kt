@@ -63,7 +63,7 @@ class ImportDialogFragment : ComposeAlertDialogFragment() {
 			) {
 				launch(
 					importFileCall.tryLaunch(
-						arrayOf("application/zip", "application/x-cbz", "application/pdf", "application/epub+zip", "*/*"),
+						arrayOf("application/zip", "application/x-cbz", "application/vnd.comicbook-rar", "application/x-cbr", "application/pdf", "application/epub+zip", "*/*"),
 					),
 				)
 			}

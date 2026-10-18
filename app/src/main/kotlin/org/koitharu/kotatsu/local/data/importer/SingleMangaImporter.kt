@@ -8,20 +8,24 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import androidx.documentfile.provider.DocumentFile
+import com.github.junrar.Archive
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import okio.ByteString.Companion.decodeHex
 import okio.buffer
 import okio.sink
+import okio.source
 import org.koitharu.kotatsu.core.exceptions.UnsupportedFileException
 import org.koitharu.kotatsu.core.util.ext.openSource
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.resolveName
 import org.koitharu.kotatsu.core.util.ext.writeAllCancellable
 import org.koitharu.kotatsu.local.data.hasPdfExtension
+import org.koitharu.kotatsu.local.data.hasRarExtension
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.local.data.isSupportedArchive
@@ -31,6 +35,7 @@ import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.io.IOException
 import java.util.Locale
+import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.math.roundToInt
@@ -77,7 +82,7 @@ class SingleMangaImporter @Inject constructor(
 						output.writeAllCancellable(source)
 					}
 				}
-			}
+			}.let { if (hasRarExtension(name)) runInterruptible { it.repackRarToCbz() } else it }
 		}
 		LocalMangaParser(dest).getManga(withDetails = false)
 	}
@@ -120,6 +125,42 @@ class SingleMangaImporter @Inject constructor(
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * CBR is only an import format: it is kept as a CBZ, so nothing past the importer has to read RAR.
+	 * Many .cbr files are zips under another name and only need renaming. Replaces this file either way.
+	 */
+	private fun File.repackRarToCbz(): File {
+		val cbz = File(parentFile, "$nameWithoutExtension.cbz")
+		try {
+			if (source().buffer().use { it.rangeEquals(0, ZIP_MAGIC) }) {
+				if (!renameTo(cbz)) {
+					throw IOException("Cannot rename $this to $cbz")
+				}
+				return cbz
+			}
+			Archive(this).use { rar ->
+				ZipOutputStream(cbz.outputStream().buffered()).use { zip ->
+					// Pages are already compressed images, deflating them again only costs time
+					zip.setLevel(Deflater.NO_COMPRESSION)
+					for (header in rar) {
+						if (header.isDirectory) {
+							continue
+						}
+						zip.putNextEntry(ZipEntry(header.fileName.replace('\\', '/')))
+						rar.extractFile(header, zip)
+						zip.closeEntry()
+					}
+				}
+			}
+			return cbz
+		} catch (e: Exception) {
+			cbz.delete()
+			throw e
+		} finally {
+			delete()
 		}
 	}
 
@@ -190,10 +231,14 @@ class SingleMangaImporter @Inject constructor(
 				docFile.copyTo(subDir)
 			}
 		} else {
+			val file = File(destDir, requireName())
 			source().use { input ->
-				File(destDir, requireName()).sink().buffer().use { output ->
+				file.sink().buffer().use { output ->
 					output.writeAllCancellable(input)
 				}
+			}
+			if (hasRarExtension(file.name)) {
+				runInterruptible { file.repackRarToCbz() }
 			}
 		}
 	}
@@ -239,5 +284,6 @@ class SingleMangaImporter @Inject constructor(
 	private companion object {
 		private const val PDF_RENDER_SCALE = 4f
 		private const val MAX_RENDER_DIMENSION = 4096
+		private val ZIP_MAGIC = "504b0304".decodeHex()
 	}
 }

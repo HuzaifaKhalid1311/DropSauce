@@ -211,6 +211,7 @@ dependencies {
 	implementation libs.okio
 	implementation libs.rxjava
 	implementation libs.quickJs
+	implementation libs.junrar
 	implementation libs.unifile
 	implementation libs.injekt.core
 	// Extension APKs link against Mihon's Jsoup surface; keep it explicit and version-aligned
