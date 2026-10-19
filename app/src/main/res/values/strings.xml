@@ -639,8 +639,11 @@
     <string name="data_not_restored">Data was not restored</string>
     <string name="data_not_restored_text">Make sure you have selected the correct backup file</string>
     <string name="manage_categories">Manage categories</string>
-    <string name="default_category_sort">Default sorting order</string>
-    <string name="default_category_sort_summary">Picking an order applies it to all your existing categories, replacing the sort each one has now, and to every new category you create. The \"All favorites\" tab keeps its own sort.</string>
+    <string name="default_category_sort">Sort manga in all categories</string>
+    <string name="category_order">Arrange categories</string>
+    <string name="category_order_reset">Category order set to Random</string>
+    <string name="number_of_items">Number of items</string>
+    <string name="date_created">Date created</string>
     <string name="suggestions_wifi_only_summary">Do not update suggestions using metered network connections</string>
     <string name="tracker_wifi_only_summary">Do not check for new chapters using metered network connections</string>
     <string name="search_hint">Enter title, genre or source name</string>

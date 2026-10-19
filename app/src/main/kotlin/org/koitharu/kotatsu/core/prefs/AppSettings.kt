@@ -40,6 +40,7 @@ import org.koitharu.kotatsu.core.util.ext.putEnumValue
 import org.koitharu.kotatsu.core.util.ext.takeIfReadable
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
+import org.koitharu.kotatsu.favourites.domain.model.CategoriesOrder
 import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.find
@@ -1024,6 +1025,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getEnumValue(KEY_CATEGORY_DEFAULT_ORDER, ListSortOrder.NEWEST)
 		set(value) = prefs.edit { putEnumValue(KEY_CATEGORY_DEFAULT_ORDER, value) }
 
+	/** Order of the favourite categories everywhere they are listed. */
+	var favouriteCategoriesOrder: CategoriesOrder
+		get() = prefs.getEnumValue(KEY_CATEGORIES_ORDER, CategoriesOrder.RANDOM)
+		set(value) = prefs.edit { putEnumValue(KEY_CATEGORIES_ORDER, value) }
+
 	// comma-joined in pin order, oldest pin first
 	fun getPinnedFavourites(categoryId: Long): List<Long> =
 		prefs.getString(KEY_FAVORITES_PINNED + categoryId, null)
@@ -1414,6 +1420,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_HISTORY_ORDER = "history_order"
 		const val KEY_FAVORITES_ORDER = "fav_order"
 		const val KEY_CATEGORY_DEFAULT_ORDER = "category_default_order"
+		const val KEY_CATEGORIES_ORDER = "categories_order"
 		const val KEY_FAVORITES_PINNED = "fav_pinned_order_"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
 		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"

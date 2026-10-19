@@ -6,8 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,16 +19,12 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
-import org.koitharu.kotatsu.core.ui.sheet.SheetContentPadding
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.databinding.SheetSortOrderBinding
 import org.koitharu.kotatsu.list.ui.sort.SortRow
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
-/**
- * Default sort for favourite categories, opened from the categories manager. Looks and taps like the
- * favourites sort sheet, with a note up top since a pick rewrites every category's own sort.
- */
+/** Manga sort for every category and the "All favorites" tab, opened from the categories manager. */
 @AndroidEntryPoint
 class CategoriesSortSheet : BaseAdaptiveSheet<SheetSortOrderBinding>() {
 
@@ -64,12 +58,6 @@ class CategoriesSortSheet : BaseAdaptiveSheet<SheetSortOrderBinding>() {
 	private fun Content() {
 		val current by viewModel.sortOrder.collectAsState()
 		Column(modifier = Modifier.padding(vertical = 8.dp)) {
-			Text(
-				text = stringResource(R.string.default_category_sort_summary),
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				modifier = Modifier.padding(start = SheetContentPadding, end = SheetContentPadding, bottom = 8.dp),
-			)
 			viewModel.types.forEach { type ->
 				SortRow(
 					title = stringResource(type.titleResId),

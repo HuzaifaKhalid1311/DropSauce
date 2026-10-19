@@ -13,6 +13,7 @@ import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import coil3.ImageLoader
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.roundTopCorners
@@ -76,6 +77,9 @@ class FavouriteCategoriesActivity :
 
 		viewModel.content.observe(this, ::onCategoriesChanged)
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.recyclerView, null))
+		viewModel.onCategoriesOrderReset.observeEvent(this) {
+			Snackbar.make(viewBinding.recyclerView, R.string.category_order_reset, Snackbar.LENGTH_SHORT).show()
+		}
 	}
 
 	override fun onApplyWindowInsets(
@@ -106,8 +110,8 @@ class FavouriteCategoriesActivity :
 	}
 
 	override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-		R.id.action_default_sort -> {
-			router.showCategoriesSortSheet()
+		R.id.action_categories_order -> {
+			router.showCategoriesOrderSheet()
 			true
 		}
 
@@ -164,6 +168,12 @@ class FavouriteCategoriesActivity :
 		viewModel.setAllCategoriesVisible(isChecked)
 	}
 
+	override fun onMangaSortClick() {
+		if (selectionController.count == 0) {
+			router.showCategoriesSortSheet()
+		}
+	}
+
 	override fun onDragHandleTouch(holder: RecyclerView.ViewHolder): Boolean {
 		reorderHelper.startDrag(holder)
 		return true
@@ -181,6 +191,9 @@ class FavouriteCategoriesActivity :
 		ItemTouchHelper.DOWN or ItemTouchHelper.UP,
 		0,
 	) {
+
+		// a touch on the handle without a move must not save, or it would reset a sorted order to random
+		private var isMoved = false
 
 		override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
 			return if (actionModeDelegate.isActionModeStarted) {
@@ -206,6 +219,7 @@ class FavouriteCategoriesActivity :
 				return false
 			}
 			adapter.reorderItems(fromPos, toPos)
+			isMoved = true
 			return true
 		}
 
@@ -224,7 +238,10 @@ class FavouriteCategoriesActivity :
 
 		override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
 			super.clearView(recyclerView, viewHolder)
-			viewModel.saveOrder(adapter.items ?: return)
+			if (isMoved) {
+				isMoved = false
+				viewModel.saveOrder(adapter.items ?: return)
+			}
 		}
 	}
 }

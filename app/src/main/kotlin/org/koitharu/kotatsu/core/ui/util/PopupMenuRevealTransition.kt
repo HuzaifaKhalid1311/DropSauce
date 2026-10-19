@@ -12,9 +12,15 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
+import android.view.animation.LinearInterpolator
+import android.view.animation.PathInterpolator
 import androidx.annotation.Keep
 import org.koitharu.kotatsu.R
 
+/**
+ * Unfolds the menu from its anchor corner: the width opens quickly, the height keeps easing down
+ * after it, and the items fade in once there is room for them.
+ */
 @Keep
 class PopupMenuRevealTransition(
 	context: Context,
@@ -43,21 +49,28 @@ class PopupMenuRevealTransition(
 			growsFromLeft = growsFromLeft,
 			growsFromTop = growsFromTop,
 		).apply {
-			setProgress(view.width, view.height, 0f)
+			setProgress(view.width, view.height, 0f, 0f)
 		}
 		val originalOutlineProvider = view.outlineProvider
 		val wasClippingToOutline = view.clipToOutline
+		// Only the items fade; the surface stays opaque so its edge and shadow read as one shape
+		val content = (view as? ViewGroup)?.getChildAt(0)
 
 		view.outlineProvider = outlineProvider
 		view.clipToOutline = true
+		content?.alpha = 0f
 
 		return ValueAnimator.ofFloat(0f, 1f).apply {
+			interpolator = LinearInterpolator()
 			addUpdateListener { animation ->
+				val t = animation.animatedFraction
 				outlineProvider.setProgress(
 					width = view.width,
 					height = view.height,
-					progress = animation.animatedValue as Float,
+					widthProgress = widthInterpolator.getInterpolation((t / WIDTH_SHARE).coerceAtMost(1f)),
+					heightProgress = heightInterpolator.getInterpolation(t),
 				)
+				content?.alpha = ((t - FADE_START) / FADE_SHARE).coerceIn(0f, 1f)
 				view.invalidateOutline()
 			}
 			addListener(object : AnimatorListenerAdapter() {
@@ -72,6 +85,7 @@ class PopupMenuRevealTransition(
 						return
 					}
 					restored = true
+					content?.alpha = 1f
 					view.outlineProvider = originalOutlineProvider
 					view.clipToOutline = wasClippingToOutline
 					view.invalidateOutline()
@@ -101,11 +115,12 @@ class PopupMenuRevealTransition(
 		fun setProgress(
 			width: Int,
 			height: Int,
-			progress: Float,
+			widthProgress: Float,
+			heightProgress: Float,
 		) {
 			val diameter = minOf(cornerRadius * 2f, width.toFloat(), height.toFloat())
-			val revealedWidth = diameter + (width - diameter) * progress
-			val revealedHeight = diameter + (height - diameter) * progress
+			val revealedWidth = diameter + (width - diameter) * widthProgress
+			val revealedHeight = diameter + (height - diameter) * heightProgress
 			bounds.set(
 				if (growsFromLeft) 0f else width - revealedWidth,
 				if (growsFromTop) 0f else height - revealedHeight,
@@ -113,5 +128,15 @@ class PopupMenuRevealTransition(
 				if (growsFromTop) revealedHeight else height.toFloat(),
 			)
 		}
+	}
+
+	private companion object {
+
+		const val WIDTH_SHARE = 0.55f // of the duration
+		const val FADE_START = 0.12f
+		const val FADE_SHARE = 0.35f
+
+		val widthInterpolator = PathInterpolator(0f, 0f, 0.2f, 1f) // M3 standard decelerate
+		val heightInterpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f) // M3 emphasized decelerate
 	}
 }

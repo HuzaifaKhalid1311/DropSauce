@@ -7,6 +7,14 @@
 	     conservatively declares API 24 even though Shizuku itself supports API 23. -->
 	<uses-sdk tools:overrideLibrary="rikka.shizuku.api,rikka.shizuku.provider" />
 
+	<!-- Launchable on Android TV (see the banner below); neither is required on phones -->
+	<uses-feature
+		android:name="android.software.leanback"
+		android:required="false" />
+	<uses-feature
+		android:name="android.hardware.touchscreen"
+		android:required="false" />
+
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission
@@ -50,6 +58,7 @@
 	<application
 		android:name="org.koitharu.kotatsu.KotatsuApp"
 		android:allowBackup="true"
+		android:banner="@drawable/tv_banner"
 		android:enableOnBackInvokedCallback="@bool/is_predictive_back_enabled"
 		android:hasFragileUserData="true"
 		android:restoreAnyVersion="true"
@@ -78,6 +87,7 @@
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
+				<category android:name="android.intent.category.LEANBACK_LAUNCHER" />
 			</intent-filter>
 			<meta-data
 				android:name="android.app.default_searchable"

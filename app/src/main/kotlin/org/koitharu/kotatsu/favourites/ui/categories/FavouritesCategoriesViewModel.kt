@@ -18,11 +18,16 @@ import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
+import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
+import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.requireValue
 import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
+import org.koitharu.kotatsu.favourites.domain.model.CategoriesOrder
 import org.koitharu.kotatsu.favourites.domain.model.Cover
 import org.koitharu.kotatsu.favourites.ui.categories.adapter.AllCategoriesListModel
+import org.koitharu.kotatsu.favourites.ui.categories.adapter.CategoriesSortListModel
 import org.koitharu.kotatsu.favourites.ui.categories.adapter.CategoryListModel
+import org.koitharu.kotatsu.list.domain.ListSortOrder
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
@@ -35,6 +40,8 @@ class FavouritesCategoriesViewModel @Inject constructor(
 ) : BaseViewModel() {
 
 	private var commitJob: Job? = null
+
+	val onCategoriesOrderReset = MutableEventFlow<Unit>()
 	private val isActionsEnabled = MutableStateFlow(true)
 
 	val content = combine(
@@ -42,8 +49,9 @@ class FavouritesCategoriesViewModel @Inject constructor(
 		observeAllCategories(),
 		settings.observeAsFlow(AppSettings.KEY_ALL_FAVOURITES_VISIBLE) { isAllFavouritesVisible },
 		isActionsEnabled,
-	) { cats, all, showAll, hasActions ->
-		cats.toUiList(all, showAll, hasActions)
+		settings.observeAsFlow(AppSettings.KEY_CATEGORY_DEFAULT_ORDER) { defaultCategorySortOrder },
+	) { cats, all, showAll, hasActions, mangaSort ->
+		cats.toUiList(all, showAll, hasActions, mangaSort)
 	}.withErrorHandling()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
@@ -67,7 +75,12 @@ class FavouritesCategoriesViewModel @Inject constructor(
 				(it as? CategoryListModel)?.category?.id
 			}
 			if (ids.isNotEmpty()) {
+				// New keys first, while the old order still shows the same list, so nothing jumps on screen
 				repository.reorderCategories(ids)
+				if (settings.favouriteCategoriesOrder != CategoriesOrder.RANDOM) {
+					settings.favouriteCategoriesOrder = CategoriesOrder.RANDOM
+					onCategoriesOrderReset.call(Unit)
+				}
 			}
 		}
 	}
@@ -91,10 +104,11 @@ class FavouritesCategoriesViewModel @Inject constructor(
 		}
 	}
 
-	private fun Map<FavouriteCategory, List<Cover>>.toUiList(
+	private fun List<Pair<FavouriteCategory, List<Cover>>>.toUiList(
 		allFavorites: Pair<Int, List<Cover>>,
 		showAll: Boolean,
 		hasActions: Boolean,
+		mangaSort: ListSortOrder,
 	): List<ListModel> {
 		if (isEmpty()) {
 			return listOf(
@@ -106,7 +120,8 @@ class FavouritesCategoriesViewModel @Inject constructor(
 				),
 			)
 		}
-		val result = ArrayList<ListModel>(size + 1)
+		val result = ArrayList<ListModel>(size + 2)
+		result.add(CategoriesSortListModel(mangaSort))
 		result.add(
 			AllCategoriesListModel(
 				mangaCount = allFavorites.first,

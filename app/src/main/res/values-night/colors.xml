@@ -7,6 +7,7 @@
 	<color name="onErrorContainer">#FFDAD4</color>
 	<color name="warning">#FB8C00</color>
 	<color name="ic_launcher_background">#1a1a1a</color>
+	<color name="tv_banner_text">#FFFFFF</color>
 	<color name="common_green">#81C784</color>
 	<color name="common_yellow">#FFF176</color>
 	<color name="common_red">#E57373</color>

@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
 import org.koitharu.kotatsu.core.util.ext.setTooltipCompat
 import org.koitharu.kotatsu.databinding.ItemCategoriesAllBinding
+import org.koitharu.kotatsu.databinding.ItemCategoriesSortBinding
 import org.koitharu.kotatsu.databinding.ItemCategoryBinding
 import org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesListListener
 import org.koitharu.kotatsu.list.ui.model.ListModel
@@ -101,5 +102,17 @@ fun allCategoriesAD(
 			},
 		)
 		binding.coversView.setCoversAsync(item.covers)
+	}
+}
+
+fun categoriesSortAD(
+	clickListener: FavouriteCategoriesListListener,
+) = adapterDelegateViewBinding<CategoriesSortListModel, ListModel, ItemCategoriesSortBinding>(
+	{ inflater, parent -> ItemCategoriesSortBinding.inflate(inflater, parent, false) },
+) {
+	itemView.setOnClickListener { clickListener.onMangaSortClick() }
+
+	bind {
+		binding.textViewValue.setText(item.order.titleResId)
 	}
 }

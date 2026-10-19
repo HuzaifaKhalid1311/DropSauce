@@ -27,7 +27,7 @@ class CategoriesSortViewModel @Inject constructor(
 
 	/**
 	 * Same tap rule as the favourites sort sheet. The pick becomes the default for new categories and
-	 * overwrites every existing category's own sort; the "All favourites" tab is left alone.
+	 * overwrites every existing category's own sort and the "All favourites" tab's.
 	 */
 	fun onTypeClick(type: ListSortOrder.Type) {
 		val current = sortOrder.value
@@ -35,6 +35,7 @@ class CategoriesSortViewModel @Inject constructor(
 		val value = type.toSortOrder(isAscending)
 		sortOrder.value = value
 		settings.defaultCategorySortOrder = value
+		settings.allFavoritesSortOrder = value
 		// App-wide scope so closing the sheet right after a tap can't drop the write. Writes run one at
 		// a time and each re-reads the setting, so quick taps always end on the latest pick.
 		processLifecycleScope.launch(Dispatchers.Default) {

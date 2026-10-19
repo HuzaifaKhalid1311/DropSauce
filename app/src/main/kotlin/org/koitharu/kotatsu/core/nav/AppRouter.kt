@@ -64,6 +64,7 @@ import org.koitharu.kotatsu.details.ui.scrobbling.ScrobblingInfoSheet
 import org.koitharu.kotatsu.download.ui.dialog.DownloadDialogFragment
 import org.koitharu.kotatsu.download.ui.list.DownloadsActivity
 import org.koitharu.kotatsu.favourites.ui.FavouritesActivity
+import org.koitharu.kotatsu.favourites.ui.categories.CategoriesOrderSheet
 import org.koitharu.kotatsu.favourites.ui.categories.CategoriesSortSheet
 import org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesActivity
 import org.koitharu.kotatsu.favourites.ui.categories.edit.FavouritesCategoryEditActivity
@@ -562,6 +563,10 @@ class AppRouter private constructor(
 
     fun showCategoriesSortSheet() {
         CategoriesSortSheet().showDistinct()
+    }
+
+    fun showCategoriesOrderSheet() {
+        CategoriesOrderSheet().showDistinct()
     }
 
     fun showListSortSheet(section: ListConfigSection) {

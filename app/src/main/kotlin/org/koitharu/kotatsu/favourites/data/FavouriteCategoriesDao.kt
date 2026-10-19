@@ -4,9 +4,13 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.RoomWarnings
 import androidx.room.Upsert
+import androidx.sqlite.db.SimpleSQLiteQuery
+import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
+import org.koitharu.kotatsu.favourites.domain.model.CategoriesOrder
 
 @Dao
 abstract class FavouriteCategoriesDao {
@@ -21,11 +25,11 @@ abstract class FavouriteCategoriesDao {
 	@Query("SELECT * FROM favourite_categories")
 	abstract suspend fun findAllForSync(): List<FavouriteCategoryEntity>
 
-	@Query("SELECT * FROM favourite_categories WHERE deleted_at = 0 ORDER BY sort_key")
-	abstract fun observeAll(): Flow<List<FavouriteCategoryEntity>>
+	suspend fun findAll(order: CategoriesOrder): List<FavouriteCategoryEntity> =
+		findAllImpl(buildQuery(order, onlyVisible = false))
 
-	@Query("SELECT * FROM favourite_categories WHERE deleted_at = 0 AND show_in_lib = 1 ORDER BY sort_key")
-	abstract fun observeAllVisible(): Flow<List<FavouriteCategoryEntity>>
+	fun observeAll(order: CategoriesOrder, onlyVisible: Boolean): Flow<List<FavouriteCategoryEntity>> =
+		observeAllImpl(buildQuery(order, onlyVisible))
 
 	@Query("SELECT * FROM favourite_categories WHERE category_id = :id AND deleted_at = 0")
 	abstract fun observe(id: Long): Flow<FavouriteCategoryEntity?>
@@ -88,4 +92,25 @@ abstract class FavouriteCategoriesDao {
 
 	@Query("UPDATE favourite_categories SET deleted_at = :deletedAt WHERE category_id = :id")
 	protected abstract suspend fun setDeletedAt(id: Long, deletedAt: Long)
+
+	// favourites is observed too: the size order changes as manga are added or removed
+	@RawQuery(observedEntities = [FavouriteCategoryEntity::class, FavouriteEntity::class])
+	protected abstract fun observeAllImpl(query: SupportSQLiteQuery): Flow<List<FavouriteCategoryEntity>>
+
+	@RawQuery
+	protected abstract suspend fun findAllImpl(query: SupportSQLiteQuery): List<FavouriteCategoryEntity>
+
+	private fun buildQuery(order: CategoriesOrder, onlyVisible: Boolean): SupportSQLiteQuery {
+		val direction = if (order.isAscending) "ASC" else "DESC"
+		val orderBy = when (order.type) {
+			CategoriesOrder.Type.RANDOM -> "sort_key"
+			CategoriesOrder.Type.NAME -> "title COLLATE NOCASE $direction, sort_key"
+			CategoriesOrder.Type.SIZE -> "(SELECT COUNT(*) FROM favourites WHERE favourites.category_id = " +
+				"favourite_categories.category_id AND favourites.deleted_at = 0) $direction, sort_key"
+
+			CategoriesOrder.Type.CREATED -> "created_at $direction, sort_key"
+		}
+		val visibility = if (onlyVisible) " AND show_in_lib = 1" else ""
+		return SimpleSQLiteQuery("SELECT * FROM favourite_categories WHERE deleted_at = 0$visibility ORDER BY $orderBy")
+	}
 }

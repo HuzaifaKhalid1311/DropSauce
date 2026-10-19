@@ -16,12 +16,15 @@ import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.db.entity.toMangaList
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.toMangaSources
+import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
 import org.koitharu.kotatsu.core.util.ext.mapItems
 import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
 import org.koitharu.kotatsu.favourites.data.FavouriteEntity
 import org.koitharu.kotatsu.favourites.data.toFavouriteCategory
 import org.koitharu.kotatsu.favourites.data.toMangaList
+import org.koitharu.kotatsu.favourites.domain.model.CategoriesOrder
 import org.koitharu.kotatsu.favourites.domain.model.Cover
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.ListSortOrder
@@ -35,6 +38,7 @@ import javax.inject.Inject
 class FavouritesRepository @Inject constructor(
 	private val db: MangaDatabase,
 	private val localObserver: LocalFavoritesObserver,
+	private val settings: AppSettings,
 ) {
 
 	suspend fun getAllManga(): List<Manga> {
@@ -108,35 +112,36 @@ class FavouritesRepository @Inject constructor(
 			.distinctUntilChanged()
 	}
 
-	fun observeCategories(): Flow<List<FavouriteCategory>> {
-		return db.getFavouriteCategoriesDao().observeAll().mapItems {
+	fun observeCategories(): Flow<List<FavouriteCategory>> = observeCategories(onlyVisible = false)
+
+	fun observeCategoriesForLibrary(): Flow<List<FavouriteCategory>> = observeCategories(onlyVisible = true)
+
+	private fun observeCategories(onlyVisible: Boolean): Flow<List<FavouriteCategory>> {
+		return observeCategoriesOrder().flatMapLatest { order ->
+			db.getFavouriteCategoriesDao().observeAll(order, onlyVisible)
+		}.mapItems {
 			it.toFavouriteCategory()
 		}.distinctUntilChanged()
 	}
 
-	fun observeCategoriesForLibrary(): Flow<List<FavouriteCategory>> {
-		return db.getFavouriteCategoriesDao().observeAllVisible().mapItems {
-			it.toFavouriteCategory()
-		}.distinctUntilChanged()
-	}
-
-	fun observeCategoriesWithCovers(): Flow<Map<FavouriteCategory, List<Cover>>> {
-		return db.invalidationTracker.createFlow(
-			TABLE_FAVOURITES,
-			TABLE_FAVOURITE_CATEGORIES,
-			emitInitialState = true,
-		).mapLatest {
+	fun observeCategoriesWithCovers(): Flow<List<Pair<FavouriteCategory, List<Cover>>>> {
+		return observeCategoriesOrder().flatMapLatest { order ->
+			db.invalidationTracker.createFlow(
+				TABLE_FAVOURITES,
+				TABLE_FAVOURITE_CATEGORIES,
+				emitInitialState = true,
+			).mapLatest { order }
+		}.mapLatest { order ->
 			db.withTransaction {
-				val categories = db.getFavouriteCategoriesDao().findAll()
-				val res = LinkedHashMap<FavouriteCategory, List<Cover>>(categories.size)
-				for (entity in categories) {
+				val categories = db.getFavouriteCategoriesDao().findAll(order)
+				// A list, not a map: map equality ignores order, which would drop pure reorders below
+				categories.map { entity ->
 					val cat = entity.toFavouriteCategory()
-					res[cat] = db.getFavouritesDao().findCovers(
+					cat to db.getFavouritesDao().findCovers(
 						categoryId = cat.id,
 						order = cat.order,
 					)
 				}
-				res
 			}
 		}.distinctUntilChanged()
 	}
@@ -265,6 +270,15 @@ class FavouritesRepository @Inject constructor(
 
 	suspend fun setAllCategoriesOrder(order: ListSortOrder) {
 		db.getFavouriteCategoriesDao().updateOrderForAll(order.name)
+	}
+
+	/** Stores the categories as [order] sorts them now as the user's own order, so switching to random keeps it. */
+	suspend fun saveCategoriesOrder(order: CategoriesOrder) {
+		reorderCategories(db.getFavouriteCategoriesDao().findAll(order).map { it.categoryId.toLong() })
+	}
+
+	private fun observeCategoriesOrder() = settings.observeAsFlow(AppSettings.KEY_CATEGORIES_ORDER) {
+		favouriteCategoriesOrder
 	}
 
 	suspend fun reorderCategories(orderedIds: List<Long>) {

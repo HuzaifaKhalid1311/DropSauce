@@ -66,6 +66,7 @@ class TypedListSpacingDecoration(
 			ListItemType.EXPLORE_SUGGESTION,
 			ListItemType.MANGA_NESTED_GROUP,
 			ListItemType.CATEGORY_LARGE,
+			ListItemType.CATEGORY_SORT,
 			ListItemType.NAV_ITEM,
 			ListItemType.CHAPTER_LIST,
 			ListItemType.MISSING_CHAPTERS,

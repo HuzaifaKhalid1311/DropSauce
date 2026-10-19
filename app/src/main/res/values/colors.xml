@@ -17,6 +17,7 @@
 	<color name="dim_lite">#66000000</color>
 	<color name="warning">#E65100</color>
 	<color name="ic_launcher_background">#FFFFFF</color>
+	<color name="tv_banner_text">#1a1a1a</color>
 	<color name="common_green">#388E3C</color>
 	<color name="common_red">#D32F2F</color>
 	<color name="common_yellow">#FBC02D</color>

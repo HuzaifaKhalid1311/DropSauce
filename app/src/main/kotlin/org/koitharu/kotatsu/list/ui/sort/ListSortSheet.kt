@@ -94,6 +94,7 @@ internal fun SortRow(
 	isSelected: Boolean,
 	isAscending: Boolean,
 	onClick: () -> Unit,
+	hasDirection: Boolean = true,
 ) {
 	val color = if (isSelected) {
 		MaterialTheme.colorScheme.primary
@@ -118,15 +119,16 @@ internal fun SortRow(
 			modifier = Modifier.weight(1f),
 		)
 		Spacer(Modifier.size(16.dp))
-		// The arrow keeps its slot when unselected so the labels don't shift as the sort moves.
+		// The icon keeps its slot when unselected so the labels don't shift as the sort moves.
+		// Options without a direction get a check mark instead of the arrow.
 		Icon(
-			painter = painterResource(R.drawable.ic_arrow_up),
+			painter = painterResource(if (hasDirection) R.drawable.ic_arrow_up else R.drawable.ic_check),
 			contentDescription = null,
 			tint = color,
 			modifier = Modifier
 				.size(24.dp)
 				.alpha(if (isSelected) 1f else 0f)
-				.rotate(if (isAscending) 0f else 180f),
+				.rotate(if (isAscending || !hasDirection) 0f else 180f),
 		)
 	}
 }

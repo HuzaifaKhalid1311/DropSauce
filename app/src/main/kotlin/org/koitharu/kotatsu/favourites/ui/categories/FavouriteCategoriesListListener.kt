@@ -12,4 +12,6 @@ interface FavouriteCategoriesListListener : OnListItemClickListener<FavouriteCat
 	fun onEditClick(item: FavouriteCategory, view: View)
 
 	fun onShowAllClick(isChecked: Boolean)
+
+	fun onMangaSortClick()
 }

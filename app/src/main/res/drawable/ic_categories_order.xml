@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Rounded 'view_agenda' (filled), redrawn with three stacked bars: order of the favourite categories. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:tint="?attr/colorControlNormal"
+	android:viewportWidth="960"
+	android:viewportHeight="960">
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="M190,120H770A70,70 0,0 1,840 190V260A70,70 0,0 1,770 330H190A70,70 0,0 1,120 260V190A70,70 0,0 1,190 120ZM190,375H770A70,70 0,0 1,840 445V515A70,70 0,0 1,770 585H190A70,70 0,0 1,120 515V445A70,70 0,0 1,190 375ZM190,630H770A70,70 0,0 1,840 700V770A70,70 0,0 1,770 840H190A70,70 0,0 1,120 770V700A70,70 0,0 1,190 630Z" />
+</vector>
