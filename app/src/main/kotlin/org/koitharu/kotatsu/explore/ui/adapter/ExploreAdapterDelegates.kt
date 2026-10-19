@@ -95,7 +95,8 @@ private fun recommendationCarouselItemAD(
 
 	bind {
 		binding.textViewTitle.text = item.title
-		binding.imageViewCover.setImageAsync(item.coverUrl, item.source)
+		// Same cache key as the library lists, so covers saved ahead of time (suggestions) are found.
+		binding.imageViewCover.setImageAsync(item.coverUrl, item.manga)
 	}
 }
 

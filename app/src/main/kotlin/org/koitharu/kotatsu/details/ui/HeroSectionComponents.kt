@@ -75,6 +75,7 @@ internal fun HeroSection(
 	accent: Color,
 	imageLoader: ImageLoader,
 	coverUrl: String?,
+	coverRefreshes: Int,
 	favouriteLabel: String,
 	isFavourite: Boolean,
 	onFavouriteClick: () -> Unit,
@@ -96,6 +97,7 @@ internal fun HeroSection(
 				manga = manga,
 				sourceManga = details?.sourceManga,
 				coverUrl = coverUrl,
+				coverRefreshes = coverRefreshes,
 				imageLoader = imageLoader,
 				modifier = Modifier
 					.width(COVER_WIDTH)
@@ -167,6 +169,7 @@ internal fun HeroSection(
 						manga = manga,
 						sourceManga = details?.sourceManga,
 						coverUrl = coverUrl,
+						coverRefreshes = coverRefreshes,
 						imageLoader = imageLoader,
 						modifier = Modifier.width(COMPACT_COVER_WIDTH),
 						corner = 20.dp,
@@ -236,6 +239,8 @@ internal fun CoverCard(
 	/** The pristine manga, used to tell a source cover apart from a user override. */
 	sourceManga: Manga?,
 	coverUrl: String?,
+	/** Changes when a pull-to-refresh saved a new copy of the cover, so it is loaded again. */
+	coverRefreshes: Int,
 	imageLoader: ImageLoader,
 	modifier: Modifier,
 	corner: Dp,
@@ -256,7 +261,7 @@ internal fun CoverCard(
 		// cover's key and keeps showing in lists after the override is reverted.
 		val keyManga = sourceManga ?: manga
 		val isSourceCover = coverUrl == keyManga.coverUrl || coverUrl == keyManga.largeCoverUrl
-		val coverRequest = remember(coverUrl, manga.id, manga.source, keyManga) {
+		val coverRequest = remember(coverUrl, manga.id, manga.source, keyManga, coverRefreshes) {
 			ImageRequest.Builder(ctx)
 				.data(coverUrl)
 				.crossfade(true)
@@ -268,7 +273,7 @@ internal fun CoverCard(
 		// one straight away instead of a stale copy.
 		// Not for extension covers: their fetcher caches by url like Mihon (a changed cover comes
 		// with a new url), so this only re-downloaded the same image on every open, competing with
-		// the details request.
+		// the details request. Like in Mihon, pulling the page down downloads them again instead.
 		val refreshUrl = if (isSourceCover) coverUrl else keyManga.coverUrl
 		if (forceRefresh && isRemoteCoverUrl(refreshUrl) && !manga.source.name.startsWith("MIHON_")) {
 			LaunchedEffect(manga.id, refreshUrl) {

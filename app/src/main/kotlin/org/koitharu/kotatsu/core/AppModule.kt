@@ -113,7 +113,7 @@ interface AppModule {
 				val rootDir = context.externalCacheDir ?: context.cacheDir
 				DiskCache.Builder()
 					.directory(rootDir.resolve(CacheDir.THUMBS.dir))
-					// Coil's default (2% of the free space, at most 250MB) is shared with every cover browsed
+					// Coil's default (2% of the storage size, at most 250MB) is shared with every cover browsed
 					// in Explore and search, which pushed library covers out to be downloaded again.
 					.maxSizePercent(0.1)
 					.maximumMaxSizeBytes(1024L * 1024 * 1024)

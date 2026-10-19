@@ -37,6 +37,7 @@ import dagger.Reusable
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
@@ -60,11 +61,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koitharu.kotatsu.core.util.ext.awaitWorkInfosByTag
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
+import org.koitharu.kotatsu.core.util.ext.connectivityManager
 import org.koitharu.kotatsu.core.util.ext.flatten
 import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.sanitize
+import org.koitharu.kotatsu.core.util.ext.saveCover
 import org.koitharu.kotatsu.core.util.ext.takeMostFrequent
 import org.koitharu.kotatsu.core.util.ext.toBitmapOrNull
 import org.koitharu.kotatsu.core.util.ext.trySetForeground
@@ -215,6 +218,7 @@ class SuggestionsWorker @AssistedInject constructor(
 			.sortedByDescending { it.relevance }
 			.take(MAX_RESULTS)
 		suggestionRepository.replace(suggestions)
+		setProgress(workDataOf(PROGRESS_SAVED to true))
 		if (appSettings.isSuggestionsNotificationAvailable
 			&& applicationContext.checkNotificationPermission(MANGA_CHANNEL_ID)
 			&& suggestions.size >= 3
@@ -246,7 +250,24 @@ class SuggestionsWorker @AssistedInject constructor(
 				}
 			}
 		}
+		prefetchCovers(suggestions)
 		return suggestions.size
+	}
+
+	/**
+	 * Saves every cover to the disk cache, so the Explore carousel shows them without downloading.
+	 * Skipped on mobile data, where covers load as they are scrolled into view instead.
+	 */
+	private suspend fun prefetchCovers(suggestions: List<MangaSuggestion>) = coroutineScope {
+		if (applicationContext.connectivityManager.isActiveNetworkMetered) return@coroutineScope
+		val semaphore = Semaphore(MAX_PARALLELISM)
+		for (suggestion in suggestions) {
+			launch {
+				semaphore.withPermit {
+					coil.saveCover(applicationContext, appSettings, suggestion.manga)
+				}
+			}
+		}
 	}
 
 	private suspend fun getSources(): List<MangaSource> {
@@ -413,7 +434,7 @@ class SuggestionsWorker @AssistedInject constructor(
 	) : PeriodicWorkScheduler {
 
 		override suspend fun schedule() {
-			val request = PeriodicWorkRequestBuilder<SuggestionsWorker>(24, TimeUnit.HOURS)
+			val request = PeriodicWorkRequestBuilder<SuggestionsWorker>(2, TimeUnit.DAYS)
 				.setConstraints(createConstraints())
 				.addTag(TAG)
 				.setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.HOURS)
@@ -451,15 +472,15 @@ class SuggestionsWorker @AssistedInject constructor(
 		}
 
 		/**
-		 * [startNow] plus a wait for the run to actually finish, so a pull-to-refresh can keep its
-		 * placeholder up until fresh suggestions exist. Gives up after a minute — the work may be
-		 * held back indefinitely by its network constraint.
+		 * [startNow] plus a wait until the fresh suggestions are saved, so a pull-to-refresh can keep its
+		 * placeholder up until they exist; their covers keep downloading after that. Gives up after a
+		 * minute — the work may be held back indefinitely by its network constraint.
 		 */
 		suspend fun runNow() {
 			startNow()
 			withTimeoutOrNull(RUN_NOW_TIMEOUT) {
 				workManager.getWorkInfosByTagFlow(TAG_ONESHOT)
-					.first { infos -> infos.none { !it.state.isFinished } }
+					.first { infos -> infos.none { !it.state.isFinished && !it.progress.getBoolean(PROGRESS_SAVED, false) } }
 			}
 		}
 
@@ -474,14 +495,15 @@ class SuggestionsWorker @AssistedInject constructor(
 		const val TAG = "suggestions"
 		const val TAG_ONESHOT = "suggestions_oneshot"
 		const val DATA_COUNT = "count"
+		const val PROGRESS_SAVED = "saved"
 		const val WORKER_CHANNEL_ID = "suggestion_worker"
 		const val MANGA_CHANNEL_ID = "suggestions"
 		const val GROUP_SUGGESTION = "org.koitharu.kotatsu.SUGGESTIONS"
 		const val WORKER_NOTIFICATION_ID = 36
-		const val MAX_RESULTS = 160
+		const val MAX_RESULTS = 250
 		const val MAX_PARALLELISM = 3
-		const val MAX_SOURCE_RESULTS = 20
-		const val MAX_RAW_RESULTS = 280
+		const val MAX_SOURCE_RESULTS = 30
+		const val MAX_RAW_RESULTS = 440
 		const val TAG_EQ_THRESHOLD = 0.4f
 		private const val RUN_NOW_TIMEOUT = 60_000L
 		const val RATING_MIN = 0.5f

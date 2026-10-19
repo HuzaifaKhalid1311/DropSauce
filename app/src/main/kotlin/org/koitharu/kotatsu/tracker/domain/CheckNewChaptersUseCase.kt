@@ -1,6 +1,9 @@
 package org.koitharu.kotatsu.tracker.domain
 
+import android.content.Context
 import android.util.Log
+import coil3.ImageLoader
+import dagger.hilt.android.qualifiers.ApplicationContext
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.model.getPreferredBranch
@@ -12,6 +15,7 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.MultiMutex
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.koitharu.kotatsu.core.util.ext.saveCover
 import org.koitharu.kotatsu.core.util.ext.toInstantOrNull
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
@@ -32,6 +36,8 @@ class CheckNewChaptersUseCase @Inject constructor(
 	private val localMangaRepository: LocalMangaRepository,
 	private val settings: AppSettings,
 	private val mangaDataRepository: MangaDataRepository,
+	private val coil: ImageLoader,
+	@ApplicationContext private val context: Context,
 ) {
 
 	private val mutex = MultiMutex<Long>()
@@ -129,10 +135,19 @@ class CheckNewChaptersUseCase @Inject constructor(
 
 	private suspend fun fetchDetails(manga: Manga): Manga {
 		val repo = mangaRepositoryFactory.create(manga.source)
-		val details = if (repo is FreshMangaDetailsRepository) {
+		val fetched = if (repo is FreshMangaDetailsRepository) {
 			repo.getFreshDetails(manga)
 		} else {
 			repo.getDetails(manga)
+		}
+		// A new cover is used only once it is saved, so the library shows it without downloading;
+		// until then the old one stays.
+		val isCoverReady = manga.coverUrl.isNullOrEmpty() || fetched.coverUrl == manga.coverUrl ||
+			coil.saveCover(context, settings, fetched)
+		val details = if (isCoverReady) {
+			fetched
+		} else {
+			fetched.copy(coverUrl = manga.coverUrl, largeCoverUrl = manga.largeCoverUrl)
 		}
 		// Persist so opening the manga later shows cached details instead of a cold load
 		mangaDataRepository.storeManga(details, replaceExisting = true, stripAppliedOverride = false, detailsFetched = true)

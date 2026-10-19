@@ -1,8 +1,11 @@
 package org.koitharu.kotatsu.details.ui
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import coil3.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +42,7 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.computeSize
+import org.koitharu.kotatsu.core.util.ext.saveCover
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.details.domain.BranchComparator
 import org.koitharu.kotatsu.details.domain.DetailsInteractor
@@ -88,6 +92,8 @@ class DetailsViewModel @Inject constructor(
 	private val database: MangaDatabase,
 	private val mangaDataRepository: MangaDataRepository,
 	mangaRepositoryFactory: MangaRepository.Factory,
+	private val coil: ImageLoader,
+	@ApplicationContext private val context: Context,
 ) : ChaptersPagesViewModel(
 	settings = settings,
 	interactor = interactor,
@@ -104,6 +110,9 @@ class DetailsViewModel @Inject constructor(
 	private var loadingJob: Job
 	val mangaId = intent.mangaId
 	val onTrackingProgressSynced = MutableEventFlow<Int>()
+
+	/** Counts covers downloaded again by a pull-to-refresh, so the page shows the new image at once. */
+	val coverRefreshes = MutableStateFlow(0)
 
 	init {
 		mangaDetails.value = intent.manga?.let { MangaDetails(it) }
@@ -284,7 +293,7 @@ class DetailsViewModel @Inject constructor(
 	}
 
 	private fun doLoad(force: Boolean) = launchLoadingJob(Dispatchers.Default) {
-		var scrobblingSynced = false
+		var isRefreshed = false
 		detailsLoadUseCase.invoke(intent, force)
 			.withErrorHandling()
 			.collect {
@@ -311,8 +320,15 @@ class DetailsViewModel @Inject constructor(
 					}
 				}
 				mangaDetails.value = it
-				if (force && it.isLoaded && !scrobblingSynced) {
-					scrobblingSynced = true
+				if (force && it.isLoaded && !isRefreshed) {
+					isRefreshed = true
+					launchJob(Dispatchers.Default + SkipErrors) {
+						// Like Mihon: the cover is downloaded again even under the same url, for sites
+						// that replace the image behind it.
+						if (coil.saveCover(context, settings, it.sourceManga, refresh = true)) {
+							coverRefreshes.value++
+						}
+					}
 					launchJob(Dispatchers.Default + SkipErrors) {
 						syncProgressFromScrobblersUseCase(it.toManga(), selectedBranch.value)?.let { chapter ->
 							onTrackingProgressSynced.call(chapter)

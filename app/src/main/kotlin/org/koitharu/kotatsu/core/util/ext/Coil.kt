@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.core.util.ext
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.annotation.CheckResult
 import coil3.Extras
@@ -8,6 +9,7 @@ import coil3.asDrawable
 import coil3.decode.ImageSource
 import coil3.fetch.FetchResult
 import coil3.fetch.SourceFetchResult
+import coil3.request.CachePolicy
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.ImageResult
@@ -18,6 +20,7 @@ import coil3.toBitmap
 import okio.buffer
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.core.image.RegionBitmapDecoder
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
@@ -83,6 +86,30 @@ fun ImageRequest.Builder.stableMangaCoverKey(manga: Manga?, coverUrl: String?): 
 }
 
 fun mangaCoverDiskCacheKey(mangaId: Long): String = "cover:$mangaId"
+
+/**
+ * Downloads [manga]'s cover into the disk cache under the key lists load it with, so it later shows
+ * without a download. A saved cover is downloaded again only on [refresh], which also drops the old
+ * image from memory so views load the new one. False if it could not be saved.
+ */
+suspend fun ImageLoader.saveCover(context: Context, settings: AppSettings, manga: Manga, refresh: Boolean = false): Boolean {
+	val url = manga.coverUrl
+	// Proxied links depend on the size each view asks for, so a copy saved here would never be read.
+	if (url == null || !isRemoteCoverUrl(url) || settings.imagesProxy >= 0) return false
+	val request = ImageRequest.Builder(context)
+		.data(url)
+		.mangaExtra(manga)
+		.stableMangaCoverKey(manga, url)
+		.memoryCachePolicy(CachePolicy.DISABLED)
+		.diskCachePolicy(if (refresh) CachePolicy.WRITE_ONLY else CachePolicy.ENABLED)
+		.size(64) // only the downloaded file matters; a tiny decode keeps this cheap
+		.build()
+	if (execute(request) !is SuccessResult) return false
+	if (refresh) {
+		memoryCache?.run { keys.filter { it.key == url }.forEach(::remove) }
+	}
+	return true
+}
 
 fun isRemoteCoverUrl(url: String?): Boolean =
 	url != null && (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true))

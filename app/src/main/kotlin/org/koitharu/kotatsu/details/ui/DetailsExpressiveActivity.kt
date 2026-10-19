@@ -179,6 +179,7 @@ class DetailsExpressiveActivity :
 				val localSize by viewModel.localSize.collectAsState()
 				val srcTitle by viewModel.cachedSourceTitle.collectAsState()
 				val coverUrl by viewModel.coverUrl.collectAsState()
+				val coverRefreshes by viewModel.coverRefreshes.collectAsState()
 				val backdropUrl by viewModel.backdropUrl.collectAsState()
 				val tags by viewModel.tags.collectAsState()
 				val favLabel = favs.takeIf { it.isNotEmpty() }?.joinToString { it.title }
@@ -199,6 +200,7 @@ class DetailsExpressiveActivity :
 					sourceTitle = srcTitle,
 					imageLoader = coil,
 					coverUrl = coverUrl,
+					coverRefreshes = coverRefreshes,
 					backdropUrl = backdropUrl,
 					isBackdropEnabled = isBackdropEnabled,
 					backdropBlurAmount = backdropBlurAmount,

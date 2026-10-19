@@ -10,24 +10,19 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.ImageLoader
 import coil3.asImage
-import coil3.decode.DataSource
 import coil3.request.Disposable
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
-import coil3.request.ImageResult
 import coil3.request.NullRequestData
 import coil3.request.SuccessResult
 import coil3.request.allowRgb565
+import coil3.request.crossfade
 import coil3.request.lifecycle
 import coil3.request.target
-import coil3.request.transitionFactory
 import coil3.size.Scale
 import coil3.size.Size
 import coil3.size.SizeResolver
 import coil3.size.ViewSizeResolver
-import coil3.transition.CrossfadeTransition
-import coil3.transition.Transition
-import coil3.transition.TransitionTarget
 import coil3.util.CoilUtils
 import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
@@ -163,7 +158,7 @@ open class CoilImageView @JvmOverloads constructor(
 		} else {
 			0
 		}
-		transitionFactory(if (crossfadeDuration > 0) NetworkCrossfade(crossfadeDuration) else Transition.Factory.NONE)
+		crossfade(crossfadeDuration)
 		if (useExistingDrawable) {
 			val previousDrawable = this@CoilImageView.drawable?.asImage()
 			if (previousDrawable != null) {
@@ -214,20 +209,4 @@ open class CoilImageView @JvmOverloads constructor(
 			}
 		}
 	}
-}
-
-/**
- * Fades in only what had to be downloaded. A cover read from the disk cache shows as soon as it is
- * decoded - fading those in too made every cover scrolled into view look like it was still loading.
- */
-private class NetworkCrossfade(durationMillis: Int) : Transition.Factory {
-
-	private val crossfade = CrossfadeTransition.Factory(durationMillis)
-
-	override fun create(target: TransitionTarget, result: ImageResult): Transition =
-		if (result is SuccessResult && result.dataSource == DataSource.NETWORK) {
-			crossfade.create(target, result)
-		} else {
-			Transition.Factory.NONE.create(target, result)
-		}
 }

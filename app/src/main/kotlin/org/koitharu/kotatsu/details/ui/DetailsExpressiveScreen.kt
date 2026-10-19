@@ -82,6 +82,7 @@ fun DetailsExpressiveScreen(
 	sourceTitle: String?,
 	imageLoader: ImageLoader,
 	coverUrl: String?,
+	coverRefreshes: Int,
 	backdropUrl: String?,
 	isBackdropEnabled: Boolean,
 	backdropBlurAmount: Int,
@@ -110,6 +111,7 @@ fun DetailsExpressiveScreen(
 		if (isBackdropEnabled && backdropUrl != null) {
 			ExpressiveBackdrop(
 				url = backdropUrl,
+				coverRefreshes = coverRefreshes,
 				manga = manga,
 				imageLoader = imageLoader,
 				surface = scheme.surface,
@@ -140,6 +142,7 @@ fun DetailsExpressiveScreen(
 				accent = accentColor,
 				imageLoader = imageLoader,
 				coverUrl = coverUrl,
+				coverRefreshes = coverRefreshes,
 				favouriteLabel = favLabel,
 				isFavourite = isFavourite,
 				onFavouriteClick = { actions.onFavoriteClick(manga) },
@@ -237,13 +240,15 @@ internal fun Modifier.dockGlow(surface: Color) = drawBehind {
 @Composable
 private fun ExpressiveBackdrop(
 	url: String,
+	/** Changes when a pull-to-refresh saved a new copy of the cover, so it is loaded again. */
+	coverRefreshes: Int,
 	manga: Manga?,
 	imageLoader: ImageLoader,
 	surface: Color,
 	blurAmount: Int,
 ) {
 	val ctx = LocalContext.current
-	val request = remember(url, manga?.source) {
+	val request = remember(url, manga?.source, coverRefreshes) {
 		ImageRequest.Builder(ctx)
 			.data(url)
 			.crossfade(true)
