@@ -114,6 +114,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	private var lastBottomInset = 0
 	private val shrinkFabRunnable = Runnable { viewBinding.fab?.shrink() }
 	private var navSystemBarBottom: Int = 0
+	private var barBlur: BarBlur? = null
 
 
 	override val appBar: AppBarLayout
@@ -221,6 +222,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
 		searchSuggestionViewModel.isIncognitoModeEnabled.observe(this, this::onIncognitoModeChanged)
 		viewBinding.bottomNav?.addOnLayoutChangeListener(this)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			barBlur = BarBlur(viewBinding.container, viewBinding.bottomNav)
+		}
+		settings.observe(AppSettings.KEY_BAR_BLUR).observe(this) { onBarBlurChanged() }
 		setupContainerInsetsListener()
 		viewBinding.searchView.addTransitionListener(this)
 		viewBinding.searchView.addTransitionListener(exitCallback)
@@ -328,15 +333,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			bottomMargin = barsInsets.bottom
 		}
 		updateCheckpointMargin(barsInsets.bottom)
-		viewBinding.statusBarScrim.updateLayoutParams {
-			// No status bar to protect when it is hidden (the inset can still be non-zero on
-			// cutout devices), so the scrim would just be a stray band at the top.
-			height = if (settings.isStatusBarHidden) {
-				0
-			} else {
-				(barsInsets.top * StatusBarScrim.HEIGHT_FACTOR).roundToInt()
-			}
+		// No status bar to protect when it is hidden (the inset can still be non-zero on
+		// cutout devices), so the scrim would just be a stray band at the top.
+		val statusBarZone = if (settings.isStatusBarHidden) {
+			0
+		} else {
+			(barsInsets.top * StatusBarScrim.HEIGHT_FACTOR).roundToInt()
 		}
+		viewBinding.statusBarScrim.updateLayoutParams { height = statusBarZone }
+		barBlur?.statusBarZone = statusBarZone.toFloat()
 		updateContainerBottomMargin()
 		return insets.consume(v, typeMask, start = viewBinding.navRail != null).also {
 			handleSearchSuggestionsInsets(it)
@@ -643,6 +648,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.buttonCheckpoint.root.updateLayoutParams<MarginLayoutParams> {
 			bottomMargin = bottomInset + navHeight + gap
 		}
+	}
+
+	private fun onBarBlurChanged() {
+		val blur = barBlur
+		blur?.isEnabled = settings.isBarBlurEnabled
+		// The blur brings its own status bar fade; the plain scrim is the fallback.
+		viewBinding.statusBarScrim.isVisible = blur?.isEnabled != true
 	}
 
 	private fun updateContainerBottomMargin() {

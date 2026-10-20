@@ -56,6 +56,9 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	private val legacyItemOffset = LEGACY_ITEM_OFFSET_DP * resources.displayMetrics.density
 	private var useLegacyNavigation = false
 
+	val isFloating: Boolean
+		get() = !useLegacyNavigation
+
 	private val composeView: ComposeView = ComposeView(context).apply {
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 		setContent {

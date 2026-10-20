@@ -284,6 +284,7 @@ private fun AppearanceScreen(
 	var navLabels by rememberBooleanPref(AppSettings.KEY_NAV_LABELS, true)
 	var navPinned by rememberBooleanPref(AppSettings.KEY_NAV_PINNED, true)
 	var navLegacy by rememberBooleanPref(AppSettings.KEY_NAV_LEGACY, false)
+	var barBlur by rememberBooleanPref(AppSettings.KEY_BAR_BLUR, true)
 	var exitConfirm by rememberBooleanPref(AppSettings.KEY_EXIT_CONFIRM, false)
 	var dynamicShortcuts by rememberBooleanPref(AppSettings.KEY_SHORTCUTS, true)
 
@@ -603,6 +604,16 @@ private fun AppearanceScreen(
 						onCheckedChange = { navLegacy = it },
 						icon = R.drawable.ic_bottom_navigation,
 
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.bar_blur),
+						subtitle = stringResource(R.string.bar_blur_summary),
+						checked = barBlur,
+						onCheckedChange = { barBlur = it },
+						icon = R.drawable.ic_blur,
 						shape = pos.shape,
 					)
 				}
