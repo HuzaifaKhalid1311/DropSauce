@@ -11,9 +11,8 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.core.graphics.Insets
-import androidx.core.view.GravityCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -291,7 +290,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val providers = overflowMenuProviders
 			.filter { it.isActive }
 			.map { it.provider }
-		val popup = PopupMenu(anchor.context, anchor, GravityCompat.END)
+		val popup = MenuPopup(anchor)
 		val menu = popup.menu
 		providers.forEach { it.onCreateMenu(menu, popup.menuInflater) }
 		providers.forEach { it.onPrepareMenu(menu) }

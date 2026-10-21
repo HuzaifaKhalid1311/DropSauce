@@ -1,9 +1,8 @@
 package org.koitharu.kotatsu.core.ui.util
 
-import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.MenuProvider
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
@@ -11,13 +10,12 @@ import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 
 class PopupMenuMediator(
 	private val provider: MenuProvider,
-) : View.OnLongClickListener, View.OnContextClickListener, PopupMenu.OnMenuItemClickListener,
-	PopupMenu.OnDismissListener {
+) : View.OnLongClickListener, View.OnContextClickListener {
 
 	override fun onContextClick(v: View): Boolean = onLongClick(v)
 
 	override fun onLongClick(v: View): Boolean {
-		val menu = PopupMenu(v.context, v)
+		val menu = MenuPopup(v)
 		menu.menu.setOptionalIconsVisibleCompat(true)
 		provider.onCreateMenu(menu.menu, menu.menuInflater)
 		provider.onPrepareMenu(menu.menu)
@@ -27,18 +25,10 @@ class PopupMenuMediator(
 		menu.menu.adjustPopupMenuIcons(v.resources)
 		v.hapticFeedback(HapticEffect.LONG_PRESS)
 		menu.setForceShowIcon(true)
-		menu.setOnMenuItemClickListener(this)
-		menu.setOnDismissListener(this)
+		menu.setOnMenuItemClickListener(provider::onMenuItemSelected)
+		menu.setOnDismissListener { provider.onMenuClosed(menu.menu) }
 		menu.show()
 		return true
-	}
-
-	override fun onMenuItemClick(item: MenuItem): Boolean {
-		return provider.onMenuItemSelected(item)
-	}
-
-	override fun onDismiss(menu: PopupMenu) {
-		provider.onMenuClosed(menu.menu)
 	}
 
 	fun attach(view: View) {

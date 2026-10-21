@@ -7,7 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.collection.LongSet
 import androidx.collection.longSetOf
 import androidx.lifecycle.Lifecycle
@@ -111,7 +111,7 @@ class ListSelectionController(
 
 	fun onItemContextClick(view: View, id: Long): Boolean {
 		focusedItemId = longSetOf(id)
-		val menu = PopupMenu(view.context, view)
+		val menu = MenuPopup(view)
 		enableMenuIcons(menu.menu)
 		callback.onCreateActionMode(this, menu.menuInflater, menu.menu)
 		callback.onPrepareActionMode(this, null, menu.menu)

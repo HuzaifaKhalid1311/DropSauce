@@ -1,8 +1,7 @@
 package org.koitharu.kotatsu.details.ui.scrobbling
 
-import android.view.Gravity
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -365,18 +364,14 @@ private fun OverflowMenu(
 	}
 }
 
-/**
- * The platform [PopupMenu] rather than Compose's `DropdownMenu`, so this overflow looks and behaves
- * exactly like every other three-dot menu in the app — the theme styles it, and
- * [adjustPopupMenuIcons] gives it the same icon metrics.
- */
+/** [MenuPopup] rather than Compose's `DropdownMenu`, so this overflow matches every other three-dot menu. */
 private fun showOverflowMenu(
 	anchor: View,
 	onOpenInBrowser: () -> Unit,
 	onEdit: () -> Unit,
 	onUnregister: () -> Unit,
 ) {
-	PopupMenu(anchor.context, anchor, Gravity.END).apply {
+	MenuPopup(anchor).apply {
 		inflate(R.menu.opt_scrobbling)
 		setForceShowIcon(true)
 		menu.setOptionalIconsVisibleCompat(true)

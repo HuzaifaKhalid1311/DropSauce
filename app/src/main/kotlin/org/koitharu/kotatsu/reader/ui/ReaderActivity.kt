@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.viewModels
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -828,7 +828,7 @@ class ReaderActivity :
         val chapterId = viewModel.getCurrentState()?.chapterId ?: return false
         if (viewModel.getSourceMangaOrNull()?.isLocal != false) return false // no online copy to open
         view.hapticFeedback(HapticEffect.LONG_PRESS)
-        PopupMenu(view.context, view, Gravity.START).run {
+        MenuPopup(view).run {
             inflate(R.menu.opt_browser)
             setOnMenuItemClickListener { item ->
                 (item.itemId == R.id.action_browser).also { isHandled ->

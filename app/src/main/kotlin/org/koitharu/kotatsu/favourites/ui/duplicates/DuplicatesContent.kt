@@ -1,8 +1,7 @@
 package org.koitharu.kotatsu.favourites.ui.duplicates
 
-import android.view.Gravity
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -179,7 +178,7 @@ private fun Header(
 				)
 			}
 		}
-		// PopupMenu positions itself against a real View, so an empty one is parked under the button:
+		// MenuPopup positions itself against a real View, so an empty one is parked under the button:
 		// anchoring to the Compose root instead would drop the menu from the sheet's own corner.
 		val anchor = remember { mutableStateOf<View?>(null) }
 		Box(contentAlignment = Alignment.Center) {
@@ -212,19 +211,14 @@ private fun Header(
 	}
 }
 
-/**
- * The platform [PopupMenu] rather than Compose's [androidx.compose.material3.DropdownMenu], so this
- * overflow looks and behaves exactly like every other three-dot menu in the app — the theme styles
- * it, and [adjustPopupMenuIcons] gives it the same icon metrics.
- */
+/** [MenuPopup] rather than Compose's `DropdownMenu`, so this overflow matches every other three-dot menu. */
 private fun showOverflowMenu(
 	anchor: View,
 	isProgressMigrated: Boolean,
 	onDisableCheck: () -> Unit,
 	onMigrateProgressChanged: (Boolean) -> Unit,
 ) {
-	// Anchored to the sheet's own view: `END` lands it under the button it was opened from.
-	PopupMenu(anchor.context, anchor, Gravity.END).apply {
+	MenuPopup(anchor).apply {
 		inflate(R.menu.opt_duplicates)
 		setForceShowIcon(true)
 		menu.setOptionalIconsVisibleCompat(true)

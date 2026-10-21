@@ -15,7 +15,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.Insets
 import androidx.core.content.FileProvider
@@ -440,7 +440,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			it to it?.toLocale()
 		}
 		locales.sortWith(compareBy(nullsFirst(LocaleComparator())) { it.second })
-		val menu = PopupMenu(this, anchor)
+		val menu = MenuPopup(anchor)
 		for ((i, lc) in locales.withIndex()) {
 			// Labelled through the extension helper, not the Locale: a plugin index declares its language
 			// as a name, and an unresolvable one must show as written rather than as "Various languages".

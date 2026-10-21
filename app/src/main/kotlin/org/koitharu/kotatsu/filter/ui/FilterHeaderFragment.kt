@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.appcompat.widget.PopupMenu
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +93,7 @@ class FilterHeaderFragment : BaseFragment<FragmentFilterHeaderBinding>(), ChipsV
 
     override fun onChipLongClick(chip: Chip, data: Any?): Boolean {
         val savedFilter = data as? PersistableFilter ?: return false
-        PopupMenu(requireContext(), chip).apply {
+        MenuPopup(chip).apply {
             menu.add(R.string.delete)
             setOnMenuItemClickListener {
                 filter.deleteSavedFilter(savedFilter.id)

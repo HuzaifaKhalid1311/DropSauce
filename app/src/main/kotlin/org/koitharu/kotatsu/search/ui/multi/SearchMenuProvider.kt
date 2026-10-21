@@ -6,8 +6,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
-import androidx.core.view.GravityCompat
+import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
@@ -26,7 +25,7 @@ class SearchMenuProvider(
 		if (menuItem.itemId == R.id.action_search_kind) {
 			// Shown by hand instead of as a <menu> submenu: a submenu of an action bar item pops up
 			// without an anchor, so it lands and animates from the wrong spot. Every other overflow
-			// in the app goes through PopupMenu on its own button.
+			// in the app goes through MenuPopup on its own button.
 			activity.findViewById<View>(R.id.action_search_kind)?.let(::showFilterPopup)
 			return true
 		}
@@ -63,7 +62,7 @@ class SearchMenuProvider(
 	}
 
 	private fun showFilterPopup(anchor: View) {
-		val popup = PopupMenu(anchor.context, anchor, GravityCompat.END)
+		val popup = MenuPopup(anchor)
 		popup.inflate(R.menu.popup_search_kind)
 		val menu = popup.menu
 		menu.findItem(

@@ -95,10 +95,6 @@
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 		<item name="listPopupWindowStyle">@style/Widget.Kotatsu.PopupMenu.ListPopupWindow</item>
 		<item name="popupMenuBackground">@drawable/m3_menu_background</item>
-		<item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
-		<item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
-		<item name="textAppearanceLargePopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
-		<item name="textAppearanceSmallPopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
 		<item name="android:listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
 		<item name="listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
 		<!-- Snap the popup's corner onto the anchor button so it fully covers it.
@@ -117,10 +113,6 @@
 		<item name="dropDownListViewStyle">@style/Widget.Kotatsu.PopupMenu.ListView</item>
 		<item name="listPopupWindowStyle">@style/Widget.Kotatsu.PopupMenu.ListPopupWindow</item>
 		<item name="popupMenuBackground">@drawable/m3_menu_background</item>
-		<item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
-		<item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
-		<item name="textAppearanceLargePopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
-		<item name="textAppearanceSmallPopupMenu">@style/TextAppearance.Widget.Menu.Popup</item>
 		<item name="android:listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
 		<item name="listPreferredItemHeightSmall">@dimen/menu_popup_item_min_height</item>
 		<!-- Snap the popup's corner onto the anchor button so it fully covers it.
@@ -636,16 +628,6 @@
 		<item name="android:lineHeight" tools:targetApi="p">16sp</item>
 		<item name="lineHeight">16sp</item>
 		<item name="android:letterSpacing">0.04545</item>
-	</style>
-
-	<style name="TextAppearance.Widget.Menu" parent="TextAppearance.AppCompat.Menu">
-		<item name="android:textColor">?attr/colorOnBackground</item>
-	</style>
-
-	<style name="TextAppearance.Widget.Menu.Popup" parent="TextAppearance.Widget.Menu">
-		<item name="android:textSize">13sp</item>
-		<item name="android:lineHeight" tools:ignore="NewApi">16sp</item>
-		<item name="lineHeight">16sp</item>
 	</style>
 
 	<style name="TextAppearance.Kotatsu.GridTitle" parent="TextAppearance.Material3.TitleSmall" />

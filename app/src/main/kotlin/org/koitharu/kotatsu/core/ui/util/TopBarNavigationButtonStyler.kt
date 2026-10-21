@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.core.ui.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -12,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.ActionMenuView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.Toolbar
@@ -19,6 +21,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.children
 import androidx.core.view.doOnPreDraw
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.menu.showExpressiveMenu
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import com.google.android.material.R as materialR
 import kotlin.math.roundToInt
@@ -186,6 +189,25 @@ private fun ActionMenuView.applyTonalPillStyle() {
 			roundLeft = if (isRtl) isLast else isFirst,
 			roundRight = if (isRtl) isFirst else isLast,
 		)
+	}
+	children.firstOrNull { (it.layoutParams as? ActionMenuView.LayoutParams)?.isOverflowButton == true }
+		?.routeToExpressiveMenu(this)
+}
+
+/** The overflow "more" button opens the app's Compose menu instead of appcompat's popup. */
+@SuppressLint("RestrictedApi", "ClickableViewAccessibility")
+private fun View.routeToExpressiveMenu(menuView: ActionMenuView) {
+	if (getTag(R.id.tag_expressive_overflow) != null) return
+	setTag(R.id.tag_expressive_overflow, true)
+	// appcompat's drag-to-open listener would show its own popup.
+	setOnTouchListener(null)
+	// A click listener makes OverflowMenuButton.performClick skip opening the platform popup.
+	setOnClickListener {
+		val menu = menuView.menu as? MenuBuilder ?: return@setOnClickListener
+		// What appcompat does before showing its overflow: the screen re-runs onPrepareMenu, which is where
+		// checkable items get their current state. Not for action mode, which reopens its own popup on it.
+		if (menuView.parent is Toolbar) menu.changeMenuMode()
+		showExpressiveMenu(this, menu, menu.nonActionItems)
 	}
 }
 
