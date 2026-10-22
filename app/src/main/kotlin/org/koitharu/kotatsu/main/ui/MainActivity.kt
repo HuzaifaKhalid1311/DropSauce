@@ -29,7 +29,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
-import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
@@ -85,7 +84,6 @@ import org.koitharu.kotatsu.main.ui.owners.ListCheckpointOwner
 import org.koitharu.kotatsu.main.ui.welcome.OnboardingActivity
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.remotelist.ui.MangaSearchMenuProvider
-import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionItemCallback
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionListenerImpl
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionMenuProvider
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionViewModel
@@ -95,7 +93,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNavOwner, ListCheckpointOwner,
 	View.OnClickListener,
-	SearchSuggestionItemCallback.SuggestionItemListener,
 	MainNavigationDelegate.OnFragmentChangedListener,
 	View.OnLayoutChangeListener,
 	SearchView.TransitionListener {
@@ -380,10 +377,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		isSearchFullyShown = (newState == SearchView.TransitionState.SHOWN)
 	}
 
-	override fun onRemoveQuery(query: String) {
-		searchSuggestionViewModel.deleteQuery(query)
-	}
-
 	override fun onSupportActionModeStarted(mode: ActionMode) {
 		super.onSupportActionModeStarted(mode)
 		adjustFabVisibility()
@@ -586,8 +579,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			this,
 			SnackbarErrorObserver(viewBinding.recyclerViewSearch, null),
 		)
-		ItemTouchHelper(SearchSuggestionItemCallback(this))
-			.attachToRecyclerView(viewBinding.recyclerViewSearch)
 	}
 
 	private fun setNavbarPinned(isPinned: Boolean) {

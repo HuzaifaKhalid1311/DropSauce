@@ -124,7 +124,6 @@
 	<dimen name="menu_popup_content_padding_vertical">0dp</dimen>
 	<dimen name="menu_popup_min_width">160dp</dimen>
 	<dimen name="menu_popup_item_min_height">40dp</dimen>
-	<dimen name="menu_popup_icon_size">32dp</dimen>
 	<!-- Leading icon of a standard popup/overflow menu item. Matches top_bar_action_icon_size so a
 	     menu opened from the top bar keeps the same icon size as the bar it dropped out of. -->
 	<dimen name="menu_popup_item_icon_size">22dp</dimen>

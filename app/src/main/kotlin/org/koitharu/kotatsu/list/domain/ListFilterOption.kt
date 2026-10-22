@@ -45,6 +45,22 @@ sealed interface ListFilterOption {
 			get() = "_downloaded"
 	}
 
+	/** Updates feed only: entries still marked new. */
+	data object Unread : ListFilterOption {
+
+		override val titleResId: Int
+			get() = R.string.unread
+
+		override val iconResId: Int
+			get() = R.drawable.ic_unread
+
+		override val titleText: CharSequence?
+			get() = null
+
+		override val groupKey: String
+			get() = "_unread"
+	}
+
 	enum class Macro(
 		@StringRes override val titleResId: Int,
 		@DrawableRes override val iconResId: Int,

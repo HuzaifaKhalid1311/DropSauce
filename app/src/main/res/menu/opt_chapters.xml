@@ -11,6 +11,30 @@
 		app:actionViewClass="androidx.appcompat.widget.SearchView"
 		app:showAsAction="ifRoom|collapseActionView" />
 
+	<group
+		android:id="@+id/group_sort"
+		android:checkableBehavior="single">
+
+		<item
+			android:id="@+id/action_sort_source"
+			android:icon="@drawable/ic_sort_source_order"
+			android:title="@string/sort_chapters_source_order"
+			app:showAsAction="never" />
+
+		<item
+			android:id="@+id/action_sort_by_name"
+			android:icon="@drawable/ic_sort_by_name"
+			android:title="@string/sort_chapters_by_name"
+			app:showAsAction="never" />
+
+		<item
+			android:id="@+id/action_sort_by_date"
+			android:icon="@drawable/ic_sort_by_date"
+			android:title="@string/sort_chapters_by_date"
+			app:showAsAction="never" />
+
+	</group>
+
 	<item
 		android:id="@+id/action_reversed"
 		android:checkable="true"
@@ -23,13 +47,6 @@
 		android:checkable="true"
 		android:icon="@drawable/ic_storage"
 		android:title="@string/downloads_only"
-		app:showAsAction="never" />
-
-	<item
-		android:id="@+id/action_sort_by_name"
-		android:checkable="true"
-		android:icon="@drawable/ic_sort_by_name"
-		android:title="@string/sort_chapters_by_name"
 		app:showAsAction="never" />
 
 	<item

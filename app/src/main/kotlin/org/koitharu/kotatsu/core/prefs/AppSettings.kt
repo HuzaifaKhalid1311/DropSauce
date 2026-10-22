@@ -514,6 +514,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isFeedSwipeGesturesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_FEED_SWIPE_GESTURES, true)
 
+	var isFeedUnreadOnly: Boolean
+		get() = prefs.getBoolean(KEY_FEED_UNREAD_ONLY, false)
+		set(value) = prefs.edit { putBoolean(KEY_FEED_UNREAD_ONLY, value) }
+
 	/** Mark the Feed tab with a plain dot instead of the exact number of unread updates. */
 	val isFeedCounterAsDot: Boolean
 		get() = prefs.getBoolean(KEY_FEED_COUNTER_DOT, false)
@@ -593,13 +597,22 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		set(value) = prefs.edit { putBoolean(KEY_GRID_VIEW_CHAPTERS, value) }
 
 	// Per-manga, because only a handful of sources hand back a badly ordered chapter list.
-	fun isChaptersSortedByName(mangaId: Long): Boolean =
-		prefs.getBoolean(KEY_SORT_CHAPTERS_BY_NAME + mangaId, false)
+	// Two flags rather than one value, so the "sort by name" choices people already made still apply.
+	fun getChaptersSortOrder(mangaId: Long): ChaptersSortOrder = when {
+		prefs.getBoolean(KEY_SORT_CHAPTERS_BY_DATE + mangaId, false) -> ChaptersSortOrder.DATE
+		prefs.getBoolean(KEY_SORT_CHAPTERS_BY_NAME + mangaId, false) -> ChaptersSortOrder.NAME
+		else -> ChaptersSortOrder.SOURCE
+	}
 
-	fun setChaptersSortedByName(mangaId: Long, value: Boolean) {
+	fun setChaptersSortOrder(mangaId: Long, value: ChaptersSortOrder) {
 		prefs.edit {
-			if (value) putBoolean(KEY_SORT_CHAPTERS_BY_NAME + mangaId, true)
-			else remove(KEY_SORT_CHAPTERS_BY_NAME + mangaId)
+			remove(KEY_SORT_CHAPTERS_BY_NAME + mangaId)
+			remove(KEY_SORT_CHAPTERS_BY_DATE + mangaId)
+			when (value) {
+				ChaptersSortOrder.SOURCE -> Unit
+				ChaptersSortOrder.NAME -> putBoolean(KEY_SORT_CHAPTERS_BY_NAME + mangaId, true)
+				ChaptersSortOrder.DATE -> putBoolean(KEY_SORT_CHAPTERS_BY_DATE + mangaId, true)
+			}
 		}
 	}
 
@@ -1348,6 +1361,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_TRACKER_SMART_UPDATE = "tracker_smart_update"
 		const val KEY_FEED_SWIPE_GESTURES = "feed_swipe_gestures"
 		const val KEY_FEED_COUNTER_DOT = "feed_counter_dot"
+		const val KEY_FEED_UNREAD_ONLY = "feed_unread_only"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"
 		const val KEY_READER_ANIMATION = "reader_animation2"
 		const val KEY_READER_CONTROLS = "reader_controls_order"
@@ -1394,6 +1408,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_REVERSE_CHAPTERS = "reverse_chapters"
 		const val KEY_GRID_VIEW_CHAPTERS = "grid_view_chapters"
 		const val KEY_SORT_CHAPTERS_BY_NAME = "sort_chapters_by_name_"
+		const val KEY_SORT_CHAPTERS_BY_DATE = "sort_chapters_by_date_"
 		const val KEY_DEFAULT_BROWSE_SORT = "default_browse_sort"
 		const val KEY_INCOGNITO_NSFW = "incognito_nsfw"
 		const val KEY_PAGES_NUMBERS = "pages_numbers"

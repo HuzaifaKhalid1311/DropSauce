@@ -173,6 +173,13 @@
 				android:layout_width="48dp"
 				android:layout_height="48dp"
 				android:text="4" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/button_voice_4"
+				style="@style/Widget.Kotatsu.TtsVoiceButton"
+				android:layout_width="48dp"
+				android:layout_height="48dp"
+				android:text="5" />
 		</com.google.android.material.button.MaterialButtonToggleGroup>
 
 		<TextView

@@ -87,7 +87,9 @@ class ReaderTts @Inject constructor(
 				?.let(picked::add)
 		}
 		// Engine keeps gender to itself: still hand out distinct people, from the rest of the spread.
-		(spread + speakers).distinct().filterNot { it in picked }.take(MAX_PRESETS - picked.size).let(picked::addAll)
+		(spread + speakers).distinct().filterNot { it in picked }.take(4 - picked.size).let(picked::addAll)
+		// Slot 5: the man the old 4-voice picker (up to v0.9.4) offered, which slots 1-4 lost
+		legacyPresets(speakers, spread).firstOrNull { it !in picked && it.isFemale() == false }?.let(picked::add)
 		return picked.take(MAX_PRESETS).map { it.offlineVariant(installed) }
 	}
 
@@ -288,7 +290,15 @@ class ReaderTts @Inject constructor(
 	}
 }
 
-private const val MAX_PRESETS = 4
+private const val MAX_PRESETS = 5
+
+/** The four voices v0.9.4 offered: two of each when the engine tags gender, else the spread. */
+private fun legacyPresets(speakers: List<Voice>, spread: List<Voice>): List<Voice> {
+	val male = speakers.filter { it.name.contains("#male", ignoreCase = true) }
+	val female = speakers.filter { it.name.contains("#female", ignoreCase = true) }
+	val tagged = female.take(2) + male.take(2)
+	return if (tagged.size == 4) tagged else spread
+}
 private val WHITESPACE = Regex("""\s+""")
 
 private fun Voice.isInstallRequired(): Boolean =

@@ -10,41 +10,41 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
+import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.consume
 import org.koitharu.kotatsu.core.util.ext.observe
-import org.koitharu.kotatsu.databinding.SheetBaseBinding
+import org.koitharu.kotatsu.databinding.SheetTrackerCategoriesBinding
 
 @AndroidEntryPoint
-class TrackerCategoriesConfigSheet :
-	BaseAdaptiveSheet<SheetBaseBinding>(),
-	OnListItemClickListener<FavouriteCategory> {
+class TrackerCategoriesConfigSheet : BaseAdaptiveSheet<SheetTrackerCategoriesBinding>() {
 
 	private val viewModel by viewModels<TrackerCategoriesConfigViewModel>()
 
-	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetBaseBinding {
-		return SheetBaseBinding.inflate(inflater, container, false)
+	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetTrackerCategoriesBinding {
+		return SheetTrackerCategoriesBinding.inflate(inflater, container, false)
 	}
 
-	override fun onViewBindingCreated(binding: SheetBaseBinding, savedInstanceState: Bundle?) {
+	override fun onViewBindingCreated(binding: SheetTrackerCategoriesBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
 		binding.headerBar.setTitle(R.string.favourites_categories)
-		val adapter = TrackerCategoriesConfigAdapter(this)
-		binding.recyclerView.adapter = adapter
-
-		viewModel.content.observe(viewLifecycleOwner, adapter)
+		binding.chips.onChipClickListener = ChipsView.OnChipClickListener { _, data ->
+			(data as? FavouriteCategory)?.let(viewModel::toggleItem)
+		}
+		viewModel.content.observe(viewLifecycleOwner) { categories ->
+			binding.chips.setChips(
+				categories.map {
+					ChipsView.ChipModel(title = it.title, isChecked = it.isTrackingEnabled, data = it)
+				},
+			)
+		}
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val typeMask = WindowInsetsCompat.Type.systemBars()
-		viewBinding?.recyclerView?.updatePadding(
+		viewBinding?.scrollView?.updatePadding(
 			bottom = insets.getInsets(typeMask).bottom,
 		)
 		return insets.consume(v, typeMask, bottom = true)
-	}
-
-	override fun onItemClick(item: FavouriteCategory, view: View) {
-		viewModel.toggleItem(item)
 	}
 }

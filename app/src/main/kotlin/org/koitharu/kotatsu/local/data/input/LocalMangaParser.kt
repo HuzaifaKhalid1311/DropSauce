@@ -278,6 +278,9 @@ class LocalMangaParser(private val uri: Uri) {
 			)
 		}
 		val chapterUri = chapter.url.toUri().resolve()
+		// A chapter that is a whole archive (a cbz in a folder) owns every image in it, as in Mihon:
+		// comic archives, converted CBRs above all, keep their pages in a folder inside
+		val isWholeArchive = chapterUri.isFileUri() && chapterUri.toFile().isZipArchive
 		chapterUri.resolveFsAndPath().use { (fileSystem, rootPath) ->
 			val index = MangaIndex.read(fileSystem, rootPath / ENTRY_NAME_INDEX)
 			val entries = fileSystem.listRecursively(rootPath)
@@ -287,7 +290,7 @@ class LocalMangaParser(private val uri: Uri) {
 				// index.json and ComicInfo.xml live next to the pages in an imported chapter
 				entries.filter { x -> x.isImage() && x.name.substringBefore('.').matches(pattern) }
 			} else {
-				entries.filter { x -> x.isImage() && x.parent == rootPath }
+				entries.filter { x -> x.isImage() && (isWholeArchive || x.parent == rootPath) }
 			}.toListSorted(compareBy(AlphanumComparator()) { x -> x.toString() })
 				.map { x ->
 					val entryUri = chapterUri.child(x, resolve = true).toString()

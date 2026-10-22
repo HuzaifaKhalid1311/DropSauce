@@ -79,6 +79,7 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 	protected abstract fun observeAllImpl(query: SupportSQLiteQuery): Flow<List<TrackLogWithManga>>
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
+		ListFilterOption.Unread -> "track_logs.unread = 1"
 		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = track_logs.manga_id)"
 		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = track_logs.manga_id AND favourites.category_id = ${option.category.id})"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE manga_tags.manga_id = track_logs.manga_id AND tag_id = ${option.tagId})"

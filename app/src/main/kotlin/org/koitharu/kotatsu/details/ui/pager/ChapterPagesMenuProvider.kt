@@ -15,6 +15,7 @@ import com.google.android.material.slider.TickVisibilityMode
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.ChaptersSortOrder
 import org.koitharu.kotatsu.core.ui.dialog.showMultiChoiceDialog
 import org.koitharu.kotatsu.core.util.LocaleStringComparator
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
@@ -71,7 +72,13 @@ class ChapterPagesMenuProvider(
 		super.onPrepareMenu(menu)
 		menu.findItem(R.id.action_reversed)?.isChecked = settings.isChaptersReverse
 		menu.findItem(R.id.action_grid_view)?.isChecked = settings.isChaptersGridView
-		menu.findItem(R.id.action_sort_by_name)?.isChecked = viewModel.isChaptersSortedByName.value
+		menu.findItem(
+			when (viewModel.chaptersSortOrder.value) {
+				ChaptersSortOrder.SOURCE -> R.id.action_sort_source
+				ChaptersSortOrder.NAME -> R.id.action_sort_by_name
+				ChaptersSortOrder.DATE -> R.id.action_sort_by_date
+			},
+		)?.isChecked = true
 		menu.findItem(R.id.action_downloaded)?.let { item ->
 			item.isVisible = viewModel.mangaDetails.value?.local != null
 			item.isChecked = viewModel.isDownloadedOnly.value
@@ -92,8 +99,18 @@ class ChapterPagesMenuProvider(
 			true
 		}
 
+		R.id.action_sort_source -> {
+			viewModel.setChaptersSortOrder(ChaptersSortOrder.SOURCE)
+			true
+		}
+
 		R.id.action_sort_by_name -> {
-			viewModel.setChaptersSortedByName(!menuItem.isChecked)
+			viewModel.setChaptersSortOrder(ChaptersSortOrder.NAME)
+			true
+		}
+
+		R.id.action_sort_by_date -> {
+			viewModel.setChaptersSortOrder(ChaptersSortOrder.DATE)
 			true
 		}
 
@@ -125,13 +142,8 @@ class ChapterPagesMenuProvider(
 			icon = R.drawable.ic_merge,
 			title = context.getString(R.string.merge_scanlators),
 			message = context.getString(R.string.merge_scanlators_summary),
-			options = scanlators.map { (name, count) ->
-				context.getString(
-					R.string.scanlator_with_chapters,
-					name ?: context.getString(R.string.system_default),
-					context.resources.getQuantityString(R.plurals.chapters, count, count),
-				)
-			},
+			options = scanlators.map { (name, _) -> name ?: context.getString(R.string.system_default) },
+			counts = scanlators.map { (_, count) -> count.toString() },
 			selectedIndices = scanlators.indices.filterTo(HashSet()) { index ->
 				when (merge) {
 					ScanlatorMerge.None -> false

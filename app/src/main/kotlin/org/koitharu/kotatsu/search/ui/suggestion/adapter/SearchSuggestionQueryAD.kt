@@ -21,6 +21,7 @@ fun searchSuggestionQueryAD(
 
 		binding.root.setOnClickListener(viewClickListener)
 		binding.buttonComplete.setOnClickListener(viewClickListener)
+		binding.buttonDelete.setOnClickListener { listener.onRemoveQuery(item.query) }
 
 		bind {
 			binding.textViewTitle.text = item.query

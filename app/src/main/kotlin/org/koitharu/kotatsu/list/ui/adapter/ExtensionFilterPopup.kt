@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.list.ui.adapter
 
 import android.content.Context
 import android.graphics.Color
-import android.text.TextUtils
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -13,12 +13,11 @@ import android.widget.TextView
 import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.checkbox.MaterialCheckBox
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.model.isExternalSource
+import org.koitharu.kotatsu.core.model.toChipModel
 import org.koitharu.kotatsu.core.model.unwrap
-import org.koitharu.kotatsu.core.ui.image.FaviconView
+import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.getThemeResId
 import org.koitharu.kotatsu.core.util.ext.resolveDp
@@ -27,11 +26,17 @@ import org.koitharu.kotatsu.list.ui.model.ExtensionFilter
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import kotlin.math.ceil
 import com.google.android.material.R as materialR
-import androidx.appcompat.R as appcompatR
 
 internal object ExtensionFilterPopup {
 
-	private const val VISIBLE_ROWS = 6
+	private const val VISIBLE_CHIP_ROWS = 6
+	private const val CHIP_ROW_HEIGHT_DP = 40
+
+	/** Wider than this the chips wrap instead, so a long list stays a compact block. */
+	private const val MAX_WIDTH_DP = 360
+
+	/** A chip's favicon, paddings and gap to the next chip, around its text. */
+	private const val CHIP_CHROME_DP = 56
 
 	fun show(
 		anchor: View,
@@ -39,40 +44,42 @@ internal object ExtensionFilterPopup {
 		listener: QuickFilterClickListener,
 	) {
 		val context = anchor.context
-		val popupWidth = resolvePopupWidth(context, filter)
-		val rows = ArrayList<Row>(filter.options.size)
 		val selectedSourceNames = filter.selectedOptions.mapTo(HashSet()) { it.mangaSource.name }
 		val resetButton = createResetButton(context)
-		val list = LinearLayout(context).apply {
-			orientation = LinearLayout.VERTICAL
-			for (option in filter.options) {
-				val row = createRow(
-					context = context,
-					option = option,
-					selectedSourceNames = selectedSourceNames,
-					listener = listener,
-					onSelectionChanged = {
-						updateResetButton(resetButton, selectedSourceNames.isNotEmpty())
-					},
-				)
-				rows += row.binding
-				addView(row.view, LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-			}
+		val chips = LayoutInflater.from(context).inflate(R.layout.view_extension_filter_chips, null) as ChipsView
+		val bindChips = {
+			chips.setChips(
+				filter.options.map { option ->
+					option.toChipModel(isChecked = option.mangaSource.name in selectedSourceNames)
+						.copy(title = option.getMenuTitle(context), titleResId = 0)
+				},
+			)
 		}
-		// Only the extension list scrolls; the header and Reset stay put. Past VISIBLE_ROWS the list
-		// is capped with half of the next row peeking out, so it reads as scrollable.
-		val rowHeight = context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_min_height)
-		val listScroll = MaxHeightScrollView(context).apply {
-			if (filter.options.size > VISIBLE_ROWS) {
-				maxHeight = rowHeight * VISIBLE_ROWS + rowHeight / 2
+		bindChips()
+		chips.onChipClickListener = ChipsView.OnChipClickListener { _, data ->
+			val option = data as? ListFilterOption.Source ?: return@OnChipClickListener
+			val name = option.mangaSource.name
+			val checked = name !in selectedSourceNames
+			if (checked) {
+				selectedSourceNames += name
+			} else {
+				selectedSourceNames -= name
 			}
+			bindChips()
+			listener.onFilterOptionChanged(option, checked)
+			updateResetButton(resetButton, selectedSourceNames.isNotEmpty())
+		}
+		// Only the chips scroll; the header and Reset stay put. Past VISIBLE_CHIP_ROWS the area is
+		// capped with half of the next row peeking out, so it reads as scrollable.
+		val chipsScroll = MaxHeightScrollView(context).apply {
+			maxHeight = context.resources.resolveDp(CHIP_ROW_HEIGHT_DP * VISIBLE_CHIP_ROWS + CHIP_ROW_HEIGHT_DP / 2)
 			isVerticalScrollBarEnabled = true
-			addView(list, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+			addView(chips, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 		}
 		val content = LinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
 			addView(createHeader(context), LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-			addView(listScroll, LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+			addView(chipsScroll, LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			addView(
 				resetButton,
 				LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -85,13 +92,13 @@ internal object ExtensionFilterPopup {
 		}
 		resetButton.setOnClickListener {
 			selectedSourceNames.clear()
-			rows.forEach { it.checkBox.isChecked = false }
+			bindChips()
 			updateResetButton(resetButton, isEnabled = false)
 			listener.onFilterOptionsCleared(filter.options)
 		}
 		updateResetButton(resetButton, selectedSourceNames.isNotEmpty())
 
-		PopupWindow(content, popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
+		PopupWindow(content, resolvePopupWidth(context, filter), ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
 			setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.m3_menu_background))
 			isOutsideTouchable = true
 			elevation = context.resources.resolveDp(8).toFloat()
@@ -124,102 +131,22 @@ internal object ExtensionFilterPopup {
 		}
 	}
 
-	private fun createRow(
-		context: Context,
-		option: ListFilterOption.Source,
-		selectedSourceNames: MutableSet<String>,
-		listener: QuickFilterClickListener,
-		onSelectionChanged: () -> Unit,
-	): RowView {
-		val row = LinearLayout(context).apply {
-			orientation = LinearLayout.HORIZONTAL
-			gravity = Gravity.CENTER_VERTICAL
-			minimumHeight = context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_min_height)
-			minimumWidth = context.resources.getDimensionPixelSize(R.dimen.menu_popup_min_width)
-			setPadding(
-				context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_padding_horizontal),
-				0,
-				context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_padding_horizontal),
-				0,
-			)
-			background = ContextCompat.getDrawable(context, R.drawable.extension_filter_row_selector)
-		}
-		val icon = FaviconView(context).apply {
-			applyExternalSourceStyle(option.mangaSource.isExternalSource())
-			setImageAsync(option.mangaSource)
-		}
-		val title = TextView(context).apply {
-			text = option.getMenuTitle(context)
-			setTextAppearanceAttr(appcompatR.attr.textAppearanceLargePopupMenu)
-			setTextColor(context.getThemeColor(android.R.attr.textColorPrimary, Color.BLACK))
-			isSingleLine = true
-			ellipsize = TextUtils.TruncateAt.END
-			maxWidth = context.resources.displayMetrics.widthPixels -
-				context.resources.resolveDp(144)
-		}
-		val checkBox = MaterialCheckBox(context).apply {
-			isClickable = false
-			isFocusable = false
-			isChecked = option.mangaSource.name in selectedSourceNames
-			minimumWidth = 0
-			minimumHeight = 0
-			gravity = Gravity.CENTER
-			setPadding(0, 0, 0, 0)
-			background = null
-		}
-		row.addView(
-			icon,
-			LinearLayout.LayoutParams(
-				context.resources.getDimensionPixelSize(R.dimen.menu_popup_icon_size),
-				context.resources.getDimensionPixelSize(R.dimen.menu_popup_icon_size),
-			).apply {
-				marginEnd = context.resources.getDimensionPixelSize(R.dimen.menu_icon_text_spacing_extra)
-			},
-		)
-		row.addView(
-			title,
-			LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-				marginEnd = context.resources.resolveDp(8)
-			},
-		)
-		row.addView(
-			checkBox,
-			LinearLayout.LayoutParams(
-				context.resources.getDimensionPixelSize(R.dimen.menu_popup_icon_size),
-				context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_min_height),
-			),
-		)
-		val rowBinding = Row(checkBox)
-		row.setOnClickListener {
-			val checked = !checkBox.isChecked
-			checkBox.isChecked = checked
-			if (checked) {
-				selectedSourceNames += option.mangaSource.name
-			} else {
-				selectedSourceNames -= option.mangaSource.name
-			}
-			listener.onFilterOptionChanged(option, checked)
-			onSelectionChanged()
-		}
-		return RowView(row, rowBinding)
-	}
-
+	/** As wide as all the chips in one line, within the menu minimum and [MAX_WIDTH_DP]. */
 	private fun resolvePopupWidth(context: Context, filter: ExtensionFilter): Int {
 		val horizontalPadding = context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_padding_horizontal)
-		val iconSize = context.resources.getDimensionPixelSize(R.dimen.menu_popup_icon_size)
-		val iconTextGap = context.resources.getDimensionPixelSize(R.dimen.menu_icon_text_spacing_extra)
-		val textCheckGap = context.resources.resolveDp(8)
-		val menuMinWidth = context.resources.getDimensionPixelSize(R.dimen.menu_popup_min_width)
-		val maxAvailableWidth = context.resources.displayMetrics.widthPixels - context.resources.resolveDp(32)
-		val widestSourceWidth = filter.options.maxOfOrNull {
-			context.measureTextWidth(it.getMenuTitle(context), appcompatR.attr.textAppearanceLargePopupMenu)
-		} ?: 0
-		val sourceRowWidth = horizontalPadding + iconSize + iconTextGap + widestSourceWidth +
-			textCheckGap + iconSize + horizontalPadding
+		val maxWidth = minOf(
+			context.resources.displayMetrics.widthPixels - context.resources.resolveDp(32),
+			context.resources.resolveDp(MAX_WIDTH_DP),
+		)
+		val chipsWidth = filter.options.sumOf {
+			context.measureTextWidth(it.getMenuTitle(context), materialR.attr.textAppearanceLabelLarge) +
+				context.resources.resolveDp(CHIP_CHROME_DP)
+		} + 2 * horizontalPadding
 		val headerWidth = horizontalPadding +
 			context.measureTextWidth(context.getString(R.string.extension_filters), materialR.attr.textAppearanceTitleMedium) +
 			horizontalPadding
-		return maxOf(menuMinWidth, sourceRowWidth, headerWidth).coerceAtMost(maxAvailableWidth)
+		val minWidth = maxOf(context.resources.getDimensionPixelSize(R.dimen.menu_popup_min_width), headerWidth)
+		return chipsWidth.coerceIn(minWidth, maxOf(minWidth, maxWidth))
 	}
 
 	private fun updateResetButton(resetButton: MaterialButton, isEnabled: Boolean) {
@@ -271,13 +198,4 @@ internal object ExtensionFilterPopup {
 			super.onMeasure(widthMeasureSpec, resolvedHeight)
 		}
 	}
-
-	private data class Row(
-		val checkBox: MaterialCheckBox,
-	)
-
-	private data class RowView(
-		val view: View,
-		val binding: Row,
-	)
 }

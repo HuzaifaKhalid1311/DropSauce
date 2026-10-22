@@ -9,10 +9,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.toChipModel
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
@@ -29,6 +32,7 @@ import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.list.ui.model.QuickFilter
 import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.list.ui.model.toErrorState
 import org.koitharu.kotatsu.tracker.domain.TrackingRepository
@@ -53,6 +57,12 @@ class FeedViewModel @Inject constructor(
 
 	init {
 		quickFilter.isStateFilterEnabled = false
+		if (settings.isFeedUnreadOnly) {
+			quickFilter.setFilterOption(ListFilterOption.Unread, true)
+		}
+		quickFilter.appliedOptions
+			.onEach { settings.isFeedUnreadOnly = ListFilterOption.Unread in it }
+			.launchIn(viewModelScope)
 	}
 
 	private val limit = MutableStateFlow(PAGE_SIZE)
@@ -85,17 +95,20 @@ class FeedViewModel @Inject constructor(
 		if (list.isNotEmpty() && isTipVisible) {
 			result += gesturesTip
 		}
-		quickFilter.filterItem(filters)?.let(result::add)
-		if (list.isEmpty()) {
+		// Unread leads the row and stays even with quick filters off, so a remembered filter can always be undone
+		val unreadChip = ListFilterOption.Unread.toChipModel(isChecked = ListFilterOption.Unread in filters)
+		result += QuickFilter(listOf(unreadChip) + quickFilter.filterItem(filters)?.items.orEmpty())
+		if (list.isNotEmpty()) {
+			isReady.set(true)
+			list.mapListTo(result, isUnreadOnly = ListFilterOption.Unread in filters)
+		}
+		if (result.none { it is FeedItem }) {
 			result += EmptyState(
 				icon = R.drawable.ic_empty_feed,
 				textPrimary = R.string.text_feed_holder_primary,
 				textSecondary = R.string.text_feed_holder,
 				actionStringRes = 0,
 			)
-		} else {
-			isReady.set(true)
-			list.mapListTo(result)
 		}
 		result as List<ListModel>
 	}.catch { e ->
@@ -200,9 +213,10 @@ class FeedViewModel @Inject constructor(
 		expandedIds.update { if (it.isEmpty()) it else emptySet() }
 	}
 
-	private suspend fun List<TrackingLogItem>.mapListTo(destination: MutableList<ListModel>) {
-		val feedItems = map { mangaListMapper.toFeedItem(it) }
-		val bucketedItems = zip(feedItems).groupByDateBucket(instantOf = { it.first.createdAt })
+	private suspend fun List<TrackingLogItem>.mapListTo(destination: MutableList<ListModel>, isUnreadOnly: Boolean) {
+		// The query keeps unread rows; an entry whose chapters were all read since still shows as read
+		val feedItems = map { it to mangaListMapper.toFeedItem(it) }.filter { !isUnreadOnly || it.second.isNew }
+		val bucketedItems = feedItems.groupByDateBucket(instantOf = { it.first.createdAt })
 		for ((date, items) in bucketedItems) {
 			destination += if (date != null) {
 				ListHeader(date)

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.ReaderIntent
+import org.koitharu.kotatsu.core.prefs.ChaptersSortOrder
 import org.koitharu.kotatsu.core.nav.dismissParentDialog
 import org.koitharu.kotatsu.core.nav.dismissParentSheetWhenCovered
 import org.koitharu.kotatsu.core.nav.router
@@ -116,11 +117,11 @@ class ChaptersFragment :
 			viewModel.chapters,
 			viewModel.chaptersQuery,
 			viewModel.isDownloadedOnly,
-			viewModel.isChaptersSortedByName,
-		) { list, query, downloadedOnly, sortedByName ->
+			viewModel.chaptersSortOrder,
+		) { list, query, downloadedOnly, sortOrder ->
 			// Volume headers and "missing chapters" gaps only describe the source's own ordering, so
-			// they are dropped once the list is re-sorted by name.
-			if (sortedByName) {
+			// they are dropped once the list is re-sorted.
+			if (sortOrder != ChaptersSortOrder.SOURCE) {
 				ArrayList<ListModel>(list)
 			} else {
 				list.withVolumeHeaders(requireContext(), showMissingChapters = query.isEmpty() && !downloadedOnly)

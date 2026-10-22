@@ -32,9 +32,9 @@ import org.koitharu.kotatsu.core.model.homeUrl
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showMultiChoiceDialog
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ChoiceDialog
-import org.koitharu.kotatsu.settings.compose.MultiChoiceDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.ActionModeListener
@@ -294,29 +294,22 @@ class ExploreFragment :
 			Snackbar.make(requireViewBinding().pager, R.string.no_extensions_installed, Snackbar.LENGTH_SHORT).show()
 			return
 		}
-		val labels = languages.map { getString(R.string.language_with_count, it.displayName, it.sourceCount) }
-		// Reuses the settings screens' own multi-choice dialog so it looks like every other one.
-		// It is a composable, so it rides on a throwaway zero-size host in the activity's content
-		// view - the dialog puts itself in its own window, the host only carries the composition.
-		val content = requireActivity().findViewById<ViewGroup>(android.R.id.content) ?: return
-		val host = ComposeView(requireContext())
-		content.addView(host)
-		host.setContent {
-			DropSauceTheme {
-				MultiChoiceDialog(
-					title = stringResource(R.string.filter_by_language),
-					entries = labels,
-					selectedIndices = languages.indices.filterTo(HashSet()) { languages[it].isEnabled },
-					onConfirm = { selected ->
-						viewModel.setHiddenLanguages(
-							languages.filterIndexed { index, _ -> index !in selected }
-								.mapTo(HashSet()) { it.code },
-						)
-					},
-					onDismiss = { content.removeView(host) },
+		// The same chip picker as "merge scanlators"; the count is the number of sources in that language
+		showMultiChoiceDialog(
+			context = requireContext(),
+			icon = R.drawable.ic_language_filter,
+			title = getString(R.string.filter_by_language),
+			options = languages.map { it.displayName },
+			counts = languages.map { it.sourceCount.toString() },
+			selectedIndices = languages.indices.filterTo(HashSet()) { languages[it].isEnabled },
+			confirmLabel = getString(android.R.string.ok),
+			onConfirm = { selected ->
+				viewModel.setHiddenLanguages(
+					languages.filterIndexed { index, _ -> index !in selected }
+						.mapTo(HashSet()) { it.code },
 				)
-			}
-		}
+			},
+		)
 	}
 
 	override fun onDestroyView() {

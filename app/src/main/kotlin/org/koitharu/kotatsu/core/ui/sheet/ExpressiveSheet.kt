@@ -41,9 +41,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import org.koitharu.kotatsu.R
 
 /**
@@ -203,8 +208,8 @@ fun SheetSelectorField(
 	}
 }
 
-/** One entry of a [SheetChips] row. */
-class SheetChip(val title: String, val isChecked: Boolean, val icon: Painter? = null)
+/** One entry of a [SheetChips] row; [count] trails the title, muted, like the list quick-filter chips. */
+class SheetChip(val title: String, val isChecked: Boolean, val icon: Painter? = null, val count: String? = null)
 
 /** Wrapping row of filter chips; [onClick] receives the tapped chip's index. */
 @Composable
@@ -222,7 +227,21 @@ fun SheetChips(
 			FilterChip(
 				selected = chip.isChecked,
 				onClick = { onClick(index) },
-				label = { Text(chip.title) },
+				label = {
+					Text(
+						text = if (chip.count == null) {
+							AnnotatedString(chip.title)
+						} else {
+							buildAnnotatedString {
+								append(chip.title)
+								append("  ")
+								withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 0.74.em)) {
+									append(chip.count)
+								}
+							}
+						},
+					)
+				},
 				leadingIcon = chip.icon?.let { icon ->
 					{
 						Icon(

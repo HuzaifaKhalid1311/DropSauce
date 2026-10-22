@@ -106,7 +106,7 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		viewModel.isChaptersReversed.observe(viewLifecycleOwner, menuInvalidator)
 		viewModel.isChaptersInGridView.observe(viewLifecycleOwner, menuInvalidator)
 		viewModel.isDownloadedOnly.observe(viewLifecycleOwner, menuInvalidator)
-		viewModel.isChaptersSortedByName.observe(viewLifecycleOwner, menuInvalidator)
+		viewModel.chaptersSortOrder.observe(viewLifecycleOwner, menuInvalidator)
 
 		actionModeDelegate?.addListener(this, viewLifecycleOwner)
 		addSheetCallback(this, viewLifecycleOwner)

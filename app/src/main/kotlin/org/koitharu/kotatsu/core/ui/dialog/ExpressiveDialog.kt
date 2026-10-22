@@ -27,7 +27,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.sheet.SheetChip
+import org.koitharu.kotatsu.core.ui.sheet.SheetChips
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
@@ -298,9 +299,10 @@ fun showActionChoiceDialog(
 }
 
 /**
- * Expressive multi-choice picker: checkbox [options] with the initial [selectedIndices], confirmed by a
- * pill button ([confirmLabel]) that is enabled only while [isValid] accepts the selection.
- * [onConfirm] receives the checked indices — the dialog dismisses first.
+ * Expressive multi-choice picker: toggle chips for [options] (each trailed by its [counts] entry, if
+ * given) with the initial [selectedIndices], confirmed by a pill button ([confirmLabel]) that is
+ * enabled only while [isValid] accepts the selection.
+ * [onConfirm] receives the selected indices — the dialog dismisses first.
  */
 fun showMultiChoiceDialog(
 	context: Context,
@@ -308,6 +310,7 @@ fun showMultiChoiceDialog(
 	title: String,
 	message: String? = null,
 	options: List<String>,
+	counts: List<String>? = null,
 	selectedIndices: Set<Int>,
 	confirmLabel: String,
 	isValid: (Set<Int>) -> Boolean = { true },
@@ -320,34 +323,15 @@ fun showMultiChoiceDialog(
 			title = title,
 			message = message,
 		) {
-			Column(
+			SheetChips(
+				chips = options.mapIndexed { index, option ->
+					SheetChip(title = option, isChecked = index in selection, count = counts?.getOrNull(index))
+				},
+				onClick = { index -> selection = if (index in selection) selection - index else selection + index },
 				modifier = Modifier
 					.heightIn(max = 320.dp)
 					.verticalScroll(rememberScrollState()),
-			) {
-				options.forEachIndexed { index, option ->
-					val checked = index in selection
-					val toggle = { selection = if (checked) selection - index else selection + index }
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.heightIn(min = 52.dp)
-							.clip(RoundedCornerShape(16.dp))
-							.clickable(onClick = toggle)
-							.padding(horizontal = 8.dp),
-						verticalAlignment = Alignment.CenterVertically,
-					) {
-						Checkbox(checked = checked, onCheckedChange = { toggle() })
-						Spacer(Modifier.size(8.dp))
-						Text(
-							text = option,
-							style = MaterialTheme.typography.bodyLarge,
-							color = MaterialTheme.colorScheme.onSurface,
-							modifier = Modifier.fillMaxWidth(),
-						)
-					}
-				}
-			}
+			)
 			Spacer(Modifier.height(16.dp))
 			ExpressivePillButton(
 				text = confirmLabel,

@@ -13,6 +13,8 @@ interface SearchSuggestionListener : TextWatcher, TextView.OnEditorActionListene
 
 	fun onQueryClick(query: String, kind: SearchKind, submit: Boolean)
 
+	fun onRemoveQuery(query: String)
+
 	fun onSourceClick(source: MangaSource)
 
 	fun onSourceSettingsClick(source: MangaSource)

@@ -58,6 +58,8 @@ class WebtoonReaderFragment : BaseReaderFragment<FragmentReaderWebtoonBinding>()
 		super.onViewBindingCreated(binding, savedInstanceState)
 		with(binding.recyclerView) {
 			adapter = readerAdapter
+			// Pages scrolled past keep their decoded image for a quick way back (Mihon uses the same 4)
+			setItemViewCacheSize(4)
 			addOnPageScrollListener(this@WebtoonReaderFragment)
 			recyclerLifecycleDispatcher = RecyclerViewLifecycleDispatcher().also {
 				addOnScrollListener(it)

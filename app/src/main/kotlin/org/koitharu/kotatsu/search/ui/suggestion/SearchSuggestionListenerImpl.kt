@@ -38,6 +38,10 @@ class SearchSuggestionListenerImpl(
 		}
 	}
 
+	override fun onRemoveQuery(query: String) {
+		viewModel.deleteQuery(query)
+	}
+
 	override fun onTagClick(tag: MangaTag) {
 		router.openSearch(tag.title, SearchKind.TAG)
 	}

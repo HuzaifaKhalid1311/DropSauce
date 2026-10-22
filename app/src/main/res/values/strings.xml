@@ -143,7 +143,6 @@
     <string name="stop_update">Stop update</string>
     <string name="merge_scanlators">Merge scanlators</string>
     <string name="merge_scanlators_summary">Ticked scanlators show as one combined chapter list.</string>
-    <string name="scanlator_with_chapters">%1$s · %2$s</string>
     <string name="marked_as_read">Marked as read</string>
     <string name="mark_as_read">Mark as read</string>
     <string name="feed_entry_removed">Removed</string>
@@ -494,7 +493,6 @@
     <string name="mark_as_current">Mark as current</string>
     <string name="language">Language</string>
     <string name="filter_by_language">Filter by language</string>
-    <string name="language_with_count">%1$s (%2$d)</string>
     <string name="no_extensions_installed">No extensions installed</string>
     <string name="theme_name_expressive">Expressive</string>
     <string name="color_theme">Color scheme</string>
@@ -667,6 +665,8 @@
     <string name="on_device">On device</string>
     <string name="downloads_only">Downloads only</string>
     <string name="sort_chapters_by_name">Sort by name</string>
+    <string name="sort_chapters_by_date">Sort by date</string>
+    <string name="sort_chapters_source_order">Source order</string>
     <string name="extensions_default_sort">Default browse order</string>
     <string name="extensions_default_sort_summary">Applies to every installed extension</string>
     <string name="directories">Directories</string>
