@@ -37,7 +37,8 @@
 		android:layout_height="wrap_content"
 		android:background="?selectableItemBackgroundBorderless"
 		android:padding="8dp"
-		android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
+		android:contentDescription="@string/insert_search_query"
+		android:src="@drawable/ic_search_insert"
 		app:tint="?colorControlNormal" />
 
 	<ImageButton

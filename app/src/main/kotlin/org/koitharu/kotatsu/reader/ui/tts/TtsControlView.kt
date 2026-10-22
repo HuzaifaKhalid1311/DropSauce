@@ -93,7 +93,6 @@ class TtsControlView @JvmOverloads constructor(
 			binding.buttonVoice1,
 			binding.buttonVoice2,
 			binding.buttonVoice3,
-			binding.buttonVoice4,
 		)
 
 	/**

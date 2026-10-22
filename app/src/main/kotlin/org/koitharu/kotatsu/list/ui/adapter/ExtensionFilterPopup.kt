@@ -35,9 +35,6 @@ internal object ExtensionFilterPopup {
 	/** Wider than this the chips wrap instead, so a long list stays a compact block. */
 	private const val MAX_WIDTH_DP = 360
 
-	/** A chip's favicon, paddings and gap to the next chip, around its text. */
-	private const val CHIP_CHROME_DP = 56
-
 	fun show(
 		anchor: View,
 		filter: ExtensionFilter,
@@ -98,7 +95,7 @@ internal object ExtensionFilterPopup {
 		}
 		updateResetButton(resetButton, selectedSourceNames.isNotEmpty())
 
-		PopupWindow(content, resolvePopupWidth(context, filter), ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
+		PopupWindow(content, resolvePopupWidth(context, chips), ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
 			setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.m3_menu_background))
 			isOutsideTouchable = true
 			elevation = context.resources.resolveDp(8).toFloat()
@@ -131,17 +128,21 @@ internal object ExtensionFilterPopup {
 		}
 	}
 
-	/** As wide as all the chips in one line, within the menu minimum and [MAX_WIDTH_DP]. */
-	private fun resolvePopupWidth(context: Context, filter: ExtensionFilter): Int {
+	/**
+	 * As wide as the widest line the chips actually wrap into (measured, not estimated), within the
+	 * menu minimum and [MAX_WIDTH_DP]: chips that wrap leave no empty space on their right.
+	 */
+	private fun resolvePopupWidth(context: Context, chips: ChipsView): Int {
 		val horizontalPadding = context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_padding_horizontal)
 		val maxWidth = minOf(
 			context.resources.displayMetrics.widthPixels - context.resources.resolveDp(32),
 			context.resources.resolveDp(MAX_WIDTH_DP),
 		)
-		val chipsWidth = filter.options.sumOf {
-			context.measureTextWidth(it.getMenuTitle(context), materialR.attr.textAppearanceLabelLarge) +
-				context.resources.resolveDp(CHIP_CHROME_DP)
-		} + 2 * horizontalPadding
+		chips.measure(
+			View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.AT_MOST),
+			View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+		)
+		val chipsWidth = chips.measuredWidth
 		val headerWidth = horizontalPadding +
 			context.measureTextWidth(context.getString(R.string.extension_filters), materialR.attr.textAppearanceTitleMedium) +
 			horizontalPadding

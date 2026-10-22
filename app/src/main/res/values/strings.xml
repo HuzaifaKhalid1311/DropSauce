@@ -667,6 +667,7 @@
     <string name="sort_chapters_by_name">Sort by name</string>
     <string name="sort_chapters_by_date">Sort by date</string>
     <string name="sort_chapters_source_order">Source order</string>
+    <string name="insert_search_query">Insert into search</string>
     <string name="extensions_default_sort">Default browse order</string>
     <string name="extensions_default_sort_summary">Applies to every installed extension</string>
     <string name="directories">Directories</string>
