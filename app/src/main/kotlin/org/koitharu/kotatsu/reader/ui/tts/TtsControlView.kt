@@ -45,6 +45,7 @@ class TtsControlView @JvmOverloads constructor(
 		binding.buttonPlay.setOnClickListener(this)
 		binding.buttonNext.setOnClickListener(this)
 		binding.buttonPrevious.setOnClickListener(this)
+		binding.buttonCustomizeVoices.setOnClickListener(this)
 		binding.sliderSpeed.addOnChangeListener(this)
 		binding.sliderPitch.addOnChangeListener(this)
 	}
@@ -72,16 +73,17 @@ class TtsControlView @JvmOverloads constructor(
 		}
 	}
 
-	/** Offers one dot per voice the engine actually has for this book's language. */
+	/** One button per voice slot for this book's language, and the customize button beside them. */
 	private fun updateVoices() {
-		val presets = tts?.voicePresets().orEmpty()
+		val hasVoices = tts?.availableVoices().orEmpty().isNotEmpty()
 		val buttons = voiceButtons
-		buttons.forEachIndexed { index, button -> button.isGone = index >= presets.size }
-		binding.labelVoice.setText(if (presets.isEmpty()) R.string.tts_unavailable else R.string.tts_voice)
-		if (presets.isEmpty()) {
+		buttons.forEach { it.isGone = !hasVoices }
+		binding.labelVoice.setText(if (hasVoices) R.string.tts_voice else R.string.tts_unavailable)
+		binding.buttonCustomizeVoices.isGone = !hasVoices
+		if (!hasVoices) {
 			return
 		}
-		val selected = tts?.selectedVoiceIndex()?.coerceAtMost(presets.lastIndex) ?: 0
+		val selected = tts?.selectedVoiceIndex() ?: 0
 		binding.groupVoices.removeOnButtonCheckedListener(voiceListener)
 		binding.groupVoices.check(buttons[selected].id)
 		binding.groupVoices.addOnButtonCheckedListener(voiceListener)
@@ -129,6 +131,7 @@ class TtsControlView @JvmOverloads constructor(
 			R.id.button_play -> controller.toggle()
 			R.id.button_next -> controller.skip(1)
 			R.id.button_previous -> controller.skip(-1)
+			R.id.button_customize_voices -> showTtsVoicesDialog(context, controller, ::updateVoices)
 		}
 	}
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.view.animation.PathInterpolator
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +14,9 @@ import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.acos
 import kotlin.math.tanh
 
 /**
@@ -52,6 +55,9 @@ class FeedSwipeCallback(
 	private var currentItem: FeedItem? = null
 	private var pendingMarkRead = false
 
+	/** Where each released row started settling back from. */
+	private val settleStart = HashMap<RecyclerView.ViewHolder, Float>()
+
 	override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
 		// only feed rows are swipeable, not the date headers
 		if (viewHolder.itemViewType != ListItemType.FEED.ordinal) {
@@ -72,23 +78,22 @@ class FeedSwipeCallback(
 		return if (lastDx < 0f) 3f else 0.4f
 	}
 
-	// a fling can commit a swipe via escape velocity even below the distance threshold,
-	// so block it for leftward (mark read) swipes too
-	override fun getSwipeEscapeVelocity(defaultValue: Float): Float =
-		if (lastDx < 0f) Float.MAX_VALUE else super.getSwipeEscapeVelocity(defaultValue)
+	// a fling can commit a swipe via escape velocity even below the distance threshold, which made
+	// a short flick delete a row; only dragging past the threshold (where the haptic tick fires) counts
+	override fun getSwipeEscapeVelocity(defaultValue: Float): Float = Float.MAX_VALUE
 
-	override fun getSwipeVelocityThreshold(defaultValue: Float): Float =
-		if (lastDx < 0f) Float.MAX_VALUE else super.getSwipeVelocityThreshold(defaultValue)
+	override fun getSwipeVelocityThreshold(defaultValue: Float): Float = Float.MAX_VALUE
 
 	override fun getAnimationDuration(
 		recyclerView: RecyclerView,
 		animationType: Int,
 		animateDx: Float,
 		animateDy: Float,
-	): Long = if (animationType == SWIPE_SUCCESS_ANIMATION_TYPE) {
-		DELETE_ANIMATION_DURATION_MS
-	} else {
-		super.getAnimationDuration(recyclerView, animationType, animateDx, animateDy)
+	): Long = when (animationType) {
+		ItemTouchHelper.ANIMATION_TYPE_SWIPE_SUCCESS -> DELETE_ANIMATION_DURATION_MS
+		// the default borrows the list's 120ms remove animation, which made the row snap back
+		ItemTouchHelper.ANIMATION_TYPE_SWIPE_CANCEL -> SETTLE_ANIMATION_DURATION_MS
+		else -> super.getAnimationDuration(recyclerView, animationType, animateDx, animateDy)
 	}
 
 	override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
@@ -122,6 +127,7 @@ class FeedSwipeCallback(
 		isCurrentlyActive: Boolean,
 	) {
 		val view = viewHolder.itemView
+		val dX = if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) easeSettle(viewHolder, dX, isCurrentlyActive) else dX
 		var effectiveDx = dX
 		if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX != 0f) {
 			lastDx = dX
@@ -211,8 +217,27 @@ class FeedSwipeCallback(
 		super.onChildDraw(c, recyclerView, viewHolder, effectiveDx, dY, actionState, isCurrentlyActive)
 	}
 
+	/**
+	 * ItemTouchHelper's settle animation can't be given an interpolator, and its own is
+	 * accelerate-decelerate. Recover its linear progress from the offset it hands us and re-ease it.
+	 */
+	private fun easeSettle(viewHolder: RecyclerView.ViewHolder, dX: Float, isCurrentlyActive: Boolean): Float {
+		if (isCurrentlyActive) {
+			settleStart.remove(viewHolder) // grabbed again mid-settle
+			return dX
+		}
+		val start = settleStart.getOrPut(viewHolder) { dX }
+		if (start == 0f) return dX
+		val fraction = 1f - dX / start
+		// a committed delete moves away from 0, not back to it
+		if (fraction !in 0f..1f) return dX
+		val linear = 1f - acos(2f * fraction - 1f) / PI.toFloat()
+		return start * (1f - SETTLE_INTERPOLATOR.getInterpolation(linear))
+	}
+
 	override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
 		super.clearView(recyclerView, viewHolder)
+		settleStart.remove(viewHolder)
 		hapticFired = false
 		rejectHapticFired = false
 		lastDx = 0f
@@ -222,7 +247,8 @@ class FeedSwipeCallback(
 	}
 
 	private companion object {
-		const val SWIPE_SUCCESS_ANIMATION_TYPE = 2
-		const val DELETE_ANIMATION_DURATION_MS = 0L
+		const val DELETE_ANIMATION_DURATION_MS = 200L
+		const val SETTLE_ANIMATION_DURATION_MS = 450L
+		val SETTLE_INTERPOLATOR = PathInterpolator(0.2f, 0f, 0f, 1f) // M3 standard easing
 	}
 }

@@ -18,7 +18,7 @@
 		<item
 			android:id="@+id/action_sort_source"
 			android:icon="@drawable/ic_sort_source_order"
-			android:title="@string/sort_chapters_source_order"
+			android:title="@string/sort_chapters_by_source"
 			app:showAsAction="never" />
 
 		<item

@@ -5,6 +5,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -48,6 +49,8 @@ class ChapterPagesMenuProvider(
 				menuInflater.inflate(R.menu.opt_chapters, menu)
 				// Match the rest of the app's checkable overflow menus (e.g. the home incognito toggle).
 				menu.setOptionalIconsVisibleCompat(true)
+				// a line under the sort options
+				MenuCompat.setGroupDividerEnabled(menu, true)
 				menu.findItem(R.id.action_search)?.let { item ->
 					item.setOnActionExpandListener(this)
 					(item.actionView as? SearchView)?.apply {

@@ -24,6 +24,7 @@ import org.koitharu.kotatsu.core.LocalizedAppContext
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.util.ext.isHttpUrl
 import org.koitharu.kotatsu.core.util.ext.lifecycleScope
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -50,6 +51,7 @@ class DiscordRpc @Inject constructor(
 	private val appId = context.getString(R.string.discord_app_id)
 	private val appName = context.getString(R.string.app_name)
 	private val appIcon = context.getString(R.string.app_icon_url)
+	private val placeholderImage = context.getString(R.string.discord_placeholder_url)
 	private val mpCache = Collections.synchronizedMap(ArrayMap<String, String>())
 	private var lastUpdate = 0L
 
@@ -98,9 +100,9 @@ class DiscordRpc @Inject constructor(
 						start = lastActivity?.timestamps?.start ?: System.currentTimeMillis(),
 					),
 					assets = Assets(
-						// Discord fetches cover URLs server-side, so a local file:// cover is unreachable.
-						// Callers pass an http(s) cover (URL override or source default); never a local file.
-						largeImage = coverUrl,
+						// Discord fetches cover URLs server-side, so a local file:// cover is unreachable;
+						// without one Discord would show its own default image instead.
+						largeImage = coverUrl?.takeIf { it.isHttpUrl() } ?: placeholderImage,
 						largeText = context.getString(R.string.reading_s, manga.title),
 						smallText = context.getString(R.string.discord_rpc_description),
 						smallImage = appIcon,
@@ -127,7 +129,8 @@ class DiscordRpc @Inject constructor(
 			val mappedActivity = activity.copy(
 				assets = activity.assets?.let {
 					it.copy(
-						largeImage = it.largeImage?.toMediaProxyUrl(),
+						// a dead cover link falls back to the placeholder too
+						largeImage = it.largeImage?.toMediaProxyUrl() ?: placeholderImage.toMediaProxyUrl(),
 						smallImage = it.smallImage?.toMediaProxyUrl(),
 					)
 				},

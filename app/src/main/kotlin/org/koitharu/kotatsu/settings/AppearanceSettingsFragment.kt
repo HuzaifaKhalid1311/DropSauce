@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.prefs.AppProtectionTimeout
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -125,7 +124,6 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 							isFromRoot = false,
 						)
 					},
-					onOpenCategories = { router.openFavoriteCategories() },
 					onProtectToggle = ::onProtectToggle,
 				)
 			}
@@ -218,7 +216,6 @@ private fun AppearanceScreen(
 	onOpenLocaleSettings: () -> Unit,
 	onOpenDetailsAppearance: () -> Unit,
 	onOpenNavConfig: () -> Unit,
-	onOpenCategories: () -> Unit,
 	onProtectToggle: (Boolean) -> Unit,
 ) {
 	val ctx = LocalContext.current
@@ -490,14 +487,6 @@ private fun AppearanceScreen(
 						icon = R.drawable.ic_tag,
 						
 						shape = pos.shape,
-					)
-				}
-				item { pos ->
-					NavigationSettingsItem(
-						title = stringResource(R.string.manage_categories),
-						icon = R.drawable.ic_label,
-						shape = pos.shape,
-						onClick = onOpenCategories,
 					)
 				}
 			}

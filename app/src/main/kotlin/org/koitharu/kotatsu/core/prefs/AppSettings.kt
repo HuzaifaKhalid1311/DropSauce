@@ -371,6 +371,20 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_EPUB_TTS_VOICE, 0)
 		set(value) = prefs.edit { putInt(KEY_EPUB_TTS_VOICE, value) }
 
+	/**
+	 * Engine voice names the user linked to the voice slots, kept per spoken language (an English
+	 * voice can't read a Japanese novel). A blank entry leaves that slot on the automatic pick.
+	 */
+	fun getTtsSlotVoices(language: String): List<String> =
+		prefs.getString(KEY_EPUB_TTS_SLOT_VOICES + language, null)?.split(',').orEmpty()
+
+	fun setTtsSlotVoice(language: String, slot: Int, voiceName: String?) {
+		val names = getTtsSlotVoices(language).toMutableList()
+		while (names.size <= slot) names += ""
+		names[slot] = voiceName.orEmpty()
+		prefs.edit { putString(KEY_EPUB_TTS_SLOT_VOICES + language, names.joinToString(",")) }
+	}
+
 	var isEpubPagedTapGesturesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_PAGED_TAP_GESTURES, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_PAGED_TAP_GESTURES, value) }
@@ -1380,6 +1394,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EPUB_PAGED_TAP_GESTURES = "epub_paged_tap_gestures"
 		const val KEY_EPUB_TTS_SPEED = "epub_tts_speed"
 		const val KEY_EPUB_TTS_VOICE = "epub_tts_voice_index"
+		const val KEY_EPUB_TTS_SLOT_VOICES = "epub_tts_slot_voices_"
 		const val KEY_EPUB_TTS_PITCH = "epub_tts_pitch"
 		const val KEY_EPUB_PUBLISHER_STYLE = "epub_publisher_style"
 		const val KEY_EPUB_BIONIC_READING = "epub_bionic_reading"

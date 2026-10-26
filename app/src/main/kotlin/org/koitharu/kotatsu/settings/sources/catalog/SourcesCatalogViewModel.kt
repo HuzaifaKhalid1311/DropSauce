@@ -37,7 +37,6 @@ import java.util.EnumSet
 import java.util.LinkedHashSet
 import javax.inject.Inject
 import org.koitharu.kotatsu.core.model.ContentWarning
-import org.koitharu.kotatsu.core.model.descriptionSuffix
 
 @HiltViewModel
 class SourcesCatalogViewModel @Inject constructor(
@@ -413,12 +412,12 @@ class SourcesCatalogViewModel @Inject constructor(
 				updates += SourceCatalogItem.Extension(
 					packageName = entry.packageName,
 					title = extensionDisplayName(entry.name),
+					contentWarning = entry.contentWarning,
 					subtitle = buildString {
 						append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 						append(" • ")
 						append(entry.versionName)
 						append(ownerSuffix)
-						append(entry.contentWarning.descriptionSuffix(appContext))
 					},
 					action = SourceCatalogItem.Extension.Action.UPDATE,
 					isInProgress = entry.packageName in inProgress,
@@ -433,12 +432,12 @@ class SourcesCatalogViewModel @Inject constructor(
 			installedItems += SourceCatalogItem.Extension(
 				packageName = local.pkgName,
 				title = extensionDisplayName(local.appName),
+				contentWarning = local.contentWarning,
 				subtitle = buildString {
 					append(getExternalExtensionLanguageDisplayName(local.lang))
 					append(" • ")
 					append(local.versionName)
 					append(ownerSuffix)
-					append(local.contentWarning.descriptionSuffix(appContext))
 				},
 				action = if (mode == ExtensionInstallMode.SANDBOX) {
 					SourceCatalogItem.Extension.Action.DISABLE
@@ -611,12 +610,12 @@ class SourcesCatalogViewModel @Inject constructor(
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 				append(" • ")
 				append(entry.versionName)
-				append(entry.contentWarning.descriptionSuffix(appContext))
 			}
 			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			availableItems += SourceCatalogItem.Extension(
 				packageName = entry.packageName,
 				title = extensionDisplayName(entry.name),
+				contentWarning = entry.contentWarning,
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.INSTALL,
 				isInProgress = entry.packageName in inProgressPackages,
@@ -810,12 +809,12 @@ class SourcesCatalogViewModel @Inject constructor(
 				append(getExternalExtensionLanguageDisplayName(entry.lang.orEmpty()))
 				append(" • ")
 				append(entry.versionName)
-				append(entry.contentWarning.descriptionSuffix(appContext))
 			}
 			val iconUrl = entry.iconUrl ?: externalRepoRepository.resolveIconUrl(repoUrl, entry.packageName)
 			disabledItems += SourceCatalogItem.Extension(
 				packageName = entry.packageName,
 				title = extensionDisplayName(entry.name),
+				contentWarning = entry.contentWarning,
 				subtitle = subtitle,
 				action = SourceCatalogItem.Extension.Action.ENABLE,
 				isInProgress = entry.packageName in inProgressPackages,
@@ -873,11 +872,11 @@ class SourcesCatalogViewModel @Inject constructor(
 				SourceCatalogItem.Extension(
 					packageName = local.pkgName,
 					title = extensionDisplayName(local.appName),
+					contentWarning = local.contentWarning,
 					subtitle = buildString {
 						append(getExternalExtensionLanguageDisplayName(local.lang))
 						append(" • ").append(local.versionName)
 						append(" • ").append(owner.displayName)
-						append(local.contentWarning.descriptionSuffix(appContext))
 					},
 					action = if (privateMode) SourceCatalogItem.Extension.Action.DISABLE
 					else SourceCatalogItem.Extension.Action.UNINSTALL,

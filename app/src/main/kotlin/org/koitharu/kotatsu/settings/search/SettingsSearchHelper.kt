@@ -90,7 +90,6 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_LIST_CHECKPOINT, R.string.list_checkpoint_settings, R.string.list_checkpoint_settings_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_PROGRESS_INDICATORS, R.string.show_reading_indicators, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_MANGA_LIST_BADGES, R.string.badges_in_lists, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.list_badges))
-				addItem("manage_categories_nav", R.string.manage_categories, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java, keywordRes = intArrayOf(R.string.categories, R.string.favourites))
 			}
 			group(sectionCrumbs, ctx.getString(R.string.details)) { crumbs ->
 				addItem(AppSettings.KEY_COLLAPSE_DESCRIPTION, R.string.collapse_long_description, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
@@ -165,6 +164,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_READER_MODE_DETECT, R.string.detect_reader_mode, R.string.detect_reader_mode_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_TITLE_TAP_TO_READ, R.string.title_tap_to_read, R.string.title_tap_to_read_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_CHECK_DUPLICATES, R.string.duplicates_check, R.string.duplicates_check_summary, crumbs, ReaderSettingsFragment::class.java)
+				addItem("manage_categories_nav", R.string.manage_categories, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordRes = intArrayOf(R.string.categories, R.string.favourites))
 			}
 			group(sectionCrumbs, "Zoom") { crumbs ->
 				addItem(AppSettings.KEY_ZOOM_MODE, R.string.scale_mode, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.zoom_modes))

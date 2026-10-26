@@ -13,6 +13,7 @@
 	<string name="mangabaka_clientId" translatable="false">fYKQAWhMFjYnXOKiIcrPKIZKQMjhAdBJ</string>
 	<string name="discord_app_id" translatable="false">1444242650067894303</string>
 	<string name="app_icon_url" translatable="false">https://raw.githubusercontent.com/HuzaifaKhalid1311/DropSauce/main/assets/icon.png</string>
+	<string name="discord_placeholder_url" translatable="false">https://raw.githubusercontent.com/HuzaifaKhalid1311/DropSauce/main/assets/discord_placeholder.png</string>
 	<string-array name="values_theme" translatable="false">
 		<item>-1</item>
 		<item>1</item>

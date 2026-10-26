@@ -62,6 +62,7 @@ class ReaderSettingsFragment : BaseComposeSettingsFragment(R.string.reader_setti
 			DropSauceTheme {
 				ReaderScreen(
 					onTapActions = router::openReaderTapGridSettings,
+					onOpenCategories = router::openFavoriteCategories,
 					onReaderBar = {
 						(activity as? SettingsActivity)?.openFragment(
 							ReaderBarSettingsFragment::class.java,
@@ -74,16 +75,13 @@ class ReaderSettingsFragment : BaseComposeSettingsFragment(R.string.reader_setti
 		}
 	}
 
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
-	}
-
 }
 
 @Composable
 private fun ReaderScreen(
 	onTapActions: () -> Unit,
 	onReaderBar: () -> Unit,
+	onOpenCategories: () -> Unit,
 ) {
 	val ctx = LocalContext.current
 	val colors = CategoryPalette.forKey("reader")
@@ -193,6 +191,14 @@ private fun ReaderScreen(
 						icon = R.drawable.ic_duplicate,
 
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					NavigationSettingsItem(
+						title = stringResource(R.string.manage_categories),
+						icon = R.drawable.ic_label,
+						shape = pos.shape,
+						onClick = onOpenCategories,
 					)
 				}
 			}

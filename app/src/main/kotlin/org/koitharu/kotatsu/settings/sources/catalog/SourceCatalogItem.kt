@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.settings.sources.catalog
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.list.ui.model.ListModel
 
 sealed interface SourceCatalogItem : ListModel {
@@ -11,6 +12,8 @@ sealed interface SourceCatalogItem : ListModel {
 		val packageName: String,
 		val title: String,
 		val subtitle: String,
+		/** Rating tag drawn after [subtitle]; null for extensions that have none (novel plugins). */
+		val contentWarning: ContentWarning? = null,
 		val action: Action,
 		val isInProgress: Boolean = false,
 		val iconUrl: String? = null,

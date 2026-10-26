@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.reader.ui.tts
 
 import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import java.text.BreakIterator
 import java.util.Locale
@@ -48,6 +50,7 @@ class ReaderTts @Inject constructor(
 	private val _isPlaying = MutableStateFlow(false)
 	private val _position = MutableStateFlow<Position?>(null)
 	private val _chapterFinished = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+	private val _previewingVoice = MutableStateFlow<String?>(null)
 
 	val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 	val position: StateFlow<Position?> = _position.asStateFlow()
@@ -55,43 +58,90 @@ class ReaderTts @Inject constructor(
 	/** Emits the chapter index that just finished, so the reader can move on to the next one. */
 	val chapterFinished: SharedFlow<Int> = _chapterFinished.asSharedFlow()
 
+	/** Name of the voice whose sample is playing in the voice picker, if any. */
+	val previewingVoice: StateFlow<String?> = _previewingVoice.asStateFlow()
+
 	val isAttached: Boolean
 		get() = chapter >= 0
 
 	/**
-	 * The handful of voices worth offering for what is currently being read, best first. The engine's
-	 * own default is usually its lowest-quality compact voice, which is what makes stock TTS sound
-	 * robotic — so a fresh install lands on the best installed voice instead of that one.
+	 * The voice the user linked to [slot] for what is being read, or null for the engine's own default
+	 * voice. Nothing is picked automatically: engines list more voice names than they have voices, so
+	 * only the user's ears can tell which ones are worth a slot.
 	 */
-	fun voicePresets(): List<Voice> {
-		val all = tts?.takeIf { isInitialized }?.voices ?: return emptyList()
-		val language = spokenLocale().language
-		val installed = all.filter { !it.isInstallRequired() && it.locale.language == language }
-		val speakers = installed
-			.sortedWith(compareByDescending<Voice> { it.quality }.thenBy { it.latency }.thenBy { it.name })
-			// One entry per speaker: engines list the same voice once per variant, and four rows of
-			// the same person is what made the picker useless.
-			.distinctBy { it.speakerId() }
-		if (speakers.size <= 2) {
-			return speakers.map { it.offlineVariant(installed) }
-		}
-		// Slots 1-2 are the original pair (old Voice 2 and Voice 4 of a spread over the whole list),
-		// kept where they were so nobody's chosen voice changes.
-		val spread = List(4) { speakers[it * (speakers.size - 1) / 3] }
-		val picked = mutableListOf(spread[1], spread[3])
-		// Slots 3-4: a woman and a man who aren't already on the list, the device's own accent first.
-		val country = Locale.getDefault().country
-		for (female in listOf(true, false)) {
-			speakers.filter { it !in picked && it.isFemale() == female }
-				.minByOrNull { if (it.locale.country.equals(country, ignoreCase = true)) 0 else 1 }
-				?.let(picked::add)
-		}
-		// Engine keeps gender to itself: still hand out distinct people, from the rest of the spread.
-		(spread + speakers).distinct().filterNot { it in picked }.take(MAX_PRESETS - picked.size).let(picked::addAll)
-		return picked.take(MAX_PRESETS).map { it.offlineVariant(installed) }
+	fun slotVoice(slot: Int): Voice? {
+		val name = linkedVoiceName(slot) ?: return null
+		return availableVoices().firstOrNull { it.name == name }
 	}
 
-	fun selectedVoiceIndex(): Int = settings.epubTtsVoiceIndex.coerceIn(0, MAX_PRESETS - 1)
+	/** Every voice the engine has ready for the language being read, offline ones first, for the picker. */
+	fun availableVoices(): List<Voice> {
+		val all = engineVoices() ?: return emptyList()
+		val language = spokenLocale().language
+		val country = Locale.getDefault().country
+		return all
+			// Google's "<lang>-language" entry is an alias of whichever voice is the engine default
+			.filter { !it.isInstallRequired() && it.locale.language == language && LEGACY_LANGUAGE_VOICE !in it.features.orEmpty() }
+			.sortedWith(
+				compareBy<Voice> { it.isNetworkConnectionRequired }
+					.thenBy { !it.locale.country.equals(country, ignoreCase = true) }
+					.thenBy { it.name },
+			)
+	}
+
+	/** Name of the voice the user linked to [slot], or null when it is on the automatic pick. */
+	fun linkedVoiceName(slot: Int): String? =
+		settings.getTtsSlotVoices(spokenLocale().language).getOrNull(slot)?.takeIf { it.isNotEmpty() }
+
+	/** Links [voice] to [slot] for the language being read; null puts the slot back on the automatic pick. */
+	fun linkVoice(slot: Int, voice: Voice?) {
+		settings.setTtsSlotVoice(spokenLocale().language, slot, voice?.name)
+		if (slot == selectedVoiceIndex()) {
+			selectVoice(slot)
+		}
+	}
+
+	/** Speaks a line of the book in [voice] so it can be heard before linking it. Pauses the reading. */
+	fun preview(voice: Voice) {
+		val engine = tts?.takeIf { isInitialized } ?: return
+		if (_isPlaying.value) {
+			pause()
+		}
+		engine.setSpeechRate(settings.epubTtsSpeed)
+		engine.setPitch(settings.epubTtsPitch)
+		engine.voice = voice
+		_previewingVoice.value = voice.name
+		engine.speak(sampleText(), TextToSpeech.QUEUE_FLUSH, null, PREVIEW_UTTERANCE_PREFIX + voice.name)
+	}
+
+	fun stopPreview() {
+		_previewingVoice.value = null
+		if (!_isPlaying.value) {
+			tts?.stop()
+		}
+		applySettings()
+	}
+
+	/** Opens the engine's own screen for downloading voices. */
+	fun installVoicesIntent(): Intent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
+		.setPackage(tts?.defaultEngine)
+
+	/** Some engines throw or hand back null here instead of an empty set; either way there are no voices. */
+	private fun engineVoices(): Set<Voice>? = runCatching { tts?.takeIf { isInitialized }?.voices }.getOrNull()
+
+	/** A line or two from where the reader is, so a voice is judged on the book itself. */
+	private fun sampleText(): String {
+		val from = _position.value?.index ?: 0
+		val sample = StringBuilder()
+		for (i in from..chunks.lastIndex) {
+			if (sample.length >= SAMPLE_LENGTH) break
+			sample.append(spokenText(i)).append(' ')
+		}
+		return sample.trim().takeIf { it.isNotEmpty() }?.toString()
+			?: context.getString(R.string.tts_voice_sample)
+	}
+
+	fun selectedVoiceIndex(): Int = settings.epubTtsVoiceIndex.coerceIn(0, VOICE_SLOTS - 1)
 
 	fun selectVoice(index: Int) {
 		settings.epubTtsVoiceIndex = index
@@ -185,12 +235,11 @@ class ReaderTts @Inject constructor(
 		val engine = tts ?: return
 		engine.setSpeechRate(settings.epubTtsSpeed)
 		engine.setPitch(settings.epubTtsPitch)
-		val presets = voicePresets()
-		val voice = presets.getOrNull(selectedVoiceIndex()) ?: presets.firstOrNull()
+		val voice = slotVoice(selectedVoiceIndex())
 		if (voice != null) {
 			engine.voice = voice
 		} else {
-			// No voice for this script is installed; at least point the engine at the right language.
+			// No voice linked to this slot: the engine's default voice for the book's language.
 			engine.language = spokenLocale()
 		}
 	}
@@ -256,6 +305,17 @@ class ReaderTts @Inject constructor(
 
 	private inner class ProgressListener : UtteranceProgressListener() {
 
+		/** A sample ending clears the picker's pause button, unless a newer sample already took over. */
+		private fun onPreviewEnded(utteranceId: String?): Boolean {
+			val name = utteranceId?.removePrefix(PREVIEW_UTTERANCE_PREFIX)?.takeIf { it != utteranceId } ?: return false
+			_previewingVoice.compareAndSet(name, null)
+			return true
+		}
+
+		override fun onStop(utteranceId: String?, interrupted: Boolean) {
+			onPreviewEnded(utteranceId)
+		}
+
 		override fun onStart(utteranceId: String?) {
 			val index = utteranceId?.toIntOrNull() ?: return
 			// Only the utterance a re-queue started mid-sentence carries a prefix; every one after
@@ -272,6 +332,7 @@ class ReaderTts @Inject constructor(
 		}
 
 		override fun onDone(utteranceId: String?) {
+			if (onPreviewEnded(utteranceId)) return
 			val index = utteranceId?.toIntOrNull() ?: return
 			if (index >= chunks.lastIndex) {
 				_isPlaying.value = false
@@ -283,40 +344,32 @@ class ReaderTts @Inject constructor(
 		override fun onError(utteranceId: String?) = Unit
 
 		override fun onError(utteranceId: String?, errorCode: Int) {
+			if (onPreviewEnded(utteranceId)) return
 			_isPlaying.value = false
 		}
 	}
 }
 
-private const val MAX_PRESETS = 4
+internal const val VOICE_SLOTS = 4
+private const val SAMPLE_LENGTH = 120
+private const val PREVIEW_UTTERANCE_PREFIX = "preview:"
+private const val LEGACY_LANGUAGE_VOICE = "legacySetLanguageVoice"
 private val WHITESPACE = Regex("""\s+""")
 
 private fun Voice.isInstallRequired(): Boolean =
 	features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) == true
 
-/** "en-us-x-sfg-local" and "en-us-x-sfg-network" are the same person. */
-private fun Voice.speakerId(): String = name.substringBeforeLast('-')
-
 /**
- * The on-device copy of the same speaker when there is one: a network voice goes silent the moment
- * the connection drops, which is exactly when a commute or a flight starts.
+ * Engines don't expose gender, so read it off the name for the voice picker. Older Google builds and
+ * Samsung tag it ("…#female_1-local", "en-US-SMTf00"); current Google voices only carry a speaker code.
+ * shortcut: code table only covers Google's English speakers; other voices show no gender.
  */
-private fun Voice.offlineVariant(voices: List<Voice>): Voice =
-	if (!isNetworkConnectionRequired) this else voices.firstOrNull {
-		!it.isNetworkConnectionRequired && it.speakerId() == speakerId()
-	} ?: this
-
-/**
- * Engines don't expose gender, so read it off the name. Older Google builds and Samsung tag it
- * ("…#female_1-local", "en-US-SMTf00"); current Google voices only carry a speaker code.
- * ponytail: code table only covers Google's English speakers; other voices fall back to the spread.
- */
-private fun Voice.isFemale(): Boolean? {
+internal fun Voice.isFemale(): Boolean? {
 	val lower = name.lowercase(Locale.ROOT)
 	return when {
 		"#female" in lower || "smtf" in lower -> true
 		"#male" in lower || "smtm" in lower -> false
-		else -> when (lower.split('-').getOrNull(3)) {
+		else -> when (speakerCode()) {
 			in GOOGLE_FEMALE -> true
 			in GOOGLE_MALE -> false
 			else -> null
@@ -324,18 +377,22 @@ private fun Voice.isFemale(): Boolean? {
 	}
 }
 
+/** "en-us-x-tpc-local" → "tpc". */
+internal fun Voice.speakerCode(): String? = name.lowercase(Locale.ROOT).split('-').getOrNull(3)
+
 private val GOOGLE_FEMALE = setOf(
 	"sfg", "iob", "iog", "tpc", "tpf", // en-US
 	"gba", "gbc", "gbg", // en-GB
 	"afh", "aua", "auc", // en-AU
-	"ahp", "cxx", "ene", // en-IN
+	"ahp", "cxx", "ena", "enc", // en-IN
 )
 private val GOOGLE_MALE = setOf(
 	"iol", "iom", "tpd", // en-US
 	"gbb", "gbd", "rjs", // en-GB
 	"aub", "aud", // en-AU
-	"end", // en-IN
+	"end", "ene", // en-IN
 )
+
 
 /**
  * Cheap script sniff. Only tells apart the scripts that map to a different voice; anything Latin

@@ -6,6 +6,7 @@ import androidx.appcompat.widget.TooltipCompat
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.MangaSource
+import org.koitharu.kotatsu.core.model.appendTag
 import org.koitharu.kotatsu.core.parser.favicon.extensionPackageFaviconUri
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.widgets.applyConnectedActionShapes
@@ -97,7 +98,7 @@ fun sourceCatalogItemExtensionAD(
 		binding.imageViewAdd.contentDescription = actionDescription
 		TooltipCompat.setTooltipText(binding.imageViewAdd, actionDescription)
 		binding.textViewTitle.text = item.title
-		binding.textViewDescription.text = item.subtitle
+		binding.textViewDescription.text = item.contentWarning.appendTag(context, item.subtitle)
 		binding.textViewDescription.drawableStart = null
 		binding.imageViewIcon.applyExternalSourceStyle(true)
 		val sourceIconName = item.sourceIconName

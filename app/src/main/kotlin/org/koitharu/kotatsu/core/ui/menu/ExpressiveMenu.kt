@@ -168,7 +168,9 @@ fun showExpressiveMenu(
 		// @color/selector_overlay, the old row selector.
 		highlight = Color(ColorUtils.setAlphaComponent(context.getThemeColor(materialR.attr.colorOnSurface), 69)),
 	)
-	val entries = items.map { item ->
+	// Menus that ask for group dividers (MenuCompat.setGroupDividerEnabled) get a line where the group changes.
+	val groupDividers = menu.isGroupDividerEnabled
+	val entries = items.mapIndexed { index, item ->
 		MenuEntry(
 			item = item,
 			title = item.title?.toString().orEmpty(),
@@ -184,6 +186,7 @@ fun showExpressiveMenu(
 				else -> CheckMark.BOX
 			},
 			isChecked = item.isChecked,
+			hasDividerAbove = groupDividers && index > 0 && items[index - 1].groupId != item.groupId,
 		)
 	}
 	val overlay = ComposeView(context)
@@ -224,6 +227,7 @@ private class MenuEntry(
 	val isEnabled: Boolean,
 	val check: CheckMark,
 	val isChecked: Boolean,
+	val hasDividerAbove: Boolean,
 )
 
 /** Where the card ended up, decided once at layout time; the card never moves or resizes after that. */
@@ -421,6 +425,15 @@ private fun MenuCard(
 				.padding(CardPadding),
 		) {
 			entries.forEachIndexed { index, entry ->
+				if (entry.hasDividerAbove) {
+					Box(
+						Modifier
+							.padding(horizontal = ItemPadding, vertical = 4.dp)
+							.fillMaxWidth()
+							.height(1.dp)
+							.background(colors.content.copy(alpha = 0.12f)),
+					)
+				}
 				MenuRow(
 					entry = entry,
 					colors = colors,

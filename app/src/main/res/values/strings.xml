@@ -666,7 +666,7 @@
     <string name="downloads_only">Downloads only</string>
     <string name="sort_chapters_by_name">Sort by name</string>
     <string name="sort_chapters_by_date">Sort by date</string>
-    <string name="sort_chapters_source_order">Source order</string>
+    <string name="sort_chapters_by_source">Sort by source</string>
     <string name="insert_search_query">Insert into search</string>
     <string name="extensions_default_sort">Default browse order</string>
     <string name="extensions_default_sort_summary">Applies to every installed extension</string>
@@ -1291,7 +1291,13 @@
     <string name="tts_tap_hint">Tap any paragraph to read from there</string>
     <string name="tts_pitch">Pitch</string>
     <string name="tts_speed_value">%1$.2fx</string>
-    <string name="tts_voice_default">Default</string>
+    <string name="tts_customize_voices">Customize voices</string>
+    <string name="tts_get_more_voices">Get more voices</string>
+    <string name="tts_voice_needs_internet">needs internet</string>
+    <string name="tts_voice_male">Male</string>
+    <string name="tts_voice_female">Female</string>
+    <string name="tts_voice_sample">This is how this voice sounds.</string>
+    <string name="tts_preview_voice">Play a sample</string>
     <string name="tts_unavailable">No text-to-speech engine is available</string>
     <string name="stop">Stop</string>
     <string name="cover">Cover</string>
