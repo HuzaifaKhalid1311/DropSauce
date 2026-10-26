@@ -58,7 +58,7 @@
 
 	</LinearLayout>
 
-	<!-- Same connected tonal group as the Manage extensions rows -->
+	<!-- Same connected group as the Manage extensions rows -->
 	<com.google.android.material.button.MaterialButtonGroup
 		android:id="@+id/buttonGroup_actions"
 		style="@style/Widget.Material3Expressive.MaterialButtonGroup.Connected"
@@ -69,7 +69,7 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_website"
-			style="?attr/materialIconButtonFilledTonalStyle"
+			style="@style/Widget.Kotatsu.Button.ExtensionAction"
 			android:layout_width="@dimen/extension_action_button_size"
 			android:layout_height="@dimen/extension_action_button_size"
 			android:contentDescription="@string/open_website"
@@ -88,7 +88,7 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/button_settings"
-			style="?attr/materialIconButtonFilledTonalStyle"
+			style="@style/Widget.Kotatsu.Button.ExtensionAction"
 			android:layout_width="@dimen/extension_action_button_size"
 			android:layout_height="@dimen/extension_action_button_size"
 			android:contentDescription="@string/extension_settings"

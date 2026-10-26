@@ -84,7 +84,7 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/imageView_hide"
-			style="?attr/materialIconButtonFilledTonalStyle"
+			style="@style/Widget.Kotatsu.Button.ExtensionAction"
 			android:layout_width="@dimen/extension_action_button_size"
 			android:layout_height="@dimen/extension_action_button_size"
 			android:contentDescription="@string/hide"
@@ -104,7 +104,7 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/imageView_settings"
-			style="?attr/materialIconButtonFilledTonalStyle"
+			style="@style/Widget.Kotatsu.Button.ExtensionAction"
 			android:layout_width="@dimen/extension_action_button_size"
 			android:layout_height="@dimen/extension_action_button_size"
 			android:contentDescription="@string/settings"
@@ -124,7 +124,7 @@
 
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/imageView_add"
-			style="?attr/materialIconButtonFilledTonalStyle"
+			style="@style/Widget.Kotatsu.Button.ExtensionAction"
 			android:layout_width="@dimen/extension_action_button_size"
 			android:layout_height="@dimen/extension_action_button_size"
 			android:contentDescription="@string/add"
