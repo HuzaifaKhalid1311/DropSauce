@@ -38,19 +38,24 @@
 				app:layout_collapseMode="parallax"
 				tools:ignore="RtlSymmetry">
 
-				<TextView
-					android:id="@+id/text_language"
-					android:layout_width="0dp"
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/button_language"
+					style="@style/Widget.Kotatsu.Button.More"
+					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:layout_weight="1"
-					android:singleLine="true"
-					android:ellipsize="end"
-					android:textAppearance="?attr/textAppearanceBodyMedium"
-					android:textColor="?android:attr/textColorSecondary"
-					android:includeFontPadding="false"
+					android:minWidth="0dp"
+					android:insetTop="11dp"
+					android:insetBottom="11dp"
+					android:paddingHorizontal="6dp"
+					android:paddingVertical="2dp"
 					android:visibility="gone"
 					tools:text="English"
 					tools:visibility="visible" />
+
+				<Space
+					android:layout_width="0dp"
+					android:layout_height="0dp"
+					android:layout_weight="1" />
 
 				<com.google.android.material.button.MaterialButton
 					android:id="@+id/button_order"

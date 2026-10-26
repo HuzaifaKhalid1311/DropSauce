@@ -28,6 +28,7 @@ import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.MihonMangaRepository
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource as ParsedMangaSource
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 import javax.inject.Provider
 import java.io.File
@@ -88,11 +89,11 @@ class FaviconFetcher(
 	private suspend fun fetchMihonIcon(source: MihonMangaSource): FetchResult = fetchPackageIcon(source.pkgName)
 
 	private suspend fun fetchPackageIcon(pkgName: String): FetchResult {
-		val icon = runCatching {
+		val icon = runCatchingCancellable {
 			runInterruptible {
 				options.context.packageManager.getApplicationIcon(pkgName)
 			}
-		}.getOrNull() ?: runCatching {
+		}.getOrNull() ?: runCatchingCancellable {
 			runInterruptible {
 				val ctx = options.context
 				val extFile = File(MihonExtensionLoader.getPrivateExtensionDir(ctx), "$pkgName.ext")
