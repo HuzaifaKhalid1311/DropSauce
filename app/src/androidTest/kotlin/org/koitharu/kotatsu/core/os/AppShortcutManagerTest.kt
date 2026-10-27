@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.core.os
 
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
-import android.os.Build
 import androidx.core.content.getSystemService
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -40,17 +39,12 @@ class AppShortcutManagerTest {
 	fun setUp() {
 		hiltRule.inject()
 		database.clearAllTables()
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-			val context = InstrumentationRegistry.getInstrumentation().targetContext
-			context.getSystemService<ShortcutManager>()?.removeAllDynamicShortcuts()
-		}
+		val context = InstrumentationRegistry.getInstrumentation().targetContext
+		context.getSystemService<ShortcutManager>()?.removeAllDynamicShortcuts()
 	}
 
 	@Test
 	fun testUpdateShortcuts() = runTest {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) {
-			return@runTest
-		}
 		awaitUpdate()
 		assertTrue(getShortcuts().isEmpty())
 		historyRepository.addOrUpdate(
@@ -65,6 +59,31 @@ class AppShortcutManagerTest {
 
 		val shortcuts = getShortcuts()
 		assertEquals(1, shortcuts.size)
+	}
+
+	@Test
+	fun testPositionUpdateKeepsShortcuts() = runTest {
+		historyRepository.addOrUpdate(
+			manga = SampleData.mangaDetails,
+			chapterId = SampleData.chapter.id,
+			page = 4,
+			scroll = 2,
+			percent = 0.3f,
+			force = false,
+		)
+		awaitUpdate()
+		val changedAt = getShortcuts().single().lastChangedTimestamp
+		historyRepository.updatePosition(
+			manga = SampleData.mangaDetails,
+			chapterId = SampleData.chapter.id,
+			page = 5,
+			scroll = 0,
+			percent = 0.4f,
+		)
+		awaitUpdate()
+
+		// a re-sent shortcut would leave another icon file in the system folder
+		assertEquals(changedAt, getShortcuts().single().lastChangedTimestamp)
 	}
 
 	private fun getShortcuts(): List<ShortcutInfo> {

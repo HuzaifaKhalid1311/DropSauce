@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.core.os
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ShortcutManager
-import android.os.Build
+import android.os.PersistableBundle
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -30,9 +30,12 @@ import org.koitharu.kotatsu.core.parser.favicon.faviconUri
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.image.ThumbnailTransformation
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
+import org.koitharu.kotatsu.core.util.ext.isRemoteCoverUrl
+import org.koitharu.kotatsu.core.util.ext.mangaCoverDiskCacheKey
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
+import org.koitharu.kotatsu.core.util.ext.stableMangaCoverKey
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -41,6 +44,8 @@ import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val EXTRA_ICON_COVER = "icon_cover"
 
 @Singleton
 class AppShortcutManager @Inject constructor(
@@ -113,16 +118,45 @@ class AppShortcutManager @Inject constructor(
 	}
 
 	fun isDynamicShortcutsAvailable(): Boolean {
-		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 &&
-			context.getSystemService(ShortcutManager::class.java).maxShortcutCountPerActivity > 0
+		return context.getSystemService(ShortcutManager::class.java).maxShortcutCountPerActivity > 0
 	}
 
+	/**
+	 * Android keeps every icon it is sent as a file until the next reboot (Android 14+), and the reader
+	 * rewrites the history every few seconds, so icons are only sent for new shortcuts or changed covers.
+	 */
 	private suspend fun updateShortcutsImpl() = runCatchingCancellable {
 		val maxShortcuts = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context).coerceAtLeast(5)
-		val shortcuts = historyRepository.getList(0, maxShortcuts)
+		val mangaList = historyRepository.getList(0, maxShortcuts)
 			.filter { x -> x.title.isNotEmpty() }
-			.map { buildShortcutInfo(it) }
-		ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
+		val published = ShortcutManagerCompat.getDynamicShortcuts(context).sortedBy { it.rank }
+		val iconCovers = published.associate { it.id to it.extras?.getString(EXTRA_ICON_COVER) }
+		val needsIcon = mangaList.filter {
+			val id = it.id.toString()
+			!iconCovers.containsKey(id) || iconCovers[id] != it.iconCoverKey()
+		}
+		if (needsIcon.isEmpty() &&
+			published.map { it.id to it.shortLabel.toString() } == mangaList.map { it.id.toString() to it.shortcutTitle() }
+		) {
+			return@runCatchingCancellable
+		}
+		val ids = mangaList.mapTo(HashSet()) { it.id.toString() }
+		val stale = iconCovers.keys.filterNot { it in ids }
+		if (stale.isNotEmpty()) {
+			ShortcutManagerCompat.removeDynamicShortcuts(context, stale)
+		}
+		val added = needsIcon.map { buildShortcutInfo(it) }
+		if (added.isNotEmpty()) {
+			ShortcutManagerCompat.addDynamicShortcuts(context, added)
+		}
+		val covers = iconCovers + added.associate { it.id to it.extras?.getString(EXTRA_ICON_COVER) }
+		// Every shortcut gets its rank, so the order follows the history whatever was added or removed
+		ShortcutManagerCompat.updateShortcuts(
+			context,
+			mangaList.mapIndexed { rank, manga ->
+				mangaShortcutBuilder(manga, covers[manga.id.toString()]).setRank(rank).build()
+			},
+		)
 	}.onFailure {
 		it.printStackTraceDebug()
 	}
@@ -134,38 +168,65 @@ class AppShortcutManager @Inject constructor(
 		}
 	}
 
-	private suspend fun buildShortcutInfo(manga: Manga): ShortcutInfoCompat = withContext(Dispatchers.Default) {
-		val icon = runCatchingCancellable {
+	/** Sends the new picture after a pull-to-refresh replaced the cover behind the same link. */
+	suspend fun onCoverRefreshed(manga: Manga) {
+		val id = manga.id.toString()
+		val shortcut = ShortcutManagerCompat.getShortcuts(
+			context,
+			ShortcutManagerCompat.FLAG_MATCH_DYNAMIC or ShortcutManagerCompat.FLAG_MATCH_PINNED,
+		).find { it.id == id } ?: return
+		ShortcutManagerCompat.updateShortcuts(context, listOf(buildShortcutInfo(manga, shortcut.rank)))
+	}
+
+	private suspend fun buildShortcutInfo(manga: Manga, rank: Int = 0): ShortcutInfoCompat = withContext(Dispatchers.Default) {
+		val cover = runCatchingCancellable {
 			coil.execute(
 				ImageRequest.Builder(context)
 					.data(manga.coverUrl)
 					.size(iconSize)
 					.mangaSourceExtra(manga.source)
+					.stableMangaCoverKey(manga, manga.coverUrl)
 					.scale(Scale.FILL)
 					.transformations(ThumbnailTransformation())
 					.build(),
 			).getDrawableOrThrow().toBitmap()
-		}.fold(
-			onSuccess = { IconCompat.createWithAdaptiveBitmap(it) },
-			onFailure = { IconCompat.createWithResource(context, R.drawable.ic_shortcut_default) },
-		)
+		}.getOrNull()
 		mangaRepository.storeManga(manga, replaceExisting = true)
-		val title = manga.title.ifEmpty {
-			manga.altTitles.firstOrNull()
-		}.ifNullOrEmpty {
-			context.getString(R.string.unknown)
-		}
-		ShortcutInfoCompat.Builder(context, manga.id.toString())
+		// A placeholder icon records no cover, so the next update tries the cover again
+		mangaShortcutBuilder(manga, if (cover != null) manga.iconCoverKey() else null)
+			.setRank(rank)
+			.setIcon(
+				if (cover != null) {
+					IconCompat.createWithAdaptiveBitmap(cover)
+				} else {
+					IconCompat.createWithResource(context, R.drawable.ic_shortcut_default)
+				},
+			).build()
+	}
+
+	/** [iconCover] is the [iconCoverKey] the shortcut's icon was made from. */
+	private fun mangaShortcutBuilder(manga: Manga, iconCover: String?): ShortcutInfoCompat.Builder {
+		val title = manga.shortcutTitle()
+		return ShortcutInfoCompat.Builder(context, manga.id.toString())
 			.setShortLabel(title)
 			.setLongLabel(title)
-			.setIcon(icon)
 			.setLongLived(true)
+			.setExtras(PersistableBundle(1).apply { putString(EXTRA_ICON_COVER, iconCover) })
 			.setIntent(
 				ReaderIntent.Builder(context)
 					.mangaId(manga.id)
 					.build()
 					.intent,
-			).build()
+			)
+	}
+
+	/** Online covers are cached per manga like in the library, so a rotating cover link is not a new picture. */
+	private fun Manga.iconCoverKey(): String? = if (isRemoteCoverUrl(coverUrl)) mangaCoverDiskCacheKey(id) else coverUrl
+
+	private fun Manga.shortcutTitle(): String = title.ifEmpty {
+		altTitles.firstOrNull()
+	}.ifNullOrEmpty {
+		context.getString(R.string.unknown)
 	}
 
 	private suspend fun buildShortcutInfo(source: MangaSource): ShortcutInfoCompat = withContext(Dispatchers.Default) {

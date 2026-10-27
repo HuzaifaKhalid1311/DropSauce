@@ -32,6 +32,7 @@ import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.local.data.isEpubFile
 import java.io.File
 import org.koitharu.kotatsu.core.nav.MangaIntent
+import org.koitharu.kotatsu.core.os.AppShortcutManager
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
@@ -94,6 +95,7 @@ class DetailsViewModel @Inject constructor(
 	mangaRepositoryFactory: MangaRepository.Factory,
 	private val coil: ImageLoader,
 	@ApplicationContext private val context: Context,
+	private val shortcutManager: AppShortcutManager,
 ) : ChaptersPagesViewModel(
 	settings = settings,
 	interactor = interactor,
@@ -327,6 +329,7 @@ class DetailsViewModel @Inject constructor(
 						// that replace the image behind it.
 						if (coil.saveCover(context, settings, it.sourceManga, refresh = true)) {
 							coverRefreshes.value++
+							shortcutManager.onCoverRefreshed(it.sourceManga.copy(chapters = null))
 						}
 					}
 					launchJob(Dispatchers.Default + SkipErrors) {
