@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest"><strong>Download APK</strong></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/HuzaifaKhalid1311/DropSauce?style=for-the-badge&logo=github&label=latest"></a>
   <a href="https://discord.com/channels/1435615296202477581/1435650246163169382/1435651186140119091"><img alt="Discord online users" src="https://img.shields.io/discord/1435615296202477581?style=for-the-badge&logo=discord&logoColor=white&label=discord&color=5865F2"></a>
   <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases"><img alt="Total downloads" src="https://img.shields.io/github/downloads/HuzaifaKhalid1311/DropSauce/total?style=for-the-badge&logo=github&label=downloads"></a>
@@ -22,18 +26,6 @@
   <a href="https://m3.material.io/"><img alt="Material 3 Expressive" src="https://img.shields.io/badge/Material%203-Expressive-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white"></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest"><strong>Download APK</strong></a>
-  |
-  <a href="https://drop-sauce.app"><strong>Website</strong></a>
-  |
-  <a href="https://discord.com/channels/1435615296202477581/1435650246163169382/1435651186140119091"><strong>Discord</strong></a>
-  |
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/issues"><strong>Issues</strong></a>
-</p>
-
----
-
 ## About
 
 DropSauce is a free and open-source comic and novel reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
@@ -44,11 +36,14 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
 
 <p align="center">
   <img src="assets/main_favorites-preview.webp" alt="DropSauce favorites screen" width="31%" />
-  <img src="assets/manga_details_page-preview.webp" alt="DropSauce details screen" width="31%" />
-  <img src="assets/reading_ui-preview.webp" alt="DropSauce manga reading screen" width="31%" />
-  <img src="assets/novel_reading_ui-preview.webp" alt="DropSauce novel reading screen" width="31%" />
-  <img src="assets/extension_page-preview.webp" alt="DropSauce extensions screen" width="31%" />
+  <img src="assets/feed-preview.webp" alt="DropSauce feed screen" width="31%" />
   <img src="assets/settings-preview.webp" alt="DropSauce settings screen" width="31%" />
+  <img src="assets/extension_page-preview.webp" alt="DropSauce extensions screen" width="31%" />
+  <img src="assets/manga_details_page-preview.webp" alt="DropSauce details screen" width="31%" />
+  <img src="assets/chapters_list-preview.webp" alt="DropSauce chapter list" width="31%" />
+  <img src="assets/paged_reading_ui-preview.webp" alt="DropSauce manga reading screen" width="31%" />
+  <img src="assets/reading_ui-preview.webp" alt="DropSauce manhwa reading screen" width="31%" />
+  <img src="assets/novel_reading_ui-preview.webp" alt="DropSauce novel reading screen" width="31%" />
 </p>
 
 <p align="center">
