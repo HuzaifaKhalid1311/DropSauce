@@ -141,9 +141,9 @@ class CheckNewChaptersUseCase @Inject constructor(
 			repo.getDetails(manga)
 		}
 		// A new cover is used only once it is saved, so the library shows it without downloading;
-		// until then the old one stays.
+		// until then the old one stays. Forced: covers cached per manga would otherwise keep the old image.
 		val isCoverReady = manga.coverUrl.isNullOrEmpty() || fetched.coverUrl == manga.coverUrl ||
-			coil.saveCover(context, settings, fetched)
+			coil.saveCover(context, settings, fetched, refresh = true)
 		val details = if (isCoverReady) {
 			fetched
 		} else {

@@ -30,8 +30,6 @@ import org.koitharu.kotatsu.core.parser.favicon.faviconUri
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.image.ThumbnailTransformation
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
-import org.koitharu.kotatsu.core.util.ext.isRemoteCoverUrl
-import org.koitharu.kotatsu.core.util.ext.mangaCoverDiskCacheKey
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
@@ -41,6 +39,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -133,7 +132,7 @@ class AppShortcutManager @Inject constructor(
 		val iconCovers = published.associate { it.id to it.extras?.getString(EXTRA_ICON_COVER) }
 		val needsIcon = mangaList.filter {
 			val id = it.id.toString()
-			!iconCovers.containsKey(id) || iconCovers[id] != it.iconCoverKey()
+			!iconCovers.containsKey(id) || iconCovers[id] != it.coverUrl?.nullIfEmpty()
 		}
 		if (needsIcon.isEmpty() &&
 			published.map { it.id to it.shortLabel.toString() } == mangaList.map { it.id.toString() to it.shortcutTitle() }
@@ -179,21 +178,26 @@ class AppShortcutManager @Inject constructor(
 	}
 
 	private suspend fun buildShortcutInfo(manga: Manga, rank: Int = 0): ShortcutInfoCompat = withContext(Dispatchers.Default) {
-		val cover = runCatchingCancellable {
-			coil.execute(
-				ImageRequest.Builder(context)
-					.data(manga.coverUrl)
-					.size(iconSize)
-					.mangaSourceExtra(manga.source)
-					.stableMangaCoverKey(manga, manga.coverUrl)
-					.scale(Scale.FILL)
-					.transformations(ThumbnailTransformation())
-					.build(),
-			).getDrawableOrThrow().toBitmap()
-		}.getOrNull()
+		val coverUrl = manga.coverUrl?.nullIfEmpty()
+		val cover = if (coverUrl != null) {
+			runCatchingCancellable {
+				coil.execute(
+					ImageRequest.Builder(context)
+						.data(coverUrl)
+						.size(iconSize)
+						.mangaSourceExtra(manga.source)
+						.stableMangaCoverKey(manga, coverUrl)
+						.scale(Scale.FILL)
+						.transformations(ThumbnailTransformation())
+						.build(),
+				).getDrawableOrThrow().toBitmap()
+			}.getOrNull()
+		} else {
+			null
+		}
 		mangaRepository.storeManga(manga, replaceExisting = true)
 		// A placeholder icon records no cover, so the next update tries the cover again
-		mangaShortcutBuilder(manga, if (cover != null) manga.iconCoverKey() else null)
+		mangaShortcutBuilder(manga, if (cover != null) coverUrl else null)
 			.setRank(rank)
 			.setIcon(
 				if (cover != null) {
@@ -204,7 +208,7 @@ class AppShortcutManager @Inject constructor(
 			).build()
 	}
 
-	/** [iconCover] is the [iconCoverKey] the shortcut's icon was made from. */
+	/** [iconCover] is the cover the shortcut's icon was made from. */
 	private fun mangaShortcutBuilder(manga: Manga, iconCover: String?): ShortcutInfoCompat.Builder {
 		val title = manga.shortcutTitle()
 		return ShortcutInfoCompat.Builder(context, manga.id.toString())
@@ -219,9 +223,6 @@ class AppShortcutManager @Inject constructor(
 					.intent,
 			)
 	}
-
-	/** Online covers are cached per manga like in the library, so a rotating cover link is not a new picture. */
-	private fun Manga.iconCoverKey(): String? = if (isRemoteCoverUrl(coverUrl)) mangaCoverDiskCacheKey(id) else coverUrl
 
 	private fun Manga.shortcutTitle(): String = title.ifEmpty {
 		altTitles.firstOrNull()

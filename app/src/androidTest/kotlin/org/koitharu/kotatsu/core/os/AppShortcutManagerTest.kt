@@ -63,8 +63,10 @@ class AppShortcutManagerTest {
 
 	@Test
 	fun testPositionUpdateKeepsShortcuts() = runTest {
+		// no cover: the fixture link never loads, and a placeholder icon is retried on every update
+		val manga = SampleData.mangaDetails.copy(coverUrl = null)
 		historyRepository.addOrUpdate(
-			manga = SampleData.mangaDetails,
+			manga = manga,
 			chapterId = SampleData.chapter.id,
 			page = 4,
 			scroll = 2,
@@ -74,7 +76,7 @@ class AppShortcutManagerTest {
 		awaitUpdate()
 		val changedAt = getShortcuts().single().lastChangedTimestamp
 		historyRepository.updatePosition(
-			manga = SampleData.mangaDetails,
+			manga = manga,
 			chapterId = SampleData.chapter.id,
 			page = 5,
 			scroll = 0,
