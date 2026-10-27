@@ -86,7 +86,11 @@ class GoogleDriveSyncRepository @Inject constructor(
 	private suspend fun onAuthorized(result: AuthorizationResult) {
 		val token = result.accessToken ?: throw SyncSignInRequiredException()
 		val user = api.userInfo(token)
-		syncSettings.accountEmail = user.email?.ifBlank { null } ?: "Google Drive"
+		// Background tokens are pinned to this; it must be the phone's own account name, which can differ
+		// from the profile email in dots/case (then Play Services reports ACCOUNT_NOT_PRESENT).
+		@Suppress("DEPRECATION")
+		val deviceAccount = result.toGoogleSignInAccount()?.account?.name
+		syncSettings.accountEmail = deviceAccount ?: user.email?.ifBlank { null } ?: "Google Drive"
 		syncSettings.accountName = user.name
 		syncSettings.accountPhotoUrl = user.picture
 		Log.i(TAG, "signed in as ${syncSettings.accountEmail}")
