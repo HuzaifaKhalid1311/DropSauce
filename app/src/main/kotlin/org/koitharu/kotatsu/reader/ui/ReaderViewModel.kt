@@ -283,15 +283,14 @@ class ReaderViewModel @Inject constructor(
 
     fun switchMode(newMode: ReaderMode) {
         readerMode.value = newMode
+        // No content re-emit with getCurrentState() here: the new reader restores from readingState
+        // on its own, and a late re-emit could catch the half-initialised reader's transient page.
         launchJob {
             val manga = checkNotNull(getMangaOrNull())
             dataRepository.saveReaderMode(
                 manga = manga,
                 mode = newMode,
             )
-            content.update {
-                it.copy(state = getCurrentState())
-            }
         }
     }
 

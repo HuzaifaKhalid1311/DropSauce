@@ -129,7 +129,9 @@ class WebtoonReaderFragment : BaseReaderFragment<FragmentReaderWebtoonBinding>()
 		firstVisiblePosition: Int,
 		lastVisiblePosition: Int,
 	) {
-		viewModel.onCurrentPageChanged(firstVisiblePosition, lastVisiblePosition)
+		if (!isRestoringPosition) {
+			viewModel.onCurrentPageChanged(firstVisiblePosition, lastVisiblePosition)
+		}
 	}
 
 	override suspend fun onPagesChanged(pages: List<ReaderPage>, pendingState: ReaderState?) = coroutineScope {

@@ -13,6 +13,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -117,6 +118,8 @@ fun FloatingNavBar(
 			shape = RoundedCornerShape(50),
 			color = barColor,
 			contentColor = cs.onSurface,
+			// Same outline as the search bar (Widget.Kotatsu.SearchBar), so the two pills match.
+			border = BorderStroke(1.dp, cs.outlineVariant),
 		) {
 			Row(
 				modifier = Modifier
@@ -202,6 +205,7 @@ private fun FloatingContinueButton(
 			shape = RoundedCornerShape(16.dp),
 			color = container,
 			contentColor = content,
+			border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
 			modifier = Modifier
 				.size(56.dp)
 				.semantics { contentDescription = label },

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.search.ui
 
 import android.os.Bundle
+import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.view.View
@@ -156,8 +157,17 @@ class MangaListActivity :
 			typeface = ctl.expandedTitleTypeface
 			textSize = ctl.expandedTitleTextSize
 		}
-		val titleEnd = ctl.expandedTitleMarginStart + titlePaint.measureText(name) +
-			resources.displayMetrics.density * 12f
+		// Wrap the name exactly like the expanded title does (up to two lines), so the button goes
+		// after where its last line ends, not after the whole name measured as one long line.
+		val titleWidth = (ctl.width - ctl.expandedTitleMarginStart - ctl.expandedTitleMarginEnd).coerceAtLeast(0)
+		val titleLayout = StaticLayout.Builder.obtain(name, 0, name.length, titlePaint, titleWidth)
+			.setMaxLines(ctl.maxLines)
+			.setEllipsize(TextUtils.TruncateAt.END)
+			.setLineSpacing(ctl.lineSpacingAdd, ctl.lineSpacingMultiplier)
+			.setHyphenationFrequency(ctl.hyphenationFrequency)
+			.build()
+		val titleEnd = ctl.expandedTitleMarginStart + titleLayout.getLineWidth(titleLayout.lineCount - 1) +
+			resources.displayMetrics.density * 18f
 		// Offset by the button's own padding so its label (not its touch area) lines up with the text.
 		val labelWidth = button.paint.measureText(lang)
 		if (titleEnd + labelWidth <= ctl.width - ctl.expandedTitleMarginEnd) {
@@ -178,7 +188,6 @@ class MangaListActivity :
 	private fun applyExpandedHeight(ctl: CollapsingToolbarLayout, extra: Int) {
 		ctl.expandedTitleMarginBottom = titleBaseMarginBottom + extra
 		ctl.updateLayoutParams { height = expandedBaseHeight + extra }
-		(viewBinding.buttonOrder?.parent as? View)?.updateLayoutParams { height = expandedBaseHeight + extra }
 	}
 
 	/**

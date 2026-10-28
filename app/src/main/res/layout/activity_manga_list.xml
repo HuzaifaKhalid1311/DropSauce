@@ -28,9 +28,12 @@
 			app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
 			app:toolbarId="@id/toolbar">
 
+			<!-- Bottom-anchored: the CTL grows on its own for a two-line title (extra multiline
+			     height), and the buttons have to stay on the title's last line when it does. -->
 			<LinearLayout
 				android:layout_width="match_parent"
 				android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
+				android:layout_gravity="bottom"
 				android:baselineAligned="false"
 				android:gravity="bottom|end"
 				android:orientation="horizontal"

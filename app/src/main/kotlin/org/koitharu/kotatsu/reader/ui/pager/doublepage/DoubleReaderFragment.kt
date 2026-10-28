@@ -159,7 +159,7 @@ open class DoubleReaderFragment : BaseReaderFragment<FragmentReaderDoubleBinding
 			}
 			val newFirstPos = lm.findFirstVisibleItemPosition()
 			val newLastPos = lm.findLastVisibleItemPosition()
-			if (newFirstPos != firstPos || newLastPos != lastPos) {
+			if (!isRestoringPosition && (newFirstPos != firstPos || newLastPos != lastPos)) {
 				firstPos = newFirstPos
 				lastPos = newLastPos
 				notifyPageChanged(newFirstPos, newLastPos)

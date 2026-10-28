@@ -39,21 +39,17 @@ fun mangaGridItemAD(
 	// The overlay title is the one that adapts to the grid size (white, on the scrim).
 	sizeResolver.attachToView(itemView, binding.textViewTitleOverlay, binding.corners.progressView, binding.corners.iconsView)
 
-	val density = context.resources.displayMetrics.density
 	val gridMargin = context.resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer)
 	val gridMarginIncreased = context.resources.getDimensionPixelOffset(R.dimen.grid_spacing_outer_large)
-	// Title scrim: a short, fairly dark fade of a dark shade of the theme accent, just tall enough
-	// for two lines of title, with its bottom corners matching the cover's rounding.
+	// Title scrim: a dark shade of the theme accent, always tall enough for two lines of title (so
+	// every card looks the same), eased out towards the top so it has no visible starting edge,
+	// with its bottom corners matching the cover's rounding.
 	val darkAccent = ColorUtils.blendARGB(context.getThemeColor(appcompatR.attr.colorPrimary), Color.BLACK, 0.78f)
 	binding.viewScrim.background = GradientDrawable(
 		GradientDrawable.Orientation.BOTTOM_TOP,
-		intArrayOf(
-			ColorUtils.setAlphaComponent(darkAccent, 0xF2),
-			ColorUtils.setAlphaComponent(darkAccent, 0xC0),
-			ColorUtils.setAlphaComponent(darkAccent, 0x00),
-		),
+		SCRIM_ALPHAS.map { ColorUtils.setAlphaComponent(darkAccent, it) }.toIntArray(),
 	).apply {
-		val r = 16f * density
+		val r = context.resources.getDimension(R.dimen.cover_corner_large)
 		cornerRadii = floatArrayOf(0f, 0f, 0f, 0f, r, r, r, r)
 	}
 
@@ -92,3 +88,6 @@ fun mangaGridItemAD(
 		binding.corners.badge.isVisible = item.counter > 0
 	}
 }
+
+/** Scrim opacity from bottom to top: near-solid behind the text, then an eased fade to nothing. */
+private val SCRIM_ALPHAS = intArrayOf(0xF2, 0xF0, 0xE8, 0xDA, 0xC4, 0xA4, 0x7C, 0x50, 0x26, 0x0A, 0x00)

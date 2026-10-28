@@ -20,6 +20,15 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 	protected var readerAdapter: BaseReaderAdapter<*>? = null
 		private set
 
+	/**
+	 * True while [onPagesChanged] is moving to a pending state. A freshly filled pager/list lays out
+	 * at its first item before it gets there, and reporting that item as the current page would
+	 * overwrite the reading position (and could load a neighbouring chapter) — so scroll/page
+	 * listeners must not report while this is set. The explicit report after the jump still goes out.
+	 */
+	protected var isRestoringPosition = false
+		private set
+
 	override fun onViewBindingCreated(binding: B, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
 		readerAdapter = onCreateAdapter()
@@ -44,7 +53,12 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 				// Otherwise, use content.state (normal flow, mode switch, chapter change)
 				else -> it.state
 			}
-			onPagesChanged(it.pages, pendingState)
+			isRestoringPosition = pendingState != null
+			try {
+				onPagesChanged(it.pages, pendingState)
+			} finally {
+				isRestoringPosition = false
+			}
 		}
 	}
 

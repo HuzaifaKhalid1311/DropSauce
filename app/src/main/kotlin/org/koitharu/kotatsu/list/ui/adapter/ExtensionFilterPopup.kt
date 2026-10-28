@@ -24,7 +24,6 @@ import org.koitharu.kotatsu.core.util.ext.resolveDp
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.ui.model.ExtensionFilter
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
-import kotlin.math.ceil
 import com.google.android.material.R as materialR
 
 internal object ExtensionFilterPopup {
@@ -73,8 +72,12 @@ internal object ExtensionFilterPopup {
 			isVerticalScrollBarEnabled = true
 			addView(chips, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 		}
-		val content = LinearLayout(context).apply {
+		val content = MaxWidthLinearLayout(context).apply {
 			orientation = LinearLayout.VERTICAL
+			maxWidth = minOf(
+				context.resources.displayMetrics.widthPixels - context.resources.resolveDp(32),
+				context.resources.resolveDp(MAX_WIDTH_DP),
+			)
 			addView(createHeader(context), LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			addView(chipsScroll, LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			addView(
@@ -95,7 +98,9 @@ internal object ExtensionFilterPopup {
 		}
 		updateResetButton(resetButton, selectedSourceNames.isNotEmpty())
 
-		PopupWindow(content, resolvePopupWidth(context, chips), ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
+		// Wrap content: the window re-fits whenever the chips change size (checked icon, late font or
+		// favicon), so it never keeps a stale width with a gap on the right.
+		PopupWindow(content, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
 			setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.m3_menu_background))
 			isOutsideTouchable = true
 			elevation = context.resources.resolveDp(8).toFloat()
@@ -128,28 +133,6 @@ internal object ExtensionFilterPopup {
 		}
 	}
 
-	/**
-	 * As wide as the widest line the chips actually wrap into (measured, not estimated), within the
-	 * menu minimum and [MAX_WIDTH_DP]: chips that wrap leave no empty space on their right.
-	 */
-	private fun resolvePopupWidth(context: Context, chips: ChipsView): Int {
-		val horizontalPadding = context.resources.getDimensionPixelSize(R.dimen.menu_popup_item_padding_horizontal)
-		val maxWidth = minOf(
-			context.resources.displayMetrics.widthPixels - context.resources.resolveDp(32),
-			context.resources.resolveDp(MAX_WIDTH_DP),
-		)
-		chips.measure(
-			View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.AT_MOST),
-			View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-		)
-		val chipsWidth = chips.measuredWidth
-		val headerWidth = horizontalPadding +
-			context.measureTextWidth(context.getString(R.string.extension_filters), materialR.attr.textAppearanceTitleMedium) +
-			horizontalPadding
-		val minWidth = maxOf(context.resources.getDimensionPixelSize(R.dimen.menu_popup_min_width), headerWidth)
-		return chipsWidth.coerceIn(minWidth, maxOf(minWidth, maxWidth))
-	}
-
 	private fun updateResetButton(resetButton: MaterialButton, isEnabled: Boolean) {
 		resetButton.isEnabled = isEnabled
 	}
@@ -166,16 +149,24 @@ internal object ExtensionFilterPopup {
 		}
 	}
 
-	private fun Context.measureTextWidth(text: CharSequence, @AttrRes textAppearanceAttr: Int): Int {
-		val textView = TextView(this)
-		textView.setTextAppearanceAttr(textAppearanceAttr)
-		return ceil(textView.paint.measureText(text, 0, text.length)).toInt()
-	}
-
 	private fun TextView.setTextAppearanceAttr(@AttrRes attr: Int) {
 		val style = context.getThemeResId(attr, 0)
 		if (style != 0) {
 			setTextAppearance(style)
+		}
+	}
+
+	private class MaxWidthLinearLayout(context: Context) : LinearLayout(context) {
+
+		var maxWidth = 0
+
+		override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+			val limit = if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED) {
+				maxWidth
+			} else {
+				minOf(maxWidth, MeasureSpec.getSize(widthMeasureSpec))
+			}
+			super.onMeasure(MeasureSpec.makeMeasureSpec(limit, MeasureSpec.AT_MOST), heightMeasureSpec)
 		}
 	}
 

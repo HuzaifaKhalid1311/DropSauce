@@ -405,8 +405,6 @@
 		<item name="iconSize">22dp</item>
 		<item name="iconPadding">4dp</item>
 		<item name="iconGravity">top</item>
-		<item name="iconTint">?attr/colorOnSurfaceVariant</item>
-		<item name="android:textColor">?attr/colorOnSurfaceVariant</item>
 		<item name="android:insetTop">0dp</item>
 		<item name="android:insetBottom">0dp</item>
 		<item name="android:paddingStart">6dp</item>
@@ -414,8 +412,11 @@
 		<item name="android:paddingTop">10dp</item>
 		<item name="android:paddingBottom">8dp</item>
 		<item name="android:gravity">center</item>
-		<!-- Same container tone as the search bar right above them. -->
+		<!-- Same container tone as the search bar right above them, and the icon/hint colour
+		     MainActivity gives it. -->
 		<item name="backgroundTint">?attr/colorSurfaceContainer</item>
+		<item name="iconTint">?attr/colorTopBarIcon</item>
+		<item name="android:textColor">?attr/colorTopBarIcon</item>
 	</style>
 
 	<style name="Widget.Kotatsu.TextView.Indicator" parent="Widget.MaterialComponents.TextView">

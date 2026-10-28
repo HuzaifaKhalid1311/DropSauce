@@ -65,7 +65,7 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 		super.onViewBindingCreated(binding, savedInstanceState)
 		with(binding.pager) {
 			onInitPager(this)
-			doOnPageChanged(::notifyPageChanged)
+			doOnPageChanged { if (!isRestoringPosition) notifyPageChanged(it) }
 			setOnGenericMotionListener(this@BasePagerReaderFragment)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 				recyclerView?.defaultFocusHighlightEnabled = false
