@@ -971,10 +971,18 @@
     <string name="screenshots_block_incognito">Block when incognito mode</string>
     <string name="inline_preference_pattern" translatable="false">%1$s: %2$s</string>
     <string name="crop_pages">Crop pages</string>
-    <string name="rotate_wide_pages">Rotate wide pages to fit</string>
-    <string name="rotate_wide_pages_summary">Turn double-page spreads sideways in paged mode so they fill a portrait screen</string>
-    <string name="rotate_wide_pages_invert">Invert rotation</string>
-    <string name="rotate_wide_pages_invert_summary">Turn wide pages counter-clockwise instead</string>
+    <string name="double_tap_zoom">Double-tap zoom</string>
+    <string name="double_tap_zoom_summary">How far a double tap zooms in paged mode</string>
+    <string name="double_tap_zoom_standard">Standard</string>
+    <string name="double_tap_zoom_fill">Fill screen</string>
+    <string name="rotate_wide_pages">Fit wide pages</string>
+    <string name="rotate_wide_pages_summary">Make double-page spreads in paged mode fill a portrait screen</string>
+    <string name="wide_pages_method">Method</string>
+    <string name="wide_pages_rotate">Rotate</string>
+    <string name="wide_pages_split">Split into two pages</string>
+    <string name="rotate_wide_pages_direction">Rotation direction</string>
+    <string name="rotation_clockwise">Clockwise</string>
+    <string name="rotation_counter_clockwise">Counter-clockwise</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>
     <string name="source_pinned">Source pinned</string>

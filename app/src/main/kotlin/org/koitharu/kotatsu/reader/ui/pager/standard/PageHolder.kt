@@ -27,7 +27,12 @@ import org.koitharu.kotatsu.databinding.ItemPageBinding
 import org.koitharu.kotatsu.reader.domain.PageLoader
 import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
 import org.koitharu.kotatsu.reader.ui.pager.BasePageHolder
+import org.koitharu.kotatsu.reader.ui.pager.BaseReaderAdapter
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
+import org.koitharu.kotatsu.reader.ui.pager.vm.PageViewModel
+
+private const val STANDARD_ZOOM_DURATION = 500
+private const val FILL_ZOOM_DURATION = 250
 
 open class PageHolder(
 	owner: LifecycleOwner,
@@ -47,8 +52,32 @@ open class PageHolder(
 
 	override val ssiv = binding.ssiv
 
+	/** Which half of a split wide page is read first. */
+	protected open val isFirstHalfRight = false
+
+	/** Wide pages aren't split where pages already sit side by side. */
+	protected open val isSplitSupported = true
+
 	init {
 		ViewCompat.setOnApplyWindowInsetsListener(binding.root, this)
+	}
+
+	/** "Fill screen" zooms just until the page fills the screen; "Standard" keeps the library's own amount. */
+	protected fun SubsamplingScaleImageView.applyDoubleTapZoom() {
+		val isFill = settings.isDoubleTapFill
+		if (isFill) {
+			doubleTapZoomScale = maxScale / 2f
+		} else {
+			setDoubleTapZoomDpi(160)
+		}
+		// The smaller fill zoom looks sluggish over the library's 500 ms, so it runs faster.
+		// shortcut: the library has no setter for this, swap for one if it ever gets it
+		runCatching {
+			SubsamplingScaleImageView::class.java.getDeclaredField("doubleTapZoomDuration").apply {
+				isAccessible = true
+				setInt(this@applyDoubleTapZoom, if (isFill) FILL_ZOOM_DURATION else STANDARD_ZOOM_DURATION)
+			}
+		}
 	}
 
 	override fun onApplyWindowInsets(
@@ -69,9 +98,20 @@ open class PageHolder(
 		else -> SubsamplingScaleImageView.ORIENTATION_90
 	}
 
+	override fun splitSide(data: ReaderPage): PageViewModel.SplitSide? = when {
+		!isSplitSupported || !settings.isSplitWideEnabled -> null
+		data.isSecondHalf != isFirstHalfRight -> PageViewModel.SplitSide.RIGHT
+		else -> PageViewModel.SplitSide.LEFT
+	}
+
 	override fun onConfigChanged(settings: ReaderSettings) {
 		super.onConfigChanged(settings)
 		binding.textViewNumber.isVisible = settings.isPagesNumbersEnabled
+		// "Split wide pages" was switched: load the page again whole or halved
+		val data = boundData
+		if (data != null && splitSide(data) != viewModel.splitSide) {
+			bind(data)
+		}
 	}
 
 	@SuppressLint("SetTextI18n")
@@ -85,6 +125,7 @@ open class PageHolder(
 			binding.ssiv.width / binding.ssiv.shownWidth.toFloat(),
 			binding.ssiv.height / binding.ssiv.shownHeight.toFloat(),
 		)
+		binding.ssiv.applyDoubleTapZoom()
 		binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 		when (settings.zoomMode) {
 			ZoomMode.FIT_CENTER -> {
@@ -117,6 +158,15 @@ open class PageHolder(
 					PointF(0f, 0f),
 				)
 			}
+		}
+		notifySplit()
+	}
+
+	/** Once a wide page shows its first half, the pager gets an extra item for the second one. */
+	protected fun notifySplit() {
+		val page = boundData ?: return
+		if (viewModel.isSplit && !page.isSecondHalf) {
+			(bindingAdapter as? BaseReaderAdapter<*>)?.onPageSplit(page)
 		}
 	}
 

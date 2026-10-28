@@ -22,8 +22,19 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 
 	private val differ = AsyncListDiffer(this, DiffCallback())
 
+	/** The pages as the reader gave them, without the second halves of split wide pages. */
+	private var sourceItems: List<ReaderPage> = emptyList()
+	private val splitPages = HashSet<ReaderPage>()
+
+	/** Right-to-left lists put a split page's second half before it, so it reads next. */
+	protected open val isReversed: Boolean
+		get() = false
+
 	val hasItems: Boolean
 		get() = itemCount != 0
+
+	val sourceItemCount: Int
+		get() = sourceItems.size
 
 	init {
 		stateRestorationPolicy = StateRestorationPolicy.PREVENT
@@ -61,9 +72,54 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 	): H = onCreateViewHolder(parent, loader, readerSettingsProducer, networkState, exceptionResolver)
 
 	suspend fun setItems(items: List<ReaderPage>) = suspendCoroutine { cont ->
-		differ.submitList(items) {
+		sourceItems = items
+		differ.submitList(withSplits(items)) {
 			cont.resume(Unit)
 		}
+	}
+
+	/** A wide page turned out to be split: add the pager item for its second half (the Mihon way). */
+	fun onPageSplit(page: ReaderPage) {
+		if (splitPages.add(page)) {
+			differ.submitList(withSplits(sourceItems))
+		}
+	}
+
+	fun clearSplits() {
+		if (splitPages.isNotEmpty()) {
+			splitPages.clear()
+			differ.submitList(sourceItems)
+		}
+	}
+
+	fun toSourcePosition(position: Int): Int {
+		val page = getItemOrNull(position)?.copy(isSecondHalf = false) ?: return position
+		return sourceItems.indexOf(page).takeIf { it >= 0 } ?: position
+	}
+
+	fun toAdapterPosition(sourcePosition: Int): Int {
+		val page = sourceItems.getOrNull(sourcePosition) ?: return sourcePosition
+		return differ.currentList.indexOf(page).takeIf { it >= 0 } ?: sourcePosition
+	}
+
+	private fun withSplits(items: List<ReaderPage>): List<ReaderPage> {
+		if (splitPages.isEmpty()) return items
+		val result = ArrayList<ReaderPage>(items.size + splitPages.size)
+		for (page in items) {
+			if (page !in splitPages) {
+				result.add(page)
+				continue
+			}
+			val secondHalf = page.copy(isSecondHalf = true)
+			if (isReversed) {
+				result.add(secondHalf)
+				result.add(page)
+			} else {
+				result.add(page)
+				result.add(secondHalf)
+			}
+		}
+		return result
 	}
 
 	protected abstract fun onCreateViewHolder(
@@ -77,7 +133,8 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 	private class DiffCallback : DiffUtil.ItemCallback<ReaderPage>() {
 
 		override fun areItemsTheSame(oldItem: ReaderPage, newItem: ReaderPage): Boolean {
-			return oldItem.id == newItem.id && oldItem.chapterId == newItem.chapterId
+			return oldItem.id == newItem.id && oldItem.chapterId == newItem.chapterId &&
+				oldItem.isSecondHalf == newItem.isSecondHalf
 		}
 
 		override fun areContentsTheSame(oldItem: ReaderPage, newItem: ReaderPage): Boolean {

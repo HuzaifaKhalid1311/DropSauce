@@ -168,6 +168,7 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, "Zoom") { crumbs ->
 				addItem(AppSettings.KEY_ZOOM_MODE, R.string.scale_mode, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.zoom_modes))
+				addItem(AppSettings.KEY_READER_DOUBLE_TAP_FILL, R.string.double_tap_zoom, R.string.double_tap_zoom_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_ZOOM_BUTTONS, R.string.reader_zoom_buttons, R.string.reader_zoom_buttons_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_WEBTOON_ZOOM, R.string.webtoon_zoom, R.string.webtoon_zoom_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_WEBTOON_ZOOM_OUT, R.string.default_webtoon_zoom_out, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java)
@@ -188,7 +189,8 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_READER_UPSCALE, R.string.reader_upscale, R.string.reader_upscale_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_CROP, R.string.crop_pages, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_crop))
 				addItem(AppSettings.KEY_READER_ROTATE_WIDE, R.string.rotate_wide_pages, R.string.rotate_wide_pages_summary, crumbs, ReaderSettingsFragment::class.java)
-				addItem(AppSettings.KEY_READER_ROTATE_WIDE_INVERT, R.string.rotate_wide_pages_invert, R.string.rotate_wide_pages_invert_summary, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_READER_WIDE_SPLIT, R.string.wide_pages_method, R.string.wide_pages_split, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_READER_ROTATE_WIDE_INVERT, R.string.rotate_wide_pages_direction, R.string.rotation_counter_clockwise, crumbs, ReaderSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Display") { crumbs ->
 				addItem(AppSettings.KEY_READER_FULLSCREEN, R.string.fullscreen_mode, R.string.reader_fullscreen_summary, crumbs, ReaderSettingsFragment::class.java)

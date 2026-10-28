@@ -40,6 +40,8 @@ data class ReaderSettings(
 	val isPagesCropEnabledWebtoon: Boolean,
 	val isRotateWideEnabled: Boolean,
 	val isRotateWideInverted: Boolean,
+	val isSplitWideEnabled: Boolean,
+	val isDoubleTapFill: Boolean,
 ) {
 
 	private constructor(settings: AppSettings, colorFilterOverride: ReaderColorFilter?) : this(
@@ -56,8 +58,10 @@ data class ReaderSettings(
 		isPagesNumbersEnabled = settings.isPagesNumbersEnabled,
 		isPagesCropEnabledStandard = settings.isPagesCropEnabled(ReaderMode.STANDARD),
 		isPagesCropEnabledWebtoon = settings.isPagesCropEnabled(ReaderMode.WEBTOON),
-		isRotateWideEnabled = settings.isReaderRotateWideEnabled,
+		isRotateWideEnabled = settings.isReaderRotateWideEnabled && !settings.isReaderWideSplit,
 		isRotateWideInverted = settings.isReaderRotateWideInverted,
+		isSplitWideEnabled = settings.isReaderRotateWideEnabled && settings.isReaderWideSplit,
+		isDoubleTapFill = settings.isReaderDoubleTapFill,
 	)
 
 	fun applyBackground(view: View) {
@@ -114,6 +118,8 @@ data class ReaderSettings(
 			AppSettings.KEY_READER_CROP,
 			AppSettings.KEY_READER_ROTATE_WIDE,
 			AppSettings.KEY_READER_ROTATE_WIDE_INVERT,
+			AppSettings.KEY_READER_WIDE_SPLIT,
+			AppSettings.KEY_READER_DOUBLE_TAP_FILL,
 		)
 		private var job: Job? = null
 

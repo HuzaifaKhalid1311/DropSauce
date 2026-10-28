@@ -47,6 +47,13 @@ class PageViewModel(
 	var isWidePage = false
 		private set
 
+	/** Which half of a wide page to show, set by the holder before binding; null shows the whole page. */
+	var splitSide: SplitSide? = null
+
+	/** The page was wide and only [splitSide] of it is shown. */
+	var isSplit = false
+		private set
+
 	val state = MutableStateFlow<PageState>(PageState.Empty)
 
 	fun isLoading() = job?.isActive == true
@@ -121,13 +128,7 @@ class PageViewModel(
 			state.value = PageState.Converting()
 			try {
 				val newUri = loader.convertBimap(uri)
-				cachedBounds = if (settingsProducer.value.isPagesCropEnabled(isWebtoon)) {
-					loader.getTrimmedBounds(newUri)
-				} else {
-					null
-				}
-				isWidePage = checkWide(newUri)
-				state.value = PageState.Loaded(newUri.toImageSource(cachedBounds), isConverted = true)
+				state.value = PageState.Loaded(prepareSource(newUri), isConverted = true)
 			} catch (ce: CancellationException) {
 				throw ce
 			} catch (e2: Throwable) {
@@ -146,13 +147,7 @@ class PageViewModel(
 			val progressObserver = observeProgress(this, task.progressAsFlow())
 			val uri = task.await()
 			progressObserver.cancelAndJoin()
-			cachedBounds = if (settingsProducer.value.isPagesCropEnabled(isWebtoon)) {
-				loader.getTrimmedBounds(uri)
-			} else {
-				null
-			}
-			isWidePage = checkWide(uri)
-			state.value = PageState.Loaded(uri.toImageSource(cachedBounds), isConverted = false)
+			state.value = PageState.Loaded(prepareSource(uri), isConverted = false)
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {
@@ -178,12 +173,34 @@ class PageViewModel(
 			}
 		}.launchIn(scope)
 
-	// Checked even while the option is off, so switching it on applies to pages already loaded
-	private suspend fun checkWide(uri: Uri): Boolean {
-		if (isWebtoon) return false
-		val bounds = cachedBounds ?: return loader.isWideImage(uri)
-		return bounds.width() > bounds.height()
+	/**
+	 * Crops, checks for a wide page and, when [splitSide] asks for it, picks that half of the page.
+	 * Wideness is checked even while the wide-page options are off, so switching them on applies to loaded pages.
+	 */
+	private suspend fun prepareSource(uri: Uri): ImageSource {
+		cachedBounds = if (settingsProducer.value.isPagesCropEnabled(isWebtoon)) {
+			loader.getTrimmedBounds(uri)
+		} else {
+			null
+		}
+		val bounds = if (isWebtoon) null else cachedBounds ?: loader.getImageBounds(uri)
+		isWidePage = bounds != null && bounds.width() > bounds.height()
+		val side = splitSide
+		isSplit = isWidePage && side != null
+		val region = if (isSplit && bounds != null) {
+			val middle = bounds.centerX()
+			if (side == SplitSide.LEFT) {
+				Rect(bounds.left, bounds.top, middle, bounds.bottom)
+			} else {
+				Rect(middle, bounds.top, bounds.right, bounds.bottom)
+			}
+		} else {
+			cachedBounds
+		}
+		return uri.toImageSource(region)
 	}
+
+	enum class SplitSide { LEFT, RIGHT }
 
 	private fun Uri.toImageSource(bounds: Rect?): ImageSource {
 		val source = ImageSource.uri(this)

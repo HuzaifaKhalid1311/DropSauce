@@ -37,6 +37,7 @@ import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
+import org.koitharu.kotatsu.settings.compose.SegmentedSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SliderSettingsItem
@@ -111,6 +112,7 @@ private fun ReaderScreen(
 	var readerModeDetect by rememberBooleanPref(AppSettings.KEY_READER_MODE_DETECT, true)
 	var zoomMode by rememberStringPref(AppSettings.KEY_ZOOM_MODE, ZoomMode.FIT_CENTER.name)
 	var readerZoomButtons by rememberBooleanPref(AppSettings.KEY_READER_ZOOM_BUTTONS, false)
+	var doubleTapFill by rememberBooleanPref(AppSettings.KEY_READER_DOUBLE_TAP_FILL, false)
 	var webtoonZoom by rememberBooleanPref(AppSettings.KEY_WEBTOON_ZOOM, true)
 	var webtoonZoomOut by rememberIntPref(AppSettings.KEY_WEBTOON_ZOOM_OUT, 0)
 	var webtoonGaps by rememberBooleanPref(AppSettings.KEY_WEBTOON_GAPS, false)
@@ -125,6 +127,7 @@ private fun ReaderScreen(
 	var readerCrop by rememberStringSetPref(AppSettings.KEY_READER_CROP, emptySet())
 	var readerRotateWide by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE, false)
 	var readerRotateWideInvert by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE_INVERT, false)
+	var readerWideSplit by rememberBooleanPref(AppSettings.KEY_READER_WIDE_SPLIT, false)
 	var readerFullscreen by rememberBooleanPref(AppSettings.KEY_READER_FULLSCREEN, true)
 	var readerOrientation by rememberStringPref(
 		AppSettings.KEY_READER_ORIENTATION,
@@ -214,8 +217,23 @@ private fun ReaderScreen(
 						selectedValue = zoomMode,
 						onValueChange = { zoomMode = it },
 						icon = R.drawable.ic_zoom_in,
-						
+
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SegmentedSettingsItem(
+						title = stringResource(R.string.double_tap_zoom),
+						subtitle = stringResource(R.string.double_tap_zoom_summary),
+						labels = listOf(
+							stringResource(R.string.double_tap_zoom_standard),
+							stringResource(R.string.double_tap_zoom_fill),
+						),
+						selectedIndex = if (doubleTapFill) 1 else 0,
+						onSelected = { doubleTapFill = it == 1 },
+						icon = R.drawable.ic_fit_screen,
+						shape = pos.shape,
+						enabled = !isWebtoonMode,
 					)
 				}
 				item { pos ->
@@ -409,12 +427,32 @@ private fun ReaderScreen(
 				}
 				if (readerRotateWide) {
 					item { pos ->
-						SwitchSettingsItem(
-							title = stringResource(R.string.rotate_wide_pages_invert),
-							subtitle = stringResource(R.string.rotate_wide_pages_invert_summary),
-							checked = readerRotateWideInvert,
-							onCheckedChange = { readerRotateWideInvert = it },
-							icon = R.drawable.ic_rotate_90_degrees_ccw,
+						ListSettingsItem(
+							title = stringResource(R.string.wide_pages_method),
+							entries = listOf(
+								stringResource(R.string.wide_pages_rotate),
+								stringResource(R.string.wide_pages_split),
+							),
+							entryValues = listOf("false", "true"),
+							selectedValue = readerWideSplit.toString(),
+							onValueChange = { readerWideSplit = it.toBoolean() },
+							icon = R.drawable.ic_two_pager,
+							shape = pos.shape,
+						)
+					}
+				}
+				if (readerRotateWide && !readerWideSplit) {
+					item { pos ->
+						ListSettingsItem(
+							title = stringResource(R.string.rotate_wide_pages_direction),
+							entries = listOf(
+								stringResource(R.string.rotation_clockwise),
+								stringResource(R.string.rotation_counter_clockwise),
+							),
+							entryValues = listOf("false", "true"),
+							selectedValue = readerRotateWideInvert.toString(),
+							onValueChange = { readerRotateWideInvert = it.toBoolean() },
+							icon = if (readerRotateWideInvert) R.drawable.ic_rotate_90_degrees_ccw else R.drawable.ic_rotate_90_degrees_cw,
 							shape = pos.shape,
 						)
 					}

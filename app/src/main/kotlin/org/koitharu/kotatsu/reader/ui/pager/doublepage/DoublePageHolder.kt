@@ -56,12 +56,15 @@ class DoublePageHolder(
 			.gravity = (if (isEven) Gravity.START else Gravity.END) or Gravity.BOTTOM
 	}
 
+	override val isSplitSupported = false
+
 	override fun onReady() {
 		with(binding.ssiv) {
 			maxScale = 2f * maxOf(
 				width / sWidth.toFloat(),
 				height / sHeight.toFloat(),
 			)
+			applyDoubleTapZoom()
 			binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 			minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 			setScaleAndCenter(

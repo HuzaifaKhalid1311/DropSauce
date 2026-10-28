@@ -29,6 +29,8 @@ class ReversedPageHolder(
 	exceptionResolver = exceptionResolver,
 ) {
 
+	override val isFirstHalfRight = true
+
 	init {
 		(binding.textViewNumber.layoutParams as FrameLayout.LayoutParams)
 			.gravity = Gravity.START or Gravity.BOTTOM
@@ -40,6 +42,7 @@ class ReversedPageHolder(
 				width / shownWidth.toFloat(),
 				height / shownHeight.toFloat(),
 			)
+			applyDoubleTapZoom()
 			binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
 			when (settings.zoomMode) {
 				ZoomMode.FIT_CENTER -> {
@@ -74,5 +77,6 @@ class ReversedPageHolder(
 				}
 			}
 		}
+		notifySplit()
 	}
 }

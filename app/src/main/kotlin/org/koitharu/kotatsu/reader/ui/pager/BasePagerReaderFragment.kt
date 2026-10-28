@@ -14,6 +14,8 @@ import androidx.viewpager2.widget.ViewPager2.PageTransformer
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import org.koitharu.kotatsu.R
@@ -88,6 +90,10 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 				}
 			}
 		}
+		viewModel.readerSettingsProducer.map { it.isSplitWideEnabled }.distinctUntilChanged()
+			.observe(viewLifecycleOwner) { isSplit ->
+				if (!isSplit) readerAdapter?.clearSplits()
+			}
 	}
 
 	override fun onDestroyView() {
@@ -130,8 +136,9 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 			}
 			items.join()
 			if (position != -1) {
-				requireViewBinding().pager.setCurrentItem(position, false)
-				notifyPageChanged(position)
+				val adapterPosition = requireAdapter().toAdapterPosition(position)
+				requireViewBinding().pager.setCurrentItem(adapterPosition, false)
+				notifyPageChanged(adapterPosition)
 			} else {
 				Snackbar.make(requireView(), R.string.not_found_404, Snackbar.LENGTH_SHORT)
 					.show()
@@ -163,10 +170,11 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 	}
 
 	override fun switchPageTo(position: Int, smooth: Boolean) {
+		val target = requireAdapter().toAdapterPosition(position)
 		with(requireViewBinding().pager) {
 			setCurrentItem(
-				position,
-				smooth && isAnimationEnabled() && (currentItem - position).absoluteValue < SMOOTH_SCROLL_LIMIT,
+				target,
+				smooth && isAnimationEnabled() && (currentItem - target).absoluteValue < SMOOTH_SCROLL_LIMIT,
 			)
 		}
 	}
@@ -191,8 +199,10 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 		pager.offscreenPageLimit = 2
 	}
 
+	/** [page] is a pager position; the reader counts pages without the second halves of split ones. */
 	protected open fun notifyPageChanged(page: Int) {
-		viewModel.onCurrentPageChanged(page, page)
+		val pos = readerAdapter?.toSourcePosition(page) ?: page
+		viewModel.onCurrentPageChanged(pos, pos)
 	}
 
 	companion object {

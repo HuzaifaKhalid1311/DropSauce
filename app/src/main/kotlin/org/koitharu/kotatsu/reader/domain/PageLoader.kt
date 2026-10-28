@@ -169,8 +169,8 @@ class PageLoader @Inject constructor(
 		}
 	}
 
-	/** Wider than tall, i.e. a double-page spread. False when the size can't be read (e.g. a format BitmapFactory doesn't know). */
-	suspend fun isWideImage(uri: Uri): Boolean = runCatchingCancellable {
+	/** The whole image as a rect. Null when the size can't be read (e.g. a format BitmapFactory doesn't know). */
+	suspend fun getImageBounds(uri: Uri): Rect? = runCatchingCancellable {
 		runInterruptible(Dispatchers.IO) {
 			val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
 			if (uri.isZipUri()) {
@@ -180,9 +180,9 @@ class PageLoader @Inject constructor(
 			} else {
 				context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
 			}
-			options.outWidth > options.outHeight
+			Rect(0, 0, options.outWidth, options.outHeight).takeUnless { it.isEmpty }
 		}
-	}.getOrDefault(false)
+	}.getOrNull()
 
 	suspend fun getTrimmedBounds(uri: Uri): Rect? = runCatchingCancellable {
 		edgeDetector.getBounds(ImageSource.uri(uri))

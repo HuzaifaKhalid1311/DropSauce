@@ -108,11 +108,15 @@ abstract class BasePageHolder<B : ViewBinding>(
 	/** Set before the image so the view lays it out rotated from the start. */
 	protected open fun pageOrientation(): Int = SubsamplingScaleImageView.ORIENTATION_0
 
+	/** Which half of a wide page this holder shows; null shows it whole. Set before the page loads. */
+	protected open fun splitSide(data: ReaderPage): PageViewModel.SplitSide? = null
+
 	fun bind(data: ReaderPage) {
 		if (boundData?.id != data.id) {
 			clearUpscale()
 		}
 		boundData = data
+		viewModel.splitSide = splitSide(data)
 		viewModel.onBind(data.toMangaPage())
 		onBind(data)
 	}

@@ -42,11 +42,12 @@ class ReversedReaderFragment : BasePagerReaderFragment() {
 	}
 
 	override fun notifyPageChanged(page: Int) {
-		val pos = reversed(page)
+		val pos = reversed(readerAdapter?.toSourcePosition(page) ?: page)
 		viewModel.onCurrentPageChanged(pos, pos)
 	}
 
+	/** Flips a position in the page list; split halves aren't counted, so this works on source positions. */
 	private fun reversed(position: Int): Int {
-		return ((readerAdapter?.itemCount ?: 0) - position - 1).coerceAtLeast(0)
+		return ((readerAdapter?.sourceItemCount ?: 0) - position - 1).coerceAtLeast(0)
 	}
 }

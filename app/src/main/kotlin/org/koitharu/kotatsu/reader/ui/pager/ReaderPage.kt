@@ -16,6 +16,8 @@ data class ReaderPage(
 	val chapterId: Long,
 	val index: Int,
 	val source: MangaSource,
+	/** The extra pager item showing the second half of a split wide page; shares the original's index. */
+	val isSecondHalf: Boolean = false,
 ) : Parcelable {
 
 	constructor(page: MangaPage, index: Int, chapterId: Long) : this(

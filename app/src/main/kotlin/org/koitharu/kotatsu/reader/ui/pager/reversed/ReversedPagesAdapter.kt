@@ -18,6 +18,8 @@ class ReversedPagesAdapter(
 	exceptionResolver: ExceptionResolver,
 ) : BaseReaderAdapter<ReversedPageHolder>(loader, readerSettingsProducer, networkState, exceptionResolver) {
 
+	override val isReversed = true
+
 	override fun onCreateViewHolder(
 		parent: ViewGroup,
 		loader: PageLoader,
