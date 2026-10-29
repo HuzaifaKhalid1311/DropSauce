@@ -979,7 +979,7 @@
     <string name="rotate_wide_pages_summary">Make double-page spreads in paged mode fill a portrait screen</string>
     <string name="wide_pages_method">Method</string>
     <string name="wide_pages_rotate">Rotate</string>
-    <string name="wide_pages_split">Split into two pages</string>
+    <string name="wide_pages_split">Split in two</string>
     <string name="rotate_wide_pages_direction">Rotation direction</string>
     <string name="rotation_clockwise">Clockwise</string>
     <string name="rotation_counter_clockwise">Counter-clockwise</string>

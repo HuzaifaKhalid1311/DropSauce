@@ -110,7 +110,7 @@ fun SegmentedSettingsItem(
  * inner seams, and the selected segment swelling slightly as it takes the accent colour.
  */
 @Composable
-private fun SegmentedRow(
+internal fun SegmentedRow(
 	labels: List<String>,
 	selectedIndex: Int,
 	onSelected: (Int) -> Unit,

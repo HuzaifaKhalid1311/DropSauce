@@ -5,14 +5,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -37,6 +44,7 @@ import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
+import org.koitharu.kotatsu.settings.compose.SegmentedRow
 import org.koitharu.kotatsu.settings.compose.SegmentedSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -416,46 +424,15 @@ private fun ReaderScreen(
 					)
 				}
 				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.rotate_wide_pages),
-						subtitle = stringResource(R.string.rotate_wide_pages_summary),
-						checked = readerRotateWide,
-						onCheckedChange = { readerRotateWide = it },
-						icon = R.drawable.ic_rotate_90_degrees_cw,
+					FitWidePagesItem(
+						enabled = readerRotateWide,
+						onEnabledChange = { readerRotateWide = it },
+						split = readerWideSplit,
+						onSplitChange = { readerWideSplit = it },
+						counterClockwise = readerRotateWideInvert,
+						onCounterClockwiseChange = { readerRotateWideInvert = it },
 						shape = pos.shape,
 					)
-				}
-				if (readerRotateWide) {
-					item { pos ->
-						ListSettingsItem(
-							title = stringResource(R.string.wide_pages_method),
-							entries = listOf(
-								stringResource(R.string.wide_pages_rotate),
-								stringResource(R.string.wide_pages_split),
-							),
-							entryValues = listOf("false", "true"),
-							selectedValue = readerWideSplit.toString(),
-							onValueChange = { readerWideSplit = it.toBoolean() },
-							icon = R.drawable.ic_two_pager,
-							shape = pos.shape,
-						)
-					}
-				}
-				if (readerRotateWide && !readerWideSplit) {
-					item { pos ->
-						ListSettingsItem(
-							title = stringResource(R.string.rotate_wide_pages_direction),
-							entries = listOf(
-								stringResource(R.string.rotation_clockwise),
-								stringResource(R.string.rotation_counter_clockwise),
-							),
-							entryValues = listOf("false", "true"),
-							selectedValue = readerRotateWideInvert.toString(),
-							onValueChange = { readerRotateWideInvert = it.toBoolean() },
-							icon = if (readerRotateWideInvert) R.drawable.ic_rotate_90_degrees_ccw else R.drawable.ic_rotate_90_degrees_cw,
-							shape = pos.shape,
-						)
-					}
 				}
 			}
 		}
@@ -566,4 +543,60 @@ private fun ReaderScreen(
 		}
 		item { Spacer(Modifier.height(24.dp).fillMaxWidth()) }
 	}
+}
+
+/** "Fit wide pages" switch with its method and rotation direction kept in the same card, dimmed while unused. */
+@Composable
+private fun FitWidePagesItem(
+	enabled: Boolean,
+	onEnabledChange: (Boolean) -> Unit,
+	split: Boolean,
+	onSplitChange: (Boolean) -> Unit,
+	counterClockwise: Boolean,
+	onCounterClockwiseChange: (Boolean) -> Unit,
+	shape: Shape,
+) {
+	Surface(shape = shape, color = MaterialTheme.colorScheme.surfaceContainer) {
+		Column {
+			SwitchSettingsItem(
+				title = stringResource(R.string.rotate_wide_pages),
+				subtitle = stringResource(R.string.rotate_wide_pages_summary),
+				checked = enabled,
+				onCheckedChange = onEnabledChange,
+				icon = when {
+					split -> R.drawable.ic_two_pager
+					counterClockwise -> R.drawable.ic_rotate_90_degrees_ccw
+					else -> R.drawable.ic_rotate_90_degrees_cw
+				},
+				shape = RectangleShape,
+			)
+			Column(Modifier.padding(start = 12.dp, end = 12.dp, bottom = 14.dp)) {
+				FitWidePagesLabel(stringResource(R.string.wide_pages_method), enabled)
+				SegmentedRow(
+					labels = listOf(stringResource(R.string.wide_pages_rotate), stringResource(R.string.wide_pages_split)),
+					selectedIndex = if (split) 1 else 0,
+					onSelected = { onSplitChange(it == 1) },
+					enabled = enabled,
+				)
+				Spacer(Modifier.height(12.dp))
+				FitWidePagesLabel(stringResource(R.string.rotate_wide_pages_direction), enabled && !split)
+				SegmentedRow(
+					labels = listOf(stringResource(R.string.rotation_clockwise), stringResource(R.string.rotation_counter_clockwise)),
+					selectedIndex = if (counterClockwise) 1 else 0,
+					onSelected = { onCounterClockwiseChange(it == 1) },
+					enabled = enabled && !split,
+				)
+			}
+		}
+	}
+}
+
+@Composable
+private fun FitWidePagesLabel(text: String, enabled: Boolean) {
+	Text(
+		text = text,
+		style = MaterialTheme.typography.labelLarge,
+		color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.38f),
+		modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+	)
 }
