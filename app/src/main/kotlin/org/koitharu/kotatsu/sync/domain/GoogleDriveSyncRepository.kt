@@ -6,8 +6,16 @@ import android.content.Intent
 import android.util.Log
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -69,6 +77,9 @@ class GoogleDriveSyncRepository @Inject constructor(
 	val isSyncing = MutableStateFlow(false)
 	private val syncMutex = Mutex()
 
+	@Volatile
+	private var activeSyncJob: Job? = null
+
 	/**
 	 * Starts connecting Drive: returns the account chooser / consent screen to launch (then pass its
 	 * result to [finishSignIn]), or null when access was already granted and the account is recorded.
@@ -84,16 +95,25 @@ class GoogleDriveSyncRepository @Inject constructor(
 	suspend fun finishSignIn(data: Intent?) = onAuthorized(auth.resultFromIntent(data))
 
 	private suspend fun onAuthorized(result: AuthorizationResult) {
-		val token = result.accessToken ?: throw SyncSignInRequiredException()
-		val user = api.userInfo(token)
-		// Background tokens are pinned to this; it must be the phone's own account name, which can differ
-		// from the profile email in dots/case (then Play Services reports ACCOUNT_NOT_PRESENT).
-		@Suppress("DEPRECATION")
-		val deviceAccount = result.toGoogleSignInAccount()?.account?.name
-		syncSettings.accountEmail = deviceAccount ?: user.email?.ifBlank { null } ?: "Google Drive"
+		val initialToken = result.accessToken ?: throw SyncSignInRequiredException()
+		val user = try {
+			api.userInfo(initialToken)
+		} catch (e: SyncApiException) {
+			if (e.code != 401) throw e
+			auth.clearToken(initialToken)
+			api.userInfo(auth.requireAccessToken(fallbackEmail = null))
+		}
+		val email = user.email?.ifBlank { null } ?: "Google Drive"
+		val previousEmail = syncSettings.accountEmail
+		if (!previousEmail.isNullOrEmpty() && !previousEmail.equals(email, ignoreCase = true)) {
+			syncSettings.clearRemoteState()
+			database.getSyncDao().clearRemote()
+		}
+		syncSettings.accountEmail = email
 		syncSettings.accountName = user.name
 		syncSettings.accountPhotoUrl = user.picture
-		Log.i(TAG, "signed in as ${syncSettings.accountEmail}")
+		syncSettings.lastSyncError = null
+		Log.i(TAG, "signed in as $email")
 	}
 
 	/**
@@ -105,7 +125,11 @@ class GoogleDriveSyncRepository @Inject constructor(
 		if (force) syncMutex.lock() else if (!syncMutex.tryLock()) return SyncResult.Success
 		isSyncing.value = true
 		return try {
-			auth.withToken { token -> performSync(token) }
+			if (!syncSettings.isSignedIn) return SyncResult.SignInRequired
+			coroutineScope {
+				activeSyncJob = coroutineContext[Job]
+				auth.withToken { token -> performSync(token) }
+			}
 			syncSettings.lastSyncTimestamp = System.currentTimeMillis()
 			syncSettings.lastSyncError = null
 			SyncResult.Success
@@ -118,12 +142,15 @@ class GoogleDriveSyncRepository @Inject constructor(
 			Log.e(TAG, "remote schema too new", e)
 			syncSettings.lastSyncError = e.message
 			SyncResult.Error(e.message, retryable = false)
+		} catch (e: CancellationException) {
+			currentCoroutineContext().ensureActive()
+			SyncResult.SignInRequired
 		} catch (e: Exception) {
-			if (e is kotlinx.coroutines.CancellationException) throw e
 			Log.e(TAG, "sync failed", e)
 			syncSettings.lastSyncError = e.message ?: e.javaClass.simpleName
 			SyncResult.Error(e.message ?: e.javaClass.simpleName)
 		} finally {
+			activeSyncJob = null
 			isSyncing.value = false
 			syncMutex.unlock()
 		}
@@ -393,27 +420,33 @@ class GoogleDriveSyncRepository @Inject constructor(
 
 	/** Deletes the synced data from Drive and forgets local sync bookkeeping. */
 	suspend fun deleteRemoteData(): SyncResult = try {
-		auth.withToken { token ->
-			for (file in api.listAppData(token)) {
-				api.delete(token, file.id)
+		activeSyncJob?.cancel()
+		syncMutex.withLock {
+			auth.withToken { token ->
+				for (file in api.listAppData(token)) {
+					api.delete(token, file.id)
+				}
 			}
+			database.getSyncDao().clearRemote()
+			syncSettings.clearRemoteState()
 		}
-		database.getSyncDao().clearRemote()
-		syncSettings.clearRemoteState()
 		SyncResult.Success
 	} catch (e: SyncSignInRequiredException) {
 		SyncResult.SignInRequired
 	} catch (e: Exception) {
-		if (e is kotlinx.coroutines.CancellationException) throw e
+		if (e is CancellationException) throw e
 		SyncResult.Error(e.message)
 	}
 
-	suspend fun signOut() {
-		// signOut + revokeAccess so the next sign-in shows the account chooser / consent again.
-		auth.signOut()
-		syncSettings.clearAccount()
-		// Another account means other files: forget which ones were already merged.
-		database.getSyncDao().clearRemote()
+	suspend fun signOut() = withContext(NonCancellable) {
+		val fallbackEmail = syncSettings.accountEmail
+		activeSyncJob?.cancel()
+		syncMutex.withLock {
+			syncSettings.clearAccount()
+			// Another account means other files: forget which ones were already merged.
+			database.getSyncDao().clearRemote()
+			auth.signOut(fallbackEmail)
+		}
 	}
 
 	private fun gzip(bytes: ByteArray): ByteArray = ByteArrayOutputStream(bytes.size / 4).also { out ->

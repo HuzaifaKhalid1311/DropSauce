@@ -92,9 +92,11 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 			DropSauceTheme {
 				val state by viewModel.uiState.collectAsState()
 				val isSyncing by viewModel.isSyncing.collectAsState()
+				val isLoading by viewModel.isLoading.collectAsState()
 				SyncScreen(
 					state = state,
 					isSyncing = isSyncing,
+					isLoading = isLoading,
 					imageLoader = coilImageLoader,
 					onSignIn = viewModel::signIn,
 					onSignOut = viewModel::signOut,
@@ -141,6 +143,7 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 private fun SyncScreen(
 	state: SyncUiState,
 	isSyncing: Boolean,
+	isLoading: Boolean,
 	imageLoader: ImageLoader,
 	onSignIn: () -> Unit,
 	onSignOut: () -> Unit,
@@ -186,6 +189,7 @@ private fun SyncScreen(
 							title = stringResource(R.string.sync_sign_out),
 							icon = R.drawable.ic_logout,
 							shape = pos.shape,
+							enabled = !isLoading,
 							onClick = onSignOut,
 						)
 					}
@@ -197,6 +201,7 @@ private fun SyncScreen(
 							icon = R.drawable.ic_cloud_sync,
 							iconColors = colors,
 							shape = pos.shape,
+							enabled = !isLoading,
 							onClick = onSignIn,
 						)
 					}
@@ -295,6 +300,7 @@ private fun SyncScreen(
 							subtitle = stringResource(R.string.sync_delete_data_summary),
 							icon = R.drawable.ic_delete,
 							shape = pos.shape,
+							enabled = !isLoading,
 							onClick = { showDeleteConfirm = true },
 						)
 					}

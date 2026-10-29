@@ -1,7 +1,9 @@
 package org.koitharu.kotatsu.sync.data
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -10,6 +12,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -19,6 +22,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.koitharu.kotatsu.core.network.BaseHttpClient
+import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.sync.domain.SyncApiException
 import java.io.IOException
 import java.time.Instant
@@ -42,6 +46,12 @@ class GoogleDriveApi @Inject constructor(
 	// the main thread, where the base client must not be created.
 	private val httpClient by lazy {
 		buildClient()
+	}
+
+	private val revokeHttpClient by lazy {
+		httpClient.newBuilder()
+			.callTimeout(REVOKE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+			.build()
 	}
 
 	private fun buildClient() = baseHttpClient.get().newBuilder().apply {
@@ -85,6 +95,19 @@ class GoogleDriveApi @Inject constructor(
 	suspend fun userInfo(token: String): UserInfo {
 		val request = Request.Builder().url(USER_INFO_URL).get().authorize(token).build()
 		return execute(request) { it.parse<UserInfo>() }
+	}
+
+	/** Best-effort OAuth grant revocation; single attempt with a short timeout so sign-out never hangs offline. */
+	suspend fun revoke(token: String) {
+		val request = Request.Builder()
+			.url(REVOKE_URL)
+			.post(FormBody.Builder().add("token", token).build())
+			.build()
+		withContext(Dispatchers.IO) {
+			revokeHttpClient.newCall(request).await().use { response ->
+				if (!response.isSuccessful) throw response.toError()
+			}
+		}
 	}
 
 	/** Every file in the hidden app folder. */
@@ -181,15 +204,17 @@ class GoogleDriveApi @Inject constructor(
 		while (true) {
 			val failure: IOException = try {
 				return withContext(Dispatchers.IO) {
-					httpClient.newCall(request).execute().use { response ->
+					httpClient.newCall(request).await().use { response ->
 						if (!response.isSuccessful) throw response.toError()
 						block(response)
 					}
 				}
 			} catch (e: SyncApiException) {
+				currentCoroutineContext().ensureActive()
 				if (e.code != 429 && e.code < 500) throw e
 				e
 			} catch (e: IOException) {
+				currentCoroutineContext().ensureActive()
 				e
 			}
 			if (++attempt >= MAX_ATTEMPTS) throw failure
@@ -213,9 +238,11 @@ class GoogleDriveApi @Inject constructor(
 		private const val DRIVE_BASE = "https://www.googleapis.com/drive/v3"
 		private const val UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
 		private const val USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
+		private const val REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 		private const val SIMPLE_UPLOAD_LIMIT = 5L * 1024 * 1024
 		private const val MAX_ATTEMPTS = 3
 		private const val RETRY_DELAY_MS = 1500L
+		private const val REVOKE_TIMEOUT_MS = 5000L
 		private val JSON_MEDIA_TYPE = "application/json; charset=UTF-8".toMediaType()
 		private val OCTET_STREAM = "application/octet-stream".toMediaType()
 

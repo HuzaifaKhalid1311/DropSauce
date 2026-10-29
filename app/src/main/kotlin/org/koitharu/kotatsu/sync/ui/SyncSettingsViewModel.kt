@@ -5,13 +5,16 @@ import android.content.Intent
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.sync.data.SyncSettings
 import org.koitharu.kotatsu.sync.data.model.SyncContent
 import org.koitharu.kotatsu.sync.domain.GoogleDriveSyncRepository
@@ -62,9 +65,7 @@ class SyncSettingsViewModel @Inject constructor(
 
 	fun signIn() {
 		launchLoadingJob(Dispatchers.Default) {
-			val consent = try {
-				repository.beginSignIn()
-			} catch (e: Exception) {
+			val consent = runCatchingCancellable { repository.beginSignIn() }.getOrElse { e ->
 				events.call(SyncEvent.Error(e.message ?: e.javaClass.simpleName))
 				return@launchLoadingJob
 			}
@@ -74,9 +75,7 @@ class SyncSettingsViewModel @Inject constructor(
 
 	fun onSignInResult(data: Intent?) {
 		launchLoadingJob(Dispatchers.Default) {
-			try {
-				repository.finishSignIn(data)
-			} catch (e: Exception) {
+			runCatchingCancellable { repository.finishSignIn(data) }.onFailure { e ->
 				events.call(SyncEvent.Error(e.message ?: e.javaClass.simpleName))
 				return@launchLoadingJob
 			}
@@ -87,30 +86,49 @@ class SyncSettingsViewModel @Inject constructor(
 	private suspend fun onSignedIn() {
 		refresh()
 		scheduler.schedule()
-		runSync() // pull existing data right away, surfacing any error
+		launchJob(Dispatchers.Default) { runSync() } // pull existing data right away, surfacing any error
 	}
 
 	/** Runs a sync in the foreground and reports the outcome to the user. */
 	private suspend fun runSync() {
 		when (val result = repository.sync(force = true)) {
 			is SyncResult.Success -> events.call(SyncEvent.Message(R.string.sync_completed))
-			is SyncResult.SignInRequired -> events.call(SyncEvent.Error(null))
+			is SyncResult.SignInRequired -> if (syncSettings.isSignedIn) reauthorize()
 			is SyncResult.Error -> events.call(SyncEvent.Error(result.message))
 		}
 		refresh()
 	}
 
+	private suspend fun reauthorize() {
+		val consent = runCatchingCancellable { repository.beginSignIn() }.getOrElse { e ->
+			events.call(SyncEvent.Error(e.message ?: e.javaClass.simpleName))
+			return
+		}
+		if (consent != null) {
+			events.call(SyncEvent.LaunchSignIn(consent))
+			return
+		}
+		refresh()
+		when (val retry = repository.sync(force = true)) {
+			is SyncResult.Success -> events.call(SyncEvent.Message(R.string.sync_completed))
+			is SyncResult.SignInRequired -> events.call(SyncEvent.Error(syncSettings.lastSyncError))
+			is SyncResult.Error -> events.call(SyncEvent.Error(retry.message))
+		}
+	}
+
 	fun signOut() {
-		launchJob(Dispatchers.Default) {
-			repository.signOut()
-			scheduler.unschedule()
+		launchLoadingJob(Dispatchers.Default) {
+			withContext(NonCancellable) {
+				repository.signOut()
+				scheduler.unschedule()
+			}
 			refresh()
 		}
 	}
 
 	fun syncNow() {
 		if (!syncSettings.isSignedIn) return
-		launchLoadingJob(Dispatchers.Default) { runSync() }
+		launchJob(Dispatchers.Default) { runSync() }
 	}
 
 	fun setInterval(minutes: Int) {
@@ -139,7 +157,7 @@ class SyncSettingsViewModel @Inject constructor(
 		launchLoadingJob(Dispatchers.Default) {
 			when (val result = repository.deleteRemoteData()) {
 				is SyncResult.Success -> events.call(SyncEvent.Message(R.string.sync_data_deleted))
-				is SyncResult.SignInRequired -> events.call(SyncEvent.Error(null))
+				is SyncResult.SignInRequired -> if (syncSettings.isSignedIn) reauthorize()
 				is SyncResult.Error -> events.call(SyncEvent.Error(result.message))
 			}
 			refresh()

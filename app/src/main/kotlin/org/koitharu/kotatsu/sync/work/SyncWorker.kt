@@ -124,6 +124,9 @@ class SyncWorker @AssistedInject constructor(
 
 		override suspend fun unschedule() {
 			workManager.cancelUniqueWork(TAG_PERIODIC).await()
+			if (!syncSettings.isSignedIn) {
+				workManager.cancelUniqueWork(TAG_SOON).await()
+			}
 		}
 
 		override suspend fun isScheduled(): Boolean =
