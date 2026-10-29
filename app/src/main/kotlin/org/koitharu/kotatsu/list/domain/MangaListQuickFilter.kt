@@ -41,6 +41,10 @@ abstract class MangaListQuickFilter(
 			cycleStateFilter()
 			return
 		}
+		if (option == ListFilterOption.Macro.COMPLETED || option == ListFilterOption.NOT_COMPLETED) {
+			cycleCompletedFilter()
+			return
+		}
 		appliedFilter.value = ArraySet(appliedFilter.value).also {
 			if (option in it) {
 				it.remove(option)
@@ -62,7 +66,11 @@ abstract class MangaListQuickFilter(
 		}
 		val extraChips = getAdditionalChips(selectedOptions)
 		val availableOptions = availableFilterOptions.getOrNull()?.map { option ->
-			option.toChipModel(isChecked = option in selectedOptions)
+			if (option == ListFilterOption.Macro.COMPLETED) {
+				completedChip(selectedOptions)
+			} else {
+				option.toChipModel(isChecked = option in selectedOptions)
+			}
 		}.orEmpty()
 		val chips = extraChips + listOfNotNull(stateChip(selectedOptions)) + availableOptions
 		return if (chips.isNotEmpty()) {
@@ -104,6 +112,30 @@ abstract class MangaListQuickFilter(
 			set.removeIf { it is ListFilterOption.State }
 			if (next != null) {
 				set.add(ListFilterOption.State(next))
+			}
+		}
+	}
+
+	/** Like the status chip: one chip that goes off → completed → not completed → off. */
+	private fun completedChip(selectedOptions: Set<ListFilterOption>): ChipsView.ChipModel {
+		val notCompleted = ListFilterOption.NOT_COMPLETED
+		val current = if (notCompleted in selectedOptions) notCompleted else ListFilterOption.Macro.COMPLETED
+		return current.toChipModel(isChecked = current in selectedOptions).copy(isCheckedIconVisible = false)
+	}
+
+	private fun cycleCompletedFilter() {
+		val completed = ListFilterOption.Macro.COMPLETED
+		val notCompleted = ListFilterOption.NOT_COMPLETED
+		val next = when {
+			completed in appliedFilter.value -> notCompleted
+			notCompleted in appliedFilter.value -> null
+			else -> completed
+		}
+		appliedFilter.value = ArraySet(appliedFilter.value).also { set ->
+			set.remove(completed)
+			set.remove(notCompleted)
+			if (next != null) {
+				set.add(next)
 			}
 		}
 	}

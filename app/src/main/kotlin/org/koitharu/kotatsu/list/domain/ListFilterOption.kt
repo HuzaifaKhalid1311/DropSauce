@@ -215,5 +215,13 @@ sealed interface ListFilterOption {
 				titleResId = R.string.not_in_favorites,
 				titleText = null,
 			)
+
+		val NOT_COMPLETED
+			get() = Inverted(
+				option = Macro.COMPLETED,
+				iconResId = R.drawable.ic_not_completed,
+				titleResId = R.string.not_completed,
+				titleText = null,
+			)
 	}
 }

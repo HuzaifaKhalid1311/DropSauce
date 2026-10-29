@@ -1011,6 +1011,7 @@
     <string name="skip_all">Skip all</string>
     <string name="stuck">Stuck</string>
     <string name="not_in_favorites">Not in favorites</string>
+    <string name="not_completed">Not completed</string>
     <string name="updated_long_ago">Updated long ago</string>
     <string name="unpopular">Unpopular</string>
     <string name="low_rating">Low rating</string>
