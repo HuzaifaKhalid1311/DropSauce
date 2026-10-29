@@ -6,16 +6,12 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.lifecycle.RetainedLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.core.util.AcraCoroutineErrorHandler
 import org.koitharu.kotatsu.core.util.RetainedLifecycleCoroutineScope
-import org.koitharu.kotatsu.parsers.util.cancelAll
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.cancellation.CancellationException
 
 val processLifecycleScope: CoroutineScope
 	get() = ProcessLifecycleOwner.get().lifecycleScope + AcraCoroutineErrorHandler()
@@ -29,13 +25,6 @@ fun <T> Deferred<T>.getCompletionResultOrNull(): Result<T>? = if (isCompleted) {
 	} ?: Result.success(getCompleted())
 } else {
 	null
-}
-
-@Suppress("SuspendFunctionOnCoroutineScope")
-suspend fun CoroutineScope.cancelChildrenAndJoin(cause: CancellationException? = null) {
-	val jobs = coroutineContext[Job]?.children?.toList() ?: return
-	jobs.cancelAll(cause)
-	jobs.joinAll()
 }
 
 fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext, block: suspend () -> Unit) {

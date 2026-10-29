@@ -5,6 +5,8 @@ import androidx.annotation.CheckResult
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koitharu.kotatsu.core.model.isNovelSource
+import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.details.data.MangaDetails
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -39,11 +41,7 @@ class ChaptersLoader @Inject constructor(
 	}
 
 	suspend fun loadPrevNextChapter(manga: MangaDetails, currentId: Long, isNext: Boolean): Boolean {
-		val chapters = manga.allChapters
-		val predicate: (MangaChapter) -> Boolean = { it.id == currentId }
-		val index = if (isNext) chapters.indexOfFirst(predicate) else chapters.indexOfLast(predicate)
-		if (index == -1) return false
-		val newChapter = chapters.getOrNull(if (isNext) index + 1 else index - 1) ?: return false
+		val newChapter = findAdjacentChapter(manga, currentId, isNext) ?: return false
 		val newPages = loadChapter(newChapter.id)
 		mutex.withLock {
 			if (chapterPages.chaptersSize > 1) {
@@ -63,6 +61,17 @@ class ChaptersLoader @Inject constructor(
 			}
 		}
 		return true
+	}
+
+	/** Online pages of the chapter after [currentId] for preloading, without adding it to the reader. */
+	suspend fun loadNextChapterPages(manga: MangaDetails, currentId: Long): List<ReaderPage>? {
+		val nextId = findAdjacentChapter(manga, currentId, isNext = true)?.id ?: return null
+		val chapter = mutex.withLock { chapters[nextId] } ?: return null
+		if (chapter.source.isNovelSource) return null
+		val repo = mangaRepositoryFactory.create(chapter.source) as? CachingMangaRepository ?: return null
+		return repo.getPages(checkNotNull(this.manga), chapter).mapIndexed { index, page ->
+			ReaderPage(page, index, nextId)
+		}
 	}
 
 	@CheckResult
@@ -108,8 +117,17 @@ class ChaptersLoader @Inject constructor(
 
 	fun snapshot() = synchronized(chapterPages) { chapterPages.toList() }
 
+	private fun findAdjacentChapter(manga: MangaDetails, currentId: Long, isNext: Boolean): MangaChapter? {
+		val chapters = manga.allChapters
+		val predicate: (MangaChapter) -> Boolean = { it.id == currentId }
+		val index = if (isNext) chapters.indexOfFirst(predicate) else chapters.indexOfLast(predicate)
+		if (index == -1) return null
+		return chapters.getOrNull(if (isNext) index + 1 else index - 1)
+	}
+
 	private suspend fun loadChapter(chapterId: Long): List<ReaderPage> {
-		val chapter = checkNotNull(chapters[chapterId]) { "Requested chapter not found" }
+		// init() refills the list while the details refresh, which preloading no longer waits for
+		val chapter = checkNotNull(mutex.withLock { chapters[chapterId] }) { "Requested chapter not found" }
 		val repo = mangaRepositoryFactory.create(chapter.source)
 		return repo.getPages(checkNotNull(manga), chapter).mapIndexed { index, page ->
 			ReaderPage(page, index, chapterId)

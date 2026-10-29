@@ -215,7 +215,7 @@ interface AppModule {
 		) = LocalStorageCache(
 			context = context,
 			dir = CacheDir.PAGES,
-			defaultSize = FileSize.MEGABYTES.convert(200, FileSize.BYTES),
+			defaultSize = FileSize.MEGABYTES.convert(512, FileSize.BYTES),
 			minSize = FileSize.MEGABYTES.convert(20, FileSize.BYTES),
 		)
 

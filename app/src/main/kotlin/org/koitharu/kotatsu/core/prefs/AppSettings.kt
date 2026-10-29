@@ -1130,11 +1130,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_READER_TTS_FAB, false)
 		set(value) = prefs.edit { putBoolean(KEY_READER_TTS_FAB, value) }
 
-	// Page preloading is always on (no user setting): the only thing that turns it off is the system
-	// restricting our background data.
-	val isPagesPreloadEnabled: Boolean
-		get() = !isBackgroundNetworkRestricted()
-
 	val is32BitColorsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_32BIT_COLOR, false)
 

@@ -80,6 +80,7 @@ import org.koitharu.kotatsu.reader.domain.ChaptersLoader
 import org.koitharu.kotatsu.reader.domain.DetectReaderModeUseCase
 import org.koitharu.kotatsu.reader.domain.PageLoader
 import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
+import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
 import org.koitharu.kotatsu.scrobbling.discord.ui.DiscordRpc
 import org.koitharu.kotatsu.stats.domain.StatsCollector
@@ -88,7 +89,6 @@ import java.time.Instant
 import javax.inject.Inject
 
 private const val BOUNDS_PAGE_OFFSET = 2
-private const val PREFETCH_LIMIT = 10
 private const val EPUB_SLIDER_MAX = 1000
 private const val AUTOSAVE_INTERVAL_MS = 5000L
 
@@ -363,7 +363,9 @@ class ReaderViewModel @Inject constructor(
                 return@launchLoadingJob
             }
             val newState = ReaderState(id, page, scroll)
-            content.value = ReaderContent(chaptersLoader.snapshot(), newState)
+            val pages = chaptersLoader.snapshot()
+            preloadState(pages, newState)
+            content.value = ReaderContent(pages, newState)
             saveCurrentState(newState)
         }
     }
@@ -393,7 +395,9 @@ class ReaderViewModel @Inject constructor(
                 page = if (delta == 0) prevState.page else 0,
                 scroll = if (delta == 0) prevState.scroll else 0,
             )
-            content.value = ReaderContent(chaptersLoader.snapshot(), newState)
+            val pages = chaptersLoader.snapshot()
+            preloadState(pages, newState)
+            content.value = ReaderContent(pages, newState)
             saveCurrentState(newState)
         }
     }
@@ -404,11 +408,15 @@ class ReaderViewModel @Inject constructor(
         val pages = content.value.pages // capture immediately
         stateChangeJob = launchJob(Dispatchers.Default) {
             prevJob?.cancelAndJoin()
+            val centerPos = (lowerPos + upperPos) / 2
+            // Before the loadingJob wait, so preloading never waits for a chapter list refresh
+            pages.getOrNull(centerPos)?.let { page ->
+                preloadPage(pages, page)
+            }
             loadingJob?.join()
             if (pages.size != content.value.pages.size) {
                 return@launchJob // TODO
             }
-            val centerPos = (lowerPos + upperPos) / 2
             val prevState = readingState.value
             pages.getOrNull(centerPos)?.let { page ->
                 readingState.update { cs ->
@@ -436,9 +444,6 @@ class ReaderViewModel @Inject constructor(
                 if (lowerPos <= BOUNDS_PAGE_OFFSET) {
                     loadPrevNextChapter(pages.first().chapterId, isNext = false)
                 }
-            }
-            if (pageLoader.isPrefetchApplicable()) {
-                pageLoader.prefetch(pages.trySublist(upperPos + 1, upperPos + PREFETCH_LIMIT))
             }
         }
     }
@@ -540,6 +545,9 @@ class ReaderViewModel @Inject constructor(
                             }
                         }
                         mangaDetails.value = details.filterChapters(selectedBranch.value)
+                        val pages = chaptersLoader.snapshot()
+                        // Before the history save, which can wait for the incognito question
+                        preloadState(pages, readingState.value)
 
                         // save state
                         if (!isIncognitoMode.firstNotNull() && !isPeekMode.value) {
@@ -550,7 +558,7 @@ class ReaderViewModel @Inject constructor(
                             }
                         }
                         notifyStateChanged()
-                        content.value = ReaderContent(chaptersLoader.snapshot(), readingState.value)
+                        content.value = ReaderContent(pages, readingState.value)
                     }
             } catch (e: CancellationException) {
                 throw e
@@ -605,14 +613,28 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    private fun <T> List<T>.trySublist(fromIndex: Int, toIndex: Int): List<T> {
-        val fromIndexBounded = fromIndex.coerceIn(0, size)
-        val toIndexBounded = toIndex.coerceIn(fromIndexBounded, size)
-        return if (fromIndexBounded == toIndexBounded) {
-            emptyList()
-        } else {
-            subList(fromIndexBounded, toIndexBounded)
+    private fun preloadState(pages: List<ReaderPage>, state: ReaderState?) {
+        if (state == null || mangaDetails.value?.toManga()?.isEpub == true) return
+        val page = pages.find { it.chapterId == state.chapterId && it.index == state.page } ?: return
+        preloadPage(pages, page)
+    }
+
+    private fun preloadPage(pages: List<ReaderPage>, page: ReaderPage) {
+        pageLoader.preload(
+            pages = pages,
+            current = page,
+            nextChapter = { loadNextChapterPages(page.chapterId) },
+        )
+    }
+
+    private suspend fun loadNextChapterPages(chapterId: Long): List<ReaderPage>? {
+        val details = mangaDetails.value ?: return null
+        chaptersLoader.loadNextChapterPages(details, chapterId)?.let { return it }
+        if (!details.isLoaded) {
+            loadingJob?.join()
+            return mangaDetails.value?.let { chaptersLoader.loadNextChapterPages(it, chapterId) }
         }
+        return null
     }
 
     fun onEpubProgressChanged(

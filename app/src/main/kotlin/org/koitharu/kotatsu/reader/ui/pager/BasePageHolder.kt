@@ -146,6 +146,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	override fun onDestroy() {
 		context.unregisterComponentCallbacks(this)
+		viewModel.onRecycle()
 		super.onDestroy()
 	}
 

@@ -42,6 +42,7 @@ class PageViewModel(
 	private val scope = loader.loaderScope + Dispatchers.Main.immediate
 	private var job: Job? = null
 	private var cachedBounds: Rect? = null
+	private var shownPageId: Long? = null
 
 	/** Size check for "rotate wide pages", done before the image is shown so it can be rotated up front. */
 	var isWidePage = false
@@ -59,6 +60,11 @@ class PageViewModel(
 	fun isLoading() = job?.isActive == true
 
 	fun onBind(page: MangaPage) {
+		if (page.id != shownPageId) {
+			shownPageId?.let { loader.setPageShown(it, false) }
+			loader.setPageShown(page.id, true)
+			shownPageId = page.id
+		}
 		val prevJob = job
 		job = scope.launch(Dispatchers.Default) {
 			prevJob?.cancelAndJoin()
@@ -91,6 +97,8 @@ class PageViewModel(
 		state.value = PageState.Empty
 		cachedBounds = null
 		job?.cancel()
+		shownPageId?.let { loader.setPageShown(it, false) }
+		shownPageId = null
 	}
 
 	override fun onImageLoaded() {
