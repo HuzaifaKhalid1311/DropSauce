@@ -35,8 +35,6 @@
 	<dimen name="small_grid_width">92dp</dimen>
 	<dimen name="list_footer_height_outer">48dp</dimen>
 	<dimen name="extension_action_button_size">40dp</dimen>
-	<dimen name="extension_action_button_group_width">124dp</dimen>
-	<dimen name="extension_update_all_button_height">40dp</dimen>
 	<dimen name="screen_padding">16dp</dimen>
 	<dimen name="selection_stroke_width">2dp</dimen>
 	<dimen name="list_selector_corner">12dp</dimen>
@@ -53,7 +51,7 @@
 	<dimen name="top_bar_action_segment_inner_corner">8dp</dimen>
 	<!-- Start margin (16) + button (46) + 16 gap, so the title keeps the same rhythm as the edges. -->
 	<dimen name="top_bar_title_inset_with_navigation">78dp</dimen>
-	<dimen name="explore_grid_width">135dp</dimen>
+	<dimen name="explore_grid_width">110dp</dimen>
 	<dimen name="chapter_grid_width">80dp</dimen>
 	<dimen name="side_card_offset">8dp</dimen>
 	<!-- Side sheets host the same forms as the bottom sheets (segmented pickers, chip rows, sliders),

@@ -8,8 +8,10 @@ import android.view.View
 import android.view.ViewTreeObserver
 import androidx.annotation.RequiresApi
 import com.google.android.material.color.MaterialColors
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.widgets.FloatingBottomNavigationView
 import com.google.android.material.R as materialR
+import kotlin.math.roundToInt
 
 /**
  * Progressive blur + surface fade over the content behind the status bar and the floating nav pill,
@@ -39,6 +41,7 @@ class BarBlur(
 			} else {
 				content.viewTreeObserver.removeOnPreDrawListener(this)
 				content.setRenderEffect(null)
+				content.setTag(R.id.tag_bottom_nav_overlap, null)
 				last.fill(Float.NaN)
 			}
 		}
@@ -62,6 +65,8 @@ class BarBlur(
 		}
 		if (top == last[0] && statusBarZone == last[1] && bottomZone == last[2]) return true
 		last = floatArrayOf(top, statusBarZone, bottomZone)
+		// Lets overlays drawn inside the content (the fast scroller) stay clear of the nav pill
+		content.setTag(R.id.tag_bottom_nav_overlap, (bottomZone / BOTTOM_HEIGHT_FACTOR).roundToInt())
 		content.setRenderEffect(
 			if (statusBarZone < 1f && bottomZone < 1f) {
 				null

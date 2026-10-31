@@ -24,7 +24,6 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.list.fastscroll.FastScroller
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
@@ -38,7 +37,6 @@ import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.list.ui.adapter.ListStateHolderListener
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.reader.ui.PageSaveHelper
 import javax.inject.Inject
@@ -49,7 +47,7 @@ class AllBookmarksFragment :
 	ListStateHolderListener,
 	OnListItemClickListener<Bookmark>,
 	ListSelectionController.Callback,
-	FastScroller.FastScrollListener, ListHeaderClickListener {
+	ListHeaderClickListener {
 
 	@Inject
 	lateinit var settings: AppSettings
@@ -161,12 +159,6 @@ class AllBookmarksFragment :
 	override fun onRetryClick(error: Throwable) = Unit
 
 	override fun onEmptyActionClick() = Unit
-
-	override fun onFastScrollStart(fastScroller: FastScroller) {
-		(activity as? AppBarOwner)?.appBar?.setExpanded(false, true)
-	}
-
-	override fun onFastScrollStop(fastScroller: FastScroller) = Unit
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
 		requireViewBinding().recyclerView.invalidateItemDecorations()

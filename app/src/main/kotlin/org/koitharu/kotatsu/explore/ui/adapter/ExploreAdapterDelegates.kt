@@ -5,6 +5,7 @@ import android.graphics.RectF
 import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnLayout
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
@@ -217,11 +218,12 @@ fun exploreSourceGridItemAD(
 		binding.textViewTitle.text = title
 		binding.textViewTitle.drawableStart = if (item.source.isPinned) iconPinned else null
 		binding.imageViewIcon.applyExternalSourceStyle(item.source.mangaSource.isExternalSource())
-		val inset = sourceIconInsetPx(
-			binding.imageViewIcon.layoutParams.width,
-			item.source.mangaSource.isNovelSource,
-		)
-		binding.imageViewIcon.setPadding(inset, inset, inset, inset)
+		// The icon is sized by the column width, so its real size is only known after layout
+		val isNovel = item.source.mangaSource.isNovelSource
+		binding.imageViewIcon.doOnLayout { icon ->
+			val inset = sourceIconInsetPx(icon.width, isNovel)
+			icon.setPadding(inset, inset, inset, inset)
+		}
 		binding.imageViewIcon.setImageAsync(item.source)
 	}
 }

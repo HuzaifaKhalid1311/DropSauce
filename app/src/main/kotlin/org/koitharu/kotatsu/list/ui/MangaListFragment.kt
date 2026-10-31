@@ -54,7 +54,6 @@ import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.MangaListModel
 import org.koitharu.kotatsu.list.ui.size.DynamicItemSizeResolver
-import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.main.ui.owners.ListCheckpointOwner
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaTag
@@ -429,7 +428,7 @@ abstract class MangaListFragment :
 	}
 
 	override fun onFastScrollStart(fastScroller: FastScroller) {
-		(activity as? AppBarOwner)?.appBar?.setExpanded(false, true)
+		viewModel.requestAllItems()
 		requireViewBinding().swipeRefreshLayout.isEnabled = false
 	}
 

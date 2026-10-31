@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.reader.ui
 
 import android.content.res.Resources
 import android.view.KeyEvent
-import android.view.View
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
@@ -17,16 +16,9 @@ class ReaderControlDelegate(
 	private val settings: AppSettings,
 	private val tapGridSettings: TapGridSettings,
 	private val listener: OnInteractionListener,
-) : View.OnClickListener {
+) {
 
 	private var minScrollDelta = resources.getDimensionPixelSize(R.dimen.reader_scroll_delta_min)
-
-	override fun onClick(v: View) {
-		when (v.id) {
-			R.id.button_prev -> listener.switchChapterBy(-1)
-			R.id.button_next -> listener.switchChapterBy(1)
-		}
-	}
 
 	fun onGridTouch(area: TapGridArea): Boolean {
 		val action = tapGridSettings.getTapAction(

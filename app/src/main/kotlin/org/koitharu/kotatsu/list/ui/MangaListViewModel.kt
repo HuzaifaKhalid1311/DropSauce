@@ -50,6 +50,9 @@ abstract class MangaListViewModel(
 
 	abstract fun onRetry()
 
+	/** Paged lists load everything, so a fast-scroller drag maps onto the whole list, not the pages so far. */
+	open fun requestAllItems() = Unit
+
 	protected fun List<Manga>.skipNsfwIfNeeded() = if (settings.isNsfwContentDisabled) {
 		filterNot { it.isNsfw() }
 	} else {

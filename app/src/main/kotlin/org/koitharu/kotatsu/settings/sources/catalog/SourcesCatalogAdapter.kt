@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.settings.sources.catalog
 
 import android.content.Context
+import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
 import androidx.core.view.updatePaddingRelative
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
@@ -17,6 +18,7 @@ import org.koitharu.kotatsu.list.ui.adapter.loadingStateAD
 import org.koitharu.kotatsu.list.ui.model.ButtonFooter
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import androidx.appcompat.R as appcompatR
+import com.google.android.material.R as materialR
 
 class SourcesCatalogAdapter(
 	extensionActionListener: ExtensionActionListener,
@@ -45,7 +47,8 @@ private fun updateAllFooterAD(
 	// Same top-bar colours as the extension rows' action buttons; the footer layout is shared, so only here
 	binding.button.backgroundTintList = ContextCompat.getColorStateList(context, R.color.bg_extension_action_button)
 	binding.button.setTextColor(context.getThemeColor(R.attr.colorTopBarIcon))
-	binding.button.strokeWidth = 0
+	// 1dp outline like the search bar's (the outlined style's own width)
+	binding.button.strokeColor = ColorStateList.valueOf(context.getThemeColor(materialR.attr.colorOutlineVariant))
 	binding.root.updatePaddingRelative(
 		start = context.getThemeDimensionPixelOffset(appcompatR.attr.listPreferredItemPaddingStart),
 		end = context.getThemeDimensionPixelOffset(appcompatR.attr.listPreferredItemPaddingEnd),

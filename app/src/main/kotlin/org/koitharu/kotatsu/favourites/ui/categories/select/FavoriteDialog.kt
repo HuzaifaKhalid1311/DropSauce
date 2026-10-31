@@ -67,7 +67,8 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 			icon = painterResource(R.drawable.ic_heart),
 			title = title,
 		) {
-			Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+			// Shrinks and scrolls on long lists so the buttons below stay on screen
+			Column(modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
 				val categories = content.filterIsInstance<MangaCategoryItem>()
 				if (categories.isNotEmpty()) {
 					FlowRow(

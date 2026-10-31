@@ -32,11 +32,13 @@ import androidx.core.view.ancestors
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isLayoutReversed
 import org.koitharu.kotatsu.databinding.FastScrollerBinding
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR
@@ -200,7 +202,10 @@ class FastScroller @JvmOverloads constructor(
 		getLocationInWindow(locationBuf)
 		val top = rvTop - locationBuf[1]
 		val newTop = (top + rv.paddingTop).coerceIn(0, height)
-		val newBottom = (height - top - rv.height + rv.paddingBottom).coerceIn(0, height - newTop)
+		// Keep the thumb above the main screen's floating nav pill instead of sliding under it
+		val navBar = ancestors.firstNotNullOfOrNull { (it as? View)?.getTag(R.id.tag_bottom_nav_overlap) as? Int } ?: 0
+		val navInset = navBar - (rootView.height - locationBuf[1] - height)
+		val newBottom = maxOf(height - top - rv.height + rv.paddingBottom, navInset).coerceIn(0, height - newTop)
 		if (newTop != insetTop || newBottom != insetBottom) {
 			insetTop = newTop
 			insetBottom = newBottom
@@ -524,16 +529,15 @@ class FastScroller @JvmOverloads constructor(
 	 */
 	fun setBubbleTextColor(@ColorInt color: Int) = binding.bubble.setTextColor(color)
 
+	private fun getScrollProportion(y: Float) = when {
+		binding.thumb.y <= insetTop -> 0f
+		binding.thumb.y - insetTop + handleHeight >= viewHeight - TRACK_SNAP_RANGE -> 1f
+		else -> (y / viewHeight.toFloat()).coerceIn(0f, 1f)
+	}
+
 	private fun getRecyclerViewTargetPosition(y: Float) = recyclerView?.let { recyclerView ->
 		val itemCount = recyclerView.adapter?.itemCount ?: 0
-
-		val proportion = when {
-			binding.thumb.y <= insetTop -> 0f
-			binding.thumb.y - insetTop + handleHeight >= viewHeight - TRACK_SNAP_RANGE -> 1f
-			else -> y / viewHeight.toFloat()
-		}
-
-		var scrolledItemCount = (proportion * itemCount).roundToInt()
+		var scrolledItemCount = (getScrollProportion(y) * itemCount).roundToInt()
 
 		if (recyclerView.layoutManager.isLayoutReversed) {
 			scrolledItemCount = itemCount - scrolledItemCount
@@ -543,9 +547,29 @@ class FastScroller @JvmOverloads constructor(
 	} ?: 0
 
 	private fun setRecyclerViewPosition(y: Float) {
-		val layoutManager = recyclerView?.layoutManager ?: return
+		val recyclerView = recyclerView ?: return
+		val layoutManager = recyclerView.layoutManager ?: return
 		val targetPos = getRecyclerViewTargetPosition(y)
-		layoutManager.scrollToPosition(targetPos)
+		if (layoutManager is LinearLayoutManager) {
+			// Follow the thumb pixel by pixel: scrollToPosition() only moved the list once the target
+			// item (or grid row) left the screen, so dragging scrolled in chunks.
+			val range = recyclerView.computeVerticalScrollRange()
+			val target = getScrollProportion(y) * (range - recyclerView.computeVerticalScrollExtent())
+			val delta = (target - recyclerView.computeVerticalScrollOffset()).roundToInt()
+			val itemCount = recyclerView.adapter?.itemCount ?: 0
+			if (abs(delta) <= recyclerView.height * 2 || range <= 0 || itemCount == 0) {
+				recyclerView.scrollBy(0, delta)
+			} else {
+				// Far away: jump there rather than lay out every item in between
+				val pos = (target / range * itemCount).toInt().coerceIn(0, itemCount - 1)
+				layoutManager.scrollToPositionWithOffset(
+					if (layoutManager.reverseLayout) itemCount - 1 - pos else pos,
+					0,
+				)
+			}
+		} else {
+			layoutManager.scrollToPosition(targetPos)
+		}
 		if (showBubble) sectionIndexer?.let { bindBubble(it.getSectionText(context, targetPos)) }
 	}
 

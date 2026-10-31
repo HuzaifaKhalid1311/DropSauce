@@ -75,17 +75,20 @@ class ReaderActionsView @JvmOverloads constructor(
 			binding.slider.setThumbVisible(value)
 		}
 
-	var isNextEnabled: Boolean
-		get() = binding.buttonNext.isEnabled
+	var isNextEnabled: Boolean = true
 		set(value) {
-			binding.buttonNext.isEnabled = value
+			field = value
+			updateChapterButtons()
 		}
 
-	var isPrevEnabled: Boolean
-		get() = binding.buttonPrev.isEnabled
+	var isPrevEnabled: Boolean = true
 		set(value) {
-			binding.buttonPrev.isEnabled = value
+			field = value
+			updateChapterButtons()
 		}
+
+	// Right-to-left reading: the left arrow goes to the next chapter
+	private var isChapterButtonsSwapped = false
 
 	var isBookmarkAdded: Boolean = false
 		set(value) {
@@ -188,8 +191,8 @@ class ReaderActionsView @JvmOverloads constructor(
 	override fun onClick(v: View) {
 		v.hapticFeedback(HapticEffect.LIGHT_CLICK)
 		when (v.id) {
-			R.id.button_prev -> listener?.switchChapterBy(-1)
-			R.id.button_next -> listener?.switchChapterBy(1)
+			R.id.button_prev -> listener?.switchChapterBy(if (isChapterButtonsSwapped) 1 else -1)
+			R.id.button_next -> listener?.switchChapterBy(if (isChapterButtonsSwapped) -1 else 1)
 			R.id.button_save -> listener?.onSavePageClick()
 			// The dock button is a toggle: tap starts/stops autoscroll, long-press opens the panel.
 			R.id.button_timer -> listener?.onScrollTimerClick(isLongClick = true)
@@ -281,6 +284,18 @@ class ReaderActionsView @JvmOverloads constructor(
 
 	fun setSliderReversed(reversed: Boolean) {
 		binding.slider.isRtl = reversed != isRtl
+		if (isChapterButtonsSwapped != reversed) {
+			isChapterButtonsSwapped = reversed
+			updateChapterButtons()
+		}
+	}
+
+	private fun updateChapterButtons() {
+		val swapped = isChapterButtonsSwapped
+		binding.buttonPrev.isEnabled = if (swapped) isNextEnabled else isPrevEnabled
+		binding.buttonNext.isEnabled = if (swapped) isPrevEnabled else isNextEnabled
+		binding.buttonPrev.setContentDescriptionAndTooltip(if (swapped) R.string.next_chapter else R.string.prev_chapter)
+		binding.buttonNext.setContentDescriptionAndTooltip(if (swapped) R.string.prev_chapter else R.string.next_chapter)
 	}
 
 	fun setTimerActive(isActive: Boolean) {

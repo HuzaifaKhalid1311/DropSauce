@@ -38,7 +38,7 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
   <img src="assets/main_favorites-preview.webp" alt="DropSauce favorites screen" width="31%" />
   <img src="assets/feed-preview.webp" alt="DropSauce feed screen" width="31%" />
   <img src="assets/settings-preview.webp" alt="DropSauce settings screen" width="31%" />
-  <img src="assets/extension_page-preview.webp" alt="DropSauce extensions screen" width="31%" />
+  <img src="assets/extension_page-preview.webp" alt="DropSauce source browsing screen" width="31%" />
   <img src="assets/manga_details_page-preview.webp" alt="DropSauce details screen" width="31%" />
   <img src="assets/chapters_list-preview.webp" alt="DropSauce chapter list" width="31%" />
   <img src="assets/paged_reading_ui-preview.webp" alt="DropSauce manga reading screen" width="31%" />
@@ -47,7 +47,7 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
 </p>
 
 <p align="center">
-  <sub>Favorites | Details | Manga/Webtoon Reader | Novel Reader | Extensions | Settings</sub>
+  <sub>Favorites | Feed | Settings | Source Browsing | Details | Chapters | Manga Reader | Webtoon Reader | Novel Reader</sub>
 </p>
 
 ## Highlights

@@ -30,4 +30,5 @@
 	<item name="tag_tonal_action_icon" type="id" />
 	<item name="tag_tonal_action_tint_color" type="id" />
 	<item name="tag_epub_selectable_text" type="id" />
+	<item name="tag_bottom_nav_overlap" type="id" />
 </resources>
