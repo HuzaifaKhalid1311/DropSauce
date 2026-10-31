@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Slide and scale of the incoming tab: "emphasized decelerate" squeezed into the last 70% of
+     nav_tab_enter_duration. The first 30% (= nav_tab_exit_duration) holds, so it only appears once the
+     outgoing tab is gone. -->
+<pathInterpolator xmlns:android="http://schemas.android.com/apk/res/android"
+	android:pathData="M 0,0 L 0.3,0 C 0.335,0.7 0.37,1 1,1" />

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+	<objectAnimator
+		android:duration="@integer/nav_tab_exit_duration"
+		android:interpolator="@android:interpolator/fast_out_linear_in"
+		android:propertyName="alpha"
+		android:valueFrom="1"
+		android:valueTo="0"
+		android:valueType="floatType" />
+	<objectAnimator
+		android:duration="@integer/nav_tab_exit_duration"
+		android:interpolator="@interpolator/m3_easing_emphasized_accelerate"
+		android:propertyName="translationY"
+		android:valueFrom="0dp"
+		android:valueTo="@dimen/nav_tab_exit_distance"
+		android:valueType="floatType" />
+	<objectAnimator
+		android:duration="@integer/nav_tab_exit_duration"
+		android:interpolator="@interpolator/m3_easing_emphasized_accelerate"
+		android:propertyName="scaleX"
+		android:valueFrom="1"
+		android:valueTo="0.985"
+		android:valueType="floatType" />
+	<objectAnimator
+		android:duration="@integer/nav_tab_exit_duration"
+		android:interpolator="@interpolator/m3_easing_emphasized_accelerate"
+		android:propertyName="scaleY"
+		android:valueFrom="1"
+		android:valueTo="0.985"
+		android:valueType="floatType" />
+</set>

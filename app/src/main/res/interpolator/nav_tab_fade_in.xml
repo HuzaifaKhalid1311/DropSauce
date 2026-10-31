@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fade of the incoming tab: same hold as nav_tab_enter, then "linear out slow in" over 160ms of the
+     remaining 185ms, so it is opaque while the slide is still settling. -->
+<pathInterpolator xmlns:android="http://schemas.android.com/apk/res/android"
+	android:pathData="M 0,0 L 0.3,0 C 0.3,0 0.421,1 0.906,1 L 1,1" />

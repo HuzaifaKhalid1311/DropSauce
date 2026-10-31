@@ -6,4 +6,9 @@
 	<integer name="manga_badge_max_character_count">3</integer>
 
 	<integer name="splash_screen_duration">450</integer>
+
+	<!-- Bottom nav tab switch: the outgoing tab clears in nav_tab_exit_duration, the incoming one holds for
+	     the first 30% of nav_tab_enter_duration (= the exit, see interpolator/nav_tab_enter) and then arrives. -->
+	<integer name="nav_tab_exit_duration">80</integer>
+	<integer name="nav_tab_enter_duration">265</integer>
 </resources>

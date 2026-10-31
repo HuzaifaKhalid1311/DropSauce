@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
+import androidx.annotation.AnimatorRes
 import androidx.annotation.IdRes
 import androidx.core.view.isEmpty
 import androidx.core.view.isVisible
@@ -38,6 +39,7 @@ import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.buildBundle
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
+import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
 import org.koitharu.kotatsu.core.util.ext.setContentDescriptionAndTooltip
 import org.koitharu.kotatsu.core.util.ext.smoothScrollToTop
 import org.koitharu.kotatsu.databinding.NavigationRailFabBinding
@@ -153,7 +155,7 @@ class MainNavigationDelegate(
 	}
 
 	fun observeTitle() = callbackFlow {
-		val listener = OnFragmentChangedListener { f, _ ->
+		val listener = OnFragmentChangedListener { f, _, _ ->
 			trySendBlocking(getItemId(f))
 		}
 		addOnFragmentChangedListener(listener)
@@ -219,7 +221,7 @@ class MainNavigationDelegate(
 			R.id.nav_updated -> UpdatesFragment::class.java
 			else -> return false
 		}
-		if (!setPrimaryFragment(newFragment)) {
+		if (!setPrimaryFragment(newFragment, itemId)) {
 			// probably already selected
 			onNavigationItemReselected()
 		}
@@ -238,7 +240,7 @@ class MainNavigationDelegate(
 		else -> 0
 	}
 
-	private fun setPrimaryFragment(fragmentClass: Class<out Fragment>): Boolean {
+	private fun setPrimaryFragment(fragmentClass: Class<out Fragment>, @IdRes itemId: Int): Boolean {
 		if (fragmentManager.isStateSaved || fragmentClass.isInstance(primaryFragment)) {
 			return false
 		}
@@ -249,20 +251,11 @@ class MainNavigationDelegate(
 		// their RESUMED-bound menu providers stay inactive and don't leak into the visible toolbar.
 		val tag = fragmentClass.name
 		val current = primaryFragment
+		val transition = resolveTabTransition(current, itemId)
 		val transaction = fragmentManager.beginTransaction()
 			.setReorderingAllowed(true)
-		// Favourites puts its category tabs into the activity's app bar, which makes the app bar taller
-		// and pushes the fragment container down by the tab strip's height. With a crossfade the still
-		// visible outgoing screen slides along with it, which reads as a flicker, so swap instantly here.
-		val involvesFavourites = fragmentClass == FavouritesContainerFragment::class.java ||
-			current is FavouritesContainerFragment
-		if (!involvesFavourites) {
-			transaction.setCustomAnimations(
-				R.anim.m3_fade_through_enter,
-				R.anim.m3_fade_through_exit,
-				R.anim.m3_fade_through_pop_enter,
-				R.anim.m3_fade_through_pop_exit,
-			)
+		if (transition != TabTransition.NONE) {
+			transaction.setCustomAnimations(transition.enterAnimator, transition.exitAnimator)
 		}
 		if (current != null) {
 			transaction.hide(current)
@@ -272,6 +265,14 @@ class MainNavigationDelegate(
 		val shownFragment: Fragment
 		if (existing != null) {
 			shownFragment = existing
+			// Its view still holds the end state of the slide-out it was hidden with.
+			existing.view?.run {
+				alpha = 1f
+				translationX = 0f
+				translationY = 0f
+				scaleX = 1f
+				scaleY = 1f
+			}
 			transaction.show(existing)
 		} else {
 			shownFragment = instantiateFragment(fragmentClass).apply {
@@ -281,6 +282,9 @@ class MainNavigationDelegate(
 			}
 			transaction.add(R.id.container, shownFragment, tag)
 		}
+		if (shownFragment is FavouritesContainerFragment && transition != TabTransition.NONE) {
+			shownFragment.isTabsAttachDeferred = true
+		}
 		transaction.setMaxLifecycle(shownFragment, Lifecycle.State.RESUMED)
 		transaction.runOnCommit {
 			val shown = primaryFragment ?: shownFragment
@@ -288,10 +292,24 @@ class MainNavigationDelegate(
 			// Reset it to the top so every tab always opens at the top. Done here, before the first
 			// frame is drawn (and while the fade-in is still near-transparent), so there's no visible jump.
 			shown.resetContentToTop()
-			onFragmentChanged(shown, fromUser = true)
+			onFragmentChanged(shown, fromUser = true, transition)
 		}
 		transaction.commit()
 		return true
+	}
+
+	// Content slides along the nav bar's axis, towards where the newly selected item sits.
+	private fun resolveTabTransition(current: Fragment?, @IdRes targetItemId: Int): TabTransition {
+		if (current == null || !navBar.isLaidOut || !navBar.context.isAnimationsEnabled) {
+			return TabTransition.NONE
+		}
+		val visibleItems = navBar.menu.iterator().asSequence().filter { it.isVisible }.map { it.itemId }.toList()
+		val isForward = visibleItems.indexOf(targetItemId) >= visibleItems.indexOf(getItemId(current))
+		return when {
+			navBar is NavigationRailView -> if (isForward) TabTransition.UP else TabTransition.DOWN
+			isForward != (navBar.layoutDirection == View.LAYOUT_DIRECTION_RTL) -> TabTransition.LEFT
+			else -> TabTransition.RIGHT
+		}
 	}
 
 	private fun Fragment.resetContentToTop() {
@@ -342,9 +360,13 @@ class MainNavigationDelegate(
 		recyclerView.smoothScrollToTop()
 	}
 
-	private fun onFragmentChanged(fragment: Fragment, fromUser: Boolean) {
+	private fun onFragmentChanged(
+		fragment: Fragment,
+		fromUser: Boolean,
+		transition: TabTransition = TabTransition.NONE,
+	) {
 		isEnabled = getItemId(fragment) != firstItem()?.itemId
-		listeners.forEach { it.onFragmentChanged(fragment, fromUser) }
+		listeners.forEach { it.onFragmentChanged(fragment, fromUser, transition) }
 	}
 
 	private fun createMenu(items: List<NavItem>, menu: Menu) {
@@ -438,9 +460,23 @@ class MainNavigationDelegate(
 		}
 	}
 
+	/** Direction the content moves in on a tab switch; [slideX]/[slideY] are that direction as a unit vector. */
+	enum class TabTransition(
+		@AnimatorRes val enterAnimator: Int,
+		@AnimatorRes val exitAnimator: Int,
+		val slideX: Int,
+		val slideY: Int,
+	) {
+		NONE(0, 0, 0, 0),
+		LEFT(R.animator.nav_tab_enter_from_right, R.animator.nav_tab_exit_to_left, -1, 0),
+		RIGHT(R.animator.nav_tab_enter_from_left, R.animator.nav_tab_exit_to_right, 1, 0),
+		UP(R.animator.nav_tab_enter_from_bottom, R.animator.nav_tab_exit_to_top, 0, -1),
+		DOWN(R.animator.nav_tab_enter_from_top, R.animator.nav_tab_exit_to_bottom, 0, 1),
+	}
+
 	fun interface OnFragmentChangedListener {
 
-		fun onFragmentChanged(fragment: Fragment, fromUser: Boolean)
+		fun onFragmentChanged(fragment: Fragment, fromUser: Boolean, transition: TabTransition)
 	}
 
 	companion object {

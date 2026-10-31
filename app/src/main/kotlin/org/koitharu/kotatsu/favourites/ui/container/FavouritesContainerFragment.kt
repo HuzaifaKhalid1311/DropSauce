@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewStub
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.WindowInsetsCompat
@@ -34,6 +35,7 @@ import org.koitharu.kotatsu.core.util.ext.recyclerView
 import org.koitharu.kotatsu.core.util.ext.setTabsEnabled
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.databinding.FragmentFavouritesContainerBinding
+import org.koitharu.kotatsu.main.ui.MainNavigationDelegate.TabTransition
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 import org.koitharu.kotatsu.databinding.ItemEmptyStateBinding
 
@@ -45,6 +47,11 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 	View.OnClickListener {
 
 	private val viewModel: FavouritesContainerViewModel by viewModels()
+
+	// Set by MainNavigationDelegate when an animated tab switch creates this tab, so onViewCreated leaves
+	// the category strip for showTabsInAppBar to add at the handoff.
+	var isTabsAttachDeferred = false
+	private var pendingTabsEnter: Runnable? = null
 
 	override val recyclerView: RecyclerView?
 		get() = (findCurrentFragment() as? RecyclerViewOwner)?.recyclerView
@@ -68,7 +75,7 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 		binding.tabs.addOnLayoutChangeListener(alignTabsToCovers)
 		binding.pager.addOnLayoutChangeListener(alignTabsToCovers)
 		binding.stubEmpty.setOnInflateListener(this)
-		if (!isHidden) {
+		if (!isHidden && !isTabsAttachDeferred) {
 			attachTabsToAppBar()
 		}
 		actionModeDelegate.addListener(this)
@@ -79,6 +86,7 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 	}
 
 	override fun onDestroyView() {
+		cancelPendingTabsEnter()
 		detachTabsFromAppBar()
 		actionModeDelegate.removeListener(this)
 		super.onDestroyView()
@@ -174,10 +182,84 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 
 	// The category tabs live in the activity's AppBarLayout while this tab is visible, so they scroll
 	// off-screen together with the search bar instead of being pinned above the (edge-to-edge) lists.
-	// Called by MainActivity at bottom-nav commit time, not from onHiddenChanged: that callback is only
-	// delivered after the tab-switch animation finishes, so the app bar would grow by the tab strip's
-	// height a frame after the crossfade ended and visibly shove the list down.
-	fun attachTabsToAppBar() {
+	// Called by MainActivity at bottom-nav commit time, not from onHiddenChanged (only delivered after the
+	// switch animation). Adding or removing the strip resizes the app bar and shifts every tab's content,
+	// so on an animated switch that happens at the handoff, while both tabs are invisible, and the strip
+	// itself slides along with the content.
+	fun showTabsInAppBar(transition: TabTransition) {
+		val tabs = viewBinding?.tabs ?: return
+		val appBar = (activity as? AppBarOwner)?.appBar ?: return
+		cancelPendingTabsEnter()
+		when {
+			transition == TabTransition.NONE -> {
+				attachTabsToAppBar()
+				tabs.stopTabsAnimation()
+			}
+			// Switched back before the strip finished sliding out: glide it back from where it is.
+			tabs.parent === appBar -> tabs.slideTabsIn()
+			else -> {
+				val enter = Runnable {
+					pendingTabsEnter = null
+					attachTabsToAppBar()
+					val distance = resources.getDimension(R.dimen.nav_tab_slide_distance)
+					tabs.alpha = 0f
+					tabs.translationX = -transition.slideX * distance
+					tabs.translationY = -transition.slideY * distance
+					tabs.slideTabsIn()
+				}
+				pendingTabsEnter = enter
+				requireView().postDelayed(enter, resources.getInteger(R.integer.nav_tab_exit_duration).toLong())
+			}
+		}
+	}
+
+	fun hideTabsFromAppBar(transition: TabTransition) {
+		val tabs = viewBinding?.tabs ?: return
+		cancelPendingTabsEnter()
+		if (transition == TabTransition.NONE || tabs.parent !== (activity as? AppBarOwner)?.appBar) {
+			detachTabsFromAppBar()
+			return
+		}
+		val distance = resources.getDimension(R.dimen.nav_tab_exit_distance)
+		tabs.animate()
+			.alpha(0f)
+			.translationX(transition.slideX * distance)
+			.translationY(transition.slideY * distance)
+			.setDuration(resources.getInteger(R.integer.nav_tab_exit_duration).toLong())
+			.setInterpolator(AnimationUtils.loadInterpolator(tabs.context, R.interpolator.m3_easing_emphasized_accelerate))
+			.withLayer()
+			.withEndAction(::detachTabsFromAppBar)
+	}
+
+	// Same curve as the incoming tab's content after its hold (see interpolator/nav_tab_enter).
+	private fun View.slideTabsIn() {
+		animate()
+			.alpha(1f)
+			.translationX(0f)
+			.translationY(0f)
+			.setDuration(
+				(resources.getInteger(R.integer.nav_tab_enter_duration) -
+					resources.getInteger(R.integer.nav_tab_exit_duration)).toLong(),
+			)
+			.setInterpolator(AnimationUtils.loadInterpolator(context, R.interpolator.m3_easing_emphasized_decelerate))
+			.withLayer()
+	}
+
+	private fun View.stopTabsAnimation() {
+		animate().cancel()
+		alpha = 1f
+		translationX = 0f
+		translationY = 0f
+	}
+
+	private fun cancelPendingTabsEnter() {
+		isTabsAttachDeferred = false
+		val enter = pendingTabsEnter ?: return
+		pendingTabsEnter = null
+		view?.removeCallbacks(enter)
+	}
+
+	private fun attachTabsToAppBar() {
 		val tabs = viewBinding?.tabs ?: return
 		val appBar = (activity as? AppBarOwner)?.appBar ?: return
 		if (tabs.parent === appBar) {
@@ -197,8 +279,9 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 		)
 	}
 
-	fun detachTabsFromAppBar() {
+	private fun detachTabsFromAppBar() {
 		val tabs = viewBinding?.tabs ?: return
+		tabs.stopTabsAnimation()
 		val parent = tabs.parent as? ViewGroup ?: return
 		if (parent !== viewBinding?.root) {
 			parent.removeView(tabs)

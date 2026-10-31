@@ -15,6 +15,11 @@
 	<dimen name="list_spacing_large">12dp</dimen>
 	<!-- Navigation -->
 	<dimen name="nav_bar_height_compact">0dp</dimen>
+	<!-- How far tab content slides in / out when switching bottom nav tabs. -->
+	<dimen name="nav_tab_slide_distance">24dp</dimen>
+	<dimen name="nav_tab_slide_distance_negative">-24dp</dimen>
+	<dimen name="nav_tab_exit_distance">18dp</dimen>
+	<dimen name="nav_tab_exit_distance_negative">-18dp</dimen>
 
 	<dimen name="grid_spacing">8dp</dimen>
 	<dimen name="list_spacing">8dp</dimen>
