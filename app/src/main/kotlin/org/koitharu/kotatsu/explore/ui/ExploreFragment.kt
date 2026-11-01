@@ -289,7 +289,7 @@ class ExploreFragment :
 			Snackbar.make(requireViewBinding().pager, R.string.no_extensions_installed, Snackbar.LENGTH_SHORT).show()
 			return
 		}
-		// The same chip picker as "merge scanlators"; the count is the number of sources in that language
+		// The same tick-box picker as "merge scanlators"; the count is the number of sources in that language
 		showMultiChoiceDialog(
 			context = requireContext(),
 			icon = R.drawable.ic_language_filter,

@@ -35,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,16 +76,15 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.sheet.SheetChip
-import org.koitharu.kotatsu.core.ui.sheet.SheetChips
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
-private val CornerButtonSize = 44.dp
+// Same as the settings back button (top_bar_navigation_button_size / top_bar_action_icon_size).
+private val CornerButtonSize = 46.dp
 private val HeaderIconSize = 36.dp
-private val CornerIconSize = 24.dp
+private val CornerIconSize = 22.dp
 private val PillButtonHeight = 56.dp
 private val DialogHorizontalMargin = 24.dp
 private val DialogMaxWidth = 420.dp
@@ -142,7 +143,8 @@ class DialogCornerAction(
 )
 
 /**
- * M3 Expressive popup card with three zones:
+ * M3 Expressive popup card in the settings page's colours turned inside out: the card is the settings
+ * rows' `surfaceContainer`, its option rows the page's `background`. Three zones:
  * - **Pinned header**: optional bare [icon] (accent, or error when [destructive]), then the
  *   left-aligned [title], which wraps as needed, and one tonal
  *   [cornerAction] (or a custom [headerTrailing]) on the end edge.
@@ -185,7 +187,7 @@ fun ExpressiveDialogCard(
 		Surface(
 			// Concentric with the round corner button: its radius plus the card padding.
 			shape = RoundedCornerShape(CornerButtonSize / 2 + CardPadding),
-			color = colors.surfaceContainerHigh,
+			color = colors.surfaceContainer,
 			modifier = Modifier
 				.fillMaxWidth()
 				.widthIn(max = DialogMaxWidth),
@@ -197,10 +199,13 @@ fun ExpressiveDialogCard(
 				// Icon and button stay pinned to the top corners; the icon and the title's first line are
 				// centered on the button, and a long title only grows downward.
 				// Between titleLarge and headlineSmall, with headlineSmall's heavier weight.
+				// Untrimmed, centered line box: the first line is exactly lineHeight tall, so the padding below
+				// centers it on the button (Compose trims the first line's top by default).
 				val titleStyle = MaterialTheme.typography.titleLarge.copy(
 					fontSize = 23.sp,
 					lineHeight = 30.sp,
 					fontWeight = FontWeight.SemiBold,
+					lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
 				)
 				val titleTopPadding = with(LocalDensity.current) {
 					((CornerButtonSize - titleStyle.lineHeight.toDp()) / 2).coerceAtLeast(0.dp)
@@ -311,8 +316,8 @@ fun ExpressiveDialogCard(
 }
 
 /**
- * Tonal `44dp` circular icon button (`secondaryContainer` / `onSecondaryContainer`) that stays
- * round and springs bigger while pressed.
+ * Tonal `46dp` circular icon button (`secondaryContainer` / `onSecondaryContainer`), the settings back
+ * button's size, that stays round and springs bigger while pressed.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -511,7 +516,8 @@ fun ExpressiveButtonGrid(
 
 /**
  * M3 Expressive segmented row for radio/checkbox/option lists inside a popup: `16dp` outer corners,
- * `4dp` inner corners, and `2dp` vertical separation. The row never highlights; callers color the
+ * `4dp` inner corners, and `2dp` vertical separation; a lone option ([count] = 1) gets no container.
+ * The row never highlights; callers color the
  * selected option's text instead (radio and checkbox rows alike).
  */
 @Composable
@@ -525,13 +531,15 @@ fun ExpressiveOptionGroupItem(
 ) {
 	val colors = MaterialTheme.colorScheme
 	val shape = expressiveGroupItemShape(index, count)
+	// A lone option isn't a group: no container, lined up with the message text instead.
+	val isSingle = count == 1
 	Row(
 		modifier = modifier
 			.padding(top = if (index > 0) 2.dp else 0.dp)
 			.fillMaxWidth()
 			.heightIn(min = 52.dp)
 			.clip(shape)
-			.background(colors.surfaceContainer)
+			.then(if (isSingle) Modifier else Modifier.background(colors.background))
 			.then(
 				if (onClick != null) {
 					Modifier.clickable(enabled = enabled, onClick = onClick)
@@ -539,7 +547,7 @@ fun ExpressiveOptionGroupItem(
 					Modifier
 				},
 			)
-			.padding(horizontal = 14.dp, vertical = 6.dp),
+			.padding(horizontal = if (isSingle) 0.dp else 14.dp, vertical = 6.dp),
 		verticalAlignment = Alignment.CenterVertically,
 		content = content,
 	)
@@ -620,7 +628,7 @@ fun showActionChoiceDialog(
 }
 
 /**
- * Expressive multi-choice picker: toggle chips for [options] (each trailed by its [counts] entry, if
+ * Expressive multi-choice picker: tick-box rows for [options] (each trailed by its [counts] entry, if
  * given) with initial [selectedIndices], confirmed via the top-right tick button.
  */
 fun showMultiChoiceDialog(
@@ -651,12 +659,29 @@ fun showMultiChoiceDialog(
 				},
 			),
 		) {
-			SheetChips(
-				chips = options.mapIndexed { index, option ->
-					SheetChip(title = option, isChecked = index in selection, count = counts?.getOrNull(index))
-				},
-				onClick = { index -> selection = if (index in selection) selection - index else selection + index },
-			)
+			val colors = MaterialTheme.colorScheme
+			options.forEachIndexed { index, option ->
+				val checked = index in selection
+				ExpressiveOptionGroupItem(
+					index = index,
+					count = options.size,
+					onClick = { selection = if (checked) selection - index else selection + index },
+				) {
+					Checkbox(checked = checked, onCheckedChange = null)
+					Spacer(Modifier.width(12.dp))
+					Text(
+						text = option,
+						style = MaterialTheme.typography.bodyLarge,
+						fontWeight = if (checked) FontWeight.Medium else FontWeight.Normal,
+						color = if (checked) colors.primary else colors.onSurface,
+						modifier = Modifier.weight(1f),
+					)
+					counts?.getOrNull(index)?.let {
+						Spacer(Modifier.width(12.dp))
+						Text(text = it, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+					}
+				}
+			}
 		}
 	}
 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.res.ResourcesCompat
+import org.koitharu.kotatsu.core.util.ext.findActivity
 import androidx.appcompat.R as appcompatR
 import com.google.android.material.R as materialR
 
@@ -16,12 +17,12 @@ import com.google.android.material.R as materialR
  * variants are picked up without re-implementing the resolution logic in Compose.
  */
 fun composeColorSchemeFromTheme(context: Context, isDark: Boolean): ColorScheme {
-	fun c(attr: Int, fallback: Color): Color {
+	fun c(attr: Int, fallback: Color, ctx: Context = context): Color {
 		val tv = TypedValue()
-		val resolved = context.theme.resolveAttribute(attr, tv, true)
+		val resolved = ctx.theme.resolveAttribute(attr, tv, true)
 		if (!resolved) return fallback
 		val argb = if (tv.resourceId != 0) {
-			ResourcesCompat.getColor(context.resources, tv.resourceId, context.theme)
+			ResourcesCompat.getColor(ctx.resources, tv.resourceId, ctx.theme)
 		} else {
 			tv.data
 		}
@@ -40,6 +41,9 @@ fun composeColorSchemeFromTheme(context: Context, isDark: Boolean): ColorScheme 
 		onSecondaryContainer = c(materialR.attr.colorOnSecondaryContainer, base.onSecondaryContainer),
 		tertiary = c(materialR.attr.colorTertiary, base.tertiary),
 		onTertiary = c(materialR.attr.colorOnTertiary, base.onTertiary),
+		// Dialog/sheet theme overlays turn android:colorBackground into the floating colour; the page
+		// background is the activity's.
+		background = c(android.R.attr.colorBackground, base.background, context.findActivity() ?: context),
 		surface = c(materialR.attr.colorSurface, base.surface),
 		onSurface = c(materialR.attr.colorOnSurface, base.onSurface),
 		surfaceContainer = c(materialR.attr.colorSurfaceContainer, base.surfaceContainer),

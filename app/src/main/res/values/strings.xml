@@ -3,6 +3,7 @@
     <string name="app_name" translatable="false">DropSauce</string>
     <string name="local_storage">Local storage</string>
     <string name="favourites">Favorites</string>
+    <string name="favorite">Favorite</string>
     <string name="history">History</string>
     <string name="error_occurred">An error occurred</string>
     <string name="network_error">Network error</string>

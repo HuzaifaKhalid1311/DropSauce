@@ -142,7 +142,7 @@ private fun SlotButton(number: Int, isSelected: Boolean, onClick: () -> Unit) {
 	Surface(
 		onClick = onClick,
 		shape = CircleShape,
-		color = if (isSelected) colors.primaryContainer else colors.surfaceContainer,
+		color = if (isSelected) colors.primaryContainer else colors.background,
 		contentColor = if (isSelected) colors.onPrimaryContainer else colors.onSurfaceVariant,
 		border = BorderStroke(1.dp, if (isSelected) colors.primary else colors.outlineVariant),
 		modifier = Modifier.size(48.dp),

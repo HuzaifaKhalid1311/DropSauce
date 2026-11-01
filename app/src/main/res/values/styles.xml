@@ -170,6 +170,17 @@
 		<item name="android:popupAnimationStyle">@style/Animation.Kotatsu.PopupMenu.ActionMode</item>
 	</style>
 
+	<!-- Every popup window (View, DialogFragment and Compose hosts all resolve android:dialogTheme). -->
+	<style name="ThemeOverlay.Kotatsu.Dialog" parent="@android:style/ThemeOverlay.Material.Dialog">
+		<item name="android:windowAnimationStyle">@style/Animation.Kotatsu.Popup</item>
+		<item name="android:backgroundDimAmount">0.4</item>
+	</style>
+
+	<style name="Animation.Kotatsu.Popup" parent="@android:style/Animation">
+		<item name="android:windowEnterAnimation">@anim/popup_enter</item>
+		<item name="android:windowExitAnimation">@anim/popup_exit</item>
+	</style>
+
 	<style name="Animation.Kotatsu.BottomSheetDialog" parent="Animation.AppCompat.Dialog">
 		<item name="android:windowEnterAnimation">@anim/bottom_sheet_slide_in</item>
 		<item name="android:windowExitAnimation">@anim/bottom_sheet_slide_out</item>

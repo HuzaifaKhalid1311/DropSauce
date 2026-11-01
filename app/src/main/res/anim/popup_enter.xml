@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Popup window grows in from its centre; the fade is done early so the card is solid while it settles. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+	android:shareInterpolator="false">
+
+	<scale
+		android:duration="280"
+		android:fromXScale="0.85"
+		android:fromYScale="0.85"
+		android:interpolator="@interpolator/m3_easing_emphasized_decelerate"
+		android:pivotX="50%"
+		android:pivotY="50%"
+		android:toXScale="1"
+		android:toYScale="1" />
+
+	<alpha
+		android:duration="120"
+		android:fromAlpha="0"
+		android:interpolator="@android:interpolator/linear"
+		android:toAlpha="1" />
+
+</set>

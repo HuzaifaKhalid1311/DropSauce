@@ -265,7 +265,7 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 						.fillMaxWidth()
 						.heightIn(min = 52.dp)
 						.clip(expressiveGroupItemShape(0, 2))
-						.background(colors.surfaceContainer)
+						.background(colors.background)
 						.clickable { startNow = !startNow }
 						.padding(horizontal = 14.dp, vertical = 4.dp),
 					verticalAlignment = Alignment.CenterVertically,
@@ -284,7 +284,7 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 						.padding(top = 2.dp)
 						.fillMaxWidth()
 						.clip(expressiveGroupItemShape(1, 2))
-						.background(colors.surfaceContainer),
+						.background(colors.background),
 				) {
 					Row(
 						modifier = Modifier

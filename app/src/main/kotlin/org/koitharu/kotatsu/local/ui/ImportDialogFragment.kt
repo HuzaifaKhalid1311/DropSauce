@@ -103,7 +103,7 @@ class ImportDialogFragment : ComposeAlertDialogFragment() {
 		Surface(
 			onClick = onClick,
 			shape = expressiveGroupItemShape(index, count),
-			color = colors.surfaceContainer,
+			color = colors.background,
 			contentColor = colors.onSurface,
 			modifier = Modifier.fillMaxWidth(),
 		) {
