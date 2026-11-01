@@ -1,9 +1,8 @@
 package org.koitharu.kotatsu.reader.ui.colorfilter
 
-import android.content.DialogInterface
 import android.view.View
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
 import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
 import org.koitharu.kotatsu.core.util.ext.call
@@ -11,7 +10,7 @@ import org.koitharu.kotatsu.core.util.ext.call
 class ColorFilterConfigBackPressedDispatcher(
 	private val activity: ColorFilterConfigActivity,
 	private val viewModel: ColorFilterConfigViewModel,
-) : PredictiveBackCallback(true), DialogInterface.OnClickListener {
+) : PredictiveBackCallback(true) {
 
 	override val backPreviewTarget: View?
 		get() = activity.predictiveBackTarget()
@@ -24,21 +23,16 @@ class ColorFilterConfigBackPressedDispatcher(
 		}
 	}
 
-	override fun onClick(dialog: DialogInterface, which: Int) {
-		when (which) {
-			DialogInterface.BUTTON_NEGATIVE -> viewModel.onDismiss.call(Unit)
-			DialogInterface.BUTTON_NEUTRAL -> dialog.dismiss()
-			DialogInterface.BUTTON_POSITIVE -> activity.showSaveConfirmation()
-		}
-	}
-
 	private fun showConfirmation() {
-		MaterialAlertDialogBuilder(activity)
-			.setTitle(R.string.color_correction)
-			.setMessage(R.string.text_unsaved_changes_prompt)
-			.setNegativeButton(R.string.discard, this)
-			.setNeutralButton(android.R.string.cancel, this)
-			.setPositiveButton(R.string.save, this)
-			.show()
+		showConfirmDialog(
+			context = activity,
+			icon = R.drawable.ic_tune,
+			title = activity.getString(R.string.color_correction),
+			message = activity.getString(R.string.text_unsaved_changes_prompt),
+			confirmLabel = activity.getString(R.string.save),
+			secondaryLabel = activity.getString(R.string.discard),
+			onSecondary = { viewModel.onDismiss.call(Unit) },
+			onConfirm = activity::showSaveConfirmation,
+		)
 	}
 }

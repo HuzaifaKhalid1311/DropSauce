@@ -10,11 +10,11 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.viewModels
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.router
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.widgets.TipView
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
@@ -108,15 +108,17 @@ class LocalListFragment : MangaListFragment(), FilterCoordinator.Owner {
 	}
 
 	private fun showDeletionConfirm(ids: Set<Long>, mode: ActionMode?) {
-		MaterialAlertDialogBuilder(context ?: return)
-			.setTitle(R.string.delete_manga)
-			.setMessage(getString(R.string.text_delete_local_manga_batch))
-			.setPositiveButton(R.string.delete) { _, _ ->
-				viewModel.delete(ids)
-				mode?.finish()
-			}
-			.setNegativeButton(android.R.string.cancel, null)
-			.show()
+		showConfirmDialog(
+			context = context ?: return,
+			icon = R.drawable.ic_delete,
+			title = getString(R.string.delete_manga),
+			message = getString(R.string.text_delete_local_manga_batch),
+			confirmLabel = getString(R.string.delete),
+			destructive = true,
+		) {
+			viewModel.delete(ids)
+			mode?.finish()
+		}
 	}
 
 	private fun onItemRemoved() {

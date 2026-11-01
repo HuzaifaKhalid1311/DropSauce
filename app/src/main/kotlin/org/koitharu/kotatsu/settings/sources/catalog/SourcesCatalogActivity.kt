@@ -26,7 +26,6 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
@@ -47,6 +46,7 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView.ChipModel
 import org.koitharu.kotatsu.core.util.LocaleComparator
@@ -309,14 +309,14 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 					).show()
 					return@launch
 				}
-				MaterialAlertDialogBuilder(this@SourcesCatalogActivity)
-					.setTitle(R.string.private_extensions_migration_title)
-					.setMessage(getString(R.string.private_extensions_migration_message, count))
-					.setPositiveButton(android.R.string.ok) { _, _ ->
-						viewModel.performMigration()
-					}
-					.setNegativeButton(android.R.string.cancel, null)
-					.show()
+				showConfirmDialog(
+					context = this@SourcesCatalogActivity,
+					icon = R.drawable.ic_migrate,
+					title = getString(R.string.private_extensions_migration_title),
+					message = getString(R.string.private_extensions_migration_message, count),
+				) {
+					viewModel.performMigration()
+				}
 			}
 		}
 		viewBinding.buttonScrollToTop.setOnClickListener {
@@ -521,22 +521,24 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			enqueueInstall(request)
 			return
 		}
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.replace_extension_store_title)
-			.setMessage(
-				getString(
-					R.string.replace_extension_store_message,
-					request.packageName,
-					replacement.currentStoreName,
-					replacement.newStoreName,
-				),
-			)
-			.setNegativeButton(R.string.keep_current_store) { _, _ ->
-				viewModel.clearExtensionInProgress(request.packageName)
-			}
-			.setPositiveButton(R.string.replace_store) { _, _ -> enqueueInstall(request) }
-			.setOnCancelListener { viewModel.clearExtensionInProgress(request.packageName) }
-			.show()
+		val keepCurrent = { viewModel.clearExtensionInProgress(request.packageName) }
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_storefront,
+			title = getString(R.string.replace_extension_store_title),
+			message = getString(
+				R.string.replace_extension_store_message,
+				request.packageName,
+				replacement.currentStoreName,
+				replacement.newStoreName,
+			),
+			confirmLabel = getString(R.string.replace_store),
+			secondaryLabel = getString(R.string.keep_current_store),
+			onSecondary = keepCurrent,
+			onCancel = keepCurrent,
+		) {
+			enqueueInstall(request)
+		}
 	}
 
 	private fun processInstallQueue() {
@@ -967,17 +969,16 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (canInstallPackages()) {
 			return
 		}
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.extension_install_permission_required_title)
-			.setMessage(R.string.extension_install_permission_required_message)
-			.setCancelable(false)
-			.setNegativeButton(android.R.string.cancel) { _, _ ->
-				closeExtensionManagerToExplore()
-			}
-			.setPositiveButton(android.R.string.ok) { _, _ ->
-				requestInstallPackagesPermission()
-			}
-			.show()
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_shield,
+			title = getString(R.string.extension_install_permission_required_title),
+			message = getString(R.string.extension_install_permission_required_message),
+			cancelable = false,
+			onCancel = ::closeExtensionManagerToExplore,
+		) {
+			requestInstallPackagesPermission()
+		}
 	}
 
 	private fun closeExtensionManagerToExplore() {

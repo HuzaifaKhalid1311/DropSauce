@@ -1,55 +1,41 @@
 package org.koitharu.kotatsu.settings.protect
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.view.ViewGroup
-import androidx.activity.ComponentDialog
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.core.ui.dialog.DialogButtonSpec
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveButtonGrid
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.core.ui.dialog.ExpressivePillButton
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 
 private const val MIN_PIN_LENGTH = 4
 private const val MAX_PIN_LENGTH = 24
 
 /**
- * M3 Expressive dialog shown when the user turns on "Require unlock": pick device/biometric auth
- * (recommended) or set up a custom PIN. PIN setup happens inline in two steps (enter → confirm).
- * Mirrors the style of [org.koitharu.kotatsu.reader.ui.showChapterJumpDialog].
+ * M3 Expressive popup shown when the user turns on "Require unlock": pick device/biometric auth
+ * (recommended) or set up a custom PIN. PIN setup happens inline in two steps (enter -> confirm).
  */
 fun showProtectMethodDialog(
 	activity: FragmentActivity,
@@ -57,38 +43,20 @@ fun showProtectMethodDialog(
 	onSelectDevice: () -> Unit,
 	onPinConfirmed: (String) -> Unit,
 ) {
-	val dialog = ComponentDialog(activity)
-	dialog.setContentView(
-		ComposeView(activity).apply {
-			setContent {
-				DropSauceTheme {
-					ProtectMethodContent(
-						deviceAuthSupported = deviceAuthSupported,
-						onSelectDevice = {
-							dialog.dismiss()
-							onSelectDevice()
-						},
-						onPinConfirmed = { pin ->
-							dialog.dismiss()
-							onPinConfirmed(pin)
-						},
-						onCancel = { dialog.dismiss() },
-					)
-				}
-			}
-		},
-	)
-	dialog.window?.run {
-		setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-		setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+	showComposeDialog(activity) { dismiss ->
+		ProtectMethodContent(
+			deviceAuthSupported = deviceAuthSupported,
+			onSelectDevice = {
+				dismiss()
+				onSelectDevice()
+			},
+			onPinConfirmed = { pin ->
+				dismiss()
+				onPinConfirmed(pin)
+			},
+			onCancel = dismiss,
+		)
 	}
-	// plain dialog, not a DialogFragment — dismiss with the activity to avoid a leaked window
-	val observer = object : DefaultLifecycleObserver {
-		override fun onDestroy(owner: LifecycleOwner) = dialog.dismiss()
-	}
-	activity.lifecycle.addObserver(observer)
-	dialog.setOnDismissListener { activity.lifecycle.removeObserver(observer) }
-	dialog.show()
 }
 
 @Composable
@@ -99,106 +67,46 @@ private fun ProtectMethodContent(
 	onCancel: () -> Unit,
 ) {
 	var showPinSetup by remember { mutableStateOf(false) }
-	Box(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(horizontal = 24.dp),
-		contentAlignment = Alignment.Center,
-	) {
-		Surface(
-			shape = RoundedCornerShape(28.dp),
-			color = MaterialTheme.colorScheme.surfaceContainerHigh,
-			modifier = Modifier
-				.fillMaxWidth()
-				.widthIn(max = 400.dp),
-		) {
-			Column(
-				modifier = Modifier.padding(24.dp),
-				horizontalAlignment = Alignment.CenterHorizontally,
-			) {
-				Box(
-					modifier = Modifier
-						.size(56.dp)
-						.background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-					contentAlignment = Alignment.Center,
-				) {
-					Icon(
-						painter = painterResource(R.drawable.ic_lock),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.onSecondaryContainer,
-						modifier = Modifier.size(28.dp),
-					)
-				}
-				Spacer(Modifier.height(16.dp))
-				if (showPinSetup) {
-					PinSetup(onPinConfirmed = onPinConfirmed, onCancel = onCancel)
-				} else {
-					MethodChoice(
-						deviceAuthSupported = deviceAuthSupported,
-						onSelectDevice = onSelectDevice,
-						onSelectPin = { showPinSetup = true },
-					)
-				}
-			}
-		}
-	}
-}
-
-@Composable
-private fun MethodChoice(
-	deviceAuthSupported: Boolean,
-	onSelectDevice: () -> Unit,
-	onSelectPin: () -> Unit,
-) {
-	Text(
-		text = stringResource(R.string.lock_method_title),
-		style = MaterialTheme.typography.headlineSmall,
-		color = MaterialTheme.colorScheme.onSurface,
-		textAlign = TextAlign.Center,
-	)
-	Spacer(Modifier.height(8.dp))
-	Text(
-		text = if (deviceAuthSupported) {
-			stringResource(R.string.lock_method_message)
-		} else {
-			stringResource(R.string.require_unlock_unavailable)
-		},
-		style = MaterialTheme.typography.bodyMedium,
-		color = MaterialTheme.colorScheme.onSurfaceVariant,
-		textAlign = TextAlign.Center,
-	)
-	Spacer(Modifier.height(24.dp))
-	Button(
-		onClick = onSelectDevice,
-		enabled = deviceAuthSupported,
-		shape = RoundedCornerShape(28.dp),
-		modifier = Modifier
-			.fillMaxWidth()
-			.height(56.dp),
-	) {
-		Text(
-			text = stringResource(R.string.lock_method_device),
-			style = MaterialTheme.typography.labelLarge,
-		)
-	}
-	Spacer(Modifier.height(12.dp))
-	FilledTonalButton(
-		onClick = onSelectPin,
-		shape = RoundedCornerShape(28.dp),
-		modifier = Modifier
-			.fillMaxWidth()
-			.height(56.dp),
-	) {
-		Text(
-			text = stringResource(R.string.lock_method_pin),
-			style = MaterialTheme.typography.labelLarge,
+	if (showPinSetup) {
+		PinSetupCard(onPinConfirmed = onPinConfirmed, onCancel = onCancel)
+	} else {
+		ExpressiveDialogCard(
+			icon = painterResource(R.drawable.ic_lock),
+			title = stringResource(R.string.lock_method_title),
+			message = if (deviceAuthSupported) {
+				stringResource(R.string.lock_method_message)
+			} else {
+				stringResource(R.string.require_unlock_unavailable)
+			},
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_close),
+				label = stringResource(android.R.string.cancel),
+				onClick = onCancel,
+			),
+			footer = {
+				ExpressiveButtonGrid(
+					buttons = listOf(
+						DialogButtonSpec(
+							label = stringResource(R.string.lock_method_device),
+							primary = true,
+							enabled = deviceAuthSupported,
+							onClick = onSelectDevice,
+						),
+						DialogButtonSpec(
+							label = stringResource(R.string.lock_method_pin),
+							primary = false,
+							onClick = { showPinSetup = true },
+						),
+					),
+				)
+			},
 		)
 	}
 }
 
 /** Self-contained two-step PIN setup: enter, then confirm; mismatch restarts from entry. */
 @Composable
-private fun PinSetup(
+private fun PinSetupCard(
 	onPinConfirmed: (String) -> Unit,
 	onCancel: () -> Unit,
 ) {
@@ -206,8 +114,10 @@ private fun PinSetup(
 	var pin by remember { mutableStateOf("") }
 	var mismatch by remember { mutableStateOf(false) }
 	val isConfirmStep = firstPin != null
+	val canSubmit = pin.length >= MIN_PIN_LENGTH
 
 	fun submit() {
+		if (!canSubmit) return
 		val first = firstPin
 		if (first == null) {
 			firstPin = pin
@@ -221,61 +131,48 @@ private fun PinSetup(
 		}
 	}
 
-	Text(
-		text = stringResource(if (isConfirmStep) R.string.confirm_pin else R.string.create_pin),
-		style = MaterialTheme.typography.headlineSmall,
-		color = MaterialTheme.colorScheme.onSurface,
-		textAlign = TextAlign.Center,
-	)
-	Spacer(Modifier.height(8.dp))
-	Text(
-		text = when {
-			mismatch -> stringResource(R.string.pins_mismatch)
-			isConfirmStep -> stringResource(R.string.confirm_pin_hint)
-			else -> stringResource(R.string.create_pin_hint)
+	ExpressiveDialogCard(
+		icon = painterResource(R.drawable.ic_lock),
+		title = stringResource(if (isConfirmStep) R.string.confirm_pin else R.string.create_pin),
+		cornerAction = DialogCornerAction(
+			icon = painterResource(R.drawable.ic_close),
+			label = stringResource(android.R.string.cancel),
+			onClick = onCancel,
+		),
+		footer = {
+			ExpressivePillButton(
+				text = stringResource(if (isConfirmStep) R.string.confirm else R.string.next),
+				primary = true,
+				enabled = canSubmit,
+				onClick = ::submit,
+			)
 		},
-		style = MaterialTheme.typography.bodyMedium,
-		color = if (mismatch) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-		textAlign = TextAlign.Center,
-	)
-	Spacer(Modifier.height(16.dp))
-	OutlinedTextField(
-		value = pin,
-		onValueChange = { new ->
-			mismatch = false
-			pin = new.filter(Char::isDigit).take(MAX_PIN_LENGTH)
-		},
-		singleLine = true,
-		visualTransformation = PasswordVisualTransformation(),
-		keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-		shape = RoundedCornerShape(16.dp),
-		modifier = Modifier.fillMaxWidth(),
-	)
-	Spacer(Modifier.height(24.dp))
-	Button(
-		onClick = ::submit,
-		enabled = pin.length >= MIN_PIN_LENGTH,
-		shape = RoundedCornerShape(28.dp),
-		modifier = Modifier
-			.fillMaxWidth()
-			.height(56.dp),
 	) {
 		Text(
-			text = stringResource(if (isConfirmStep) R.string.confirm else R.string.next),
-			style = MaterialTheme.typography.labelLarge,
+			text = when {
+				mismatch -> stringResource(R.string.pins_mismatch)
+				isConfirmStep -> stringResource(R.string.confirm_pin_hint)
+				else -> stringResource(R.string.create_pin_hint)
+			},
+			style = MaterialTheme.typography.bodyMedium,
+			color = if (mismatch) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
 		)
-	}
-	Spacer(Modifier.height(8.dp))
-	FilledTonalButton(
-		onClick = onCancel,
-		shape = RoundedCornerShape(28.dp),
-		modifier = Modifier
-			.fillMaxWidth()
-			.height(56.dp),
-	) {
-		Text(
-			text = stringResource(android.R.string.cancel),
-			style = MaterialTheme.typography.labelLarge,
+		Spacer(Modifier.height(16.dp))
+		OutlinedTextField(
+			value = pin,
+			onValueChange = { new ->
+				mismatch = false
+				pin = new.filter(Char::isDigit).take(MAX_PIN_LENGTH)
+			},
+			singleLine = true,
+			visualTransformation = PasswordVisualTransformation(),
+			keyboardOptions = KeyboardOptions(
+				keyboardType = KeyboardType.NumberPassword,
+				imeAction = ImeAction.Done,
+			),
+			keyboardActions = KeyboardActions(onDone = { submit() }),
+			shape = RoundedCornerShape(16.dp),
+			modifier = Modifier.fillMaxWidth(),
 		)
 	}
 }

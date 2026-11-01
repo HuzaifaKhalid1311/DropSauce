@@ -49,10 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
@@ -126,16 +126,19 @@ class SyncSettingsFragment : BaseComposeSettingsFragment(R.string.google_drive_s
 	}
 
 	private fun showErrorDialog(message: String) {
-		MaterialAlertDialogBuilder(requireContext())
-			.setTitle(R.string.sync_error)
-			.setMessage(message)
-			.setPositiveButton(android.R.string.ok, null)
-			.setNeutralButton("Copy") { _, _ ->
+		showConfirmDialog(
+			context = requireContext(),
+			icon = R.drawable.ic_sync_problem,
+			title = getString(R.string.sync_error),
+			message = message,
+			secondaryLabel = "Copy",
+			onSecondary = {
 				val clipboard = requireContext()
 					.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 				clipboard.setPrimaryClip(ClipData.newPlainText("sync error", message))
-			}
-			.show()
+			},
+			onConfirm = {},
+		)
 	}
 }
 
@@ -315,6 +318,8 @@ private fun SyncScreen(
 			title = stringResource(R.string.sync_delete_data),
 			message = stringResource(R.string.sync_delete_confirm_message),
 			confirmLabel = stringResource(R.string.delete),
+			icon = R.drawable.ic_delete,
+			destructive = true,
 			onConfirm = {
 				showDeleteConfirm = false
 				onDeleteData()

@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.settings.nav
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,8 +14,8 @@ import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
-import org.koitharu.kotatsu.core.ui.dialog.setRecyclerViewList
+import org.koitharu.kotatsu.core.ui.dialog.DialogAction
+import org.koitharu.kotatsu.core.ui.dialog.showActionChoiceDialog
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
@@ -29,7 +28,6 @@ import org.koitharu.kotatsu.databinding.FragmentSettingsSourcesBinding
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.settings.nav.adapter.navAddAD
-import org.koitharu.kotatsu.settings.nav.adapter.navAvailableAD
 import org.koitharu.kotatsu.settings.nav.adapter.navConfigAD
 
 @AndroidEntryPoint
@@ -99,17 +97,19 @@ class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), Recycl
 	}
 
 	override fun onClick(v: View) {
-		var dialog: DialogInterface? = null
-		val listener = OnListItemClickListener<NavItem> { item, _ ->
-			viewModel.addItem(item)
-			dialog?.dismiss()
-		}
-		dialog = buildAlertDialog(v.context) {
-			setTitle(R.string.add)
-			setCancelable(true)
-			setRecyclerViewList(viewModel.availableItems, navAvailableAD(listener))
-			setNegativeButton(android.R.string.cancel, null)
-		}.apply { show() }
+		showActionChoiceDialog(
+			context = v.context,
+			icon = R.drawable.ic_add,
+			title = v.context.getString(R.string.add),
+			actions = viewModel.availableItems.map { item ->
+				DialogAction(
+					label = v.context.getString(item.title),
+					icon = item.icon,
+					onClick = { viewModel.addItem(item) },
+				)
+			},
+			dismissLabel = v.context.getString(android.R.string.cancel),
+		)
 	}
 
 	override fun onItemClick(item: NavItem, view: View) {

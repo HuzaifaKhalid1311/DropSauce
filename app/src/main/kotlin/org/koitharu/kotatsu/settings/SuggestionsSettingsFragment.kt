@@ -12,9 +12,6 @@ import android.widget.MultiAutoCompleteTextView
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,9 +20,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +33,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
 import org.koitharu.kotatsu.parsers.util.replaceWith
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
@@ -218,10 +220,22 @@ private fun TagsInputDialog(
 	onDismiss: () -> Unit,
 ) {
 	var editText by remember { mutableStateOf<MultiAutoCompleteTextView?>(null) }
-	AlertDialog(
+	Dialog(
 		onDismissRequest = onDismiss,
-		title = { Text(stringResource(R.string.suggestions_excluded_genres)) },
-		text = {
+		properties = DialogProperties(usePlatformDefaultWidth = false),
+	) {
+		ExpressiveDialogCard(
+			icon = painterResource(R.drawable.ic_tag),
+			title = stringResource(R.string.suggestions_excluded_genres),
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_check),
+				label = stringResource(android.R.string.ok),
+				onClick = {
+					onConfirm(editText?.text?.toString().orEmpty())
+					onDismiss()
+				},
+			),
+		) {
 			AndroidView(
 				modifier = Modifier.fillMaxWidth(),
 				factory = { ctx ->
@@ -234,17 +248,8 @@ private fun TagsInputDialog(
 					}
 				},
 			)
-		},
-		confirmButton = {
-			TextButton(onClick = {
-				onConfirm(editText?.text?.toString().orEmpty())
-				onDismiss()
-			}) { Text(stringResource(android.R.string.ok)) }
-		},
-		dismissButton = {
-			TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
-		},
-	)
+		}
+	}
 }
 
 private class TagsCompletionAdapter(

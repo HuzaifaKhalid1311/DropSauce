@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.core.nav
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -46,9 +45,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.prefs.TriStateOption
-import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
 import org.koitharu.kotatsu.core.ui.dialog.DialogAction
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.ui.dialog.showActionChoiceDialog
 import org.koitharu.kotatsu.core.util.ext.connectivityManager
 import org.koitharu.kotatsu.core.util.ext.copyToClipboard
@@ -628,31 +625,25 @@ class AppRouter private constructor(
                     onConfirmed(true)
                     return
                 }
-                val listener = DialogInterface.OnClickListener { _, which ->
-                    when (which) {
-                        DialogInterface.BUTTON_POSITIVE -> {
+                showActionChoiceDialog(
+                    context = context,
+                    icon = R.drawable.ic_network_cellular,
+                    title = context.getString(R.string.download_cellular_confirm),
+                    actions = listOf(
+                        DialogAction(context.getString(R.string.allow_always)) {
                             settings.allowDownloadOnMeteredNetwork = TriStateOption.ENABLED
                             onConfirmed(true)
-                        }
-
-                        DialogInterface.BUTTON_NEUTRAL -> {
+                        },
+                        DialogAction(context.getString(R.string.allow_once)) {
                             onConfirmed(true)
-                        }
-
-                        DialogInterface.BUTTON_NEGATIVE -> {
+                        },
+                        DialogAction(context.getString(R.string.dont_allow)) {
                             settings.allowDownloadOnMeteredNetwork = TriStateOption.DISABLED
                             onConfirmed(false)
-                        }
-                    }
-                }
-                BigButtonsAlertDialog.Builder(context)
-                    .setIcon(R.drawable.ic_network_cellular)
-                    .setTitle(R.string.download_cellular_confirm)
-                    .setPositiveButton(R.string.allow_always, listener)
-                    .setNeutralButton(R.string.allow_once, listener)
-                    .setNegativeButton(R.string.dont_allow, listener)
-                    .create()
-                    .show()
+                        },
+                    ),
+                    dismissLabel = context.getString(android.R.string.cancel),
+                )
             }
         }
     }

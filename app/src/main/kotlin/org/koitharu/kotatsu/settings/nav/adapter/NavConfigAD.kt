@@ -41,24 +41,6 @@ fun navConfigAD(
 	}
 }
 
-fun navAvailableAD(
-	clickListener: OnListItemClickListener<NavItem>,
-) = adapterDelegateViewBinding<NavItem, NavItem, ItemNavAvailableBinding>(
-	{ layoutInflater, parent -> ItemNavAvailableBinding.inflate(layoutInflater, parent, false) },
-) {
-
-	binding.root.setOnClickListener { v ->
-		clickListener.onItemClick(item, v)
-	}
-
-	bind {
-		with(binding.root) {
-			setText(item.title)
-			setCompoundDrawablesRelativeWithIntrinsicBounds(item.icon, 0, 0, 0)
-		}
-	}
-}
-
 fun navAddAD(
 	clickListener: View.OnClickListener,
 ) = adapterDelegateViewBinding<NavItemAddModel, ListModel, ItemNavAvailableBinding>(

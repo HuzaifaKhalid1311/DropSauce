@@ -74,7 +74,7 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import android.widget.Toast
 import java.io.File
 import org.json.JSONObject
@@ -258,20 +258,21 @@ class DownloadsSettingsFragment :
 		favoriteSource: String
 	): MigrationChoice = withContext(Dispatchers.Main) {
 		suspendCancellableCoroutine { continuation ->
-			val dialog = buildAlertDialog(requireContext()) {
-				setTitle(R.string.rebuild_source_mismatch_title)
-				setMessage(getString(R.string.rebuild_source_mismatch_message, mangaTitle, localSource, favoriteSource))
-				setPositiveButton(getString(R.string.rebuild_migrate_to, localSource)) { _, _ ->
-					if (continuation.isActive) continuation.resume(MigrationChoice.MIGRATE)
-				}
-				setNegativeButton(getString(R.string.rebuild_keep_on, favoriteSource)) { _, _ ->
-					if (continuation.isActive) continuation.resume(MigrationChoice.KEEP)
-				}
-				setOnCancelListener {
-					if (continuation.isActive) continuation.resume(MigrationChoice.KEEP)
-				}
+			val keep = {
+				if (continuation.isActive) continuation.resume(MigrationChoice.KEEP)
 			}
-			dialog.show()
+			val dialog = showConfirmDialog(
+				context = requireContext(),
+				icon = R.drawable.ic_migrate,
+				title = getString(R.string.rebuild_source_mismatch_title),
+				message = getString(R.string.rebuild_source_mismatch_message, mangaTitle, localSource, favoriteSource),
+				confirmLabel = getString(R.string.rebuild_migrate_to, localSource),
+				secondaryLabel = getString(R.string.rebuild_keep_on, favoriteSource),
+				onSecondary = keep,
+				onCancel = keep,
+			) {
+				if (continuation.isActive) continuation.resume(MigrationChoice.MIGRATE)
+			}
 			continuation.invokeOnCancellation {
 				dialog.dismiss()
 			}

@@ -50,11 +50,19 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withClip
 import androidx.core.graphics.withTranslation
@@ -70,10 +78,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import coil3.ImageLoader
 import coil3.request.ImageRequest
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -107,6 +112,12 @@ import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.lnreader.model.absoluteUrl
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveOptionGroupItem
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
+import org.koitharu.kotatsu.core.ui.dialog.showTextInputDialog
 import org.koitharu.kotatsu.core.util.ext.getDisplayIcon
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
@@ -1330,14 +1341,16 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	private fun showRemoveHighlight(bookmarkId: Long) {
 		val bookmark = highlights.firstOrNull { it.pageId == bookmarkId } ?: return
-		MaterialAlertDialogBuilder(requireContext())
-			.setTitle(R.string.remove_highlight)
-			.setMessage(bookmark.epubHighlight?.text)
-			.setNegativeButton(android.R.string.cancel, null)
-			.setPositiveButton(R.string.remove) { _, _ ->
-				removeHighlight(bookmarkId)
-			}
-			.show()
+		showConfirmDialog(
+			context = requireContext(),
+			icon = R.drawable.ic_ink_highlighter,
+			title = getString(R.string.remove_highlight),
+			message = bookmark.epubHighlight?.text,
+			confirmLabel = getString(R.string.remove),
+			destructive = true,
+		) {
+			removeHighlight(bookmarkId)
+		}
 	}
 
 	private fun showDictionary(word: String) {
@@ -1562,22 +1575,12 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	fun showBookSearch() {
-		val input = TextInputEditText(requireContext()).apply { setSingleLine() }
-		val field = TextInputLayout(requireContext()).apply {
-			hint = getString(R.string.epub_search_hint)
-			boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
-			setStartIconDrawable(R.drawable.ic_search)
-			addView(input)
-		}
-		val container = FrameLayout(requireContext()).apply {
-			val margin = (24 * resources.displayMetrics.density).toInt()
-			setPadding(margin, 8, margin, 0)
-			addView(field, FrameLayout.LayoutParams(-1, -2))
-		}
-		MaterialAlertDialogBuilder(requireContext())
-			.setTitle(R.string.epub_search_book).setView(container)
-			.setNegativeButton(android.R.string.cancel, null)
-			.setPositiveButton(R.string.search) { _, _ -> searchBook(input.text.toString().trim()) }.show()
+		showTextInputDialog(
+			context = requireContext(),
+			icon = R.drawable.ic_search,
+			title = getString(R.string.epub_search_book),
+			hint = getString(R.string.epub_search_hint),
+		) { searchBook(it.trim()) }
 	}
 
 	/**
@@ -1602,21 +1605,48 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				Toast.makeText(requireContext(), R.string.epub_no_search_results, Toast.LENGTH_SHORT).show()
 				return@launch
 			}
-			val adapter = object : ArrayAdapter<SearchResult>(requireContext(), android.R.layout.simple_list_item_2, android.R.id.text1, results) {
-				override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-					val row = super.getView(position, convertView, parent)
-					val result = getItem(position) ?: return row
-					row.findViewById<TextView>(android.R.id.text1).text = result.title.ifEmpty { getString(R.string.epub_untitled_chapter) }
-					row.findViewById<TextView>(android.R.id.text2).apply { text = result.snippet; maxLines = 2 }
-					return row
+			showSearchResults(results)
+		}
+	}
+
+	private fun showSearchResults(results: List<SearchResult>) {
+		val untitled = getString(R.string.epub_untitled_chapter)
+		showComposeDialog(requireContext()) { dismiss ->
+			val colors = MaterialTheme.colorScheme
+			ExpressiveDialogCard(
+				icon = painterResource(R.drawable.ic_search),
+				title = stringResource(R.string.search_results),
+				cornerAction = DialogCornerAction(
+					icon = painterResource(R.drawable.ic_close),
+					label = stringResource(android.R.string.cancel),
+					onClick = dismiss,
+				),
+			) {
+				results.forEachIndexed { index, result ->
+					ExpressiveOptionGroupItem(
+						index = index,
+						count = results.size,
+						onClick = {
+							dismiss()
+							goTo(Locator(result.chapter, result.offset))
+						},
+					) {
+						Column(modifier = Modifier.padding(vertical = 6.dp)) {
+							Text(
+								text = result.title.ifEmpty { untitled },
+								style = MaterialTheme.typography.bodyLarge,
+								color = colors.onSurface,
+							)
+							Text(
+								text = result.snippet,
+								style = MaterialTheme.typography.bodyMedium,
+								color = colors.onSurfaceVariant,
+								maxLines = 2,
+								overflow = TextOverflow.Ellipsis,
+							)
+						}
+					}
 				}
-			}
-			val dialog = MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.search_results)
-				.setAdapter(adapter) { _, index -> goTo(Locator(results[index].chapter, results[index].offset)) }
-				.setNegativeButton(android.R.string.cancel, null).show()
-			dialog.listView.apply {
-				divider = ColorDrawable(requireContext().getThemeColor(materialR.attr.colorOutlineVariant, Color.GRAY))
-				dividerHeight = resources.displayMetrics.density.toInt().coerceAtLeast(1)
 			}
 		}
 	}

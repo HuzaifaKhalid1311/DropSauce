@@ -7,7 +7,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.FragmentActivity
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 
 class DownloadsMenuProvider(
 	private val activity: FragmentActivity,
@@ -38,22 +38,24 @@ class DownloadsMenuProvider(
 	}
 
 	private fun confirmCancelAll() {
-		buildAlertDialog(activity, isCentered = true) {
-			setTitle(R.string.cancel_all)
-			setMessage(R.string.cancel_all_downloads_confirm)
-			setIcon(R.drawable.ic_cancel_multiple)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.confirm) { _, _ -> viewModel.cancelAll() }
-		}.show()
+		showConfirmDialog(
+			context = activity,
+			icon = R.drawable.ic_cancel_multiple,
+			title = activity.getString(R.string.cancel_all),
+			message = activity.getString(R.string.cancel_all_downloads_confirm),
+			confirmLabel = activity.getString(R.string.confirm),
+			destructive = true,
+		) { viewModel.cancelAll() }
 	}
 
 	private fun confirmRemoveCompleted() {
-		buildAlertDialog(activity, isCentered = true) {
-			setTitle(R.string.remove_completed)
-			setMessage(R.string.remove_completed_downloads_confirm)
-			setIcon(R.drawable.ic_clear_all)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.clear) { _, _ -> viewModel.removeCompleted() }
-		}.show()
+		showConfirmDialog(
+			context = activity,
+			icon = R.drawable.ic_clear_all,
+			title = activity.getString(R.string.remove_completed),
+			message = activity.getString(R.string.remove_completed_downloads_confirm),
+			confirmLabel = activity.getString(R.string.clear),
+			destructive = true,
+		) { viewModel.removeCompleted() }
 	}
 }

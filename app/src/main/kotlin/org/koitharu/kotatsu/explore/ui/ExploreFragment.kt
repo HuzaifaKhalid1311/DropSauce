@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.explore.ui
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -23,7 +22,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import com.google.android.material.snackbar.Snackbar
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.LocalMangaSource
@@ -31,10 +29,11 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.homeUrl
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.DialogAction
+import org.koitharu.kotatsu.core.ui.dialog.showActionChoiceDialog
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 import org.koitharu.kotatsu.core.ui.dialog.showMultiChoiceDialog
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
-import org.koitharu.kotatsu.settings.compose.ChoiceDialog
+import org.koitharu.kotatsu.settings.compose.ChoiceDialogCard
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.ActionModeListener
@@ -184,22 +183,18 @@ class ExploreFragment :
 	 * leading tab is the one Explore opens on next time.
 	 */
 	private fun showTabOrderDialog() {
-		val content = requireActivity().findViewById<ViewGroup>(android.R.id.content) ?: return
-		val host = ComposeView(requireContext())
-		content.addView(host)
-		host.setContent {
-			DropSauceTheme {
-				ChoiceDialog(
-					title = stringResource(R.string.explore_tab_order),
-					entries = listOf(
-						stringResource(R.string.store_kind_manga),
-						stringResource(R.string.store_kind_novel),
-					),
-					selectedIndex = if (viewModel.isNovelTabFirst) 1 else 0,
-					onSelect = { index -> applyTabOrder(isNovelFirst = index == 1) },
-					onDismiss = { content.removeView(host) },
-				)
-			}
+		showComposeDialog(requireContext()) { dismiss ->
+			ChoiceDialogCard(
+				title = stringResource(R.string.explore_tab_order),
+				entries = listOf(
+					stringResource(R.string.store_kind_manga),
+					stringResource(R.string.store_kind_novel),
+				),
+				selectedIndex = if (viewModel.isNovelTabFirst) 1 else 0,
+				onSelect = { index -> applyTabOrder(isNovelFirst = index == 1) },
+				onDismiss = dismiss,
+				icon = R.drawable.ic_swap,
+			)
 		}
 	}
 
@@ -449,16 +444,21 @@ class ExploreFragment :
 	}
 
 	private fun showSuggestionsTip() {
-		val listener = DialogInterface.OnClickListener { _, which ->
-			viewModel.respondSuggestionTip(which == DialogInterface.BUTTON_POSITIVE)
-		}
-		BigButtonsAlertDialog.Builder(requireContext())
-			.setIcon(R.drawable.ic_suggestion)
-			.setTitle(R.string.suggestions_enable_prompt)
-			.setPositiveButton(R.string.enable, listener)
-			.setNegativeButton(R.string.no_thanks, listener)
-			.create()
-			.show()
+		val context = requireContext()
+		showActionChoiceDialog(
+			context = context,
+			icon = R.drawable.ic_suggestion,
+			title = context.getString(R.string.suggestions_enable_prompt),
+			actions = listOf(
+				DialogAction(context.getString(R.string.enable)) {
+					viewModel.respondSuggestionTip(true)
+				},
+				DialogAction(context.getString(R.string.no_thanks)) {
+					viewModel.respondSuggestionTip(false)
+				},
+			),
+			dismissLabel = context.getString(R.string.close),
+		)
 	}
 
 }

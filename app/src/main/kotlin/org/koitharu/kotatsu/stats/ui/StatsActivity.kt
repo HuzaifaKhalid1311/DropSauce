@@ -17,7 +17,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.end
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -102,12 +102,13 @@ class StatsActivity : BaseActivity<ActivityStatsBinding>() {
 	}
 
 	private fun showClearConfirmDialog() {
-		buildAlertDialog(this, isCentered = true) {
-			setMessage(R.string.clear_stats_confirm)
-			setTitle(R.string.clear_stats)
-			setIcon(R.drawable.ic_delete_all)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.clear) { _, _ -> viewModel.clearStats() }
-		}.show()
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_delete_all,
+			title = getString(R.string.clear_stats),
+			message = getString(R.string.clear_stats_confirm),
+			confirmLabel = getString(R.string.clear),
+			destructive = true,
+		) { viewModel.clearStats() }
 	}
 }

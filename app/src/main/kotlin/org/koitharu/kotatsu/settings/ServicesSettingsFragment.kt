@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
@@ -146,21 +146,23 @@ class ServicesSettingsFragment : BaseComposeSettingsFragment(R.string.services) 
 	}
 
 	private fun confirmScrobblerAuth(service: ScrobblerService) {
-		buildAlertDialog(context ?: return, isCentered = true) {
-			setIcon(service.iconResId)
-			setTitle(service.titleResId)
-			setMessage(context.getString(R.string.scrobbler_auth_intro, context.getString(service.titleResId)))
-			setPositiveButton(R.string.sign_in) { _, _ ->
-				scrobblerAuthHelper.startAuth(context, service).onFailure {
-					Snackbar.make(
-						requireView(),
-						it.getDisplayMessage(resources),
-						Snackbar.LENGTH_LONG,
-					).show()
-				}
+		val context = context ?: return
+		showConfirmDialog(
+			context = context,
+			// The popup tints its icon, which would flatten MangaBaka's bitmap logo into a blob.
+			icon = if (service == ScrobblerService.MANGABAKA) R.drawable.ic_sync else service.iconResId,
+			title = context.getString(service.titleResId),
+			message = context.getString(R.string.scrobbler_auth_intro, context.getString(service.titleResId)),
+			confirmLabel = context.getString(R.string.sign_in),
+		) {
+			scrobblerAuthHelper.startAuth(context, service).onFailure {
+				Snackbar.make(
+					requireView(),
+					it.getDisplayMessage(resources),
+					Snackbar.LENGTH_LONG,
+				).show()
 			}
-			setNegativeButton(android.R.string.cancel, null)
-		}.show()
+		}
 	}
 }
 
@@ -200,6 +202,7 @@ private fun ServicesScreen(
 				eyeReminder = true
 			},
 			onDismiss = { showIntervalDialog = false },
+			icon = R.drawable.ic_eye_tracking,
 		)
 	}
 

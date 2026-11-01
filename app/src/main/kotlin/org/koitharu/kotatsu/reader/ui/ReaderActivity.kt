@@ -66,7 +66,6 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseFullscreenActivity
-import org.koitharu.kotatsu.core.ui.dialog.setCheckbox
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
 import org.koitharu.kotatsu.core.ui.widgets.ZoomControl
 import org.koitharu.kotatsu.core.util.IdlingDetector

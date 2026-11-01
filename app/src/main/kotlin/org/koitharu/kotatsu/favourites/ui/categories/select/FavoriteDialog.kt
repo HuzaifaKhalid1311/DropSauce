@@ -6,18 +6,14 @@ import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,8 +32,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.ComposeAlertDialogFragment
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
 import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
-import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogTextButton
 import org.koitharu.kotatsu.core.ui.dialog.ExpressivePillButton
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.joinToStringWithLimit
@@ -66,49 +62,54 @@ class FavoriteDialog : ComposeAlertDialogFragment() {
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_heart),
 			title = title,
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_check),
+				label = stringResource(R.string.done),
+				onClick = ::dismiss,
+			),
+			footer = {
+				ExpressivePillButton(
+					text = stringResource(R.string.manage),
+					icon = painterResource(R.drawable.ic_settings),
+					primary = false,
+				) {
+					dismiss()
+					router.openFavoriteCategories()
+				}
+			},
 		) {
-			// Shrinks and scrolls on long lists so the buttons below stay on screen
-			Column(modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
-				val categories = content.filterIsInstance<MangaCategoryItem>()
-				if (categories.isNotEmpty()) {
-					FlowRow(
-						horizontalArrangement = Arrangement.spacedBy(8.dp),
-						verticalArrangement = Arrangement.spacedBy(8.dp),
+			val categories = content.filterIsInstance<MangaCategoryItem>()
+			if (categories.isNotEmpty()) {
+				FlowRow(
+					horizontalArrangement = Arrangement.spacedBy(8.dp),
+					verticalArrangement = Arrangement.spacedBy(8.dp),
+				) {
+					categories.forEach { CategoryChip(it) }
+				}
+			}
+			content.forEach { model ->
+				when (model) {
+					is LoadingState -> Box(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(24.dp),
+						contentAlignment = Alignment.Center,
 					) {
-						categories.forEach { CategoryChip(it) }
+						LoadingIndicator()
 					}
-				}
-				content.forEach { model ->
-					when (model) {
-						is LoadingState -> Box(
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(24.dp),
-							contentAlignment = Alignment.Center,
-						) {
-							LoadingIndicator()
-						}
 
-						is EmptyState -> Text(
-							text = stringResource(model.textPrimary),
-							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier
-								.fillMaxWidth()
-								.padding(vertical = 24.dp),
-						)
+					is EmptyState -> Text(
+						text = stringResource(model.textPrimary),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(vertical = 24.dp),
+					)
 
-						else -> Unit
-					}
+					else -> Unit
 				}
 			}
-			Spacer(Modifier.size(16.dp))
-			ExpressivePillButton(text = stringResource(R.string.manage), primary = true) {
-				dismiss()
-				router.openFavoriteCategories()
-			}
-			Spacer(Modifier.size(8.dp))
-			ExpressiveDialogTextButton(text = stringResource(R.string.done)) { dismiss() }
 		}
 	}
 

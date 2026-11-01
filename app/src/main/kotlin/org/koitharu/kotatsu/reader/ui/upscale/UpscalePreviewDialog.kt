@@ -1,26 +1,30 @@
 package org.koitharu.kotatsu.reader.ui.upscale
 
 import android.annotation.SuppressLint
-import android.app.Dialog
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Outline
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,6 +32,9 @@ import kotlinx.coroutines.runInterruptible
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.image.BitmapDecoderCompat
 import org.koitharu.kotatsu.core.nav.AppRouter
+import org.koitharu.kotatsu.core.ui.ComposeAlertDialogFragment
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
 import org.koitharu.kotatsu.core.util.MimeTypes
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.isZipUri
@@ -46,7 +53,7 @@ import kotlin.math.min
 
 @AndroidEntryPoint
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-class UpscalePreviewDialog : AppCompatDialogFragment() {
+class UpscalePreviewDialog : ComposeAlertDialogFragment() {
 
 	private val viewModel by activityViewModels<ReaderViewModel>()
 
@@ -63,9 +70,27 @@ class UpscalePreviewDialog : AppCompatDialogFragment() {
 	private var lastTouchY = 0f
 	private lateinit var scaleDetector: ScaleGestureDetector
 
+	@Composable
+	override fun Content() {
+		ExpressiveDialogCard(
+			icon = painterResource(R.drawable.ic_sparkles),
+			title = stringResource(R.string.upscale_preview),
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_close),
+				label = stringResource(R.string.close),
+				onClick = ::dismiss,
+			),
+		) {
+			AndroidView(
+				factory = ::createPreviewView,
+				modifier = Modifier.fillMaxWidth(),
+			)
+		}
+	}
+
 	@SuppressLint("ClickableViewAccessibility")
-	override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-		val b = DialogUpscalePreviewBinding.inflate(layoutInflater)
+	private fun createPreviewView(context: Context): View {
+		val b = DialogUpscalePreviewBinding.inflate(LayoutInflater.from(context))
 		binding = b
 		val cornerRadius = resources.getDimension(R.dimen.margin_normal)
 		b.imagesContainer.outlineProvider = object : ViewOutlineProvider() {
@@ -75,7 +100,7 @@ class UpscalePreviewDialog : AppCompatDialogFragment() {
 		}
 		b.imagesContainer.clipToOutline = true
 		scaleDetector = ScaleGestureDetector(
-			requireContext(),
+			context,
 			object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
 				override fun onScale(detector: ScaleGestureDetector): Boolean {
 					imageMatrix.postScale(
@@ -94,11 +119,7 @@ class UpscalePreviewDialog : AppCompatDialogFragment() {
 			dismiss()
 		}
 		loadPreview()
-		return MaterialAlertDialogBuilder(requireContext())
-			.setTitle(R.string.upscale_preview)
-			.setView(b.root)
-			.setPositiveButton(R.string.close, null)
-			.create()
+		return b.root
 	}
 
 	override fun onDestroyView() {
@@ -111,6 +132,8 @@ class UpscalePreviewDialog : AppCompatDialogFragment() {
 		scaleDetector.onTouchEvent(event)
 		when (event.actionMasked) {
 			MotionEvent.ACTION_DOWN -> {
+				// The popup body scrolls; keep it from stealing pan/pinch/divider drags.
+				v.parent.requestDisallowInterceptTouchEvent(true)
 				isDraggingDivider = b.divider.isVisible &&
 					abs(event.x - b.divider.translationX) < v.width * 0.08f
 				lastTouchX = event.x

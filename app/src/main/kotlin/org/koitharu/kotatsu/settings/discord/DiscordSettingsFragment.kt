@@ -8,10 +8,10 @@ import android.view.ViewGroup
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,15 +22,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.StateFlow
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
 import org.koitharu.kotatsu.scrobbling.discord.ui.DiscordAuthActivity
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
@@ -156,31 +170,57 @@ private fun DiscordTokenDialog(
 	onDismiss: () -> Unit,
 ) {
 	var value by remember { mutableStateOf(initialValue) }
-	AlertDialog(
+	val submit = {
+		onConfirm(value)
+		onDismiss()
+	}
+	Dialog(
 		onDismissRequest = onDismiss,
-		title = { Text(stringResource(R.string.discord_token)) },
-		text = {
-			androidx.compose.foundation.layout.Column {
-				Text(message, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
-				Spacer(Modifier.height(12.dp))
-				OutlinedTextField(
-					value = value,
-					onValueChange = { value = it },
-					placeholder = { Text(stringResource(R.string.discord_token_hint)) },
-					singleLine = true,
-					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-					modifier = Modifier.fillMaxWidth(),
-				)
-			}
-		},
-		confirmButton = {
-			TextButton(onClick = {
-				onConfirm(value)
-				onDismiss()
-			}) { Text(stringResource(android.R.string.ok)) }
-		},
-		dismissButton = {
-			TextButton(onClick = onSignIn) { Text(stringResource(R.string.sign_in)) }
-		},
-	)
+		properties = DialogProperties(usePlatformDefaultWidth = false),
+	) {
+		val signIn = stringResource(R.string.sign_in)
+		val linkStart = message.indexOf(signIn)
+		ExpressiveDialogCard(
+			icon = painterResource(R.drawable.ic_discord),
+			title = stringResource(R.string.discord_token),
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_check),
+				label = stringResource(android.R.string.ok),
+				onClick = submit,
+			),
+		) {
+			Text(
+				text = if (linkStart < 0) AnnotatedString(message) else buildAnnotatedString {
+					append(message.substring(0, linkStart))
+					withLink(
+						LinkAnnotation.Clickable(
+							tag = "sign_in",
+							styles = TextLinkStyles(
+								style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium),
+							),
+							linkInteractionListener = { onSignIn() },
+						),
+					) { append(signIn) }
+					append(message.substring(linkStart + signIn.length))
+				},
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+				modifier = Modifier.fillMaxWidth(),
+			)
+			Spacer(Modifier.height(16.dp))
+			OutlinedTextField(
+				value = value,
+				onValueChange = { value = it },
+				placeholder = { Text(stringResource(R.string.discord_token_hint)) },
+				singleLine = true,
+				keyboardOptions = KeyboardOptions(
+					keyboardType = KeyboardType.Password,
+					imeAction = ImeAction.Done,
+				),
+				keyboardActions = KeyboardActions(onDone = { submit() }),
+				shape = RoundedCornerShape(16.dp),
+				modifier = Modifier.fillMaxWidth(),
+			)
+		}
+	}
 }

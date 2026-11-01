@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.FileSize
 import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
@@ -104,30 +104,39 @@ class DataCleanupSettingsFragment : BaseComposeSettingsFragment(R.string.data_re
 	}
 
 	private fun clearSearchHistory() {
-		buildAlertDialog(context ?: return) {
-			setTitle(R.string.clear_search_history)
-			setMessage(R.string.text_clear_search_history_prompt)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.clear) { _, _ -> viewModel.clearSearchHistory() }
-		}.show()
+		val context = context ?: return
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_history,
+			title = context.getString(R.string.clear_search_history),
+			message = context.getString(R.string.text_clear_search_history_prompt),
+			confirmLabel = context.getString(R.string.clear),
+			destructive = true,
+		) { viewModel.clearSearchHistory() }
 	}
 
 	private fun clearCookies() {
-		buildAlertDialog(context ?: return) {
-			setTitle(R.string.clear_cookies)
-			setMessage(R.string.text_clear_cookies_prompt)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.clear) { _, _ -> viewModel.clearCookies() }
-		}.show()
+		val context = context ?: return
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_cookie,
+			title = context.getString(R.string.clear_cookies),
+			message = context.getString(R.string.text_clear_cookies_prompt),
+			confirmLabel = context.getString(R.string.clear),
+			destructive = true,
+		) { viewModel.clearCookies() }
 	}
 
 	private fun cleanupChapters() {
-		buildAlertDialog(context ?: return) {
-			setTitle(R.string.delete_read_chapters)
-			setMessage(R.string.delete_read_chapters_prompt)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.delete) { _, _ -> viewModel.cleanupChapters() }
-		}.show()
+		val context = context ?: return
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_delete,
+			title = context.getString(R.string.delete_read_chapters),
+			message = context.getString(R.string.delete_read_chapters_prompt),
+			confirmLabel = context.getString(R.string.delete),
+			destructive = true,
+		) { viewModel.cleanupChapters() }
 	}
 }
 

@@ -12,12 +12,12 @@ import coil3.asDrawable
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.LabelFormatter
 import com.google.android.material.slider.Slider
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -106,15 +106,16 @@ class ColorFilterConfigActivity :
 	}
 
 	fun showSaveConfirmation() {
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.apply)
-			.setMessage(R.string.color_correction_apply_text)
-			.setNegativeButton(android.R.string.cancel, null)
-			.setPositiveButton(R.string.this_manga) { _, _ ->
-				viewModel.save()
-			}.setNeutralButton(R.string.globally) { _, _ ->
-				viewModel.saveGlobally()
-			}.show()
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_save,
+			title = getString(R.string.apply),
+			message = getString(R.string.color_correction_apply_text),
+			confirmLabel = getString(R.string.this_manga),
+			secondaryLabel = getString(R.string.globally),
+			onSecondary = viewModel::saveGlobally,
+			onConfirm = viewModel::save,
+		)
 	}
 
 	private fun onColorFilterChanged(readerColorFilter: ReaderColorFilter?) {

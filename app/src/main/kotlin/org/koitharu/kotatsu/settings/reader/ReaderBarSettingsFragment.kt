@@ -171,6 +171,7 @@ private fun ControlList(
 				title = stringResource(R.string.reset),
 				message = stringResource(R.string.config_reset_confirm),
 				confirmLabel = stringResource(R.string.reset),
+				icon = R.drawable.ic_restart,
 				onConfirm = {
 					onChange(DEFAULT_LAYOUT)
 					haptic(HapticEffect.CONFIRM)

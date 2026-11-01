@@ -1,14 +1,16 @@
 package org.koitharu.kotatsu.core.exceptions.resolve
 
-import android.content.DialogInterface
 import android.view.View
+import androidx.compose.ui.res.painterResource
 import androidx.core.util.Consumer
 import androidx.fragment.app.Fragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.core.ui.dialog.ExpressivePillButton
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
-import org.koitharu.kotatsu.core.util.ext.isSerializable
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
 class DialogErrorObserver(
@@ -24,39 +26,45 @@ class DialogErrorObserver(
 	) : this(host, fragment, null, null)
 
 	override suspend fun emit(value: Throwable) {
-		val listener = DialogListener(value)
-		val dialogBuilder = MaterialAlertDialogBuilder(activity ?: host.context)
-			.setMessage(value.getDisplayMessage(host.context.resources))
-			.setNegativeButton(R.string.close, listener)
-			.setOnCancelListener(listener)
-		if (canResolve(value)) {
-			dialogBuilder.setPositiveButton(ExceptionResolver.getResolveStringId(value), listener)
-		} else if (value is ParseException) {
-			dialogBuilder.setPositiveButton(androidx.preference.R.string.copy) { _, _ ->
-				val ctx = activity ?: host.context
-				ctx.copyToClipboard(ctx.getString(R.string.error), value.stackTraceToString())
-			}
+		val ctx = activity ?: host.context
+		val isResolvable = canResolve(value)
+		// The footer button: resolve the error, or copy a parser stack trace.
+		val actionLabel = when {
+			isResolvable -> ctx.getString(ExceptionResolver.getResolveStringId(value))
+			value is ParseException -> ctx.getString(androidx.preference.R.string.copy)
+			else -> null
 		}
-		val dialog = dialogBuilder.create()
-		if (activity != null) {
-			dialog.setOwnerActivity(activity)
-		}
-		dialog.show()
-	}
-
-	private inner class DialogListener(
-		private val error: Throwable,
-	) : DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
-
-		override fun onClick(dialog: DialogInterface?, which: Int) {
-			when (which) {
-				DialogInterface.BUTTON_NEGATIVE -> onResolved?.accept(false)
-				DialogInterface.BUTTON_POSITIVE -> resolve(error)
-			}
-		}
-
-		override fun onCancel(dialog: DialogInterface?) {
-			onResolved?.accept(false)
+		showComposeDialog(ctx, onCancel = { onResolved?.accept(false) }) { dismiss ->
+			ExpressiveDialogCard(
+				icon = painterResource(R.drawable.ic_error_small),
+				title = ctx.getString(R.string.error),
+				message = value.getDisplayMessage(ctx.resources),
+				cornerAction = DialogCornerAction(
+					icon = painterResource(R.drawable.ic_close),
+					label = ctx.getString(R.string.close),
+					onClick = {
+						dismiss()
+						onResolved?.accept(false)
+					},
+				),
+				footer = if (actionLabel != null) {
+					{
+						ExpressivePillButton(
+							text = actionLabel,
+							onClick = {
+								dismiss()
+								if (isResolvable) {
+									resolve(value)
+								} else {
+									ctx.copyToClipboard(ctx.getString(R.string.error), value.stackTraceToString())
+								}
+							},
+						)
+					}
+				} else {
+					null
+				},
+			)
 		}
 	}
 }

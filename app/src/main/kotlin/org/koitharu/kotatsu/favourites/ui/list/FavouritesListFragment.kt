@@ -7,11 +7,11 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.viewModels
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.util.ext.withArgs
 import org.koitharu.kotatsu.databinding.FragmentListBinding
@@ -89,14 +89,16 @@ class FavouritesListFragment : MangaListFragment() {
 
 			R.id.action_mark_current -> {
 				val itemsSnapshot = selectedItems
-				MaterialAlertDialogBuilder(context ?: return false)
-					.setTitle(item.title)
-					.setMessage(R.string.mark_as_completed_prompt)
-					.setNegativeButton(android.R.string.cancel, null)
-					.setPositiveButton(android.R.string.ok) { _, _ ->
-						viewModel.markAsRead(itemsSnapshot)
-						mode?.finish()
-					}.show()
+				val ctx = context ?: return false
+				showConfirmDialog(
+					context = ctx,
+					icon = R.drawable.ic_eye_check,
+					title = item.title.toString(),
+					message = ctx.getString(R.string.mark_as_completed_prompt),
+				) {
+					viewModel.markAsRead(itemsSnapshot)
+					mode?.finish()
+				}
 				true
 			}
 

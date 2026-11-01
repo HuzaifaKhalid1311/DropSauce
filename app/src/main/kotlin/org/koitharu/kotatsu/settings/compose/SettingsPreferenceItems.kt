@@ -64,6 +64,7 @@ fun ListSettingsItem(
 			selectedIndex = selectedIndex,
 			onSelect = { idx -> onValueChange(entryValues[idx]) },
 			onDismiss = { showDialog = false },
+			icon = icon,
 		)
 	}
 }
@@ -109,6 +110,7 @@ fun MultiSelectSettingsItem(
 				onValuesChange(indices.map { entryValues[it] }.toSet())
 			},
 			onDismiss = { showDialog = false },
+			icon = icon,
 		)
 	}
 }
@@ -148,6 +150,7 @@ fun EditTextSettingsItem(
 			hint = hint,
 			onConfirm = onValueChange,
 			onDismiss = { showDialog = false },
+			icon = icon,
 		)
 	}
 }

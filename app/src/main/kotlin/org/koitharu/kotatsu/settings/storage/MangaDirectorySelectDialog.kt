@@ -7,37 +7,30 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.os.OpenDocumentTreeHelper
 import org.koitharu.kotatsu.core.ui.ComposeAlertDialogFragment
+import org.koitharu.kotatsu.core.ui.dialog.DialogButtonSpec
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveButtonGrid
 import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
-import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogTextButton
-import org.koitharu.kotatsu.core.ui.dialog.ExpressivePillButton
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveOptionGroupItem
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
@@ -85,56 +78,65 @@ class MangaDirectorySelectDialog : ComposeAlertDialogFragment() {
 	@Composable
 	override fun Content() {
 		val items by viewModel.items.collectAsState()
+		val fileItems = items.filter { it.file != null }
+		val customItems = items.filter { it.file == null }
+		val colors = MaterialTheme.colorScheme
+
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_storage),
 			title = stringResource(R.string.manga_save_location),
-		) {
-			Column(
-				modifier = Modifier
-					.heightIn(max = 320.dp)
-					.verticalScroll(rememberScrollState()),
-			) {
-				items.filter { it.file != null }.forEach { item ->
-					Row(
-						modifier = Modifier
-							.fillMaxWidth()
-							.heightIn(min = 52.dp)
-							.clip(RoundedCornerShape(16.dp))
-							.clickable { viewModel.onItemClick(item) }
-							.padding(horizontal = 8.dp),
-						verticalAlignment = Alignment.CenterVertically,
-					) {
-						RadioButton(selected = item.isChecked, onClick = { viewModel.onItemClick(item) })
-						Spacer(Modifier.size(8.dp))
-						Column(modifier = Modifier.fillMaxWidth()) {
-							Text(
-								text = item.title ?: stringResource(item.titleRes),
-								style = MaterialTheme.typography.bodyLarge,
-								color = MaterialTheme.colorScheme.onSurface,
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_close),
+				label = stringResource(android.R.string.cancel),
+				onClick = ::dismiss,
+			),
+			footer = if (customItems.isNotEmpty()) {
+				{
+					ExpressiveButtonGrid(
+						buttons = customItems.mapIndexed { index, item ->
+							DialogButtonSpec(
+								label = item.title ?: stringResource(item.titleRes),
+								icon = painterResource(R.drawable.ic_folder_file),
+								primary = index == 0,
+								onClick = { viewModel.onItemClick(item) },
 							)
-							val path = item.file?.absolutePath
-							if (path != null) {
-								Text(
-									text = path,
-									style = MaterialTheme.typography.bodySmall,
-									color = MaterialTheme.colorScheme.onSurfaceVariant,
-								)
-							}
+						},
+					)
+				}
+			} else {
+				null
+			},
+		) {
+			fileItems.forEachIndexed { index, item ->
+				ExpressiveOptionGroupItem(
+					index = index,
+					count = fileItems.size,
+					onClick = { viewModel.onItemClick(item) },
+				) {
+					RadioButton(selected = item.isChecked, onClick = null)
+					Spacer(Modifier.width(12.dp))
+					Column(modifier = Modifier.weight(1f)) {
+						Text(
+							text = item.title ?: stringResource(item.titleRes),
+							style = MaterialTheme.typography.bodyLarge,
+							fontWeight = if (item.isChecked) FontWeight.Medium else FontWeight.Normal,
+							color = if (item.isChecked) colors.primary else colors.onSurface,
+						)
+						val path = item.file?.absolutePath
+						if (path != null) {
+							Text(
+								text = path,
+								style = MaterialTheme.typography.bodySmall,
+								color = if (item.isChecked) {
+									colors.primary.copy(alpha = 0.8f)
+								} else {
+									colors.onSurfaceVariant
+								},
+							)
 						}
 					}
 				}
 			}
-			// Custom-directory picker(s) as their own enclosed action button
-			items.filter { it.file == null }.forEach { item ->
-				Spacer(Modifier.size(12.dp))
-				ExpressivePillButton(
-					text = item.title ?: stringResource(item.titleRes),
-					icon = painterResource(R.drawable.ic_folder_file),
-					primary = true,
-				) { viewModel.onItemClick(item) }
-			}
-			Spacer(Modifier.size(8.dp))
-			ExpressiveDialogTextButton(text = stringResource(android.R.string.cancel)) { dismiss() }
 		}
 	}
 

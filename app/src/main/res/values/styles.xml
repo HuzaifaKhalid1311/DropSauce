@@ -419,12 +419,6 @@
 		<item name="android:textColor">?attr/colorTopBarIcon</item>
 	</style>
 
-	<style name="Widget.Kotatsu.TextView.Indicator" parent="Widget.MaterialComponents.TextView">
-		<item name="android:drawablePadding">12dp</item>
-		<item name="android:gravity">center_vertical</item>
-		<item name="android:textAppearance">?textAppearanceLabelMedium</item>
-	</style>
-
 	<style name="Widget.Kotatsu.ImageView.Cover" parent="Widget.MaterialComponents.ShapeableImageView">
 		<item name="aspectRationHeight">18</item>
 		<item name="aspectRationWidth">13</item>

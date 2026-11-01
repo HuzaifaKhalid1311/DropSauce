@@ -6,7 +6,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 
 class SearchSuggestionMenuProvider(
@@ -35,13 +35,15 @@ class SearchSuggestionMenuProvider(
 	}
 
 	private fun clearSearchHistory() {
-		buildAlertDialog(context, isCentered = true) {
-			setTitle(R.string.clear_search_history)
-			setIcon(R.drawable.ic_clear_all)
-			setCancelable(true)
-			setMessage(R.string.text_clear_search_history_prompt)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.clear) { _, _ -> viewModel.clearSearchHistory() }
-		}.show()
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_clear_all,
+			title = context.getString(R.string.clear_search_history),
+			message = context.getString(R.string.text_clear_search_history_prompt),
+			confirmLabel = context.getString(R.string.clear),
+			destructive = true,
+		) {
+			viewModel.clearSearchHistory()
+		}
 	}
 }

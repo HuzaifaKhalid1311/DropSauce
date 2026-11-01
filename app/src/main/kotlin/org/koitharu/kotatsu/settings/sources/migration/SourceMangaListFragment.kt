@@ -54,11 +54,11 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.util.RoundedTopShape
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
@@ -163,15 +163,17 @@ class SourceMangaListFragment : BaseComposeSettingsFragment(0) {
 		override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
 			return when (item.itemId) {
 				ACTION_REMOVE -> {
-					MaterialAlertDialogBuilder(requireContext())
-						.setTitle(R.string.remove_from_favourites_and_history)
-						.setMessage(R.string.remove_from_favourites_and_history_confirm)
-						.setNegativeButton(android.R.string.cancel, null)
-						.setPositiveButton(R.string.remove) { _, _ ->
-							viewModel.removeSelected()
-							mode.finish()
-						}
-						.show()
+					showConfirmDialog(
+						context = requireContext(),
+						icon = R.drawable.ic_delete,
+						title = getString(R.string.remove_from_favourites_and_history),
+						message = getString(R.string.remove_from_favourites_and_history_confirm),
+						confirmLabel = getString(R.string.remove),
+						destructive = true,
+					) {
+						viewModel.removeSelected()
+						mode.finish()
+					}
 					true
 				}
 

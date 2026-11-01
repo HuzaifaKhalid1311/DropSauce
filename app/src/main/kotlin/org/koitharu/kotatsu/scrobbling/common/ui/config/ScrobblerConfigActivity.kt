@@ -6,13 +6,13 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -116,13 +116,14 @@ class ScrobblerConfigActivity : BaseActivity<ActivityScrobblerConfigBinding>(),
 	}
 
 	private fun showUserDialog() {
-		MaterialAlertDialogBuilder(this)
-			.setTitle(title)
-			.setMessage(getString(R.string.logged_in_as, viewModel.user.value?.nickname))
-			.setNegativeButton(R.string.close, null)
-			.setPositiveButton(R.string.logout) { _, _ ->
-				viewModel.logout()
-			}.show()
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_account_circle,
+			title = title.toString(),
+			message = getString(R.string.logged_in_as, viewModel.user.value?.nickname),
+			confirmLabel = getString(R.string.logout),
+			onConfirm = viewModel::logout,
+		)
 	}
 
 	companion object {

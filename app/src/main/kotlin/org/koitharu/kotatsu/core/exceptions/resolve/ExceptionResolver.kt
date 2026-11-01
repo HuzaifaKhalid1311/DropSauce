@@ -23,7 +23,7 @@ import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
 import org.koitharu.kotatsu.core.util.ext.restartApplication
 import org.koitharu.kotatsu.details.ui.pager.EmptyMangaReason
@@ -151,16 +151,17 @@ class ExceptionResolver private constructor(
             Toast.makeText(ctx, R.string.operation_not_supported, Toast.LENGTH_SHORT).show()
             return
         }
-        buildAlertDialog(ctx) {
-            setTitle(R.string.ignore_ssl_errors)
-            setMessage(R.string.ignore_ssl_errors_summary)
-            setPositiveButton(R.string.apply) { _, _ ->
-                settings.isSSLBypassEnabled = true
-                Toast.makeText(ctx, R.string.settings_apply_restart_required, Toast.LENGTH_LONG).show()
-                ctx.restartApplication()
-            }
-            setNegativeButton(android.R.string.cancel, null)
-        }.show()
+        showConfirmDialog(
+            context = ctx,
+            icon = R.drawable.ic_shield_off,
+            title = ctx.getString(R.string.ignore_ssl_errors),
+            message = ctx.getString(R.string.ignore_ssl_errors_summary),
+            confirmLabel = ctx.getString(R.string.apply),
+        ) {
+            settings.isSSLBypassEnabled = true
+            Toast.makeText(ctx, R.string.settings_apply_restart_required, Toast.LENGTH_LONG).show()
+            ctx.restartApplication()
+        }
     }
 
     class Factory @Inject constructor(

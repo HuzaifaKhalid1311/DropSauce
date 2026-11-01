@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,6 +31,7 @@ import okhttp3.Request
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.viewLifecycleScope
@@ -100,12 +100,13 @@ class ProxySettingsFragment : BaseComposeSettingsFragment(R.string.proxy) {
 	}
 
 	private fun showTestResult(error: Throwable?) {
-		MaterialAlertDialogBuilder(requireContext())
-			.setTitle(R.string.proxy)
-			.setMessage(error?.getDisplayMessage(resources) ?: getString(R.string.connection_ok))
-			.setPositiveButton(android.R.string.ok, null)
-			.setCancelable(true)
-			.show()
+		showConfirmDialog(
+			context = requireContext(),
+			icon = if (error == null) R.drawable.ic_web else R.drawable.ic_error_small,
+			title = getString(R.string.proxy),
+			message = error?.getDisplayMessage(resources) ?: getString(R.string.connection_ok),
+			onConfirm = {},
+		)
 	}
 }
 

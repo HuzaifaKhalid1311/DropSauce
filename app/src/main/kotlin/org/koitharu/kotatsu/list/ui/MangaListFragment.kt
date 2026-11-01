@@ -25,7 +25,7 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.ui.BaseFragment
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.FitHeightGridLayoutManager
 import org.koitharu.kotatsu.core.ui.list.FitHeightLinearLayoutManager
 import org.koitharu.kotatsu.core.ui.list.ListCheckpoint
@@ -241,15 +241,16 @@ abstract class MangaListFragment :
 
 	private fun confirmDisableCheckpoint() {
 		checkpoint?.hide()
-		buildAlertDialog(context ?: return, isCentered = true) {
-			setIcon(R.drawable.ic_jump_back)
-			setTitle(R.string.list_checkpoint)
-			setMessage(R.string.list_checkpoint_disable_prompt)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.disable) { _, _ ->
-				settings.isListCheckpointEnabled = false
-			}
-		}.show()
+		val context = context ?: return
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_jump_back,
+			title = context.getString(R.string.list_checkpoint),
+			message = context.getString(R.string.list_checkpoint_disable_prompt),
+			confirmLabel = context.getString(R.string.disable),
+		) {
+			settings.isListCheckpointEnabled = false
+		}
 	}
 
 	private fun resolveException(e: Throwable) {
@@ -406,16 +407,17 @@ abstract class MangaListFragment :
 
 			R.id.action_fix -> {
 				val itemsSnapshot = selectedItemsIds
-				buildAlertDialog(context ?: return false, isCentered = true) {
-					setTitle(item.title)
-					setIcon(item.icon)
-					setMessage(R.string.manga_fix_prompt)
-					setNegativeButton(android.R.string.cancel, null)
-					setPositiveButton(R.string.fix) { _, _ ->
-						AutoFixService.start(context, itemsSnapshot)
-						mode?.finish()
-					}
-				}.show()
+				val context = context ?: return false
+				showConfirmDialog(
+					context = context,
+					icon = R.drawable.ic_auto_fix,
+					title = item.title?.toString().orEmpty(),
+					message = context.getString(R.string.manga_fix_prompt),
+					confirmLabel = context.getString(R.string.fix),
+				) {
+					AutoFixService.start(context, itemsSnapshot)
+					mode?.finish()
+				}
 				true
 			}
 

@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.text.parseAsHtml
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePaddingRelative
@@ -26,6 +27,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.dialog.showTextInputDialog
 import org.koitharu.kotatsu.core.util.ext.end
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
@@ -236,28 +238,21 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 	}
 
 	private fun showCoverUrlDialog() {
-		val editText = com.google.android.material.textfield.TextInputEditText(this).apply {
-			setHint(R.string.url)
-			inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
-			setText(viewModel.data.value?.second?.coverUrl?.takeIf { it.isHttpUrl() })
-		}
-		val padding = resources.getDimensionPixelOffset(R.dimen.margin_normal)
-		val container = android.widget.FrameLayout(this).apply {
-			setPadding(padding, padding / 2, padding, 0)
-			addView(editText)
-		}
-		com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.pick_cover_url)
-			.setView(container)
-			.setNegativeButton(android.R.string.cancel, null)
-			.setPositiveButton(android.R.string.ok) { _, _ ->
-				val url = editText.text?.toString()?.trim().orEmpty()
-				if (url.isHttpUrl()) {
-					viewModel.updateCover(url)
-				} else {
-					Snackbar.make(viewBinding.composeView, R.string.invalid_url, Snackbar.LENGTH_SHORT).show()
-				}
+		showTextInputDialog(
+			context = this,
+			icon = R.drawable.ic_images,
+			title = getString(R.string.pick_cover_url),
+			initialValue = viewModel.data.value?.second?.coverUrl?.takeIf { it.isHttpUrl() }.orEmpty(),
+			hint = getString(R.string.url),
+			keyboardType = KeyboardType.Uri,
+			isValid = { true },
+		) { text ->
+			val url = text.trim()
+			if (url.isHttpUrl()) {
+				viewModel.updateCover(url)
+			} else {
+				Snackbar.make(viewBinding.composeView, R.string.invalid_url, Snackbar.LENGTH_SHORT).show()
 			}
-			.show()
+		}
 	}
 }

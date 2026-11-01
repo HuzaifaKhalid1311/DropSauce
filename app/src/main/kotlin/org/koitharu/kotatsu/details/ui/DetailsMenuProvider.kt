@@ -22,7 +22,7 @@ import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.AppShortcutManager
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
 import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
 import org.koitharu.kotatsu.local.data.isEpub
@@ -74,12 +74,14 @@ class DetailsMenuProvider(
 			}
 
 			R.id.action_delete -> {
-				buildAlertDialog(activity) {
-					setTitle(R.string.delete_manga)
-					setMessage(activity.getString(R.string.text_delete_local_manga, manga.title))
-					setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteLocal() }
-					setNegativeButton(android.R.string.cancel, null)
-				}.show()
+				showConfirmDialog(
+					context = activity,
+					icon = R.drawable.ic_delete,
+					title = activity.getString(R.string.delete_manga),
+					message = activity.getString(R.string.text_delete_local_manga, manga.title),
+					confirmLabel = activity.getString(R.string.delete),
+					destructive = true,
+				) { viewModel.deleteLocal() }
 			}
 
 			R.id.action_save -> {

@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -106,22 +106,20 @@ class AlternativesActivity : BaseActivity<ActivityAlternativesBinding>(),
 	override fun onFooterButtonClick() = Unit
 
 	private fun confirmMigration(target: Manga) {
-		buildAlertDialog(this, isCentered = true) {
-			setIcon(R.drawable.ic_swap)
-			setTitle(R.string.manga_migration)
-			setMessage(
-				getString(
-					R.string.migrate_confirmation,
-					viewModel.manga.title,
-					viewModel.manga.source.getTitle(context),
-					target.title,
-					target.source.getTitle(context),
-				),
-			)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.migrate) { _, _ ->
-				viewModel.migrate(target)
-			}
-		}.show()
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_swap,
+			title = getString(R.string.manga_migration),
+			message = getString(
+				R.string.migrate_confirmation,
+				viewModel.manga.title,
+				viewModel.manga.source.getTitle(this),
+				target.title,
+				target.source.getTitle(this),
+			),
+			confirmLabel = getString(R.string.migrate),
+		) {
+			viewModel.migrate(target)
+		}
 	}
 }

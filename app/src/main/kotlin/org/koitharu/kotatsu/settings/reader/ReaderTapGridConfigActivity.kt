@@ -1,25 +1,40 @@
 package org.koitharu.kotatsu.settings.reader
 
-import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.content.Context
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
 import androidx.core.view.WindowInsetsCompat
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveOptionGroupItem
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findKeyByValue
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -132,29 +147,29 @@ class ReaderTapGridConfigActivity : BaseActivity<ActivityReaderTapActionsBinding
 		val selectedItem = viewModel.content.value[area]?.run {
 			if (isLongTap) longTapAction else tapAction
 		}?.ordinal ?: -1
-		val listener = DialogInterface.OnClickListener { dialog, which ->
+		val names = listOf(getString(R.string.none)) + TapAction.entries.map { getString(it.nameStringResId) }
+		showInstantChoiceDialog(
+			context = this,
+			icon = R.drawable.ic_tap,
+			title = getString(if (isLongTap) R.string.long_tap_action else R.string.tap_action),
+			options = names,
+			selectedIndex = selectedItem + 1,
+		) { which ->
 			viewModel.setTapAction(area, isLongTap, TapAction.entries.getOrNull(which - 1))
-			dialog.dismiss()
 		}
-		val names = arrayOfNulls<String>(TapAction.entries.size + 1)
-		names[0] = getString(R.string.none)
-		TapAction.entries.forEachIndexed { index, action -> names[index + 1] = getString(action.nameStringResId) }
-		MaterialAlertDialogBuilder(this)
-			.setSingleChoiceItems(names, selectedItem + 1, listener)
-			.setTitle(if (isLongTap) R.string.long_tap_action else R.string.tap_action)
-			.setIcon(R.drawable.ic_tap)
-			.setNegativeButton(android.R.string.cancel, null)
-			.show()
 	}
 
 	private fun confirmReset() {
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.reader_actions)
-			.setMessage(R.string.config_reset_confirm)
-			.setNegativeButton(android.R.string.cancel, null)
-			.setPositiveButton(R.string.reset) { _, _ ->
-				viewModel.reset()
-			}.show()
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_revert,
+			title = getString(R.string.reader_actions),
+			message = getString(R.string.config_reset_confirm),
+			confirmLabel = getString(R.string.reset),
+			destructive = true,
+		) {
+			viewModel.reset()
+		}
 	}
 
 	private fun createBackground(area: TapGridArea, action: TapAction?): Drawable {
@@ -186,5 +201,50 @@ class ReaderTapGridConfigActivity : BaseActivity<ActivityReaderTapActionsBinding
 		}
 		val rippleColor = MaterialColors.getColor(this, android.R.attr.colorControlHighlight, Color.TRANSPARENT)
 		return RippleDrawable(ColorStateList.valueOf(rippleColor), base, mask)
+	}
+}
+
+/** Radio list that applies the tapped option immediately (no confirm button), like the old single-choice popup. */
+private fun showInstantChoiceDialog(
+	context: Context,
+	@DrawableRes icon: Int,
+	title: String,
+	options: List<String>,
+	selectedIndex: Int,
+	onSelect: (Int) -> Unit,
+) {
+	showComposeDialog(context) { dismiss ->
+		val colors = MaterialTheme.colorScheme
+		ExpressiveDialogCard(
+			icon = painterResource(icon),
+			title = title,
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_close),
+				label = stringResource(android.R.string.cancel),
+				onClick = dismiss,
+			),
+		) {
+			options.forEachIndexed { index, option ->
+				val isSelected = index == selectedIndex
+				ExpressiveOptionGroupItem(
+					index = index,
+					count = options.size,
+					onClick = {
+						dismiss()
+						onSelect(index)
+					},
+				) {
+					RadioButton(selected = isSelected, onClick = null)
+					Spacer(Modifier.width(12.dp))
+					Text(
+						text = option,
+						style = MaterialTheme.typography.bodyLarge,
+						fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+						color = if (isSelected) colors.primary else colors.onSurface,
+						modifier = Modifier.weight(1f),
+					)
+				}
+			}
+		}
 	}
 }

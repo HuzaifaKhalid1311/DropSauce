@@ -9,7 +9,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.RecyclerScrollKeeper
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
@@ -56,16 +56,16 @@ class HistoryListFragment : MangaListFragment() {
 
 			R.id.action_mark_current -> {
 				val itemsSnapshot = selectedItems
-				buildAlertDialog(context ?: return false, isCentered = true) {
-					setTitle(item.title)
-					setIcon(item.icon)
-					setMessage(R.string.mark_as_completed_prompt)
-					setNegativeButton(android.R.string.cancel, null)
-					setPositiveButton(android.R.string.ok) { _, _ ->
-						viewModel.markAsRead(itemsSnapshot)
-						mode?.finish()
-					}
-				}.show()
+				val ctx = context ?: return false
+				showConfirmDialog(
+					context = ctx,
+					icon = R.drawable.ic_eye_check,
+					title = item.title.toString(),
+					message = ctx.getString(R.string.mark_as_completed_prompt),
+				) {
+					viewModel.markAsRead(itemsSnapshot)
+					mode?.finish()
+				}
 				true
 			}
 

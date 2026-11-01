@@ -7,7 +7,7 @@ import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.favourites.ui.list.FavouritesListFragment.Companion.NO_ID
 
 class FavouriteTabPopupMenuProvider(
@@ -38,12 +38,13 @@ class FavouriteTabPopupMenuProvider(
 	}
 
 	private fun confirmDelete() {
-		buildAlertDialog(context, isCentered = true) {
-			setMessage(R.string.categories_delete_confirm)
-			setTitle(R.string.remove_category)
-			setIcon(R.drawable.ic_delete)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.remove) { _, _ -> viewModel.deleteCategory(categoryId) }
-		}.show()
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_delete,
+			title = context.getString(R.string.remove_category),
+			message = context.getString(R.string.categories_delete_confirm),
+			confirmLabel = context.getString(R.string.remove),
+			destructive = true,
+		) { viewModel.deleteCategory(categoryId) }
 	}
 }

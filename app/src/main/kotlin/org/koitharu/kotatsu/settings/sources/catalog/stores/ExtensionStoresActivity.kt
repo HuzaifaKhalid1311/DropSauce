@@ -5,10 +5,24 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -18,14 +32,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseActivity
-import org.koitharu.kotatsu.core.ui.dialog.setEditText
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 import org.koitharu.kotatsu.databinding.ActivityExtensionStoresBinding
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreState
@@ -117,46 +133,61 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 	}
 
 	private fun showStoreDialog(existing: ExtensionStoreState?, initialUrl: String? = null) {
-		val builder = MaterialAlertDialogBuilder(this)
-			.setTitle(if (existing == null) R.string.add_store else R.string.edit_store)
-		val editor = builder.setEditText(
-			inputType = EditorInfo.TYPE_CLASS_TEXT or EditorInfo.TYPE_TEXT_VARIATION_URI,
-			singleLine = true,
-		)
-		editor.hint = getString(R.string.add_repo_hint)
-		editor.setText(initialUrl ?: existing?.store?.indexUrl.orEmpty())
-		builder.setNegativeButton(android.R.string.cancel, null)
-			.setPositiveButton(android.R.string.ok, null)
-		val dialog = builder.create()
-		dialog.setOnShowListener {
-			dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-				val url = editor.text?.toString()?.trim().orEmpty()
-				if (!url.startsWith("https://")) {
-					editor.error = getString(R.string.invalid_url)
-					return@setOnClickListener
-				}
-				if (existing == null && viewModel.containsStoreUrl(url)) {
-					editor.error = getString(R.string.store_already_added)
-					return@setOnClickListener
-				}
-				setDialogBusy(dialog, true)
-				lifecycleScope.launch {
-					val result = if (existing == null) {
-						viewModel.addStore(url)
-					} else {
-						viewModel.editStore(existing.store.id, url)
+		showComposeDialog(this) { dismiss ->
+			var url by remember { mutableStateOf(initialUrl ?: existing?.store?.indexUrl.orEmpty()) }
+			var error by remember { mutableStateOf<String?>(null) }
+			var isBusy by remember { mutableStateOf(false) }
+			val submit: () -> Unit = {
+				val value = url.trim()
+				if (!value.startsWith("https://")) {
+					error = getString(R.string.invalid_url)
+				} else if (existing == null && viewModel.containsStoreUrl(value)) {
+					error = getString(R.string.store_already_added)
+				} else if (!isBusy) {
+					isBusy = true
+					lifecycleScope.launch {
+						val result = if (existing == null) {
+							viewModel.addStore(value)
+						} else {
+							viewModel.editStore(existing.store.id, value)
+						}
+						result.fold(
+							onSuccess = { dismiss() },
+							onFailure = {
+								error = it.message ?: getString(R.string.extensions_repo_load_error)
+								isBusy = false
+							},
+						)
 					}
-					result.fold(
-						onSuccess = { dialog.dismiss() },
-						onFailure = {
-							editor.error = it.message ?: getString(R.string.extensions_repo_load_error)
-							setDialogBusy(dialog, false)
-						},
-					)
 				}
 			}
+			ExpressiveDialogCard(
+				icon = painterResource(R.drawable.ic_storefront),
+				title = stringResource(if (existing == null) R.string.add_store else R.string.edit_store),
+				cornerAction = DialogCornerAction(
+					icon = painterResource(R.drawable.ic_check),
+					label = stringResource(android.R.string.ok),
+					enabled = !isBusy,
+					onClick = submit,
+				),
+			) {
+				OutlinedTextField(
+					value = url,
+					onValueChange = {
+						url = it
+						error = null
+					},
+					placeholder = { Text(stringResource(R.string.add_repo_hint)) },
+					isError = error != null,
+					supportingText = error?.let { { Text(it) } },
+					singleLine = true,
+					keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+					keyboardActions = KeyboardActions(onDone = { submit() }),
+					shape = RoundedCornerShape(16.dp),
+					modifier = Modifier.fillMaxWidth(),
+				)
+			}
 		}
-		dialog.show()
 	}
 
 	private fun handleAddStoreIntent(intent: Intent?) {
@@ -182,17 +213,16 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 	}
 
 	private fun confirmRemove(item: ExtensionStoreState) {
-		MaterialAlertDialogBuilder(this)
-			.setTitle(R.string.remove_store)
-			.setMessage(R.string.remove_store_warning)
-			.setPositiveButton(R.string.remove) { _, _ -> viewModel.removeStore(item.store.id) }
-			.setNegativeButton(android.R.string.cancel, null)
-			.show()
-	}
-
-	private fun setDialogBusy(dialog: AlertDialog, busy: Boolean) {
-		dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = !busy
-		dialog.getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled = !busy
+		showConfirmDialog(
+			context = this,
+			icon = R.drawable.ic_delete,
+			title = getString(R.string.remove_store),
+			message = getString(R.string.remove_store_warning),
+			confirmLabel = getString(R.string.remove),
+			destructive = true,
+		) {
+			viewModel.removeStore(item.store.id)
+		}
 	}
 
 	private inner class ReorderCallback : ItemTouchHelper.SimpleCallback(

@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,8 +31,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.os.OpenDocumentTreeHelper
 import org.koitharu.kotatsu.core.ui.ComposeAlertDialogFragment
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
 import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
-import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogTextButton
+import org.koitharu.kotatsu.core.ui.dialog.expressiveGroupItemShape
 import org.koitharu.kotatsu.core.util.ext.resolveName
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.local.data.LocalStorageManager
@@ -55,8 +58,15 @@ class ImportDialogFragment : ComposeAlertDialogFragment() {
 		ExpressiveDialogCard(
 			icon = painterResource(R.drawable.ic_file_zip),
 			title = stringResource(R.string._import),
+			cornerAction = DialogCornerAction(
+				icon = painterResource(R.drawable.ic_close),
+				label = stringResource(android.R.string.cancel),
+				onClick = ::dismiss,
+			),
 		) {
 			ImportChoice(
+				index = 0,
+				count = 2,
 				icon = R.drawable.ic_file_zip,
 				title = R.string.comics_archive,
 				subtitle = R.string.comics_archive_import_description,
@@ -67,52 +77,64 @@ class ImportDialogFragment : ComposeAlertDialogFragment() {
 					),
 				)
 			}
-			Spacer(Modifier.height(12.dp))
+			Spacer(Modifier.height(2.dp))
 			ImportChoice(
+				index = 1,
+				count = 2,
 				icon = R.drawable.ic_folder_file,
 				title = R.string.folder_with_images,
 				subtitle = R.string.folder_with_images_import_description,
 			) {
 				launch(importDirCall.tryLaunch(null))
 			}
-			Spacer(Modifier.height(8.dp))
-			ExpressiveDialogTextButton(text = stringResource(android.R.string.cancel)) { dismiss() }
 		}
 	}
 
 	@Composable
 	private fun ImportChoice(
+		index: Int,
+		count: Int,
 		@DrawableRes icon: Int,
 		@StringRes title: Int,
 		@StringRes subtitle: Int,
 		onClick: () -> Unit,
 	) {
+		val colors = MaterialTheme.colorScheme
 		Surface(
 			onClick = onClick,
-			shape = RoundedCornerShape(20.dp),
-			color = MaterialTheme.colorScheme.secondaryContainer,
-			contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+			shape = expressiveGroupItemShape(index, count),
+			color = colors.surfaceContainer,
+			contentColor = colors.onSurface,
 			modifier = Modifier.fillMaxWidth(),
 		) {
 			Row(
 				modifier = Modifier.padding(16.dp),
 				verticalAlignment = Alignment.CenterVertically,
 			) {
-				Icon(
-					painter = painterResource(icon),
-					contentDescription = null,
-					modifier = Modifier.size(28.dp),
-				)
+				Box(
+					modifier = Modifier
+						.size(48.dp)
+						.background(colors.secondaryContainer, RoundedCornerShape(14.dp)),
+					contentAlignment = Alignment.Center,
+				) {
+					Icon(
+						painter = painterResource(icon),
+						contentDescription = null,
+						tint = colors.onSecondaryContainer,
+						modifier = Modifier.size(26.dp),
+					)
+				}
 				Spacer(Modifier.width(16.dp))
-				Column {
+				Column(modifier = Modifier.weight(1f)) {
 					Text(
 						text = stringResource(title),
 						style = MaterialTheme.typography.titleMedium,
+						color = colors.onSurface,
 					)
 					Text(
 						text = stringResource(subtitle),
 						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						color = colors.onSurfaceVariant,
 					)
 				}
 			}
