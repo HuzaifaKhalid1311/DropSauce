@@ -424,7 +424,6 @@
     <string name="no_extension_store_found">No store found</string>
     <string name="no_extension_store_found_summary">Tap the edit icon to add an extension store.</string>
     <string name="add_repo">Add store index</string>
-    <string name="page_spread">Double page spread</string>
     <string name="show_whole_page">Show whole page</string>
     <string name="split_page_again">Split page again</string>
     <string name="add_repo_hint">Store index url</string>

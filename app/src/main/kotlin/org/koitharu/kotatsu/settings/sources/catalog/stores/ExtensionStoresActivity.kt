@@ -76,7 +76,8 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 				viewModel.stores.collect(adapter::submitList)
 			}
 		}
-		handleAddStoreIntent(intent)
+		// After a rotation the link was already handled.
+		if (savedInstanceState == null) handleAddStoreIntent(intent)
 	}
 
 	override fun onNewIntent(intent: Intent) {

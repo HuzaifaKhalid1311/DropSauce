@@ -518,12 +518,19 @@ private fun MihonPreferenceRow(
 		is ListPreference -> {
 			val entries = pref.entries?.map { it.toString() } ?: emptyList()
 			val values = pref.entryValues?.map { it.toString() } ?: emptyList()
+			// Held like the switch's state: novel plugins save elsewhere, so `rev` never re-reads them.
+			var selected by remember(rev) { mutableStateOf(pref.value) }
 			ListSettingsItem(
 				title = title,
 				entries = entries,
 				entryValues = values,
-				selectedValue = pref.value,
-				onValueChange = { newVal -> if (pref.callChangeListener(newVal)) pref.value = newVal },
+				selectedValue = selected,
+				onValueChange = { newVal ->
+					if (pref.callChangeListener(newVal)) {
+						pref.value = newVal
+						selected = newVal
+					}
+				},
 				shape = shape,
 				enabled = pref.isEnabled,
 			)
@@ -532,24 +539,39 @@ private fun MihonPreferenceRow(
 		is MultiSelectListPreference -> {
 			val entries = pref.entries?.map { it.toString() } ?: emptyList()
 			val values = pref.entryValues?.map { it.toString() } ?: emptyList()
+			var selected by remember(rev) { mutableStateOf(pref.values) }
 			MultiSelectSettingsItem(
 				title = title,
 				entries = entries,
 				entryValues = values,
-				selectedValues = pref.values,
-				onValuesChange = { newVals -> if (pref.callChangeListener(newVals)) pref.values = newVals },
+				selectedValues = selected,
+				onValuesChange = { newVals ->
+					if (pref.callChangeListener(newVals)) {
+						pref.values = newVals
+						selected = newVals
+					}
+				},
 				shape = shape,
 				enabled = pref.isEnabled,
 			)
 		}
 
 		is EditTextPreference -> {
+			var text by remember(rev) { mutableStateOf(pref.text.orEmpty()) }
 			EditTextSettingsItem(
 				title = title,
-				value = pref.text.orEmpty(),
-				onValueChange = { newVal -> if (pref.callChangeListener(newVal)) pref.text = newVal },
+				value = text,
+				onValueChange = { newVal ->
+					if (pref.callChangeListener(newVal)) {
+						pref.text = newVal
+						text = newVal
+					}
+				},
 				shape = shape,
 				enabled = pref.isEnabled,
+				// The extension's own popup title and instructions (expected format, what changing it does).
+				dialogTitle = pref.dialogTitle?.toString() ?: title,
+				dialogMessage = pref.dialogMessage?.toString(),
 			)
 		}
 

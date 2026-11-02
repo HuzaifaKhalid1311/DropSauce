@@ -58,7 +58,7 @@
 	<dimen name="top_bar_title_inset_with_navigation">78dp</dimen>
 	<!-- Five per row on every phone width -->
 	<dimen name="explore_grid_width">84dp</dimen>
-	<dimen name="explore_grid_spacing">4dp</dimen>
+	<dimen name="explore_grid_spacing">2dp</dimen>
 	<dimen name="reader_corner_margin">16dp</dimen>
 	<dimen name="chapter_grid_width">80dp</dimen>
 	<dimen name="side_card_offset">8dp</dimen>

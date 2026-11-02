@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.core.ui.util
 
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -23,8 +24,8 @@ private const val SPRING_STIFFNESS = 800f
 
 /**
  * Every top bar's back button magnifies while pressed, like the popups' corner button. Holding it for
- * the long-press timeout gives a haptic tick; releasing after that goes to the home screen, and sliding
- * off cancels. A plain tap still navigates up.
+ * the long-press timeout gives a firm haptic and turns the arrow into a home icon; releasing after that
+ * goes to the home screen, and sliding off cancels. A plain tap still navigates up.
  *
  * Attached from [applyTonalNavigationButtonStyle], which every toolbar in the app routes through.
  */
@@ -39,15 +40,22 @@ fun ImageButton.attachBackHomeGesture() {
 		scaleY.animateToFinalPosition(value)
 	}
 	var armed = false
+	var arrow: Drawable? = null
 	val arm = Runnable {
 		if (isAttachedToWindow) {
 			armed = true
-			hapticFeedback(HapticEffect.LONG_PRESS)
+			hapticFeedback(HapticEffect.HEAVY_PRESS)
+			arrow = drawable
+			setImageResource(R.drawable.ic_back_home)
 		}
 	}
 	val cancel = {
 		removeCallbacks(arm)
-		armed = false
+		if (armed) {
+			armed = false
+			setImageDrawable(arrow)
+			arrow = null
+		}
 		scaleTo(1f)
 	}
 	// The toolbar gives its navigation button a "Navigate up" tooltip on long press; swallow it.
@@ -55,7 +63,6 @@ fun ImageButton.attachBackHomeGesture() {
 	setOnTouchListener { _, event ->
 		when (event.actionMasked) {
 			MotionEvent.ACTION_DOWN -> {
-				armed = false
 				scaleTo(PRESSED_SCALE)
 				postDelayed(arm, timeout)
 			}

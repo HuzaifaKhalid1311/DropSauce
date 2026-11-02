@@ -293,7 +293,7 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (!settings.isShizukuInstallerEnabled && !settings.isPrivateInstallEnabled) {
 			ensureInstallPermissionAccess()
 		}
-		if (isAutoMigrate && settings.isPrivateInstallEnabled) {
+		if (isAutoMigrate && settings.isPrivateInstallEnabled && savedInstanceState == null) {
 			lifecycleScope.launch {
 				viewModel.isRefreshing.value = true
 				val count = withContext(Dispatchers.IO) {
@@ -522,6 +522,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			return
 		}
 		val keepCurrent = { viewModel.clearExtensionInProgress(request.packageName) }
+		// No spinner while asking: a rotation closes the popup without any answer, which would leave it spinning.
+		// Confirming sets it again in enqueueInstall.
+		keepCurrent()
 		showConfirmDialog(
 			context = this,
 			icon = R.drawable.ic_storefront,

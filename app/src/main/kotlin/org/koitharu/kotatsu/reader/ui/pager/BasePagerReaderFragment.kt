@@ -117,7 +117,7 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 
 	override fun toggleWholeSpread() {
 		val holder = viewBinding?.pager?.findCurrentViewHolder() as? PageHolder ?: return
-		holder.showWhole(holder.spreadState == false)
+		holder.showWhole(holder.spreadState == false, animate = true)
 		updateSpread()
 	}
 
@@ -128,7 +128,8 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 		pager.recyclerView?.let { list ->
 			for (child in list.children) {
 				val holder = list.getChildViewHolder(child) as? PageHolder ?: continue
-				if (holder !== current) holder.showWhole(false)
+				// Leaving a page shown whole zooms it back into its half, the same way the button does.
+				if (holder !== current) holder.showWhole(false, animate = true)
 			}
 		}
 		viewModel.pageSpread.value = (current as? PageHolder)?.spreadState

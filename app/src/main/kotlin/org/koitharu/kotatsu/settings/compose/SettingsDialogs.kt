@@ -22,6 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -165,7 +168,8 @@ fun MultiChoiceDialog(
 }
 
 /**
- * M3 Expressive text input popup (replaces EditTextPreference's dialog).
+ * M3 Expressive text input popup (replaces EditTextPreference's dialog). The tick stays off while
+ * [isValid] rejects the text; [isPassword] hides it.
  */
 @Composable
 fun TextInputDialog(
@@ -175,11 +179,17 @@ fun TextInputDialog(
 	onConfirm: (String) -> Unit,
 	onDismiss: () -> Unit,
 	@DrawableRes icon: Int? = null,
+	message: String? = null,
+	keyboardType: KeyboardType = KeyboardType.Text,
+	isPassword: Boolean = false,
+	isValid: (String) -> Boolean = { true },
 ) {
 	var value by remember { mutableStateOf(initialValue) }
 	val submit = {
-		onConfirm(value)
-		onDismiss()
+		if (isValid(value)) {
+			onConfirm(value)
+			onDismiss()
+		}
 	}
 	Dialog(
 		onDismissRequest = onDismiss,
@@ -188,9 +198,11 @@ fun TextInputDialog(
 		ExpressiveDialogCard(
 			icon = icon?.let { painterResource(it) },
 			title = title,
+			message = message,
 			cornerAction = DialogCornerAction(
 				icon = painterResource(R.drawable.ic_check),
 				label = stringResource(android.R.string.ok),
+				enabled = isValid(value),
 				onClick = submit,
 			),
 		) {
@@ -203,7 +215,11 @@ fun TextInputDialog(
 					null
 				},
 				singleLine = true,
-				keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+				visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+				keyboardOptions = KeyboardOptions(
+					keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
+					imeAction = ImeAction.Done,
+				),
 				keyboardActions = KeyboardActions(onDone = { submit() }),
 				shape = RoundedCornerShape(16.dp),
 				modifier = Modifier.fillMaxWidth(),
@@ -219,8 +235,8 @@ fun TextInputDialog(
 fun ConfirmDialog(
 	title: String,
 	message: String,
-	confirmLabel: String = "OK",
-	dismissLabel: String? = "Cancel",
+	confirmLabel: String = stringResource(android.R.string.ok),
+	dismissLabel: String? = stringResource(android.R.string.cancel),
 	@DrawableRes icon: Int? = null,
 	destructive: Boolean = false,
 	onConfirm: () -> Unit,

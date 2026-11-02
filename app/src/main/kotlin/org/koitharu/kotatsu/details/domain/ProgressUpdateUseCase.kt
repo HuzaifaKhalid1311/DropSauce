@@ -2,7 +2,9 @@ package org.koitharu.kotatsu.details.domain
 
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.model.isLocal
+import org.koitharu.kotatsu.core.model.withMergedBranches
 import org.koitharu.kotatsu.core.os.NetworkState
+import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
@@ -14,6 +16,7 @@ class ProgressUpdateUseCase @Inject constructor(
 	private val database: MangaDatabase,
 	private val localMangaRepository: LocalMangaRepository,
 	private val networkState: NetworkState,
+	private val mangaDataRepository: MangaDataRepository,
 ) {
 
 	suspend operator fun invoke(manga: Manga): Float {
@@ -31,7 +34,7 @@ class ProgressUpdateUseCase @Inject constructor(
 			repo.getDetails(seed)
 		} else {
 			seed
-		}
+		}.withMergedBranches(mangaDataRepository.getScanlatorMerge(seed.id))
 		val cachedChapterUrl = database.getChaptersDao().findAll(manga.id)
 			.firstOrNull { it.chapterId == history.chapterId }
 			?.url

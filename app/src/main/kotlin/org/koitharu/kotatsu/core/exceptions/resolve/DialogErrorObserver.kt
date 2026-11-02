@@ -57,6 +57,8 @@ class DialogErrorObserver(
 									resolve(value)
 								} else {
 									ctx.copyToClipboard(ctx.getString(R.string.error), value.stackTraceToString())
+									// Closed without a fix, like the cross: the reader leaves instead of staying blank.
+									onResolved?.accept(false)
 								}
 							},
 						)

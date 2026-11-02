@@ -83,6 +83,8 @@ class LocalInfoDialog : ComposeAlertDialogFragment() {
 			cornerAction = DialogCornerAction(
 				icon = painterResource(R.drawable.ic_close),
 				label = stringResource(R.string.close),
+				// Back and outside taps already wait for the delete; closing mid-way would cut it off.
+				enabled = !isCleaningUp,
 				onClick = ::dismiss,
 			),
 			footer = {

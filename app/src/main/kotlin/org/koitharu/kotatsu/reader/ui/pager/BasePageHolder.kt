@@ -8,12 +8,15 @@ import android.os.Build
 import android.os.PowerManager
 import android.view.View
 import androidx.annotation.CallSuper
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.drawToBitmap
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.davemorrissey.labs.subscaleview.DefaultOnImageEventListener
+import com.davemorrissey.labs.subscaleview.ImageViewState
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -65,6 +68,9 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	private var isProgressPending = false
 
+	/** The page is being reloaded under a still of its last frame (see [holdFrame]). */
+	private var isHoldingFrame = false
+
 	init {
 		lifecycleScope.launch(Dispatchers.Main) {
 			ssiv.bindToLifecycle(this@BasePageHolder)
@@ -107,6 +113,9 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	/** Set before the image so the view lays it out rotated from the start. */
 	protected open fun pageOrientation(): Int = SubsamplingScaleImageView.ORIENTATION_0
+
+	/** Where the next loaded image opens instead of its default zoom; used once. */
+	protected open fun takeInitialViewState(): ImageViewState? = null
 
 	/** Which half of a wide page this holder shows; null shows it whole. Set before the page loads. */
 	protected open fun splitSide(data: ReaderPage): PageViewModel.SplitSide? = null
@@ -156,6 +165,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	@CallSuper
 	open fun onRecycled() {
+		releaseFrame()
 		hideProgress()
 		clearUpscale()
 		viewModel.onRecycle()
@@ -210,9 +220,31 @@ abstract class BasePageHolder<B : ViewBinding>(
 		bindingInfo.progressBar.hide()
 	}
 
+	/**
+	 * Covers a reload of the same page with a still of what it shows now, so the swap doesn't blink or
+	 * flash "Preparing". [releaseFrame] lifts it once the new image is in place.
+	 */
+	protected fun holdFrame() {
+		val frame = if (ssiv.isReady && ssiv.width > 0 && ssiv.height > 0) {
+			runCatching { ssiv.drawToBitmap() }.getOrNull()
+		} else {
+			null
+		}
+		ssiv.foreground = frame?.toDrawable(context.resources)
+		isHoldingFrame = frame != null
+	}
+
+	protected fun releaseFrame() {
+		if (isHoldingFrame) {
+			isHoldingFrame = false
+			ssiv.foreground = null
+		}
+	}
+
 	protected open fun onStateChanged(state: PageState) {
+		if (state is PageState.Error) releaseFrame()
 		bindingInfo.layoutError.isVisible = state is PageState.Error
-		bindingInfo.layoutProgress.isGone = state.isFinalState()
+		bindingInfo.layoutProgress.isGone = state.isFinalState() || isHoldingFrame
 		when (state) {
 			is PageState.Converting -> {
 				bindingInfo.textViewStatus.setText(R.string.processing_)
@@ -239,7 +271,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 				bindingInfo.textViewStatus.isVisible = true
 				settings.applyBitmapConfig(ssiv)
 				ssiv.orientation = pageOrientation()
-				ssiv.setImage(state.source)
+				ssiv.setImage(state.source, null, takeInitialViewState())
 			}
 
 			is PageState.Loading -> {

@@ -172,8 +172,7 @@ class ReaderActivity :
         viewBinding.zoomControl.listener = this
         viewBinding.actionsView.listener = this
         viewBinding.buttonTimerFab?.setOnClickListener(this)
-        viewBinding.spreadControl.buttonSpreadIndicator.setOnClickListener(this)
-        viewBinding.spreadControl.buttonSpreadToggle.setOnClickListener(this)
+        viewBinding.spreadControl.root.setOnClickListener { readerManager.currentReader?.toggleWholeSpread() }
         idlingDetector.bindToLifecycle(this)
         screenOrientationHelper.applySettings()
         viewModel.isBookmarkAdded.observe(this) { viewBinding.actionsView.isBookmarkAdded = it }
@@ -413,17 +412,13 @@ class ReaderActivity :
             } else {
                 onScrollTimerClick(isLongClick = false)
             }
-
-            R.id.button_spread_indicator,
-            R.id.button_spread_toggle -> readerManager.currentReader?.toggleWholeSpread()
         }
     }
 
     /** [isWhole] is null when the current page isn't a split wide page. */
     private fun onPageSpreadChanged(isWhole: Boolean?) {
-        val spread = viewBinding.spreadControl
-        spread.root.isVisible = isWhole != null
-        val button = spread.buttonSpreadToggle
+        val button = viewBinding.spreadControl.root
+        button.isVisible = isWhole != null
         button.setIconResource(if (isWhole == true) R.drawable.ic_spread_split else R.drawable.ic_spread_whole)
         button.setContentDescriptionAndTooltip(if (isWhole == true) R.string.split_page_again else R.string.show_whole_page)
     }

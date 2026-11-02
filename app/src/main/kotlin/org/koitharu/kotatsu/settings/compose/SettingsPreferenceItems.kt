@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 
@@ -43,7 +44,7 @@ fun ListSettingsItem(
 	enabled: Boolean = true,
 ) {
 	var showDialog by remember { mutableStateOf(false) }
-	val selectedIndex = entryValues.indexOf(selectedValue).coerceAtLeast(0)
+	val selectedIndex = entryValues.indexOf(selectedValue)
 	val displayValue = entries.getOrNull(selectedIndex)
 
 	SettingsItem(
@@ -128,6 +129,11 @@ fun EditTextSettingsItem(
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 	mask: ((String) -> String)? = null,
+	dialogTitle: String = title,
+	dialogMessage: String? = null,
+	keyboardType: KeyboardType = KeyboardType.Text,
+	isPassword: Boolean = false,
+	isValid: (String) -> Boolean = { true },
 ) {
 	var showDialog by remember { mutableStateOf(false) }
 	val displayValue = remember(value, mask) { mask?.invoke(value) ?: value }
@@ -145,12 +151,16 @@ fun EditTextSettingsItem(
 
 	if (showDialog) {
 		TextInputDialog(
-			title = title,
+			title = dialogTitle,
 			initialValue = value,
 			hint = hint,
 			onConfirm = onValueChange,
 			onDismiss = { showDialog = false },
 			icon = icon,
+			message = dialogMessage,
+			keyboardType = keyboardType,
+			isPassword = isPassword,
+			isValid = isValid,
 		)
 	}
 }

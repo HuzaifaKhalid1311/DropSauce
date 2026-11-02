@@ -53,6 +53,9 @@ enum class HapticEffect {
 	/** A long-press being recognised (entering selection mode, opening a context menu). */
 	LONG_PRESS,
 
+	/** A firm thud for a long-press that arms something bigger than a menu (back button's go-home). */
+	HEAVY_PRESS,
+
 	/** A continuous gesture begins — drag / slider touch-down, pull-to-refresh arming. */
 	GESTURE_START,
 
@@ -100,7 +103,7 @@ private fun HapticEffect.toConstant(): Int = when (this) {
 		HapticFeedbackConstants.LONG_PRESS
 	}
 
-	HapticEffect.LONG_PRESS -> HapticFeedbackConstants.LONG_PRESS
+	HapticEffect.LONG_PRESS, HapticEffect.HEAVY_PRESS -> HapticFeedbackConstants.LONG_PRESS
 
 	HapticEffect.GESTURE_START -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 		HapticFeedbackConstants.GESTURE_START
@@ -132,6 +135,9 @@ fun View.hapticFeedback(effect: HapticEffect) {
 	if (effect == HapticEffect.DESELECT && context.playDeselectHaptic()) {
 		return
 	}
+	if (effect == HapticEffect.HEAVY_PRESS && context.playHeavyPressHaptic()) {
+		return
+	}
 	performHapticFeedback(effect.toConstant(), HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING)
 }
 
@@ -152,6 +158,24 @@ private fun Context.playDeselectHaptic(): Boolean {
 			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK, 0.6f)
 			.addPrimitive(VibrationEffect.Composition.PRIMITIVE_TICK, 0.25f, 55)
 			.compose(),
+		VibrationAttributes.createForUsage(VibrationAttributes.USAGE_TOUCH),
+	)
+	return true
+}
+
+/** A full-strength thud (a strong click where the vibrator has no thud); false where primitives aren't available. */
+private fun Context.playHeavyPressHaptic(): Boolean {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+		return false
+	}
+	val vibrator = getSystemService(VibratorManager::class.java)?.defaultVibrator ?: return false
+	val primitive = when {
+		vibrator.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_THUD) -> VibrationEffect.Composition.PRIMITIVE_THUD
+		vibrator.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_CLICK) -> VibrationEffect.Composition.PRIMITIVE_CLICK
+		else -> return false
+	}
+	vibrator.vibrate(
+		VibrationEffect.startComposition().addPrimitive(primitive, 1f).compose(),
 		VibrationAttributes.createForUsage(VibrationAttributes.USAGE_TOUCH),
 	)
 	return true

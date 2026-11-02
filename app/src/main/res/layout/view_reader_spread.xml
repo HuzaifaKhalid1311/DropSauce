@@ -1,35 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Shown on a split wide page: the spread icon marks it, tapping either half shows the whole page until it's left. -->
-<com.google.android.material.button.MaterialButtonGroup
+<!-- Shown on a split wide page: shows the whole page until it's left. -->
+<com.google.android.material.button.MaterialButton
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
+	style="?materialIconButtonOutlinedStyle"
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
 	android:layout_gravity="bottom|end"
 	android:layout_margin="@dimen/reader_corner_margin"
-	android:orientation="horizontal"
-	android:spacing="2dp"
+	android:contentDescription="@string/show_whole_page"
+	android:tooltipText="@string/show_whole_page"
 	android:visibility="gone"
-	tools:visibility="visible">
-
-	<com.google.android.material.button.MaterialButton
-		android:id="@+id/button_spread_indicator"
-		style="?materialIconButtonOutlinedStyle"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:contentDescription="@string/page_spread"
-		app:backgroundTint="@color/bg_floating_button"
-		app:icon="@drawable/ic_page_spread" />
-
-	<com.google.android.material.button.MaterialButton
-		android:id="@+id/button_spread_toggle"
-		style="?materialIconButtonOutlinedStyle"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:contentDescription="@string/show_whole_page"
-		android:tooltipText="@string/show_whole_page"
-		app:backgroundTint="@color/bg_floating_button"
-		app:icon="@drawable/ic_spread_whole" />
-
-</com.google.android.material.button.MaterialButtonGroup>
+	app:backgroundTint="@color/bg_floating_button"
+	app:icon="@drawable/ic_spread_whole"
+	tools:visibility="visible" />

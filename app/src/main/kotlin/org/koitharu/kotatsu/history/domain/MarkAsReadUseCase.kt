@@ -4,6 +4,8 @@ import dagger.Reusable
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.koitharu.kotatsu.core.model.withMergedBranches
+import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -13,6 +15,7 @@ import javax.inject.Inject
 class MarkAsReadUseCase @Inject constructor(
 	private val historyRepository: HistoryRepository,
 	private val mangaRepositoryFactory: MangaRepository.Factory,
+	private val mangaDataRepository: MangaDataRepository,
 ) {
 
 	suspend operator fun invoke(manga: Manga) {
@@ -21,7 +24,7 @@ class MarkAsReadUseCase @Inject constructor(
 			repo.getDetails(manga)
 		} else {
 			manga
-		}
+		}.withMergedBranches(mangaDataRepository.getScanlatorMerge(manga.id))
 		val lastChapter = details.chapters?.lastOrNull() ?: return
 		val pages = repo.getPages(details, lastChapter)
 		historyRepository.addOrUpdate(

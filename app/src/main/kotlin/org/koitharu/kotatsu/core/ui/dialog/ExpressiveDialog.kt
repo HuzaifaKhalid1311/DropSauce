@@ -1,14 +1,19 @@
 package org.koitharu.kotatsu.core.ui.dialog
 
+import android.app.Dialog
 import android.content.Context
 import android.graphics.Color as AndroidColor
 import android.graphics.drawable.ColorDrawable
+import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentDialog
+import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +47,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -60,8 +66,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -133,6 +141,21 @@ fun showComposeDialog(
 }
 
 /**
+ * Replays a tap far outside the hosting dialog's window, so the dialog applies its own rules: it closes
+ * only when cancelable and closing on outside taps (a Compose `Dialog` routes it to onDismissRequest).
+ * Down and up both go out: older Android closes on the down, newer on the up; a closed dialog ignores the rest.
+ */
+private fun View.tapOutsideDialog() {
+	val dialog = findViewTreeOnBackPressedDispatcherOwner() as? Dialog ?: return
+	for (action in intArrayOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+		if (!dialog.isShowing) return
+		val event = MotionEvent.obtain(0L, 0L, action, -10_000f, -10_000f, 0)
+		dialog.onTouchEvent(event)
+		event.recycle()
+	}
+}
+
+/**
  * Circular tonal icon action pinned to the top-right corner of [ExpressiveDialogCard] (e.g. a cross
  * to cancel/close or a tick to confirm/finish). Expands smoothly in width and morphs shape on contact.
  */
@@ -179,9 +202,12 @@ fun ExpressiveDialogCard(
 		label = "bottomScrollDivider",
 	)
 
+	val hostView = LocalView.current
 	Box(
 		modifier = modifier
 			.fillMaxWidth()
+			// The window spans the screen width, so taps beside the card land inside it: treat them as outside.
+			.pointerInput(Unit) { detectTapGestures { hostView.tapOutsideDialog() } }
 			.padding(horizontal = DialogHorizontalMargin, vertical = 16.dp),
 		contentAlignment = Alignment.Center,
 	) {
@@ -191,7 +217,9 @@ fun ExpressiveDialogCard(
 			color = colors.surfaceContainer,
 			modifier = Modifier
 				.fillMaxWidth()
-				.widthIn(max = DialogMaxWidth),
+				.widthIn(max = DialogMaxWidth)
+				// Taps on the card itself stop here instead of reaching the outside handler above.
+				.pointerInput(Unit) { detectTapGestures { } },
 		) {
 			Column(
 				modifier = Modifier.padding(CardPadding),
@@ -371,6 +399,7 @@ fun ExpressivePillButton(
 	icon: Painter? = null,
 	primary: Boolean = true,
 	destructive: Boolean = false,
+	outlined: Boolean = false,
 	enabled: Boolean = true,
 	colors: ButtonColors? = null,
 	onClick: () -> Unit,
@@ -391,7 +420,16 @@ fun ExpressivePillButton(
 	val btnModifier = modifier
 		.fillMaxWidth()
 		.height(PillButtonHeight)
-	if (primary || destructive) {
+	if (outlined) {
+		OutlinedButton(
+			onClick = onClick,
+			enabled = enabled,
+			shapes = ButtonDefaults.shapes(),
+			colors = colors ?: ButtonDefaults.outlinedButtonColors(),
+			modifier = btnModifier,
+			content = label,
+		)
+	} else if (primary || destructive) {
 		val resolvedColors = colors ?: if (destructive) {
 			ButtonDefaults.buttonColors(
 				containerColor = scheme.errorContainer,
@@ -568,12 +606,15 @@ fun expressiveGroupItemShape(index: Int, count: Int): Shape {
 /** One selectable destination in [showActionChoiceDialog]. */
 class DialogAction(
 	val label: String,
+	/** The lowest-emphasis choice, e.g. a "don't allow" under "allow always" / "allow once". */
+	val outlined: Boolean = false,
 	val onClick: () -> Unit,
 )
 
 /**
  * Expressive "choose a destination" popup: [icon] + [title] + a top-right copy button (or close
- * button without [onCopyTitle]), optional [message], and a pinned 2-per-row [ExpressiveButtonGrid] of [actions].
+ * button without [onCopyTitle]), optional [message], and [actions] as full-width pills stacked like the
+ * original big-buttons dialog: the first filled, the rest tonal (or outlined).
  */
 fun showActionChoiceDialog(
 	context: Context,
@@ -606,18 +647,19 @@ fun showActionChoiceDialog(
 			},
 			footer = if (actions.isNotEmpty()) {
 				{
-					ExpressiveButtonGrid(
-						buttons = actions.mapIndexed { index, action ->
-							DialogButtonSpec(
-								label = action.label,
+					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+						actions.forEachIndexed { index, action ->
+							ExpressivePillButton(
+								text = action.label,
 								primary = index == 0,
+								outlined = action.outlined,
 								onClick = {
 									dismiss()
 									action.onClick()
 								},
 							)
-						},
-					)
+						}
+					}
 				}
 			} else {
 				null

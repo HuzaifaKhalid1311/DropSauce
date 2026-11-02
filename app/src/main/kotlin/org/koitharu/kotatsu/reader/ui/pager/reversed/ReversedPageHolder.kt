@@ -47,13 +47,13 @@ class ReversedPageHolder(
 			when (settings.zoomMode) {
 				ZoomMode.FIT_CENTER -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
-					resetScaleAndCenter()
+					restAt(minScale, PointF(sWidth / 2f, sHeight / 2f))
 				}
 
 				ZoomMode.FIT_HEIGHT -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
 					minScale = height / shownHeight.toFloat()
-					setScaleAndCenter(
+					restAt(
 						minScale,
 						PointF(shownWidth.toFloat(), shownHeight / 2f),
 					)
@@ -62,7 +62,7 @@ class ReversedPageHolder(
 				ZoomMode.FIT_WIDTH -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CUSTOM
 					minScale = width / shownWidth.toFloat()
-					setScaleAndCenter(
+					restAt(
 						minScale,
 						PointF(shownWidth / 2f, 0f),
 					)
@@ -70,7 +70,7 @@ class ReversedPageHolder(
 
 				ZoomMode.KEEP_START -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
-					setScaleAndCenter(
+					restAt(
 						maxScale,
 						PointF(shownWidth.toFloat(), 0f),
 					)

@@ -637,7 +637,7 @@ class AppRouter private constructor(
                         DialogAction(context.getString(R.string.allow_once)) {
                             onConfirmed(true)
                         },
-                        DialogAction(context.getString(R.string.dont_allow)) {
+                        DialogAction(context.getString(R.string.dont_allow), outlined = true) {
                             settings.allowDownloadOnMeteredNetwork = TriStateOption.DISABLED
                             onConfirmed(false)
                         },
