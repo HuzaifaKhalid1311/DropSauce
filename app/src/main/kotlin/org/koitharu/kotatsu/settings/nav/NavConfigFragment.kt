@@ -4,6 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -14,8 +23,10 @@ import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
-import org.koitharu.kotatsu.core.ui.dialog.DialogAction
-import org.koitharu.kotatsu.core.ui.dialog.showActionChoiceDialog
+import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.core.ui.dialog.ExpressiveOptionGroupItem
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
@@ -25,6 +36,7 @@ import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.FragmentSettingsSourcesBinding
+import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.settings.nav.adapter.navAddAD
@@ -96,20 +108,44 @@ class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), Recycl
 		super.onDestroyView()
 	}
 
+	// Instant picker: tapping a section adds it, the same grouped rows as the app's other pickers.
 	override fun onClick(v: View) {
-		showActionChoiceDialog(
-			context = v.context,
-			icon = R.drawable.ic_add,
-			title = v.context.getString(R.string.add),
-			actions = viewModel.availableItems.map { item ->
-				DialogAction(
-					label = v.context.getString(item.title),
-					icon = item.icon,
-					onClick = { viewModel.addItem(item) },
-				)
-			},
-			dismissLabel = v.context.getString(android.R.string.cancel),
-		)
+		val items = viewModel.availableItems
+		showComposeDialog(v.context) { dismiss ->
+			ExpressiveDialogCard(
+				icon = painterResource(R.drawable.ic_add),
+				title = stringResource(R.string.add),
+				cornerAction = DialogCornerAction(
+					icon = painterResource(R.drawable.ic_close),
+					label = stringResource(android.R.string.cancel),
+					onClick = dismiss,
+				),
+			) {
+				items.forEachIndexed { index, item ->
+					ExpressiveOptionGroupItem(
+						index = index,
+						count = items.size,
+						onClick = {
+							dismiss()
+							viewModel.addItem(item)
+						},
+					) {
+						Icon(
+							// Same (unchecked) selector state as the section rows behind the popup.
+							painter = rememberAnyDrawablePainter(item.icon),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+						)
+						Spacer(Modifier.width(16.dp))
+						Text(
+							text = stringResource(item.title),
+							style = MaterialTheme.typography.bodyLarge,
+							modifier = Modifier.weight(1f),
+						)
+					}
+				}
+			}
+		}
 	}
 
 	override fun onItemClick(item: NavItem, view: View) {

@@ -149,7 +149,9 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 	}
 
 	// Shifts the tab strip so the first tab's indicator starts where the leftmost grid cover's
-	// rounded corner ends. Screen coordinates, so insets/nav rail/app-bar reparenting are all covered.
+	// rounded corner ends. Window coordinates, so insets/nav rail/app-bar reparenting are all covered.
+	// Translations are left out: the tab-switch animation slides the strip and the pages separately, and
+	// a layout pass mid-slide would otherwise bake that offset into the padding for good.
 	// The inset goes on the inner tab strip, not the TabLayout: TabLayout stretches the strip to its own
 	// full width, so TabLayout padding would add a phantom scroll range and the selected-tab centring
 	// would slide the strip left on every swipe even when all categories fit.
@@ -163,16 +165,24 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 		val label = firstTab.children.firstOrNull { it is TextView && it.isVisible } ?: return@OnLayoutChangeListener
 		val res = tabs.resources
 		// The pager, not the page: pages slide sideways mid-swipe, the pager doesn't.
-		val coverStraightX = binding.pager.locationOnScreenX() + list.paddingLeft +
+		val coverStraightX = binding.pager.layoutX() + list.paddingLeft +
 			res.getDimensionPixelOffset(R.dimen.grid_spacing_outer) +
 			res.getDimensionPixelOffset(R.dimen.cover_corner_large)
 		// ponytail: clamped at 0; a label narrower than the tab's min width can't reach further left.
-		val padding = (coverStraightX - tabs.locationOnScreenX() - tabs.paddingLeft -
+		val padding = (coverStraightX - tabs.layoutX() - tabs.paddingLeft -
 			(firstTab.left - strip.paddingLeft) - label.left).coerceAtLeast(0)
 		if (padding != strip.paddingLeft) strip.updatePadding(left = padding)
 	}
 
-	private fun View.locationOnScreenX() = IntArray(2).also(::getLocationOnScreen)[0]
+	private fun View.layoutX(): Int {
+		var x = left
+		var parent = parent
+		while (parent is View) {
+			x += parent.left - parent.scrollX
+			parent = parent.parent
+		}
+		return x
+	}
 
 	private fun findCurrentFragment(): Fragment? {
 		return childFragmentManager.findCurrentPagerFragment(

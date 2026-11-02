@@ -65,7 +65,10 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 		super.onViewBindingCreated(binding, savedInstanceState)
 		with(binding.pager) {
 			onInitPager(this)
-			doOnPageChanged { if (!isRestoringPosition) notifyPageChanged(it) }
+			doOnPageChanged {
+				if (!isRestoringPosition) notifyPageChanged(it)
+				updateSpread()
+			}
 			setOnGenericMotionListener(this@BasePagerReaderFragment)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 				recyclerView?.defaultFocusHighlightEnabled = false
@@ -76,6 +79,7 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 			}
 			adapter = readerAdapter
 		}
+		readerAdapter?.onPageShown = ::updateSpread
 
 		viewModel.pageAnimation.observe(viewLifecycleOwner) {
 			val transformer = when (it) {
@@ -97,6 +101,7 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 	}
 
 	override fun onDestroyView() {
+		viewModel.pageSpread.value = null
 		pagerLifecycleDispatcher = null
 		requireViewBinding().pager.adapter = null
 		super.onDestroyView()
@@ -108,6 +113,25 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 
 	override fun onZoomOut() {
 		(viewBinding?.pager?.findCurrentViewHolder() as? PageHolder)?.onZoomOut()
+	}
+
+	override fun toggleWholeSpread() {
+		val holder = viewBinding?.pager?.findCurrentViewHolder() as? PageHolder ?: return
+		holder.showWhole(holder.spreadState == false)
+		updateSpread()
+	}
+
+	/** Publishes the current page's spread state; a page shown whole goes back to its half once left. */
+	private fun updateSpread() {
+		val pager = viewBinding?.pager ?: return
+		val current = pager.findCurrentViewHolder()
+		pager.recyclerView?.let { list ->
+			for (child in list.children) {
+				val holder = list.getChildViewHolder(child) as? PageHolder ?: continue
+				if (holder !== current) holder.showWhole(false)
+			}
+		}
+		viewModel.pageSpread.value = (current as? PageHolder)?.spreadState
 	}
 
 	override fun onGenericMotion(v: View?, event: MotionEvent): Boolean {

@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
@@ -164,6 +166,7 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 			ExpressiveDialogCard(
 				icon = painterResource(R.drawable.ic_storefront),
 				title = stringResource(if (existing == null) R.string.add_store else R.string.edit_store),
+				message = stringResource(R.string.add_repo_message),
 				cornerAction = DialogCornerAction(
 					icon = painterResource(R.drawable.ic_check),
 					label = stringResource(android.R.string.ok),
@@ -177,7 +180,15 @@ class ExtensionStoresActivity : BaseActivity<ActivityExtensionStoresBinding>(),
 						url = it
 						error = null
 					},
-					placeholder = { Text(stringResource(R.string.add_repo_hint)) },
+					placeholder = {
+						// Clear of the cursor, and one line so the field doesn't shrink once typing starts.
+						Text(
+							text = stringResource(R.string.add_repo_hint),
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.padding(start = 2.dp),
+						)
+					},
 					isError = error != null,
 					supportingText = error?.let { { Text(it) } },
 					singleLine = true,

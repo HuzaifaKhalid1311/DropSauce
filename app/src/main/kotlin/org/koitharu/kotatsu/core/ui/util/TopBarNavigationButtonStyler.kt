@@ -102,9 +102,6 @@ fun Toolbar.applyTonalNavigationButtonStyle() {
 
 private fun Toolbar.applyTonalNavigationButtonStyleNow() {
 	val navigationButton = findNavigationButton() ?: return
-	// While the back-home pill is open the button owns its own width and icon - re-styling here would
-	// snap both back on the very next layout pass.
-	if (navigationButton.isBackHomeExpanded) return
 	val metrics = TonalBarMetrics(context)
 	navigationButton.updateLayoutSize(
 		width = metrics.cellSize,

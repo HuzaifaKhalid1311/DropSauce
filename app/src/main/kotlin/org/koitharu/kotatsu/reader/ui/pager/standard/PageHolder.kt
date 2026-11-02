@@ -58,6 +58,25 @@ open class PageHolder(
 	/** Wide pages aren't split where pages already sit side by side. */
 	protected open val isSplitSupported = true
 
+	/** The split page the reader's spread button shows whole; it goes back to its half once left. */
+	private var wholePage: ReaderPage? = null
+
+	/** For the reader's spread button: null when this isn't a split page, true while it's shown whole. */
+	val spreadState: Boolean?
+		get() = when {
+			wholePage != null && wholePage == boundData -> true
+			viewModel.isSplit -> false
+			else -> null
+		}
+
+	fun showWhole(isWhole: Boolean) {
+		val data = boundData ?: return
+		val target = if (isWhole) data else null
+		if (wholePage == target) return
+		wholePage = target
+		bind(data)
+	}
+
 	init {
 		ViewCompat.setOnApplyWindowInsetsListener(binding.root, this)
 	}
@@ -99,7 +118,7 @@ open class PageHolder(
 	}
 
 	override fun splitSide(data: ReaderPage): PageViewModel.SplitSide? = when {
-		!isSplitSupported || !settings.isSplitWideEnabled -> null
+		!isSplitSupported || !settings.isSplitWideEnabled || data == wholePage -> null
 		data.isSecondHalf != isFirstHalfRight -> PageViewModel.SplitSide.RIGHT
 		else -> PageViewModel.SplitSide.LEFT
 	}
@@ -165,9 +184,16 @@ open class PageHolder(
 	/** Once a wide page shows its first half, the pager gets an extra item for the second one. */
 	protected fun notifySplit() {
 		val page = boundData ?: return
+		val adapter = bindingAdapter as? BaseReaderAdapter<*> ?: return
 		if (viewModel.isSplit && !page.isSecondHalf) {
-			(bindingAdapter as? BaseReaderAdapter<*>)?.onPageSplit(page)
+			adapter.onPageSplit(page)
 		}
+		adapter.onPageShown?.invoke()
+	}
+
+	override fun onRecycled() {
+		wholePage = null
+		super.onRecycled()
 	}
 
 	override fun onZoomIn() {

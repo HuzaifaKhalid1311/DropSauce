@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.explore.domain
 
+import org.koitharu.kotatsu.core.model.forSuggestions
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -27,7 +28,7 @@ class ExploreRepository @Inject constructor(
 		val tags = historyRepository.getPopularTags(tagsLimit).mapNotNull {
 			if (it in tagsBlacklist) null else it.title
 		}
-		val sources = sourcesRepository.getEnabledSources()
+		val sources = sourcesRepository.getEnabledSources().forSuggestions(settings.isSuggestionsExcludeNsfw)
 		check(sources.isNotEmpty()) { "No sources available" }
 		for (i in 0..4) {
 			val list = getList(sources.random(), tags, tagsBlacklist)

@@ -89,6 +89,9 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 
 	open fun scrollBy(delta: Int, smooth: Boolean): Boolean = false
 
+	/** The reader's spread button: show the current split page whole, or split again. */
+	open fun toggleWholeSpread() = Unit
+
 	abstract fun getCurrentState(): ReaderState?
 
 	protected abstract fun onCreateAdapter(): BaseReaderAdapter<*>?

@@ -91,6 +91,15 @@ fun MangaSource.isNsfw(): Boolean = when (this) {
 	else -> false
 }
 
+/**
+ * "Don't suggest NSFW" keeps suggestions to extensions rated safe (novel plugins have no rating, so they're
+ * out too). With none installed the option is unavailable, so every source stays.
+ */
+fun List<MangaSource>.forSuggestions(excludeNsfw: Boolean): List<MangaSource> =
+	if (excludeNsfw) filter { it.isSafe() }.ifEmpty { this } else this
+
+fun MangaSource.isSafe(): Boolean = (unwrap() as? MihonMangaSource)?.contentWarning == ContentWarning.SAFE
+
 /** The site a source browses, to open it in the in-app browser; null when it has no web home. */
 val MangaSource.homeUrl: String?
 	get() = when (val source = unwrap()) {

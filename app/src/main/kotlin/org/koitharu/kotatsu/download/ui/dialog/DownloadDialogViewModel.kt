@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
+import org.koitharu.kotatsu.core.model.withMergedBranches
 import org.koitharu.kotatsu.core.nav.AppRouter
+import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.DownloadFormat
@@ -44,6 +46,7 @@ class DownloadDialogViewModel @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val historyRepository: HistoryRepository,
 	private val settings: AppSettings,
+	private val mangaDataRepository: MangaDataRepository,
 ) : BaseViewModel() {
 
 	val manga = savedStateHandle.require<Array<ParcelableManga>>(AppRouter.KEY_MANGA).map {
@@ -236,6 +239,8 @@ class DownloadDialogViewModel @Inject constructor(
 	}.onFailure { e ->
 		e.printStackTraceDebug()
 	}.getOrDefault(this)
+		// Same chapter list as the details screen, so the options follow merged scanlators.
+		.withMergedBranches(mangaDataRepository.getScanlatorMerge(id))
 
 	private fun <T> MutableMap<T, Int>.increment(key: T) {
 		put(key, getOrDefault(key, 0) + 1)

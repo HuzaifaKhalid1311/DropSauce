@@ -163,6 +163,9 @@ class ReaderViewModel @Inject constructor(
     /** Novels: the dock's highlight button armed - the next tapped sentence becomes a highlight. */
     val isHighlightPicking = MutableStateFlow(false)
 
+    /** The current page's split: null when it isn't a split wide page, true while it's shown whole. */
+    val pageSpread = MutableStateFlow<Boolean?>(null)
+
     val isPeekMode = MutableStateFlow(savedStateHandle.get<Boolean>(ReaderIntent.EXTRA_PEEK) == true)
 
     val content = MutableStateFlow(ReaderContent(emptyList(), null))

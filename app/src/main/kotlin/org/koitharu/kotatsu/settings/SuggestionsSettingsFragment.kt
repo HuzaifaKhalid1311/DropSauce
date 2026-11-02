@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,12 +30,15 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.model.isSafe
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
 import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
+import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.parsers.util.replaceWith
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
@@ -68,6 +72,9 @@ class SuggestionsSettingsFragment :
 	@Inject
 	lateinit var settings: AppSettings
 
+	@Inject
+	lateinit var sourcesRepository: MangaSourcesRepository
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		settings.subscribe(this)
@@ -83,6 +90,7 @@ class SuggestionsSettingsFragment :
 			DropSauceTheme {
 				SuggestionsScreen(
 					tagsProvider = tagsCompletionProvider,
+					sourcesRepository = sourcesRepository,
 				)
 			}
 		}
@@ -113,6 +121,7 @@ class SuggestionsSettingsFragment :
 @Composable
 private fun SuggestionsScreen(
 	tagsProvider: TagsAutoCompleteProvider,
+	sourcesRepository: MangaSourcesRepository,
 ) {
 	var enabled by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS, false)
 	var wifiOnly by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS_WIFI_ONLY, false)
@@ -120,6 +129,9 @@ private fun SuggestionsScreen(
 	var excludeTags by rememberStringPref(AppSettings.KEY_SUGGESTIONS_EXCLUDE_TAGS, "")
 	var excludeNsfw by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NSFW, false)
 	var excludeNovels by rememberBooleanPref(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NOVELS, true)
+	val hasSafeSources by remember {
+		sourcesRepository.observeEnabledSources().map { sources -> sources.any { it.isSafe() } }
+	}.collectAsState(initial = true)
 
 	var showTagsDialog by remember { mutableStateOf(false) }
 
@@ -172,12 +184,18 @@ private fun SuggestionsScreen(
 				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.exclude_nsfw_from_suggestions),
-						subtitle = stringResource(R.string.exclude_nsfw_from_suggestions_summary),
-						checked = excludeNsfw,
+						subtitle = stringResource(
+							if (hasSafeSources) {
+								R.string.exclude_nsfw_from_suggestions_summary
+							} else {
+								R.string.exclude_nsfw_from_suggestions_unavailable
+							},
+						),
+						checked = excludeNsfw && hasSafeSources,
 						onCheckedChange = { excludeNsfw = it },
 						icon = R.drawable.ic_nsfw,
 						shape = pos.shape,
-						enabled = enabled,
+						enabled = enabled && hasSafeSources,
 					)
 				}
 				item { pos ->

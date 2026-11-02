@@ -29,6 +29,9 @@ class MangaSearchMenuProvider(
 		val searchView = menuItem.actionView as SearchView
 		searchView.setOnQueryTextListener(this)
 		searchView.queryHint = menuItem.title
+		// A rebuilt menu (e.g. after submitting a query) drops an open search view without calling
+		// onMenuItemActionCollapse, which would leave the search stand-in title drawn over the real one.
+		(activity as? MangaListActivity)?.setSearchExpanded(false)
 	}
 
 	override fun onPrepareMenu(menu: Menu) {

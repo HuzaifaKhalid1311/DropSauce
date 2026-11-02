@@ -36,6 +36,10 @@
 		app:layout_dodgeInsetEdges="bottom"
 		tools:visibility="visible" />
 
+	<include
+		android:id="@+id/spreadControl"
+		layout="@layout/view_reader_spread" />
+
 	<org.koitharu.kotatsu.reader.ui.ReaderInfoBarView
 		android:id="@+id/infoBar"
 		android:layout_width="match_parent"

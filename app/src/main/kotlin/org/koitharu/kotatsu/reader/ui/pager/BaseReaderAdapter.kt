@@ -36,6 +36,9 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 	val sourceItemCount: Int
 		get() = sourceItems.size
 
+	/** A page finished loading, so whether it's split may have changed. */
+	var onPageShown: (() -> Unit)? = null
+
 	init {
 		stateRestorationPolicy = StateRestorationPolicy.PREVENT
 	}

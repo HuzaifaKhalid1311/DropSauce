@@ -49,6 +49,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.exceptions.resolve.CaptchaHandler
 import org.koitharu.kotatsu.core.model.distinctById
+import org.koitharu.kotatsu.core.model.forSuggestions
 import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.nav.AppRouter
@@ -271,7 +272,7 @@ class SuggestionsWorker @AssistedInject constructor(
 	}
 
 	private suspend fun getSources(): List<MangaSource> {
-		val sources = sourcesRepository.getEnabledSources()
+		val sources = sourcesRepository.getEnabledSources().forSuggestions(appSettings.isSuggestionsExcludeNsfw)
 		return if (appSettings.isSuggestionsExcludeNovels) {
 			sources.filterNot { it.isNovelSource }
 		} else {

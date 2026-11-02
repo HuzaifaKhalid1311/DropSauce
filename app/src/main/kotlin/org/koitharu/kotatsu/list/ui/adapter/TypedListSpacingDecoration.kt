@@ -15,6 +15,8 @@ class TypedListSpacingDecoration(
 	private val spacingSmall = context.resources.getDimensionPixelOffset(R.dimen.list_spacing_small)
 	private val spacingNormal =
 		context.resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
+	private val spacingExploreGrid =
+		context.resources.getDimensionPixelOffset(R.dimen.explore_grid_spacing)
 
 	override fun getItemOffsets(
 		outRect: Rect,
@@ -62,7 +64,6 @@ class TypedListSpacingDecoration(
 			ListItemType.STATE_LOADING,
 			ListItemType.STATE_ERROR,
 			ListItemType.STATE_EMPTY,
-			ListItemType.EXPLORE_SOURCE_GRID,
 			ListItemType.EXPLORE_SUGGESTION,
 			ListItemType.MANGA_NESTED_GROUP,
 			ListItemType.CATEGORY_LARGE,
@@ -74,6 +75,7 @@ class TypedListSpacingDecoration(
 				-> outRect.set(0)
 
 			ListItemType.CHAPTER_GRID -> outRect.set(spacingSmall)
+			ListItemType.EXPLORE_SOURCE_GRID -> outRect.set(spacingExploreGrid)
 
 			ListItemType.TIP -> outRect.set(0) // TODO
 		}

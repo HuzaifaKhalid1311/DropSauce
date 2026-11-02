@@ -424,7 +424,11 @@
     <string name="no_extension_store_found">No store found</string>
     <string name="no_extension_store_found_summary">Tap the edit icon to add an extension store.</string>
     <string name="add_repo">Add store index</string>
-    <string name="add_repo_hint">Add store index url (index.min.json or index.pb)</string>
+    <string name="page_spread">Double page spread</string>
+    <string name="show_whole_page">Show whole page</string>
+    <string name="split_page_again">Split page again</string>
+    <string name="add_repo_hint">Store index url</string>
+    <string name="add_repo_message">Paste the store\'s index.min.json or index.pb link</string>
     <string name="change_repo">Change store index</string>
     <string name="remove_repo">Remove store index</string>
     <string name="no_bookmarks_yet">No bookmarks yet</string>
@@ -432,7 +436,6 @@
     <string name="bookmarks_removed">Bookmarks removed</string>
     <string name="no_external_source_installed">No external source found</string>
     <string name="manage_manga_extensions_from_settings_icon">Install manga or novel extensions from the manage option to start reading</string>
-    <string name="back_home_hint">Lift to go home, slide off to cancel</string>
     <string name="explore_tab_order">Show first</string>
     <string name="store_kind_manga">Manga</string>
     <string name="store_kind_novel">Novels</string>
@@ -1164,7 +1167,8 @@
     <string name="clear_browser_data">Clear browser data</string>
     <string name="clear_browser_data_summary">Clear browser data such as cache and cookies. Warning: Authorization in manga sources may become invalid</string>
     <string name="no_write_permission_to_file">Does not have permission to write a file</string>
-    <string name="exclude_nsfw_from_suggestions_summary">Adult manga will not be shown in suggestions. This option may work inaccurate with some sources</string>
+    <string name="exclude_nsfw_from_suggestions_summary">Suggestions only come from manga extensions rated safe</string>
+    <string name="exclude_nsfw_from_suggestions_unavailable">Install a manga extension rated safe to use this</string>
     <string name="exclude_novels_from_suggestions_summary">Sources categorized as novels will not be used for suggestions</string>
     <string name="error_non_file_uri">The selected path cannot be used because it does not denote a file or directory</string>
     <string name="manga_override_hint">These changes will affect how manga is displayed throughout the app. Discord Rich Presence can only show a custom cover set via an image URL; picked images fall back to the source cover.</string>

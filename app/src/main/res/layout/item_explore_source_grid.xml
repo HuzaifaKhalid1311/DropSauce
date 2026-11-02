@@ -42,7 +42,7 @@
 		android:hyphenationFrequency="none"
 		android:maxLines="2"
 		android:textAlignment="center"
-		android:textAppearance="?attr/textAppearanceTitleSmall"
+		android:textAppearance="?attr/textAppearanceLabelMedium"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toBottomOf="@id/imageView_icon"

@@ -568,7 +568,6 @@ fun expressiveGroupItemShape(index: Int, count: Int): Shape {
 /** One selectable destination in [showActionChoiceDialog]. */
 class DialogAction(
 	val label: String,
-	@param:DrawableRes val icon: Int? = null,
 	val onClick: () -> Unit,
 )
 
@@ -611,7 +610,6 @@ fun showActionChoiceDialog(
 						buttons = actions.mapIndexed { index, action ->
 							DialogButtonSpec(
 								label = action.label,
-								icon = action.icon?.let { rememberAnyDrawablePainter(it) },
 								primary = index == 0,
 								onClick = {
 									dismiss()
