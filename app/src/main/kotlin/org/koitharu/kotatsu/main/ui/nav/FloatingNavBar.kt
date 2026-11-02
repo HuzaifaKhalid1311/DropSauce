@@ -637,10 +637,10 @@ fun FloatingNavBar(
 					val dropTargetGeom = FloatArray(4)
 
 					awaitEachGesture {
+						val down = awaitFirstDown(requireUnconsumed = false)
+						// Checked after the down: returning before it suspends makes awaitEachGesture spin forever.
 						val itemsSnapshot = currentItems
 						if (itemsSnapshot.size < 2) return@awaitEachGesture
-
-						val down = awaitFirstDown(requireUnconsumed = false)
 						val pendingDrop = unappliedDropId
 						if (pendingDrop != null) {
 							unappliedDropId = null

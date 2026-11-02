@@ -79,6 +79,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
+import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
 // Same as the settings back button (top_bar_navigation_button_size / top_bar_action_icon_size).
@@ -587,7 +588,7 @@ fun showActionChoiceDialog(
 	showComposeDialog(context) { dismiss ->
 		val copyLabel = stringResource(androidx.preference.R.string.copy)
 		ExpressiveDialogCard(
-			icon = painterResource(icon),
+			icon = rememberAnyDrawablePainter(icon),
 			title = title,
 			message = message,
 			// The copy button takes the cross's place: tapping outside or going back still closes it.
@@ -610,7 +611,7 @@ fun showActionChoiceDialog(
 						buttons = actions.mapIndexed { index, action ->
 							DialogButtonSpec(
 								label = action.label,
-								icon = action.icon?.let { painterResource(it) },
+								icon = action.icon?.let { rememberAnyDrawablePainter(it) },
 								primary = index == 0,
 								onClick = {
 									dismiss()
@@ -646,7 +647,7 @@ fun showMultiChoiceDialog(
 	showComposeDialog(context) { dismiss ->
 		var selection by remember { mutableStateOf(selectedIndices) }
 		ExpressiveDialogCard(
-			icon = painterResource(icon),
+			icon = rememberAnyDrawablePainter(icon),
 			title = title,
 			message = message,
 			cornerAction = DialogCornerAction(
@@ -705,7 +706,7 @@ fun showSingleChoiceDialog(
 		var selection by remember { mutableIntStateOf(selectedIndex) }
 		val colors = MaterialTheme.colorScheme
 		ExpressiveDialogCard(
-			icon = painterResource(icon),
+			icon = rememberAnyDrawablePainter(icon),
 			title = title,
 			destructive = destructive,
 			cornerAction = DialogCornerAction(
@@ -766,7 +767,7 @@ fun showConfirmDialog(
 	onConfirm: () -> Unit,
 ): ComponentDialog = showComposeDialog(context, cancelable = cancelable, onCancel = onCancel) { dismiss ->
 	ExpressiveDialogCard(
-		icon = painterResource(icon),
+		icon = rememberAnyDrawablePainter(icon),
 		title = title,
 		message = message,
 		destructive = destructive,
@@ -829,7 +830,7 @@ fun showTextInputDialog(
 		}
 	}
 	ExpressiveDialogCard(
-		icon = painterResource(icon),
+		icon = rememberAnyDrawablePainter(icon),
 		title = title,
 		message = message,
 		cornerAction = DialogCornerAction(

@@ -46,6 +46,10 @@ class MihonExtensionLoader @Inject constructor(
 
 	private class LoadedExtension(val apkPath: String?, val result: MihonLoadResult.Success)
 
+	// Installed extension packages, reused until the system reports a package change (see getInstalledExtensionPackages).
+	private var cachedExtensionPackages: List<PackageInfo>? = null
+	private var packagesSequence = 0
+
 	companion object {
 		private const val TAG = "MihonExtensionLoader"
 
@@ -331,8 +335,7 @@ class MihonExtensionLoader @Inject constructor(
 		val results = if (privateMode) {
 			loadPrivateExtensions(context)
 		} else {
-			getInstalledPackages(context.packageManager)
-				.filter(::isPackageAnExtension)
+			getInstalledExtensionPackages(context.packageManager)
 				.map { pkgInfo -> async(loadDispatcher) { loadExtension(context, pkgInfo, isShared = true) } }
 				.awaitAll()
 		}
@@ -410,8 +413,7 @@ class MihonExtensionLoader @Inject constructor(
 				}
 				.orEmpty()
 		} else {
-			getInstalledPackages(pkgManager)
-				.filter(::isPackageAnExtension)
+			getInstalledExtensionPackages(pkgManager)
 				.mapNotNull { pkgInfo -> extractExtensionInfo(pkgInfo, pkgManager, isShared = true) }
 		}
 	}
@@ -604,6 +606,21 @@ class MihonExtensionLoader @Inject constructor(
 			?: "all"
 	}
 
+
+	/**
+	 * Every catalog rebuild (each search keystroke, store refresh...) used to re-query all installed
+	 * apps with signatures and metadata; several at once overflowed the binder buffer and crashed.
+	 * The full query now only runs again once the system reports an installed/removed/updated package.
+	 */
+	@Synchronized
+	private fun getInstalledExtensionPackages(packageManager: PackageManager): List<PackageInfo> {
+		val changes = packageManager.getChangedPackages(packagesSequence)
+		cachedExtensionPackages?.let { if (changes == null) return it }
+		return getInstalledPackages(packageManager).filter(::isPackageAnExtension).also {
+			cachedExtensionPackages = it
+			if (changes != null) packagesSequence = changes.sequenceNumber
+		}
+	}
 
 	@Suppress("DEPRECATION")
 	private fun getInstalledPackages(packageManager: PackageManager): List<PackageInfo> {
