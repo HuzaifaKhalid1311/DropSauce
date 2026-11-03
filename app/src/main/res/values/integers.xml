@@ -5,7 +5,7 @@
 	<integer name="config_shorterAnimTime">150</integer>
 	<integer name="manga_badge_max_character_count">3</integer>
 
-	<integer name="splash_screen_duration">450</integer>
+	<integer name="splash_screen_duration">800</integer>
 
 	<!-- Bottom nav tab switch: the outgoing tab clears in nav_tab_exit_duration, the incoming one holds for
 	     the first 30% of nav_tab_enter_duration (= the exit, see interpolator/nav_tab_enter) and then arrives. -->

@@ -41,6 +41,7 @@ import org.koitharu.kotatsu.core.prefs.ScreenshotsPolicy
 import org.koitharu.kotatsu.core.prefs.SearchSuggestionType
 import org.koitharu.kotatsu.core.ui.util.ActivityRecreationHandle
 import org.koitharu.kotatsu.core.util.LocaleComparator
+import org.koitharu.kotatsu.core.util.ext.applyNightMode
 import org.koitharu.kotatsu.core.util.ext.getLocalesConfig
 import org.koitharu.kotatsu.core.util.ext.sortedWithSafe
 import org.koitharu.kotatsu.core.util.ext.toList
@@ -86,7 +87,7 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 	private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
 		when (key) {
 			AppSettings.KEY_THEME -> {
-				AppCompatDelegate.setDefaultNightMode(settings.theme)
+				requireContext().applyNightMode(settings.theme)
 			}
 			AppSettings.KEY_COLOR_THEME,
 			AppSettings.KEY_THEME_AMOLED,
@@ -319,12 +320,7 @@ private fun AppearanceScreen(
 						entries = themeEntries,
 						entryValues = themeValues,
 						selectedValue = theme,
-						onValueChange = {
-							theme = it
-							@Suppress("WrongConstant")
-							val mode = it.toIntOrNull() ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-							AppCompatDelegate.setDefaultNightMode(mode)
-						},
+						onValueChange = { theme = it }, // prefListener applies it
 						icon = R.drawable.ic_appearance,
 						
 						shape = pos.shape,

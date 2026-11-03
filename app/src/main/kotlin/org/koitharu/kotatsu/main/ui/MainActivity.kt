@@ -13,6 +13,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.core.graphics.Insets
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -122,11 +123,25 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		get() = viewBinding.buttonCheckpoint.root
 
 	override fun onCreate(savedInstanceState: Bundle?) {
+		val splash = installSplashScreen()
 		super.onCreate(savedInstanceState)
+		// Older versions always draw the manifest's splash theme
+		val splashTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			settings.colorScheme.splashThemeResId.also {
+				// Colours the splash of the next launch; the system stores it, so keep the binder call off the main thread
+				lifecycleScope.launch(Dispatchers.Default) { splashScreen.setSplashScreenTheme(it) }
+			}
+		} else {
+			R.style.Theme_Kotatsu_Splash
+		}
 		if (!settings.isOnboardingCompleted) {
 			startActivity(Intent(this, OnboardingActivity::class.java))
 			finish()
 			return
+		}
+		// Before Android 12 the library would replay it on every recreation; later the system only calls it after a real splash
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || savedInstanceState == null) {
+			splash.setOnExitAnimationListener(SplashExit(this, splashTheme)::play)
 		}
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)

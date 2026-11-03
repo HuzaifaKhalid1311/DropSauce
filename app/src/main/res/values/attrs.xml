@@ -3,6 +3,10 @@
 
 	<attr name="expandCollapseIndicator" format="reference" />
 
+	<!-- Splash icon colours (drawable/avd_splash, drawable/splash_icon) -->
+	<attr name="splashShapeColor" format="color" />
+	<attr name="splashLogoColor" format="color" />
+
 	<!--
 		Icon/label colour for the tonal top-bar controls and the popup menus they open. It defaults to
 		colorOnSecondaryContainer, the reference connected-button-group's on-colour, but those controls

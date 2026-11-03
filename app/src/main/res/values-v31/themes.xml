@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+	<!-- Splash of activities other than MainActivity (shortcuts, links); see Theme.Kotatsu.Splash -->
 	<style name="Base.V31.Kotatsu" parent="Base.V27.Kotatsu">
 		<item name="android:windowSplashScreenAnimatedIcon">@drawable/avd_splash</item>
 		<item name="android:windowSplashScreenAnimationDuration">@integer/splash_screen_duration</item>
-		<item name="android:windowSplashScreenBackground">@color/kotatsu_surfaceContainer</item>
+		<item name="android:windowSplashScreenBackground">@color/splash_background</item>
+		<item name="splashShapeColor">@color/splash_shape</item>
+		<item name="splashLogoColor">@color/splash_logo</item>
 	</style>
 
 	<style name="Theme.Kotatsu" parent="Base.V31.Kotatsu" />

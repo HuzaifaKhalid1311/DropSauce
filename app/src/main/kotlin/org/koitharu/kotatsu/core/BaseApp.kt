@@ -8,7 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
 import androidx.annotation.WorkerThread
-import androidx.appcompat.app.AppCompatDelegate
+import android.os.Build
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -35,6 +35,7 @@ import org.koitharu.kotatsu.settings.sources.catalog.EXTENSION_APK_PREFIX
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
 import org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity
+import org.koitharu.kotatsu.core.util.ext.applyNightMode
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
@@ -101,7 +102,12 @@ open class BaseApp : Application(), Configuration.Provider {
 				PackageManager.DONT_KILL_APP,
 			)
 		}
-		AppCompatDelegate.setDefaultNightMode(settings.theme)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			// The system keeps it between launches; this only catches up after a restore or sync, off the main thread.
+			processLifecycleScope.launch(Dispatchers.Default) { applyNightMode(settings.theme) }
+		} else {
+			applyNightMode(settings.theme)
+		}
 		settings.subscribe(widgetThemeWatcher)
 		appLogger.setEnabled(settings.isVerboseLoggingEnabled)
 		// Keep default platform security provider.

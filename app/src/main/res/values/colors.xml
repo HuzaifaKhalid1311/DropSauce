@@ -6,6 +6,11 @@
 	<color name="onError">#FFFFFF</color>
 	<color name="onErrorContainer">#410001</color>
 
+	<!-- Splash screen of the default colour scheme (wallpaper colours on Android 12+) -->
+	<color name="splash_background">@color/totoro_surfaceContainer</color>
+	<color name="splash_shape">@color/totoro_primary</color>
+	<color name="splash_logo">@color/totoro_onPrimary</color>
+
 	<!-- AMOLED Theme -->
 	<color name="background_amoled">#000000</color>
 

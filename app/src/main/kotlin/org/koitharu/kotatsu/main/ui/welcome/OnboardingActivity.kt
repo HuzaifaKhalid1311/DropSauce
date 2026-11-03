@@ -28,6 +28,7 @@ import org.koitharu.kotatsu.backup.local.ui.restore.RestoreDialogFragment
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.util.ext.applyNightMode
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.databinding.ActivityOnboardingBinding
@@ -157,7 +158,7 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
                     actions = OnboardingActions(
                         onThemeChange = { mode ->
                             viewModel.setTheme(mode)
-                            AppCompatDelegate.setDefaultNightMode(mode)
+                            applyNightMode(mode)
                         },
                         onColorSchemeChange = { name ->
                             val scheme = ColorScheme.entries.find { it.name == name }

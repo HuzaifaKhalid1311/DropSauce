@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<!-- Launch theme of MainActivity. On Android 13+ the per-scheme children below are handed to
+	     the system (SplashScreen.setSplashScreenTheme) so the next launch matches the colour scheme. -->
+	<style name="Theme.Kotatsu.Splash" parent="Theme.SplashScreen">
+		<item name="windowSplashScreenBackground">@color/splash_background</item>
+		<item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+		<item name="windowSplashScreenAnimationDuration">@integer/splash_screen_duration</item>
+		<item name="splashShapeColor">@color/splash_shape</item>
+		<item name="splashLogoColor">@color/splash_logo</item>
+		<item name="postSplashScreenTheme">@style/Theme.Kotatsu</item>
+	</style>
+
+	<!-- Expressive follows the wallpaper, which is what the defaults do on Android 12+ -->
+	<style name="Theme.Kotatsu.Splash.Expressive" />
+
+	<style name="Theme.Kotatsu.Splash.Totoro">
+		<item name="windowSplashScreenBackground">@color/totoro_surfaceContainer</item>
+		<item name="splashShapeColor">@color/totoro_primary</item>
+		<item name="splashLogoColor">@color/totoro_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Miku">
+		<item name="windowSplashScreenBackground">@color/miku_surfaceContainer</item>
+		<item name="splashShapeColor">@color/miku_primary</item>
+		<item name="splashLogoColor">@color/miku_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Asuka">
+		<item name="windowSplashScreenBackground">@color/asuka_surfaceContainer</item>
+		<item name="splashShapeColor">@color/asuka_primary</item>
+		<item name="splashLogoColor">@color/asuka_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Mion">
+		<item name="windowSplashScreenBackground">@color/mion_surfaceContainer</item>
+		<item name="splashShapeColor">@color/mion_primary</item>
+		<item name="splashLogoColor">@color/mion_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Rikka">
+		<item name="windowSplashScreenBackground">@color/rikka_surfaceContainer</item>
+		<item name="splashShapeColor">@color/rikka_primary</item>
+		<item name="splashLogoColor">@color/rikka_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Sakura">
+		<item name="windowSplashScreenBackground">@color/sakura_surfaceContainer</item>
+		<item name="splashShapeColor">@color/sakura_primary</item>
+		<item name="splashLogoColor">@color/sakura_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Mamimi">
+		<item name="windowSplashScreenBackground">@color/mamimi_surfaceContainer</item>
+		<item name="splashShapeColor">@color/mamimi_primary</item>
+		<item name="splashLogoColor">@color/mamimi_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Kanade">
+		<item name="windowSplashScreenBackground">@color/kanade_surfaceContainer</item>
+		<item name="splashShapeColor">@color/kanade_primary</item>
+		<item name="splashLogoColor">@color/kanade_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Itsuka">
+		<item name="windowSplashScreenBackground">@color/itsuka_surfaceContainer</item>
+		<item name="splashShapeColor">@color/itsuka_primary</item>
+		<item name="splashLogoColor">@color/itsuka_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Shana">
+		<item name="windowSplashScreenBackground">@color/shana_surfaceContainer</item>
+		<item name="splashShapeColor">@color/shana_primary</item>
+		<item name="splashLogoColor">@color/shana_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Lime">
+		<item name="windowSplashScreenBackground">@color/lime_surfaceContainer</item>
+		<item name="splashShapeColor">@color/lime_primary</item>
+		<item name="splashLogoColor">@color/lime_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Amber">
+		<item name="windowSplashScreenBackground">@color/amber_surfaceContainer</item>
+		<item name="splashShapeColor">@color/amber_primary</item>
+		<item name="splashLogoColor">@color/amber_onPrimary</item>
+	</style>
+
+	<style name="Theme.Kotatsu.Splash.Sky">
+		<item name="windowSplashScreenBackground">@color/sky_surfaceContainer</item>
+		<item name="splashShapeColor">@color/sky_primary</item>
+		<item name="splashLogoColor">@color/sky_onPrimary</item>
+	</style>
+
+</resources>

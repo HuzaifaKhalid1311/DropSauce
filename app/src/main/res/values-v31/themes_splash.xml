@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<!-- The system plays the animated icon on Android 12+; older versions show its final frame -->
+	<style name="Theme.Kotatsu.Splash" parent="Theme.SplashScreen">
+		<item name="windowSplashScreenBackground">@color/splash_background</item>
+		<item name="windowSplashScreenAnimatedIcon">@drawable/avd_splash</item>
+		<item name="windowSplashScreenAnimationDuration">@integer/splash_screen_duration</item>
+		<item name="splashShapeColor">@color/splash_shape</item>
+		<item name="splashLogoColor">@color/splash_logo</item>
+		<item name="postSplashScreenTheme">@style/Theme.Kotatsu</item>
+	</style>
+
+</resources>

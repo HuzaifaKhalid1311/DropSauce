@@ -1,12 +1,15 @@
 package org.koitharu.kotatsu.core.util.ext
 
+import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.annotation.AttrRes
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.annotation.ColorInt
 import androidx.annotation.FloatRange
 import androidx.annotation.Px
@@ -16,6 +19,24 @@ import androidx.core.graphics.ColorUtils
 
 val Resources.isNightMode: Boolean
 	get() = configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+
+/**
+ * Applies an [AppCompatDelegate] night mode. On Android 12+ it goes through the system instead,
+ * which is the only way the splash screen (drawn before the app starts) can follow it.
+ */
+fun Context.applyNightMode(mode: Int) {
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+		getSystemService(UiModeManager::class.java).setApplicationNightMode(
+			when (mode) {
+				AppCompatDelegate.MODE_NIGHT_YES -> UiModeManager.MODE_NIGHT_YES
+				AppCompatDelegate.MODE_NIGHT_NO -> UiModeManager.MODE_NIGHT_NO
+				else -> UiModeManager.MODE_NIGHT_AUTO
+			},
+		)
+	} else {
+		AppCompatDelegate.setDefaultNightMode(mode)
+	}
+}
 
 fun Context.getThemeDrawable(
 	@AttrRes resId: Int,
