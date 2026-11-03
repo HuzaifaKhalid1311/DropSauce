@@ -3,8 +3,10 @@ package org.koitharu.kotatsu.details.data
 import org.koitharu.kotatsu.core.model.ScanlatorMerge
 import org.koitharu.kotatsu.core.model.getLocale
 import org.koitharu.kotatsu.core.model.isLocal
+import org.koitharu.kotatsu.core.model.sortedChapters
 import org.koitharu.kotatsu.core.model.withMergedBranches
 import org.koitharu.kotatsu.core.model.withOverride
+import org.koitharu.kotatsu.core.prefs.ChaptersSortOrder
 import org.koitharu.kotatsu.core.ui.model.MangaOverride
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -23,6 +25,8 @@ data class MangaDetails(
     val isLoaded: Boolean,
     /** Chapter count per branch as the source has them, before "merge scanlators" folded any. */
     private val unmergedBranches: Map<String?, Int>? = null,
+    /** The per-manga chapter order; [manga] keeps the source's, so switching back needs no reload. */
+    private val chaptersOrder: ChaptersSortOrder = ChaptersSortOrder.SOURCE,
 ) {
 
     /** A user-typed description always wins over whatever the source provides. */
@@ -47,7 +51,7 @@ data class MangaDetails(
     val sourceManga: Manga
         get() = manga
 
-    val allChapters: List<MangaChapter> by lazy { mergeChapters() }
+    val allChapters: List<MangaChapter> by lazy { mergeChapters().sortedChapters(chaptersOrder) }
 
     val chapters: Map<String?, List<MangaChapter>> by lazy {
         allChapters.groupBy { it.branch }
@@ -76,24 +80,19 @@ data class MangaDetails(
         get() = manga.state == MangaState.RESTRICTED
 
     private val mergedManga by lazy {
-        if (localManga == null) {
-            // fast path
-            manga.withOverride(override)
+        val withOverride = manga.withOverride(override)
+        if (localManga == null && chaptersOrder == ChaptersSortOrder.SOURCE) {
+            withOverride // fast path
         } else {
-            manga.copy(
-                title = override?.title.ifNullOrEmpty { manga.title },
-                description = override?.description.ifNullOrEmpty { manga.description },
-                coverUrl = override?.coverUrl.ifNullOrEmpty { manga.coverUrl },
-                largeCoverUrl = override?.coverUrl.ifNullOrEmpty { manga.largeCoverUrl },
-                contentRating = override?.contentRating ?: manga.contentRating,
-                chapters = allChapters,
-            )
+            withOverride.copy(chapters = allChapters)
         }
     }
 
     fun toManga() = mergedManga
 
     fun withOverride(override: MangaOverride?) = copy(override = override)
+
+    fun withChaptersOrder(order: ChaptersSortOrder) = copy(chaptersOrder = order)
 
     /** Every branch with its chapter count, as the source has them (ignoring "merge scanlators"). */
     val scanlators: Map<String?, Int>

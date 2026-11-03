@@ -67,6 +67,8 @@ import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseFullscreenActivity
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
+import org.koitharu.kotatsu.core.ui.util.magnifyWhilePressed
+import org.koitharu.kotatsu.core.ui.util.setScaledVisible
 import org.koitharu.kotatsu.core.ui.widgets.ZoomControl
 import org.koitharu.kotatsu.core.util.IdlingDetector
 import org.koitharu.kotatsu.core.util.ShareHelper
@@ -173,6 +175,7 @@ class ReaderActivity :
         viewBinding.actionsView.listener = this
         viewBinding.buttonTimerFab?.setOnClickListener(this)
         viewBinding.spreadControl.root.setOnClickListener { readerManager.currentReader?.toggleWholeSpread() }
+        viewBinding.spreadControl.root.magnifyWhilePressed()
         idlingDetector.bindToLifecycle(this)
         screenOrientationHelper.applySettings()
         viewModel.isBookmarkAdded.observe(this) { viewBinding.actionsView.isBookmarkAdded = it }
@@ -201,21 +204,20 @@ class ReaderActivity :
             }
         }
 
-        viewModel.onLoadingError.observeEvent(
-            this,
-            DialogErrorObserver(
-                host = viewBinding.container,
-                fragment = null,
-                resolver = exceptionResolver,
-                onResolved = { isResolved ->
-                    if (isResolved) {
-                        viewModel.reload()
-                    } else if (viewModel.content.value.pages.isEmpty()) {
-                        dispatchNavigateUp()
-                    }
-                },
-            ),
+        val loadingErrorObserver = DialogErrorObserver(
+            host = viewBinding.container,
+            fragment = null,
+            resolver = exceptionResolver,
+            onResolved = { isResolved ->
+                viewModel.loadingError.value = null
+                if (isResolved) {
+                    viewModel.reload()
+                } else if (viewModel.content.value.pages.isEmpty()) {
+                    dispatchNavigateUp()
+                }
+            },
         )
+        viewModel.loadingError.observe(this) { if (it != null) loadingErrorObserver.emit(it) }
         viewModel.onError.observeEvent(
             this,
             SnackbarErrorObserver(
@@ -241,7 +243,7 @@ class ReaderActivity :
         viewModel.isKeepScreenOnEnabled.observe(this, this::setKeepScreenOn)
         viewModel.isInfoBarEnabled.observe(this, ::onReaderBarChanged)
         viewModel.isBookmarkAdded.observe(this, MenuInvalidator(this))
-        viewModel.onAskNsfwIncognito.observeEvent(this) { askForIncognitoMode() }
+        viewModel.isAskingIncognito.observe(this) { if (it) askForIncognitoMode() }
         viewModel.onShowToast.observeEvent(this) { msgId ->
             Snackbar.make(viewBinding.container, msgId, Snackbar.LENGTH_SHORT)
                 .setAnchorView(viewBinding.toolbarDocked)
@@ -418,7 +420,9 @@ class ReaderActivity :
     /** [isWhole] is null when the current page isn't a split wide page. */
     private fun onPageSpreadChanged(isWhole: Boolean?) {
         val button = viewBinding.spreadControl.root
-        button.isVisible = isWhole != null
+        button.setScaledVisible(isWhole != null)
+        // Shrinking away keeps the icon it had.
+        if (isWhole == null) return
         button.setIconResource(if (isWhole == true) R.drawable.ic_spread_split else R.drawable.ic_spread_whole)
         button.setContentDescriptionAndTooltip(if (isWhole == true) R.string.split_page_again else R.string.show_whole_page)
     }

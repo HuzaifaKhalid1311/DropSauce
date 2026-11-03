@@ -22,8 +22,10 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
+import org.koitharu.kotatsu.core.model.sortedChapters
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.parser.MangaRepository
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.util.ext.require
 import org.koitharu.kotatsu.core.util.ext.sanitize
@@ -39,6 +41,7 @@ class PreviewViewModel @Inject constructor(
 	private val repositoryFactory: MangaRepository.Factory,
 	private val historyRepository: HistoryRepository,
 	private val imageGetter: Html.ImageGetter,
+	private val settings: AppSettings,
 ) : BaseViewModel() {
 
 	val manga = MutableStateFlow(
@@ -54,7 +57,7 @@ class PreviewViewModel @Inject constructor(
 			return@combine null
 		}
 		val b = m.getPreferredBranch(history)
-		val chapters = m.getChapters(b)
+		val chapters = m.getChapters(b).sortedChapters(settings.getChaptersSortOrder(m.id))
 		FooterInfo(
 			percent = history?.percent ?: PROGRESS_NONE,
 			currentChapter = history?.chapterId?.let {

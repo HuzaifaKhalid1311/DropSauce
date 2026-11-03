@@ -20,6 +20,7 @@
 	<item name="tag_tonal_action_shape" type="id" />
 	<item name="tag_tonal_navigation_button" type="id" />
 	<item name="tag_back_home_gesture" type="id" />
+	<item name="tag_scale_springs" type="id" />
 	<item name="tag_action_mode_padding" type="id" />
 	<item name="tag_tonal_action_item" type="id" />
 	<item name="tag_tonal_action_icon" type="id" />

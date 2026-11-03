@@ -26,6 +26,10 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 	private var sourceItems: List<ReaderPage> = emptyList()
 	private val splitPages = HashSet<ReaderPage>()
 
+	/** The split page shown whole: its other half leaves the pager meanwhile, so paging skips it. */
+	var wholePage: ReaderPage? = null
+		private set
+
 	/** Right-to-left lists put a split page's second half before it, so it reads next. */
 	protected open val isReversed: Boolean
 		get() = false
@@ -88,9 +92,17 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 		}
 	}
 
+	fun setWholePage(page: ReaderPage?) {
+		if (wholePage != page) {
+			wholePage = page
+			if (splitPages.isNotEmpty()) differ.submitList(withSplits(sourceItems))
+		}
+	}
+
 	fun clearSplits() {
 		if (splitPages.isNotEmpty()) {
 			splitPages.clear()
+			wholePage = null
 			differ.submitList(sourceItems)
 		}
 	}
@@ -102,7 +114,11 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 
 	fun toAdapterPosition(sourcePosition: Int): Int {
 		val page = sourceItems.getOrNull(sourcePosition) ?: return sourcePosition
-		return differ.currentList.indexOf(page).takeIf { it >= 0 } ?: sourcePosition
+		val list = differ.currentList
+		// A page shown whole from its second half has only that item left.
+		return list.indexOf(page).takeIf { it >= 0 }
+			?: list.indexOf(page.copy(isSecondHalf = true)).takeIf { it >= 0 }
+			?: sourcePosition
 	}
 
 	private fun withSplits(items: List<ReaderPage>): List<ReaderPage> {
@@ -114,7 +130,10 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 				continue
 			}
 			val secondHalf = page.copy(isSecondHalf = true)
-			if (isReversed) {
+			val whole = wholePage
+			if (whole != null && (whole == page || whole == secondHalf)) {
+				result.add(whole)
+			} else if (isReversed) {
 				result.add(secondHalf)
 				result.add(page)
 			} else {

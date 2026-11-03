@@ -29,6 +29,7 @@ import org.koitharu.kotatsu.core.os.NetworkState
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.exceptions.UnsupportedSourceException
 import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.ui.model.MangaOverride
@@ -59,6 +60,7 @@ class DetailsLoadUseCase @Inject constructor(
 	private val networkState: NetworkState,
 	private val mihonExtensionManager: MihonExtensionManager,
 	private val checkNewChaptersUseCase: Provider<CheckNewChaptersUseCase>,
+	private val settings: AppSettings,
 ) {
 
 	/**
@@ -97,9 +99,10 @@ class DetailsLoadUseCase @Inject constructor(
 			loadRemote(manga, override, force, savedManga, canUseStored)
 		}
 	}.map { details ->
-		// per-manga "merge scanlators": fold the picked branches into one so the whole app
-		// (chapter list, reader, page picker) treats them as a single entity
+		// per-manga "merge scanlators" and chapter order, so the whole app (chapter list, read marks,
+		// reader, page picker) treats the picked branches as one and reads in the picked order
 		details.withMergedBranches(mangaDataRepository.getScanlatorMerge(details.id))
+			.withChaptersOrder(settings.getChaptersSortOrder(details.id))
 	}.distinctUntilChanged()
 		.flowOn(Dispatchers.Default)
 

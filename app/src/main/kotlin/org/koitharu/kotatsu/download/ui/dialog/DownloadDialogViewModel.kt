@@ -14,6 +14,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.model.withMergedBranches
+import org.koitharu.kotatsu.core.model.withSortedChapters
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
@@ -239,8 +240,9 @@ class DownloadDialogViewModel @Inject constructor(
 	}.onFailure { e ->
 		e.printStackTraceDebug()
 	}.getOrDefault(this)
-		// Same chapter list as the details screen, so the options follow merged scanlators.
+		// Same chapter list as the details screen, so the options follow merged scanlators and chapter order.
 		.withMergedBranches(mangaDataRepository.getScanlatorMerge(id))
+		.withSortedChapters(settings.getChaptersSortOrder(id))
 
 	private fun <T> MutableMap<T, Int>.increment(key: T) {
 		put(key, getOrDefault(key, 0) + 1)

@@ -6,6 +6,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.ImageButton
+import androidx.core.view.isVisible
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
@@ -84,6 +85,60 @@ fun ImageButton.attachBackHomeGesture() {
 		false
 	}
 }
+
+/** Just the back button's press magnify, for other round buttons. */
+fun View.magnifyWhilePressed() {
+	setOnTouchListener { _, event ->
+		val scale = when (event.actionMasked) {
+			MotionEvent.ACTION_DOWN -> PRESSED_SCALE
+			MotionEvent.ACTION_MOVE -> if (pointInView(event.x, event.y)) PRESSED_SCALE else 1f
+			MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> 1f
+			else -> null
+		}
+		if (scale != null) scaleSprings.animateTo(scale)
+		false
+	}
+}
+
+/** Grows in from nothing and shrinks away to nothing instead of popping, on the press magnify's springs. */
+fun View.setScaledVisible(isShown: Boolean) {
+	if (isShown) {
+		if (!isVisible) {
+			scaleX = 0f
+			scaleY = 0f
+			isVisible = true
+		}
+		scaleSprings.animateTo(1f)
+	} else if (isVisible) {
+		scaleSprings.animateTo(0f)
+	}
+}
+
+/** One pair of scale springs per view, so pressing and showing/hiding never fight over the scale. */
+private class ScaleSprings(view: View) {
+
+	private val x = view.scaleSpring(DynamicAnimation.SCALE_X)
+	private val y = view.scaleSpring(DynamicAnimation.SCALE_Y)
+
+	init {
+		x.addEndListener { _, canceled, value, _ ->
+			if (!canceled && value == 0f) view.isVisible = false
+		}
+	}
+
+	fun animateTo(value: Float) {
+		// Bouncing past nothing would mirror the view, so shrinking away doesn't overshoot.
+		val damping = if (value == 0f) SpringForce.DAMPING_RATIO_NO_BOUNCY else SPRING_DAMPING
+		x.spring.dampingRatio = damping
+		y.spring.dampingRatio = damping
+		x.animateToFinalPosition(value)
+		y.animateToFinalPosition(value)
+	}
+}
+
+private val View.scaleSprings: ScaleSprings
+	get() = getTag(R.id.tag_scale_springs) as? ScaleSprings
+		?: ScaleSprings(this).also { setTag(R.id.tag_scale_springs, it) }
 
 private fun View.scaleSpring(property: DynamicAnimation.ViewProperty) = SpringAnimation(this, property).apply {
 	spring = SpringForce(1f).setDampingRatio(SPRING_DAMPING).setStiffness(SPRING_STIFFNESS)

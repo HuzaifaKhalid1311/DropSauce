@@ -14,4 +14,5 @@
 	android:visibility="gone"
 	app:backgroundTint="@color/bg_floating_button"
 	app:icon="@drawable/ic_spread_whole"
+	app:shapeAppearance="@style/ShapeAppearance.Kotatsu.CornerFull"
 	tools:visibility="visible" />

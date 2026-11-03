@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.core.model.ids
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.mergedBranches
+import org.koitharu.kotatsu.core.model.sortedChapters
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
@@ -100,6 +101,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 	private suspend fun getDeletionTask(manga: LocalManga, keep: Int): DeletionTask? {
 		val history = historyRepository.getOne(manga.manga) ?: return null
 		val chapters = getAllChapters(manga).mergedBranches(mangaDataRepository.getScanlatorMerge(manga.manga.id))
+			.sortedChapters(settings.getChaptersSortOrder(manga.manga.id))
 		val filteredChapters = chaptersBehind(chapters, history.chapterId, keep)
 		return if (filteredChapters.isEmpty()) {
 			null

@@ -71,22 +71,42 @@ open class PageHolder(
 	/** Already gliding back into the half; repeated "page left" calls leave it running. */
 	private var isReturningToHalf = false
 
-	/** For the reader's spread button: null when this isn't a split page, true while it's shown whole. */
+	/** Reloading between the half and the whole page; taps meanwhile wait in [pendingWhole]. */
+	private var isSwapping = false
+	private var pendingWhole: Boolean? = null
+
+	/** For the reader's spread button: null when this isn't a split page, true while it's (going to be) whole. */
 	val spreadState: Boolean?
 		get() = when {
+			pendingWhole != null -> pendingWhole
+			isReturningToHalf -> false
 			wholePage != null && wholePage == boundData -> true
-			viewModel.isSplit -> false
+			viewModel.isSplit || isSwapping -> false
 			else -> null
 		}
 
-	/** [animate] zooms between the half and the whole page like a double tap instead of jumping. */
-	fun showWhole(isWhole: Boolean, animate: Boolean = false) {
+	/** Zooms between the half and the whole page like a double tap instead of jumping. */
+	fun showWhole(isWhole: Boolean) {
 		val data = boundData ?: return
+		if (isReturningToHalf) {
+			// Tapped again while gliding into the half: glide back out to the whole page instead.
+			if (isWhole) {
+				isReturningToHalf = false
+				isZoomingToRest = true
+				onReady()
+			}
+			return
+		}
+		if (isSwapping) {
+			pendingWhole = isWhole
+			return
+		}
+		pendingWhole = null
 		val target = if (isWhole) data else null
-		if (wholePage == target || (!isWhole && isReturningToHalf)) return
+		if (wholePage == target) return
 		val ssiv = binding.ssiv
 		val center = ssiv.getCenter()
-		if (!animate || !ssiv.isReady || center == null) {
+		if (!ssiv.isReady || center == null) {
 			wholePage = target
 			bind(data)
 			return
@@ -97,8 +117,7 @@ open class PageHolder(
 			spreadStart = ImageViewState(ssiv.scale, center.x + offset, center.y, ssiv.orientation)
 			isZoomingToRest = true
 			wholePage = target
-			holdFrame()
-			bind(data)
+			swap(data)
 			return
 		}
 		// Zoom into the half first, then swap back to it at the same spot.
@@ -108,26 +127,31 @@ open class PageHolder(
 		val scale = minOf(ssiv.width / halfWidth.toFloat(), ssiv.height / ssiv.sHeight.toFloat())
 		val halfCenterX = (if (isRight) leftWidth else 0) + halfWidth / 2f
 		isReturningToHalf = true
-		val swap = {
+		val swapToHalf = {
 			isReturningToHalf = false
 			if (wholePage == data && boundData == data) {
 				spreadStart = ImageViewState(scale, halfWidth / 2f, ssiv.sHeight / 2f, ssiv.orientation)
 				wholePage = null
-				holdFrame()
-				bind(data)
+				swap(data)
 			}
 		}
 		ssiv.animateScaleAndCenter(scale, PointF(halfCenterX, ssiv.sHeight / 2f))
 			?.withDuration(SPREAD_ZOOM_DURATION)
 			?.withInterpolator(DecelerateInterpolator())
 			?.withOnAnimationEventListener(object : OnAnimationEventListener {
-				override fun onComplete() = swap()
-				override fun onInterruptedByUser() = swap()
+				override fun onComplete() = swapToHalf()
+				override fun onInterruptedByUser() = swapToHalf()
 				override fun onInterruptedByNewAnim() {
 					isReturningToHalf = false
 				}
 			})
-			?.start() ?: swap()
+			?.start() ?: swapToHalf()
+	}
+
+	private fun swap(data: ReaderPage) {
+		isSwapping = true
+		holdFrame()
+		bind(data)
 	}
 
 	override fun takeInitialViewState(): ImageViewState? = spreadStart.also { spreadStart = null }
@@ -137,13 +161,22 @@ open class PageHolder(
 		releaseFrame()
 		if (!isZoomingToRest) {
 			setScaleAndCenter(scale, center)
-			return
+		} else {
+			isZoomingToRest = false
+			animateScaleAndCenter(scale, center)
+				?.withDuration(SPREAD_ZOOM_DURATION)
+				?.withInterpolator(DecelerateInterpolator())
+				?.start()
 		}
-		isZoomingToRest = false
-		animateScaleAndCenter(scale, center)
-			?.withDuration(SPREAD_ZOOM_DURATION)
-			?.withInterpolator(DecelerateInterpolator())
-			?.start()
+		isSwapping = false
+		// A tap that came during the reload carries on from here, once this frame is laid out.
+		if (pendingWhole == null) return
+		val data = boundData
+		post {
+			val pending = pendingWhole ?: return@post
+			pendingWhole = null
+			if (boundData == data) showWhole(pending)
+		}
 	}
 
 	init {
@@ -268,6 +301,8 @@ open class PageHolder(
 		spreadStart = null
 		isZoomingToRest = false
 		isReturningToHalf = false
+		isSwapping = false
+		pendingWhole = null
 		super.onRecycled()
 	}
 

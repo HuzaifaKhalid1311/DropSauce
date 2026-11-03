@@ -25,7 +25,8 @@ fun MangaDetails.mapChapters(
 		return emptyList()
 	}
 	val bookmarked = bookmarks.mapToSet { it.chapterId }
-	val newFrom = if (newCount == 0 || remoteChapters.isEmpty()) Int.MAX_VALUE else remoteChapters.size - newCount
+	// New chapters are the source's last ones, wherever the picked chapter order puts them.
+	val newIds = if (newCount == 0) emptySet() else sourceManga.getChapters(branch).takeLast(newCount).mapToSet { it.id }
 	val ids = buildSet(maxOf(remoteChapters.size, localChapters.size)) {
 		remoteChapters.mapTo(this) { it.id }
 		localChapters.mapTo(this) { it.id }
@@ -44,7 +45,7 @@ fun MangaDetails.mapChapters(
 			result += (local ?: chapter).toListItem(
 				isCurrent = isCurrent,
 				isUnread = isUnread && !isCurrent,
-				isNew = !isCurrent && isUnread && result.size >= newFrom,
+				isNew = !isCurrent && isUnread && chapter.id in newIds,
 				isDownloaded = local != null,
 				isBookmarked = chapter.id in bookmarked,
 				isGrid = isGrid,

@@ -806,7 +806,6 @@ fun FloatingNavBar(
 							hoveredIndex = initialHover
 							pendingSelectedId = null
 							isDragging = true
-							currentHaptic(HapticEffect.GESTURE_START)
 							if (initialHover != startSelectedIdx) {
 								currentHaptic(HapticEffect.TICK)
 							}

@@ -85,7 +85,7 @@ abstract class BaseViewModel : ViewModel() {
 		if (this[CoroutineExceptionHandler.Key] is EventExceptionHandler) {
 			this
 		} else {
-			this + EventExceptionHandler(errorEvent)
+			this + EventExceptionHandler(errorEvent::call)
 		}
 
 	protected object SkipErrors : AbstractCoroutineContextElement(Key) {
@@ -94,14 +94,14 @@ abstract class BaseViewModel : ViewModel() {
 	}
 
 	protected class EventExceptionHandler(
-		private val event: MutableEventFlow<Throwable>,
+		private val onError: (Throwable) -> Unit,
 	) : AbstractCoroutineContextElement(CoroutineExceptionHandler),
 		CoroutineExceptionHandler {
 
 		override fun handleException(context: CoroutineContext, exception: Throwable) {
 			exception.printStackTraceDebug()
 			if (context[SkipErrors.key] == null && exception !is CancellationException) {
-				event.call(exception)
+				onError(exception)
 			}
 		}
 	}

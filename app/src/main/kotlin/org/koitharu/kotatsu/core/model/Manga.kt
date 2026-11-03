@@ -11,8 +11,11 @@ import androidx.core.os.LocaleListCompat
 import androidx.core.text.buildSpannedString
 import androidx.core.text.strikeThrough
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.prefs.ChaptersSortOrder
 import org.koitharu.kotatsu.core.ui.model.MangaOverride
+import org.koitharu.kotatsu.core.util.AlphanumComparator
 import org.koitharu.kotatsu.core.util.ext.iterator
+import org.koitharu.kotatsu.core.util.ext.sortedWithSafe
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Demographic
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -156,6 +159,32 @@ fun List<MangaChapter>.mergedBranches(merge: ScanlatorMerge): List<MangaChapter>
 	}
 	return rest + sorted
 }
+
+/** The chapter order picked for this manga; the reader, read marks and progress all follow it. */
+fun Manga.withSortedChapters(order: ChaptersSortOrder): Manga {
+	val sorted = chapters?.sortedChapters(order) ?: return this
+	return if (sorted === chapters) this else copy(chapters = sorted)
+}
+
+fun List<MangaChapter>.sortedChapters(order: ChaptersSortOrder): List<MangaChapter> = when (order) {
+	ChaptersSortOrder.SOURCE -> this
+	ChaptersSortOrder.NAME -> sortedWithSafe(CHAPTER_NAME_COMPARATOR)
+	ChaptersSortOrder.DATE -> sortedWithSafe(CHAPTER_DATE_COMPARATOR)
+}
+
+/**
+ * "Sort by name": natural order on the name the row actually shows ("Chapter 9" before "Chapter 10"),
+ * falling back to the chapter number for sources that ship untitled chapters, with volume/number as
+ * the tiebreaker.
+ */
+private val CHAPTER_NAME_COMPARATOR: Comparator<MangaChapter> =
+	compareBy(AlphanumComparator()) { it: MangaChapter -> it.title?.takeIf { t -> t.isNotBlank() } ?: it.numberString().orEmpty() }
+		.thenBy { it.volume }
+		.thenBy { it.number }
+
+// Stable sort: chapters sharing a date keep the source's order between them
+private val CHAPTER_DATE_COMPARATOR: Comparator<MangaChapter> =
+	compareBy { it: MangaChapter -> it.uploadDate.takeIf { d -> d > 0L } ?: Long.MAX_VALUE }
 
 val Manga.isLocal: Boolean
 	get() = source == LocalMangaSource

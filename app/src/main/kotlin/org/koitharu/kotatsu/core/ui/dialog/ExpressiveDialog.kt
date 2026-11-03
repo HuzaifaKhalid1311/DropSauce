@@ -63,11 +63,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -86,6 +88,7 @@ import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.findActivity
+import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
@@ -345,7 +348,7 @@ fun ExpressiveDialogCard(
 }
 
 /**
- * Tonal `46dp` circular icon button (`secondaryContainer` / `onSecondaryContainer`), the settings back
+ * `46dp` circular icon button in the option rows' colour with the top bar icons' tint, the settings back
  * button's size, that stays round and springs bigger while pressed.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -370,7 +373,10 @@ fun DialogCornerButton(
 		},
 		shape = CircleShape,
 		enabled = action.enabled,
-		colors = IconButtonDefaults.filledTonalIconButtonColors(),
+		colors = IconButtonDefaults.filledTonalIconButtonColors(
+			containerColor = MaterialTheme.colorScheme.background,
+			contentColor = Color(LocalContext.current.getThemeColor(R.attr.colorTopBarIcon)),
+		),
 		interactionSource = interactionSource,
 		modifier = modifier
 			.size(CornerButtonSize)
