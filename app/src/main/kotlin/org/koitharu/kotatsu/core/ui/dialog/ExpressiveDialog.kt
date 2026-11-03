@@ -63,13 +63,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -88,7 +86,6 @@ import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.findActivity
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
@@ -271,7 +268,7 @@ fun ExpressiveDialogCard(
 						Spacer(Modifier.width(12.dp))
 						headerTrailing?.invoke(this)
 						if (cornerAction != null) {
-							DialogCornerButton(action = cornerAction)
+							DialogCornerButton(action = cornerAction, destructive = destructive)
 						}
 					}
 				}
@@ -348,14 +345,15 @@ fun ExpressiveDialogCard(
 }
 
 /**
- * `46dp` circular icon button in the option rows' colour with the top bar icons' tint, the settings back
- * button's size, that stays round and springs bigger while pressed.
+ * `46dp` circular icon button in the option rows' colour, its icon tinted like the header icon (error when
+ * [destructive]), the settings back button's size, that stays round and springs bigger while pressed.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogCornerButton(
 	action: DialogCornerAction,
 	modifier: Modifier = Modifier,
+	destructive: Boolean = false,
 ) {
 	val motion = MaterialTheme.motionScheme
 	val haptic = rememberHapticEffect()
@@ -375,7 +373,7 @@ fun DialogCornerButton(
 		enabled = action.enabled,
 		colors = IconButtonDefaults.filledTonalIconButtonColors(
 			containerColor = MaterialTheme.colorScheme.background,
-			contentColor = Color(LocalContext.current.getThemeColor(R.attr.colorTopBarIcon)),
+			contentColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
 		),
 		interactionSource = interactionSource,
 		modifier = modifier

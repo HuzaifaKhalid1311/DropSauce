@@ -95,9 +95,11 @@ class DownloadDialogViewModel @Inject constructor(
 		allowMetered: Boolean,
 	) {
 		launchLoadingJob(Dispatchers.Default) {
-			val tasks = mangaDetails.get().map { m ->
+			val tasks = mangaDetails.get().map { source ->
+				val m = source.inChapterListOrder()
 				val chapters = checkNotNull(m.chapters) { "Manga \"${m.title}\" cannot be loaded" }
-				m to DownloadTask(
+				// The scheduler caches this manga's chapters, so it gets the source's own list.
+				source to DownloadTask(
 					mangaId = m.id,
 					isPaused = !startNow,
 					isSilent = false,
@@ -143,7 +145,7 @@ class DownloadDialogViewModel @Inject constructor(
 	)
 
 	private suspend fun loadAvailableOptions() {
-		val details = mangaDetails.get()
+		val details = mangaDetails.get().map { it.inChapterListOrder() }
 		var totalChapters = 0
 		val branches = ArrayMap<String?, Int>()
 		var maxChapters = 0
@@ -240,9 +242,11 @@ class DownloadDialogViewModel @Inject constructor(
 	}.onFailure { e ->
 		e.printStackTraceDebug()
 	}.getOrDefault(this)
-		// Same chapter list as the details screen, so the options follow merged scanlators and chapter order.
-		.withMergedBranches(mangaDataRepository.getScanlatorMerge(id))
-		.withSortedChapters(settings.getChaptersSortOrder(id))
+
+	/** Same chapter list as the details screen, so the options follow merged scanlators and chapter order. */
+	private suspend fun Manga.inChapterListOrder(): Manga =
+		withMergedBranches(mangaDataRepository.getScanlatorMerge(id))
+			.withSortedChapters(settings.getChaptersSortOrder(id))
 
 	private fun <T> MutableMap<T, Int>.increment(key: T) {
 		put(key, getOrDefault(key, 0) + 1)

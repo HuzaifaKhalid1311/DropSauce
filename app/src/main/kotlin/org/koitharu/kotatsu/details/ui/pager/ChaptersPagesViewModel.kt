@@ -297,7 +297,9 @@ abstract class ChaptersPagesViewModel(
 
 	fun download(chaptersIds: Set<Long>?, allowMeteredNetwork: Boolean) {
 		launchJob(Dispatchers.Default) {
-			val manga = requireManga()
+			// No chapters: the scheduler would cache the re-ordered list over the source's, and the
+			// details load has already cached the source's one.
+			val manga = requireManga().copy(chapters = null)
 			val task = DownloadTask(
 				mangaId = manga.id,
 				isPaused = false,
