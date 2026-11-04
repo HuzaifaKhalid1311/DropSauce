@@ -145,9 +145,9 @@ class HistoryListViewModel @Inject constructor(
 		}
 	}
 
-	fun markAsRead(items: Set<Manga>) {
+	fun markAsRead(items: Set<Manga>, isRead: Boolean) {
 		launchLoadingJob(Dispatchers.Default) {
-			markAsReadUseCase(items)
+			markAsReadUseCase(items, isRead)
 		}
 	}
 

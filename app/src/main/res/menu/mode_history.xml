@@ -39,10 +39,22 @@
 		android:title="@string/edit"
 		app:showAsAction="ifRoom|withText" />
 
+	<!-- never: an action-bar button would open appcompat's own sub-menu popup, not the app's menu -->
 	<item
-		android:id="@+id/action_mark_current"
-		android:icon="@drawable/ic_eye_check"
-		android:title="@string/mark_as_completed"
-		app:showAsAction="ifRoom|withText" />
+		android:id="@+id/action_mark_as"
+		android:icon="@drawable/ic_mark_as"
+		android:title="@string/mark_as"
+		app:showAsAction="never">
+		<menu>
+			<item
+				android:id="@+id/action_mark_read"
+				android:icon="@drawable/ic_eye_check"
+				android:title="@string/read" />
+			<item
+				android:id="@+id/action_mark_unread"
+				android:icon="@drawable/ic_mark_unread"
+				android:title="@string/unread" />
+		</menu>
+	</item>
 
 </menu>

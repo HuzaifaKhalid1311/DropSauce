@@ -99,7 +99,6 @@
     <string name="suggestions_enable">பரிந்துரைகளை இயக்கவும்</string>
     <string name="suggestions_summary">உங்கள் விருப்பங்களின் அடிப்படையில் மங்காவை பரிந்துரைக்கவும்</string>
     <string name="invalid_proxy_configuration">தவறான பதிலாள் உள்ளமைவு</string>
-    <string name="mark_as_completed">முடிக்கப்பட்டபடி குறி</string>
     <string name="content_rating">உள்ளடக்க மதிப்பீடு</string>
     <string name="genres_exclude">வகைகளை விலக்கு</string>
     <string name="rating_safe">பாதுகாப்பானது</string>

@@ -358,7 +358,6 @@
     <string name="reader_zoom_buttons">Εμφάνιση κουμπιών μεγέθυνσης</string>
     <string name="reader_zoom_buttons_summary">Εμφάνιση κουμπιών μεγέθυνσης στην κάτω δεξιά γωνία ή όχι</string>
     <string name="reader_optimize">Μείωση κατανάλωσης μνήμης</string>
-    <string name="mark_as_completed">Σημείωσε ως ολοκληρωμένο</string>
     <string name="mark_as_completed_prompt">Σημείωση του επιλεγμένου manga ως ολοκληρωμένου;
 \n
 \nΠροσοχή: η πρόοδος σου θα χαθεί.</string>

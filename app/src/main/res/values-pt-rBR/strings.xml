@@ -427,7 +427,6 @@
     <string name="default_tab">Aba padrão</string>
     <string name="content_rating">Classificação do Conteúdo</string>
     <string name="mark_as_completed_prompt">Deseja marcar a obra selecionada como completa?\n\nAviso: o progresso de leitura atual será perdido.</string>
-    <string name="mark_as_completed">Marcar como completa</string>
     <string name="category_hidden_done">Esta categoria foi ocultada da tela inicial e pode ser acessada novamente através de Menu → Gerenciar categorias</string>
     <string name="volume_unknown">Volume desconhecido</string>
     <string name="incognito_mode_hint">Seu progresso de leitura não será salvo</string>

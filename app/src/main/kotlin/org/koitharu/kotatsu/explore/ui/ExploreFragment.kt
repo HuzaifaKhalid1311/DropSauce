@@ -448,7 +448,8 @@ class ExploreFragment :
 		showActionChoiceDialog(
 			context = context,
 			icon = R.drawable.ic_suggestion,
-			title = context.getString(R.string.suggestions_enable_prompt),
+			title = context.getString(R.string.suggestions),
+			message = context.getString(R.string.suggestions_enable_prompt),
 			actions = listOf(
 				DialogAction(context.getString(R.string.enable)) {
 					viewModel.respondSuggestionTip(true)

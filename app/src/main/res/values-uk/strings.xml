@@ -438,7 +438,6 @@
     <string name="default_tab">Типова вкладка</string>
     <string name="content_rating">Рейтинг контенту</string>
     <string name="rating_suggestive">З натяками</string>
-    <string name="mark_as_completed">Позначити як завершене</string>
     <string name="mark_as_completed_prompt">Позначити вибрану манґу як повністю прочитану?
 \n
 \nПопередження: поточний прогрес читання буде втрачено.</string>

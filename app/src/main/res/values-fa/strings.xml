@@ -447,7 +447,6 @@
     <string name="rating_suggestive">تحریک‌آمیز</string>
     <string name="rating_adult">بزرگسال</string>
     <string name="default_tab">صفحه پیشفرض</string>
-    <string name="mark_as_completed">علامت به عنوان تمام شده</string>
     <string name="mark_as_completed_prompt">علامت زدن مانگا به عنوان کاملا خوانده شده؟\n\nاخطار:‌ پیشرفت فعلی از دست خواهد رفت.</string>
     <string name="category_hidden_done">دسته بندی از صفحه اصلی پنهان شده و میتوان از طریق منو ← دسته بندی مانگا ها به ان دسترسی داشت</string>
     <string name="volume_">جلد %d</string>

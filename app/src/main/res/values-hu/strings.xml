@@ -431,7 +431,6 @@
     <string name="rating_safe">Biztonságos</string>
     <string name="rating_adult">Felnőtt</string>
     <string name="default_tab">Alap fül</string>
-    <string name="mark_as_completed">Megjelölés befejezettként</string>
     <string name="error_multiple_genres_not_supported">Ez a manga forrás nem támogatja a többszörös műfaj szerinti szűrést</string>
     <string name="error_multiple_states_not_supported">z a manga forrás nem támogatja a többszörös állapot szerinti szűrést</string>
     <string name="error_search_not_supported">Ez a manga forrás nem támogatja a keresést</string>

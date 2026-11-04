@@ -425,7 +425,6 @@
     <string name="rating_adult">Adulto</string>
     <string name="content_rating">Clasificación del contenido</string>
     <string name="default_tab">Pestaña por defecto</string>
-    <string name="mark_as_completed">Marcar como completado</string>
     <string name="mark_as_completed_prompt">¿Marcar el manga seleccionado como completamente leído?
 \n
 \nAdvertencia: el progreso de lectura actual se perderá.</string>

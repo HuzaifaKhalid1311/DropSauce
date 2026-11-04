@@ -138,6 +138,8 @@ class HistoryRepository @Inject constructor(
 		percent: Float,
 		force: Boolean,
 		notify: Boolean = true,
+		/** Keeps an existing entry's place and date in History, for edits that aren't reading. */
+		keepDate: Boolean = false,
 	) {
 		if (!force && shouldSkip(manga)) {
 			return
@@ -150,9 +152,10 @@ class HistoryRepository @Inject constructor(
 			currentCoroutineContext().ensureActive()
 			withContext(NonCancellable) {
 				db.withTransaction {
-					val previousChapterId = db.getHistoryDao().find(manga.id)?.chapterId
-					addOrUpdateLocked(manga, chapterId, page, scroll, percent)
-					previousChapterId != chapterId
+					val previous = db.getHistoryDao().find(manga.id)
+					val updatedAt = previous?.takeIf { keepDate }?.updatedAt ?: System.currentTimeMillis()
+					addOrUpdateLocked(manga, chapterId, page, scroll, percent, updatedAt)
+					previous?.chapterId != chapterId
 				}
 			}
 		}
@@ -229,6 +232,7 @@ class HistoryRepository @Inject constructor(
 		page: Int,
 		scroll: Int,
 		percent: Float,
+		updatedAt: Long = System.currentTimeMillis(),
 	) {
 		// The reader passes a branch-filtered manga: persisting its chapter list would replace
 		// the cached chapters table with only the selected scanlator's chapters (or an empty
@@ -239,8 +243,8 @@ class HistoryRepository @Inject constructor(
 		db.getHistoryDao().upsert(
 			HistoryEntity(
 				mangaId = manga.id,
-				createdAt = System.currentTimeMillis(),
-				updatedAt = System.currentTimeMillis(),
+				createdAt = updatedAt,
+				updatedAt = updatedAt,
 				chapterId = chapterId,
 				page = page,
 				scroll = scroll.toFloat(), // we migrate to int, but decide to not update database

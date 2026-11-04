@@ -133,9 +133,9 @@ class FavouritesListViewModel @Inject constructor(
 		settings.closeTip(TIP_UI_SCALING)
 	}
 
-	fun markAsRead(items: Set<Manga>) {
+	fun markAsRead(items: Set<Manga>, isRead: Boolean) {
 		launchLoadingJob(Dispatchers.Default) {
-			markAsReadUseCase(items)
+			markAsReadUseCase(items, isRead)
 			onRefresh()
 		}
 	}

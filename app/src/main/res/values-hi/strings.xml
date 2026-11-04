@@ -342,7 +342,6 @@
     <string name="backup_date_">बैकअप दिनांक: %s</string>
     <string name="state_upcoming">आगामी</string>
     <string name="by_name_reverse">नाम उलट दिया गया</string>
-    <string name="mark_as_completed">पूर्ण चिह्नित करें</string>
     <string name="mark_as_completed_prompt">चयनित मंगा को पूरी तरह से पढ़ा गया के रूप में चिह्नित करें?
 \n
 \nचेतावनी: वर्तमान पठन प्रगति नष्ट हो जाएगी।</string>

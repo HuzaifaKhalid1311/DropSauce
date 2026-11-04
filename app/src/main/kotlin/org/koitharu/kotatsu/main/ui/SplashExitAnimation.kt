@@ -43,6 +43,9 @@ private const val SQUISH = 0.82f
 // how long after creation the system's copy of the splash can still turn up
 private const val COVER_WAIT_MS = 3000L
 
+// how long before the intro ends the portal goes under the system's copy (the intro has settled by then)
+private const val COVER_LEAD_MS = 50L
+
 // drawable/avd_splash geometry (from its generator script): a 1600-unit icon with a 9-lobe cookie
 private const val ICON_UNITS = 1600f
 private const val LOBES = 9
@@ -58,9 +61,8 @@ private val emphasizedAccelerate = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
  * The intro backwards and inside out: the logo sinks back into the cookie, the cookie squishes, turns into
  * a window onto the app and spins out to the screen edges, smoothing into a circle. The system hands the
  * animated icon over as a surface that can't be faded or scaled, so the whole splash is swapped for
- * [SplashPortalDrawable], which starts from the intro's final frame. It starts as soon as the app is ready
- * and never waits for the intro, so it can't make startup slower (a start quicker than the intro skips the
- * rest of it); the app takes touches throughout.
+ * [SplashPortalDrawable], which starts from the intro's final frame. It starts once the app is ready and the
+ * intro has played out (the intro is kept short so that rarely waits); the app takes touches throughout.
  *
  * Create it before the first frame and pass [play] as the exit listener.
  */
@@ -100,6 +102,18 @@ class SplashExit(private val activity: Activity, @StyleRes private val splashThe
 
 	fun play(provider: SplashScreenViewProvider) {
 		decor.viewTreeObserver.removeOnPreDrawListener(this)
+		// a fast start is ready mid-intro: let the system's copy finish it rather than jump to its last frame
+		val introLeft = provider.iconAnimationStartMillis + provider.iconAnimationDurationMillis - System.currentTimeMillis()
+		if (portal == null && introLeft > 0) {
+			// the portal has to be on screen under the copy before the copy goes, or the screen blinks for a frame
+			decor.postDelayed({ portal = createPortal(provider.view, provider.iconView) }, introLeft - COVER_LEAD_MS)
+			decor.postDelayed({ exit(provider) }, max(introLeft, COVER_LEAD_MS))
+		} else {
+			exit(provider)
+		}
+	}
+
+	private fun exit(provider: SplashScreenViewProvider) {
 		val portal = portal ?: createPortal(provider.view, provider.iconView)
 		provider.remove() // the system splash leaves in the frame the portal is already showing the same picture
 		if (portal == null) {

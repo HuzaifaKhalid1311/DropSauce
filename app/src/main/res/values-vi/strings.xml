@@ -445,7 +445,6 @@
     <string name="state_upcoming">Sắp ra mắt</string>
     <string name="rating_safe">An toàn</string>
     <string name="default_tab">Tab mặc định</string>
-    <string name="mark_as_completed">Đánh dấu đã hoàn thành</string>
     <string name="mark_as_completed_prompt">Đánh dấu manga đã chọn là manga đã đọc xong? \n \nCảnh báo: Tiến trình đọc hiện tại của bạn sẽ bị xoá và sẽ được đánh dấu là đã hoàn thành.</string>
     <string name="next_chapter">Chương tiếp theo</string>
     <string name="prev_page">Trang trước</string>

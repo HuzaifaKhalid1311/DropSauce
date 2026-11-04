@@ -426,7 +426,6 @@
     <string name="rating_adult">Yetişkin</string>
     <string name="rating_suggestive">Uygunsuz</string>
     <string name="default_tab">Varsayılan sekme</string>
-    <string name="mark_as_completed">Tamamlandı olarak işaretle</string>
     <string name="mark_as_completed_prompt">Seçili mangayı tamamlandı olarak işaretle?
 \n
 \nUyarı: Şu anki ilerleme kaybolacaktır.</string>

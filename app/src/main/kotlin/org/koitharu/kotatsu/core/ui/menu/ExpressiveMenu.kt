@@ -13,6 +13,7 @@ import androidx.annotation.MenuRes
 import androidx.appcompat.view.SupportMenuInflater
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuItemImpl
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -41,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -48,6 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +83,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -168,27 +172,31 @@ fun showExpressiveMenu(
 		// @color/selector_overlay, the old row selector.
 		highlight = Color(ColorUtils.setAlphaComponent(context.getThemeColor(materialR.attr.colorOnSurface), 69)),
 	)
-	// Menus that ask for group dividers (MenuCompat.setGroupDividerEnabled) get a line where the group changes.
-	val groupDividers = menu.isGroupDividerEnabled
-	val entries = items.mapIndexed { index, item ->
-		MenuEntry(
-			item = item,
-			title = item.title?.toString().orEmpty(),
-			// Tinted in place, like the old row's ImageView did.
-			icon = item.icon?.takeIf { forceShowIcon || item.shouldShowIcon() }
-				?.mutate()?.apply { setTint(colors.content.toArgb()) }?.let(::DrawablePainter),
-			// A forced icon column keeps its space on rows without an icon, like the old rows.
-			reservesIconSpace = forceShowIcon,
-			isEnabled = item.isEnabled,
-			check = when {
-				!item.isCheckable -> CheckMark.NONE
-				item.isExclusiveCheckable -> CheckMark.RADIO
-				else -> CheckMark.BOX
-			},
-			isChecked = item.isChecked,
-			hasDividerAbove = groupDividers && index > 0 && items[index - 1].groupId != item.groupId,
-		)
-	}
+	fun toEntries(owner: MenuBuilder, items: List<MenuItemImpl>, forceIcons: Boolean): List<MenuEntry> =
+		items.mapIndexed { index, item ->
+			val showIcon = forceIcons || item.shouldShowIcon()
+			MenuEntry(
+				item = item,
+				title = item.title?.toString().orEmpty(),
+				// Tinted in place, like the old row's ImageView did.
+				icon = item.icon?.takeIf { showIcon }
+					?.mutate()?.apply { setTint(colors.content.toArgb()) }?.let(::DrawablePainter),
+				// A forced icon column keeps its space on rows without an icon, like the old rows.
+				reservesIconSpace = forceIcons,
+				isEnabled = item.isEnabled,
+				check = when {
+					!item.isCheckable -> CheckMark.NONE
+					item.isExclusiveCheckable -> CheckMark.RADIO
+					else -> CheckMark.BOX
+				},
+				isChecked = item.isChecked,
+				// Menus that ask for group dividers (MenuCompat.setGroupDividerEnabled) get a line where the group changes.
+				hasDividerAbove = owner.isGroupDividerEnabled && index > 0 && items[index - 1].groupId != item.groupId,
+				// A sub-menu's rows show icons whenever the row that opens it does.
+				subEntries = (item.subMenu as? MenuBuilder)?.let { toEntries(it, it.visibleItems, showIcon) },
+			)
+		}
+	val entries = toEntries(menu, items, forceShowIcon)
 	val overlay = ComposeView(context)
 	overlay.setContent {
 		DropSauceTheme {
@@ -228,14 +236,19 @@ private class MenuEntry(
 	val check: CheckMark,
 	val isChecked: Boolean,
 	val hasDividerAbove: Boolean,
+	val subEntries: List<MenuEntry>?,
 )
 
-/** Where the card ended up, decided once at layout time; the card never moves or resizes after that. */
+/**
+ * Where the card ended up. The side it grows to is decided once; opening a sub-menu only shrinks the
+ * card towards the anchor, so the size and origin follow it.
+ */
 private class MenuGeometry(
 	val origin: Offset, // centre of the dot the card blooms from, inside the card
 	val startRadius: Float,
 	val cardSize: Size,
 	val growsDown: Boolean,
+	val alignEnd: Boolean,
 ) {
 
 	fun revealedTop(heightProgress: Float) = lerp(origin.y - startRadius, 0f, heightProgress)
@@ -276,6 +289,8 @@ private fun ExpressiveMenuOverlay(
 	val isKeyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
 	var geometry by remember { mutableStateOf<MenuGeometry?>(null) }
 	var isClosing by remember { mutableStateOf(false) }
+	// Opening a sub-menu swaps the rows in place, like the platform popup did.
+	var page by remember { mutableStateOf(entries) }
 	// Width leads and height trails: the dot stretches into a pill, then the pill unrolls into the card.
 	val widthProgress = remember { Animatable(0f) }
 	val heightProgress = remember { Animatable(0f) }
@@ -323,7 +338,7 @@ private fun ExpressiveMenuOverlay(
 		Layout(
 			content = {
 				MenuCard(
-					entries = entries,
+					entries = page,
 					colors = colors,
 					geometry = { geometry },
 					widthProgress = { widthProgress.value },
@@ -331,10 +346,15 @@ private fun ExpressiveMenuOverlay(
 					surfaceAlpha = { surfaceAlpha.value },
 					contentAlpha = { contentAlpha.value },
 					requestInitialFocus = isKeyboard,
-					onItemClick = { item ->
+					onItemClick = { entry ->
 						if (!isClosing) {
-							onItemClick(item)
-							close()
+							val subEntries = entry.subEntries
+							if (subEntries != null) {
+								page = subEntries
+							} else {
+								onItemClick(entry.item)
+								close()
+							}
 						}
 					},
 				)
@@ -349,13 +369,15 @@ private fun ExpressiveMenuOverlay(
 				Constraints(maxWidth = max(right - left, 0), maxHeight = max(bottom - top, 0)),
 			)
 			// The card's corner sits on the anchor's matching corner, so it covers the button it grows from.
-			val alignEnd = anchor.centerX() > constraints.maxWidth / 2
+			val placed = geometry
+			val alignEnd = placed?.alignEnd ?: (anchor.centerX() > constraints.maxWidth / 2)
 			val x = (if (alignEnd) anchor.right - card.width else anchor.left)
 				.coerceIn(left, max(right - card.width, left))
-			val down = anchor.top + card.height <= bottom || bottom - anchor.top >= anchor.bottom - top
+			val down = placed?.growsDown ?: (anchor.top + card.height <= bottom || bottom - anchor.top >= anchor.bottom - top)
 			val y = (if (down) anchor.top else anchor.bottom - card.height)
 				.coerceIn(top, max(bottom - card.height, top))
-			if (geometry == null) {
+			val cardSize = Size(card.width.toFloat(), card.height.toFloat())
+			if (placed?.cardSize != cardSize) {
 				val isButton = anchor.width() <= SmallAnchor.toPx() && anchor.height() <= SmallAnchor.toPx()
 				val radius = if (isButton) {
 					(min(anchor.width(), anchor.height()) / 2f).coerceIn(12.dp.toPx(), CardCorner.toPx())
@@ -371,8 +393,9 @@ private fun ExpressiveMenuOverlay(
 						originY.coerceIn(radius, max(card.height - radius, radius)),
 					),
 					startRadius = radius,
-					cardSize = Size(card.width.toFloat(), card.height.toFloat()),
+					cardSize = cardSize,
 					growsDown = down,
+					alignEnd = alignEnd,
 				)
 			}
 			layout(constraints.maxWidth, constraints.maxHeight) {
@@ -392,7 +415,7 @@ private fun MenuCard(
 	surfaceAlpha: () -> Float,
 	contentAlpha: () -> Float,
 	requestInitialFocus: Boolean,
-	onItemClick: (MenuItem) -> Unit,
+	onItemClick: (MenuEntry) -> Unit,
 ) {
 	var cardCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 	val focusRequester = remember { FocusRequester() }
@@ -414,6 +437,8 @@ private fun MenuCard(
 				alpha = surfaceAlpha()
 			}
 			.background(colors.surface)
+			// Opening a sub-menu shrinks the card to its rows; inside the layer so its shadow is never clipped.
+			.animateContentSize(openHeightSpec())
 			.pointerInput(Unit) {}, // taps on the padding must not reach the dismiss layer
 	) {
 		Column(
@@ -424,7 +449,7 @@ private fun MenuCard(
 				.verticalScroll(rememberScrollState())
 				.padding(CardPadding),
 		) {
-			entries.forEachIndexed { index, entry ->
+			entries.forEachIndexed { index, entry -> key(entry.item) {
 				if (entry.hasDividerAbove) {
 					Box(
 						Modifier
@@ -442,9 +467,9 @@ private fun MenuCard(
 					geometry = geometry,
 					heightProgress = heightProgress,
 					modifier = if (index == firstFocusable) Modifier.focusRequester(focusRequester) else Modifier,
-					onClick = { onItemClick(entry.item) },
+					onClick = { onItemClick(entry) },
 				)
-			}
+			} }
 		}
 	}
 	if (requestInitialFocus && firstFocusable >= 0) {
@@ -561,6 +586,16 @@ private fun MenuRow(
 					colors = RadioButtonDefaults.colors(selectedColor = colors.content, unselectedColor = colors.content),
 				)
 			}
+			if (entry.subEntries != null) {
+				Spacer(Modifier.width(ItemPadding))
+				// Same box as the leading icons; the drawable's own 8x12dp size is too faint here.
+				Icon(
+					painterResource(R.drawable.ic_chevron_right),
+					contentDescription = null,
+					tint = colors.content,
+					modifier = Modifier.size(24.dp),
+				)
+			}
 		}
 	}
 }
@@ -594,7 +629,8 @@ private class BloomShape(
 		val left = lerp(geometry.origin.x - r, 0f, w)
 		val right = lerp(geometry.origin.x + r, size.width, w)
 		val top = geometry.revealedTop(h)
-		val bottom = geometry.revealedBottom(h)
+		// The live size, not geometry.cardSize, so the outline stays on the card while a sub-menu shrinks it.
+		val bottom = lerp(geometry.origin.y + r, size.height, h)
 		// Fully round while it is a dot or a pill, settling into the card's corners as it unrolls.
 		val corner = min(lerp(r, cornerRadius, h), min(right - left, bottom - top) / 2f)
 		return Outline.Rounded(RoundRect(left, top, right, bottom, CornerRadius(corner)))

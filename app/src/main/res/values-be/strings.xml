@@ -456,7 +456,6 @@
     <string name="tap_action">Дзеянне пры націску</string>
     <string name="long_tap_action">Дзеянне пры доўгім націску</string>
     <string name="none">Нічога</string>
-    <string name="mark_as_completed">Адзначыць як выкананае</string>
     <string name="mark_as_completed_prompt">Пазначыць выбраную мангу як цалкам прачытаную?
 \n
 \nУвага: бягучы ход чытання будзе страчаны.</string>

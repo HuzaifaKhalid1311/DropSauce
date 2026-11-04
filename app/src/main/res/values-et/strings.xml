@@ -356,7 +356,6 @@
     <string name="color_black">Must</string>
     <string name="color_dark">Tume</string>
     <string name="zoom_out">Suumi välja</string>
-    <string name="mark_as_completed">Märgi loetuks</string>
     <string name="chapters_grid_view">Vaade ruudustikuna</string>
     <string name="reader_info_bar_summary">Näita ekraani ülaosas praegust aega ja lugemise edenemist</string>
     <string name="color_white">Valge</string>

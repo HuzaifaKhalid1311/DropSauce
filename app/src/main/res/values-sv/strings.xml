@@ -417,7 +417,6 @@
     <string name="state">Publiceringsstatus</string>
     <string name="volume_">Volym %d</string>
     <string name="default_tab">Standardflik</string>
-    <string name="mark_as_completed">Markera som färdigläst</string>
     <string name="mark_as_completed_prompt">Markera den valda mangan som färidgläst?\n\nVarning: aktuellt läsförlopp kommer att gå förlorat.</string>
     <string name="volume_unknown">Okänd volym</string>
     <string name="incognito_mode_hint">Ditt läsförlopp kommer ej att sparas</string>

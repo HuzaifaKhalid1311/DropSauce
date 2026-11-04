@@ -439,7 +439,6 @@
     <string name="rating_suggestive">С намёками</string>
     <string name="rating_adult">Взрослый</string>
     <string name="category_hidden_done">Эта категория была скрыта с главного экрана и доступна через Меню → Управление категориями</string>
-    <string name="mark_as_completed">Отметить как завершённое</string>
     <string name="mark_as_completed_prompt">Отметить выбранную мангу как полностью прочитанную?
 \n
 \nВнимание: текущий прогресс чтения будет потерян.</string>

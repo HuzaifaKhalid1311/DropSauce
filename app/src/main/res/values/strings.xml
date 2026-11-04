@@ -597,7 +597,7 @@
     <string name="downloads_paused">Downloads have been paused</string>
     <string name="downloads_removed">Downloads have been removed</string>
     <string name="downloads_cancelled">Downloads have been cancelled</string>
-    <string name="suggestions_enable_prompt">Do you want to receive personalized manga suggestions?</string>
+    <string name="suggestions_enable_prompt">Get personalized manga suggestions based on what you read. Everything is analyzed on this device and never sent anywhere.</string>
     <string name="web_view_unavailable">WebView not available: check if WebView provider is installed</string>
     <string name="clear_network_cache">Clear network cache</string>
     <string name="type">Type</string>
@@ -770,7 +770,9 @@
     <string name="rating_suggestive">Suggestive</string>
     <string name="rating_adult">Adult</string>
     <string name="default_tab">Default tab</string>
-    <string name="mark_as_completed">Mark as completed</string>
+    <string name="mark_as">Mark as</string>
+    <string name="mark_as_unread">Mark as unread</string>
+    <string name="mark_as_unread_prompt">Reset the reading progress of the selected manga to 0%?</string>
     <string name="mark_as_completed_prompt">Mark selected manga as completely read?\n\nWarning: current reading progress will be lost.</string>
     <string name="category_hidden_done">This category was hidden from the main screen and is accessible through Menu -> Manage categories</string>
     <string name="remaining_time_pattern" translatable="false">%1$s %2$s</string>

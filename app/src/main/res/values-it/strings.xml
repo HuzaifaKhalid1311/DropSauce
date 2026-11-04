@@ -424,7 +424,6 @@
     <string name="rating_suggestive">Suggestivi</string>
     <string name="rating_adult">Adulto</string>
     <string name="default_tab">Scheda predefinita</string>
-    <string name="mark_as_completed">Segna come completo</string>
     <string name="mark_as_completed_prompt">Segna il manga selezionato come completamente letto?
 \n
 \nAttenzione: l\'attuale avanzamento della lettura sarà perso.</string>

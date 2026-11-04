@@ -489,7 +489,6 @@
     <string name="check_for_new_chapters_disabled">Zjišťování nových kapitol je vypnuté</string>
     <string name="rating_suggestive">Sugestivní</string>
     <string name="default_tab">Výchozí záložka</string>
-    <string name="mark_as_completed">Označit jako dokončený</string>
     <string name="toggle_ui">Zobrazit/skrýt uživatelské rozhraní</string>
     <string name="statistics">Statistiky</string>
     <string name="no_chapters_deleted">Nebyly odstraněny žádné kapitoly</string>

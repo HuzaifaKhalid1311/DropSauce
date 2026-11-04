@@ -441,7 +441,6 @@
     <string name="rating_adult">アダルト</string>
     <string name="rating_suggestive">示唆的</string>
     <string name="default_tab">既定のタブ</string>
-    <string name="mark_as_completed">完了としてマークする</string>
     <string name="mark_as_completed_prompt">マークした漫画を完全に読み終えたものとしますか？\n\n警告：現在の読書進捗が消去されます。</string>
     <string name="category_hidden_done">このカテゴリはメイン画面から非表示になっており、メニュー → カテゴリ管理 からアクセスできます</string>
     <string name="volume_">%d巻</string>

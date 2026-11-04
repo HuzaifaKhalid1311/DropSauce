@@ -389,7 +389,6 @@
     <string name="manual">手動</string>
     <string name="state_paused">已暫停</string>
     <string name="reader_optimize">減少記憶體消耗</string>
-    <string name="mark_as_completed">標記為已完成</string>
     <string name="by_relevance">關聯</string>
     <string name="list_options">清單選項</string>
     <string name="frequency_every_day">每日</string>

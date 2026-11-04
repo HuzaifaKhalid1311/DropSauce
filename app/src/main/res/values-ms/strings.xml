@@ -437,7 +437,6 @@
     <string name="rating_suggestive">Sugestif</string>
     <string name="rating_adult">Matang</string>
     <string name="default_tab">Tab lalai</string>
-    <string name="mark_as_completed">Tanda seperti selesai</string>
     <string name="mark_as_completed_prompt">Tandakan manga yang dipilih sepenuhnya dibaca?\n\nAmaran: Kemajuan bacaan semasa akan hilang.</string>
     <string name="category_hidden_done">Kategori ini tersembunyi dari skrin utama dan boleh diakses melalui menu → Urus kategori</string>
     <string name="volume_">Kelantangan %d</string>

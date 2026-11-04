@@ -476,7 +476,6 @@
     <string name="no_chapters_deleted">لم يتم حذف أي فصول</string>
     <string name="delete_read_chapters_summary">احذف الفصول التي قرأتها بالفعل من وحدة التخزين المحلية لتحرير المساحة</string>
     <string name="delete_read_chapters_prompt">سيؤدي هذا إلى حذف جميع الفصول المُعَلمة كـ\"مقروءة\" من وحدة التخزين المحلية لديك بشكل دائم. يمكنك إعادة تنزيلها لاحقًا، ولكن قد يتم فقدان الفصول المستوردة إلى الأبد</string>
-    <string name="mark_as_completed">عَلِّم كمقروء</string>
     <string name="prev_chapter">الفصل السابق</string>
     <string name="next_chapter">الفصل التالي</string>
     <string name="next_page">الصفحة التالية</string>

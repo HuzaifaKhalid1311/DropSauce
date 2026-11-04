@@ -413,7 +413,6 @@
     <string name="genres_exclude">Ibukod na dyanra</string>
     <string name="rating_adult">Nasa gulang</string>
     <string name="default_tab">Default na tab</string>
-    <string name="mark_as_completed">Markahan bilang kumpleto na</string>
     <string name="mark_as_completed_prompt">Markahan ang napiling manga bilang tapos na nabasa?
 \n
 \nBabala: mawawala ang kasalukuyang progress sa pagbabasa.</string>

@@ -447,7 +447,6 @@
     <string name="config_reset_confirm">Redefinir as configurações para valores padrões? Essa ação não pode ser desfeita.</string>
     <string name="use_two_pages_landscape">Usar layout de duas páginas na orientação paisagem (beta)</string>
     <string name="category_hidden_done">Essa categoria foi ocultada da tela principal e pode ser acessada através do Menu → Gerenciar categorias</string>
-    <string name="mark_as_completed">Marcar como concluído</string>
     <string name="none">nenhum</string>
     <string name="last_read">Última leitura</string>
     <string name="default_webtoon_zoom_out">Diminuir para zoom padrão do webtoon</string>

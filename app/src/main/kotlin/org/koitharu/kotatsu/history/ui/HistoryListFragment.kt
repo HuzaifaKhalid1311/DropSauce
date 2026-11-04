@@ -54,16 +54,17 @@ class HistoryListFragment : MangaListFragment() {
 				true
 			}
 
-			R.id.action_mark_current -> {
+			R.id.action_mark_read, R.id.action_mark_unread -> {
+				val isRead = item.itemId == R.id.action_mark_read
 				val itemsSnapshot = selectedItems
 				val ctx = context ?: return false
 				showConfirmDialog(
 					context = ctx,
-					icon = R.drawable.ic_eye_check,
-					title = item.title.toString(),
-					message = ctx.getString(R.string.mark_as_completed_prompt),
+					icon = if (isRead) R.drawable.ic_eye_check else R.drawable.ic_mark_unread,
+					title = ctx.getString(if (isRead) R.string.mark_as_read else R.string.mark_as_unread),
+					message = ctx.getString(if (isRead) R.string.mark_as_completed_prompt else R.string.mark_as_unread_prompt),
 				) {
-					viewModel.markAsRead(itemsSnapshot)
+					viewModel.markAsRead(itemsSnapshot, isRead)
 					mode?.finish()
 				}
 				true

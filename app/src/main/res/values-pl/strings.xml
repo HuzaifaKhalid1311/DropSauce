@@ -393,7 +393,6 @@
     <string name="reader_optimize">Zmniejsz użycie pamięci</string>
     <string name="skip">Pomiń</string>
     <string name="grayscale">Odcienie szarości</string>
-    <string name="mark_as_completed">Oznacz jako kompletne</string>
     <string name="mark_as_completed_prompt">Zaznaczyć wybraną mangę jako przeczytaną?
 \n
 \nUwaga: bieżący postęp czytania zostanie utracony.</string>

@@ -411,7 +411,6 @@
     <string name="downloads_settings_info">Vous pouvez réduire la vitesse de téléchargement individuellement pour chaque source de manga dans les paramètres si vous rencontrez des problèmes de blocage avec le serveur</string>
     <string name="backup_date_">Date de sauvegarde : %s</string>
     <string name="by_name_reverse">Nom inversé</string>
-    <string name="mark_as_completed">Marquer comme terminé</string>
     <string name="mark_as_completed_prompt">Marquer le manga sélectionné comme terminé ?\n\nAttention : la progression actuelle sera perdue.</string>
     <string name="incognito_mode_hint">Votre progression de lecture ne sera pas sauvegardée</string>
     <string name="last_read">Dernier lu</string>

@@ -423,7 +423,6 @@
     <string name="default_tab">Tab bawaan</string>
     <string name="category_hidden_done">Kategori ini telah disembunyikan dari tampilan utama dan dapat di akses melalui Menu -&gt; Manage categoties</string>
     <string name="grayscale">Skala abu-abu</string>
-    <string name="mark_as_completed">Tandai telah selesai</string>
     <string name="disable_battery_optimization_summary_downloads">Mungkin membantu dengan memulai pengunduhan jika Anda memiliki masalah dengannya</string>
     <string name="mark_as_completed_prompt">Tandai manga yang dipilih telah selesai dibaca
 \n
