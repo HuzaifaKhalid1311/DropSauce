@@ -345,8 +345,8 @@ fun ExpressiveDialogCard(
 }
 
 /**
- * `46dp` circular icon button in the option rows' colour, its icon tinted like the header icon (error when
- * [destructive]), the settings back button's size, that stays round and springs bigger while pressed.
+ * `46dp` circular tonal icon button (error container when [destructive]), the settings back button's
+ * size, that stays round and springs bigger while pressed.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -371,10 +371,14 @@ fun DialogCornerButton(
 		},
 		shape = CircleShape,
 		enabled = action.enabled,
-		colors = IconButtonDefaults.filledTonalIconButtonColors(
-			containerColor = MaterialTheme.colorScheme.background,
-			contentColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-		),
+		colors = if (destructive) {
+			IconButtonDefaults.filledTonalIconButtonColors(
+				containerColor = MaterialTheme.colorScheme.errorContainer,
+				contentColor = MaterialTheme.colorScheme.onErrorContainer,
+			)
+		} else {
+			IconButtonDefaults.filledTonalIconButtonColors()
+		},
 		interactionSource = interactionSource,
 		modifier = modifier
 			.size(CornerButtonSize)

@@ -48,12 +48,6 @@ android {
 		debug {
 			applicationIdSuffix = '.debug'
 		}
-		preview {
-			applicationIdSuffix = '.preview'
-			minifyEnabled = false
-			debuggable = true
-			signingConfig = signingConfigs.findByName('release') ?: signingConfigs.debug
-		}
 		release {
 			minifyEnabled = true
 			shrinkResources = true
@@ -61,6 +55,13 @@ android {
 			if (signingConfigs.findByName('release')) {
 				signingConfig signingConfigs.release
 			}
+		}
+		// An exact copy of release (shrunk, not debuggable) that installs as its own app, for testing.
+		preview {
+			initWith release
+			applicationIdSuffix = '.preview'
+			matchingFallbacks = ['release']
+			signingConfig = signingConfigs.findByName('release') ?: signingConfigs.debug
 		}
 	}
 	buildFeatures {

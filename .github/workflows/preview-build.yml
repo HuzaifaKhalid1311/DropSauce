@@ -1,10 +1,9 @@
 name: Preview Build
 
 # Builds a standalone "preview" APK on manual dispatch.
-# The preview variant is a non-debuggable build with none of the debug-only tooling
-# (no LeakCanary/StrictMode/debug settings/ACRA-debug) and its own applicationId suffix, so it
-# installs alongside the store build. R8/resource shrinking is intentionally OFF so the APK
-# installs cleanly when sideloaded. It's signed with the debug keystore (no secrets needed).
+# The preview variant is an exact copy of the release build (R8 + resource shrinking, not
+# debuggable) with its own applicationId suffix, so it installs alongside the store build.
+# It's signed with the debug keystore (no secrets needed).
 #
 # The APK is published as a workflow artifact (zipped by GitHub) for anyone who prefers the Actions tab.
 # The SHA-256/SHA-1/MD5 hashes are printed to the run summary.

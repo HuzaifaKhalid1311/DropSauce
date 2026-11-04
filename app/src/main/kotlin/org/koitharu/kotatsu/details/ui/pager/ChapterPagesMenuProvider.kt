@@ -21,13 +21,13 @@ import org.koitharu.kotatsu.core.ui.dialog.showMultiChoiceDialog
 import org.koitharu.kotatsu.core.util.LocaleStringComparator
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
 import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
-import org.koitharu.kotatsu.core.util.ext.setValueRounded
 import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
-import org.koitharu.kotatsu.core.util.progress.IntPercentLabelFormatter
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.TAB_BOOKMARKS
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.TAB_CHAPTERS
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.TAB_PAGES
+import org.koitharu.kotatsu.list.ui.GridColumns
 import java.lang.ref.WeakReference
+import kotlin.math.roundToInt
 
 class ChapterPagesMenuProvider(
 	private val sheet: BaseAdaptiveSheet<*>,
@@ -208,20 +208,32 @@ class ChapterPagesMenuProvider(
 
 	override fun onValueChange(slider: Slider, value: Float, fromUser: Boolean) {
 		if (fromUser) {
-			settings.gridSizePages = value.toInt()
+			settings.gridSizePages = GridColumns.gridSizeFor(slider.resources, pagesWidth(), slider.columnsAt(value))
 		}
 	}
 
+	/** One stop per column count, like the grid size in display options; bigger thumbnails to the right. */
 	private fun Slider.setupPagesSizeSlider() {
-		valueFrom = 50f
-		valueTo = 150f
-		stepSize = 5f
-		tickVisibilityMode = TickVisibilityMode.TICK_VISIBILITY_HIDDEN
+		val width = pagesWidth()
+		val maxColumns = GridColumns.maxColumns(resources, width)
+		valueFrom = 1f
+		valueTo = maxColumns.toFloat()
+		stepSize = 1f
+		tickVisibilityMode = TickVisibilityMode.TICK_VISIBILITY_AUTO_LIMIT
 		labelBehavior = LabelFormatter.LABEL_FLOATING
-		setLabelFormatter(IntPercentLabelFormatter(context))
-		setValueRounded(settings.gridSizePages.toFloat())
+		setLabelFormatter { position ->
+			val columns = columnsAt(position)
+			resources.getQuantityString(R.plurals.items_per_row, columns, columns)
+		}
+		val columns = GridColumns.columnsFor(resources, width, settings.gridSizePages / 100f)
+		value = (maxColumns + 1 - columns).toFloat()
 		addOnChangeListener(this@ChapterPagesMenuProvider)
 	}
+
+	private fun Slider.columnsAt(position: Float): Int = valueTo.toInt() + 1 - position.roundToInt()
+
+	/** The pages grid fills the pager, so its width is the one the column count is worked out from. */
+	private fun pagesWidth(): Int = pager.width.takeIf { it > 0 } ?: pager.resources.displayMetrics.widthPixels
 
 	private fun getCurrentTab(): Int {
 		var page = pager.currentItem

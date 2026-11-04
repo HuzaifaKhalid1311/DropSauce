@@ -77,11 +77,11 @@ class ReaderTts @Inject constructor(
 	/** Every voice the engine has ready for the language being read, offline ones first, for the picker. */
 	fun availableVoices(): List<Voice> {
 		val all = engineVoices() ?: return emptyList()
-		val language = spokenLocale().language
+		val spoken = spokenLocale()
 		val country = Locale.getDefault().country
 		return all
 			// Google's "<lang>-language" entry is an alias of whichever voice is the engine default
-			.filter { !it.isInstallRequired() && it.locale.language == language && LEGACY_LANGUAGE_VOICE !in it.features.orEmpty() }
+			.filter { !it.isInstallRequired() && it.locale.isSameLanguage(spoken) && LEGACY_LANGUAGE_VOICE !in it.features.orEmpty() }
 			.sortedWith(
 				compareBy<Voice> { it.isNetworkConnectionRequired }
 					.thenBy { !it.locale.country.equals(country, ignoreCase = true) }
@@ -238,9 +238,16 @@ class ReaderTts @Inject constructor(
 		val voice = slotVoice(selectedVoiceIndex())
 		if (voice != null) {
 			engine.voice = voice
+			return
+		}
+		// No voice linked to this slot: the voice picked in Android's text-to-speech settings. Asking for
+		// the phone's region instead (say English India) ignored that pick (say an en-US voice).
+		val spoken = spokenLocale()
+		val phoneVoice = runCatching { engine.defaultVoice }.getOrNull()
+		if (phoneVoice != null && phoneVoice.locale.isSameLanguage(spoken)) {
+			engine.voice = phoneVoice
 		} else {
-			// No voice linked to this slot: the engine's default voice for the book's language.
-			engine.language = spokenLocale()
+			engine.language = spoken
 		}
 	}
 
@@ -358,6 +365,10 @@ private val WHITESPACE = Regex("""\s+""")
 
 private fun Voice.isInstallRequired(): Boolean =
 	features?.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) == true
+
+/** Same language, also when an engine reports a 3-letter or retired code ("eng" for "en", "in" for "id"). */
+private fun Locale.isSameLanguage(other: Locale): Boolean =
+	language == other.language || runCatching { isO3Language == other.isO3Language }.getOrDefault(false)
 
 /**
  * Engines don't expose gender, so read it off the name for the voice picker. Older Google builds and
