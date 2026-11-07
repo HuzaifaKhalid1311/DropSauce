@@ -4,15 +4,14 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color as AndroidColor
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.ComponentDialog
 import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -55,7 +54,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -82,8 +80,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogWindowProvider
-import java.util.function.Consumer
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -103,9 +99,6 @@ private val PillButtonHeight = 56.dp
 private val DialogHorizontalMargin = 24.dp
 private val DialogMaxWidth = 420.dp
 private val CardPadding = 24.dp
-
-// values/styles.xml ThemeOverlay.Kotatsu.Dialog: the dim popups get where there's no blur
-private const val NO_BLUR_DIM = 0.4f
 
 /**
  * Hosts a Compose [content] inside a transparent [ComponentDialog], styled as the app's
@@ -211,20 +204,6 @@ fun ExpressiveDialogCard(
 	)
 
 	val hostView = LocalView.current
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-		DisposableEffect(hostView) {
-			val window = (hostView.parent as? DialogWindowProvider)?.window
-				?: (hostView.findViewTreeOnBackPressedDispatcherOwner() as? Dialog)?.window
-			val windowManager = hostView.context.getSystemService(WindowManager::class.java)
-			if (window == null || windowManager == null) return@DisposableEffect onDispose {}
-			// The theme blurs instead of dimming (values-v31/styles.xml); battery saver and some phones turn blur off
-			val blurDim = window.attributes.dimAmount
-			val listener = Consumer<Boolean> { window.setDimAmount(if (it) blurDim else NO_BLUR_DIM) }
-			listener.accept(windowManager.isCrossWindowBlurEnabled)
-			windowManager.addCrossWindowBlurEnabledListener(listener)
-			onDispose { windowManager.removeCrossWindowBlurEnabledListener(listener) }
-		}
-	}
 	Box(
 		modifier = modifier
 			.fillMaxWidth()
@@ -237,6 +216,8 @@ fun ExpressiveDialogCard(
 			// Concentric with the round corner button: its radius plus the card padding.
 			shape = RoundedCornerShape(CornerButtonSize / 2 + CardPadding),
 			color = colors.surfaceContainer,
+			// Same outline as the floating nav bar
+			border = BorderStroke(1.dp, colors.outlineVariant),
 			modifier = Modifier
 				.fillMaxWidth()
 				.widthIn(max = DialogMaxWidth)

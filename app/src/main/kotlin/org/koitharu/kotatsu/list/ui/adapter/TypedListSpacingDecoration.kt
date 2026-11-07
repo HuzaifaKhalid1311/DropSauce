@@ -15,8 +15,8 @@ class TypedListSpacingDecoration(
 	private val spacingSmall = context.resources.getDimensionPixelOffset(R.dimen.list_spacing_small)
 	private val spacingNormal =
 		context.resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
-	private val spacingExploreGrid =
-		context.resources.getDimensionPixelOffset(R.dimen.explore_grid_spacing)
+	/** Space around each of Explore's grid cells; Explore sets it from its column count. */
+	var spacingExploreGrid = 0
 
 	override fun getItemOffsets(
 		outRect: Rect,

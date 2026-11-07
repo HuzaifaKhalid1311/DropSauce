@@ -67,6 +67,12 @@ class ExploreViewModel @Inject constructor(
 		valueProducer = { isSourcesGridMode },
 	)
 
+	val gridColumns = settings.observeAsStateFlow(
+		key = AppSettings.KEY_SOURCES_GRID_COLUMNS,
+		scope = viewModelScope + Dispatchers.IO,
+		valueProducer = { sourcesGridColumns },
+	)
+
 	private val isSuggestionsEnabled = settings.observeAsFlow(
 		key = AppSettings.KEY_SUGGESTIONS,
 		valueProducer = { isSuggestionsEnabled },

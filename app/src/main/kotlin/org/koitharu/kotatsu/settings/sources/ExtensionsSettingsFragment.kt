@@ -43,6 +43,7 @@ import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
+import org.koitharu.kotatsu.settings.compose.rememberIntPref
 import org.koitharu.kotatsu.settings.compose.rememberStringPref
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.settings.sources.migration.BrokenSourcesMigrationFragment
@@ -195,6 +196,8 @@ private fun ExtensionsScreen(
 
 	var sortOrder by rememberStringPref(AppSettings.KEY_SOURCES_ORDER, SourcesSortOrder.ALPHABETIC.name)
 	var grid by rememberBooleanPref(AppSettings.KEY_SOURCES_GRID, true)
+	var gridColumns by rememberIntPref(AppSettings.KEY_SOURCES_GRID_COLUMNS, 4)
+	val gridColumnOptions = remember { listOf(3, 4, 5) }
 	// Most permissive first, the same order the store's filter chip cycles through
 	val contentFilterLevels = remember { ContentWarning.entries.reversed() }
 	val contentFilterLabels = contentFilterLevels.map { stringResource(it.filterTitleResId) }
@@ -278,6 +281,17 @@ private fun ExtensionsScreen(
 						onCheckedChange = { grid = it },
 						icon = R.drawable.ic_grid,
 						
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SegmentedSettingsItem(
+						title = stringResource(R.string.extensions_per_row),
+						labels = gridColumnOptions.map { it.toString() },
+						selectedIndex = gridColumnOptions.indexOf(gridColumns).coerceAtLeast(0),
+						onSelected = { gridColumns = gridColumnOptions[it] },
+						icon = R.drawable.ic_extensions_per_row,
+						enabled = grid,
 						shape = pos.shape,
 					)
 				}

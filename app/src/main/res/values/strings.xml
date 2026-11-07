@@ -500,6 +500,7 @@
     <string name="theme_name_expressive">Expressive</string>
     <string name="color_theme">Color scheme</string>
     <string name="show_in_grid_view">Show in grid view</string>
+    <string name="extensions_per_row">Extensions per row</string>
     <string name="theme_name_miku">Miku</string>
     <string name="theme_name_lime">Remon</string>
     <string name="theme_name_amber">Amber</string>

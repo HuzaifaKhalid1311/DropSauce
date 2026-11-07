@@ -9,8 +9,15 @@ import kotlin.math.abs
 
 class SpanSizeResolver(
 	private val recyclerView: RecyclerView,
-	@Px private val minItemWidth: Int,
+	@Px minItemWidth: Int,
 ) : View.OnLayoutChangeListener {
+
+	@Px
+	var minItemWidth: Int = minItemWidth
+		set(value) {
+			field = value
+			invalidate()
+		}
 
 	fun attach() {
 		recyclerView.addOnLayoutChangeListener(this)
@@ -35,7 +42,7 @@ class SpanSizeResolver(
 	}
 
 	private fun invalidateInternal(width: Int) {
-		if (width <= 0) {
+		if (width <= 0 || minItemWidth <= 0) {
 			return
 		}
 		val lm = recyclerView.layoutManager as? GridLayoutManager ?: return

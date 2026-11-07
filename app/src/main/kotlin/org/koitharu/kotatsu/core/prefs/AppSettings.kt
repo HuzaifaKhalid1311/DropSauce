@@ -799,6 +799,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_SOURCES_GRID, true)
 		set(value) = prefs.edit { putBoolean(KEY_SOURCES_GRID, value) }
 
+	/** Extensions in a row of Explore's grid on a phone (3, 4 or 5); wider screens fit proportionally more. */
+	val sourcesGridColumns: Int
+		get() = prefs.getInt(KEY_SOURCES_GRID_COLUMNS, 4)
+
 	/**
 	 * The active language chosen per logical source (a package + source-name pair) for
 	 * multi-language extensions. Each entry is encoded as "lang\npkgName\nsourceName" (newline
@@ -1465,6 +1469,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PREFETCH_CONTENT = "prefetch_content"
 		const val KEY_APP_LOCALE = "app_locale"
 		const val KEY_SOURCES_GRID = "sources_grid"
+		const val KEY_SOURCES_GRID_COLUMNS = "sources_grid_columns"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
 		const val DEFAULT_AUTOSCROLL_SPEED = 0.5f

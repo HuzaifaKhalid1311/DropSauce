@@ -92,6 +92,8 @@ open class RemoteListViewModel @Inject constructor(
 	private val mangaList = MutableStateFlow<List<Manga>?>(null)
 	private val hasNextPage = MutableStateFlow(false)
 	private val listError = MutableStateFlow<Throwable?>(null)
+	// a pull-to-refresh shows only its own spinner, not the full-screen loading state
+	private val isRefreshing = MutableStateFlow(false)
 	private var loadingJob: Job? = null
 	private var randomJob: Job? = null
 
@@ -100,7 +102,8 @@ open class RemoteListViewModel @Inject constructor(
 		observeListModeWithTriggers(),
 		listError,
 		hasNextPage,
-	) { list, mode, error, hasNext ->
+		isRefreshing,
+	) { list, mode, error, hasNext, refreshing ->
 		buildList(list?.size?.plus(2) ?: 2) {
 			when {
 				list.isNullOrEmpty() && error != null -> add(
@@ -110,7 +113,7 @@ open class RemoteListViewModel @Inject constructor(
 					),
 				)
 
-				list == null -> add(LoadingState)
+				list == null -> if (!refreshing) add(LoadingState)
 				list.isEmpty() -> add(createEmptyState(canResetFilter = filterCoordinator.isFilterApplied))
 				else -> {
 					mapMangaList(this, list, mode)
@@ -141,6 +144,7 @@ open class RemoteListViewModel @Inject constructor(
 			}
 			.onEach { filterState ->
 				loadingJob?.cancelAndJoin()
+				isRefreshing.value = false
 				mangaList.value = null
 				loadList(filterState, false)
 			}.catch { error ->
@@ -164,6 +168,7 @@ open class RemoteListViewModel @Inject constructor(
 	/** Like reopening the source with the same search and filters: the shown list goes and loading starts over. */
 	override fun onRefresh() {
 		loadingJob?.cancel() // a page still loading would otherwise swallow the refresh
+		isRefreshing.value = true
 		mangaList.value = null
 		listError.value = null
 		hasNextPage.value = false
@@ -203,6 +208,7 @@ open class RemoteListViewModel @Inject constructor(
 				} else {
 					list.size > prevList.size || hasNextPage.value
 				}
+				isRefreshing.value = false
 			} catch (e: CancellationException) {
 				throw e
 			} catch (e: Throwable) {
@@ -214,6 +220,7 @@ open class RemoteListViewModel @Inject constructor(
 					return@launchLoadingJob
 				}
 				listError.value = e
+				isRefreshing.value = false
 				if (!mangaList.value.isNullOrEmpty()) {
 					errorEvent.call(e)
 				}

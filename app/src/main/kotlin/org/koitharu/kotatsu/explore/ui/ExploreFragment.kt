@@ -57,6 +57,7 @@ import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.adapter.bindBadge
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.parsers.model.Manga
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ExploreFragment :
@@ -72,6 +73,8 @@ class ExploreFragment :
 	/** Page lists, indexed by page position. Both are created up-front by the pager. */
 	private val pages = arrayOfNulls<RecyclerView>(2)
 	private val pageAdapters = arrayOfNulls<ExploreAdapter>(2)
+	private val gridResolvers = arrayOfNulls<SpanSizeResolver>(2)
+	private val gridDecorations = arrayOfNulls<TypedListSpacingDecoration>(2)
 	private var barsInsets: Insets = Insets.NONE
 	private var isMeasuringPages = false
 
@@ -134,6 +137,9 @@ class ExploreFragment :
 		viewModel.isGrid.observe(viewLifecycleOwner) { isGrid ->
 			pages.forEach { it?.applyLayoutManager(isGrid) }
 		}
+		viewModel.gridColumns.observe(viewLifecycleOwner) { columns ->
+			pages.indices.forEach { applyGridColumns(it, columns) }
+		}
 		viewModel.onShowSuggestionsTip.observeEvent(viewLifecycleOwner) {
 			showSuggestionsTip()
 		}
@@ -152,8 +158,9 @@ class ExploreFragment :
 		)
 		with(recyclerView) {
 			this.adapter = adapter
-			SpanSizeResolver(this, resources.getDimensionPixelSize(R.dimen.explore_grid_width)).attach()
-			addItemDecoration(TypedListSpacingDecoration(context, false))
+			gridResolvers[position] = SpanSizeResolver(this, 0).also { it.attach() }
+			gridDecorations[position] = TypedListSpacingDecoration(context, false).also(::addItemDecoration)
+			applyGridColumns(position, viewModel.gridColumns.value)
 			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
 			applyLayoutManager(viewModel.isGrid.value)
 			// The empty state sizes itself one layout pass late (it centers on the display), so the height
@@ -213,6 +220,22 @@ class ExploreFragment :
 			pages.forEach { it?.scrollToPosition(0) }
 			viewBinding?.pager?.post(::updatePagerHeight)
 		}
+	}
+
+	/**
+	 * A phone's list is about 340-415dp wide, and each width below fits exactly that many cells into all of it;
+	 * wider screens fit proportionally more. Bigger icons get a bigger gap.
+	 */
+	private fun applyGridColumns(position: Int, columns: Int) {
+		val (cellWidth, spacing) = when (columns) {
+			3 -> 150 to 4
+			5 -> 84 to 2
+			else -> 108 to 3
+		}
+		val density = resources.displayMetrics.density
+		gridDecorations[position]?.spacingExploreGrid = (spacing * density).roundToInt()
+		gridResolvers[position]?.minItemWidth = (cellWidth * density).roundToInt()
+		pages[position]?.invalidateItemDecorations()
 	}
 
 	private fun RecyclerView.applyLayoutManager(isGrid: Boolean) {

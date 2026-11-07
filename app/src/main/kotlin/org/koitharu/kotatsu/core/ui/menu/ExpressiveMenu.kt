@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.annotation.MenuRes
 import androidx.appcompat.view.SupportMenuInflater
 import androidx.appcompat.view.menu.MenuBuilder
@@ -86,12 +87,14 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -101,10 +104,20 @@ import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import java.util.WeakHashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import com.google.android.material.R as materialR
+
+// Items marked with setMenuOption(): their trailing icon (0 for none). Only touched on the main thread.
+private val optionIcons = WeakHashMap<MenuItem, Int>()
+
+/**
+ * Makes this item an option: picking it keeps the menu open (the rows are read again, so the click handler
+ * can update them) and it shows [trailingIcon] (0 for none) after its title instead of a leading icon.
+ */
+fun MenuItem.setMenuOption(@DrawableRes trailingIcon: Int): MenuItem = apply { optionIcons[this] = trailingIcon }
 
 /** Drop-in for appcompat's PopupMenu that shows the app's Compose menu instead. */
 @SuppressLint("RestrictedApi")
@@ -172,15 +185,16 @@ fun showExpressiveMenu(
 		// @color/selector_overlay, the old row selector.
 		highlight = Color(ColorUtils.setAlphaComponent(context.getThemeColor(materialR.attr.colorOnSurface), 69)),
 	)
+	fun tinted(drawable: Drawable?) = drawable?.mutate()?.apply { setTint(colors.content.toArgb()) }?.let(::DrawablePainter)
 	fun toEntries(owner: MenuBuilder, items: List<MenuItemImpl>, forceIcons: Boolean): List<MenuEntry> =
 		items.mapIndexed { index, item ->
 			val showIcon = forceIcons || item.shouldShowIcon()
+			val optionIcon = optionIcons[item]
 			MenuEntry(
 				item = item,
 				title = item.title?.toString().orEmpty(),
 				// Tinted in place, like the old row's ImageView did.
-				icon = item.icon?.takeIf { showIcon }
-					?.mutate()?.apply { setTint(colors.content.toArgb()) }?.let(::DrawablePainter),
+				icon = tinted(item.icon?.takeIf { showIcon }),
 				// A forced icon column keeps its space on rows without an icon, like the old rows.
 				reservesIconSpace = forceIcons,
 				isEnabled = item.isEnabled,
@@ -192,16 +206,21 @@ fun showExpressiveMenu(
 				isChecked = item.isChecked,
 				// Menus that ask for group dividers (MenuCompat.setGroupDividerEnabled) get a line where the group changes.
 				hasDividerAbove = owner.isGroupDividerEnabled && index > 0 && items[index - 1].groupId != item.groupId,
-				// A sub-menu's rows show icons whenever the row that opens it does.
-				subEntries = (item.subMenu as? MenuBuilder)?.let { toEntries(it, it.visibleItems, showIcon) },
+				// A sub-menu's rows keep an icon column whenever the row that opens it does and any of them has an icon.
+				subEntries = (item.subMenu as? MenuBuilder)?.let { sub ->
+					{ toEntries(sub, sub.visibleItems, showIcon && sub.visibleItems.any { it.icon != null }) }
+				},
+				isOption = optionIcon != null,
+				trailingIcon = optionIcon?.takeIf { it != 0 }?.let { tinted(ContextCompat.getDrawable(context, it)) },
 			)
 		}
-	val entries = toEntries(menu, items, forceShowIcon)
+	val backIcon = checkNotNull(tinted(ContextCompat.getDrawable(context, R.drawable.ic_arrow_back)))
 	val overlay = ComposeView(context)
 	overlay.setContent {
 		DropSauceTheme {
 			ExpressiveMenuOverlay(
-				entries = entries,
+				loadEntries = { toEntries(menu, items, forceShowIcon) },
+				backIcon = backIcon,
 				anchor = bounds,
 				safeArea = safeArea?.let { Rect(it.left, it.top, it.right, it.bottom) } ?: Rect(),
 				colors = colors,
@@ -236,8 +255,13 @@ private class MenuEntry(
 	val check: CheckMark,
 	val isChecked: Boolean,
 	val hasDividerAbove: Boolean,
-	val subEntries: List<MenuEntry>?,
+	val subEntries: (() -> List<MenuEntry>)?, // read when the sub-menu opens
+	val isOption: Boolean,
+	val trailingIcon: Painter?,
 )
+
+/** What the card shows: the root rows, or a sub-menu opened from [opener] with a back row on top. */
+private class MenuPage(val opener: MenuEntry?, val parent: MenuPage?, val load: () -> List<MenuEntry>)
 
 /**
  * Where the card ended up. The side it grows to is decided once; opening a sub-menu only shrinks the
@@ -276,7 +300,8 @@ private const val ROW_REVEAL_SHARE = 0.4f // of a row's height the edge must pas
 
 @Composable
 private fun ExpressiveMenuOverlay(
-	entries: List<MenuEntry>,
+	loadEntries: () -> List<MenuEntry>,
+	backIcon: Painter,
 	anchor: Rect,
 	safeArea: Rect,
 	colors: MenuColors,
@@ -290,7 +315,12 @@ private fun ExpressiveMenuOverlay(
 	var geometry by remember { mutableStateOf<MenuGeometry?>(null) }
 	var isClosing by remember { mutableStateOf(false) }
 	// Opening a sub-menu swaps the rows in place, like the platform popup did.
-	var page by remember { mutableStateOf(entries) }
+	var page by remember { mutableStateOf(MenuPage(opener = null, parent = null, load = loadEntries)) }
+	var rows by remember { mutableStateOf(loadEntries()) }
+	fun open(target: MenuPage) {
+		page = target
+		rows = target.load()
+	}
 	// Width leads and height trails: the dot stretches into a pill, then the pill unrolls into the card.
 	val widthProgress = remember { Animatable(0f) }
 	val heightProgress = remember { Animatable(0f) }
@@ -313,7 +343,7 @@ private fun ExpressiveMenuOverlay(
 		}
 	}
 
-	BackHandler(enabled = !isClosing) { close() }
+	BackHandler(enabled = !isClosing) { page.parent?.let(::open) ?: close() }
 
 	val isPlaced = geometry != null
 	LaunchedEffect(isPlaced) {
@@ -338,7 +368,24 @@ private fun ExpressiveMenuOverlay(
 		Layout(
 			content = {
 				MenuCard(
-					entries = page,
+					entries = rows,
+					// The row that opened a sub-menu comes back on top of it with a back arrow
+					header = page.opener?.let { opener ->
+						MenuEntry(
+							item = opener.item,
+							title = opener.title,
+							icon = backIcon,
+							reservesIconSpace = false,
+							isEnabled = true,
+							check = CheckMark.NONE,
+							isChecked = false,
+							hasDividerAbove = false,
+							subEntries = null,
+							isOption = false,
+							trailingIcon = null,
+						)
+					},
+					onHeaderClick = { if (!isClosing) page.parent?.let(::open) },
 					colors = colors,
 					geometry = { geometry },
 					widthProgress = { widthProgress.value },
@@ -347,11 +394,16 @@ private fun ExpressiveMenuOverlay(
 					contentAlpha = { contentAlpha.value },
 					requestInitialFocus = isKeyboard,
 					onItemClick = { entry ->
-						if (!isClosing) {
-							val subEntries = entry.subEntries
-							if (subEntries != null) {
-								page = subEntries
-							} else {
+						val subEntries = entry.subEntries
+						when {
+							isClosing -> Unit
+							subEntries != null -> open(MenuPage(opener = entry, parent = page, load = subEntries))
+							entry.isOption -> {
+								onItemClick(entry.item)
+								rows = page.load()
+							}
+
+							else -> {
 								onItemClick(entry.item)
 								close()
 							}
@@ -408,6 +460,8 @@ private fun ExpressiveMenuOverlay(
 @Composable
 private fun MenuCard(
 	entries: List<MenuEntry>,
+	header: MenuEntry?,
+	onHeaderClick: () -> Unit,
 	colors: MenuColors,
 	geometry: () -> MenuGeometry?,
 	widthProgress: () -> Float,
@@ -449,6 +503,25 @@ private fun MenuCard(
 				.verticalScroll(rememberScrollState())
 				.padding(CardPadding),
 		) {
+			if (header != null) key(header.item) {
+				MenuRow(
+					entry = header,
+					colors = colors,
+					textStyle = textStyle.copy(fontWeight = FontWeight.Bold),
+					cardCoordinates = { cardCoordinates },
+					geometry = geometry,
+					heightProgress = heightProgress,
+					modifier = Modifier,
+					onClick = onHeaderClick,
+				)
+				Box(
+					Modifier
+						.padding(horizontal = ItemPadding, vertical = 4.dp)
+						.fillMaxWidth()
+						.height(1.dp)
+						.background(colors.content.copy(alpha = 0.12f)),
+				)
+			}
 			entries.forEachIndexed { index, entry -> key(entry.item) {
 				if (entry.hasDividerAbove) {
 					Box(
@@ -585,6 +658,13 @@ private fun MenuRow(
 					onClick = null,
 					colors = RadioButtonDefaults.colors(selectedColor = colors.content, unselectedColor = colors.content),
 				)
+			}
+			if (entry.isOption) {
+				Spacer(Modifier.width(ItemPadding))
+				// Every option keeps the slot, so the card doesn't change width as the icon moves between rows
+				Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+					entry.trailingIcon?.let { Image(painter = it, contentDescription = null) }
+				}
 			}
 			if (entry.subEntries != null) {
 				Spacer(Modifier.width(ItemPadding))
