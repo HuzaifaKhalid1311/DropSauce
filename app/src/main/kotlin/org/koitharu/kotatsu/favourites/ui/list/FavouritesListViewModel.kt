@@ -121,6 +121,15 @@ class FavouritesListViewModel @Inject constructor(
 
 	override fun onRetry() = Unit
 
+	/** A real category keeps its own sort in the database, the "All" tab uses the setting. */
+	fun setSortOrder(value: ListSortOrder) {
+		if (categoryId == NO_ID) {
+			settings.allFavoritesSortOrder = value
+		} else {
+			launchJob(Dispatchers.Default) { repository.setCategoryOrder(categoryId, value) }
+		}
+	}
+
 	override fun setFilterOption(option: ListFilterOption, isApplied: Boolean) =
 		quickFilter.setFilterOption(option, isApplied)
 

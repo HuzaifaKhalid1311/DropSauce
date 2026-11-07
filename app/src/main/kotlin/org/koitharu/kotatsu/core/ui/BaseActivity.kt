@@ -42,6 +42,7 @@ import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
 import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
 import org.koitharu.kotatsu.core.ui.util.applyTonalTopBarStyle
 import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
+import org.koitharu.kotatsu.core.util.ext.getThemeDrawable
 import org.koitharu.kotatsu.core.util.ext.isWebViewUnavailable
 import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.main.ui.protect.ScreenshotPolicyHelper
@@ -88,6 +89,9 @@ abstract class BaseActivity<B : ViewBinding> :
 		if (isAmoledTheme) {
 			setTheme(R.style.ThemeOverlay_Kotatsu_Amoled)
 		}
+		// The window keeps the background of the theme it was created with: installSplashScreen() creates it on
+		// Android 12L and below before these themes, which left OLED black only where views draw their own background.
+		window.setBackgroundDrawable(getThemeDrawable(android.R.attr.windowBackground))
 		putDataToExtras(intent)
 		exceptionResolver = entryPoint.exceptionResolverFactory.create(this)
 		enableEdgeToEdge()

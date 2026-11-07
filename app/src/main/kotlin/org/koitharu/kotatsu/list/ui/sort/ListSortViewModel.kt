@@ -48,11 +48,8 @@ class ListSortViewModel @Inject constructor(
 		}
 	}
 
-	/** Mihon's rule: tapping the active column flips the direction, tapping another one keeps it. */
 	fun onTypeClick(type: ListSortOrder.Type) {
-		val current = sortOrder.value
-		val isAscending = if (current.type == type) !current.isAscending else current.isAscending
-		val value = type.toSortOrder(isAscending)
+		val value = sortOrder.value.pick(type)
 		sortOrder.value = value
 		when (section) {
 			is ListConfigSection.Favorites -> if (section.categoryId == NO_ID) {

@@ -43,6 +43,9 @@ enum class ListSortOrder(
 	val titleResId: Int
 		get() = type.titleResId
 
+	/** Mihon's rule: picking the active column flips the direction, picking another one keeps it. */
+	fun pick(type: Type) = type.toSortOrder(if (this.type == type) !isAscending else isAscending)
+
 	fun isGroupingSupported() = type == Type.LAST_READ || type == Type.DATE_ADDED || type == Type.PROGRESS
 
 	/**

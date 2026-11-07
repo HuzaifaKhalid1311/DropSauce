@@ -5,6 +5,8 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.os.SystemClock
 import androidx.activity.result.contract.ActivityResultContracts
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
@@ -90,6 +92,9 @@ import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionViewModel
 import org.koitharu.kotatsu.search.ui.suggestion.adapter.SearchSuggestionAdapter
 import javax.inject.Inject
 
+// a start whose process is younger than this is a cold one
+private const val COLD_START_MAX_MS = 3000L
+
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNavOwner, ListCheckpointOwner,
 	View.OnClickListener,
@@ -125,25 +130,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val splash = installSplashScreen()
 		super.onCreate(savedInstanceState)
-		// Older versions always draw the manifest's splash theme
-		val splashTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			settings.colorScheme.splashThemeResId.also {
-				// Colours the splash of the next launch; the system stores it, so keep the binder call off the main thread
-				lifecycleScope.launch(Dispatchers.Default) { splashScreen.setSplashScreenTheme(it) }
-			}
-		} else {
-			R.style.Theme_Kotatsu_Splash
+		// Colours the splash of the next launch (older versions always draw the manifest's splash theme);
+		// the system stores it, so keep the binder call off the main thread
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			val splashTheme = settings.colorScheme.splashThemeResId
+			lifecycleScope.launch(Dispatchers.Default) { splashScreen.setSplashScreenTheme(splashTheme) }
 		}
 		if (!settings.isOnboardingCompleted) {
 			startActivity(Intent(this, OnboardingActivity::class.java))
 			finish()
 			return
 		}
-		// Before Android 12 the library would replay it on every recreation; later the system only calls it after a real splash
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || savedInstanceState == null) {
-			splash.setOnExitAnimationListener(SplashExit(this, splashTheme)::play)
-		}
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
+		// Android 12+ plays the intro and then fades the splash out itself, so a fast start would cut the intro off.
+		// Only a fresh launch at the task root comes with a splash; recreations and in-app starts have none to wait for.
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && savedInstanceState == null && isTaskRoot) {
+			val now = SystemClock.uptimeMillis()
+			// a cold start's splash went up with the process, a warm one (process already running) just now
+			val introStart = Process.getStartUptimeMillis().takeIf { now - it < COLD_START_MAX_MS } ?: now
+			val introEnd = introStart + resources.getInteger(R.integer.splash_screen_duration)
+			splash.setKeepOnScreenCondition { SystemClock.uptimeMillis() < introEnd }
+		}
 		setSupportActionBar(viewBinding.searchBar)
 		// Place the search icon inline, right before the hint, and centre the whole group.
 		viewBinding.searchBar.textView.apply {

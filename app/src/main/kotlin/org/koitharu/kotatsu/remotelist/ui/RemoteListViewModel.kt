@@ -161,7 +161,12 @@ open class RemoteListViewModel @Inject constructor(
 
 	}
 
+	/** Like reopening the source with the same search and filters: the shown list goes and loading starts over. */
 	override fun onRefresh() {
+		loadingJob?.cancel() // a page still loading would otherwise swallow the refresh
+		mangaList.value = null
+		listError.value = null
+		hasNextPage.value = false
 		loadList(filterCoordinator.snapshot(), append = false)
 	}
 

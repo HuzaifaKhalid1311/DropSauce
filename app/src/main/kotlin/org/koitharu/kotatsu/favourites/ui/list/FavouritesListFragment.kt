@@ -23,7 +23,7 @@ import org.koitharu.kotatsu.list.ui.size.DynamicItemSizeResolver
 @AndroidEntryPoint
 class FavouritesListFragment : MangaListFragment() {
 
-	override val viewModel by viewModels<FavouritesListViewModel>()
+	public override val viewModel by viewModels<FavouritesListViewModel>()
 
 	override val isSwipeRefreshEnabled = false
 
