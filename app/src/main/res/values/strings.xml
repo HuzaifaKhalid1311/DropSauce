@@ -641,7 +641,7 @@
     <string name="data_not_restored_text">Make sure you have selected the correct backup file</string>
     <string name="manage_categories">Manage categories</string>
     <string name="default_category">Default category</string>
-    <string name="quick_add_to_favourites">Add to default category</string>
+    <string name="quick_add_to_favourites">Add a manga to favorite with one tap</string>
     <string name="default_category_sort">Sort manga in all categories</string>
     <string name="category_order">Arrange categories</string>
     <string name="category_order_reset">Category order set to Random</string>

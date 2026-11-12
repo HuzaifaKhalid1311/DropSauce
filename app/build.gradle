@@ -26,10 +26,6 @@ android {
 		versionCode = 80
 		versionName = '1.1.2'
 		testInstrumentationRunner = 'org.koitharu.kotatsu.HiltTestRunner'
-		ndk {
-			// ARM only: dropping x86 pays for the JPEG XL decoder's size
-			abiFilters 'arm64-v8a', 'armeabi-v7a'
-		}
 		ksp {
 			arg('room.generateKotlin', 'true')
 		}
@@ -85,6 +81,12 @@ android {
 			// GitHub releases are universal APKs, so compress native libraries to avoid
 			// shipping every ABI at its full on-disk size. Android extracts them at install.
 			useLegacyPackaging = true
+			// The JPEG XL decoder ships for ARM only, to keep the size down: x86 devices
+			// (emulators, some Chromebooks) run as before, just without JXL images.
+			excludes += [
+				'lib/x86/libjxl*.so', 'lib/x86/libbrotli*.so',
+				'lib/x86_64/libjxl*.so', 'lib/x86_64/libbrotli*.so',
+			]
 		}
 	}
 	sourceSets {

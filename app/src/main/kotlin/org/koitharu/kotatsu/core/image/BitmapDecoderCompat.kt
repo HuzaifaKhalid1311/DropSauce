@@ -73,6 +73,9 @@ object BitmapDecoderCompat {
 		JxlCoder.decode(bytes)
 	} catch (e: Exception) {
 		throw ImageDecodeException(null, FORMAT_JXL, e.message.orEmpty())
+	} catch (e: LinkageError) {
+		// x86 builds carry no JXL decoder: the same "unsupported format" as before instead of a crash
+		throw ImageDecodeException(null, FORMAT_JXL, e.message.orEmpty())
 	}
 
 	@Blocking
