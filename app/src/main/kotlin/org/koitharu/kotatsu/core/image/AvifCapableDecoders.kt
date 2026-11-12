@@ -22,7 +22,19 @@ import org.koitharu.kotatsu.core.util.ext.MimeType
 // be supported". These wrappers sniff the real format and decode AVIF with the app's bundled
 // software decoder (BitmapDecoderCompat/AvifDecoder — already present, so no size increase),
 // delegating every other format to the untouched Skia decoders.
+// JPEG XL goes the same way: Android has no decoder for it at all.
 private val AVIF_MIME = MimeType("image/avif")
+private val JXL_MIME = MimeType("image/jxl")
+
+const val JXL_HEADER_SIZE = 12
+private val JXL_CONTAINER_HEADER = byteArrayOf(0, 0, 0, 0x0C, 'J'.code.toByte(), 'X'.code.toByte(), 'L'.code.toByte(), ' '.code.toByte(), 0x0D, 0x0A, 0x87.toByte(), 0x0A)
+
+/** Bare codestream (`FF 0A`) or the ISO-BMFF container signature. */
+fun isJxlHeader(head: ByteArray, length: Int = head.size): Boolean = when {
+	length >= 2 && head[0] == 0xFF.toByte() && head[1] == 0x0A.toByte() -> true
+	length >= JXL_HEADER_SIZE -> JXL_CONTAINER_HEADER.indices.all { head[it] == JXL_CONTAINER_HEADER[it] }
+	else -> false
+}
 
 // ponytail: header sniff (ISO-BMFF `ftyp` + avif/avis brand) instead of full parse; enough since
 // we only need to divert AVIF away from the crashing platform path.
@@ -32,35 +44,38 @@ fun isAvifHeader(head: ByteArray, length: Int = head.size): Boolean {
 	return s.contains("ftyp") && (s.contains("avif") || s.contains("avis"))
 }
 
-private fun Uri.sniffAvif(context: Context): Boolean = runCatching {
+/** The format to decode with a bundled decoder, or null to leave the image to the platform. */
+private fun Uri.sniffBundledFormat(context: Context): MimeType? = runCatching {
 	context.contentResolver.openInputStream(this)?.use { stream ->
 		val head = ByteArray(64)
 		val n = stream.read(head)
-		isAvifHeader(head, n)
-	} ?: false
-}.getOrDefault(false)
+		when {
+			isJxlHeader(head, n) -> JXL_MIME
+			isAvifHeader(head, n) -> AVIF_MIME
+			else -> null
+		}
+	}
+}.getOrNull()
 
-private fun Uri.decodeAvif(context: Context): Bitmap =
+private fun Uri.decodeBundled(context: Context, format: MimeType): Bitmap =
 	context.contentResolver.openInputStream(this).use { stream ->
 		requireNotNull(stream) { "Cannot open image stream for $this" }
-		BitmapDecoderCompat.decode(stream, AVIF_MIME)
+		BitmapDecoderCompat.decode(stream, format)
 	}
 
 class AvifCapableImageDecoder(private val bitmapConfig: Bitmap.Config) : ImageDecoder {
 
 	private val delegate = SkiaImageDecoder(bitmapConfig)
 
-	override fun decode(context: Context, uri: Uri, sampleSize: Int): Bitmap =
-		if (uri.sniffAvif(context)) {
-			val bmp = uri.decodeAvif(context)
-			if (sampleSize > 1) {
-				bmp.scale(bmp.width / sampleSize, bmp.height / sampleSize).also { if (it !== bmp) bmp.recycle() }
-			} else {
-				bmp
-			}
+	override fun decode(context: Context, uri: Uri, sampleSize: Int): Bitmap {
+		val format = uri.sniffBundledFormat(context) ?: return delegate.decode(context, uri, sampleSize)
+		val bmp = uri.decodeBundled(context, format)
+		return if (sampleSize > 1) {
+			bmp.scale(bmp.width / sampleSize, bmp.height / sampleSize).also { if (it !== bmp) bmp.recycle() }
 		} else {
-			delegate.decode(context, uri, sampleSize)
+			bmp
 		}
+	}
 
 	override fun decode(context: Context, source: ImageSource, sampleSize: Int): Bitmap {
 		val uri = (source as? ImageSource.Uri)?.uri
@@ -87,18 +102,18 @@ class AvifCapableRegionDecoder(
 	}
 
 	override fun init(context: Context, uri: Uri): Point {
-		if (uri.sniffAvif(context)) {
-			val bmp = uri.decodeAvif(context)
-			full = bmp
-			return Point(bmp.width, bmp.height)
-		}
-		return newDelegate().also { delegate = it }.init(context, uri)
+		val format = uri.sniffBundledFormat(context)
+			?: return newDelegate().also { delegate = it }.init(context, uri)
+		val bmp = uri.decodeBundled(context, format)
+		full = bmp
+		return Point(bmp.width, bmp.height)
 	}
 
 	override fun init(context: Context, source: ImageSource): Point {
 		val uri = (source as? ImageSource.Uri)?.uri
-		if (uri != null && uri.sniffAvif(context)) {
-			val bmp = uri.decodeAvif(context)
+		val format = uri?.sniffBundledFormat(context)
+		if (uri != null && format != null) {
+			val bmp = uri.decodeBundled(context, format)
 			full = bmp
 			return Point(bmp.width, bmp.height)
 		}

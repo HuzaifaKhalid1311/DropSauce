@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
+import com.awxkee.jxlcoder.JxlCoder
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
 import okio.IOException
 import okio.buffer
@@ -28,10 +29,13 @@ import java.nio.ByteBuffer
 object BitmapDecoderCompat {
 
 	private const val FORMAT_AVIF = "avif"
+	private const val FORMAT_JXL = "jxl"
+	private val JXL_MIME = MimeType("image/jxl")
 
 	@Blocking
 	fun decode(file: File): Bitmap = when (val format = probeMimeType(file)?.subtype) {
 		FORMAT_AVIF -> file.source().buffer().use { decodeAvif(it.readByteBuffer()) }
+		FORMAT_JXL -> decodeJxl(file.readBytes())
 		else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 			ImageDecoder.decodeBitmap(ImageDecoder.createSource(file))
 		} else {
@@ -45,17 +49,30 @@ object BitmapDecoderCompat {
 		if (format == FORMAT_AVIF) {
 			return decodeAvif(stream.toByteBuffer())
 		}
+		if (format == FORMAT_JXL) {
+			return decodeJxl(stream.readBytes())
+		}
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
 			val opts = BitmapFactory.Options()
 			opts.inMutable = isMutable
 			return checkBitmapNotNull(BitmapFactory.decodeStream(stream, null, opts), format)
 		}
 		val byteBuffer = stream.toByteBuffer()
-		return if (AvifDecoder.isAvifImage(byteBuffer)) {
-			decodeAvif(byteBuffer)
-		} else {
-			ImageDecoder.decodeBitmap(ImageDecoder.createSource(byteBuffer), DecoderConfigListener(isMutable))
+		val head = ByteArray(minOf(JXL_HEADER_SIZE, byteBuffer.remaining()))
+		byteBuffer.duplicate().get(head)
+		return when {
+			isJxlHeader(head) -> decodeJxl(ByteArray(byteBuffer.remaining()).also { byteBuffer.get(it) })
+			AvifDecoder.isAvifImage(byteBuffer) -> decodeAvif(byteBuffer)
+			else -> ImageDecoder.decodeBitmap(ImageDecoder.createSource(byteBuffer), DecoderConfigListener(isMutable))
 		}
+	}
+
+	/** Android has no JPEG XL decoder of its own, so these go through the bundled one. */
+	@Blocking
+	fun decodeJxl(bytes: ByteArray): Bitmap = try {
+		JxlCoder.decode(bytes)
+	} catch (e: Exception) {
+		throw ImageDecodeException(null, FORMAT_JXL, e.message.orEmpty())
 	}
 
 	@Blocking
@@ -73,8 +90,17 @@ object BitmapDecoderCompat {
 
 	@Blocking
 	fun probeMimeType(file: File): MimeType? {
+		// Sniffed first: neither the file name (cached pages have none) nor the platform knows JPEG XL
+		if (isJxl(file)) return JXL_MIME
 		return MimeTypes.probeMimeType(file) ?: detectBitmapType(file)
 	}
+
+	private fun isJxl(file: File): Boolean = runCatching {
+		file.inputStream().use { stream ->
+			val head = ByteArray(JXL_HEADER_SIZE)
+			isJxlHeader(head, stream.read(head))
+		}
+	}.getOrDefault(false)
 
 	@Blocking
 	private fun detectBitmapType(file: File): MimeType? = runCatchingCancellable {

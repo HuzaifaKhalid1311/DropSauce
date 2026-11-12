@@ -24,7 +24,9 @@ object MimeTypes {
 	}
 
 	fun getExtension(mimeType: MimeType?): String? {
-		return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType?.toString() ?: return null)?.nullIfEmpty()
+		val type = mimeType?.toString() ?: return null
+		return MimeTypeMap.getSingleton().getExtensionFromMimeType(type)?.nullIfEmpty()
+			?: "jxl".takeIf { type == "image/jxl" } // not in the platform's table
 	}
 
 	@Blocking

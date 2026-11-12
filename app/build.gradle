@@ -26,6 +26,10 @@ android {
 		versionCode = 80
 		versionName = '1.1.2'
 		testInstrumentationRunner = 'org.koitharu.kotatsu.HiltTestRunner'
+		ndk {
+			// ARM only: dropping x86 pays for the JPEG XL decoder's size
+			abiFilters 'arm64-v8a', 'armeabi-v7a'
+		}
 		ksp {
 			arg('room.generateKotlin', 'true')
 		}
@@ -244,6 +248,7 @@ dependencies {
 	implementation libs.coil.gif
 	implementation libs.coil.svg
 	implementation libs.avif.decoder
+	implementation libs.jxl.decoder
 	implementation libs.ssiv
 	implementation libs.disk.lru.cache
 	implementation libs.markwon

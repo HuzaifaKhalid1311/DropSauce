@@ -90,6 +90,40 @@ class AvifImageDecoder(
 
 		override fun hashCode() = javaClass.hashCode()
 
+		/** JPEG XL (covers, page thumbnails): same sniffing, bundled decoder, scaled to the request. */
+		class Jxl : Decoder.Factory {
+
+			override fun create(result: SourceFetchResult, options: Options, imageLoader: ImageLoader): Decoder? {
+				val isJxl = result.mimeType == "image/jxl" || runCatching {
+					result.source.source().peek().use { peek ->
+						val head = Buffer()
+						peek.read(head, JXL_HEADER_SIZE.toLong())
+						isJxlHeader(head.readByteArray())
+					}
+				}.getOrDefault(false)
+				if (!isJxl) return null
+				return Decoder {
+					runInterruptible {
+						val bitmap = BitmapDecoderCompat.decodeJxl(result.source.source().readByteArray())
+						val (dstWidth, dstHeight) = DecodeUtils.computeDstSize(
+							srcWidth = bitmap.width,
+							srcHeight = bitmap.height,
+							targetSize = options.size,
+							scale = options.scale,
+							maxSize = options.maxBitmapSize,
+						)
+						val isSampled = dstWidth < bitmap.width || dstHeight < bitmap.height
+						val image = if (isSampled) bitmap.scale(dstWidth, dstHeight).also { bitmap.recycle() } else bitmap
+						DecodeResult(image = image.asImage(), isSampled = isSampled)
+					}
+				}
+			}
+
+			override fun equals(other: Any?) = other is Jxl
+
+			override fun hashCode() = javaClass.hashCode()
+		}
+
 		/**
 		 * The mime type is unreliable: images served from the disk cache carry none at all, and some
 		 * sources label AVIF as `image/jpeg`. In both cases the bytes would fall through to the

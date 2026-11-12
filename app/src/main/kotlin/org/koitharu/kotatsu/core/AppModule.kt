@@ -151,6 +151,7 @@ interface AppModule {
 					add(SvgDecoder.Factory())
 					add(CbzFetcher.Factory())
 					add(AvifImageDecoder.Factory())
+					add(AvifImageDecoder.Factory.Jxl())
 					add(faviconFetcherFactory)
 					add(MangaPageKeyer())
 					add(pageFetcherFactory)
