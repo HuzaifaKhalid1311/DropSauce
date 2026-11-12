@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest"><strong>Download APK</strong></a>
+  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.2/DropSauce-v1.1.2.apk"><strong>Download APK</strong></a>
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 ## About
 
-DropSauce is a free and open-source comic and novel reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
+DropSauce is a free and open-source comic and novel reader for Android, built to feel quick, clean, and comfortable to use with a lot of features.
 
 ⭐Please give the repo a star if you like the project. It helps more people find it.🌟
 
@@ -52,11 +52,11 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
 
 ## Highlights
 - Full novel reading support alongside manga, including offline EPUB file importing.
-- Multi-source extension engine supporting LNReader JS plugins and Tsundoku APK extensions.
+- Multi-source extension engine supporting Mihon and Tsundoku APK extensions and LNReader JS plugins.
 - Lightweight Android-first experience with a modern, polished interface.
 - Rich extension support with library, reading, history, bookmarks, tracking, stats, and settings tools.
 - Google Drive sync, local backup/restore, and in-app updates to keep your setup moving with you.
-- Supports Kotatsu and Mihon backup restoration alongside google drive sync
+- Supports Kotatsu and Mihon backup restoration alongside Google Drive sync.
 - Free and open-source under the GPLv3 license.
 
 <details>
@@ -64,12 +64,12 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
 
 - Comfortable manga, webtoon and novel reading experience with configurable reader behavior, haptics, and zoom gestures.
 - EPUB novel importing for offline reading.
-- Extensive extension ecosystem supporting native extensions, LNReader JS plugins, and Tsundoku APK extensions.
+- Extensive extension ecosystem supporting Mihon and Tsundoku APK extensions and LNReader JS plugins.
 - Reverse tracking integration with a redesigned tracking menu.
 - Favorites, history, bookmarks, tracking, stats, and categories to keep your library organized.
 - Google Drive sync for library, history, bookmarks, tracking, stats, settings, and covers.
 - Local backup and restore system for moving or protecting your setup.
-- Material 3 Expressive details page for clear and quick overview
+- Material 3 Expressive details page for clear and quick overview.
 - New onboarding/welcome flow with sync and restore setup.
 - Android widgets for continue reading, favorites, and reading stats.
 - PDF import support, converting PDFs into readable CBZ chapters.
@@ -104,10 +104,9 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
 
 ## Install
 
-1. Open the [latest GitHub release](https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest).
-2. Download the newest `DropSauce` APK.
-3. Install it on a compatible Android device.
-4. Add your preferred source or extension repository, then start reading.
+1. [Download the latest APK](https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.2/DropSauce-v1.1.2.apk) (older versions are on the [releases page](https://github.com/HuzaifaKhalid1311/DropSauce/releases)).
+2. Install it on a compatible Android device.
+3. Add your preferred source or extension repository, then start reading.
 
 Android may ask you to allow installs from your browser or file manager. That is normal for APKs downloaded outside the Play Store.
 

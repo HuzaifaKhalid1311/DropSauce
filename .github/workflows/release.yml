@@ -81,6 +81,8 @@ jobs:
         CURRENT_CODE=$(grep -E "versionCode = [0-9]+" "$BUILD_GRADLE" | head -n1 | sed -E "s/.*= ([0-9]+)/\1/")
         NEXT_CODE=$((CURRENT_CODE + 1))
         sed -i -E "s/versionCode = [0-9]+/versionCode = ${NEXT_CODE}/" "$BUILD_GRADLE"
+        # Keep the README's direct APK download links pointing at this release
+        sed -i -E "s#releases/download/v[^/]+/DropSauce-v[^)\"]+\.apk#releases/download/v${VERSION_NAME}/DropSauce-v${VERSION_NAME}.apk#g" README.md
 
     - name: Build Release APK
       run: |
@@ -103,7 +105,7 @@ jobs:
 
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add app/build.gradle
+        git add app/build.gradle README.md
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
 
         # Use refs/heads/ explicitly to avoid ambiguity with any tag that shares the branch name
