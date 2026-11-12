@@ -105,7 +105,6 @@
     <string name="auth_required">Bu içeriği görüntülemek için oturum açın</string>
     <string name="confirm">Onayla</string>
     <string name="just_now">Az önce</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d / %2$d açık</string>
     <string name="text_search_holder_secondary">Sorguyu yeniden biçimlendirmeyi deneyin.</string>
     <string name="text_history_holder_primary">Okuduklarınız burada görüntülenecek</string>
     <string name="text_history_holder_secondary">«Keşfet» kısmında neler okuyacağınızı bulun</string>

@@ -74,7 +74,6 @@
     <string name="internal_storage">Internlagring</string>
     <string name="external_storage">Externlagring</string>
     <string name="app_update_available">En ny version av appen finns tillgänglig</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d av %2$d aktiva</string>
     <string name="new_chapters">Nya kapitel</string>
     <string name="download">Ladda ned</string>
     <string name="notifications_settings">Aviseringsinställningar</string>

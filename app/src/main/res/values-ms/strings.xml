@@ -216,7 +216,6 @@
     <string name="operation_not_supported">Operasi ini tidak disokong</string>
     <string name="delete_manga">Buang manga</string>
     <string name="page_saved">Halaman disimpan</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d daripada %2$d pada</string>
     <string name="read_mode">Mod pembacaan</string>
     <string name="text_delete_local_manga">Buang \"%s\" selama-lamanya daripada peranti?</string>
     <string name="reader_settings">Tetapan pembaca</string>

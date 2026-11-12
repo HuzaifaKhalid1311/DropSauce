@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -41,6 +42,7 @@ import org.koitharu.kotatsu.core.prefs.ListMode
 import org.koitharu.kotatsu.core.prefs.TriStateOption
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
+import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
 import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.computeSize
 import org.koitharu.kotatsu.core.util.ext.saveCover
@@ -96,6 +98,7 @@ class DetailsViewModel @Inject constructor(
 	private val coil: ImageLoader,
 	@ApplicationContext private val context: Context,
 	private val shortcutManager: AppShortcutManager,
+	private val favouritesRepository: FavouritesRepository,
 ) : ChaptersPagesViewModel(
 	settings = settings,
 	interactor = interactor,
@@ -284,6 +287,23 @@ class DetailsViewModel @Inject constructor(
 			scrobbler.unregisterScrobbling(
 				mangaId = mangaId,
 			)
+		}
+	}
+
+	/** The quick button can't add yet: true = a default category has to be picked, false = there are none. */
+	val onQuickFavouriteBlocked = MutableEventFlow<Boolean>()
+
+	/** The small half of the favourites button: straight into the default category. */
+	fun quickFavourite() {
+		launchJob(Dispatchers.Default) {
+			val manga = getMangaOrNull() ?: return@launchJob
+			val categories = favouritesRepository.observeCategories().first()
+			if (categories.none { it.id == favouritesRepository.defaultCategoryId }) {
+				onQuickFavouriteBlocked.call(categories.isNotEmpty())
+			} else {
+				// shortcut: skips the duplicates check the full dialog runs first; route through it if that matters
+				favouritesRepository.addToCategory(favouritesRepository.defaultCategoryId, setOf(manga))
+			}
 		}
 	}
 

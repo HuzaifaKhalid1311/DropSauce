@@ -115,6 +115,11 @@ class FavouriteCategoriesActivity :
 			true
 		}
 
+		R.id.action_default_category -> {
+			router.showDefaultCategoryDialog()
+			true
+		}
+
 		else -> super.onOptionsItemSelected(item)
 	}
 

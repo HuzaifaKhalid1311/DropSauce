@@ -73,7 +73,6 @@
     <string name="notifications_settings">Paramètres des notifications</string>
     <string name="download">Télécharger</string>
     <string name="new_chapters">Nouveaux chapitres</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d de %2$d activé(s)</string>
     <string name="open_in_browser">Ouvrir dans le navigateur</string>
     <string name="app_update_available">Une nouvelle version de l\'application est disponible</string>
     <string name="external_storage">Stockage externe</string>

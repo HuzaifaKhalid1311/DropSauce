@@ -73,7 +73,6 @@
     <string name="internal_storage">आंतरिक स्टोरेज</string>
     <string name="read_later">बाद में पढ़े</string>
     <string name="cannot_find_available_storage">स्टोरेज उपलब्ध नहीं हैं</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%2$d में से %1$d</string>
     <string name="text_feed_holder">आप जो पढ़ रहे हैं उसके नए अध्याय यहां दिखाए गए हैं</string>
     <string name="favourites_category_empty">रिक्त श्रेणी</string>
     <string name="manga_save_location">डाउनलोड फोल्डर</string>

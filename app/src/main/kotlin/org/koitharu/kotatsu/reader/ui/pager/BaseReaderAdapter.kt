@@ -99,6 +99,13 @@ abstract class BaseReaderAdapter<H : BasePageHolder<*>>(
 		}
 	}
 
+	/** Manual splitting: pages left behind go back to being one whole item. */
+	fun retainSplit(page: ReaderPage?) {
+		if (splitPages.retainAll { it == page }) {
+			differ.submitList(withSplits(sourceItems))
+		}
+	}
+
 	fun clearSplits() {
 		if (splitPages.isNotEmpty()) {
 			splitPages.clear()

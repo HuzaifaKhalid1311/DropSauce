@@ -70,7 +70,6 @@
     <string name="app_update_available">Жаңа нұсқа қолжетімді</string>
     <string name="open_in_browser">Уеб браузер арқылы ашу</string>
     <string name="notifications">Мәлімдеме</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d ішіндегі %2$d қосулы</string>
     <string name="download">Жүктеп алу</string>
     <string name="notifications_settings">Мәлімдемені баптау</string>
     <string name="favourites_categories">Таңдаулы санаты</string>

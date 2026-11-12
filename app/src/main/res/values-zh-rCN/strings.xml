@@ -248,7 +248,6 @@
     <string name="folder_with_images">图片文件夹</string>
     <string name="importing_manga">漫画导入中</string>
     <string name="reader_info_pattern">第 %1$d/%2$d 章 第 %3$d/%4$d 页</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">共 %2$d ，已启用 %1$d</string>
     <string name="size_s">大小：%s</string>
     <string name="confirm_exit">再按一次返回键退出</string>
     <string name="exit_confirmation_summary">按两次返回键退出应用</string>

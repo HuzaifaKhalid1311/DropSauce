@@ -64,6 +64,12 @@ open class PageHolder(
 	/** The split page the reader's spread button shows whole; it goes back to its half once left. */
 	private var wholePage: ReaderPage? = null
 
+	/** Manual splitting: the wide page split from the spread button; every other one rests whole. */
+	private var manualSplitPage: ReaderPage? = null
+
+	private fun isShownWhole(data: ReaderPage): Boolean = data == wholePage ||
+		(settings.isSplitWideManual && isSplitSupported && !data.isSecondHalf && data != manualSplitPage)
+
 	/** Toggling a split page reloads it: it opens at [spreadStart] and, with [isZoomingToRest], glides to its zoom. */
 	private var spreadStart: ImageViewState? = null
 	private var isZoomingToRest = false
@@ -80,7 +86,8 @@ open class PageHolder(
 		get() = when {
 			pendingWhole != null -> pendingWhole
 			isReturningToHalf -> false
-			wholePage != null && wholePage == boundData -> true
+			// The wide check keeps the button off ordinary pages, which also rest "whole" when splitting is manual.
+			boundData?.let(::isShownWhole) == true && (viewModel.isWidePage || isSwapping) -> true
 			viewModel.isSplit || isSwapping -> false
 			else -> null
 		}
@@ -102,12 +109,11 @@ open class PageHolder(
 			return
 		}
 		pendingWhole = null
-		val target = if (isWhole) data else null
-		if (wholePage == target) return
+		if (isShownWhole(data) == isWhole) return
 		val ssiv = binding.ssiv
 		val center = ssiv.getCenter()
 		if (!ssiv.isReady || center == null) {
-			wholePage = target
+			setWhole(data, isWhole)
 			bind(data)
 			return
 		}
@@ -116,7 +122,7 @@ open class PageHolder(
 			val offset = if (viewModel.splitSide == PageViewModel.SplitSide.RIGHT) ssiv.sWidth else 0
 			spreadStart = ImageViewState(ssiv.scale, center.x + offset, center.y, ssiv.orientation)
 			isZoomingToRest = true
-			wholePage = target
+			setWhole(data, true)
 			swap(data)
 			return
 		}
@@ -129,9 +135,9 @@ open class PageHolder(
 		isReturningToHalf = true
 		val swapToHalf = {
 			isReturningToHalf = false
-			if (wholePage == data && boundData == data) {
+			if (isShownWhole(data) && boundData == data) {
 				spreadStart = ImageViewState(scale, halfWidth / 2f, ssiv.sHeight / 2f, ssiv.orientation)
-				wholePage = null
+				setWhole(data, false)
 				swap(data)
 			}
 		}
@@ -146,6 +152,19 @@ open class PageHolder(
 				}
 			})
 			?.start() ?: swapToHalf()
+	}
+
+	private fun setWhole(data: ReaderPage, isWhole: Boolean) {
+		wholePage = if (isWhole) data else null
+		manualSplitPage = if (isWhole) null else data
+	}
+
+	/** Manual splitting: a page split from the button rests whole again once it's left. */
+	fun restoreWhole() {
+		val data = boundData ?: return
+		if (manualSplitPage == null || !settings.isSplitWideManual) return
+		manualSplitPage = null
+		bind(data)
 	}
 
 	private fun swap(data: ReaderPage) {
@@ -220,7 +239,7 @@ open class PageHolder(
 	}
 
 	override fun splitSide(data: ReaderPage): PageViewModel.SplitSide? =
-		if (data == wholePage) null else splitSideIgnoringWhole(data)
+		if (isShownWhole(data)) null else splitSideIgnoringWhole(data)
 
 	private fun splitSideIgnoringWhole(data: ReaderPage): PageViewModel.SplitSide? = when {
 		!isSplitSupported || !settings.isSplitWideEnabled -> null
@@ -298,6 +317,7 @@ open class PageHolder(
 
 	override fun onRecycled() {
 		wholePage = null
+		manualSplitPage = null
 		spreadStart = null
 		isZoomingToRest = false
 		isReturningToHalf = false

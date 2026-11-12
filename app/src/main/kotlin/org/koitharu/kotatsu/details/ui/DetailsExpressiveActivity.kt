@@ -30,6 +30,7 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.favourites.ui.categories.select.DefaultCategoryDialog
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.databinding.ActivityDetailsExpressiveBinding
@@ -58,6 +59,9 @@ class DetailsExpressiveActivity :
 	@Inject lateinit var shortcutManager: AppShortcutManager
 
 	private val viewModel: DetailsViewModel by viewModels()
+
+	/** The quick-add button asked for a default category; the title is added once one is picked. */
+	private var isQuickFavouritePending = false
 	private lateinit var menuProvider: DetailsMenuProvider
 
 	private val topInset = mutableIntStateOf(0)
@@ -117,6 +121,21 @@ class DetailsExpressiveActivity :
 				),
 			)
 		viewModel.onMangaRemoved.observeEvent(this) { finishAfterTransition() }
+		viewModel.onQuickFavouriteBlocked.observeEvent(this) { hasCategories ->
+			if (hasCategories) {
+				// First use: ask for the default category, then finish the add.
+				isQuickFavouritePending = true
+				router.showDefaultCategoryDialog()
+			} else {
+				viewModel.getMangaOrNull()?.let { router.showFavoriteDialog(it, null) }
+			}
+		}
+		supportFragmentManager.setFragmentResultListener(DefaultCategoryDialog.REQUEST_KEY, this) { _, _ ->
+			if (isQuickFavouritePending) {
+				isQuickFavouritePending = false
+				viewModel.quickFavourite()
+			}
+		}
 		viewModel.onDownloadStarted
 			.filterNot { router.isChapterPagesSheetShown() }
 			.observeEvent(this, DownloadStartedObserver(viewBinding.composeView))
@@ -146,6 +165,11 @@ class DetailsExpressiveActivity :
 			onSourceClick = { manga -> router.openList(manga.source, null, null) },
 			onLocalClick = { manga -> router.showLocalInfoDialog(manga) },
 			onFavoriteClick = { manga -> router.showFavoriteDialog(manga, null) },
+			onQuickFavoriteClick = viewModel::quickFavourite,
+			onDefaultCategoryClick = {
+				isQuickFavouritePending = false
+				router.showDefaultCategoryDialog()
+			},
 			onAuthorClick = { author ->
 				router.showAuthorDialog(author, viewModel.getMangaOrNull()?.source ?: return@DetailsExpressiveActions)
 			},

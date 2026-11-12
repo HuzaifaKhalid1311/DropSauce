@@ -49,7 +49,6 @@
     <string name="app_update_available">Đã có phiên bản mới của ứng dụng</string>
     <string name="open_in_browser">Mở trong trình duyệt web</string>
     <string name="notifications">Thông báo</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Đã bật %1$d trong số %2$d nguồn</string>
     <string name="new_chapters">Chương mới</string>
     <string name="download">Tải xuống</string>
     <string name="favourites_categories">Danh mục yêu thích</string>

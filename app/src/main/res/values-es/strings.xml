@@ -75,7 +75,6 @@
     <string name="app_update_available">Una nueva versión de la aplicación está disponible</string>
     <string name="open_in_browser">Abrir en navegador web</string>
     <string name="notifications">Notificaciones</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Activado %1$d de %2$d</string>
     <string name="new_chapters">Nuevos capítulos</string>
     <string name="download">Descargar</string>
     <string name="notifications_settings">Configuración de las notificaciones</string>

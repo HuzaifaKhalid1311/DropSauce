@@ -7,7 +7,7 @@
 	android:layout_height="wrap_content"
 	android:clipChildren="false"
 	android:clipToPadding="false"
-	android:paddingHorizontal="@dimen/list_spacing"
+	android:paddingHorizontal="@dimen/grid_spacing_outer"
 	android:scrollbars="none">
 
 	<org.koitharu.kotatsu.core.ui.widgets.ChipsView

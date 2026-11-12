@@ -427,14 +427,28 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_EPUB_CUSTOM_FONT_REVISION, 0)
 		set(value) = prefs.edit { putInt(KEY_EPUB_CUSTOM_FONT_REVISION, value) }
 
+	/** Where the details screen's quick-add button puts a title; 0 until the user picks one. */
+	var defaultFavouriteCategoryId: Long
+		get() = prefs.getLong(KEY_FAVOURITES_DEFAULT_CATEGORY, 0L)
+		set(value) = prefs.edit { putLong(KEY_FAVOURITES_DEFAULT_CATEGORY, value) }
+
+	/** Off when "None" is picked as the default category: the favourites button is then one piece. */
+	var isFavouritesQuickAddEnabled: Boolean
+		get() = prefs.getBoolean(KEY_FAVOURITES_QUICK_ADD, true)
+		set(value) = prefs.edit { putBoolean(KEY_FAVOURITES_QUICK_ADD, value) }
+
 	val isReaderRotateWideEnabled: Boolean
-		get() = prefs.getBoolean(KEY_READER_ROTATE_WIDE, false)
+		get() = prefs.getBoolean(KEY_READER_ROTATE_WIDE, true)
 
 	val isReaderRotateWideInverted: Boolean
 		get() = prefs.getBoolean(KEY_READER_ROTATE_WIDE_INVERT, false)
 
 	val isReaderWideSplit: Boolean
-		get() = prefs.getBoolean(KEY_READER_WIDE_SPLIT, false)
+		get() = prefs.getBoolean(KEY_READER_WIDE_SPLIT, true)
+
+	/** Wide pages open whole and only split from the reader's spread button. */
+	val isReaderWideSplitManual: Boolean
+		get() = prefs.getBoolean(KEY_READER_WIDE_SPLIT_MANUAL, true)
 
 	val isReaderDoubleTapFill: Boolean
 		get() = prefs.getBoolean(KEY_READER_DOUBLE_TAP_FILL, false)
@@ -909,7 +923,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_PAGES_NUMBERS, false)
 
 	val screenshotsPolicy: ScreenshotsPolicy
-		get() = prefs.getEnumValue(KEY_SCREENSHOTS_POLICY, ScreenshotsPolicy.ALLOW)
+		get() = prefs.getEnumValue(KEY_SCREENSHOTS_POLICY, ScreenshotsPolicy.BLOCK_INCOGNITO)
 
 	val isAdBlockEnabled: Boolean
 		get() = prefs.getBoolean(KEY_ADBLOCK, false)
@@ -1415,6 +1429,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_READER_ROTATE_WIDE = "reader_rotate_wide"
 		const val KEY_READER_ROTATE_WIDE_INVERT = "reader_rotate_wide_invert"
 		const val KEY_READER_WIDE_SPLIT = "reader_wide_split"
+		const val KEY_READER_WIDE_SPLIT_MANUAL = "reader_wide_split_manual"
 		const val KEY_READER_DOUBLE_TAP_FILL = "reader_double_tap_fill"
 		const val KEY_PROTECT_APP = "protect_app"
 		const val KEY_PROTECT_APP_TIMEOUT = "protect_app_timeout"
@@ -1462,6 +1477,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_CATEGORY_DEFAULT_ORDER = "category_default_order"
 		const val KEY_CATEGORIES_ORDER = "categories_order"
 		const val KEY_FAVORITES_PINNED = "fav_pinned_order_"
+		const val KEY_FAVOURITES_DEFAULT_CATEGORY = "fav_default_category"
+		const val KEY_FAVOURITES_QUICK_ADD = "fav_quick_add"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
 		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"
 		const val KEY_WEBTOON_ZOOM_OUT = "webtoon_zoom_out"
@@ -1585,6 +1602,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			KEY_BACKUP_PERIODICAL_COUNT,
 			KEY_SHIZUKU_INSTALLER,
 			KEY_PRIVATE_INSTALLER,
+			KEY_WEBTOON_ZOOM_OUT, // depends on the screen size
+			KEY_FAVOURITES_DEFAULT_CATEGORY, // a category id, which is different on every device
+			KEY_FAVOURITES_QUICK_ADD, // goes with the category above
 			KEY_DISCORD_TOKEN,
 			KEY_EXTENSION_UPDATES_AVAILABLE,
 			KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME,

@@ -107,7 +107,6 @@
     <string name="text_history_holder_secondary">Пронађи ствари за читање у одељку „Истражи“</string>
     <string name="favourites_categories">Омиљене категорије</string>
     <string name="remove_category">Уклони</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Омогућено је %1$d од %2$d</string>
     <string name="clear">Избриши</string>
     <string name="text_history_holder_primary">Све што читаш биће приказано овде</string>
     <string name="delete">Избриши</string>

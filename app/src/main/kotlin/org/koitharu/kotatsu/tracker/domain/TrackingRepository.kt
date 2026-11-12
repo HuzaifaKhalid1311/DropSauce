@@ -218,14 +218,6 @@ class TrackingRepository @Inject constructor(
 		}
 	}
 
-	suspend fun getCategoriesCount(): IntArray {
-		val categories = db.getFavouriteCategoriesDao().findAll()
-		return intArrayOf(
-			categories.count { it.track },
-			categories.size,
-		)
-	}
-
 	suspend fun updateTracks() = db.withTransaction {
 		val dao = db.getTracksDao()
 		dao.gc()

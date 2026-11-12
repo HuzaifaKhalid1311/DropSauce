@@ -9,4 +9,10 @@
 		android:title="@string/category_order"
 		app:showAsAction="always" />
 
+	<item
+		android:id="@+id/action_default_category"
+		android:icon="@drawable/ic_heart_check"
+		android:title="@string/default_category"
+		app:showAsAction="always" />
+
 </menu>

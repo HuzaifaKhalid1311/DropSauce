@@ -71,7 +71,6 @@
     <string name="read_mode">Lasīšanas režīms</string>
     <string name="switch_pages">Iet caur lapām</string>
     <string name="_continue">Turpināt</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d no %2$d iespējotas</string>
     <string name="notifications">Paziņojumi</string>
     <string name="download">Lejupielādēt</string>
     <string name="favourites_categories">Mīļākās kategorijas</string>

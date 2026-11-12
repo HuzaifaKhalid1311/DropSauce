@@ -253,7 +253,6 @@
     <string name="hide">숨기기</string>
     <string name="back">뒤로가기</string>
     <string name="download_slowdown">다운로드 속도 늦추기</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d 의%2$d 에</string>
     <string name="authorization_optional">권한 부여(선택 사항)</string>
     <string name="password">비밀번호</string>
     <string name="show_pages_numbers_summary">하단 모서리에 페이지 번호 표시</string>

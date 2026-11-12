@@ -72,7 +72,6 @@
     <string name="external_storage">Зовнішнє сховище</string>
     <string name="app_update_available">Доступна нова версія застосунку</string>
     <string name="notifications">Сповіщення</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Увімкнено %1$d з %2$d</string>
     <string name="new_chapters">Нові розділи</string>
     <string name="download">Завантажити</string>
     <string name="favourites_categories">Улюблені категорії</string>

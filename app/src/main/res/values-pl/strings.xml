@@ -187,7 +187,6 @@
     <string name="backup_restore">Kopia zapasowa i przywracanie</string>
     <string name="create_backup">Utwórz kopię zapasową danych</string>
     <string name="restore_backup">Przywróć z kopii zapasowej</string>
-    <string name="enabled_d_of_d">%1$d na %2$d włączone</string>
     <string name="standard">Standardowy</string>
     <string name="reader_settings">Ustawienia czytnika</string>
     <string name="switch_pages">Zmiana strony</string>

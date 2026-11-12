@@ -332,7 +332,6 @@
     <string name="brightness">亮度</string>
     <string name="reader_control_ltr">人體工學閱讀器控制</string>
     <string name="services">服務</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%2$d 之 %1$d 啟用</string>
     <string name="user_agent">UserAgent 標頭</string>
     <string name="download_option_all_chapters">所有 %s 翻譯的章節</string>
     <string name="download_option_next_unread_n_chapters">下一個未讀 %s</string>

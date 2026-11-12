@@ -108,7 +108,6 @@
     <string name="open_website">Open website</string>
     <string name="back_to_top">Back to top</string>
     <string name="notifications">Notifications</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d of %2$d on</string>
     <string name="new_chapters">New chapters</string>
     <string name="download">Download</string>
     <string name="notifications_settings">Notifications settings</string>
@@ -641,6 +640,8 @@
     <string name="data_not_restored">Data was not restored</string>
     <string name="data_not_restored_text">Make sure you have selected the correct backup file</string>
     <string name="manage_categories">Manage categories</string>
+    <string name="default_category">Default category</string>
+    <string name="quick_add_to_favourites">Add to default category</string>
     <string name="default_category_sort">Sort manga in all categories</string>
     <string name="category_order">Arrange categories</string>
     <string name="category_order_reset">Category order set to Random</string>
@@ -986,6 +987,9 @@
     <string name="wide_pages_method">Method</string>
     <string name="wide_pages_rotate">Rotate</string>
     <string name="wide_pages_split">Split in two</string>
+    <string name="wide_pages_split_mode">Split pages</string>
+    <string name="wide_pages_split_auto">Automatically</string>
+    <string name="wide_pages_split_manual">With a button</string>
     <string name="rotate_wide_pages_direction">Rotation direction</string>
     <string name="rotation_clockwise">Clockwise</string>
     <string name="rotation_counter_clockwise">Counter-clockwise</string>

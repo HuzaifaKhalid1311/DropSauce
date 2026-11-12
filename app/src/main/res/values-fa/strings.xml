@@ -102,7 +102,6 @@
     <string name="_continue">ادامه دادن</string>
     <string name="error">خطا</string>
     <string name="search_history_cleared">پاکسازی شد</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d از %2$d فعال است</string>
     <string name="new_chapters">چپتر های جدید</string>
     <string name="text_history_holder_primary">چیزهایی که خوانده اید اینجا نمایش داده میشود</string>
     <string name="not_available">در دسترس نیست</string>

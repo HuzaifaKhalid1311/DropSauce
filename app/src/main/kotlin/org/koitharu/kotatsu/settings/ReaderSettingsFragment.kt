@@ -133,9 +133,10 @@ private fun ReaderScreen(
 	var readerOptimize by rememberBooleanPref(AppSettings.KEY_READER_OPTIMIZE, false)
 	var readerUpscale by rememberBooleanPref(AppSettings.KEY_READER_UPSCALE, false)
 	var readerCrop by rememberStringSetPref(AppSettings.KEY_READER_CROP, emptySet())
-	var readerRotateWide by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE, false)
+	var readerRotateWide by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE, true)
 	var readerRotateWideInvert by rememberBooleanPref(AppSettings.KEY_READER_ROTATE_WIDE_INVERT, false)
-	var readerWideSplit by rememberBooleanPref(AppSettings.KEY_READER_WIDE_SPLIT, false)
+	var readerWideSplit by rememberBooleanPref(AppSettings.KEY_READER_WIDE_SPLIT, true)
+	var readerWideSplitManual by rememberBooleanPref(AppSettings.KEY_READER_WIDE_SPLIT_MANUAL, true)
 	var readerFullscreen by rememberBooleanPref(AppSettings.KEY_READER_FULLSCREEN, true)
 	var readerOrientation by rememberStringPref(
 		AppSettings.KEY_READER_ORIENTATION,
@@ -429,6 +430,8 @@ private fun ReaderScreen(
 						onEnabledChange = { readerRotateWide = it },
 						split = readerWideSplit,
 						onSplitChange = { readerWideSplit = it },
+						splitManual = readerWideSplitManual,
+						onSplitManualChange = { readerWideSplitManual = it },
 						counterClockwise = readerRotateWideInvert,
 						onCounterClockwiseChange = { readerRotateWideInvert = it },
 						shape = pos.shape,
@@ -552,6 +555,8 @@ private fun FitWidePagesItem(
 	onEnabledChange: (Boolean) -> Unit,
 	split: Boolean,
 	onSplitChange: (Boolean) -> Unit,
+	splitManual: Boolean,
+	onSplitManualChange: (Boolean) -> Unit,
 	counterClockwise: Boolean,
 	onCounterClockwiseChange: (Boolean) -> Unit,
 	shape: Shape,
@@ -579,13 +584,23 @@ private fun FitWidePagesItem(
 					enabled = enabled,
 				)
 				Spacer(Modifier.height(12.dp))
-				FitWidePagesLabel(stringResource(R.string.rotate_wide_pages_direction), enabled && !split)
-				SegmentedRow(
-					labels = listOf(stringResource(R.string.rotation_clockwise), stringResource(R.string.rotation_counter_clockwise)),
-					selectedIndex = if (counterClockwise) 1 else 0,
-					onSelected = { onCounterClockwiseChange(it == 1) },
-					enabled = enabled && !split,
-				)
+				if (split) {
+					FitWidePagesLabel(stringResource(R.string.wide_pages_split_mode), enabled)
+					SegmentedRow(
+						labels = listOf(stringResource(R.string.wide_pages_split_auto), stringResource(R.string.wide_pages_split_manual)),
+						selectedIndex = if (splitManual) 1 else 0,
+						onSelected = { onSplitManualChange(it == 1) },
+						enabled = enabled,
+					)
+				} else {
+					FitWidePagesLabel(stringResource(R.string.rotate_wide_pages_direction), enabled)
+					SegmentedRow(
+						labels = listOf(stringResource(R.string.rotation_clockwise), stringResource(R.string.rotation_counter_clockwise)),
+						selectedIndex = if (counterClockwise) 1 else 0,
+						onSelected = { onCounterClockwiseChange(it == 1) },
+						enabled = enabled,
+					)
+				}
 			}
 		}
 	}

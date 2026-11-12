@@ -31,9 +31,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.FavouriteCategory
-import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
-import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.powerManager
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
@@ -64,7 +62,6 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 
 	private val viewModel by viewModels<TrackerSettingsViewModel>()
 	private val notificationsEnabledState = MutableStateFlow(false)
-	private val categoriesCountState = MutableStateFlow<IntArray?>(null)
 	private val dozeAvailableState = MutableStateFlow(false)
 
 	private val startForDozeResult = registerForActivityResult(
@@ -82,15 +79,13 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 		setContent {
 			DropSauceTheme {
 				val notificationsEnabled by notificationsEnabledState.asStateFlow().collectAsState()
-				val categoriesCount by categoriesCountState.asStateFlow().collectAsState()
 				val categories by viewModel.categories.collectAsState()
 				val dozeAvailable by dozeAvailableState.asStateFlow().collectAsState()
 				TrackerScreen(
 					notificationsEnabled = notificationsEnabled,
-					categoriesCount = categoriesCount,
 					categories = categories,
 					dozeAvailable = dozeAvailable,
-					onTrackCategories = router::showTrackerCategoriesConfigSheet,
+					onTrackCategoriesChange = viewModel::setTrackingCategories,
 					onDownloadCategoriesChange = viewModel::setNewChaptersDownloadCategories,
 					onNotificationsSettings = ::openNotificationsSettings,
 					onTrackerDebug = {
@@ -100,11 +95,6 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 				)
 			}
 		}
-	}
-
-	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-		super.onViewCreated(view, savedInstanceState)
-		viewModel.categoriesCount.observe(viewLifecycleOwner) { categoriesCountState.value = it }
 	}
 
 	override fun onResume() {
@@ -149,10 +139,9 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 @Composable
 private fun TrackerScreen(
 	notificationsEnabled: Boolean,
-	categoriesCount: IntArray?,
 	categories: List<FavouriteCategory>,
 	dozeAvailable: Boolean,
-	onTrackCategories: () -> Unit,
+	onTrackCategoriesChange: (Set<Long>) -> Unit,
 	onDownloadCategoriesChange: (Set<Long>) -> Unit,
 	onNotificationsSettings: () -> Unit,
 	onTrackerDebug: () -> Unit,
@@ -182,8 +171,13 @@ private fun TrackerScreen(
 	val sourceValues = remember { ctx.resources.getStringArray(R.array.values_track_sources).toList() }
 	val smartUpdateEntries = remember { ctx.resources.getStringArray(R.array.smart_update_rules).toList() }
 	val smartUpdateValues = remember { ctx.resources.getStringArray(R.array.values_smart_update_rules).toList() }
-	val downloadEntries = remember(categories) { categories.map { it.title } }
-	val downloadValues = remember(categories) { categories.map { it.id.toString() } }
+	val categoryEntries = remember(categories) { categories.map { it.title } }
+	val categoryValues = remember(categories) { categories.map { it.id.toString() } }
+	val selectedTrackValues = remember(categories) {
+		categories
+			.filter { it.isTrackingEnabled }
+			.mapTo(LinkedHashSet()) { it.id.toString() }
+	}
 	val selectedDownloadValues = remember(categories) {
 		categories
 			.filter { it.isNewChaptersDownloadEnabled }
@@ -194,9 +188,6 @@ private fun TrackerScreen(
 		stringResource(R.string.show_notification_new_chapters_on)
 	} else {
 		stringResource(R.string.show_notification_new_chapters_off)
-	}
-	val categoriesSummary = categoriesCount?.let {
-		ctx.getString(R.string.enabled_d_of_d, it[0], it[1])
 	}
 	val categoriesEnabled = enabled && AppSettings.TRACK_FAVOURITES in trackSources
 
@@ -257,14 +248,18 @@ private fun TrackerScreen(
 					)
 				}
 				item { pos ->
-					ActionSettingsItem(
+					MultiSelectSettingsItem(
 						title = stringResource(R.string.favourites_categories),
-						subtitle = categoriesSummary,
+						entries = categoryEntries,
+						entryValues = categoryValues,
+						selectedValues = selectedTrackValues,
+						onValuesChange = { values ->
+							onTrackCategoriesChange(values.mapNotNull { it.toLongOrNull() }.toSet())
+						},
 						icon = R.drawable.ic_list_group,
-						
+
 						shape = pos.shape,
-						enabled = categoriesEnabled,
-						onClick = onTrackCategories,
+						enabled = categoriesEnabled && categories.isNotEmpty(),
 					)
 				}
 				item { pos ->
@@ -328,8 +323,8 @@ private fun TrackerScreen(
 				item { pos ->
 					MultiSelectSettingsItem(
 						title = stringResource(R.string.download_new_chapters),
-						entries = downloadEntries,
-						entryValues = downloadValues,
+						entries = categoryEntries,
+						entryValues = categoryValues,
 						selectedValues = selectedDownloadValues,
 						onValuesChange = { values ->
 							onDownloadCategoriesChange(values.mapNotNull { it.toLongOrNull() }.toSet())

@@ -77,7 +77,6 @@
     <string name="notifications_settings">Ilmoitusten asetukset</string>
     <string name="download">Lataa</string>
     <string name="new_chapters">Uusia lukuja</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Käytössä %1$d / %2$d</string>
     <string name="notifications">Ilmoitukset</string>
     <string name="open_in_browser">Avaa selaimessa</string>
     <string name="app_update_available">Sovelluksen päivitys on saatavilla</string>

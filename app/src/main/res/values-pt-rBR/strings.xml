@@ -153,7 +153,6 @@
     <string name="various_languages">Vários idiomas</string>
     <string name="operation_not_supported">Esta operação não é suportada</string>
     <string name="follow_system">Automático (segue o sistema)</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d de %2$d habilitados</string>
     <string name="switch_pages">Mudar páginas</string>
     <string name="clear_thumbs_cache">Limpar cache das miniaturas (capas, etc.)</string>
     <string name="favourites_categories">Categorias favoritas</string>

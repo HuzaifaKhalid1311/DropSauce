@@ -74,7 +74,6 @@
     <string name="internal_storage">内部ストレージ</string>
     <string name="open_in_browser">ブラウザーで開く</string>
     <string name="notifications">通知</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d/%2$d</string>
     <string name="new_chapters">新しい章</string>
     <string name="download">ダウンロード</string>
     <string name="notifications_settings">通知の設定</string>

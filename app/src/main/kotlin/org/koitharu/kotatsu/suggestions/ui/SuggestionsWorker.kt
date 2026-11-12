@@ -300,11 +300,23 @@ class SuggestionsWorker @AssistedInject constructor(
 		if (appSettings.isSuggestionsExcludeNsfw || appSettings.isNsfwContentDisabled) {
 			list.removeAll { it.isNsfw() }
 		}
-		if (blacklist.isNotEmpty()) {
-			list.removeAll { manga -> manga in blacklist }
-		}
 		list.shuffle()
-		list.take(MAX_SOURCE_RESULTS)
+		if (!blacklist.isNotEmpty()) {
+			return@runCatchingCancellable list.take(MAX_SOURCE_RESULTS)
+		}
+		// Lists from extensions rarely carry genres, so a title without any gets them from its details
+		// before it's trusted; otherwise excluded genres slip through.
+		val result = ArrayList<Manga>(MAX_SOURCE_RESULTS)
+		for (manga in list) {
+			if (result.size == MAX_SOURCE_RESULTS) break
+			val checked = if (manga.tags.isEmpty()) {
+				runCatchingCancellable { repository.getDetails(manga) }.getOrNull()?.copy(chapters = null) ?: continue
+			} else {
+				manga
+			}
+			if (checked !in blacklist) result += checked
+		}
+		result
 	}.onFailure { e ->
 		if (e is CloudFlareException) {
 			// Some implementations may return a value; we only need side-effects.

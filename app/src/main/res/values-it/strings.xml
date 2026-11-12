@@ -114,7 +114,6 @@
     <string name="notifications_settings">Impostazioni notifiche</string>
     <string name="download">Scarica</string>
     <string name="new_chapters">Nuovi capitoli</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Abilitato %1$d di %2$d</string>
     <string name="notifications">Notifiche</string>
     <string name="open_in_browser">Apri nel browser</string>
     <string name="app_update_available">Un aggiornamento per l\'applicazione è disponibile</string>

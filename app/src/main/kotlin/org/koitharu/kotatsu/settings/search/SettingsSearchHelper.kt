@@ -191,6 +191,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_READER_CROP, R.string.crop_pages, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_crop))
 				addItem(AppSettings.KEY_READER_ROTATE_WIDE, R.string.rotate_wide_pages, R.string.rotate_wide_pages_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_WIDE_SPLIT, R.string.wide_pages_method, R.string.wide_pages_split, crumbs, ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_READER_WIDE_SPLIT_MANUAL, R.string.wide_pages_split_mode, R.string.wide_pages_split_manual, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_READER_ROTATE_WIDE_INVERT, R.string.rotate_wide_pages_direction, R.string.rotation_counter_clockwise, crumbs, ReaderSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Display") { crumbs ->

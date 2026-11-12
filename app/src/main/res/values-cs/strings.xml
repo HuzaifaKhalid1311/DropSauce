@@ -301,7 +301,6 @@
     <string name="operation_not_supported">Tato operace není podporována</string>
     <string name="search_on_s">Hledat na %s</string>
     <string name="internal_storage">Interní uložiště</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d z %2$d na</string>
     <string name="search_history_cleared">Vyčištěno</string>
     <string name="external_storage">Externí uložiště</string>
     <string name="new_chapters">Nové kapitoly</string>

@@ -139,6 +139,7 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 	 * Pages are compared, not positions: merging the halves shifts positions and re-selects the same page.
 	 */
 	private fun zoomLeftPagesToHalf(position: Int) {
+		if (viewModel.readerSettingsProducer.value.isSplitWideManual) return // pages rest whole there
 		val page = readerAdapter?.getItemOrNull(position)?.copy(isSecondHalf = false)
 		val list = viewBinding?.pager?.recyclerView ?: return
 		for (child in list.children) {
@@ -152,6 +153,14 @@ abstract class BasePagerReaderFragment : BaseReaderFragment<FragmentReaderPagerB
 		val adapter = readerAdapter ?: return
 		val page = adapter.getItemOrNull(position)?.copy(isSecondHalf = false)
 		if (adapter.wholePage?.copy(isSecondHalf = false) != page) adapter.setWholePage(null)
+		if (!viewModel.readerSettingsProducer.value.isSplitWideManual) return
+		// Manual splitting: a page split from the button is whole again once left.
+		adapter.retainSplit(page)
+		val list = viewBinding?.pager?.recyclerView ?: return
+		for (child in list.children) {
+			val holder = list.getChildViewHolder(child) as? PageHolder ?: continue
+			if (holder.boundData?.copy(isSecondHalf = false) != page) holder.restoreWhole()
+		}
 	}
 
 	/** Publishes the current page's spread state for the reader's button. */

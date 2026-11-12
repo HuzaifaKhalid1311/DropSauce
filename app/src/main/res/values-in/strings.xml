@@ -74,7 +74,6 @@
     <string name="app_update_available">Versi baru aplikasi tersedia</string>
     <string name="open_in_browser">Buka di peramban web</string>
     <string name="notifications">Notifikasi</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d dari %2$d diaktifkan</string>
     <string name="new_chapters">Sub-bab baru</string>
     <string name="download">Unduh</string>
     <string name="notifications_settings">Pengaturan notifikasi</string>

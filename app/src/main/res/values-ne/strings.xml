@@ -100,7 +100,6 @@
     <string name="delete">हटाउनुहोस्</string>
     <string name="text_file_not_supported">या त ZIP वा CBZ फाइल छान्नुहोस्।</string>
     <string name="notifications">सूचनाहरू</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%2$d को %1$d अन</string>
     <string name="cannot_find_available_storage">भण्डारण उपलब्ध छैन</string>
     <string name="other_storage">अन्य भण्डारण</string>
     <string name="done">सकियो</string>

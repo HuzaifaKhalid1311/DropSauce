@@ -65,6 +65,7 @@ import org.koitharu.kotatsu.favourites.ui.categories.CategoriesOrderSheet
 import org.koitharu.kotatsu.favourites.ui.categories.CategoriesSortSheet
 import org.koitharu.kotatsu.favourites.ui.categories.FavouriteCategoriesActivity
 import org.koitharu.kotatsu.favourites.ui.categories.edit.FavouritesCategoryEditActivity
+import org.koitharu.kotatsu.favourites.ui.categories.select.DefaultCategoryDialog
 import org.koitharu.kotatsu.favourites.ui.categories.select.FavoriteDialog
 import org.koitharu.kotatsu.favourites.ui.duplicates.DuplicatesSheet
 import org.koitharu.kotatsu.filter.ui.FilterCoordinator
@@ -105,7 +106,6 @@ import org.koitharu.kotatsu.settings.sources.catalog.SourcesCatalogActivity
 import org.koitharu.kotatsu.settings.sources.catalog.stores.ExtensionStoresActivity
 import org.koitharu.kotatsu.settings.storage.MangaDirectorySelectDialog
 import org.koitharu.kotatsu.settings.storage.directories.MangaDirectoriesActivity
-import org.koitharu.kotatsu.settings.tracker.categories.TrackerCategoriesConfigSheet
 import org.koitharu.kotatsu.stats.ui.StatsActivity
 import org.koitharu.kotatsu.stats.ui.sheet.MangaStatsSheet
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsActivity
@@ -440,6 +440,11 @@ class AppRouter private constructor(
         }.showDistinct()
     }
 
+    /** Picks the category the quick-add button uses; [DefaultCategoryDialog.REQUEST_KEY] reports a pick. */
+    fun showDefaultCategoryDialog() {
+        DefaultCategoryDialog().showDistinct()
+    }
+
     /** The category picker itself, after duplicates have been dealt with. */
     fun showFavoriteCategoriesDialog(manga: Collection<Manga>, accentColor: Int? = null) {
         if (manga.isEmpty()) {
@@ -609,10 +614,6 @@ class AppRouter private constructor(
         ScrobblingInfoSheet().withArgs(1) {
             putInt(KEY_INDEX, index)
         }.showDistinct()
-    }
-
-    fun showTrackerCategoriesConfigSheet() {
-        TrackerCategoriesConfigSheet().showDistinct()
     }
 
     fun askForDownloadOverMeteredNetwork(onConfirmed: (allow: Boolean) -> Unit) {

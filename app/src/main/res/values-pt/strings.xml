@@ -78,7 +78,6 @@
     <string name="text_delete_local_manga">Apagar permanentemente «%s» do dispositivo?</string>
     <string name="text_file_not_supported">Escolha um ficheiro ZIP ou CBZ.</string>
     <string name="clear_search_history">Limpar histórico de pesquisa</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Ativado %1$d de %2$d</string>
     <string name="show_pages_numbers">Páginas numeradas</string>
     <string name="state_finished">Concluído</string>
     <string name="state_ongoing">Em andamento</string>

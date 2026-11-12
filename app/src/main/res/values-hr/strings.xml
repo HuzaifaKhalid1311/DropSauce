@@ -78,7 +78,6 @@
     <string name="internal_storage">Interna pohrana</string>
     <string name="external_storage">Vanjska pohrana</string>
     <string name="app_update_available">Dostupna je nova verzija aplikacije</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">Omogućeno je %1$d od %2$d</string>
     <string name="new_chapters">Nova poglavlja</string>
     <string name="download">Preuzimi</string>
     <string name="notifications_settings">Postavke obavijesti</string>

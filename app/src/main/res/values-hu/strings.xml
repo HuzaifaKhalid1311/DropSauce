@@ -177,7 +177,6 @@
     <string name="brightness">Fényerő</string>
     <string name="automatic">Rendszer alapján</string>
     <string name="text_delete_local_manga">\"%s\" véglegesen törölve legyen az eszközről?</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d aktiválva a %2$d-ból</string>
     <string name="text_history_holder_primary">Amit épp olvasol, az itt jelenik meg</string>
     <string name="text_history_holder_secondary">Találd meg, mit olvashatsz a «Felfedezés» szekcióban</string>
     <string name="text_local_holder_secondary">Ments el valamit egy online katalógusból, vagy importálj egy fájlból.</string>

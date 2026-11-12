@@ -78,7 +78,6 @@
     <string name="app_update_available">Доступна новая версия приложения</string>
     <string name="open_in_browser">Открыть в веб-браузере</string>
     <string name="notifications">Уведомления</string>
-    <string name="enabled_d_of_d">Включено %1$d из %2$d</string>
     <string name="new_chapters">Новые главы</string>
     <string name="download">Загрузить</string>
     <string name="notifications_settings">Настройки уведомлений</string>

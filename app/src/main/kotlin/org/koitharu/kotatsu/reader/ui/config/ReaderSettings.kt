@@ -41,6 +41,8 @@ data class ReaderSettings(
 	val isRotateWideEnabled: Boolean,
 	val isRotateWideInverted: Boolean,
 	val isSplitWideEnabled: Boolean,
+	/** Wide pages open whole and split from the spread button instead of on their own. */
+	val isSplitWideManual: Boolean,
 	val isDoubleTapFill: Boolean,
 ) {
 
@@ -61,6 +63,8 @@ data class ReaderSettings(
 		isRotateWideEnabled = settings.isReaderRotateWideEnabled && !settings.isReaderWideSplit,
 		isRotateWideInverted = settings.isReaderRotateWideInverted,
 		isSplitWideEnabled = settings.isReaderRotateWideEnabled && settings.isReaderWideSplit,
+		isSplitWideManual = settings.isReaderRotateWideEnabled && settings.isReaderWideSplit &&
+			settings.isReaderWideSplitManual,
 		isDoubleTapFill = settings.isReaderDoubleTapFill,
 	)
 
@@ -119,6 +123,7 @@ data class ReaderSettings(
 			AppSettings.KEY_READER_ROTATE_WIDE,
 			AppSettings.KEY_READER_ROTATE_WIDE_INVERT,
 			AppSettings.KEY_READER_WIDE_SPLIT,
+			AppSettings.KEY_READER_WIDE_SPLIT_MANUAL,
 			AppSettings.KEY_READER_DOUBLE_TAP_FILL,
 		)
 		private var job: Job? = null

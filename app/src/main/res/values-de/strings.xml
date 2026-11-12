@@ -104,7 +104,6 @@
     <string name="notifications_settings">Benachrichtigungseinstellungen</string>
     <string name="download">Herunterladen</string>
     <string name="new_chapters">Neue Kapitel</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d von %2$d aktiviert</string>
     <string name="notifications">Benachrichtigungen</string>
     <string name="open_in_browser">Im Browser öffnen</string>
     <string name="external_storage">Externer Speicher</string>

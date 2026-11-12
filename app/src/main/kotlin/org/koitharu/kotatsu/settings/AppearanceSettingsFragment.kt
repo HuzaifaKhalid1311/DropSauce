@@ -293,7 +293,7 @@ private fun AppearanceScreen(
 	)
 	var screenshotsPolicy by rememberStringPref(
 		AppSettings.KEY_SCREENSHOTS_POLICY,
-		ScreenshotsPolicy.ALLOW.name,
+		ScreenshotsPolicy.BLOCK_INCOGNITO.name,
 	)
 
 	// PIN works without a device screen lock, so the option is always available; the method

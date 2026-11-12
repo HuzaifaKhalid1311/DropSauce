@@ -401,7 +401,6 @@
     <string name="periodic_backups_enable">Ενεργοποίηση περιοδικής δημιουργίας αντιγράφων ασφαλείας</string>
     <string name="backups_output_directory">Directory όπου θα αποθηκεύονται τα αντίγραφα ασφαλείας</string>
     <string name="last_successful_backup">Τελευταία επιτυχής δημιουργία αντιγράφου ασφαλείας: %s</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d από %2$d ενεργές</string>
     <string name="edit_category">Επεξεργασία κατηγορίας</string>
     <string name="tracking">Καταγραφή</string>
     <string name="empty_favourite_categories">Χωρίς αγαπημένες κατηγορίες</string>

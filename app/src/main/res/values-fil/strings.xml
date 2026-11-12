@@ -32,7 +32,6 @@
     <string name="app_update_available">Available ang isang bagong bersyon ng app</string>
     <string name="open_in_browser">Buksan sa web browser</string>
     <string name="notifications">Mga abiso</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$d ng %2$d ay napagana</string>
     <string name="new_chapters">Mga bagong kabanata</string>
     <string name="text_search_holder_secondary">Subukang i-reformulate ang query.</string>
     <string name="text_history_holder_primary">Ang iyong nabasa ay ipapakita dito</string>

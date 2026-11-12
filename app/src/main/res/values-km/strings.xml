@@ -86,7 +86,6 @@
     <string name="switch_pages">ប្តូរទំព័រ</string>
     <string name="open_in_browser">បើកនៅក្នុងវេបប្រោសឹរ</string>
     <string name="notifications">ជូនដំណឹង</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">%1$dនៃ%2$dលើ</string>
     <string name="notifications_settings">ការកំណត់សេចក្តីជូនដំណឹង</string>
     <string name="clear_thumbs_cache">សម្អាត់តមណែលឃែស</string>
     <string name="clear_search_history">សម្អាត់ប្រវិត្តស្វែងរក</string>

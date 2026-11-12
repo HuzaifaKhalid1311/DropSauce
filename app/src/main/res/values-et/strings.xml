@@ -51,7 +51,6 @@
     <string name="cannot_find_available_storage">Puudub olemasolevat salvestamisruumi</string>
     <string name="create_backup">Tee andmete tagavara</string>
     <string name="detailed_list">Detailitud loetelu</string>
-    <string name="enabled_d_of_d" tools:ignore="PluralsCandidate">sisse lülitatud %1$d / %2$d</string>
     <string name="tap_to_try_again">Vajuta, et uuesti proovida</string>
     <string name="ignore_ssl_errors">Ignoreeri SSL vigasi</string>
     <string name="auth_required">Selle sisu vaatamiseks logi sisse</string>
