@@ -7,7 +7,6 @@ import android.graphics.ImageDecoder
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
-import com.awxkee.jxlcoder.JxlCoder
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
 import okio.IOException
 import okio.buffer
@@ -69,14 +68,7 @@ object BitmapDecoderCompat {
 
 	/** Android has no JPEG XL decoder of its own, so these go through the bundled one. */
 	@Blocking
-	fun decodeJxl(bytes: ByteArray): Bitmap = try {
-		JxlCoder.decode(bytes)
-	} catch (e: Exception) {
-		throw ImageDecodeException(null, FORMAT_JXL, e.message.orEmpty())
-	} catch (e: LinkageError) {
-		// x86 builds carry no JXL decoder: the same "unsupported format" as before instead of a crash
-		throw ImageDecodeException(null, FORMAT_JXL, e.message.orEmpty())
-	}
+	fun decodeJxl(bytes: ByteArray): Bitmap = checkBitmapNotNull(JxlDecoder.decode(bytes), FORMAT_JXL)
 
 	@Blocking
 	fun createRegionDecoder(inoutStream: InputStream): BitmapRegionDecoder? = try {

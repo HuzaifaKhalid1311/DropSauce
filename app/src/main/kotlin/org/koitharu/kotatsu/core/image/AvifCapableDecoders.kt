@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.core.image
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.Rect
 import android.net.Uri
@@ -45,17 +46,21 @@ fun isAvifHeader(head: ByteArray, length: Int = head.size): Boolean {
 }
 
 /** The format to decode with a bundled decoder, or null to leave the image to the platform. */
+fun sniffBundledFormat(head: ByteArray, length: Int = head.size): MimeType? = when {
+	isJxlHeader(head, length) -> JXL_MIME
+	isAvifHeader(head, length) -> AVIF_MIME
+	else -> null
+}
+
 private fun Uri.sniffBundledFormat(context: Context): MimeType? = runCatching {
 	context.contentResolver.openInputStream(this)?.use { stream ->
 		val head = ByteArray(64)
-		val n = stream.read(head)
-		when {
-			isJxlHeader(head, n) -> JXL_MIME
-			isAvifHeader(head, n) -> AVIF_MIME
-			else -> null
-		}
+		sniffBundledFormat(head, stream.read(head))
 	}
 }.getOrNull()
+
+// Smooths tiles cut at a reduced size: without it they are sampled pixel-skipping and look jagged
+private val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG)
 
 private fun Uri.decodeBundled(context: Context, format: MimeType): Bitmap =
 	context.contentResolver.openInputStream(this).use { stream ->
@@ -126,7 +131,7 @@ class AvifCapableRegionDecoder(
 			val w = (sRect.width() / sampleSize).coerceAtLeast(1)
 			val h = (sRect.height() / sampleSize).coerceAtLeast(1)
 			val out = Bitmap.createBitmap(w, h, src.config ?: bitmapConfig)
-			Canvas(out).drawBitmap(src, sRect, Rect(0, 0, w, h), null)
+			Canvas(out).drawBitmap(src, sRect, Rect(0, 0, w, h), tilePaint)
 			return out
 		}
 		return requireNotNull(delegate).decodeRegion(sRect, sampleSize)
