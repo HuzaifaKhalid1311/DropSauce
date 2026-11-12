@@ -11,27 +11,39 @@
 		app:actionViewClass="androidx.appcompat.widget.SearchView"
 		app:showAsAction="ifRoom|collapseActionView" />
 
-	<group
-		android:id="@+id/group_sort"
-		android:checkableBehavior="single">
+	<group android:id="@+id/group_sort">
 
 		<item
-			android:id="@+id/action_sort_source"
-			android:icon="@drawable/ic_sort_source_order"
-			android:title="@string/sort_chapters_by_source"
-			app:showAsAction="never" />
+			android:id="@+id/action_sort"
+			android:icon="@drawable/ic_sort_asc"
+			android:title="@string/sort_order"
+			app:showAsAction="never">
+			<menu>
+				<group
+					android:id="@+id/group_sort_options"
+					android:checkableBehavior="single">
 
-		<item
-			android:id="@+id/action_sort_by_name"
-			android:icon="@drawable/ic_sort_by_name"
-			android:title="@string/sort_chapters_by_name"
-			app:showAsAction="never" />
+					<item
+						android:id="@+id/action_sort_source"
+						android:icon="@drawable/ic_sort_source_order"
+						android:title="@string/sort_chapters_by_source"
+						app:showAsAction="never" />
 
-		<item
-			android:id="@+id/action_sort_by_date"
-			android:icon="@drawable/ic_sort_by_date"
-			android:title="@string/sort_chapters_by_date"
-			app:showAsAction="never" />
+					<item
+						android:id="@+id/action_sort_by_name"
+						android:icon="@drawable/ic_sort_by_name"
+						android:title="@string/sort_chapters_by_name"
+						app:showAsAction="never" />
+
+					<item
+						android:id="@+id/action_sort_by_date"
+						android:icon="@drawable/ic_sort_by_date"
+						android:title="@string/sort_chapters_by_date"
+						app:showAsAction="never" />
+
+				</group>
+			</menu>
+		</item>
 
 	</group>
 

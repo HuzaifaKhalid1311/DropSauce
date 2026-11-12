@@ -75,7 +75,7 @@ class ChapterPagesMenuProvider(
 		super.onPrepareMenu(menu)
 		menu.findItem(R.id.action_reversed)?.isChecked = settings.isChaptersReverse
 		menu.findItem(R.id.action_grid_view)?.isChecked = settings.isChaptersGridView
-		menu.findItem(
+		menu.findItem(R.id.action_sort)?.subMenu?.findItem(
 			when (viewModel.chaptersSortOrder.value) {
 				ChaptersSortOrder.SOURCE -> R.id.action_sort_source
 				ChaptersSortOrder.NAME -> R.id.action_sort_by_name

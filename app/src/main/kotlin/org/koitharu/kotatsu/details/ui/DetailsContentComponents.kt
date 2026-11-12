@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.details.ui
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -30,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +45,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -69,6 +74,7 @@ import android.text.style.UnderlineSpan
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -76,7 +82,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.crossfade
@@ -97,6 +105,8 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import org.koitharu.kotatsu.details.ui.scrobbling.labelResId
 import java.util.Locale
 
+private const val DESCRIPTION_COLLAPSED_LINES = 5
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun DescriptionCard(
@@ -110,7 +120,14 @@ internal fun DescriptionCard(
 	// either way, so turning collapsing off doesn't cost you the ability to fold a wall of text away.
 	val collapseEnabled by rememberBooleanPref(AppSettings.KEY_COLLAPSE_DESCRIPTION, true)
 	var expanded by rememberSaveable(collapseEnabled) { mutableStateOf(!collapseEnabled) }
-	var hasOverflow by remember { mutableStateOf(false) }
+	// Keep the full text laid out while contracting so the card clips it from the bottom instead
+	// of blanking lines 6+ out before the shrink animation finishes.
+	var isSettledCollapsed by rememberSaveable(collapseEnabled) { mutableStateOf(!expanded) }
+	var hasOverflow by remember(description) { mutableStateOf(false) }
+	var fullLayout by remember(description) { mutableStateOf<TextLayoutResult?>(null) }
+	LaunchedEffect(expanded) {
+		if (expanded) isSettledCollapsed = false
+	}
 	// Links only become tappable once expanded, so a tap on a collapsed description always expands it.
 	val rich = remember(description, linkColor, expanded) {
 		description?.toAnnotatedString(linkColor, linksClickable = expanded) ?: AnnotatedString("")
@@ -119,6 +136,11 @@ internal fun DescriptionCard(
 	val cardColor = MaterialTheme.colorScheme.surfaceContainerHigh
 	val context = LocalContext.current
 	val haptic = LocalHapticFeedback.current
+	val fadeAlpha by animateFloatAsState(
+		targetValue = if (!expanded && hasOverflow) 1f else 0f,
+		animationSpec = tween(durationMillis = 220),
+		label = "descriptionFade",
+	)
 	SectionCard {
 		val locale = details?.getLocale()
 		Row(
@@ -162,7 +184,6 @@ internal fun DescriptionCard(
 		Box(
 			modifier = Modifier
 				.fillMaxWidth()
-				.animateContentSize()
 				.combinedClickable(
 					enabled = text.isNotEmpty(),
 					indication = null,
@@ -175,22 +196,60 @@ internal fun DescriptionCard(
 							context.toast(context.getString(R.string.copied_to_clipboard))
 						}
 					},
-					onClick = { expanded = !expanded },
+					onClick = {
+						expanded = !expanded
+						if (expanded) isSettledCollapsed = false
+					},
 				),
 		) {
-			Text(
-				text = if (text.isEmpty()) AnnotatedString(stringResource(R.string.no_description)) else rich,
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				maxLines = if (expanded) Int.MAX_VALUE else 5,
-				overflow = TextOverflow.Ellipsis,
-				modifier = Modifier.fillMaxWidth(),
-				onTextLayout = { hasOverflow = it.hasVisualOverflow },
-			)
-			if (!expanded && hasOverflow) {
+			Box(
+				modifier = Modifier
+					.fillMaxWidth()
+					.animateContentSize(
+						finishedListener = { _, _ ->
+							if (!expanded) isSettledCollapsed = true
+						},
+					),
+			) {
+				Layout(
+					content = {
+						Text(
+							text = if (text.isEmpty()) AnnotatedString(stringResource(R.string.no_description)) else rich,
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							maxLines = if (isSettledCollapsed) DESCRIPTION_COLLAPSED_LINES else Int.MAX_VALUE,
+							overflow = TextOverflow.Ellipsis,
+							modifier = Modifier.fillMaxWidth(),
+							onTextLayout = { layout ->
+								if (isSettledCollapsed) {
+									hasOverflow = layout.hasVisualOverflow
+								} else {
+									fullLayout = layout
+									hasOverflow = layout.lineCount > DESCRIPTION_COLLAPSED_LINES
+								}
+							},
+						)
+					},
+				) { measurables, constraints ->
+					val placeable = measurables.single().measure(
+						constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity),
+					)
+					val collapsedHeight = fullLayout
+						?.takeIf { it.lineCount > DESCRIPTION_COLLAPSED_LINES }
+						?.let { ceil(it.getLineBottom(DESCRIPTION_COLLAPSED_LINES - 1)).toInt() }
+						?.coerceIn(0, placeable.height)
+						?: placeable.height
+					val targetHeight = if (expanded || isSettledCollapsed) placeable.height else collapsedHeight
+					layout(placeable.width, targetHeight) {
+						placeable.placeRelative(0, 0)
+					}
+				}
+			}
+			if (fadeAlpha > 0f) {
 				Box(
 					modifier = Modifier
 						.matchParentSize()
+						.graphicsLayer { alpha = fadeAlpha }
 						.background(
 							Brush.verticalGradient(
 								0.5f to Color.Transparent,

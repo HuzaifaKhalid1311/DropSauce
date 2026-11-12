@@ -669,8 +669,8 @@
     <string name="error_corrupted_file">Invalid data is returned or file is corrupted</string>
     <string name="on_device">On device</string>
     <string name="downloads_only">Downloads only</string>
-    <string name="sort_chapters_by_name">Sort by name</string>
-    <string name="sort_chapters_by_date">Sort by date</string>
+    <string name="sort_chapters_by_name">Name</string>
+    <string name="sort_chapters_by_date">Date</string>
     <string name="sort_chapters_by_source">Default</string>
     <string name="insert_search_query">Insert into search</string>
     <string name="extensions_default_sort">Default browse order</string>

@@ -127,115 +127,77 @@ internal fun HeroSection(
 			)
 		}
 	} else {
-		BoxWithConstraints(
+		val density = LocalDensity.current
+		val compactCoverWidthPx = with(density) { COMPACT_COVER_WIDTH.roundToPx() }
+		val compactCoverHeightPx = with(density) { COMPACT_COVER_HEIGHT.roundToPx() }
+		val spacingPx = with(density) { 16.dp.roundToPx() }
+		val spacerHeightPx = with(density) { 14.dp.roundToPx() }
+
+		Layout(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = SCREEN_PADDING)
-		) {
-			val density = LocalDensity.current
-			val compactCoverWidthPx = with(density) { COMPACT_COVER_WIDTH.roundToPx() }
-			val compactCoverHeightPx = with(density) { COMPACT_COVER_HEIGHT.roundToPx() }
-			val spacingPx = with(density) { 16.dp.roundToPx() }
-			val spacerHeightPx = with(density) { 14.dp.roundToPx() }
-
-			val measurer = rememberTextMeasurer()
-			val authors = manga.authors.filter { it.isNotBlank() }
-			val authorText = authors.joinToString(", ")
-
-			val titleStyle = MaterialTheme.typography.headlineSmall
-			val authorStyle = MaterialTheme.typography.labelLarge
-
-			val infoWidth = maxWidth - COMPACT_COVER_WIDTH - 16.dp
-			val infoWidthPx = with(density) { infoWidth.roundToPx() }
-
-			val titleLayoutResult = measurer.measure(
-				text = manga.title,
-				style = titleStyle,
-				constraints = Constraints(maxWidth = infoWidthPx),
-				maxLines = 4,
-			)
-			val authorLayoutResult = if (authorText.isNotEmpty()) {
-				measurer.measure(
-					text = authorText,
-					style = authorStyle,
-					constraints = Constraints(maxWidth = infoWidthPx),
-					maxLines = 2,
+				.padding(horizontal = SCREEN_PADDING),
+			content = {
+				CoverCard(
+					manga = manga,
+					sourceManga = details?.sourceManga,
+					coverUrl = coverUrl,
+					coverRefreshes = coverRefreshes,
+					imageLoader = imageLoader,
+					modifier = Modifier.width(COMPACT_COVER_WIDTH),
+					corner = 20.dp,
+					nsfwLabel = nsfwLabel,
+					forceRefresh = details?.isLoaded == true,
+					actions = actions,
 				)
-			} else {
-				null
-			}
-
-			val titleFitsInOneLine = titleLayoutResult.lineCount <= 1
-			val authorFitsInOneLine = authorLayoutResult == null || authorLayoutResult.lineCount <= 1
-			val bothFitInOneLine = titleFitsInOneLine && authorFitsInOneLine
-
-			Layout(
-				content = {
-					CoverCard(
+				Column {
+					HeroTexts(centered = false, manga = manga, accent = accent, actions = actions)
+					Spacer(Modifier.height(12.dp))
+					StatPills(
+						centered = false,
+						showContentRating = false,
 						manga = manga,
-						sourceManga = details?.sourceManga,
-						coverUrl = coverUrl,
-						coverRefreshes = coverRefreshes,
-						imageLoader = imageLoader,
-						modifier = Modifier.width(COMPACT_COVER_WIDTH),
-						corner = 20.dp,
-						nsfwLabel = nsfwLabel,
-						forceRefresh = details?.isLoaded == true,
-						actions = actions,
-					)
-					Column {
-						HeroTexts(centered = false, manga = manga, accent = accent, actions = actions)
-						Spacer(Modifier.height(12.dp))
-						StatPills(
-							centered = false,
-							showContentRating = false,
-							manga = manga,
-							sourceTitle = sourceTitle,
-							accent = accent,
-							imageLoader = imageLoader,
-							onSourceClick = { actions.onSourceClick(manga) },
-						)
-					}
-					FavouriteButton(
-						label = favouriteLabel,
-						isFavourite = isFavourite,
+						sourceTitle = sourceTitle,
 						accent = accent,
-						onClick = onFavouriteClick,
-						onQuickClick = actions.onQuickFavoriteClick,
-						onQuickLongClick = actions.onDefaultCategoryClick,
-						horizontalPadding = 0.dp,
-					)
-				},
-			) { measurables, constraints ->
-				val remainingWidth = constraints.maxWidth - compactCoverWidthPx - spacingPx
-
-				val upperPlaceable = measurables[1].measure(
-					Constraints.fixedWidth(remainingWidth)
-				)
-
-				val buttonPlaceable = measurables[2].measure(
-					Constraints.fixedWidth(remainingWidth)
-				)
-
-				val naturalInfoHeight = upperPlaceable.height + spacerHeightPx + buttonPlaceable.height
-				val coverHeight = if (bothFitInOneLine) {
-					compactCoverHeightPx
-				} else {
-					maxOf(compactCoverHeightPx, naturalInfoHeight)
-				}
-
-				val coverPlaceable = measurables[0].measure(
-					Constraints.fixed(compactCoverWidthPx, coverHeight)
-				)
-
-				layout(constraints.maxWidth, coverHeight) {
-					coverPlaceable.placeRelative(0, 0)
-					upperPlaceable.placeRelative(compactCoverWidthPx + spacingPx, 0)
-					buttonPlaceable.placeRelative(
-						compactCoverWidthPx + spacingPx,
-						coverHeight - buttonPlaceable.height
+						imageLoader = imageLoader,
+						onSourceClick = { actions.onSourceClick(manga) },
 					)
 				}
+				FavouriteButton(
+					label = favouriteLabel,
+					isFavourite = isFavourite,
+					accent = accent,
+					onClick = onFavouriteClick,
+					onQuickClick = actions.onQuickFavoriteClick,
+					onQuickLongClick = actions.onDefaultCategoryClick,
+					horizontalPadding = 0.dp,
+				)
+			},
+		) { measurables, constraints ->
+			val remainingWidth = (constraints.maxWidth - compactCoverWidthPx - spacingPx).coerceAtLeast(0)
+
+			val upperPlaceable = measurables[1].measure(
+				Constraints.fixedWidth(remainingWidth)
+			)
+
+			val buttonPlaceable = measurables[2].measure(
+				Constraints.fixedWidth(remainingWidth)
+			)
+
+			val naturalInfoHeight = upperPlaceable.height + spacerHeightPx + buttonPlaceable.height
+			val coverHeight = maxOf(compactCoverHeightPx, naturalInfoHeight)
+
+			val coverPlaceable = measurables[0].measure(
+				Constraints.fixed(compactCoverWidthPx, coverHeight)
+			)
+
+			layout(constraints.maxWidth, coverHeight) {
+				coverPlaceable.placeRelative(0, 0)
+				upperPlaceable.placeRelative(compactCoverWidthPx + spacingPx, 0)
+				buttonPlaceable.placeRelative(
+					compactCoverWidthPx + spacingPx,
+					coverHeight - buttonPlaceable.height
+				)
 			}
 		}
 	}
