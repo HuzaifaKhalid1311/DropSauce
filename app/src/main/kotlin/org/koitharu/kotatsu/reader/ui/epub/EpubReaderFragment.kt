@@ -78,6 +78,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import coil3.ImageLoader
 import coil3.request.ImageRequest
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -1356,6 +1357,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	private fun showDictionary(word: String) {
 		val binding = SheetEpubDictionaryBinding.inflate(layoutInflater)
 		val dialog = BottomSheetDialog(requireContext())
+		dialog.behavior.skipCollapsed = true
+		dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
 		binding.textViewWord.text = word
 		binding.buttonClose.setOnClickListener { dialog.dismiss() }
 		dialog.setContentView(binding.root)

@@ -67,15 +67,14 @@
 		android:id="@+id/scrollView_content"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:layout_weight="1"
 		android:layout_marginTop="16dp"
-		android:fillViewport="true"
 		android:visibility="gone">
 
 		<TextView
 			android:id="@+id/textView_content"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:maxHeight="440dp"
 			android:textAppearance="?attr/textAppearanceBodyLarge"
 			android:textIsSelectable="true" />
 

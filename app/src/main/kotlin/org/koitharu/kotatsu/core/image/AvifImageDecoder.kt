@@ -96,7 +96,8 @@ class AvifImageDecoder(
 				if (!isJxl) return null
 				return Decoder {
 					runInterruptible {
-						BitmapDecoderCompat.decodeJxl(result.source.source().readByteArray()).toDecodeResult(options)
+						val bytes = result.source.source().use { it.readByteArray() }
+						BitmapDecoderCompat.decodeJxl(bytes).toDecodeResult(options)
 					}
 				}
 			}

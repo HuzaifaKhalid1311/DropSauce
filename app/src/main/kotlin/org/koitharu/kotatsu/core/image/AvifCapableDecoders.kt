@@ -16,6 +16,9 @@ import com.davemorrissey.labs.subscaleview.decoder.SkiaImageDecoder
 import com.davemorrissey.labs.subscaleview.decoder.SkiaImageRegionDecoder
 import com.davemorrissey.labs.subscaleview.decoder.SkiaPooledImageRegionDecoder
 import org.koitharu.kotatsu.core.util.ext.MimeType
+import org.koitharu.kotatsu.core.util.ext.isZipUri
+import java.io.InputStream
+import java.util.zip.ZipFile
 
 // Some sources (e.g. Mangago) serve AVIF images mislabelled as image/jpeg. The subsampling
 // library's stock Skia decoders hand them to the platform decoder, whose hardware AV1 path
@@ -52,18 +55,71 @@ fun sniffBundledFormat(head: ByteArray, length: Int = head.size): MimeType? = wh
 	else -> null
 }
 
+private inline fun <T> Uri.withImageStream(context: Context, block: (InputStream?) -> T): T =
+	if (isZipUri()) {
+		ZipFile(schemeSpecificPart).use { zip ->
+			val entry = fragment?.let(zip::getEntry)
+			if (entry != null) {
+				zip.getInputStream(entry).use(block)
+			} else {
+				block(null)
+			}
+		}
+	} else {
+		context.contentResolver.openInputStream(this).use(block)
+	}
+
 private fun Uri.sniffBundledFormat(context: Context): MimeType? = runCatching {
-	context.contentResolver.openInputStream(this)?.use { stream ->
+	withImageStream(context) { stream ->
+		stream ?: return@withImageStream null
 		val head = ByteArray(64)
-		sniffBundledFormat(head, stream.read(head))
+		var total = 0
+		while (total < head.size) {
+			val n = stream.read(head, total, head.size - total)
+			if (n <= 0) break
+			total += n
+		}
+		if (total > 0) sniffBundledFormat(head, total) else null
 	}
 }.getOrNull()
 
-// Smooths tiles cut at a reduced size: without it they are sampled pixel-skipping and look jagged
-private val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG)
+private object BundledBitmapStash {
+	private const val MAX_ENTRIES = 2
+	private val entries = LinkedHashMap<Uri, Bitmap>(4, 0.75f, true)
+
+	@Synchronized
+	fun take(uri: Uri): Bitmap? = entries.remove(uri)?.takeUnless { it.isRecycled }
+
+	@Synchronized
+	fun put(uri: Uri, bitmap: Bitmap) {
+		if (bitmap.isRecycled) return
+		val prev = entries.put(uri, bitmap)
+		if (prev != null && prev !== bitmap && !prev.isRecycled) {
+			prev.recycle()
+		}
+		while (entries.size > MAX_ENTRIES) {
+			val eldest = entries.entries.iterator().next()
+			entries.remove(eldest.key)
+			if (!eldest.value.isRecycled) {
+				eldest.value.recycle()
+			}
+		}
+	}
+}
+
+private fun Bitmap.convertConfigIfNeeded(targetConfig: Bitmap.Config): Bitmap {
+	if (targetConfig != Bitmap.Config.RGB_565 || config == Bitmap.Config.RGB_565) {
+		return this
+	}
+	val converted = copy(Bitmap.Config.RGB_565, false) ?: return this
+	if (converted !== this) {
+		recycle()
+	}
+	return converted
+}
 
 private fun Uri.decodeBundled(context: Context, format: MimeType): Bitmap =
-	context.contentResolver.openInputStream(this).use { stream ->
+	withImageStream(context) { stream ->
 		requireNotNull(stream) { "Cannot open image stream for $this" }
 		BitmapDecoderCompat.decode(stream, format)
 	}
@@ -74,11 +130,17 @@ class AvifCapableImageDecoder(private val bitmapConfig: Bitmap.Config) : ImageDe
 
 	override fun decode(context: Context, uri: Uri, sampleSize: Int): Bitmap {
 		val format = uri.sniffBundledFormat(context) ?: return delegate.decode(context, uri, sampleSize)
-		val bmp = uri.decodeBundled(context, format)
+		val bmp = BundledBitmapStash.take(uri) ?: uri.decodeBundled(context, format)
 		return if (sampleSize > 1) {
-			bmp.scale(bmp.width / sampleSize, bmp.height / sampleSize).also { if (it !== bmp) bmp.recycle() }
+			val w = (bmp.width / sampleSize).coerceAtLeast(1)
+			val h = (bmp.height / sampleSize).coerceAtLeast(1)
+			val scaled = bmp.scale(w, h)
+			if (scaled !== bmp) {
+				BundledBitmapStash.put(uri, bmp)
+			}
+			scaled.convertConfigIfNeeded(bitmapConfig)
 		} else {
-			bmp
+			bmp.convertConfigIfNeeded(bitmapConfig)
 		}
 	}
 
@@ -98,6 +160,15 @@ class AvifCapableRegionDecoder(
 ) : ImageRegionDecoder {
 
 	private var delegate: ImageRegionDecoder? = null
+	private var appContext: Context? = null
+	private var sourceUri: Uri? = null
+	@Volatile
+	private var bundledFormat: MimeType? = null
+	@Volatile
+	private var isInitialized = false
+	@Volatile
+	private var recycled = false
+	private var servedFullResTile = false
 	private var full: Bitmap? = null
 
 	private fun newDelegate(): ImageRegionDecoder = if (lowRam) {
@@ -106,43 +177,85 @@ class AvifCapableRegionDecoder(
 		SkiaPooledImageRegionDecoder(bitmapConfig)
 	}
 
+	private fun initBundled(context: Context, uri: Uri, format: MimeType): Point {
+		val bounds = runCatching {
+			uri.withImageStream(context) { it?.let(BitmapDecoderCompat::decodeBounds) }
+		}.getOrNull()
+		synchronized(this) {
+			appContext = context.applicationContext
+			sourceUri = uri
+			bundledFormat = format
+			isInitialized = true
+			recycled = false
+			servedFullResTile = false
+			if (bounds != null) {
+				return Point(bounds.width, bounds.height)
+			}
+			val bmp = BundledBitmapStash.take(uri) ?: uri.decodeBundled(context, format)
+			full = bmp
+			return Point(bmp.width, bmp.height)
+		}
+	}
+
 	override fun init(context: Context, uri: Uri): Point {
 		val format = uri.sniffBundledFormat(context)
 			?: return newDelegate().also { delegate = it }.init(context, uri)
-		val bmp = uri.decodeBundled(context, format)
-		full = bmp
-		return Point(bmp.width, bmp.height)
+		return initBundled(context, uri, format)
 	}
 
 	override fun init(context: Context, source: ImageSource): Point {
 		val uri = (source as? ImageSource.Uri)?.uri
 		val format = uri?.sniffBundledFormat(context)
 		if (uri != null && format != null) {
-			val bmp = uri.decodeBundled(context, format)
-			full = bmp
-			return Point(bmp.width, bmp.height)
+			return initBundled(context, uri, format)
 		}
 		// Delegate with the original ImageSource so any region/crop it carries is preserved.
 		return newDelegate().also { delegate = it }.init(context, source)
 	}
 
 	override fun decodeRegion(sRect: Rect, sampleSize: Int): Bitmap {
-		full?.let { src ->
+		if (bundledFormat != null) {
+			val src = synchronized(this) {
+				check(!recycled) { "AvifCapableRegionDecoder has already been recycled" }
+				if (sampleSize == 1 && bitmapConfig != Bitmap.Config.RGB_565) {
+					servedFullResTile = true
+				}
+				full?.takeIf { !it.isRecycled } ?: run {
+					val u = requireNotNull(sourceUri)
+					(BundledBitmapStash.take(u) ?: u.decodeBundled(requireNotNull(appContext), requireNotNull(bundledFormat)))
+						.also { full = it }
+				}
+			}
 			val w = (sRect.width() / sampleSize).coerceAtLeast(1)
 			val h = (sRect.height() / sampleSize).coerceAtLeast(1)
 			val out = Bitmap.createBitmap(w, h, src.config ?: bitmapConfig)
-			Canvas(out).drawBitmap(src, sRect, Rect(0, 0, w, h), tilePaint)
+			Canvas(out).drawBitmap(src, sRect, Rect(0, 0, w, h), Paint(Paint.FILTER_BITMAP_FLAG))
 			return out
 		}
 		return requireNotNull(delegate).decodeRegion(sRect, sampleSize)
 	}
 
 	override val isReady: Boolean
-		get() = full != null || delegate?.isReady == true
+		get() = (!recycled && isInitialized) || delegate?.isReady == true
 
 	override fun recycle() {
-		full?.recycle()
-		full = null
+		synchronized(this) {
+			recycled = true
+			isInitialized = false
+			val bmp = full
+			val uri = sourceUri
+			full = null
+			sourceUri = null
+			appContext = null
+			bundledFormat = null
+			if (bmp != null && !bmp.isRecycled) {
+				if (!servedFullResTile && uri != null) {
+					BundledBitmapStash.put(uri, bmp)
+				} else {
+					bmp.recycle()
+				}
+			}
+		}
 		delegate?.recycle()
 		delegate = null
 	}

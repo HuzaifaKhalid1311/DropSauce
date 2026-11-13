@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.reader.domain
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
 import androidx.annotation.AnyThread
@@ -243,18 +242,19 @@ class PageLoader @Inject constructor(
 		}
 	}
 
-	/** The whole image as a rect. Null when the size can't be read (e.g. a format BitmapFactory doesn't know). */
+	/** The whole image as a rect. Null when the size can't be read. */
 	suspend fun getImageBounds(uri: Uri): Rect? = runCatchingCancellable {
 		runInterruptible(Dispatchers.IO) {
-			val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-			if (uri.isZipUri()) {
+			val size = if (uri.isZipUri()) {
 				ZipFile(uri.schemeSpecificPart).use { zip ->
-					zip.getInputStream(zip.getEntry(uri.fragment)).use { BitmapFactory.decodeStream(it, null, options) }
+					uri.fragment?.let(zip::getEntry)?.let { entry ->
+						zip.getInputStream(entry).use(BitmapDecoderCompat::decodeBounds)
+					}
 				}
 			} else {
-				context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
+				context.contentResolver.openInputStream(uri)?.use(BitmapDecoderCompat::decodeBounds)
 			}
-			Rect(0, 0, options.outWidth, options.outHeight).takeUnless { it.isEmpty }
+			size?.let { Rect(0, 0, it.width, it.height) }?.takeUnless { it.isEmpty }
 		}
 	}.getOrNull()
 

@@ -11,4 +11,7 @@ object JxlDecoder {
 
 	/** The first frame as an sRGB ARGB_8888 bitmap, or null if the data cannot be decoded. */
 	external fun decode(bytes: ByteArray): Bitmap?
+
+	/** Width and height (`intArrayOf(width, height)`) from the JXL header, or null on invalid data. */
+	external fun decodeBounds(bytes: ByteArray): IntArray?
 }

@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.ImageDecoder
 import android.os.Build
+import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
 import com.davemorrissey.labs.subscaleview.decoder.ImageDecodeException
@@ -21,6 +22,7 @@ import org.koitharu.kotatsu.core.util.ext.readByteBuffer
 import org.koitharu.kotatsu.core.util.ext.toByteBuffer
 import org.koitharu.kotatsu.core.util.ext.toMimeTypeOrNull
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -29,6 +31,7 @@ object BitmapDecoderCompat {
 
 	private const val FORMAT_AVIF = "avif"
 	private const val FORMAT_JXL = "jxl"
+	private const val JXL_BOUNDS_PREFIX_BYTES = 4096
 	private val JXL_MIME = MimeType("image/jxl")
 
 	@Blocking
@@ -44,26 +47,86 @@ object BitmapDecoderCompat {
 
 	@Blocking
 	fun decode(stream: InputStream, type: MimeType?, isMutable: Boolean = false): Bitmap {
-		val format = type?.subtype
+		val (buffered, detectedType) = if (type != null) null to type else sniffStream(stream)
+		val sourceStream = buffered ?: stream
+		val format = detectedType?.subtype
 		if (format == FORMAT_AVIF) {
-			return decodeAvif(stream.toByteBuffer())
+			return decodeAvif(sourceStream.toByteBuffer())
 		}
 		if (format == FORMAT_JXL) {
-			return decodeJxl(stream.readBytes())
+			return decodeJxl(sourceStream.readBytes())
 		}
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
 			val opts = BitmapFactory.Options()
 			opts.inMutable = isMutable
-			return checkBitmapNotNull(BitmapFactory.decodeStream(stream, null, opts), format)
+			return checkBitmapNotNull(BitmapFactory.decodeStream(sourceStream, null, opts), format)
 		}
-		val byteBuffer = stream.toByteBuffer()
-		val head = ByteArray(minOf(JXL_HEADER_SIZE, byteBuffer.remaining()))
-		byteBuffer.duplicate().get(head)
-		return when {
-			isJxlHeader(head) -> decodeJxl(ByteArray(byteBuffer.remaining()).also { byteBuffer.get(it) })
-			AvifDecoder.isAvifImage(byteBuffer) -> decodeAvif(byteBuffer)
-			else -> ImageDecoder.decodeBitmap(ImageDecoder.createSource(byteBuffer), DecoderConfigListener(isMutable))
+		val byteBuffer = sourceStream.toByteBuffer()
+		return if (AvifDecoder.isAvifImage(byteBuffer)) {
+			decodeAvif(byteBuffer)
+		} else {
+			ImageDecoder.decodeBitmap(ImageDecoder.createSource(byteBuffer), DecoderConfigListener(isMutable))
 		}
+	}
+
+	/** Image dimensions without full pixel decode when supported (platform codecs, JXL, AVIF). */
+	@Blocking
+	fun decodeBounds(stream: InputStream): Size? {
+		val (buffered, format) = sniffStream(stream)
+		return when (format?.subtype) {
+			FORMAT_JXL -> {
+				val headSlice = readPrefix(buffered, JXL_BOUNDS_PREFIX_BYTES)
+				val dims = JxlDecoder.decodeBounds(headSlice) ?: run {
+					val rest = buffered.readBytes()
+					if (rest.isEmpty()) null else JxlDecoder.decodeBounds(headSlice + rest)
+				} ?: return null
+				Size(dims[0], dims[1])
+			}
+			FORMAT_AVIF -> {
+				val bytes = buffered.toByteBuffer()
+				val info = Info()
+				if (AvifDecoder.getInfo(bytes, bytes.remaining(), info) && info.width > 0 && info.height > 0) {
+					Size(info.width, info.height)
+				} else {
+					null
+				}
+			}
+			else -> {
+				val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+				BitmapFactory.decodeStream(buffered, null, opts)?.recycle()
+				if (opts.outWidth > 0 && opts.outHeight > 0) {
+					Size(opts.outWidth, opts.outHeight)
+				} else {
+					null
+				}
+			}
+		}
+	}
+
+	private fun sniffStream(stream: InputStream): Pair<BufferedInputStream, MimeType?> {
+		val buffered = if (stream is BufferedInputStream) stream else BufferedInputStream(stream)
+		buffered.mark(JXL_HEADER_SIZE.coerceAtLeast(64))
+		val head = ByteArray(64)
+		var total = 0
+		while (total < head.size) {
+			val n = buffered.read(head, total, head.size - total)
+			if (n <= 0) break
+			total += n
+		}
+		buffered.reset()
+		val format = if (total > 0) sniffBundledFormat(head, total) else null
+		return buffered to format
+	}
+
+	private fun readPrefix(stream: InputStream, maxBytes: Int): ByteArray {
+		val buf = ByteArray(maxBytes)
+		var total = 0
+		while (total < maxBytes) {
+			val n = stream.read(buf, total, maxBytes - total)
+			if (n <= 0) break
+			total += n
+		}
+		return if (total == maxBytes) buf else buf.copyOf(total)
 	}
 
 	/** Android has no JPEG XL decoder of its own, so these go through the bundled one. */

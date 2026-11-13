@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.reader.domain
 
-import android.graphics.BitmapFactory
 import android.util.Size
+import org.koitharu.kotatsu.core.image.BitmapDecoderCompat
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
@@ -128,14 +128,7 @@ class DetectReaderModeUseCase @Inject constructor(
 		private const val MIN_WEBTOON_RATIO = 1.8
 
 		private fun getBitmapSize(input: InputStream?): Size {
-			val options = BitmapFactory.Options().apply {
-				inJustDecodeBounds = true
-			}
-			BitmapFactory.decodeStream(input, null, options)?.recycle()
-			val imageHeight: Int = options.outHeight
-			val imageWidth: Int = options.outWidth
-			check(imageHeight > 0 && imageWidth > 0)
-			return Size(imageWidth, imageHeight)
+			return checkNotNull(input?.let(BitmapDecoderCompat::decodeBounds))
 		}
 	}
 }

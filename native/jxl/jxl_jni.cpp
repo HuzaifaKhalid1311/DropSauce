@@ -1,7 +1,11 @@
 // Decodes a JPEG XL image (first frame) into sRGB RGBA bytes, straight into an Android Bitmap.
 // Built into app/src/main/jniLibs/*/libjxldec.so by build.sh; decoder-only libjxl, no encoder.
+#include <algorithm>
+#include <climits>
 #include <cstdint>
 #include <cstdio>
+#include <mutex>
+#include <utility>
 
 #include <jxl/cms.h>
 #include <jxl/decode_cxx.h>
@@ -9,15 +13,83 @@
 
 namespace {
 
+size_t workerThreadCount() {
+	return std::clamp<size_t>(JxlThreadParallelRunnerDefaultNumWorkerThreads(), 2, 4);
+}
+
+struct RunnerPool {
+	static constexpr size_t kMaxIdle = 2;
+	std::mutex mutex;
+	JxlThreadParallelRunnerPtr idle[kMaxIdle];
+	size_t count = 0;
+
+	JxlThreadParallelRunnerPtr acquire() {
+		std::lock_guard<std::mutex> lock(mutex);
+		if (count > 0) {
+			return std::move(idle[--count]);
+		}
+		return nullptr;
+	}
+
+	void release(JxlThreadParallelRunnerPtr runner) {
+		if (!runner) return;
+		std::lock_guard<std::mutex> lock(mutex);
+		if (count < kMaxIdle) {
+			idle[count++] = std::move(runner);
+		}
+	}
+};
+
+RunnerPool& runnerPool() {
+	static RunnerPool pool;
+	return pool;
+}
+
+struct ScopedRunner {
+	JxlThreadParallelRunnerPtr runner;
+	ScopedRunner() : runner(runnerPool().acquire()) {
+		if (!runner) {
+			runner = JxlThreadParallelRunnerMake(nullptr, workerThreadCount());
+		}
+	}
+	~ScopedRunner() {
+		runnerPool().release(std::move(runner));
+	}
+};
+
 // Returns a width*height*4 buffer to decode into, or null to abort.
 typedef uint8_t* (*AllocPixels)(void* ctx, uint32_t width, uint32_t height);
+
+bool hasValidDimensions(const JxlBasicInfo& info) {
+	return info.xsize > 0 && info.ysize > 0 && info.xsize <= INT32_MAX && info.ysize <= INT32_MAX;
+}
+
+bool decodeJxlBounds(const uint8_t* bytes, size_t size, uint32_t* width, uint32_t* height) {
+	auto dec = JxlDecoderMake(nullptr);
+	if (!dec) return false;
+	if (JxlDecoderSubscribeEvents(dec.get(), JXL_DEC_BASIC_INFO) != JXL_DEC_SUCCESS) return false;
+	if (JxlDecoderSetInput(dec.get(), bytes, size) != JXL_DEC_SUCCESS) return false;
+	JxlDecoderCloseInput(dec.get());
+	JxlBasicInfo info = {};
+	for (;;) {
+		switch (JxlDecoderProcessInput(dec.get())) {
+			case JXL_DEC_BASIC_INFO:
+				if (JxlDecoderGetBasicInfo(dec.get(), &info) != JXL_DEC_SUCCESS || !hasValidDimensions(info)) return false;
+				*width = info.xsize;
+				*height = info.ysize;
+				return true;
+			default:
+				return false;
+		}
+	}
+}
 
 // On success the buffer from `alloc` holds premultiplied RGBA; `opaque` tells if alpha is all 255.
 bool decodeJxl(const uint8_t* bytes, size_t size, AllocPixels alloc, void* ctx, bool* opaque) {
 	auto dec = JxlDecoderMake(nullptr);
-	auto runner = JxlThreadParallelRunnerMake(nullptr, JxlThreadParallelRunnerDefaultNumWorkerThreads());
-	if (!dec || !runner) return false;
-	if (JxlDecoderSetParallelRunner(dec.get(), JxlThreadParallelRunner, runner.get()) != JXL_DEC_SUCCESS) return false;
+	ScopedRunner scopedRunner;
+	if (!dec || !scopedRunner.runner) return false;
+	if (JxlDecoderSetParallelRunner(dec.get(), JxlThreadParallelRunner, scopedRunner.runner.get()) != JXL_DEC_SUCCESS) return false;
 	if (JxlDecoderSubscribeEvents(dec.get(), JXL_DEC_BASIC_INFO | JXL_DEC_COLOR_ENCODING | JXL_DEC_FULL_IMAGE) != JXL_DEC_SUCCESS) return false;
 	// Lets images with their own colour profile be converted to sRGB too
 	JxlDecoderSetCms(dec.get(), *JxlGetDefaultCms());
@@ -31,7 +103,7 @@ bool decodeJxl(const uint8_t* bytes, size_t size, AllocPixels alloc, void* ctx, 
 	for (;;) {
 		switch (JxlDecoderProcessInput(dec.get())) {
 			case JXL_DEC_BASIC_INFO:
-				if (JxlDecoderGetBasicInfo(dec.get(), &info) != JXL_DEC_SUCCESS) return false;
+				if (JxlDecoderGetBasicInfo(dec.get(), &info) != JXL_DEC_SUCCESS || !hasValidDimensions(info)) return false;
 				break;
 			case JXL_DEC_COLOR_ENCODING: {
 				// Best effort: on failure the pixels stay in the image's own colour space
@@ -79,6 +151,40 @@ bool decodeJxl(const uint8_t* bytes, size_t size, AllocPixels alloc, void* ctx, 
 
 namespace {
 
+struct JniBitmapCache {
+	jclass bitmapClass = nullptr;
+	jmethodID createBitmap = nullptr;
+	jmethodID setHasAlpha = nullptr;
+	jobject argb8888 = nullptr;
+};
+
+const JniBitmapCache* getBitmapCache(JNIEnv* env) {
+	static std::mutex cacheMutex;
+	static JniBitmapCache cache;
+	static bool initialized = false;
+	std::lock_guard<std::mutex> lock(cacheMutex);
+	if (!initialized) {
+		jclass localBitmapClass = env->FindClass("android/graphics/Bitmap");
+		jclass localConfigClass = env->FindClass("android/graphics/Bitmap$Config");
+		if (localBitmapClass && localConfigClass) {
+			jfieldID argbField = env->GetStaticFieldID(localConfigClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;");
+			jobject localArgb = argbField ? env->GetStaticObjectField(localConfigClass, argbField) : nullptr;
+			cache.createBitmap = env->GetStaticMethodID(
+				localBitmapClass, "createBitmap", "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+			cache.setHasAlpha = env->GetMethodID(localBitmapClass, "setHasAlpha", "(Z)V");
+			if (cache.createBitmap && cache.setHasAlpha && localArgb) {
+				cache.bitmapClass = static_cast<jclass>(env->NewGlobalRef(localBitmapClass));
+				cache.argb8888 = env->NewGlobalRef(localArgb);
+				initialized = (cache.bitmapClass != nullptr && cache.argb8888 != nullptr);
+			}
+			if (localArgb) env->DeleteLocalRef(localArgb);
+		}
+		if (localBitmapClass) env->DeleteLocalRef(localBitmapClass);
+		if (localConfigClass) env->DeleteLocalRef(localConfigClass);
+	}
+	return initialized ? &cache : nullptr;
+}
+
 struct BitmapTarget {
 	JNIEnv* env;
 	jobject bitmap;
@@ -88,19 +194,16 @@ struct BitmapTarget {
 uint8_t* allocBitmap(void* ctx, uint32_t width, uint32_t height) {
 	auto* target = static_cast<BitmapTarget*>(ctx);
 	JNIEnv* env = target->env;
-	jclass bitmapClass = env->FindClass("android/graphics/Bitmap");
-	jclass configClass = env->FindClass("android/graphics/Bitmap$Config");
-	jobject config = env->GetStaticObjectField(
-		configClass, env->GetStaticFieldID(configClass, "ARGB_8888", "Landroid/graphics/Bitmap$Config;"));
+	const JniBitmapCache* cache = getBitmapCache(env);
+	if (!cache) return nullptr;
 	// Throws for absurd sizes or when out of memory: the exception stays pending for the caller
 	target->bitmap = env->CallStaticObjectMethod(
-		bitmapClass,
-		env->GetStaticMethodID(bitmapClass, "createBitmap", "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;"),
-		static_cast<jint>(width), static_cast<jint>(height), config);
+		cache->bitmapClass, cache->createBitmap,
+		static_cast<jint>(width), static_cast<jint>(height), cache->argb8888);
 	if (env->ExceptionCheck() || !target->bitmap) return nullptr;
 	AndroidBitmapInfo info;
 	void* pixels = nullptr;
-	if (AndroidBitmap_getInfo(env, target->bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS || info.stride != width * 4) return nullptr;
+	if (AndroidBitmap_getInfo(env, target->bitmap, &info) != ANDROID_BITMAP_RESULT_SUCCESS || info.stride != static_cast<uint64_t>(width) * 4) return nullptr;
 	if (AndroidBitmap_lockPixels(env, target->bitmap, &pixels) != ANDROID_BITMAP_RESULT_SUCCESS) return nullptr;
 	target->locked = true;
 	return static_cast<uint8_t*>(pixels);
@@ -119,9 +222,26 @@ Java_org_koitharu_kotatsu_core_image_JxlDecoder_decode(JNIEnv* env, jobject, jby
 	env->ReleaseByteArrayElements(data, bytes, JNI_ABORT);
 	if (!ok) return nullptr;
 	if (opaque) {
-		env->CallVoidMethod(target.bitmap, env->GetMethodID(env->GetObjectClass(target.bitmap), "setHasAlpha", "(Z)V"), JNI_FALSE);
+		if (const JniBitmapCache* cache = getBitmapCache(env)) {
+			env->CallVoidMethod(target.bitmap, cache->setHasAlpha, JNI_FALSE);
+		}
 	}
 	return target.bitmap;
+}
+
+extern "C" JNIEXPORT jintArray JNICALL
+Java_org_koitharu_kotatsu_core_image_JxlDecoder_decodeBounds(JNIEnv* env, jobject, jbyteArray data) {
+	jbyte* bytes = env->GetByteArrayElements(data, nullptr);
+	if (!bytes) return nullptr;
+	uint32_t width = 0, height = 0;
+	const bool ok = decodeJxlBounds(reinterpret_cast<const uint8_t*>(bytes), static_cast<size_t>(env->GetArrayLength(data)), &width, &height);
+	env->ReleaseByteArrayElements(data, bytes, JNI_ABORT);
+	if (!ok) return nullptr;
+	jintArray out = env->NewIntArray(2);
+	if (!out) return nullptr;
+	const jint dims[2] = {static_cast<jint>(width), static_cast<jint>(height)};
+	env->SetIntArrayRegion(out, 0, 2, dims);
+	return out;
 }
 
 #else // self-check on the computer: jxl_check in.jxl out.ppm

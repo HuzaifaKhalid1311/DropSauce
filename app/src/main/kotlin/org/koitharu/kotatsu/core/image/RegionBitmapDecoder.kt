@@ -90,8 +90,12 @@ class RegionBitmapDecoder(
 			scale = scale.coerceAtMost(1.0)
 		}
 		val matrix = Matrix().apply { setScale(scale.toFloat(), scale.toFloat()) }
-		val bitmap = Bitmap.createBitmap(full, rect.left, rect.top, rect.width(), rect.height(), matrix, true)
-		if (bitmap !== full) full.recycle()
+		var bitmap: Bitmap? = null
+		try {
+			bitmap = Bitmap.createBitmap(full, rect.left, rect.top, rect.width(), rect.height(), matrix, true)
+		} finally {
+			if (bitmap !== full) full.recycle()
+		}
 		bitmap.density = options.context.resources.displayMetrics.densityDpi
 		return DecodeResult(image = bitmap.asImage(), isSampled = true)
 	}

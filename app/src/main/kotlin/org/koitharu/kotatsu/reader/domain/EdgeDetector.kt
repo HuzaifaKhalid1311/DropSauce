@@ -11,7 +11,8 @@ import androidx.core.graphics.blue
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.davemorrissey.labs.subscaleview.ImageSource
-import com.davemorrissey.labs.subscaleview.decoder.SkiaPooledImageRegionDecoder
+import org.koitharu.kotatsu.core.image.AvifCapableRegionDecoder
+import org.koitharu.kotatsu.core.util.ext.isLowRamDevice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -36,7 +37,7 @@ class EdgeDetector(private val context: Context) {
 		}
 		return mutex.withLock {
 			withContext(Dispatchers.IO) {
-				val decoder = SkiaPooledImageRegionDecoder(Bitmap.Config.RGB_565)
+				val decoder = AvifCapableRegionDecoder(Bitmap.Config.RGB_565, context.isLowRamDevice())
 				try {
 					val size = runInterruptible {
 						decoder.init(context, imageSource)
