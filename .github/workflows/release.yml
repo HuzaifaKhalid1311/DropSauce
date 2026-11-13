@@ -84,6 +84,13 @@ jobs:
         # Keep the README's direct APK download links pointing at this release
         sed -i -E "s#releases/download/v[^/]+/DropSauce-v[^)\"]+\.apk#releases/download/v${VERSION_NAME}/DropSauce-v${VERSION_NAME}.apk#g" README.md
 
+        # Release notes = the "Unreleased" section of CHANGELOG.md, which then becomes this version's section
+        awk '/^## /{f = ($0 == "## Unreleased"); next} f' CHANGELOG.md > "$RUNNER_TEMP/unreleased.md"
+        if grep -q '^- ' "$RUNNER_TEMP/unreleased.md"; then
+          awk -v heading="## ${VERSION_NAME} ($(date +%F))" '$0 == "## Unreleased" {print; print ""; print heading; next} 1' CHANGELOG.md > "$RUNNER_TEMP/CHANGELOG.md"
+          mv "$RUNNER_TEMP/CHANGELOG.md" CHANGELOG.md
+        fi
+
     - name: Build Release APK
       run: |
         ./gradlew assembleRelease --no-daemon --stacktrace \
@@ -105,7 +112,7 @@ jobs:
 
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add app/build.gradle README.md
+        git add app/build.gradle README.md CHANGELOG.md
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
 
         # Use refs/heads/ explicitly to avoid ambiguity with any tag that shares the branch name
@@ -126,21 +133,26 @@ jobs:
     - name: Generate Changelog
       id: changelog
       run: |
-        CURRENT_SHA="${{ steps.version_commit.outputs.commit_sha }}"
-
-        # The new tag does not exist yet, so this resolves to the previous release tag
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 --match 'v*' "$CURRENT_SHA" 2>/dev/null || true)
-
-        if [ -n "$PREVIOUS_TAG" ]; then
-          RANGE="$PREVIOUS_TAG..$CURRENT_SHA"
+        if grep -q '^- ' "$RUNNER_TEMP/unreleased.md"; then
+          CHANGELOG=$(cat "$RUNNER_TEMP/unreleased.md")
         else
-          RANGE="$CURRENT_SHA"
-        fi
+          # Nothing was written in CHANGELOG.md: fall back to the commit subjects since the previous release
+          CURRENT_SHA="${{ steps.version_commit.outputs.commit_sha }}"
 
-        CHANGELOG=$(git log --pretty=format:"- %s" --no-merges -n 50 --invert-grep --grep='^chore(release): set versionName ' $RANGE)
+          # The new tag does not exist yet, so this resolves to the previous release tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 --match 'v*' "$CURRENT_SHA" 2>/dev/null || true)
 
-        if [ -z "$CHANGELOG" ]; then
-          CHANGELOG="- No changes since ${PREVIOUS_TAG:-the last release}"
+          if [ -n "$PREVIOUS_TAG" ]; then
+            RANGE="$PREVIOUS_TAG..$CURRENT_SHA"
+          else
+            RANGE="$CURRENT_SHA"
+          fi
+
+          CHANGELOG=$(git log --pretty=format:"- %s" --no-merges -n 50 --invert-grep --grep='^chore(release): set versionName ' $RANGE)
+
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- No changes since ${PREVIOUS_TAG:-the last release}"
+          fi
         fi
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
@@ -175,10 +187,10 @@ jobs:
         NOTES_FILE="release_notes.md"
 
         cat > "$NOTES_FILE" <<'EOF'
-        ### Changelog
+        ## Changelog
         ${{ steps.changelog.outputs.changelog }}
 
-        ### Installation Instructions
+        ## Installation Instructions
         1. Download and install the apk file first
         2. Go to the Explore menu > Manage and click the pen icon to add an extension repo
         3. Install and use the extensions, read, add items to the favorites and ENJOY!
