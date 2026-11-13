@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.3 (2026-11-13)
+
 ### New
 - JPEG XL image support (fixes sources that use it, like Kagane)
 - Quick add to default category button on the details page (hold it to change or disable)

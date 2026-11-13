@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.2/DropSauce-v1.1.2.apk"><strong>Download APK</strong></a>
+  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.3/DropSauce-v1.1.3.apk"><strong>Download APK</strong></a>
 </p>
 
 <p align="center">
@@ -104,7 +104,7 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
 
 ## Install
 
-1. [Download the latest APK](https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.2/DropSauce-v1.1.2.apk) (older versions are on the [releases page](https://github.com/HuzaifaKhalid1311/DropSauce/releases)).
+1. [Download the latest APK](https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.3/DropSauce-v1.1.3.apk) (older versions are on the [releases page](https://github.com/HuzaifaKhalid1311/DropSauce/releases)).
 2. Install it on a compatible Android device.
 3. Add your preferred source or extension repository, then start reading.
 
