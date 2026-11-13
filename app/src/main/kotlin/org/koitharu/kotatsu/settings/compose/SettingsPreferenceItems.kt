@@ -2,6 +2,14 @@ package org.koitharu.kotatsu.settings.compose
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.text.style.TextOverflow
+import org.koitharu.kotatsu.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,8 +63,7 @@ fun ListSettingsItem(
 		iconColors = iconColors,
 		shape = shape,
 		enabled = enabled,
-		onClick = { showDialog = true },
-	)
+		onClick = { showDialog = true },	)
 
 	if (showDialog) {
 		ChoiceDialog(
@@ -84,22 +91,52 @@ fun MultiSelectSettingsItem(
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 	emptySummary: String? = null,
+	// false = the row shows only its title; the picked entries are visible in the popup alone.
+	showSelected: Boolean = true,
 ) {
 	var showDialog by remember { mutableStateOf(false) }
 	val selectedIndices = entryValues
 		.mapIndexedNotNull { i, v -> if (v in selectedValues) i else null }
 		.toSet()
-	val summary = selectedIndices.joinToString { entries[it] }.ifEmpty { emptySummary }
+	val selected = if (showSelected) selectedIndices.map { entries[it] } else emptyList()
 
 	SettingsItem(
 		title = title,
 		modifier = modifier,
-		subtitle = summary,
+		subtitle = if (selected.isEmpty()) emptySummary else null,
 		icon = icon,
 		iconColors = iconColors,
 		shape = shape,
 		enabled = enabled,
-		onClick = { showDialog = true },
+		onClick = { showDialog = true },		// The picked entries show as small pills under the title instead of a comma list.
+		supporting = if (selected.isEmpty()) null else {
+			{
+				val cs = MaterialTheme.colorScheme
+				val alpha = if (enabled) 1f else 0.38f
+				val shown = selected.take(MAX_VALUE_PILLS)
+				val pills = if (selected.size > shown.size) shown + "+${selected.size - shown.size}" else shown
+				FlowRow(
+					horizontalArrangement = Arrangement.spacedBy(6.dp),
+					verticalArrangement = Arrangement.spacedBy(6.dp),
+				) {
+					pills.forEach { label ->
+						Surface(
+							shape = CircleShape,
+							color = cs.secondaryContainer.copy(alpha = alpha),
+							contentColor = cs.onSecondaryContainer.copy(alpha = alpha),
+						) {
+							Text(
+								text = label,
+								style = MaterialTheme.typography.labelSmall,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis,
+								modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+							)
+						}
+					}
+				}
+			}
+		},
 	)
 
 	if (showDialog) {
@@ -222,7 +259,30 @@ fun NavigationSettingsItem(
 		shape = shape,
 		enabled = enabled,
 		onClick = onClick,
+		trailing = { NavigationChevron(enabled) },
 	)
+}
+
+private const val MAX_VALUE_PILLS = 8
+
+/** The chevron on a tonal disc at the end of a row that opens another screen. */
+@Composable
+private fun NavigationChevron(enabled: Boolean) {
+	val cs = MaterialTheme.colorScheme
+	val alpha = if (enabled) 1f else 0.38f
+	Box(
+		modifier = Modifier
+			.size(32.dp)
+			.background(cs.surfaceContainerHighest.copy(alpha = alpha), CircleShape),
+		contentAlignment = Alignment.Center,
+	) {
+		Image(
+			painter = rememberAnyDrawablePainter(R.drawable.ic_chevron_right),
+			contentDescription = null,
+			modifier = Modifier.size(20.dp),
+			colorFilter = ColorFilter.tint(cs.onSurfaceVariant.copy(alpha = alpha)),
+		)
+	}
 }
 
 /** A plain clickable row (replaces an action-only Preference). Same as NavigationSettingsItem in

@@ -48,8 +48,8 @@ fun SettingsGroup(
 	Column(modifier = modifier) {
 		if (title != null) {
 			Text(
-				text = title.uppercase(),
-				style = MaterialTheme.typography.labelMedium,
+				text = title,
+				style = MaterialTheme.typography.titleSmall,
 				fontWeight = FontWeight.SemiBold,
 				color = MaterialTheme.colorScheme.primary,
 				// Aligned with the title text of icon-less setting rows (12dp card padding)

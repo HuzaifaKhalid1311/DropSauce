@@ -115,9 +115,14 @@ private fun DiscordScreen(
 						checked = rpcEnabled,
 						onCheckedChange = { rpcEnabled = it },
 						icon = R.drawable.ic_discord,
-						shape = pos.shape,
+						main = true,
 					)
 				}
+			}
+		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+		item {
+			SettingsGroup {
 				item { pos ->
 					ActionSettingsItem(
 						title = stringResource(R.string.discord_token),

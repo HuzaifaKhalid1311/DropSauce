@@ -201,7 +201,7 @@ private fun TrackerScreen(
 						checked = enabled,
 						onCheckedChange = { enabled = it },
 						icon = R.drawable.ic_feed,
-						shape = pos.shape,
+						main = true,
 					)
 				}
 			}

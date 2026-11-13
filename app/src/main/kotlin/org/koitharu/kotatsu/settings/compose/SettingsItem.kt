@@ -3,11 +3,30 @@ package org.koitharu.kotatsu.settings.compose
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import org.koitharu.kotatsu.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,11 +82,25 @@ fun SettingsItem(
 	enabled: Boolean = true,
 	// Overrides the title and plain-icon color, e.g. colorScheme.error for destructive actions.
 	accentColor: Color? = null,
+	containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+	titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
 	onClick: (() -> Unit)? = null,
 	hapticEffect: HapticEffect? = null,
 	trailing: @Composable (() -> Unit)? = null,
+	// Extra content right under the title/subtitle, in the text column (e.g. value pills).
+	supporting: @Composable (() -> Unit)? = null,
+	// Inline control shown under the title line, inside the same card (slider, segments, tiles).
+	below: @Composable (() -> Unit)? = null,
 ) {
 	val haptic = rememberHapticEffect()
+	// Pressed rows round their inner corners, like a pressed button in a connected group.
+	val interactionSource = remember { MutableInteractionSource() }
+	val pressed by interactionSource.collectIsPressedAsState()
+	val press by animateFloatAsState(
+		targetValue = if (pressed) 1f else 0f,
+		animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+		label = "rowPress",
+	)
 	// One-shot search highlight: scroll this row comfortably into view and flash its background
 	// once when it is the navigation target (matched by title).
 	val pendingHighlight by SettingsSearchHighlight.pendingTitle.collectAsState()
@@ -86,8 +119,8 @@ fun SettingsItem(
 			SettingsSearchHighlight.consume(title)
 		}
 	}
-	val containerColor = lerp(
-		MaterialTheme.colorScheme.surfaceContainer,
+	val surfaceColor = lerp(
+		containerColor,
 		MaterialTheme.colorScheme.primaryContainer,
 		highlight.value,
 	)
@@ -101,24 +134,28 @@ fun SettingsItem(
 	)
 	Surface(
 		modifier = modifier.onGloballyPositioned { rowWindowY.floatValue = it.positionInWindow().y },
-		shape = shape,
-		color = containerColor,
+		shape = if (shape is CornerBasedShape && onClick != null) {
+			PressMorphShape(shape, press.coerceIn(0f, 1f))
+		} else {
+			shape
+		},
+		color = surfaceColor,
 		contentColor = contentColor,
 	) {
+		Column(
+			modifier = if (onClick != null && enabled) {
+				Modifier.clickable(interactionSource = interactionSource, indication = LocalIndication.current) {
+					if (hapticEffect != null) haptic(hapticEffect)
+					onClick()
+				}
+			} else {
+				Modifier
+			},
+		) {
 		Row(
 			modifier = Modifier
-				.heightIn(min = 72.dp)
-				.let {
-					if (onClick != null && enabled) {
-						it.clickable {
-							if (hapticEffect != null) haptic(hapticEffect)
-							onClick()
-						}
-					} else {
-						it
-					}
-				}
-				.padding(horizontal = 12.dp, vertical = 10.dp),
+				.heightIn(min = if (below == null) 72.dp else 0.dp)
+				.padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = if (below == null) 10.dp else 8.dp),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			if (icon != null) {
@@ -142,7 +179,7 @@ fun SettingsItem(
 			Column(modifier = Modifier.weight(1f)) {
 				Text(
 					text = title,
-					style = MaterialTheme.typography.titleMedium,
+					style = titleStyle,
 					color = accentColor?.copy(alpha = if (enabled) 1f else 0.38f) ?: textColor(enabled),
 					maxLines = 2,
 					overflow = TextOverflow.Ellipsis,
@@ -154,16 +191,46 @@ fun SettingsItem(
 						color = accentColor?.copy(alpha = if (enabled) 0.8f else 0.38f) ?: secondaryTextColor(enabled),
 					)
 				}
+				if (supporting != null) {
+					Spacer(Modifier.height(6.dp))
+					supporting()
+				}
 			}
 			if (trailing != null) {
 				Spacer(Modifier.width(8.dp))
 				trailing()
 			}
 		}
+		if (below != null) {
+			Box(Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) { below() }
+		}
+		}
 	}
 }
 
-/** Convenience for a SwitchPreference — bool state + listener. */
+/** [base] with its tighter corners eased up to 16dp by [fraction] — the pressed-row morph. */
+private data class PressMorphShape(val base: CornerBasedShape, val fraction: Float) : Shape {
+	override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+		val target = with(density) { 16.dp.toPx() }
+		fun morph(corner: CornerSize): Float {
+			val px = corner.toPx(size, density)
+			return px + (maxOf(px, target) - px) * fraction
+		}
+		return RoundedCornerShape(
+			topStart = morph(base.topStart),
+			topEnd = morph(base.topEnd),
+			bottomEnd = morph(base.bottomEnd),
+			bottomStart = morph(base.bottomStart),
+		).createOutline(size, layoutDirection, density)
+	}
+}
+
+/**
+ * Convenience for a SwitchPreference — bool state + listener.
+ *
+ * [main] is for the one switch that turns a whole screen's feature on or off: a taller pill that
+ * fills with the accent colour while on. Give it its own [SettingsGroup].
+ */
 @Composable
 fun SwitchSettingsItem(
 	title: String,
@@ -175,20 +242,39 @@ fun SwitchSettingsItem(
 	iconColors: CategoryIconColors? = null,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
+	main: Boolean = false,
 ) {
 	val haptic = rememberHapticEffect()
 	val onCheckedChangeHaptic: (Boolean) -> Unit = { value ->
 		haptic(if (value) HapticEffect.TOGGLE_ON else HapticEffect.TOGGLE_OFF)
 		onCheckedChange(value)
 	}
+	val cs = MaterialTheme.colorScheme
+	val mainOn = main && checked
+	val container by animateColorAsState(
+		targetValue = when {
+			mainOn -> cs.primaryContainer
+			main -> cs.surfaceContainerHighest
+			else -> cs.surfaceContainer
+		},
+		animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+		label = "switchContainer",
+	)
+	val mainContent by animateColorAsState(
+		targetValue = if (mainOn) cs.onPrimaryContainer else cs.onSurface,
+		animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+		label = "switchContent",
+	)
 	SettingsItem(
 		title = title,
 		modifier = modifier,
 		subtitle = subtitle,
 		icon = icon,
 		iconColors = iconColors,
-		shape = shape,
+		shape = if (main) RoundedCornerShape(36.dp) else shape,
 		enabled = enabled,
+		accentColor = if (main) mainContent else null,		containerColor = container,
+		titleStyle = if (main) MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium) else MaterialTheme.typography.titleMedium,
 		// The toggle haptic is fired by [onCheckedChangeHaptic] so a row tap and a thumb tap
 		// feel identical — suppress the generic click effect to avoid a double buzz.
 		hapticEffect = null,
@@ -196,7 +282,28 @@ fun SwitchSettingsItem(
 			{ onCheckedChangeHaptic(!checked) }
 		} else null,
 		trailing = {
-			Switch(checked = checked, onCheckedChange = onCheckedChangeHaptic, enabled = enabled)
+			SettingsSwitch(checked = checked, onCheckedChange = onCheckedChangeHaptic, enabled = enabled)
+		},
+	)
+}
+
+/** The settings switch: a tick in the thumb while on, a cross while off. Use it for every toggle. */
+@Composable
+fun SettingsSwitch(
+	checked: Boolean,
+	onCheckedChange: (Boolean) -> Unit,
+	enabled: Boolean = true,
+) {
+	Switch(
+		checked = checked,
+		onCheckedChange = onCheckedChange,
+		enabled = enabled,
+		thumbContent = {
+			Icon(
+				painter = painterResource(if (checked) R.drawable.ic_check else R.drawable.ic_close),
+				contentDescription = null,
+				modifier = Modifier.size(SwitchDefaults.IconSize),
+			)
 		},
 	)
 }

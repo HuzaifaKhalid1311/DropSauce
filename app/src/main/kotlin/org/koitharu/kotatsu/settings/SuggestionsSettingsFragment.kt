@@ -144,9 +144,14 @@ private fun SuggestionsScreen(
 						checked = enabled,
 						onCheckedChange = { enabled = it },
 						icon = R.drawable.ic_suggestion,
-						shape = pos.shape,
+						main = true,
 					)
 				}
+			}
+		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+		item {
+			SettingsGroup {
 				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.only_using_wifi),

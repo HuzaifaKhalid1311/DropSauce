@@ -262,6 +262,7 @@ private fun SyncScreen(
 							onValuesChange = onContentChange,
 							icon = R.drawable.ic_backup_restore,
 							shape = pos.shape,
+							showSelected = false,
 						)
 					}
 				}

@@ -124,9 +124,14 @@ private fun PeriodicalBackupScreen(
 						checked = enabled,
 						onCheckedChange = { enabled = it },
 						icon = R.drawable.ic_backup_restore,
-						shape = pos.shape,
+						main = true,
 					)
 				}
+			}
+		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+		item {
+			SettingsGroup {
 				item { pos ->
 					ActionSettingsItem(
 						title = stringResource(R.string.backups_output_directory),

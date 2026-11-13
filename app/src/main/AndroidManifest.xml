@@ -142,6 +142,11 @@
 			android:name="org.koitharu.kotatsu.details.ui.related.RelatedMangaActivity"
 			android:label="@string/related_manga" />
 		<activity
+			android:name="org.koitharu.kotatsu.core.ui.ThemeSwitchCoverActivity"
+			android:configChanges="uiMode"
+			android:exported="false"
+			android:theme="@style/Theme.Kotatsu.Transparent" />
+		<activity
 			android:name="org.koitharu.kotatsu.settings.SettingsActivity"
 			android:exported="false"
 			android:label="@string/settings" />
