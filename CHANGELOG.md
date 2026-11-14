@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improved
+- Redesigned the display options menu and the reader options menu for manga and novels
+- Two page layout options moved to settings > reader, and now on by default
+
 ## 1.1.3 (2026-11-13)
 
 ### New

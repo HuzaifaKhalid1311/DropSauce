@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import org.koitharu.kotatsu.core.prefs.ProgressIndicatorMode
+import kotlin.math.roundToInt
 
 /**
  * Compose state bound to a SharedPreferences key — the same prefs file `AppSettings` reads
@@ -33,6 +34,14 @@ fun rememberIntPref(key: String, defaultValue: Int): MutableState<Int> = remembe
 	key = key,
 	read = { prefs -> prefs.getInt(key, defaultValue) },
 	write = { prefs, value -> prefs.edit { putInt(key, value) } },
+)
+
+/** A 0..1 float preference, shown and edited as a whole percentage. */
+@Composable
+fun rememberPercentPref(key: String, defaultValue: Float): MutableState<Int> = rememberPrefValue(
+	key = key,
+	read = { prefs -> (prefs.getFloat(key, defaultValue) * 100f).roundToInt() },
+	write = { prefs, value -> prefs.edit { putFloat(key, value / 100f) } },
 )
 
 @Composable

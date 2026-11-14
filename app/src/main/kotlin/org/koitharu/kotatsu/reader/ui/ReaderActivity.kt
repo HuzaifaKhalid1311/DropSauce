@@ -287,8 +287,11 @@ class ReaderActivity :
         observeWindowLayout()
         if (settings.isEyeReminderEnabled) setupEyeReminder()
 
-        // Apply initial double-mode considering foldable setting
-        applyDoubleModeAuto()
+        // Two-page mode follows its switches in reader settings. Only while started: the switches are
+        // flipped with this screen in the background, where swapping the reader would crash, so the
+        // change is picked up on the way back instead.
+        settings.observe(AppSettings.KEY_READER_DOUBLE_PAGES, AppSettings.KEY_READER_DOUBLE_FOLDABLE)
+            .observe(this, Lifecycle.State.STARTED) { applyDoubleModeAuto() }
     }
 
     private fun setupEyeReminder() {
@@ -619,18 +622,12 @@ class ReaderActivity :
         viewBinding.timerControl.onReaderModeChanged(mode)
     }
 
-    override fun onDoubleModeChanged(isEnabled: Boolean) {
-        // Combine manual toggle with foldable auto setting
-        applyDoubleModeAuto(isEnabled)
-    }
-
-    private fun applyDoubleModeAuto(manualEnabled: Boolean? = null) {
+    private fun applyDoubleModeAuto() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         // Auto double-page on foldable when device is unfolded (half-opened or flat)
         val autoFoldable = settings.isReaderDoubleOnFoldable && isFoldUnfolded
-        val manualLandscape = (manualEnabled ?: settings.isReaderDoubleOnLandscape) && isLandscape
-        val autoEnabled = autoFoldable || manualLandscape
-        readerManager.setDoubleReaderMode(autoEnabled)
+        val manualLandscape = settings.isReaderDoubleOnLandscape && isLandscape
+        readerManager.setDoubleReaderMode(autoFoldable || manualLandscape)
     }
 
     private fun setKeepScreenOn(isKeep: Boolean) {

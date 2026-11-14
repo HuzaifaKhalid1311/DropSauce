@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -62,45 +64,60 @@ fun PreviewChoiceSettingsItem(
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 ) {
-	val haptic = rememberHapticEffect()
 	SettingsItem(
 		title = title,
 		modifier = modifier,
 		icon = icon,
 		shape = shape,
 		enabled = enabled,
-		below = {
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.spacedBy(8.dp),
-			) {
-				options.forEachIndexed { index, option ->
-					PreviewTile(
-						option = option,
-						selected = index == selectedIndex,
-						enabled = enabled,
-						onClick = {
-							haptic(HapticEffect.CONFIRM)
-							onSelected(index)
-						},
-						// Share the row on phones, stop growing on tablets.
-						modifier = Modifier
-							.weight(1f, fill = false)
-							.widthIn(max = 96.dp),
-					)
-				}
-			}
-		},
+		below = { PreviewChoiceRow(options, selectedIndex, onSelected, enabled = enabled) },
 	)
 }
 
+/** The tiles of a [PreviewChoiceSettingsItem] on their own, for places that have no card to put them in. */
 @Composable
-private fun PreviewTile(
-	option: PreviewOption,
+fun PreviewChoiceRow(
+	options: List<PreviewOption>,
+	selectedIndex: Int,
+	onSelected: (Int) -> Unit,
+	modifier: Modifier = Modifier,
+	enabled: Boolean = true,
+) {
+	val haptic = rememberHapticEffect()
+	Row(
+		modifier = modifier.fillMaxWidth(),
+		horizontalArrangement = Arrangement.spacedBy(8.dp),
+	) {
+		options.forEachIndexed { index, option ->
+			PreviewTile(
+				label = option.label,
+				selected = index == selectedIndex,
+				enabled = enabled,
+				onClick = {
+					haptic(HapticEffect.CONFIRM)
+					onSelected(index)
+				},
+				// Share the row on phones, stop growing on tablets.
+				modifier = Modifier
+					.weight(1f, fill = false)
+					.widthIn(max = 96.dp),
+			) {
+				Canvas(modifier = Modifier.matchParentSize(), onDraw = option.draw)
+			}
+		}
+	}
+}
+
+/** A pickable tile with its [label] underneath; [content] is what the tile shows. */
+@Composable
+internal fun PreviewTile(
+	label: String,
 	selected: Boolean,
 	enabled: Boolean,
 	onClick: () -> Unit,
 	modifier: Modifier = Modifier,
+	aspectRatio: Float = 0.85f,
+	content: @Composable BoxScope.() -> Unit,
 ) {
 	val cs = MaterialTheme.colorScheme
 	val motion = MaterialTheme.motionScheme
@@ -124,18 +141,18 @@ private fun PreviewTile(
 			),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
-		Canvas(
+		Box(
 			modifier = Modifier
 				.fillMaxWidth()
-				.aspectRatio(0.85f)
+				.aspectRatio(aspectRatio)
 				.clip(tileShape)
 				.background(cs.surfaceContainerHighest)
 				.border(borderWidth.coerceAtLeast(1.dp), borderColor, tileShape),
-			onDraw = option.draw,
+			content = content,
 		)
 		Spacer(Modifier.height(6.dp))
 		Text(
-			text = option.label,
+			text = label,
 			style = MaterialTheme.typography.labelSmall,
 			fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
 			color = if (selected) cs.primary else cs.onSurfaceVariant,

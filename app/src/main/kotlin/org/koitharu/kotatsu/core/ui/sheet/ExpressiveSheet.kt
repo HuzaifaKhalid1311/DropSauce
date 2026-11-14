@@ -1,19 +1,21 @@
 package org.koitharu.kotatsu.core.ui.sheet
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -26,16 +28,15 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -44,17 +45,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.lerp
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
+import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
+import org.koitharu.kotatsu.settings.compose.LocalSettingsItemColor
 
 /**
  * The Compose counterpart of the M3 Expressive popup toolkit in
  * [org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialog], for content hosted directly on a
- * bottom-sheet surface: no icon badge or card, sections laid out flush against the sheet.
+ * bottom-sheet surface. Sheets made of options use the settings rows inside [SheetRows]; the
+ * sections, chips and dropdown here are for the ones laid out flush against the sheet.
  */
 
 /** Horizontal inset shared by every row so labels, chips and sliders line up down the sheet. */
@@ -101,54 +108,6 @@ fun SheetSection(
 		}
 		Spacer(Modifier.size(4.dp))
 		content()
-	}
-}
-
-/** Full-width row toggling a boolean setting: leading [icon], [title], trailing switch. */
-@Composable
-fun SheetSwitchRow(
-	icon: Painter?,
-	title: String,
-	checked: Boolean,
-	onCheckedChange: (Boolean) -> Unit,
-	modifier: Modifier = Modifier,
-	enabled: Boolean = true,
-) {
-	// Dim the icon and label together when the setting doesn't apply, matching the disabled
-	// MaterialSwitch row this replaces.
-	val contentColor = if (enabled) {
-		MaterialTheme.colorScheme.onSurfaceVariant
-	} else {
-		MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-	}
-	Row(
-		modifier = modifier
-			.fillMaxWidth()
-			.heightIn(min = 56.dp)
-			.clip(RoundedCornerShape(16.dp))
-			.clickable(enabled = enabled) { onCheckedChange(!checked) }
-			.padding(horizontal = SheetContentPadding),
-		verticalAlignment = Alignment.CenterVertically,
-	) {
-		if (icon != null) {
-			Icon(
-				painter = icon,
-				contentDescription = null,
-				tint = contentColor,
-				modifier = Modifier.size(24.dp),
-			)
-			Spacer(Modifier.size(16.dp))
-		}
-		Text(
-			text = title,
-			style = MaterialTheme.typography.bodyLarge,
-			color = contentColor,
-			maxLines = 1,
-			overflow = TextOverflow.Ellipsis,
-			modifier = Modifier.weight(1f),
-		)
-		Spacer(Modifier.size(8.dp))
-		Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
 	}
 }
 
@@ -256,99 +215,143 @@ fun SheetChips(
 	}
 }
 
-/** One segment of a [SheetSegmentedSelector]. */
-class SheetSegment(val label: String, val icon: Painter)
-
 /**
- * Single-choice selector where a filled pill slides between the [options] — the control the reader's
- * read-mode picker uses, shared so the two stay identical.
+ * Hosts settings rows on a sheet. They sit one tone above the sheet's own tinted surface, so the
+ * cards still read as cards.
  */
 @Composable
-fun SheetSegmentedSelector(
-	options: List<SheetSegment>,
-	selectedIndex: Int,
-	onSelect: (Int) -> Unit,
+fun SheetRows(content: @Composable () -> Unit) {
+	CompositionLocalProvider(
+		LocalSettingsItemColor provides MaterialTheme.colorScheme.surfaceContainerHigh,
+		content = content,
+	)
+}
+
+/** One tile of a [SheetActionGrid]; [checked] fills it with the accent colour, for on/off actions. */
+class SheetAction(
+	@DrawableRes val icon: Int,
+	val label: String,
+	val checked: Boolean = false,
+	val onClick: () -> Unit,
+)
+
+/**
+ * Actions as one block of connected tiles, [columns] to a row: 24dp corners on the outside of the
+ * block and 4dp seams inside it — the settings group look, in two directions.
+ *
+ * [attachedBelow] keeps the bottom edge tight so a settings row can carry the block on.
+ */
+@Composable
+fun SheetActionGrid(
+	actions: List<SheetAction>,
 	modifier: Modifier = Modifier,
+	columns: Int = 3,
+	attachedBelow: Boolean = false,
 ) {
-	if (options.isEmpty()) {
-		return
-	}
-	Surface(
-		shape = RoundedCornerShape(24.dp),
-		color = MaterialTheme.colorScheme.surfaceContainerHigh,
-		modifier = modifier.fillMaxWidth(),
-	) {
-		Box(
-			modifier = Modifier
-				.fillMaxWidth()
-				.height(112.dp)
-				.padding(8.dp),
-		) {
-			// Bias runs -1 (first) .. 1 (last), so the pill lands centred on the chosen segment.
-			val lastIndex = (options.size - 1).coerceAtLeast(1)
-			val animatedBias by animateFloatAsState(
-				targetValue = -1f + 2f * selectedIndex.coerceIn(0, options.lastIndex) / lastIndex,
-				// Effects (not spatial) on purpose: bias spans exactly -1..1 with the pill exactly
-				// one segment wide, so there is no headroom — an overshooting spatial spring would
-				// push the pill into the Surface's clip and read as a clipped edge.
-				animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-				label = "segment_highlighter",
-			)
-			Box(
-				modifier = Modifier
-					.fillMaxHeight()
-					.fillMaxWidth(1f / options.size)
-					.align(BiasAlignment(horizontalBias = animatedBias, verticalBias = 0f))
-					.clip(RoundedCornerShape(22.dp))
-					.background(MaterialTheme.colorScheme.primary),
-			)
+	val rows = actions.chunked(columns)
+	Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+		rows.forEachIndexed { rowIndex, row ->
+			val isTop = rowIndex == 0
+			val isBottom = rowIndex == rows.lastIndex && !attachedBelow
 			Row(
-				modifier = Modifier.fillMaxSize(),
-				verticalAlignment = Alignment.CenterVertically,
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(IntrinsicSize.Max),
+				horizontalArrangement = Arrangement.spacedBy(2.dp),
 			) {
-				options.forEachIndexed { index, option ->
-					val isSelected = index == selectedIndex
-					val contentColor by animateColorAsState(
-						targetValue = if (isSelected) {
-							MaterialTheme.colorScheme.onPrimary
-						} else {
-							MaterialTheme.colorScheme.onSurfaceVariant
-						},
-						label = "segment_fg_$index",
-					)
-					Box(
+				row.forEachIndexed { index, action ->
+					val isStart = index == 0
+					val isEnd = index == row.lastIndex
+					ActionTile(
+						action = action,
+						topStart = if (isTop && isStart) 24.dp else 4.dp,
+						topEnd = if (isTop && isEnd) 24.dp else 4.dp,
+						bottomEnd = if (isBottom && isEnd) 24.dp else 4.dp,
+						bottomStart = if (isBottom && isStart) 24.dp else 4.dp,
 						modifier = Modifier
 							.weight(1f)
-							.fillMaxHeight()
-							.clickable(
-								interactionSource = remember { MutableInteractionSource() },
-								indication = null,
-							) { onSelect(index) },
-						contentAlignment = Alignment.Center,
-					) {
-						Column(
-							horizontalAlignment = Alignment.CenterHorizontally,
-							verticalArrangement = Arrangement.Center,
-						) {
-							Icon(
-								painter = option.icon,
-								contentDescription = null,
-								modifier = Modifier.size(34.dp),
-								tint = contentColor,
-							)
-							Spacer(Modifier.height(8.dp))
-							Text(
-								text = option.label,
-								style = MaterialTheme.typography.titleSmall,
-								fontWeight = FontWeight.Medium,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis,
-								color = contentColor,
-							)
-						}
-					}
+							.fillMaxHeight(),
+					)
 				}
 			}
 		}
 	}
 }
+
+@Composable
+private fun ActionTile(
+	action: SheetAction,
+	topStart: Dp,
+	topEnd: Dp,
+	bottomEnd: Dp,
+	bottomStart: Dp,
+	modifier: Modifier = Modifier,
+) {
+	val cs = MaterialTheme.colorScheme
+	val motion = MaterialTheme.motionScheme
+	val haptic = rememberHapticEffect()
+	val interactionSource = remember { MutableInteractionSource() }
+	val pressed by interactionSource.collectIsPressedAsState()
+	// Pressed or switched on, a tile rounds itself off and stands out of the block.
+	val round by animateFloatAsState(
+		targetValue = if (pressed || action.checked) 1f else 0f,
+		animationSpec = motion.fastSpatialSpec(),
+		label = "tileRound",
+	)
+	val container by animateColorAsState(
+		targetValue = if (action.checked) cs.primary else LocalSettingsItemColor.current ?: cs.surfaceContainer,
+		animationSpec = motion.fastEffectsSpec(),
+		label = "tileContainer",
+	)
+	val content by animateColorAsState(
+		targetValue = if (action.checked) cs.onPrimary else cs.onSurface,
+		animationSpec = motion.fastEffectsSpec(),
+		label = "tileContent",
+	)
+	val iconTint by animateColorAsState(
+		targetValue = if (action.checked) cs.onPrimary else cs.primary,
+		animationSpec = motion.fastEffectsSpec(),
+		label = "tileIcon",
+	)
+	// The spring overshoots; a corner can't go below zero.
+	val fraction = round.coerceAtLeast(0f)
+	Surface(
+		onClick = {
+			haptic(HapticEffect.CLICK)
+			action.onClick()
+		},
+		modifier = modifier.heightIn(min = 92.dp),
+		shape = RoundedCornerShape(
+			topStart = lerp(topStart, TileRoundCorner, fraction),
+			topEnd = lerp(topEnd, TileRoundCorner, fraction),
+			bottomEnd = lerp(bottomEnd, TileRoundCorner, fraction),
+			bottomStart = lerp(bottomStart, TileRoundCorner, fraction),
+		),
+		color = container,
+		contentColor = content,
+		interactionSource = interactionSource,
+	) {
+		Column(
+			modifier = Modifier.padding(horizontal = 8.dp, vertical = 14.dp),
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.Center,
+		) {
+			Icon(
+				painter = painterResource(action.icon),
+				contentDescription = null,
+				tint = iconTint,
+				modifier = Modifier.size(26.dp),
+			)
+			Spacer(Modifier.height(6.dp))
+			Text(
+				text = action.label,
+				style = MaterialTheme.typography.labelMedium,
+				textAlign = TextAlign.Center,
+				maxLines = 2,
+				overflow = TextOverflow.Ellipsis,
+			)
+		}
+	}
+}
+
+private val TileRoundCorner = 32.dp

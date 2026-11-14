@@ -54,6 +54,7 @@ import org.koitharu.kotatsu.settings.compose.SliderSettingsItem
 import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
 import org.koitharu.kotatsu.settings.compose.rememberIntPref
+import org.koitharu.kotatsu.settings.compose.rememberPercentPref
 import org.koitharu.kotatsu.settings.compose.rememberStringPref
 import org.koitharu.kotatsu.settings.compose.rememberStringSetPref
 
@@ -126,6 +127,9 @@ private fun ReaderScreen(
 	var webtoonZoom by rememberBooleanPref(AppSettings.KEY_WEBTOON_ZOOM, true)
 	var webtoonZoomOut by rememberIntPref(AppSettings.KEY_WEBTOON_ZOOM_OUT, 0)
 	var webtoonGaps by rememberBooleanPref(AppSettings.KEY_WEBTOON_GAPS, false)
+	var doublePages by rememberBooleanPref(AppSettings.KEY_READER_DOUBLE_PAGES, true)
+	var doublePagesFoldable by rememberBooleanPref(AppSettings.KEY_READER_DOUBLE_FOLDABLE, true)
+	var doublePagesSensitivity by rememberPercentPref(AppSettings.KEY_READER_DOUBLE_PAGES_SENSITIVITY, 0.5f)
 	var readerTapsLtr by rememberBooleanPref(AppSettings.KEY_READER_CONTROL_LTR, false)
 	var readerVolumeButtons by rememberBooleanPref(AppSettings.KEY_READER_VOLUME_BUTTONS, false)
 	var readerNavigationInverted by rememberBooleanPref(AppSettings.KEY_READER_NAVIGATION_INVERTED, false)
@@ -289,8 +293,46 @@ private fun ReaderScreen(
 						checked = webtoonGaps,
 						onCheckedChange = { webtoonGaps = it },
 						icon = R.drawable.ic_move_horizontal,
-						
+
 						shape = pos.shape,
+					)
+				}
+			}
+		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
+		item {
+			SettingsGroup(title = "Two pages") {
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.use_two_pages_landscape),
+						checked = doublePages,
+						onCheckedChange = { doublePages = it },
+						icon = R.drawable.ic_split_horizontal,
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.auto_double_foldable),
+						checked = doublePagesFoldable,
+						onCheckedChange = { doublePagesFoldable = it },
+						icon = R.drawable.ic_devices_fold,
+						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SliderSettingsItem(
+						title = stringResource(R.string.two_page_scroll_sensitivity),
+						value = doublePagesSensitivity,
+						valueFrom = 0,
+						valueTo = 100,
+						stepSize = 5,
+						unitSuffix = "%",
+						onValueChange = { doublePagesSensitivity = it },
+						icon = R.drawable.ic_swipe,
+						shape = pos.shape,
+						// Only read by the two-page reader, so it has nothing to do while both are off.
+						enabled = doublePages || doublePagesFoldable,
 					)
 				}
 			}

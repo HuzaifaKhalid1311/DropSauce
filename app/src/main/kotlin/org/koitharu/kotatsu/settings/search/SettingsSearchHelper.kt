@@ -175,6 +175,11 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_WEBTOON_ZOOM_OUT, R.string.default_webtoon_zoom_out, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_WEBTOON_GAPS, R.string.webtoon_gaps, R.string.webtoon_gaps_summary, crumbs, ReaderSettingsFragment::class.java)
 			}
+			group(sectionCrumbs, "Two pages") { crumbs ->
+				addItem(AppSettings.KEY_READER_DOUBLE_PAGES, R.string.use_two_pages_landscape, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_READER_DOUBLE_FOLDABLE, R.string.auto_double_foldable, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java)
+				addItem(AppSettings.KEY_READER_DOUBLE_PAGES_SENSITIVITY, R.string.two_page_scroll_sensitivity, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java)
+			}
 			group(sectionCrumbs, "Controls") { crumbs ->
 				addItem(AppSettings.KEY_READER_CONTROLS, R.string.reader_controls_in_bottom_bar, R.string.reader_controls_in_bottom_bar_summary, crumbs, ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_controls))
 				addItem("reader_tap_actions", R.string.reader_actions, R.string.reader_actions_summary, crumbs, ReaderSettingsFragment::class.java)

@@ -551,6 +551,7 @@
 	<string name="export_epub_failed">Export failed</string>
 	<string name="epub_paged_tap_gestures">Paged tap zones</string>
 	<string name="epub_paged_tap_gestures_summary">Left: previous · Center: controls · Right: next</string>
+	<string name="epub_paged_tap_gestures_unavailable">Only works in paged read mode</string>
 	<string name="epub_theme_light">White</string>
 	<string name="epub_theme_dark">Gray</string>
 	<string name="epub_theme_black">Black</string>

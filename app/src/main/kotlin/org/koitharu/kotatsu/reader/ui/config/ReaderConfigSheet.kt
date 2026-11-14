@@ -1,96 +1,93 @@
 package org.koitharu.kotatsu.reader.ui.config
 
-import android.os.Bundle
+import android.content.res.Configuration
 import android.graphics.Typeface
 import android.net.Uri
+import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import android.view.WindowManager
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import android.content.res.Configuration
-import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,26 +95,32 @@ import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
-import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.ui.sheet.AdaptiveSheetBehavior
 import org.koitharu.kotatsu.core.ui.sheet.BaseAdaptiveSheet
+import org.koitharu.kotatsu.core.ui.sheet.SheetAction
+import org.koitharu.kotatsu.core.ui.sheet.SheetActionGrid
+import org.koitharu.kotatsu.core.ui.sheet.SheetContentPadding
+import org.koitharu.kotatsu.core.ui.sheet.SheetRows
+import org.koitharu.kotatsu.core.ui.util.syncedSliderState
 import org.koitharu.kotatsu.core.util.ext.findParentCallback
 import org.koitharu.kotatsu.databinding.SheetReaderConfigBinding
+import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.reader.ui.ReaderViewModel
 import org.koitharu.kotatsu.reader.ui.ScreenOrientationHelper
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
-import javax.inject.Inject
+import org.koitharu.kotatsu.settings.compose.LocalSettingsItemColor
+import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
+import org.koitharu.kotatsu.settings.compose.PreviewChoiceRow
+import org.koitharu.kotatsu.settings.compose.PreviewTile
+import org.koitharu.kotatsu.settings.compose.SegmentedRow
+import org.koitharu.kotatsu.settings.compose.SettingsGroup
+import org.koitharu.kotatsu.settings.compose.SwitchSettingsItem
+import org.koitharu.kotatsu.settings.compose.readerModePreviewOptions
 import java.io.File
+import javax.inject.Inject
 import kotlin.math.roundToInt
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import org.koitharu.kotatsu.local.data.isEpub
-import androidx.compose.ui.BiasAlignment
-import androidx.compose.animation.core.animateFloatAsState
-import org.koitharu.kotatsu.core.ui.util.syncedSliderState
-import androidx.compose.material3.SheetValue
 
 /** Base body text size the EPUB reader scales its percentages against (see EpubReaderFragment). */
 private const val EPUB_BASE_TEXT_SIZE_DP = 16f
@@ -129,12 +132,6 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 
     @Inject
     lateinit var orientationHelper: ScreenOrientationHelper
-
-    @Inject
-    lateinit var mangaRepositoryFactory: MangaRepository.Factory
-
-    @Inject
-    lateinit var coil: ImageLoader
 
     private lateinit var mode: ReaderMode
 	@Inject
@@ -272,890 +269,704 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         return insets
     }
 
-    @Composable
-    private fun ReaderConfigContent() {
-        val context = LocalContext.current
-        val isEpubBook = remember { viewModel.getMangaOrNull()?.isEpub == true }
-        if (isEpubBook) {
-            EpubConfigContent()
-            return
-        }
-        var currentMode by remember { mutableStateOf(mode) }
+	@Composable
+	private fun ReaderConfigContent() {
+		val isEpubBook = remember { viewModel.getMangaOrNull()?.isEpub == true }
+		// Capture the nav bar inset once: the reader toggles system bars while the sheet is open,
+		// and a live navigationBarsPadding() resize makes the shown sheet jump.
+		val navBarPadding = remember {
+			dialog?.window?.decorView?.let { decor ->
+				ViewCompat.getRootWindowInsets(decor)
+					?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom
+			} ?: 0
+		}
+		val bottomPadding = 16.dp + with(LocalDensity.current) { navBarPadding.toDp() }
+		SheetRows {
+			if (isEpubBook) EpubConfigContent(bottomPadding) else MangaConfigContent(bottomPadding)
+		}
+	}
 
-        // 0: Reading, 1: More
-        val pagerState = rememberPagerState(pageCount = { 2 })
-        val scope = rememberCoroutineScope()
+	// One page, most used first: how to read, then what to do with the page. Built from the settings
+	// screens' own rows, so the sheet and Settings > Reader always look alike.
+	@Composable
+	private fun MangaConfigContent(bottomPadding: Dp) {
+		var currentMode by remember { mutableStateOf(mode) }
+		val isBookmarkAdded by viewModel.isBookmarkAdded.collectAsState()
+		val isAutoRotationEnabled by orientationHelper.observeAutoOrientation().collectAsState(initial = false)
+		val callback = remember { findParentCallback(Callback::class.java) }
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.verticalScroll(rememberScrollState())
+				.padding(horizontal = SheetContentPadding)
+				.padding(top = 4.dp, bottom = bottomPadding),
+		) {
+			// The tiles sit straight on the sheet: a card behind them only added a box around boxes.
+			SettingsGroup(title = stringResource(R.string.read_mode)) {
+				item {
+					PreviewChoiceRow(
+						options = readerModePreviewOptions(READER_MODES.map { stringResource(it.second) }),
+						selectedIndex = READER_MODES.indexOfFirst { it.first == currentMode }.coerceAtLeast(0),
+						onSelected = { index ->
+							val newMode = READER_MODES[index].first
+							if (newMode != currentMode) {
+								callback?.onReaderModeChanged(newMode)
+								currentMode = newMode
+							}
+						},
+					)
+				}
+			}
+			Text(
+				text = stringResource(R.string.reader_mode_hint),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+				modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 14.dp),
+			)
+			SheetActionGrid(
+				actions = listOf(
+					SheetAction(
+						icon = if (isBookmarkAdded) R.drawable.ic_bookmark_checked else R.drawable.ic_bookmark,
+						label = stringResource(if (isBookmarkAdded) R.string.bookmark_remove else R.string.bookmark_add),
+						checked = isBookmarkAdded,
+					) { viewModel.toggleBookmark() },
+					SheetAction(R.drawable.ic_timer, stringResource(R.string.automatic_scroll)) {
+						callback?.onScrollTimerClick(isLongClick = false)
+						dismissAllowingStateLoss()
+					},
+					SheetAction(R.drawable.ic_save, stringResource(R.string.save_page)) {
+						callback?.onSavePageClick()
+						dismissAllowingStateLoss()
+					},
+					SheetAction(R.drawable.ic_share, stringResource(R.string.share_page)) {
+						callback?.onSharePageClick()
+						dismissAllowingStateLoss()
+					},
+					SheetAction(
+						icon = if (isAutoRotationEnabled) R.drawable.ic_screen_rotation_lock else R.drawable.ic_screen_rotation,
+						label = stringResource(if (isAutoRotationEnabled) R.string.lock_screen_rotation else R.string.rotate_screen),
+					) { orientationHelper.toggleScreenOrientation() },
+					SheetAction(R.drawable.ic_appearance, stringResource(R.string.color_correction)) {
+						val page = viewModel.getCurrentPage()
+						val manga = viewModel.getMangaOrNull()
+						if (page != null && manga != null) {
+							router.openColorFilterConfig(manga, page)
+						}
+					},
+				),
+				attachedBelow = true,
+			)
+			Spacer(Modifier.height(2.dp))
+			NavigationSettingsItem(
+				title = stringResource(R.string.settings),
+				subtitle = stringResource(R.string.reader_settings_summary),
+				onClick = {
+					router.openReaderSettings()
+					dismissAllowingStateLoss()
+				},
+				icon = R.drawable.ic_settings,
+				shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+			)
+		}
+	}
 
-        // Settings states
-        var isDoubleOnLandscape by remember { mutableStateOf(settings.isReaderDoubleOnLandscape) }
-        var isDoubleOnFoldable by remember { mutableStateOf(settings.isReaderDoubleOnFoldable) }
-        var sensitivity by remember { mutableFloatStateOf(settings.readerDoublePagesSensitivity * 100f) }
+	// Three pages, by how often they are reached for: the text itself, how the page behaves, the rest.
+	@Composable
+	private fun EpubConfigContent(bottomPadding: Dp) {
+		val customFontName = remember(customFontUiRevision) { settings.epubCustomFontName }
+		var publisherStyleEnabled by remember { mutableStateOf(settings.isEpubPublisherStyleEnabled) }
+		var bionicReadingEnabled by remember { mutableStateOf(settings.isEpubBionicReadingEnabled) }
+		var tapGesturesEnabled by remember { mutableStateOf(settings.isEpubPagedTapGesturesEnabled) }
+		var readingMode by remember { mutableStateOf(settings.epubReadingMode) }
+		var isRtl by remember { mutableStateOf(settings.isEpubRtl) }
+		var textAlign by remember { mutableStateOf(settings.epubTextAlign) }
+		var fontSize by remember { mutableIntStateOf(settings.epubFontSize.coerceIn(50, 200)) }
+		var lineHeight by remember { mutableIntStateOf(settings.epubLineHeight.coerceIn(100, 240)) }
+		var paragraphSpacing by remember { mutableIntStateOf(settings.epubParagraphSpacing.coerceIn(-32, 48)) }
+		var horizontalMargin by remember { mutableIntStateOf(settings.epubHorizontalPadding.coerceIn(0, 64)) }
+		var verticalMargin by remember { mutableIntStateOf(settings.epubVerticalPadding.coerceIn(0, 112)) }
+		var isThemeSheetShown by remember { mutableStateOf(false) }
+		val pagerState = rememberPagerState(pageCount = { 3 })
+		val scope = rememberCoroutineScope()
+		val callback = remember { findParentCallback(Callback::class.java) }
+		// Book formatting temporarily owns typography; reading behavior and page colors remain editable.
+		val editable = !publisherStyleEnabled
+		val density = LocalDensity.current
+		val dpLabel: (Int) -> String = { "$it dp" }
+		val pageContent: @Composable (Int) -> Unit = { page ->
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = SheetContentPadding)
+					.padding(top = 4.dp),
+			) {
+				when (page) {
+					0 -> {
+						EpubFontRow(customFontName = customFontName, enabled = editable)
+						Spacer(Modifier.height(12.dp))
+						SettingsGroup {
+							item { pos ->
+								EpubSliderRow(
+									title = stringResource(R.string.epub_text_size),
+									value = fontSize,
+									range = 50..200,
+									defaultValue = 100,
+									shape = pos.shape,
+									enabled = editable,
+									// Shown as the resulting body text size in dp rather than the stored percentage.
+									valueLabel = { "${(EPUB_BASE_TEXT_SIZE_DP * it / 100f).roundToInt()} dp" },
+								) {
+									fontSize = it
+									settings.epubFontSize = it
+								}
+							}
+							item { pos ->
+								EpubSliderRow(
+									title = stringResource(R.string.epub_line_height),
+									value = lineHeight,
+									range = 100..240,
+									defaultValue = 160,
+									shape = pos.shape,
+									enabled = editable,
+									// Shown as the resulting line box in dp, which depends on the text size too.
+									valueLabel = { "${(EPUB_BASE_TEXT_SIZE_DP * fontSize * it / 10000f).roundToInt()} dp" },
+								) {
+									lineHeight = it
+									settings.epubLineHeight = it
+								}
+							}
+							item { pos ->
+								EpubSliderRow(
+									title = stringResource(R.string.epub_paragraph_spacing),
+									value = paragraphSpacing,
+									// Negative values eat into the blank line EPUBs put between paragraphs,
+									// so the slider can go all the way down to plain line spacing.
+									range = -32..48,
+									defaultValue = 0,
+									shape = pos.shape,
+									enabled = editable,
+									valueLabel = dpLabel,
+								) {
+									paragraphSpacing = it
+									settings.epubParagraphSpacing = it
+								}
+							}
+						}
+					}
 
-        // StateFlow observations from ViewModel and OrientationHelper flow
-        val isBookmarkAdded by viewModel.isBookmarkAdded.collectAsState()
-        val isAutoRotationEnabled by orientationHelper.observeAutoOrientation().collectAsState(initial = false)
-        val uiState by viewModel.uiState.collectAsState()
-        val manga = remember(uiState) { viewModel.getMangaOrNull() }
+					1 -> {
+						SettingsGroup {
+							item { pos ->
+								EpubChoiceRow(
+									title = stringResource(R.string.epub_read_mode),
+									choices = listOf(
+										"scroll" to stringResource(R.string.epub_mode_scroll),
+										"paged" to stringResource(R.string.epub_mode_paged),
+									),
+									selected = readingMode,
+									shape = pos.shape,
+								) { value ->
+									readingMode = value
+									settings.epubReadingMode = value
+								}
+							}
+							// Direction is its own axis, so scroll mode can be RTL too.
+							item { pos ->
+								EpubChoiceRow(
+									title = stringResource(R.string.epub_reading_direction),
+									choices = listOf(
+										"ltr" to stringResource(R.string.epub_mode_paged_ltr),
+										"rtl" to stringResource(R.string.epub_mode_paged_rtl),
+									),
+									selected = if (isRtl) "rtl" else "ltr",
+									shape = pos.shape,
+								) { value ->
+									val rtl = value == "rtl"
+									isRtl = rtl
+									settings.isEpubRtl = rtl
+									// Keep the side-aligned choice on the reading side of the page.
+									when {
+										rtl && textAlign == "left" -> textAlign = "right"
+										!rtl && textAlign == "right" -> textAlign = "left"
+									}
+									settings.epubTextAlign = textAlign
+								}
+							}
+							item { pos ->
+								EpubChoiceRow(
+									title = stringResource(R.string.epub_text_alignment),
+									choices = listOf(
+										"justify" to stringResource(R.string.epub_align_justified),
+										(if (isRtl) "right" else "left") to stringResource(R.string.epub_align_side),
+									),
+									selected = when {
+										isRtl && textAlign == "left" -> "right"
+										!isRtl && textAlign == "right" -> "left"
+										else -> textAlign
+									},
+									shape = pos.shape,
+									enabled = editable,
+								) { value ->
+									textAlign = value
+									settings.epubTextAlign = value
+								}
+							}
+						}
+						Spacer(Modifier.height(12.dp))
+						SettingsGroup {
+							item { pos ->
+								EpubSliderRow(
+									title = stringResource(R.string.epub_horizontal_margin),
+									value = horizontalMargin,
+									range = 0..64,
+									defaultValue = 20,
+									shape = pos.shape,
+									enabled = editable,
+									valueLabel = dpLabel,
+								) {
+									horizontalMargin = it
+									settings.epubHorizontalPadding = it
+								}
+							}
+							item { pos ->
+								EpubSliderRow(
+									title = stringResource(R.string.epub_vertical_margin),
+									value = verticalMargin,
+									range = 0..112,
+									defaultValue = 112,
+									shape = pos.shape,
+									enabled = editable && readingMode != "scroll",
+									valueLabel = dpLabel,
+								) {
+									verticalMargin = it
+									settings.epubVerticalPadding = it
+								}
+							}
+						}
+					}
 
-        val callback = remember { findParentCallback(Callback::class.java) }
+					else -> {
+						SheetActionGrid(
+							actions = listOf(
+								SheetAction(R.drawable.ic_timer, stringResource(R.string.automatic_scroll)) {
+									dismiss()
+									callback?.onScrollTimerClick(isLongClick = false)
+								},
+								SheetAction(R.drawable.ic_voice_over, stringResource(R.string.text_to_speech)) {
+									dismiss()
+									callback?.onTextToSpeechClick()
+								},
+								SheetAction(R.drawable.ic_appearance, stringResource(R.string.theme)) {
+									isThemeSheetShown = true
+								},
+							),
+						)
+						Spacer(Modifier.height(12.dp))
+						SettingsGroup {
+							item { pos ->
+								SwitchSettingsItem(
+									title = stringResource(R.string.epub_publisher_style),
+									checked = publisherStyleEnabled,
+									onCheckedChange = {
+										publisherStyleEnabled = it
+										settings.isEpubPublisherStyleEnabled = it
+									},
+									icon = R.drawable.ic_auto_fix,
+									shape = pos.shape,
+								)
+							}
+							item { pos ->
+								SwitchSettingsItem(
+									title = stringResource(R.string.epub_bionic_reading),
+									checked = bionicReadingEnabled,
+									onCheckedChange = {
+										bionicReadingEnabled = it
+										settings.isEpubBionicReadingEnabled = it
+									},
+									icon = R.drawable.ic_bolt,
+									shape = pos.shape,
+								)
+							}
+							item { pos ->
+								val isPaged = readingMode != "scroll"
+								SwitchSettingsItem(
+									title = stringResource(R.string.epub_paged_tap_gestures),
+									// Greyed out, the row says why instead of what it does.
+									subtitle = stringResource(
+										if (isPaged) {
+											R.string.epub_paged_tap_gestures_summary
+										} else {
+											R.string.epub_paged_tap_gestures_unavailable
+										},
+									),
+									checked = tapGesturesEnabled,
+									onCheckedChange = {
+										tapGesturesEnabled = it
+										settings.isEpubPagedTapGesturesEnabled = it
+									},
+									icon = R.drawable.ic_tap,
+									shape = pos.shape,
+									enabled = isPaged,
+								)
+							}
+						}
+					}
+				}
+				if (publisherStyleEnabled && page != 2) {
+					Text(
+						text = stringResource(R.string.epub_publisher_style_disabled_note),
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 10.dp),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						textAlign = TextAlign.Center,
+					)
+				}
+			}
+		}
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(bottom = bottomPadding),
+		) {
+			// Every page is measured up front, so the sheet can glide to the height of the one showing.
+			var measuredHeights by remember { mutableStateOf(emptyList<Float>()) }
+			SubcomposeLayout(modifier = Modifier.fillMaxWidth()) { constraints ->
+				val measureConstraints = Constraints(minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth)
+				val heights = List(3) { page ->
+					subcompose("epub_page_height_$page") { pageContent(page) }
+						.maxOf { it.measure(measureConstraints).height }
+						.toFloat()
+				}
+				if (measuredHeights != heights) measuredHeights = heights
+				layout(0, 0) {}
+			}
+			val targetHeight = measuredHeights.getOrNull(pagerState.currentPage) ?: 0f
+			val animatedHeight = remember { Animatable(0f) }
+			var heightInitialized by remember { mutableStateOf(false) }
+			LaunchedEffect(targetHeight) {
+				if (targetHeight <= 0f) return@LaunchedEffect
+				if (heightInitialized) {
+					animatedHeight.animateTo(
+						targetHeight,
+						animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+					)
+				} else {
+					animatedHeight.snapTo(targetHeight)
+					heightInitialized = true
+				}
+			}
+			HorizontalPager(
+				state = pagerState,
+				modifier = Modifier
+					.fillMaxWidth()
+					// Gives way first on a short screen, so the tabs underneath always fit.
+					.weight(1f, fill = false)
+					.height(with(density) { animatedHeight.value.toDp() }),
+				verticalAlignment = Alignment.Top,
+			) { page ->
+				Box(
+					Modifier
+						.fillMaxSize()
+						.verticalScroll(rememberScrollState()),
+				) {
+					pageContent(page)
+				}
+			}
+			// Under the pages, not above them: the sheet grows upwards, so down here the tabs stay put
+			// under the thumb whichever page is showing.
+			PillTabBar(
+				currentPage = pagerState.currentPage,
+				onTabClick = { scope.launch { pagerState.animateScrollToPage(it) } },
+				tabs = listOf(
+					stringResource(R.string.epub_text_tab) to R.drawable.ic_title,
+					stringResource(R.string.epub_reading_tab) to R.drawable.ic_book_page,
+					stringResource(R.string.epub_tools_tab) to R.drawable.ic_tune,
+				),
+				modifier = Modifier
+					.align(Alignment.CenterHorizontally)
+					.padding(horizontal = 24.dp)
+					.padding(top = 16.dp),
+			)
+		}
+		if (isThemeSheetShown) EpubThemeSheet { isThemeSheetShown = false }
+	}
 
-        // Capture the nav bar inset once: the reader toggles system bars while the sheet is open,
-        // and a live navigationBarsPadding() resize makes the shown sheet jump.
-        val navBarPadding = remember {
-            dialog?.window?.decorView?.let { decor ->
-                ViewCompat.getRootWindowInsets(decor)
-                    ?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom
-            } ?: 0
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 4.dp + with(LocalDensity.current) { navBarPadding.toDp() }),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // 1. Swipeable Pager Content
-                // No animateContentSize here: the sheet is fit-to-contents, so animating the body
-                // height re-settles the whole sheet while it is opening.
-                // The pager is pinned to the Read Mode page's height so swiping to the (otherwise
-                // shorter) Tools page never resizes the sheet; the tools grid stretches to fill it.
-                val density = LocalDensity.current
-                var pagerHeightPx by remember { mutableIntStateOf(0) }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(
-                            if (pagerHeightPx > 0) {
-                                Modifier.height(with(density) { pagerHeightPx.toDp() })
-                            } else {
-                                Modifier
-                            },
-                        ),
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top,
-                    ) { page ->
-                        when (page) {
-                            0 -> { // Reading page
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState())
-                                        .onSizeChanged { pagerHeightPx = it.height },
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                ) {
-                                    ReadModeSection(
-                                        selectedMode = currentMode,
-                                        onModeSelected = { newMode ->
-                                            if (newMode != currentMode) {
-                                                callback?.onReaderModeChanged(newMode)
-                                                currentMode = newMode
-                                            }
-                                        },
-                                    )
+	/** Font picker: each tile shows the typeface itself. */
+	@Composable
+	private fun EpubFontRow(customFontName: String, enabled: Boolean) {
+		var current by remember(customFontName) { mutableStateOf(settings.epubFontFamily) }
+		val customFont = remember(customFontUiRevision) {
+			if (customFontName.isBlank()) {
+				null
+			} else {
+				runCatching {
+					FontFamily(Typeface.createFromFile(File(requireContext().filesDir, AppSettings.EPUB_CUSTOM_FONT_FILE)))
+				}.getOrNull()
+			}
+		}
+		val fonts = listOf(
+			Triple("serif", stringResource(R.string.epub_font_serif), FontFamily.Serif),
+			Triple("sans-serif", stringResource(R.string.epub_font_sans), FontFamily.SansSerif),
+			Triple("monospace", stringResource(R.string.epub_font_mono), FontFamily.Monospace),
+			Triple(
+				EPUB_FONT_CUSTOM,
+				customFontName.substringBeforeLast('.').ifBlank { stringResource(R.string.epub_font_choose) },
+				customFont,
+			),
+		)
+		SettingsGroup(title = stringResource(R.string.epub_font_family)) {
+			item {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.spacedBy(8.dp),
+				) {
+					fonts.forEach { (value, label, family) ->
+						val isCustom = value == EPUB_FONT_CUSTOM
+						PreviewTile(
+							label = label,
+							selected = current == value,
+							enabled = enabled,
+							onClick = {
+								if (isCustom && customFontName.isBlank()) {
+									epubFontPicker.launch(EPUB_FONT_MIME_TYPES)
+								} else {
+									current = value
+									settings.epubFontFamily = value
+								}
+							},
+							modifier = Modifier
+								.weight(1f, fill = false)
+								.widthIn(max = 96.dp),
+							aspectRatio = 1.25f,
+						) {
+							if (isCustom && customFontName.isBlank()) {
+								Icon(
+									painter = painterResource(R.drawable.ic_add),
+									contentDescription = null,
+									tint = MaterialTheme.colorScheme.onSurfaceVariant,
+									modifier = Modifier.align(Alignment.Center),
+								)
+							} else {
+								Text(
+									text = "Aa",
+									style = MaterialTheme.typography.titleLarge,
+									fontFamily = family,
+									color = MaterialTheme.colorScheme.onSurface,
+									modifier = Modifier.align(Alignment.Center),
+								)
+							}
+							if (isCustom && customFontName.isNotBlank()) {
+								Box(
+									modifier = Modifier
+										.align(Alignment.TopEnd)
+										.padding(5.dp)
+										.size(22.dp)
+										.clip(CircleShape)
+										.background(MaterialTheme.colorScheme.surfaceContainerLow)
+										.clickable(enabled = enabled, onClick = ::removeEpubCustomFont),
+									contentAlignment = Alignment.Center,
+								) {
+									Icon(
+										painter = painterResource(R.drawable.ic_close),
+										contentDescription = stringResource(R.string.remove),
+										tint = MaterialTheme.colorScheme.onSurfaceVariant,
+										modifier = Modifier.size(14.dp),
+									)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
-                                    // An invisible copy of the two-page card sizes this page, so the sheet
-                                    // keeps the height it had when that card lived here.
-                                    Box {
-                                        Box(
-                                            Modifier
-                                                .alpha(0f)
-                                                .clearAndSetSemantics {},
-                                        ) {
-                                            DoublePageConfigSection(
-                                                isModeStandardOrReversed = false,
-                                                isDoubleOnLandscape = isDoubleOnLandscape,
-                                                onDoubleOnLandscapeChange = {},
-                                                isDoubleOnFoldable = isDoubleOnFoldable,
-                                                onDoubleOnFoldableChange = {},
-                                                sensitivity = sensitivity,
-                                                onSensitivityChange = {},
-                                            )
-                                        }
-                                        ReadingToolsSection(
-                                            modifier = Modifier
-                                                .matchParentSize()
-                                                .padding(horizontal = 16.dp),
-                                            isBookmarkAdded = isBookmarkAdded,
-                                            onScrollTimerClick = {
-                                                callback?.onScrollTimerClick(false)
-                                                dismissAllowingStateLoss()
-                                            },
-                                            onSaveClick = {
-                                                callback?.onSavePageClick()
-                                                dismissAllowingStateLoss()
-                                            },
-                                            onBookmarkClick = {
-                                                viewModel.toggleBookmark()
-                                            },
-                                            onSettingsClick = {
-                                                router.openReaderSettings()
-                                                dismissAllowingStateLoss()
-                                            },
-                                        )
-                                    }
+	/**
+	 * A slider that applies as it moves, so the page behind follows the thumb. The value pill doubles
+	 * as the reset button once the value has left [defaultValue].
+	 */
+	@Composable
+	private fun EpubSliderRow(
+		title: String,
+		value: Int,
+		range: IntRange,
+		defaultValue: Int,
+		shape: Shape,
+		enabled: Boolean,
+		valueLabel: (Int) -> String,
+		onChange: (Int) -> Unit,
+	) {
+		val cs = MaterialTheme.colorScheme
+		val changed = value != defaultValue
+		Surface(
+			shape = shape,
+			color = LocalSettingsItemColor.current ?: cs.surfaceContainer,
+			modifier = Modifier.alpha(if (enabled) 1f else 0.38f),
+		) {
+			Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 2.dp)) {
+				Row(verticalAlignment = Alignment.CenterVertically) {
+					Text(
+						text = title,
+						style = MaterialTheme.typography.titleMedium,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+						modifier = Modifier.weight(1f),
+					)
+					Spacer(Modifier.width(8.dp))
+					Row(
+						modifier = Modifier
+							.clip(CircleShape)
+							.background(cs.secondaryContainer)
+							.clickable(enabled = enabled && changed) { onChange(defaultValue) }
+							.padding(horizontal = 10.dp, vertical = 5.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						if (changed) {
+							Icon(
+								painter = painterResource(R.drawable.ic_revert),
+								contentDescription = stringResource(R.string.reset),
+								tint = cs.onSecondaryContainer,
+								modifier = Modifier
+									.padding(end = 4.dp)
+									.size(16.dp),
+							)
+						}
+						Text(
+							text = valueLabel(value),
+							style = MaterialTheme.typography.labelMedium,
+							color = cs.onSecondaryContainer,
+						)
+					}
+				}
+				Slider(
+					state = syncedSliderState(value.toFloat(), range.first.toFloat()..range.last.toFloat()),
+					onValueChange = { position ->
+						val rounded = position.roundToInt()
+						if (rounded != value) onChange(rounded)
+					},
+					enabled = enabled,
+					modifier = Modifier.fillMaxWidth(),
+				)
+			}
+		}
+	}
 
-                                    Spacer(modifier = Modifier.height(70.dp))
-                                }
-                            }
+	/** A two-way choice on one line: the title, then both options as connected buttons. */
+	@Composable
+	private fun EpubChoiceRow(
+		title: String,
+		choices: List<Pair<String, String>>,
+		selected: String,
+		shape: Shape,
+		enabled: Boolean = true,
+		onSelected: (String) -> Unit,
+	) {
+		Surface(
+			shape = shape,
+			color = LocalSettingsItemColor.current ?: MaterialTheme.colorScheme.surfaceContainer,
+		) {
+			Row(
+				modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = title,
+					style = MaterialTheme.typography.titleMedium,
+					maxLines = 2,
+					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier
+						.weight(1f)
+						.alpha(if (enabled) 1f else 0.38f),
+				)
+				Spacer(Modifier.width(8.dp))
+				Box(modifier = Modifier.width(176.dp)) {
+					SegmentedRow(
+						labels = choices.map { it.second },
+						selectedIndex = choices.indexOfFirst { it.first == selected },
+						onSelected = { onSelected(choices[it].first) },
+						enabled = enabled,
+					)
+				}
+			}
+		}
+	}
 
-                            1 -> { // More page
-                                // The tool row takes whatever the two-page card leaves of the pinned
-                                // height, so this page ends flush with the Reading page.
-                                var cardHeightPx by remember { mutableIntStateOf(0) }
-                                val toolsHeight = with(density) { (pagerHeightPx - cardHeightPx).toDp() - 102.dp }
-                                    .coerceAtLeast(TOOL_ROW_MIN_HEIGHT)
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .verticalScroll(rememberScrollState()),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                ) {
-                                    MoreToolsRow(
-                                        modifier = Modifier
-                                            .height(toolsHeight)
-                                            .padding(horizontal = 16.dp),
-                                        isAutoRotationEnabled = isAutoRotationEnabled,
-                                        onShareClick = {
-                                            callback?.onSharePageClick()
-                                            dismissAllowingStateLoss()
-                                        },
-                                        onOrientationClick = {
-                                            orientationHelper.toggleScreenOrientation()
-                                        },
-                                        onColorFilterClick = {
-                                            val page = viewModel.getCurrentPage()
-                                            val manga = viewModel.getMangaOrNull()
-                                            if (page != null && manga != null) {
-                                                router.openColorFilterConfig(manga, page)
-                                            }
-                                        },
-                                    )
-
-                                    Box(Modifier.onSizeChanged { cardHeightPx = it.height }) {
-                                        DoublePageConfigSection(
-                                            isModeStandardOrReversed = currentMode == ReaderMode.STANDARD || currentMode == ReaderMode.REVERSED,
-                                            isDoubleOnLandscape = isDoubleOnLandscape,
-                                            onDoubleOnLandscapeChange = { enabled ->
-                                                settings.isReaderDoubleOnLandscape = enabled
-                                                isDoubleOnLandscape = enabled
-                                                callback?.onDoubleModeChanged(enabled)
-                                            },
-                                            isDoubleOnFoldable = isDoubleOnFoldable,
-                                            onDoubleOnFoldableChange = { enabled ->
-                                                settings.isReaderDoubleOnFoldable = enabled
-                                                isDoubleOnFoldable = enabled
-                                                callback?.onDoubleModeChanged(settings.isReaderDoubleOnLandscape)
-                                            },
-                                            sensitivity = sensitivity,
-                                            onSensitivityChange = { value ->
-                                                settings.readerDoublePagesSensitivity = value / 100f
-                                                sensitivity = value
-                                            },
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.height(70.dp))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 2. Bottom Floating Capsule Tab Switcher
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-            ) {
-                BottomPillTabBar(
-                    currentPage = pagerState.currentPage,
-                    onTabClick = { index ->
-                        scope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
-                    },
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun BottomPillTabBar(
-        currentPage: Int,
-        onTabClick: (Int) -> Unit,
-        tabs: List<Triple<String, Int, Int>> = listOf(
-            Triple(stringResource(R.string.epub_reading_tab), R.drawable.ic_book_page, 0),
-            Triple(stringResource(R.string.more), R.drawable.ic_grid, 1),
-        ),
-        modifier: Modifier = Modifier,
-    ) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.95f),
-                shadowElevation = 6.dp,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                modifier = Modifier
-                    .widthIn(max = if (tabs.size > 2) 336.dp else 280.dp)
-                    .fillMaxWidth()
-                    .height(52.dp),
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    val targetBias = if (tabs.size == 1) 0f else currentPage * 2f / (tabs.size - 1) - 1f
-                    val animatedBias by animateFloatAsState(
-                        targetValue = targetBias,
-                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-                        label = "pill_bias",
-                    )
-                    
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(1f / tabs.size)
-                            .padding(4.dp)
-                            .align(BiasAlignment(horizontalBias = animatedBias, verticalBias = 0f))
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        tabs.forEach { (title, iconRes, index) ->
-                            val isSelected = currentPage == index
-                            val contentColor by animateColorAsState(
-                                targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                label = "pill_tab_content_color",
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .clickable(
-                                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                                        indication = null,
-                                    ) { onTabClick(index) },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                ) {
-                                    Icon(
-                                        painter = painterResource(iconRes),
-                                        contentDescription = title,
-                                        tint = contentColor,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = contentColor,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // EPUB settings use a compact text page and a larger combined reading/style page.
-    @Composable
-    private fun EpubConfigContent() {
-        val customFontName = remember(customFontUiRevision) { settings.epubCustomFontName }
-        var publisherStyleEnabled by remember { mutableStateOf(settings.isEpubPublisherStyleEnabled) }
-        var bionicReadingEnabled by remember { mutableStateOf(settings.isEpubBionicReadingEnabled) }
-        var readingMode by remember { mutableStateOf(settings.epubReadingMode) }
-        var isRtl by remember { mutableStateOf(settings.isEpubRtl) }
-        // Hoisted: the line-height card reports its value in dp, which depends on the current text size.
-        var fontSize by remember { mutableIntStateOf(settings.epubFontSize.coerceIn(50, 200)) }
-        val pagerState = rememberPagerState(pageCount = { 3 })
-        val scope = rememberCoroutineScope()
-        val callback = remember { findParentCallback(Callback::class.java) }
-        // Book formatting temporarily owns typography; reading behavior and page colors remain editable.
-        val editable = !publisherStyleEnabled
-        val navBarPadding = remember {
-            dialog?.window?.decorView?.let { decor ->
-                ViewCompat.getRootWindowInsets(decor)
-                    ?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom
-            } ?: 0
-        }
-        val density = LocalDensity.current
-        val pageContent: @Composable (Int) -> Unit = { page ->
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 68.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                if (page == 0) {
-                    EpubTextSizeSection(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        enabled = editable,
-                        textSize = fontSize,
-                        onChange = { fontSize = it },
-                    )
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        EpubSliderSection(
-                            modifier = Modifier.weight(1f),
-                            icon = R.drawable.ic_reader_vertical,
-                            title = stringResource(R.string.epub_paragraph_spacing),
-                            value = settings.epubParagraphSpacing,
-                            // Negative values eat into the blank line EPUBs put between paragraphs, so
-                            // the slider can go all the way down to plain line spacing.
-                            range = -32..48,
-                            suffix = " dp",
-                            defaultValue = 0,
-                            enabled = editable,
-                        ) { settings.epubParagraphSpacing = it }
-                        EpubSliderSection(
-                            modifier = Modifier.weight(1f),
-                            icon = R.drawable.ic_reader_vertical,
-                            title = stringResource(R.string.epub_line_height),
-                            value = settings.epubLineHeight,
-                            range = 100..240,
-                            suffix = "%",
-                            defaultValue = 160,
-                            enabled = editable,
-                            // Shown as the resulting line box in dp rather than the stored percentage.
-                            valueLabel = { "${(EPUB_BASE_TEXT_SIZE_DP * fontSize * it / 10000f).roundToInt()} dp" },
-                        ) { settings.epubLineHeight = it }
-                    }
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        EpubSliderSection(Modifier.weight(1f), R.drawable.ic_move_horizontal, stringResource(R.string.epub_horizontal_margin), settings.epubHorizontalPadding, 0..64, " dp", defaultValue = 20, enabled = editable) { settings.epubHorizontalPadding = it }
-                        EpubSliderSection(Modifier.weight(1f), R.drawable.ic_gesture_vertical, stringResource(R.string.epub_vertical_margin), settings.epubVerticalPadding, 0..112, " dp", defaultValue = 112, enabled = editable && readingMode != "scroll") { settings.epubVerticalPadding = it }
-                    }
-                } else if (page == 1) {
-                    EpubReadModeSection(readingMode) { mode ->
-                        readingMode = mode
-                        settings.epubReadingMode = mode
-                    }
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(IntrinsicSize.Max),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        EpubChoiceSection(
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            icon = R.drawable.ic_reader_ltr,
-                            title = stringResource(R.string.epub_text_alignment),
-                            choices = listOf(
-                                "justify" to stringResource(R.string.epub_align_justified),
-                                (if (isRtl) "right" else "left") to stringResource(R.string.epub_align_side),
-                            ),
-                            selected = when {
-                                isRtl && settings.epubTextAlign == "left" -> "right"
-                                !isRtl && settings.epubTextAlign == "right" -> "left"
-                                else -> settings.epubTextAlign
-                            },
-                            enabled = editable,
-                        ) { settings.epubTextAlign = it }
-                        // Direction is its own axis now, so scroll mode can be RTL too.
-                        EpubChoiceSection(
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            icon = R.drawable.ic_reading_direction,
-                            title = stringResource(R.string.epub_reading_direction),
-                            choices = listOf(
-                                "ltr" to stringResource(R.string.epub_mode_paged_ltr),
-                                "rtl" to stringResource(R.string.epub_mode_paged_rtl),
-                            ),
-                            selected = if (isRtl) "rtl" else "ltr",
-                        ) { value ->
-                            val rtl = value == "rtl"
-                            isRtl = rtl
-                            settings.isEpubRtl = rtl
-                            // Keep the side-aligned choice on the reading side of the page.
-                            when {
-                                rtl && settings.epubTextAlign == "left" -> settings.epubTextAlign = "right"
-                                !rtl && settings.epubTextAlign == "right" -> settings.epubTextAlign = "left"
-                            }
-                        }
-                    }
-                    EpubFontSection(
-                        selected = settings.epubFontFamily,
-                        customFontName = customFontName,
-                        enabled = editable,
-                        onChooseCustom = {
-                            epubFontPicker.launch(EPUB_FONT_MIME_TYPES)
-                        },
-                        onRemoveCustom = ::removeEpubCustomFont,
-                    )
-                } else {
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        ToolGridCard(
-                            icon = R.drawable.ic_auto_fix,
-                            label = stringResource(R.string.epub_publisher_style),
-                            checked = publisherStyleEnabled,
-                            onClick = {
-                                publisherStyleEnabled = !publisherStyleEnabled
-                                settings.isEpubPublisherStyleEnabled = publisherStyleEnabled
-                            },
-                            modifier = Modifier.weight(1f).height(120.dp),
-                            iconSize = 24.dp,
-                        )
-                        ToolGridCard(
-                            icon = R.drawable.ic_bolt,
-                            label = stringResource(R.string.epub_bionic_reading),
-                            checked = bionicReadingEnabled,
-                            onClick = {
-                                bionicReadingEnabled = !bionicReadingEnabled
-                                settings.isEpubBionicReadingEnabled = bionicReadingEnabled
-                            },
-                            modifier = Modifier.weight(1f).height(120.dp),
-                            iconSize = 24.dp,
-                        )
-                        EpubThemeCard(modifier = Modifier.weight(1f).height(120.dp))
-                    }
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        ToolGridCard(
-                            icon = R.drawable.ic_timer,
-                            label = stringResource(R.string.automatic_scroll),
-                            onClick = {
-                                dismiss()
-                                callback?.onScrollTimerClick(isLongClick = false)
-                            },
-                            modifier = Modifier.weight(1f).height(120.dp),
-                            iconSize = 24.dp,
-                            shape = CircleShape,
-                        )
-                        ToolGridCard(
-                            icon = R.drawable.ic_voice_over,
-                            label = stringResource(R.string.text_to_speech),
-                            onClick = {
-                                dismiss()
-                                callback?.onTextToSpeechClick()
-                            },
-                            modifier = Modifier.weight(1f).height(120.dp),
-                            iconSize = 24.dp,
-                            shape = CircleShape,
-                        )
-                    }
-                    EpubTapGestureSection(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        enabled = readingMode != "scroll",
-                    )
-                }
-                if (publisherStyleEnabled) {
-                    Text(
-                        text = stringResource(R.string.epub_publisher_style_disabled_note),
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp + with(density) { navBarPadding.toDp() }),
-        ) {
-            var measuredHeights by remember { mutableStateOf(emptyList<Float>()) }
-            SubcomposeLayout(modifier = Modifier.fillMaxWidth()) { constraints ->
-                val measureConstraints = Constraints(minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth)
-                val heights = List(3) { page ->
-                    subcompose("epub_page_height_$page") { pageContent(page) }
-                        .maxOf { it.measure(measureConstraints).height }
-                        .toFloat()
-                }
-                if (measuredHeights != heights) measuredHeights = heights
-                layout(0, 0) {}
-            }
-            val targetHeight = measuredHeights.getOrNull(pagerState.currentPage) ?: 0f
-            val animatedHeight = remember { Animatable(0f) }
-            var heightInitialized by remember { mutableStateOf(false) }
-            LaunchedEffect(targetHeight) {
-                if (targetHeight <= 0f) return@LaunchedEffect
-                if (heightInitialized) {
-                    animatedHeight.animateTo(
-                        targetHeight,
-                        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
-                    )
-                } else {
-                    animatedHeight.snapTo(targetHeight)
-                    heightInitialized = true
-                }
-            }
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth().height(with(density) { animatedHeight.value.toDp() }),
-                verticalAlignment = Alignment.Top,
-            ) { page ->
-                Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    pageContent(page)
-                }
-            }
-            BottomPillTabBar(
-                currentPage = pagerState.currentPage,
-                onTabClick = { scope.launch { pagerState.animateScrollToPage(it) } },
-                tabs = listOf(
-                    Triple(stringResource(R.string.epub_text_tab), R.drawable.ic_appearance, 0),
-                    Triple(stringResource(R.string.epub_reading_tab), R.drawable.ic_book_page, 1),
-                    Triple(stringResource(R.string.epub_tools_tab), R.drawable.ic_tune, 2),
-                ),
-                modifier = Modifier.align(Alignment.BottomCenter),
-            )
-        }
-    }
-
-    @Composable
-    private fun EpubSliderSection(
-        modifier: Modifier = Modifier,
-        icon: Int,
-        title: String,
-        value: Int,
-        range: IntRange,
-        suffix: String,
-        defaultValue: Int,
-        enabled: Boolean = true,
-        valueLabel: ((Int) -> String)? = null,
-        onChange: (Int) -> Unit,
-    ) {
-        var current by remember { mutableIntStateOf(value.coerceIn(range)) }
-        EpubSettingCard(
-            icon, title, valueLabel?.invoke(current) ?: "$current$suffix",
-            modifier = modifier, compact = true, enabled = enabled,
-            resetEnabled = current != defaultValue,
-            onReset = { current = defaultValue.also(onChange) },
-        ) {
-            EpubContinuousSlider(
-                value = current.toFloat(),
-                onValueChange = { value ->
-                    val rounded = value.roundToInt()
-                    if (rounded != current) current = rounded.also(onChange)
-                },
-                valueRange = range.first.toFloat()..range.last.toFloat(),
-                enabled = enabled,
-            )
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun EpubContinuousSlider(
-        value: Float,
-        onValueChange: (Float) -> Unit,
-        valueRange: ClosedFloatingPointRange<Float>,
-        enabled: Boolean,
-    ) {
-        Slider(
-            state = syncedSliderState(value, valueRange),
-            onValueChange = onValueChange,
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-
-    @Composable
-    private fun EpubChoiceSection(
-        modifier: Modifier,
-        icon: Int,
-        title: String,
-        choices: List<Pair<String, String>>,
-        selected: String,
-        enabled: Boolean = true,
-        onSelected: (String) -> Unit,
-    ) {
-        var current by remember { mutableStateOf(selected) }
-        LaunchedEffect(selected) { current = selected }
-        EpubSettingCard(icon, title, null, modifier = modifier, compact = true, enabled = enabled) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                choices.forEach { (value, label) ->
-                    val selected = current == value
-                    val color by animateColorAsState(
-                        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                        label = "epub_choice_color",
-                    )
-                    Surface(
-                        onClick = { current = value; onSelected(value) },
-                        enabled = enabled,
-                        shape = CircleShape,
-                        color = color,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                        ),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                    ) { Box(contentAlignment = Alignment.Center) { Text(label, textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 4.dp)) } }
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun EpubTapGestureSection(modifier: Modifier, enabled: Boolean) {
-        var checked by remember { mutableStateOf(settings.isEpubPagedTapGesturesEnabled) }
-        EpubSettingCard(
-            icon = R.drawable.ic_tap,
-            title = stringResource(R.string.epub_paged_tap_gestures),
-            value = null,
-            modifier = modifier,
-            compact = true,
-            enabled = enabled,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.epub_paged_tap_gestures_summary),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(8.dp))
-                Switch(
-                    checked = checked,
-                    onCheckedChange = {
-                        checked = it
-                        settings.isEpubPagedTapGesturesEnabled = it
-                    },
-                    enabled = enabled,
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun EpubFontSection(
-        selected: String,
-        customFontName: String,
-        enabled: Boolean,
-        onChooseCustom: () -> Unit,
-        onRemoveCustom: () -> Unit,
-    ) {
-        var current by remember(selected, customFontName) { mutableStateOf(selected) }
-        val choices = listOf(
-            "serif" to stringResource(R.string.epub_font_serif),
-            "sans-serif" to stringResource(R.string.epub_font_sans),
-            "monospace" to stringResource(R.string.epub_font_mono),
-            EPUB_FONT_CUSTOM to customFontName.substringBeforeLast('.').ifBlank { stringResource(R.string.epub_font_choose) },
-        )
-        EpubSettingCard(R.drawable.ic_title, stringResource(R.string.epub_font_family), null, enabled = enabled) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                choices.chunked(2).forEach { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        row.forEach { (value, label) ->
-                            val isSelected = current == value
-                            Surface(
-                                onClick = {
-                                    if (value == EPUB_FONT_CUSTOM && customFontName.isBlank()) {
-                                        onChooseCustom()
-                                    } else {
-                                        current = value
-                                        settings.epubFontFamily = value
-                                    }
-                                },
-                                enabled = enabled,
-                                shape = RoundedCornerShape(18.dp),
-                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                                border = androidx.compose.foundation.BorderStroke(
-                                    1.dp,
-                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                                ),
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = label,
-                                        textAlign = TextAlign.Center,
-                                        fontFamily = when (value) {
-                                            "sans-serif" -> androidx.compose.ui.text.font.FontFamily.SansSerif
-                                            "monospace" -> androidx.compose.ui.text.font.FontFamily.Monospace
-                                            EPUB_FONT_CUSTOM -> null
-                                            else -> androidx.compose.ui.text.font.FontFamily.Serif
-                                        },
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.padding(
-                                            horizontal = if (value == EPUB_FONT_CUSTOM && customFontName.isNotBlank()) 40.dp else 8.dp,
-                                            vertical = 12.dp,
-                                        ),
-                                    )
-                                    if (value == EPUB_FONT_CUSTOM && customFontName.isNotBlank()) {
-                                        IconButton(
-                                            onClick = onRemoveCustom,
-                                            enabled = enabled,
-                                            modifier = Modifier.align(Alignment.CenterEnd).size(40.dp),
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.ic_close),
-                                                contentDescription = stringResource(R.string.remove),
-                                                modifier = Modifier.size(18.dp),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // read-mode picker styled like the manga reader's segmented control
-    @Composable
-    private fun EpubReadModeSection(
-        current: String,
-        enabled: Boolean = true,
-        onSelected: (String) -> Unit,
-    ) {
-        val modes = listOf(
-            "scroll" to (R.string.epub_mode_scroll to R.drawable.ic_reader_vertical),
-            "paged" to (R.string.epub_mode_paged to R.drawable.ic_reader_paged),
-        )
-
-        val selectedIndex = modes.indexOfFirst { it.first == current }.coerceAtLeast(0)
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .alpha(if (enabled) 1f else 0.38f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_book_page),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp),
-                )
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = stringResource(R.string.epub_read_mode),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .padding(6.dp),
-                ) {
-                    val animatedBias by animateFloatAsState(
-                        // -1f..1f across the segments, whatever their count
-                        targetValue = if (modes.size == 1) 0f else selectedIndex * 2f / (modes.size - 1) - 1f,
-                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-                        label = "epub_mode_highlighter",
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(1f / modes.size)
-                            .align(BiasAlignment(horizontalBias = animatedBias, verticalBias = 0f))
-                            .clip(RoundedCornerShape(22.dp))
-                            .background(MaterialTheme.colorScheme.primary),
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        modes.forEach { (value, pair) ->
-                            val (labelRes, iconRes) = pair
-                            val isSelected = current == value
-                            val contentColor by animateColorAsState(
-                                targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                label = "epub_segment_fg_$value",
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .clickable(
-                                        enabled = enabled,
-                                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                                        indication = null,
-                                    ) { onSelected(value) },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Icon(
-                                        painter = painterResource(iconRes),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(22.dp),
-                                        tint = contentColor,
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(labelRes),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Medium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        color = contentColor,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun EpubThemeCard(modifier: Modifier = Modifier) {
-        var showDialog by remember { mutableStateOf(false) }
-        ToolGridCard(
-            icon = R.drawable.ic_appearance,
-            label = stringResource(R.string.theme),
-            checked = settings.epubTheme == EPUB_THEME_CUSTOM,
-            onClick = { showDialog = true },
-            modifier = modifier,
-            iconSize = 22.dp,
-        )
-        if (showDialog) EpubThemeSheet { showDialog = false }
-    }
+	/** The page switcher: a capsule with a filled pill that slides to the page showing. */
+	@Composable
+	private fun PillTabBar(
+		currentPage: Int,
+		onTabClick: (Int) -> Unit,
+		tabs: List<Pair<String, Int>>,
+		modifier: Modifier = Modifier,
+	) {
+		Surface(
+			shape = CircleShape,
+			color = MaterialTheme.colorScheme.surfaceContainerHighest,
+			shadowElevation = 6.dp,
+			border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+			modifier = modifier
+				.widthIn(max = 336.dp)
+				.fillMaxWidth()
+				.height(52.dp),
+		) {
+			Box(modifier = Modifier.fillMaxSize()) {
+				val animatedBias by animateFloatAsState(
+					// -1f..1f across the tabs
+					targetValue = currentPage * 2f / (tabs.size - 1) - 1f,
+					animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+					label = "pill_bias",
+				)
+				Box(
+					modifier = Modifier
+						.fillMaxHeight()
+						.fillMaxWidth(1f / tabs.size)
+						.padding(4.dp)
+						.align(BiasAlignment(horizontalBias = animatedBias, verticalBias = 0f))
+						.clip(CircleShape)
+						.background(MaterialTheme.colorScheme.primary),
+				)
+				Row(
+					modifier = Modifier.fillMaxSize(),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					tabs.forEachIndexed { index, (title, iconRes) ->
+						val contentColor by animateColorAsState(
+							targetValue = if (currentPage == index) {
+								MaterialTheme.colorScheme.onPrimary
+							} else {
+								MaterialTheme.colorScheme.onSurfaceVariant
+							},
+							label = "pill_tab_content_color",
+						)
+						Row(
+							modifier = Modifier
+								.weight(1f)
+								.fillMaxHeight()
+								.clickable(interactionSource = null, indication = null) { onTabClick(index) },
+							horizontalArrangement = Arrangement.Center,
+							verticalAlignment = Alignment.CenterVertically,
+						) {
+							Icon(
+								painter = painterResource(iconRes),
+								contentDescription = null,
+								tint = contentColor,
+								modifier = Modifier.size(18.dp),
+							)
+							Spacer(modifier = Modifier.width(6.dp))
+							Text(
+								text = title,
+								style = MaterialTheme.typography.titleSmall,
+								fontWeight = FontWeight.Bold,
+								color = contentColor,
+							)
+						}
+					}
+				}
+			}
+		}
+	}
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -1433,399 +1244,15 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         else -> EPUB_THEME_SYSTEM
     }
 
-    @Composable
-    private fun EpubSettingCard(
-        icon: Int,
-        title: String,
-        value: String?,
-        modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        compact: Boolean = false,
-        enabled: Boolean = true,
-        resetEnabled: Boolean = true,
-        onReset: (() -> Unit)? = null,
-        content: @Composable ColumnScope.() -> Unit,
-    ) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-            shadowElevation = 1.dp,
-            modifier = modifier.alpha(if (enabled) 1f else 0.38f),
-        ) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = if (compact) 12.dp else 20.dp, vertical = 16.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painterResource(icon), null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(if (compact) 18.dp else 22.dp))
-                        Spacer(Modifier.width(if (compact) 8.dp else 14.dp))
-                        Text(
-                            title,
-                            style = if (compact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = if (compact) 2 else Int.MAX_VALUE,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (compact) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            if (onReset != null) {
-                                IconButton(onClick = onReset, enabled = enabled && resetEnabled, modifier = Modifier.size(28.dp)) {
-                                    Icon(
-                                        painterResource(R.drawable.ic_revert),
-                                        null,
-                                        tint = if (resetEnabled) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                            }
-                            if (value != null) Text(value, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        }
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (onReset != null) {
-                                IconButton(onClick = onReset, enabled = enabled && resetEnabled, modifier = Modifier.size(28.dp)) {
-                                    Icon(
-                                        painterResource(R.drawable.ic_revert),
-                                        null,
-                                        tint = if (resetEnabled) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                                Spacer(Modifier.width(4.dp))
-                            }
-                            if (value != null) Text(value, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
-                content()
-            }
-        }
-    }
-
-    @Composable
-    private fun EpubTextSizeSection(
-        modifier: Modifier = Modifier,
-        enabled: Boolean = true,
-        textSize: Int,
-        onChange: (Int) -> Unit,
-    ) {
-        EpubSettingCard(
-            R.drawable.ic_size_large, stringResource(R.string.epub_text_size),
-            // Shown as the resulting body text size in dp rather than the stored percentage.
-            "${(EPUB_BASE_TEXT_SIZE_DP * textSize / 100f).roundToInt()} dp",
-            modifier = modifier, compact = true, enabled = enabled,
-            resetEnabled = textSize != 100,
-            onReset = { onChange(100.also { settings.epubFontSize = it }) },
-        ) {
-            EpubContinuousSlider(
-                value = textSize.toFloat(),
-                onValueChange = { value ->
-                    val rounded = value.roundToInt()
-                    if (rounded != textSize) {
-                        onChange(rounded)
-                        settings.epubFontSize = rounded
-                    }
-                },
-                valueRange = 50f..200f,
-                enabled = enabled,
-            )
-        }
-    }
-
-    /** Floor for the More page's tool row: below it the cards would clip their two-line labels. */
-    private val TOOL_ROW_MIN_HEIGHT = 96.dp
-
-    /** Reading page: the actions used mid-chapter, as a 2x2 grid that fills the height it is given. */
-    @Composable
-    private fun ReadingToolsSection(
-        isBookmarkAdded: Boolean,
-        onScrollTimerClick: () -> Unit,
-        onSaveClick: () -> Unit,
-        onBookmarkClick: () -> Unit,
-        onSettingsClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        Column(
-            modifier = modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                ToolGridCard(
-                    icon = R.drawable.ic_timer,
-                    label = stringResource(R.string.automatic_scroll),
-                    onClick = onScrollTimerClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-                ToolGridCard(
-                    icon = R.drawable.ic_save,
-                    label = stringResource(R.string.save_page),
-                    onClick = onSaveClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-            }
-            // Same pair as before the reorganisation: wide Settings card, round icon-only bookmark.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                ToolWideCard(
-                    icon = R.drawable.ic_settings,
-                    title = stringResource(R.string.settings),
-                    subtitle = stringResource(R.string.reader_settings_summary),
-                    onClick = onSettingsClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                )
-                ToolGridCard(
-                    icon = if (isBookmarkAdded) R.drawable.ic_bookmark_checked else R.drawable.ic_bookmark,
-                    label = null,
-                    checked = isBookmarkAdded,
-                    onClick = onBookmarkClick,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f),
-                    shape = CircleShape,
-                    iconSize = 42.dp,
-                )
-            }
-        }
-    }
-
-    /** More page: one row of the less frequent actions, above the two-page card. */
-    @Composable
-    private fun MoreToolsRow(
-        isAutoRotationEnabled: Boolean,
-        onShareClick: () -> Unit,
-        onOrientationClick: () -> Unit,
-        onColorFilterClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            val itemModifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-            ToolPillCard(
-                icon = R.drawable.ic_share,
-                label = stringResource(R.string.share_page),
-                onClick = onShareClick,
-                modifier = itemModifier,
-            )
-            ToolPillCard(
-                icon = if (isAutoRotationEnabled) R.drawable.ic_screen_rotation_lock else R.drawable.ic_screen_rotation,
-                label = stringResource(if (isAutoRotationEnabled) R.string.lock_screen_rotation else R.string.rotate_screen),
-                onClick = onOrientationClick,
-                modifier = itemModifier,
-            )
-            ToolPillCard(
-                icon = R.drawable.ic_appearance,
-                label = stringResource(R.string.color_correction),
-                onClick = onColorFilterClick,
-                modifier = itemModifier,
-            )
-        }
-    }
-
-    @Composable
-    private fun ToolWideCard(
-        icon: Int,
-        title: String,
-        subtitle: String,
-        checked: Boolean = false,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        val containerColor = if (checked) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        }
-
-        val contentColor = if (checked) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
-
-        val iconColor = if (checked) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.primary
-        }
-
-        Surface(
-            onClick = onClick,
-            shape = RoundedCornerShape(24.dp),
-            color = containerColor,
-            contentColor = contentColor,
-            modifier = modifier.heightIn(min = 96.dp),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                    tint = iconColor,
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (checked) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    painter = painterResource(R.drawable.ic_expand_more),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .rotate(-90f),
-                    tint = if (checked) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-
-
-    @Composable
-    private fun ToolGridCard(
-        icon: Int,
-        label: String?,
-        checked: Boolean = false,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-        shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp),
-        iconSize: androidx.compose.ui.unit.Dp = 32.dp,
-    ) {
-        val containerColor = if (checked) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        }
-
-        val contentColor = if (checked) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
-
-        val iconColor = if (checked) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.primary
-        }
-
-        Surface(
-            onClick = onClick,
-            shape = shape,
-            color = containerColor,
-            contentColor = contentColor,
-            modifier = modifier.heightIn(min = 96.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = label,
-                    modifier = Modifier.size(iconSize),
-                    tint = iconColor,
-                )
-                if (label != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun ToolPillCard(
-        icon: Int,
-        label: String,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        Surface(
-            onClick = onClick,
-            shape = RoundedCornerShape(48.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            modifier = modifier.heightIn(min = 96.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(
-                        painter = painterResource(icon),
-                        contentDescription = label,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        }
-    }
-
 	private companion object {
+		/** Modes in display order, each with its label. */
+		val READER_MODES = listOf(
+			ReaderMode.STANDARD to R.string.standard,
+			ReaderMode.REVERSED to R.string.r_to_l,
+			ReaderMode.VERTICAL to R.string.vertical,
+			ReaderMode.WEBTOON to R.string.webtoon,
+		)
+
 		const val EPUB_FONT_CUSTOM = "custom"
 		const val EPUB_THEME_CUSTOM = "custom"
 		const val EPUB_THEME_SYSTEM = "system"
@@ -1851,8 +1278,6 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 
         fun onReaderModeChanged(mode: ReaderMode)
 
-        fun onDoubleModeChanged(isEnabled: Boolean)
-
         fun onSavePageClick()
 
         fun onSharePageClick()
@@ -1860,8 +1285,5 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         fun onScrollTimerClick(isLongClick: Boolean)
 
         fun onTextToSpeechClick()
-
-        fun onBookmarkClick()
-
     }
 }

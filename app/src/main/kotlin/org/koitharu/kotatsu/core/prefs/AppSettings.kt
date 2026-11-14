@@ -287,11 +287,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 
 	var isReaderDoubleOnLandscape: Boolean
-		get() = prefs.getBoolean(KEY_READER_DOUBLE_PAGES, false)
+		get() = prefs.getBoolean(KEY_READER_DOUBLE_PAGES, true)
 		set(value) = prefs.edit { putBoolean(KEY_READER_DOUBLE_PAGES, value) }
 
 	var isReaderDoubleOnFoldable: Boolean
-		get() = prefs.getBoolean(KEY_READER_DOUBLE_FOLDABLE, false)
+		get() = prefs.getBoolean(KEY_READER_DOUBLE_FOLDABLE, true)
 		set(value) = prefs.edit { putBoolean(KEY_READER_DOUBLE_FOLDABLE, value) }
 
 	@get:FloatRange(0.0, 1.0)

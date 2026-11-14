@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 
 /**
+ * Fill of a resting [SettingsItem], when something other than the default is wanted for a whole
+ * subtree: sheets raise it a tone, because their own surface is already tinted.
+ */
+val LocalSettingsItemColor = compositionLocalOf<Color?> { null }
+
+/**
  * Generic row in a [SettingsGroup]. Lays out a circular tinted icon, a 1- or 2-line text
  * block, and an optional trailing slot (switch, value chip, chevron, etc.).
  *
@@ -82,7 +89,7 @@ fun SettingsItem(
 	enabled: Boolean = true,
 	// Overrides the title and plain-icon color, e.g. colorScheme.error for destructive actions.
 	accentColor: Color? = null,
-	containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+	containerColor: Color = LocalSettingsItemColor.current ?: MaterialTheme.colorScheme.surfaceContainer,
 	titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
 	onClick: (() -> Unit)? = null,
 	hapticEffect: HapticEffect? = null,
@@ -255,7 +262,7 @@ fun SwitchSettingsItem(
 		targetValue = when {
 			mainOn -> cs.primaryContainer
 			main -> cs.surfaceContainerHighest
-			else -> cs.surfaceContainer
+			else -> LocalSettingsItemColor.current ?: cs.surfaceContainer
 		},
 		animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
 		label = "switchContainer",
