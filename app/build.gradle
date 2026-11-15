@@ -18,7 +18,7 @@ android {
 		}
 	}
 	namespace = 'org.koitharu.kotatsu'
-	// JPEG XL decoder (src/main/cpp). The NDK must match `ndk:` in fdroid/org.haziffe.dropsauce.yml.
+	// JPEG XL decoder (src/main/cpp).
 	ndkVersion = '28.2.13676358'
 	externalNativeBuild {
 		cmake {

@@ -25,12 +25,7 @@ Builds:
     gradle:
       - fdroid
     scandelete:
-      - app/src/main/cpp/libjxl/testdata
-      - app/src/main/cpp/libjxl/tools/scripts/*.zip
-      - app/src/main/cpp/libjxl/third_party/brotli/tests
-      - app/src/main/cpp/libjxl/third_party/brotli/java
-      - app/src/main/cpp/libjxl/third_party/brotli/js
-    ndk: r28c
+      - app/src/main/cpp/libjxl
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
