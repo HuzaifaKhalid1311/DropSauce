@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.4 (2026-11-15)
+
 This is a small update you can skip: it is mainly there to get the app onto F-Droid, with some small UI changes.
 
 ### Improved

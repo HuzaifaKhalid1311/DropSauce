@@ -1,0 +1,5 @@
+- Redesigned the display options menu and the reader options menu for manga and novels
+- Two page layout options moved to settings > reader, and now on by default
+- Backups now include pinned sources, extension settings, saved filters, novel plugin settings and every manga's reader mode
+- Bookmarking a page again after removing its bookmark failing with an error
+- Random crash when the app was reopened in the background
