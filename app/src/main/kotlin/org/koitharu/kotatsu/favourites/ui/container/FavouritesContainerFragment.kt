@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewStub
 import android.view.animation.AnimationUtils
+import android.util.TypedValue
 import android.widget.TextView
 import androidx.appcompat.view.ActionMode
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
 import androidx.core.view.isGone
@@ -33,18 +35,15 @@ import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.recyclerView
 import org.koitharu.kotatsu.core.util.ext.setTabsEnabled
-import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.databinding.FragmentFavouritesContainerBinding
 import org.koitharu.kotatsu.main.ui.MainNavigationDelegate.TabTransition
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
-import org.koitharu.kotatsu.databinding.ItemEmptyStateBinding
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 
 @AndroidEntryPoint
 class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBinding>(),
 	ActionModeListener,
-	RecyclerViewOwner,
-	ViewStub.OnInflateListener,
-	View.OnClickListener {
+	RecyclerViewOwner {
 
 	private val viewModel: FavouritesContainerViewModel by viewModels()
 
@@ -74,7 +73,7 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 		).attach()
 		binding.tabs.addOnLayoutChangeListener(alignTabsToCovers)
 		binding.pager.addOnLayoutChangeListener(alignTabsToCovers)
-		binding.stubEmpty.setOnInflateListener(this)
+		setupEmptyState(binding)
 		if (!isHidden && !isTabsAttachDeferred) {
 			attachTabsToAppBar()
 		}
@@ -124,27 +123,33 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 		}
 	}
 
-	override fun onInflate(stub: ViewStub?, inflated: View) {
-		val stubBinding = ItemEmptyStateBinding.bind(inflated)
-		inflated.centerContentOnDisplay()
-		stubBinding.icon.setImageAsync(R.drawable.ic_empty_favourites)
-		stubBinding.textPrimary.setText(R.string.text_empty_holder_primary)
-		stubBinding.textSecondary.setTextAndVisible(R.string.empty_favourite_categories)
-		stubBinding.buttonRetry.setTextAndVisible(R.string.manage)
-		stubBinding.buttonRetry.setOnClickListener(this)
-	}
-
-	override fun onClick(v: View) {
-		when (v.id) {
-			R.id.button_retry -> router.openFavoriteCategories()
+	private fun setupEmptyState(binding: FragmentFavouritesContainerBinding) {
+		val composeView = binding.composeEmpty
+		// Same top inset as item_empty_state's paddingTop="?actionBarSize".
+		val tv = TypedValue()
+		val topPaddingPx = if (composeView.context.theme.resolveAttribute(androidx.appcompat.R.attr.actionBarSize, tv, true)) {
+			TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
+		} else {
+			0
 		}
+		val topPadding = (topPaddingPx / resources.displayMetrics.density).dp
+		composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+		composeView.setContent {
+			DropSauceTheme {
+				FavouritesEmptyState(
+					topPadding = topPadding,
+					onManageClick = { router.openFavoriteCategories() },
+				)
+			}
+		}
+		composeView.centerContentOnDisplay()
 	}
 
 	private fun onEmptyStateChanged(isEmpty: Boolean) {
 		viewBinding?.run {
 			pager.isGone = isEmpty
 			tabs.isGone = isEmpty
-			stubEmpty.isVisible = isEmpty
+			composeEmpty.isVisible = isEmpty
 		}
 	}
 
