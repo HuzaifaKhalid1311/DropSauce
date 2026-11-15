@@ -160,7 +160,7 @@ You can send a Pull Request for your patches, fixes, or new features here.
 
 1. Fork the repository.
 2. Create a focused branch for your change.
-3. Build locally with `./gradlew :app:assembleDebug`.
+3. Fetch the JPEG XL decoder source with `git submodule update --init --recursive`, then build locally with `./gradlew :app:assembleGithubDebug`.
 4. Open a Pull Request with a short explanation of what changed.
 
 Small fixes are welcome. Clear screenshots or short screen recordings are extra helpful for UI changes.

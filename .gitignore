@@ -24,6 +24,8 @@ CLAUDE.md
 # Logs
 *.log
 *.txt
+!CMakeLists.txt
+!/fastlane/**/*.txt
 
 # Signing keystores
 *.jks
@@ -40,4 +42,3 @@ CLAUDE.md
 /AGENTS.md
 
 /docs/superpowers/
-/native/

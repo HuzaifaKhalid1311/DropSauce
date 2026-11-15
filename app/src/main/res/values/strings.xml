@@ -758,6 +758,7 @@
     <string name="onboarding_finish_description">Join the DropSauce community and visit our website to stay up to date.</string>
     <string name="onboarding_sync_title">Sync &amp; Restore</string>
     <string name="onboarding_sync_description">Sign in with Google to sync your library across devices, or restore a backup to pick up where you left off.</string>
+    <string name="onboarding_restore_description">Restore a backup to pick up where you left off.</string>
     <string name="onboarding_restore_dropsauce">Restore Kotatsu backup</string>
     <string name="onboarding_restore_tachiyomi">Restore Tachi favorites</string>
     <string name="onboarding_visit_website">Visit website</string>

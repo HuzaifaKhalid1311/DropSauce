@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F-Droid policy: downloading add-ons must say they skip F-Droid's checks. -->
+    <string name="add_repo_message">Paste the store\'s index.min.json or index.pb link.\n\nExtensions and plugins from it are made by others and are not checked by F-Droid. Only add stores you trust.</string>
+</resources>

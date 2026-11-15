@@ -11,9 +11,7 @@ import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
-import org.koitharu.kotatsu.sync.data.SyncSettings
-import org.koitharu.kotatsu.sync.work.SyncTrigger
-import org.koitharu.kotatsu.sync.work.SyncWorker
+import org.koitharu.kotatsu.sync.SyncFeature
 import org.koitharu.kotatsu.tracker.work.TrackWorker
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,12 +19,10 @@ import javax.inject.Singleton
 @Singleton
 class WorkScheduleManager @Inject constructor(
 	private val settings: AppSettings,
-	private val syncSettings: SyncSettings,
 	private val suggestionScheduler: SuggestionsWorker.Scheduler,
 	private val trackerScheduler: TrackWorker.Scheduler,
 	private val backupScheduler: PeriodicalBackupWorker.Scheduler,
-	private val syncScheduler: SyncWorker.Scheduler,
-	private val syncTrigger: SyncTrigger,
+	private val syncFeature: SyncFeature,
 	private val extensionUpdateScheduler: ExtensionUpdateWorker.Scheduler,
 	@ApplicationContext private val context: Context,
 ) : SharedPreferences.OnSharedPreferenceChangeListener {
@@ -73,7 +69,7 @@ class WorkScheduleManager @Inject constructor(
 
 	fun init() {
 		settings.subscribe(this)
-		syncTrigger.init()
+		syncFeature.startTriggers()
 		processLifecycleScope.launch(Dispatchers.Default) {
 			updateWorkerImpl(trackerScheduler, settings.isTrackerEnabled, true)
 			updateWorkerImpl(suggestionScheduler, settings.isSuggestionsEnabled, true)
@@ -83,12 +79,10 @@ class WorkScheduleManager @Inject constructor(
 				force = false,
 			)
 			// Sync interval lives in its own prefs file (not observed here); just re-assert the schedule.
-			// Foreground/background syncs are driven by SyncTrigger.
-			updateWorkerImpl(
-				scheduler = syncScheduler,
-				isEnabled = syncSettings.isSignedIn && syncSettings.intervalMinutes > 0,
-				force = false,
-			)
+			// Foreground/background syncs are driven by SyncTrigger. No sync in the F-Droid version.
+			syncFeature.periodicScheduler?.let {
+				updateWorkerImpl(scheduler = it, isEnabled = syncFeature.isPeriodicEnabled, force = false)
+			}
 			val extensionUpdatesEnabled = isExtensionUpdateWorkerNeeded()
 			updateWorkerImpl(extensionUpdateScheduler, extensionUpdatesEnabled, force = false)
 			if (extensionUpdatesEnabled) {

@@ -48,6 +48,13 @@ jobs:
       with:
         fetch-depth: 0
 
+    # Only the parts of libjxl the JPEG XL decoder builds from (its tests and test data are huge).
+    - name: Fetch libjxl source
+      run: |
+        git submodule update --init --depth 1 app/src/main/cpp/libjxl
+        git -C app/src/main/cpp/libjxl submodule update --init --depth 1 \
+          third_party/highway third_party/brotli third_party/skcms
+
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -83,16 +90,26 @@ jobs:
         sed -i -E "s/versionCode = [0-9]+/versionCode = ${NEXT_CODE}/" "$BUILD_GRADLE"
         # Keep the README's direct APK download links pointing at this release
         sed -i -E "s#releases/download/v[^/]+/DropSauce-v[^)\"]+\.apk#releases/download/v${VERSION_NAME}/DropSauce-v${VERSION_NAME}.apk#g" README.md
+        # Keep the F-Droid recipe pointing at this release, ready to submit
+        sed -i -E -e "s/^(  - versionName: ).*/\1${VERSION_NAME}/" -e "s/^(    versionCode: ).*/\1${NEXT_CODE}/" \
+          -e "s/^(    commit: v).*/\1${VERSION_NAME}/" -e "s/^(CurrentVersion: ).*/\1${VERSION_NAME}/" \
+          -e "s/^(CurrentVersionCode: ).*/\1${NEXT_CODE}/" fdroid/org.haziffe.dropsauce.yml
 
         # Release notes = the "Unreleased" section of CHANGELOG.md, which then becomes this version's section
         awk '/^## /{f = ($0 == "## Unreleased"); next} f' CHANGELOG.md > "$RUNNER_TEMP/unreleased.md"
         if grep -q '^- ' "$RUNNER_TEMP/unreleased.md"; then
           awk -v heading="## ${VERSION_NAME} ($(date +%F))" '$0 == "## Unreleased" {print; print ""; print heading; next} 1' CHANGELOG.md > "$RUNNER_TEMP/CHANGELOG.md"
           mv "$RUNNER_TEMP/CHANGELOG.md" CHANGELOG.md
+          # F-Droid shows this per-version file (plain text, at most 500 characters)
+          FDROID_CHANGELOG="fastlane/metadata/android/en-US/changelogs/${NEXT_CODE}.txt"
+          mkdir -p "$(dirname "$FDROID_CHANGELOG")"
+          # Whole lines only, so a line (or a multi-byte character) is never cut in half
+          grep '^- ' "$RUNNER_TEMP/unreleased.md" | awk '{ n += length($0) + 1; if (n > 500) exit; print }' > "$FDROID_CHANGELOG"
         fi
 
     - name: Build Release APK
       run: |
+        # Builds the F-Droid version too (not uploaded), so a release fails here instead of on F-Droid's servers.
         ./gradlew assembleRelease --no-daemon --stacktrace \
           -PRELEASE_STORE_FILE=../release.keystore \
           -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
@@ -112,7 +129,7 @@ jobs:
 
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add app/build.gradle README.md CHANGELOG.md
+        git add app/build.gradle README.md CHANGELOG.md fastlane fdroid
         git commit -m "chore(release): set versionName ${{ inputs.version_name }} and bump versionCode"
 
         # Use refs/heads/ explicitly to avoid ambiguity with any tag that shares the branch name
@@ -162,22 +179,8 @@ jobs:
     - name: Collect Release APKs
       run: |
         mkdir -p release
-        shopt -s nullglob
-        APK_FILES=(app/build/outputs/apk/release/*.apk)
-        if [ ${#APK_FILES[@]} -eq 0 ]; then
-          echo "Error: No APK file found"
-          exit 1
-        fi
-
-        for apk in "${APK_FILES[@]}"; do
-          if [ ${#APK_FILES[@]} -eq 1 ]; then
-            target="release/DropSauce-v${{ inputs.version_name }}.apk"
-          else
-            original_apk_name=$(basename "$apk" .apk)
-            target="release/DropSauce-v${{ inputs.version_name }}-${original_apk_name}.apk"
-          fi
-          cp "$apk" "$target"
-        done
+        # Only the GitHub version; F-Droid builds and signs its own version from the tag.
+        cp app/build/outputs/apk/github/release/app-github-release.apk "release/DropSauce-v${{ inputs.version_name }}.apk"
 
     - name: Create Release
       env:

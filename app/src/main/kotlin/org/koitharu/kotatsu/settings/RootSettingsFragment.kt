@@ -53,7 +53,7 @@ import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
 import org.koitharu.kotatsu.settings.sources.ExtensionsSettingsFragment
 import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
-import org.koitharu.kotatsu.sync.ui.SyncSettingsFragment
+import org.koitharu.kotatsu.sync.SyncFeature
 import javax.inject.Inject
 
 /**
@@ -108,7 +108,7 @@ class RootSettingsFragment : BaseComposeSettingsFragment(R.string.settings) {
 
 	private fun openSection(section: SettingsSection) {
 		val activity = activity as? SettingsActivity ?: return
-		activity.openFragment(section.fragmentClass, null, isFromRoot = true)
+		activity.openFragment(section.fragmentClass ?: return, null, isFromRoot = true)
 	}
 }
 
@@ -117,13 +117,13 @@ private enum class SettingsSection(
 	val iconRes: Int,
 	val paletteKey: String,
 	val summaryRes: IntArray,
-	val fragmentClass: Class<out Fragment>,
+	val fragmentClass: Class<out Fragment>?, // null = not in this version of the app
 	val tintIcon: Boolean = true,
 ) {
 	SYNC(
 		R.string.google_drive_sync, R.drawable.ic_gdrive, "sync",
 		intArrayOf(R.string.sync_sign_in, R.string.sync_frequency),
-		SyncSettingsFragment::class.java,
+		SyncFeature.settingsFragmentClass,
 	),
 	APPEARANCE(
 		R.string.appearance, R.drawable.ic_appearance, "appearance",
@@ -193,7 +193,7 @@ private fun RootSettingsContent(
 				// SettingsGroup's DSL block is NOT @Composable — @Composable calls
 				// (stringResource, MaterialTheme.colorScheme, …) only happen inside
 				// each `item { pos -> ... }` body which IS @Composable.
-				SettingsSection.values().forEach { section ->
+				SettingsSection.entries.filter { it.fragmentClass != null }.forEach { section ->
 					item { pos ->
 						val subtitle = if (section == SettingsSection.ABOUT) {
 							appVersion

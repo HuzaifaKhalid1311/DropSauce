@@ -1,0 +1,15 @@
+<p>DropSauce is a free and open-source comic and novel reader with a Material 3 Expressive design.</p>
+
+<p>The app comes with no content and no sources. You choose and add extension repositories yourself: it runs Mihon and Tsundoku APK extensions and LNReader JS plugins. You can also read your own files: CBZ, EPUB and PDF.</p>
+
+<p><b>Features</b></p>
+<ul>
+<li>Manga, webtoon and novel readers with configurable controls, gestures and zoom</li>
+<li>Library with categories, history, bookmarks, an updates feed and reading stats</li>
+<li>Downloads for offline reading</li>
+<li>Tracking with AniList, MyAnimeList, Kitsu, Shikimori and MangaBaka</li>
+<li>Local backups, plus restoring Mihon and Kotatsu backups</li>
+<li>Home screen widgets, app lock and an incognito mode</li>
+</ul>
+
+<p>Extensions and plugins are made by third parties and are not checked by F-Droid. Only add repositories you trust.</p>

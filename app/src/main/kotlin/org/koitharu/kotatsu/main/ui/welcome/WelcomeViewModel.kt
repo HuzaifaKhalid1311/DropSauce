@@ -15,8 +15,7 @@ import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.sync.domain.GoogleDriveSyncRepository
-import org.koitharu.kotatsu.sync.work.SyncWorker
+import org.koitharu.kotatsu.sync.SyncFeature
 import javax.inject.Inject
 
 data class RestoreBackupResult(
@@ -29,8 +28,7 @@ class WelcomeViewModel @Inject constructor(
 	private val settings: AppSettings,
 	private val storageManager: LocalStorageManager,
 	private val backupManager: MihonBackupManager,
-	private val syncRepository: GoogleDriveSyncRepository,
-	private val syncScheduler: SyncWorker.Scheduler,
+	private val syncFeature: SyncFeature,
 ) : BaseViewModel() {
 
 	val selectedTheme = MutableStateFlow(settings.theme)
@@ -96,7 +94,7 @@ class WelcomeViewModel @Inject constructor(
 
 	fun launchGoogleSignIn() {
 		launchLoadingJob(Dispatchers.Default) {
-			runCatchingCancellable { syncRepository.beginSignIn() }
+			runCatchingCancellable { syncFeature.beginSignIn() }
 				.onSuccess { consent -> if (consent != null) onGoogleSignInLaunch.call(consent) else onGoogleSignedIn() }
 				.onFailure { onGoogleSignInCompleted.call(false) }
 		}
@@ -104,7 +102,7 @@ class WelcomeViewModel @Inject constructor(
 
 	fun handleGoogleSignInResult(data: Intent?) {
 		launchLoadingJob(Dispatchers.Default) {
-			if (runCatchingCancellable { syncRepository.finishSignIn(data) }.isSuccess) {
+			if (runCatchingCancellable { syncFeature.finishSignIn(data) }.isSuccess) {
 				onGoogleSignedIn()
 			} else {
 				onGoogleSignInCompleted.call(false)
@@ -113,8 +111,7 @@ class WelcomeViewModel @Inject constructor(
 	}
 
 	private suspend fun onGoogleSignedIn() {
-		syncScheduler.schedule()
-		syncScheduler.syncSoon() // bring the library over now, not at the next periodic run
+		syncFeature.onSignedIn()
 		onGoogleSignInCompleted.call(true)
 	}
 

@@ -1,0 +1,40 @@
+AntiFeatures:
+  NonFreeNet:
+    en-US: Reads comics and novels from third-party websites through extensions the
+      user adds, and optionally shows reading status on Discord.
+Categories:
+  - Ebook Reader
+  - Reading
+License: GPL-3.0-or-later
+AuthorName: Huzaifa Khalid
+SourceCode: https://github.com/HuzaifaKhalid1311/DropSauce
+IssueTracker: https://github.com/HuzaifaKhalid1311/DropSauce/issues
+Changelog: https://github.com/HuzaifaKhalid1311/DropSauce/blob/HEAD/CHANGELOG.md
+
+AutoName: DropSauce
+
+RepoType: git
+Repo: https://github.com/HuzaifaKhalid1311/DropSauce.git
+
+Builds:
+  - versionName: 1.1.3
+    versionCode: 81
+    commit: v1.1.3
+    subdir: app
+    submodules: true
+    gradle:
+      - fdroid
+    scandelete:
+      - app/src/main/cpp/libjxl/testdata
+      - app/src/main/cpp/libjxl/tools/scripts/*.zip
+      - app/src/main/cpp/libjxl/third_party/brotli/tests
+      - app/src/main/cpp/libjxl/third_party/brotli/java
+      - app/src/main/cpp/libjxl/third_party/brotli/js
+      - app/src/main/cpp/libjxl/third_party/lcms/testbed
+      - app/src/main/cpp/libjxl/third_party/lcms/utils
+    ndk: r28c
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9.]+$
+CurrentVersion: 1.1.3
+CurrentVersionCode: 81

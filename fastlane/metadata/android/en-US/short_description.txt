@@ -1,0 +1,1 @@
+Comic and novel reader with Mihon extension and LNReader plugin support

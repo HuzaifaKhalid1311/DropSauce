@@ -28,6 +28,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Fetch libjxl source
+        run: |
+          git submodule update --init --depth 1 app/src/main/cpp/libjxl
+          git -C app/src/main/cpp/libjxl submodule update --init --depth 1 \
+            third_party/highway third_party/brotli third_party/skcms
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -39,15 +45,15 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build preview APK
-        run: ./gradlew :app:assemblePreview --no-daemon --stacktrace
+        run: ./gradlew :app:assembleGithubPreview --no-daemon --stacktrace
 
       - name: Collect APK and compute checksums
         id: apk
         run: |
           set -euo pipefail
-          APK=$(find app/build/outputs/apk/preview -name '*.apk' | head -n1)
+          APK=$(find app/build/outputs/apk/github/preview -name '*.apk' | head -n1)
           if [ -z "$APK" ]; then
-            echo "::error::No preview APK found under app/build/outputs/apk/preview"
+            echo "::error::No preview APK found under app/build/outputs/apk/github/preview"
             exit 1
           fi
           SHORT_SHA=$(git rev-parse --short HEAD)

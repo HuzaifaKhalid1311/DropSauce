@@ -37,6 +37,7 @@ import org.koitharu.kotatsu.kotatsumigration.ui.showExtensionInstallPromptDialog
 import org.koitharu.kotatsu.kotatsumigration.ui.showKotatsuMigrationCompleteDialog
 import org.koitharu.kotatsu.main.ui.MainActivity
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.sync.SyncFeature
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -176,7 +177,7 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
                         onPermissionInstall = ::requestInstallPermission,
                         onPermissionNotifications = ::requestNotificationsPermission,
                         onPermissionBattery = ::requestBatteryOptimizationPermission,
-                        onSignInGoogle = { viewModel.launchGoogleSignIn() },
+                        onSignInGoogle = if (SyncFeature.IS_AVAILABLE) viewModel::launchGoogleSignIn else null,
                         onRestoreDropSauce = {
                             restoreDropSauceLauncher.launch(arrayOf("application/*", "*/*"))
                         },

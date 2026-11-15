@@ -18,6 +18,14 @@ android {
 		}
 	}
 	namespace = 'org.koitharu.kotatsu'
+	// JPEG XL decoder (src/main/cpp). The NDK must match `ndk:` in fdroid/org.haziffe.dropsauce.yml.
+	ndkVersion = '28.2.13676358'
+	externalNativeBuild {
+		cmake {
+			path = file('src/main/cpp/CMakeLists.txt')
+			version = '3.31.6'
+		}
+	}
 
 	defaultConfig {
 		applicationId = 'org.haziffe.dropsauce'
@@ -28,6 +36,12 @@ android {
 		testInstrumentationRunner = 'org.koitharu.kotatsu.HiltTestRunner'
 		ksp {
 			arg('room.generateKotlin', 'true')
+		}
+		externalNativeBuild {
+			cmake {
+				// Optimized for size even in debug builds (a debug libjxl decodes far too slowly).
+				arguments '-DCMAKE_BUILD_TYPE=MinSizeRel'
+			}
 		}
 		androidResources {
 			// https://issuetracker.google.com/issues/408030127
@@ -62,6 +76,18 @@ android {
 			applicationIdSuffix = '.preview'
 			matchingFallbacks = ['release']
 			signingConfig = signingConfigs.findByName('release') ?: signingConfigs.debug
+		}
+	}
+	// Two versions of the same app (same id and signature, so one can update over the other):
+	// "github" has Google Drive sync, "fdroid" has no Google Play Services code at all (src/github vs src/fdroid).
+	flavorDimensions = ['store']
+	productFlavors {
+		github {
+			dimension = 'store'
+			isDefault = true
+		}
+		fdroid {
+			dimension = 'store'
 		}
 	}
 	buildFeatures {
@@ -130,9 +156,14 @@ android {
 			'ClickableViewAccessibility',
 			'SetTextI18n',
 			'NotifyDataSetChanged',
-			// Play SDK Index policy notes on play-services-auth.
+			// Play SDK Index policy notes on play-services-auth (GitHub version only).
 			// Irrelevant for GitHub distribution; not published to the Play Store.
 			'PlaySdkIndexNonCompliant'
+	}
+	// F-Droid rejects APKs carrying this block (dependency list encrypted for Google Play).
+	dependenciesInfo {
+		includeInApk = false
+		includeInBundle = false
 	}
 }
 
@@ -203,7 +234,8 @@ dependencies {
 	implementation libs.androidx.room.ktx
 	ksp libs.androidx.room.compiler
 
-	implementation libs.play.services.auth
+	// Google Drive sign-in; the F-Droid version has no Drive sync and no Play Services.
+	githubImplementation libs.play.services.auth
 
 	implementation libs.okhttp
 	implementation libs.okhttp.brotli
@@ -213,7 +245,8 @@ dependencies {
 	implementation libs.okio
 	implementation libs.rxjava
 	implementation libs.quickJs
-	implementation libs.junrar
+	// Real RAR (.cbr) import; non-free license, so not in the F-Droid version.
+	githubImplementation libs.junrar
 	implementation libs.unifile
 	implementation libs.injekt.core
 	// Extension APKs link against Mihon's Jsoup surface; keep it explicit and version-aligned
@@ -265,3 +298,8 @@ dependencies {
 	androidTestImplementation libs.hilt.android.testing
 	kspAndroidTest libs.hilt.android.compiler
 }
+
+// With two versions Gradle names tasks installGithubDebug etc.; keep the usual short names working
+// for the GitHub version (the one used day to day).
+tasks.register('installDebug') { dependsOn 'installGithubDebug' }
+tasks.register('installPreview') { dependsOn 'installGithubPreview' }

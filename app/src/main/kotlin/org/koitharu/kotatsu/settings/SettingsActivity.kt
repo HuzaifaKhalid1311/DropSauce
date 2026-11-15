@@ -45,7 +45,7 @@ import org.koitharu.kotatsu.settings.search.SettingsSearchViewModel
 import org.koitharu.kotatsu.settings.sources.ExtensionsSettingsFragment
 import org.koitharu.kotatsu.settings.sources.SourceSettingsFragment
 import org.koitharu.kotatsu.settings.tracker.TrackerSettingsFragment
-import org.koitharu.kotatsu.sync.ui.SyncSettingsFragment
+import org.koitharu.kotatsu.sync.SyncFeature
 
 @AndroidEntryPoint
 class SettingsActivity :
@@ -180,7 +180,7 @@ class SettingsActivity :
 			AppRouter.ACTION_READER -> ReaderSettingsFragment()
 			AppRouter.ACTION_SUGGESTIONS -> SuggestionsSettingsFragment()
 			AppRouter.ACTION_TRACKER -> TrackerSettingsFragment()
-			AppRouter.ACTION_SYNC -> SyncSettingsFragment()
+			AppRouter.ACTION_SYNC -> SyncFeature.createSettingsFragment()
 			AppRouter.ACTION_SOURCES -> ExtensionsSettingsFragment()
 			AppRouter.ACTION_MANAGE_DISCORD -> DiscordSettingsFragment()
 			AppRouter.ACTION_PROXY -> ProxySettingsFragment()

@@ -8,7 +8,6 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import androidx.documentfile.provider.DocumentFile
-import com.github.junrar.Archive
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +34,6 @@ import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.io.IOException
 import java.util.Locale
-import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.math.roundToInt
@@ -141,20 +139,7 @@ class SingleMangaImporter @Inject constructor(
 				}
 				return cbz
 			}
-			Archive(this).use { rar ->
-				ZipOutputStream(cbz.outputStream().buffered()).use { zip ->
-					// Pages are already compressed images, deflating them again only costs time
-					zip.setLevel(Deflater.NO_COMPRESSION)
-					for (header in rar) {
-						if (header.isDirectory) {
-							continue
-						}
-						zip.putNextEntry(ZipEntry(header.fileName.replace('\\', '/')))
-						rar.extractFile(header, zip)
-						zip.closeEntry()
-					}
-				}
-			}
+			repackRar(this, cbz) // real RAR: GitHub version only (src/github, src/fdroid)
 			return cbz
 		} catch (e: Exception) {
 			cbz.delete()

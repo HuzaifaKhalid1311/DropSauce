@@ -93,7 +93,7 @@ data class OnboardingActions(
     val onPermissionInstall: () -> Unit,
     val onPermissionNotifications: () -> Unit,
     val onPermissionBattery: () -> Unit,
-    val onSignInGoogle: () -> Unit,
+    val onSignInGoogle: (() -> Unit)?, // null: no Google Drive sync (F-Droid version)
     val onRestoreDropSauce: () -> Unit,
     val onRestoreTachiyomi: () -> Unit,
     val onOpenGithub: () -> Unit,
@@ -175,7 +175,7 @@ fun OnboardingScreen(
             val titleRes = when (pageIndex) {
                 0 -> R.string.welcome
                 1 -> R.string.onboarding_storage_permissions_title
-                2 -> R.string.onboarding_sync_title
+                2 -> if (actions.onSignInGoogle != null) R.string.onboarding_sync_title else R.string.backup_restore
                 else -> R.string.onboarding_finish_title
             }
             Column(
@@ -583,16 +583,21 @@ private fun SyncSlide(isLoading: Boolean, actions: OnboardingActions) {
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        val onSignInGoogle = actions.onSignInGoogle
         Text(
-            text = stringResource(R.string.onboarding_sync_description),
+            text = stringResource(
+                if (onSignInGoogle != null) R.string.onboarding_sync_description else R.string.onboarding_restore_description,
+            ),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        ActionCard(
-            items = listOf(
-                ActionItem(R.drawable.ic_google_g, R.string.sync_sign_in, !isLoading, actions.onSignInGoogle),
-            ),
-        )
+        if (onSignInGoogle != null) {
+            ActionCard(
+                items = listOf(
+                    ActionItem(R.drawable.ic_google_g, R.string.sync_sign_in, !isLoading, onSignInGoogle),
+                ),
+            )
+        }
         ActionCard(
             items = listOf(
                 ActionItem(R.drawable.ic_backup_restore, R.string.onboarding_restore_dropsauce, !isLoading, actions.onRestoreDropSauce),

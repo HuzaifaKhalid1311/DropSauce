@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+This is a small update you can skip: it is mainly there to get the app onto F-Droid, with some small UI changes.
+
 ### Improved
 - Redesigned the display options menu and the reader options menu for manga and novels
 - Two page layout options moved to settings > reader, and now on by default
