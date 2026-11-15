@@ -18,6 +18,9 @@ abstract class PreferencesDao {
 	@Query("SELECT * FROM preferences WHERE title_override IS NOT NULL OR cover_override IS NOT NULL OR description_override IS NOT NULL OR content_rating_override IS NOT NULL OR merge_scanlators = 1 OR merged_scanlators IS NOT NULL")
 	abstract suspend fun getOverrides(): List<MangaPrefsEntity>
 
+	@Query("SELECT * FROM preferences")
+	abstract suspend fun findAll(): List<MangaPrefsEntity>
+
 	@Query("UPDATE preferences SET cf_brightness = 0, cf_contrast = 0, cf_invert = 0, cf_grayscale = 0")
 	abstract suspend fun resetColorFilters()
 

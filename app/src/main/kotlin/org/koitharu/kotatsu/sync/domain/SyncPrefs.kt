@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import org.koitharu.kotatsu.backup.local.data.model.BackupPrimitive
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRecord
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistry
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistryState
@@ -47,13 +48,8 @@ class SyncPrefs @Inject constructor(
 
 	private fun isTracked(name: String): Boolean = name == appFile ||
 		name == TAP_GRID ||
-		name == SOURCE_STATE || // pinned sources
-		name == SOURCE_USAGE ||
 		name == SyncedStores.FILE ||
-		SOURCE_FILE.matches(name) ||
-		name.startsWith("MIHON_") || // legacy source settings and saved filters
-		name.startsWith("LN_") || // novel source saved filters
-		LN_PLUGIN_FILE.matches(name) // novel plugin settings; its local/session storage is a per-device cache
+		SourceSettings.isSourcePrefsFile(name)
 
 	private fun wireName(local: String) = if (local == appFile) APP else local
 
@@ -204,10 +200,6 @@ class SyncPrefs @Inject constructor(
 		private const val TAG = "GDriveSync"
 		private const val APP = "app"
 		private const val TAP_GRID = "tap_grid"
-		private const val SOURCE_STATE = "source_state"
-		private const val SOURCE_USAGE = "source_usage"
-		private val SOURCE_FILE = Regex("source_\\d+")
-		private val LN_PLUGIN_FILE = Regex("ln_.+_db")
 
 		internal fun hash(value: BackupPrimitive): Long {
 			val canonical = when (value) {

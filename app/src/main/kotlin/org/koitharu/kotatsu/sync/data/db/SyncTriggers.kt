@@ -107,7 +107,7 @@ object SyncTriggers {
 			val newKey = (t.contentKey ?: t.initialKey)?.replace("%", "NEW") ?: "NULL"
 			val keyUpdate = t.contentKey?.let { ", sync_key = ${it.replace("%", "NEW")}" }.orEmpty()
 			val bump = """
-				INSERT OR IGNORE INTO sync_rows (tbl, pk, v, deleted, sync_key) VALUES ('${t.table}', $newPk, 0, 0, $newKey);
+				${insertMissing(t.table, newPk, 0, newKey)}
 				UPDATE sync_rows SET v = MAX($NOW, v + 1), deleted = 0$keyUpdate WHERE tbl = '${t.table}' AND pk = $newPk;
 			""".trimIndent()
 			val changed = t.columns.joinToString(" OR ") { "NEW.$it IS NOT OLD.$it" }
@@ -115,7 +115,7 @@ object SyncTriggers {
 			db.execSQL("CREATE TRIGGER IF NOT EXISTS sync_${t.table}_upd AFTER UPDATE ON ${t.table} WHEN $changed BEGIN $bump END")
 			val oldKey = (t.contentKey ?: t.initialKey)?.replace("%", "OLD") ?: "NULL"
 			val tombstone = """
-				INSERT OR IGNORE INTO sync_rows (tbl, pk, v, deleted, sync_key) VALUES ('${t.table}', $oldPk, 0, 1, $oldKey);
+				${insertMissing(t.table, oldPk, 1, oldKey)}
 				UPDATE sync_rows SET v = MAX($NOW, v + 1), deleted = 1 WHERE tbl = '${t.table}' AND pk = $oldPk;
 			""".trimIndent()
 			if (t.isSoftDelete) {
@@ -134,6 +134,14 @@ object SyncTriggers {
 			}
 		}
 	}
+
+	/**
+	 * Not `INSERT OR IGNORE`: SQLite replaces a trigger statement's conflict clause with the one of the statement
+	 * that fired it, so a Room `@Insert`/`@Upsert` (OR ABORT) re-adding a row that left a tombstone failed.
+	 */
+	private fun insertMissing(table: String, pk: String, deleted: Int, key: String) =
+		"INSERT INTO sync_rows (tbl, pk, v, deleted, sync_key) SELECT '$table', $pk, 0, $deleted, $key " +
+			"WHERE NOT EXISTS (SELECT 1 FROM sync_rows WHERE tbl = '$table' AND pk = $pk);"
 
 	/** Seeds versions for rows that existed before change tracking, from their own timestamps. */
 	fun backfill(db: SupportSQLiteDatabase) {

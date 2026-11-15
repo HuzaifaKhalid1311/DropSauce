@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.bookmarks.data.BookmarkEntity
 import org.koitharu.kotatsu.core.db.entity.ChapterEntity
 import org.koitharu.kotatsu.core.db.entity.MangaEntity
-import org.koitharu.kotatsu.core.db.entity.MangaSourceEntity
 import org.koitharu.kotatsu.core.db.entity.MangaWithTags
 import org.koitharu.kotatsu.core.db.entity.TagEntity
 import org.koitharu.kotatsu.favourites.data.FavouriteCategoryEntity
@@ -391,40 +390,6 @@ class ScrobblingBackup(
 }
 
 @Serializable
-class SourceBackup(
-	@SerialName("source") val source: String,
-	@SerialName("sort_key") val sortKey: Int,
-	@SerialName("used_at") val lastUsedAt: Long,
-	@SerialName("added_in") val addedIn: Int,
-	@SerialName("pinned") val isPinned: Boolean = false,
-	@SerialName("enabled") val isEnabled: Boolean = true,
-	@SerialName("title") val title: String? = null,
-) {
-
-	constructor(entity: MangaSourceEntity) : this(
-		source = entity.source,
-		sortKey = entity.sortKey,
-		lastUsedAt = entity.lastUsedAt,
-		addedIn = entity.addedIn,
-		isPinned = entity.isPinned,
-		isEnabled = entity.isEnabled,
-		title = entity.title,
-	)
-
-	fun toEntity() = MangaSourceEntity(
-		source = source,
-		isEnabled = isEnabled,
-		sortKey = sortKey,
-		addedIn = addedIn,
-		lastUsedAt = lastUsedAt,
-		isPinned = isPinned,
-		cfState = 0,
-		title = title,
-	)
-}
-
-/** New-chapters feed: tracked state per manga plus the visible feed entries. */
-@Serializable
 class FeedBackup(
 	@SerialName("tracks") val tracks: List<TrackBackup> = emptyList(),
 	@SerialName("logs") val logs: List<FeedLogBackup> = emptyList(),
@@ -560,8 +525,10 @@ class MangaPrefsDataBackup(
 
 @Serializable
 class SourceSettingsBackup(
+	/** Older backups: a source name, mapped to its file by SourceSettings.getStorageName. Newer ones: the file name. */
 	@SerialName("source") val source: String,
 	@SerialName("values") val values: Map<String, BackupPrimitive>,
+	@SerialName("file") val file: String? = null,
 )
 
 @Serializable

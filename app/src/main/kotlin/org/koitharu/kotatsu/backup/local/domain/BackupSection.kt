@@ -17,7 +17,6 @@ enum class BackupSection(
 	BOOKMARKS("bookmarks", R.string.bookmarks),
 	SETTINGS("settings", R.string.settings),
 	SETTINGS_READER_GRID("reader_grid", R.string.reader_actions),
-	SOURCES("sources", R.string.remote_sources),
 	SOURCE_SETTINGS("source_settings", R.string.backup_include_source_settings),
 	SCROBBLING("scrobbling", R.string.tracking),
 	STATS("statistics", R.string.reading_stats),

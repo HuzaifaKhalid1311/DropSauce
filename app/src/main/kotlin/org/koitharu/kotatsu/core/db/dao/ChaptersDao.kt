@@ -13,6 +13,10 @@ abstract class ChaptersDao {
 	@Query("SELECT * FROM chapters WHERE manga_id = :mangaId ORDER BY `index` ASC")
 	abstract suspend fun findAll(mangaId: Long): List<ChapterEntity>
 
+	// The table caches every opened manga; only history and favourites are worth a backup
+	@Query("SELECT DISTINCT manga_id FROM chapters WHERE manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0 UNION SELECT manga_id FROM favourites WHERE deleted_at = 0)")
+	abstract suspend fun findLibraryMangaIds(): List<Long>
+
 	@Query("SELECT COUNT(*) FROM chapters WHERE manga_id = :mangaId")
 	abstract suspend fun count(mangaId: Long): Int
 

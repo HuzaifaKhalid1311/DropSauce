@@ -85,19 +85,22 @@ class RestoreViewModel @Inject constructor(
 		}
 
 	/**
-	 * Favorites and bookmarks require category records — keep the dependency consistent.
+	 * Favourites need their categories and reading stats need their history: a section is only
+	 * selectable while the one it depends on is checked.
 	 */
 	private fun MutableMap<BackupSection, BackupSectionModel>.validate() {
-		val favorites = this[BackupSection.FAVOURITES] ?: return
-		val categories = this[BackupSection.CATEGORIES]
-		if (categories?.isChecked == true) {
-			if (!favorites.isEnabled) {
-				this[BackupSection.FAVOURITES] = favorites.copy(isEnabled = true)
+		requires(BackupSection.FAVOURITES, BackupSection.CATEGORIES)
+		requires(BackupSection.STATS, BackupSection.HISTORY)
+	}
+
+	private fun MutableMap<BackupSection, BackupSectionModel>.requires(section: BackupSection, dependency: BackupSection) {
+		val model = this[section] ?: return
+		if (this[dependency]?.isChecked == true) {
+			if (!model.isEnabled) {
+				this[section] = model.copy(isEnabled = true)
 			}
-		} else {
-			if (favorites.isEnabled) {
-				this[BackupSection.FAVOURITES] = favorites.copy(isEnabled = false, isChecked = false)
-			}
+		} else if (model.isEnabled) {
+			this[section] = model.copy(isEnabled = false, isChecked = false)
 		}
 	}
 

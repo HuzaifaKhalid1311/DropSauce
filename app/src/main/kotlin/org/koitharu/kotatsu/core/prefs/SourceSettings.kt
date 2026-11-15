@@ -97,6 +97,20 @@ class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig 
 			}
 		}.isSuccess
 
+		private val SOURCE_FILE = Regex("source_\\d+")
+		private val LN_PLUGIN_FILE = Regex("ln_.+_db")
+
+		/**
+		 * SharedPreferences files with source-level state: per-source settings, saved filters, pinned and
+		 * recently used sources, novel plugin settings (its local/session storage is a per-device cache).
+		 */
+		fun isSourcePrefsFile(name: String): Boolean = name == "source_state" ||
+			name == "source_usage" ||
+			SOURCE_FILE.matches(name) ||
+			name.startsWith("MIHON_") || // legacy source settings and saved filters
+			name.startsWith("LN_") || // novel source saved filters
+			LN_PLUGIN_FILE.matches(name)
+
 		fun getStorageName(sourceName: String): String {
 			val sourceId = sourceName
 				.takeIf { it.startsWith("MIHON_") }

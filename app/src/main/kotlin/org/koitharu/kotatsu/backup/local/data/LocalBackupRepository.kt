@@ -36,7 +36,6 @@ import org.koitharu.kotatsu.backup.local.data.model.MangaPrefsBackup
 import org.koitharu.kotatsu.backup.local.data.model.MangaPrefsDataBackup
 import org.koitharu.kotatsu.backup.local.data.model.MangaWithChaptersBackup
 import org.koitharu.kotatsu.backup.local.data.model.ScrobblingBackup
-import org.koitharu.kotatsu.backup.local.data.model.SourceBackup
 import org.koitharu.kotatsu.backup.local.data.model.SourceSettingsBackup
 import org.koitharu.kotatsu.backup.local.data.model.StatsBackup
 import org.koitharu.kotatsu.backup.local.data.model.TrackBackup
@@ -51,6 +50,7 @@ import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.reader.data.TapGridSettings
 import org.koitharu.kotatsu.sync.data.db.SyncTriggers
 import org.koitharu.kotatsu.sync.data.model.FeedKeys
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.ZipEntry
@@ -134,12 +134,6 @@ class LocalBackupRepository @Inject constructor(
 					serializer = serializer(),
 				)
 
-				BackupSection.SOURCES -> output.writeJsonArray(
-					section = BackupSection.SOURCES,
-					data = database.getSourcesDao().dumpEnabled().map(::SourceBackup),
-					serializer = serializer(),
-				)
-
 				BackupSection.SOURCE_SETTINGS -> output.writeJsonArray(
 					section = BackupSection.SOURCE_SETTINGS,
 					data = dumpSourceSettings().asFlow(),
@@ -194,60 +188,59 @@ class LocalBackupRepository @Inject constructor(
 		while (entry != null) {
 			val section = BackupSection.of(entry)
 			if (section in sections) {
-				result += when (section) {
-					BackupSection.INDEX -> CompositeResult.EMPTY
+				// A broken section (unreadable record, bad JSON) costs only itself, never the sections after it
+				result += runCatchingCancellable {
+					when (section) {
+						BackupSection.INDEX -> CompositeResult.EMPTY
 
-					BackupSection.HISTORY -> input.readJsonArray<HistoryBackup>(serializer()).restoreToDb {
-						upsertMangaBackup(it.manga)
-						getHistoryDao().upsert(it.toEntity())
-					}
-
-					BackupSection.CATEGORIES -> input.readJsonArray<CategoryBackup>(serializer()).restoreToDb {
-						getFavouriteCategoriesDao().upsert(it.toEntity())
-						it.uid?.let { uid -> getSyncDao().setKey(SyncTriggers.CATEGORIES, it.categoryId.toString(), uid) }
-					}
-
-					BackupSection.FAVOURITES -> input.readJsonArray<FavouriteBackup>(serializer()).restoreToDb {
-						upsertMangaBackup(it.manga)
-						getFavouritesDao().upsert(it.toEntity())
-					}
-
-					BackupSection.BOOKMARKS -> input.readJsonArray<BookmarkBackup>(serializer()).restoreToDb {
-						upsertMangaBackup(it.manga)
-						if (it.bookmarks.isNotEmpty()) {
-							getBookmarksDao().upsert(it.bookmarks.map { b -> b.toEntity() })
-						}
-					}
-
-					BackupSection.SETTINGS -> restoreAppSettings(input)
-					BackupSection.SETTINGS_READER_GRID -> restoreReaderGridSettings(input)
-
-					BackupSection.SOURCES -> input.readJsonArray<SourceBackup>(serializer()).restoreToDb {
-						getSourcesDao().upsert(it.toEntity())
-					}
-
-					BackupSection.SOURCE_SETTINGS -> restoreSourceSettings(input)
-
-					BackupSection.SCROBBLING -> input.readJsonArray<ScrobblingBackup>(serializer()).restoreToDb {
-						getScrobblingDao().upsert(it.toEntity())
-					}
-
-					BackupSection.STATS -> input.readJsonArray<StatsBackup>(serializer()).restoreToDb {
-						getStatsDao().upsert(it.toEntity())
-					}
-
-					BackupSection.CHAPTERS -> input.readJsonArray<MangaWithChaptersBackup>(serializer())
-						.restoreToDb {
+						BackupSection.HISTORY -> input.readJsonArray<HistoryBackup>(serializer()).restoreToDb {
 							upsertMangaBackup(it.manga)
-							getChaptersDao().replaceAll(it.manga.id, it.chapters.map { c -> c.toEntity() })
+							getHistoryDao().upsert(it.toEntity())
 						}
 
-					BackupSection.FEED -> restoreFeed(input)
+						BackupSection.CATEGORIES -> input.readJsonArray<CategoryBackup>(serializer()).restoreToDb {
+							getFavouriteCategoriesDao().upsert(it.toEntity())
+							it.uid?.let { uid -> getSyncDao().setKey(SyncTriggers.CATEGORIES, it.categoryId.toString(), uid) }
+						}
 
-					BackupSection.MANGA_PREFS -> restoreMangaPrefs(input)
+						BackupSection.FAVOURITES -> input.readJsonArray<FavouriteBackup>(serializer()).restoreToDb {
+							upsertMangaBackup(it.manga)
+							getFavouritesDao().upsert(it.toEntity())
+						}
 
-					null -> CompositeResult.EMPTY
-				}
+						BackupSection.BOOKMARKS -> input.readJsonArray<BookmarkBackup>(serializer()).restoreToDb {
+							upsertMangaBackup(it.manga)
+							if (it.bookmarks.isNotEmpty()) {
+								getBookmarksDao().upsert(it.bookmarks.map { b -> b.toEntity() })
+							}
+						}
+
+						BackupSection.SETTINGS -> restoreAppSettings(input)
+						BackupSection.SETTINGS_READER_GRID -> restoreReaderGridSettings(input)
+
+						BackupSection.SOURCE_SETTINGS -> restoreSourceSettings(input)
+
+						BackupSection.SCROBBLING -> input.readJsonArray<ScrobblingBackup>(serializer()).restoreToDb {
+							getScrobblingDao().upsert(it.toEntity())
+						}
+
+						BackupSection.STATS -> input.readJsonArray<StatsBackup>(serializer()).restoreToDb {
+							getStatsDao().upsert(it.toEntity())
+						}
+
+						BackupSection.CHAPTERS -> input.readJsonArray<MangaWithChaptersBackup>(serializer())
+							.restoreToDb {
+								upsertMangaBackup(it.manga)
+								getChaptersDao().replaceAll(it.manga.id, it.chapters.map { c -> c.toEntity() })
+							}
+
+						BackupSection.FEED -> restoreFeed(input)
+
+						BackupSection.MANGA_PREFS -> restoreMangaPrefs(input)
+
+						null -> CompositeResult.EMPTY
+					}
+				}.getOrElse { CompositeResult.EMPTY + Result.failure<Unit>(it) }
 				progress?.emit(commonProgress)
 				commonProgress++
 			}
@@ -307,7 +300,8 @@ class LocalBackupRepository @Inject constructor(
 
 	private fun dumpAppSettings(): Map<String, BackupPrimitive> {
 		val map = settings.getAllValues().toMutableMap()
-		AppSettings.SENSITIVE_BACKUP_KEYS.forEach { map.remove(it) }
+		map.keys.removeAll(AppSettings.SENSITIVE_BACKUP_KEYS)
+		map.keys.removeAll(AppSettings.BACKUP_LOCAL_KEYS)
 		return map.mapNotNullToBackupValues()
 	}
 
@@ -315,40 +309,28 @@ class LocalBackupRepository @Inject constructor(
 		return tapGridSettings.getAllValues().mapNotNullToBackupValues()
 	}
 
-	private suspend fun dumpSourceSettings(): List<SourceSettingsBackup> {
-		val sources = database.getSourcesDao().findAll()
-		val result = ArrayList<SourceSettingsBackup>(sources.size)
-		for (source in sources) {
-			val prefsName = SourceSettings.getStorageName(source.source)
-			val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-			val map = prefs.all.mapNotNullToBackupValues()
-			if (map.isNotEmpty()) {
-				result += SourceSettingsBackup(source = source.source, values = map)
-			}
+	private fun dumpSourceSettings(): List<SourceSettingsBackup> {
+		val files = File(context.applicationInfo.dataDir, "shared_prefs").list().orEmpty()
+			.map { it.removeSuffix(".xml") }
+			.filter { SourceSettings.isSourcePrefsFile(it) }
+			.sorted()
+		return files.mapNotNull { file ->
+			val map = context.getSharedPreferences(file, Context.MODE_PRIVATE).all.mapNotNullToBackupValues()
+			if (map.isEmpty()) null else SourceSettingsBackup(source = file, values = map, file = file)
 		}
-		return result
 	}
 
-	private suspend fun dumpMangaChapters(): Flow<MangaWithChaptersBackup> {
-		val dao = database.getMangaDao()
+	private fun dumpMangaChapters(): Flow<MangaWithChaptersBackup> = flow {
+		val mangaDao = database.getMangaDao()
 		val chaptersDao = database.getChaptersDao()
-		val sources = database.getSourcesDao().findAll().map { it.source }
-		val seen = HashSet<Long>()
-		return kotlinx.coroutines.flow.flow {
-			for (source in sources) {
-				val items = dao.findAllBySource(source)
-				for (item in items) {
-					if (!seen.add(item.manga.id)) continue
-					val chapters = chaptersDao.findAll(item.manga.id)
-					if (chapters.isEmpty()) continue
-					emit(
-						MangaWithChaptersBackup(
-							manga = MangaBackup(item),
-							chapters = chapters.map(::ChapterBackup),
-						),
-					)
-				}
-			}
+		for (mangaId in chaptersDao.findLibraryMangaIds()) {
+			val manga = mangaDao.find(mangaId) ?: continue
+			emit(
+				MangaWithChaptersBackup(
+					manga = MangaBackup(manga),
+					chapters = chaptersDao.findAll(mangaId).map(::ChapterBackup),
+				),
+			)
 		}
 	}
 
@@ -368,7 +350,7 @@ class LocalBackupRepository @Inject constructor(
 
 	private fun dumpMangaPrefs(): Flow<MangaPrefsBackup> = flow {
 		val mangaDao = database.getMangaDao()
-		for (entity in database.getPreferencesDao().getOverrides()) {
+		for (entity in database.getPreferencesDao().findAll()) {
 			val manga = mangaDao.find(entity.mangaId) ?: continue
 			val cover = coverCodec.read(entity.coverUrlOverride)
 			emit(
@@ -408,31 +390,27 @@ class LocalBackupRepository @Inject constructor(
 		}.let { CompositeResult.EMPTY + it }
 	}
 
-	private suspend fun restoreMangaPrefs(input: InputStream): CompositeResult {
-		val items = input.readJsonArray<MangaPrefsBackup>(serializer()).toList()
-		return items.fold(CompositeResult.EMPTY) { acc, item ->
-			acc + runCatchingCancellable {
-				val prefs = item.prefs
-				val currentCover = database.getPreferencesDao().find(prefs.mangaId)?.coverUrlOverride
-				val resolvedCover = when {
-					prefs.coverData != null -> coverCodec.materialize(
-						mangaId = prefs.mangaId,
-						coverData = prefs.coverData,
-						coverFileExtension = prefs.coverFileExtension,
-						previousUrl = currentCover,
-					) ?: currentCover
+	private suspend fun restoreMangaPrefs(input: InputStream): CompositeResult =
+		input.readJsonArray<MangaPrefsBackup>(serializer()).restoreEach { item ->
+			val prefs = item.prefs
+			val currentCover = database.getPreferencesDao().find(prefs.mangaId)?.coverUrlOverride
+			val resolvedCover = when {
+				prefs.coverData != null -> coverCodec.materialize(
+					mangaId = prefs.mangaId,
+					coverData = prefs.coverData,
+					coverFileExtension = prefs.coverFileExtension,
+					previousUrl = currentCover,
+				) ?: currentCover
 
-					// A local file path from another device is unusable here — keep what we have.
-					coverCodec.isPortableCoverUrl(prefs.coverUrlOverride) -> prefs.coverUrlOverride
-					else -> currentCover
-				}
-				database.withTransaction {
-					database.upsertMangaBackup(item.manga)
-					database.getPreferencesDao().upsert(prefs.toEntity(resolvedCover))
-				}
+				// A local file path from another device is unusable here — keep what we have.
+				coverCodec.isPortableCoverUrl(prefs.coverUrlOverride) -> prefs.coverUrlOverride
+				else -> currentCover
+			}
+			database.withTransaction {
+				database.upsertMangaBackup(item.manga)
+				database.getPreferencesDao().upsert(prefs.toEntity(resolvedCover))
 			}
 		}
-	}
 
 	// The built-in "Read later" category is pre-populated on DB creation and dumped into every
 	// backup (even when empty), so a restore always brings it back. An empty read-later carries no
@@ -458,10 +436,19 @@ class LocalBackupRepository @Inject constructor(
 
 	private suspend inline fun <T> Sequence<T>.restoreToDb(
 		crossinline block: suspend MangaDatabase.(T) -> Unit,
-	): CompositeResult = fold(CompositeResult.EMPTY) { acc, item ->
-		acc + runCatchingCancellable {
-			database.withTransaction { database.block(item) }
+	): CompositeResult = restoreEach { item -> database.withTransaction { database.block(item) } }
+
+	private suspend inline fun <T> Sequence<T>.restoreEach(
+		crossinline block: suspend (T) -> Unit,
+	): CompositeResult {
+		var acc = CompositeResult.EMPTY
+		// Records are decoded one by one: a record that can't be read ends this section, keeping what came before it
+		val decoded = runCatchingCancellable {
+			for (item in this) {
+				acc += runCatchingCancellable { block(item) }
+			}
 		}
+		return acc + decoded
 	}
 
 	private fun restoreAppSettings(input: InputStream): CompositeResult {
@@ -470,7 +457,9 @@ class LocalBackupRepository @Inject constructor(
 				.toMutableMap()
 			// Older backups may still carry app-lock state or per-install onboarding ids; drop them
 			// on restore so a backup never brings an app lock or the welcome screen to this device.
-			AppSettings.SENSITIVE_BACKUP_KEYS.forEach { map.remove(it) }
+			// Device-bound keys (folders, installers) from older backups would point at nothing here.
+			map.keys.removeAll(AppSettings.SENSITIVE_BACKUP_KEYS)
+			map.keys.removeAll(AppSettings.BACKUP_LOCAL_KEYS)
 			settings.upsertAll(map.toRawMap())
 		}.let { CompositeResult.EMPTY + it }
 	}
@@ -482,27 +471,24 @@ class LocalBackupRepository @Inject constructor(
 		}.let { CompositeResult.EMPTY + it }
 	}
 
-	private fun restoreSourceSettings(input: InputStream): CompositeResult {
-		val list = input.readJsonArray<SourceSettingsBackup>(serializer()).toList()
-		return list.fold(CompositeResult.EMPTY) { acc, entry ->
-			acc + runCatchingCancellable {
-				val prefsName = SourceSettings.getStorageName(entry.source)
-				val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-				prefs.edit {
-					entry.values.forEach { (key, primitive) ->
-						when (primitive) {
-							is BackupPrimitive.StringValue -> putString(key, primitive.value)
-							is BackupPrimitive.BoolValue -> putBoolean(key, primitive.value)
-							is BackupPrimitive.IntValue -> putInt(key, primitive.value)
-							is BackupPrimitive.LongValue -> putLong(key, primitive.value)
-							is BackupPrimitive.FloatValue -> putFloat(key, primitive.value)
-							is BackupPrimitive.StringSetValue -> putStringSet(key, primitive.value)
-						}
+	private suspend fun restoreSourceSettings(input: InputStream): CompositeResult =
+		input.readJsonArray<SourceSettingsBackup>(serializer()).restoreEach { entry ->
+			val prefsName = entry.file?.takeIf { SourceSettings.isSourcePrefsFile(it) }
+				?: SourceSettings.getStorageName(entry.source)
+			val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+			prefs.edit {
+				entry.values.forEach { (key, primitive) ->
+					when (primitive) {
+						is BackupPrimitive.StringValue -> putString(key, primitive.value)
+						is BackupPrimitive.BoolValue -> putBoolean(key, primitive.value)
+						is BackupPrimitive.IntValue -> putInt(key, primitive.value)
+						is BackupPrimitive.LongValue -> putLong(key, primitive.value)
+						is BackupPrimitive.FloatValue -> putFloat(key, primitive.value)
+						is BackupPrimitive.StringSetValue -> putStringSet(key, primitive.value)
 					}
 				}
 			}
 		}
-	}
 
 	private fun Map<String, *>.mapNotNullToBackupValues(): Map<String, BackupPrimitive> {
 		val out = LinkedHashMap<String, BackupPrimitive>(size)

@@ -2,9 +2,9 @@ package org.koitharu.kotatsu.details.service
 
 import android.content.Context
 import android.content.Intent
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
-import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableChapter
@@ -25,14 +25,16 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MangaPrefetchService : CoroutineIntentService() {
 
+	// Lazy: Android re-creates this service on the main thread after process death (redelivered intent),
+	// and building these pulls in the HTTP client, which must not be created on the main thread.
 	@Inject
-	lateinit var mangaRepositoryFactory: MangaRepository.Factory
+	lateinit var mangaRepositoryFactoryLazy: Lazy<MangaRepository.Factory>
 
 	@Inject
-	lateinit var cache: MemoryContentCache
+	lateinit var historyRepositoryLazy: Lazy<HistoryRepository>
 
-	@Inject
-	lateinit var historyRepository: HistoryRepository
+	private val mangaRepositoryFactory get() = mangaRepositoryFactoryLazy.get()
+	private val historyRepository get() = historyRepositoryLazy.get()
 
 	override suspend fun IntentJobContext.processIntent(intent: Intent) {
 		when (intent.action) {

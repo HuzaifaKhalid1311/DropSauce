@@ -5,6 +5,13 @@
 ### Improved
 - Redesigned the display options menu and the reader options menu for manga and novels
 - Two page layout options moved to settings > reader, and now on by default
+- Backups now include pinned sources, extension settings, saved filters, novel plugin settings and every manga's reader mode
+
+### Fixed
+- Bookmarking a page again after removing its bookmark failing with an error
+- Random crash when the app was reopened in the background
+- Backups missing source settings and chapters, and restores stopping early on a damaged entry
+- Backups no longer carry device-only settings like storage folders or the Discord login
 
 ## 1.1.3 (2026-11-13)
 

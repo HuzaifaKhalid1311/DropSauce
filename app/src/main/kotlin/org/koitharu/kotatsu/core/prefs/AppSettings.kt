@@ -1582,7 +1582,27 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		)
 
 		/**
-		 * Kept out of Drive sync (but not backups): every user-facing setting syncs except app lock
+		 * Kept out of local backups (and sync, through [SYNC_LOCAL_KEYS]): folder access and installers that
+		 * only work on this device, a font file the backup doesn't carry, a login token and install state.
+		 */
+		val BACKUP_LOCAL_KEYS = setOf(
+			KEY_LOCAL_STORAGE,
+			KEY_LOCAL_MANGA_DIRS,
+			KEY_PAGES_SAVE_DIR,
+			KEY_EPUB_CUSTOM_FONT_NAME,
+			KEY_EPUB_CUSTOM_FONT_REVISION,
+			KEY_BACKUP_PERIODICAL_ENABLED,
+			KEY_BACKUP_PERIODICAL_OUTPUT,
+			KEY_SHIZUKU_INSTALLER,
+			KEY_PRIVATE_INSTALLER,
+			KEY_DISCORD_TOKEN,
+			KEY_EXTENSION_UPDATES_AVAILABLE,
+			KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME,
+			KEY_APP_VERSION,
+		)
+
+		/**
+		 * Kept out of Drive sync (but not backups, except [BACKUP_LOCAL_KEYS]): every user-facing setting syncs except app lock
 		 * ([SENSITIVE_BACKUP_KEYS]). What stays here only makes sense on this device (storage folders,
 		 * installer capabilities, a font file) or is written by the app itself (caches, one-shot flags),
 		 * where syncing would make background writes look like user edits.

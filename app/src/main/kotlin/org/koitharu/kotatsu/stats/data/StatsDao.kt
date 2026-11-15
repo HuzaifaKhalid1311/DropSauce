@@ -84,7 +84,8 @@ abstract class StatsDao {
 		return conditions.joinToString(separator = " AND ")
 	}
 
-	@Query("SELECT * FROM stats ORDER BY started_at LIMIT :limit OFFSET :offset")
+	// Stats need their history row; a backup carries no cleared history, so its stats could never be restored
+	@Query("SELECT * FROM stats WHERE manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0) ORDER BY started_at LIMIT :limit OFFSET :offset")
 	protected abstract suspend fun findAll(offset: Int, limit: Int): List<StatsEntity>
 	fun dumpEnabled(): Flow<StatsEntity> = flow {
 		val window = 10
