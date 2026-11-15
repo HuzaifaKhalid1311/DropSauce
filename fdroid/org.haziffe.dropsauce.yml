@@ -30,8 +30,6 @@ Builds:
       - app/src/main/cpp/libjxl/third_party/brotli/tests
       - app/src/main/cpp/libjxl/third_party/brotli/java
       - app/src/main/cpp/libjxl/third_party/brotli/js
-      - app/src/main/cpp/libjxl/third_party/lcms/testbed
-      - app/src/main/cpp/libjxl/third_party/lcms/utils
     ndk: r28c
 
 AutoUpdateMode: Version

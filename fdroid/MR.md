@@ -19,6 +19,7 @@ It is a Kotatsu fork that reads both comics and novels in one app: it runs Mihon
 - **Third-party add-ons:** nothing is bundled or preselected. Adding a repository shows a notice that its extensions are made by others and not checked by F-Droid.
 - **All ages:** no sources ship with the app. The table used to import old Kotatsu backups has every adult-rated source removed in the `fdroid` flavor.
 - **Native code:** the JPEG XL decoder (libjxl, BSD-3-Clause) is built from source through Gradle/CMake from a git submodule; the recipe pins the NDK and deletes libjxl's test data with `scandelete`.
+- **Bundled JS:** `app/src/main/assets/lnreader-libs.js` is a minified esbuild bundle of the MIT/BSD libraries LNReader plugins need (cheerio, htmlparser2, dayjs, @noble/ciphers). It is checked in, not built by Gradle; the entry file and the exact command to regenerate it are in `app/lnreader-libs/`.
 - **Reproducible builds:** not enabled. The F-Droid flavor is a different APK from the one published on GitHub, and only the GitHub one is uploaded there, so there is no upstream APK to compare against. F-Droid's signature is fine.
 
 ## Checklist
@@ -55,7 +56,7 @@ It is a Kotatsu fork that reads both comics and novels in one app: it runs Mihon
 * [x] An AuthorName must be added. It doesn't need to be the real name.
 * [x] External repos are added as git submodules instead of srclibs.
 * [ ] Enable [Reproducible Builds](https://f-droid.org/docs/Reproducible_Builds). Not enabled, see "Reproducible builds" above.
-* [ ] Setup abi split if the APK is large and the splitted ones can be much smaller. Not set up: the APK is about 18 MB and the native decoder is about 0.6 MB per ABI.
+* [ ] Setup abi split if the APK is large and the splitted ones can be much smaller. Not set up: the APK is 17 MB with all four ABIs, and the native libraries are 1.3 to 1.8 MB per ABI, so a split APK would only be about 4.5 MB smaller.
 * [x] Only the latest versions should be kept in the metadata before it's merged.
 * [x] Don't add any disabled versions in the metadata.
 * [x] The `commit` field should be the full hash.
