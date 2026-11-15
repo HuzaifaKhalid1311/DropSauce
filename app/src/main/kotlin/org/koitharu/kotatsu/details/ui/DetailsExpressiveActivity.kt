@@ -14,6 +14,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
+import androidx.fragment.app.commit
+import androidx.fragment.app.commitNow
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +38,7 @@ import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.databinding.ActivityDetailsExpressiveBinding
 import org.koitharu.kotatsu.details.service.MangaPrefetchService
 import org.koitharu.kotatsu.details.ui.model.ChapterListItem
+import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet
 import org.koitharu.kotatsu.download.ui.worker.DownloadStartedObserver
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -80,6 +83,7 @@ class DetailsExpressiveActivity :
 		WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isDarkTheme
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
 		supportActionBar?.setDisplayShowTitleEnabled(false)
+		setupChaptersPane()
 		setupContent()
 		setupSwipeRefresh()
 
@@ -186,7 +190,12 @@ class DetailsExpressiveActivity :
 			onReadClick = { openReader(isIncognitoMode = false) },
 			onIncognitoClick = { openReader(isIncognitoMode = true) },
 			onForgetHistoryClick = { viewModel.removeFromHistory() },
-			onChaptersClick = { router.showChapterPagesSheet() },
+			// The two-pane layout always shows the chapters, so there's nothing to open.
+			onChaptersClick = if (viewBinding.containerChapters == null) {
+				{ router.showChapterPagesSheet() }
+			} else {
+				null
+			},
 		)
 		viewBinding.composeView.setViewCompositionStrategy(
 			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
@@ -238,6 +247,21 @@ class DetailsExpressiveActivity :
 		}
 	}
 
+	/**
+	 * Wide screens get the chapters sheet embedded as a permanent right pane. After a rotation or resize
+	 * into the single-column layout the restored pane has no container any more, so it's dropped before
+	 * the fragment manager tries to create its view.
+	 */
+	private fun setupChaptersPane() {
+		val fm = supportFragmentManager
+		val pane = fm.findFragmentByTag(TAG_CHAPTERS_PANE)
+		if (viewBinding.containerChapters == null) {
+			if (pane != null) fm.commitNow { remove(pane) }
+		} else if (pane == null) {
+			fm.commit { add(R.id.container_chapters, ChaptersPagesSheet(), TAG_CHAPTERS_PANE) }
+		}
+	}
+
 	private fun setupSwipeRefresh() {
 		val swipeRefresh = viewBinding.swipeRefreshLayout
 		swipeRefresh.setOnRefreshListener { viewModel.reload() }
@@ -284,10 +308,15 @@ class DetailsExpressiveActivity :
 		topInset.intValue = bars.top
 		bottomInset.intValue = bars.bottom
 		viewBinding.appbar.updatePadding(top = bars.top)
+		viewBinding.containerChapters?.updatePadding(top = bars.top)
 		// Match the rest of the app: rest the refresh indicator just under the status bar (the same
 		// offset the old details screen used), not pushed down below the whole top bar.
 		viewBinding.swipeRefreshLayout.setProgressViewOffset(false, bars.top, bars.top + 180)
 		return insets
+	}
+
+	private companion object {
+		const val TAG_CHAPTERS_PANE = "chapters_pane"
 	}
 
 	private class PrefetchObserver(

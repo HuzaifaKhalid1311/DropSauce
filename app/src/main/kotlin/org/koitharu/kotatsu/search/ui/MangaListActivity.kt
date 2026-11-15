@@ -17,15 +17,11 @@ import androidx.fragment.app.commit
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.model.MangaSource
-import org.koitharu.kotatsu.core.model.getSummary
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
@@ -99,8 +95,8 @@ class MangaListActivity :
 		source = resolved.source
 		activeLanguageName = resolved.languageSubtitle
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
-		viewBinding.buttonOrder?.setOnClickListener(this)
-		viewBinding.buttonLanguage?.setOnClickListener {
+		viewBinding.buttonOrder.setOnClickListener(this)
+		viewBinding.buttonLanguage.setOnClickListener {
 			router.openSourceSettings(source, scrollToLanguage = true)
 		}
 		configureSortButton()
@@ -132,14 +128,14 @@ class MangaListActivity :
 		val name = source.getTitle(this)
 		val lang = activeLanguageName
 		title = name
-		val ctl = viewBinding.collapsingToolbarLayout ?: return
+		val ctl = viewBinding.collapsingToolbarLayout
 		ctl.title = name
 		if (expandedBaseHeight < 0) {
 			expandedBaseHeight = ctl.layoutParams.height
 			titleBaseMarginBottom = ctl.expandedTitleMarginBottom
 		}
 		if (lang.isNullOrEmpty()) {
-			viewBinding.buttonLanguage?.isVisible = false
+			viewBinding.buttonLanguage.isVisible = false
 			applyExpandedHeight(ctl, extra = 0)
 		} else {
 			viewBinding.root.doOnLayout { applyLanguage(ctl, name, lang) }
@@ -147,11 +143,11 @@ class MangaListActivity :
 	}
 
 	private fun applyLanguage(ctl: CollapsingToolbarLayout, name: String, lang: String) {
-		val button = viewBinding.buttonLanguage ?: return
+		val button = viewBinding.buttonLanguage
 		button.text = lang
 		button.isVisible = true
 		// Same style as the sort button, so the same nudge puts its label on the title's baseline.
-		button.translationY = viewBinding.buttonOrder?.translationY ?: 0f
+		button.translationY = viewBinding.buttonOrder.translationY
 		val row = button.parent as View
 		val titlePaint = TextPaint(TextPaint.ANTI_ALIAS_FLAG).apply {
 			typeface = ctl.expandedTitleTypeface
@@ -197,18 +193,18 @@ class MangaListActivity :
 	 * of the search; it lives in the parallax layer, so it collapses away like the title would.
 	 */
 	fun setSearchExpanded(expanded: Boolean) {
-		val ctl = viewBinding.collapsingToolbarLayout ?: return
-		viewBinding.textTitleSearch?.bindExpandedSearchTitle(ctl, ctl.title, expanded)
+		val ctl = viewBinding.collapsingToolbarLayout
+		viewBinding.textTitleSearch.bindExpandedSearchTitle(ctl, ctl.title, expanded)
 	}
 
 	private fun configureSortButton() {
-		val button = viewBinding.buttonOrder ?: return
+		val button = viewBinding.buttonOrder
 		button.maxLines = 1
 		button.ellipsize = TextUtils.TruncateAt.END
 		button.doOnLayout {
 			val maxWidth = (viewBinding.root.width * SORT_BUTTON_MAX_WIDTH_FRACTION).roundToInt()
 			button.maxWidth = maxWidth
-			val ctl = viewBinding.collapsingToolbarLayout ?: return@doOnLayout
+			val ctl = viewBinding.collapsingToolbarLayout
 			ctl.expandedTitleMarginEnd = maxWidth +
 				resources.getDimensionPixelOffset(R.dimen.toolbar_button_margin) * 2
 			// The button is bottom-gravity in the parallax row, but its own vertical padding and
@@ -216,7 +212,7 @@ class MangaListActivity :
 			// both baselines land on the same line (applyLanguage reuses it for the language button).
 			button.translationY = (button.height - button.baseline - titleBaseMarginBottom)
 				.toFloat().coerceAtLeast(0f)
-			viewBinding.buttonLanguage?.translationY = button.translationY
+			viewBinding.buttonLanguage.translationY = button.translationY
 		}
 	}
 
@@ -231,9 +227,7 @@ class MangaListActivity :
 			replace(R.id.container, RemoteListFragment.newInstance(newSource))
 			// The filter header/side capture their FilterCoordinator at creation, so recreate them
 			// too — otherwise they keep driving the old source's list.
-			if (viewBinding.containerFilterHeader != null) {
-				replace(R.id.container_filter_header, FilterHeaderFragment::class.java, null)
-			}
+			replace(R.id.container_filter_header, FilterHeaderFragment::class.java, null)
 			runOnCommit { findFilterOwner()?.let { initFilter(it) } }
 		}
 	}
@@ -249,13 +243,13 @@ class MangaListActivity :
 			bottomMargin = barsInsets.bottom + resources.getDimensionPixelOffset(R.dimen.side_card_offset)
 		}
 		// The collapsing appbar is pinned (exitUntilCollapsed), so it owns the status bar area via
-		// top padding, same as the Downloads screen. The landscape layout has no collapsing bar.
+		// top padding, same as the Downloads screen.
 		// The side card only appears while previewing; whenever it's away the list spans the full width,
 		// so the top bar has to carry the end inset itself.
 		viewBinding.appbar.updatePaddingRelative(
 			end = if (viewBinding.cardSide?.isVisible != true) barsInsets.end(v) else 0,
 			start = barsInsets.start(v),
-			top = if (viewBinding.collapsingToolbarLayout != null) barsInsets.top else viewBinding.appbar.paddingTop,
+			top = barsInsets.top,
 		)
 		return insets.consumeSystemBarsInsets(v, end = true)
 	}
@@ -318,50 +312,39 @@ class MangaListActivity :
 	}
 
 	private fun initFilter(filterOwner: FilterCoordinator.Owner) {
-		if (viewBinding.containerFilterHeader != null) {
-			if (supportFragmentManager.findFragmentById(R.id.container_filter_header) == null) {
-				supportFragmentManager.commit {
-					setReorderingAllowed(true)
-					replace(R.id.container_filter_header, FilterHeaderFragment::class.java, null)
-				}
+		if (supportFragmentManager.findFragmentById(R.id.container_filter_header) == null) {
+			supportFragmentManager.commit {
+				setReorderingAllowed(true)
+				replace(R.id.container_filter_header, FilterHeaderFragment::class.java, null)
 			}
 		}
 		val filter = filterOwner.filterCoordinator
 		val chipSort = viewBinding.buttonOrder
-		if (chipSort != null) {
-			val filterBadge = ViewBadge(chipSort, this)
-			filterBadge.setMaxCharacterCount(0)
-			val isDynamic = filter.isDynamicFilter
-			filter.observe().observe(this) { snapshot ->
-				if (isDynamic) {
-					// A server-side sort lives inside the Mihon FilterList (encoded as a "srt@" tag) and
-					// wins over the in-app Popular/Latest listing; only non-sort tags count towards the
-					// "filter applied" badge. The icon says which of the two kinds is active.
-					val sortTag = snapshot.listFilter.tags.firstOrNull { it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX) }
-					if (sortTag != null) {
-						chipSort.text = sortTag.title.substringAfter(": ")
-						chipSort.setIconResource(R.drawable.ic_sort)
-					} else if (snapshot.sortOrder == SortOrder.UPDATED) {
-						chipSort.setText(R.string.latest)
-						chipSort.setIconResource(R.drawable.ic_sort_latest)
-					} else {
-						chipSort.setText(R.string.popular)
-						chipSort.setIconResource(R.drawable.ic_sort_popular)
-					}
-					chipSort.isVisible = true
-					filterBadge.counter = if (snapshot.listFilter.tags.any { !it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX) }) 1 else 0
+		val filterBadge = ViewBadge(chipSort, this)
+		filterBadge.setMaxCharacterCount(0)
+		val isDynamic = filter.isDynamicFilter
+		filter.observe().observe(this) { snapshot ->
+			if (isDynamic) {
+				// A server-side sort lives inside the Mihon FilterList (encoded as a "srt@" tag) and
+				// wins over the in-app Popular/Latest listing; only non-sort tags count towards the
+				// "filter applied" badge. The icon says which of the two kinds is active.
+				val sortTag = snapshot.listFilter.tags.firstOrNull { it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX) }
+				if (sortTag != null) {
+					chipSort.text = sortTag.title.substringAfter(": ")
+					chipSort.setIconResource(R.drawable.ic_sort)
+				} else if (snapshot.sortOrder == SortOrder.UPDATED) {
+					chipSort.setText(R.string.latest)
+					chipSort.setIconResource(R.drawable.ic_sort_latest)
 				} else {
-					chipSort.setTextAndVisible(snapshot.sortOrder.titleRes)
-					filterBadge.counter = if (snapshot.listFilter.hasNonSearchOptions()) 1 else 0
+					chipSort.setText(R.string.popular)
+					chipSort.setIconResource(R.drawable.ic_sort_popular)
 				}
+				chipSort.isVisible = true
+				filterBadge.counter = if (snapshot.listFilter.tags.any { !it.key.startsWith(MihonFilterMapper.SORT_KEY_PREFIX) }) 1 else 0
+			} else {
+				chipSort.setTextAndVisible(snapshot.sortOrder.titleRes)
+				filterBadge.counter = if (snapshot.listFilter.hasNonSearchOptions()) 1 else 0
 			}
-		} else {
-			filter.observe().map {
-				it.listFilter.getSummary()
-			}.flowOn(Dispatchers.Default)
-				.observe(this) {
-					supportActionBar?.subtitle = it
-				}
 		}
 	}
 

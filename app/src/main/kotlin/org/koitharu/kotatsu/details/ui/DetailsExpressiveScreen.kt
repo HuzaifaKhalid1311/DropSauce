@@ -67,7 +67,8 @@ class DetailsExpressiveActions(
 	val onReadClick: () -> Unit,
 	val onIncognitoClick: () -> Unit,
 	val onForgetHistoryClick: () -> Unit,
-	val onChaptersClick: () -> Unit,
+	/** Null when the chapters are always on screen (two-pane layout), which hides the chapters pill. */
+	val onChaptersClick: (() -> Unit)?,
 )
 
 @Composable

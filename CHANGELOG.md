@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Improved
+- In landscape and on wide screens the details page shows the chapters list next to the details
+
+### Fixed
+- Sort button and filter chips missing when browsing a source in landscape
+
 ## 1.1.4 (2026-11-15)
 
 This is a small update you can skip: it is mainly there to get the app onto F-Droid, with some small UI changes.

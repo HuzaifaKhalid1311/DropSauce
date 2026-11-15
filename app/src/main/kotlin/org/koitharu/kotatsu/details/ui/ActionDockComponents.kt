@@ -56,8 +56,9 @@ internal fun ActionDock(
 		verticalArrangement = Arrangement.spacedBy(12.dp),
 	) {
 		val chapterCount = historyInfo.totalChapters
-		if (chapterCount > 0) {
-			ChaptersPill(count = chapterCount, onClick = actions.onChaptersClick)
+		val onChaptersClick = actions.onChaptersClick
+		if (chapterCount > 0 && onChaptersClick != null) {
+			ChaptersPill(count = chapterCount, onClick = onChaptersClick)
 		}
 		ReadFab(historyInfo = historyInfo, isLoading = isLoading, accent = accent, actions = actions)
 	}
