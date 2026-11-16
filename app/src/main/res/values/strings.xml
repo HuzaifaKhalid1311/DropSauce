@@ -552,6 +552,9 @@
 	<string name="epub_paged_tap_gestures">Paged tap zones</string>
 	<string name="epub_paged_tap_gestures_summary">Left: previous · Center: controls · Right: next</string>
 	<string name="epub_paged_tap_gestures_unavailable">Only works in paged read mode</string>
+	<string name="epub_chapter_divider">Chapter divider</string>
+	<string name="epub_chapter_divider_summary">Line between chapters</string>
+	<string name="epub_chapter_divider_unavailable">Only works in scroll read mode</string>
 	<string name="epub_theme_light">White</string>
 	<string name="epub_theme_dark">Gray</string>
 	<string name="epub_theme_black">Black</string>
@@ -679,6 +682,8 @@
     <string name="directories">Directories</string>
     <string name="main_screen_sections">Main screen sections</string>
     <string name="items_limit_exceeded">No more items can be added</string>
+	<string name="nav_items_many_title">More than 4 sections</string>
+	<string name="nav_items_many_text">Depending on your screen size, the navigation bar may look cramped or cut off some sections</string>
     <string name="zoom_out">Zoom out</string>
     <string name="zoom_in">Zoom in</string>
     <string name="reader_zoom_buttons">Show zoom buttons</string>

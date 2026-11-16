@@ -481,6 +481,9 @@ class MainNavigationDelegate(
 
 	companion object {
 
-		const val MAX_ITEM_COUNT = 4
+		const val MAX_ITEM_COUNT = 6
+
+		/** Past this many, the main screen sections list warns the bar may get cramped. */
+		const val COMFORTABLE_ITEM_COUNT = 4
 	}
 }

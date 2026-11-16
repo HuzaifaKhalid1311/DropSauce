@@ -18,6 +18,7 @@ import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ActivityRecreationHandle
 import org.koitharu.kotatsu.list.ui.model.ListModel
+import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.main.ui.MainActivity
 import org.koitharu.kotatsu.main.ui.MainNavigationDelegate
 import org.koitharu.kotatsu.parsers.util.move
@@ -40,6 +41,19 @@ class NavConfigViewModel @Inject constructor(
 			}
 			if (size < NavItem.entries.size) {
 				add(NavItemAddModel(size < MainNavigationDelegate.MAX_ITEM_COUNT))
+			}
+			// Last, so the section rows keep the positions reorder() relies on
+			if (snapshot.size > MainNavigationDelegate.COMFORTABLE_ITEM_COUNT) {
+				add(
+					TipModel(
+						key = "nav_items_many",
+						title = R.string.nav_items_many_title,
+						text = R.string.nav_items_many_text,
+						icon = R.drawable.ic_alert_outline,
+						primaryButtonText = 0,
+						secondaryButtonText = 0,
+					),
+				)
 			}
 		}
 	}.stateIn(

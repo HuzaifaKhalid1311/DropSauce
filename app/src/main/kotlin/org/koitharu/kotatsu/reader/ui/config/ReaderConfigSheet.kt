@@ -377,6 +377,7 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 		var publisherStyleEnabled by remember { mutableStateOf(settings.isEpubPublisherStyleEnabled) }
 		var bionicReadingEnabled by remember { mutableStateOf(settings.isEpubBionicReadingEnabled) }
 		var tapGesturesEnabled by remember { mutableStateOf(settings.isEpubPagedTapGesturesEnabled) }
+		var chapterDividerEnabled by remember { mutableStateOf(settings.isEpubChapterDividerEnabled) }
 		var readingMode by remember { mutableStateOf(settings.epubReadingMode) }
 		var isRtl by remember { mutableStateOf(settings.isEpubRtl) }
 		var textAlign by remember { mutableStateOf(settings.epubTextAlign) }
@@ -607,6 +608,27 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 									icon = R.drawable.ic_tap,
 									shape = pos.shape,
 									enabled = isPaged,
+								)
+							}
+							item { pos ->
+								val isScroll = readingMode == "scroll"
+								SwitchSettingsItem(
+									title = stringResource(R.string.epub_chapter_divider),
+									subtitle = stringResource(
+										if (isScroll) {
+											R.string.epub_chapter_divider_summary
+										} else {
+											R.string.epub_chapter_divider_unavailable
+										},
+									),
+									checked = chapterDividerEnabled,
+									onCheckedChange = {
+										chapterDividerEnabled = it
+										settings.isEpubChapterDividerEnabled = it
+									},
+									icon = R.drawable.ic_horizontal_rule,
+									shape = pos.shape,
+									enabled = isScroll,
 								)
 							}
 						}

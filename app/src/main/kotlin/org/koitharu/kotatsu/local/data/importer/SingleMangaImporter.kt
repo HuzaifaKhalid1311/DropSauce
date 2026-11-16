@@ -34,6 +34,7 @@ import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.io.IOException
 import java.util.Locale
+import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.math.roundToInt
@@ -105,19 +106,21 @@ class SingleMangaImporter @Inject constructor(
 				throw IOException("PDF has no pages")
 			}
 			ZipOutputStream(outputFile.outputStream().buffered()).use { zip ->
+				zip.setLevel(Deflater.NO_COMPRESSION) // JPEGs don't shrink, deflating them only costs time
 				for (index in 0 until renderer.pageCount) {
 					renderer.openPage(index).use { page ->
+						// Every page at screen-level size: tiny vector pages get sharper, huge scans get smaller
 						val maxPageSize = maxOf(page.width, page.height).coerceAtLeast(1)
-						val scale = minOf(PDF_RENDER_SCALE, MAX_RENDER_DIMENSION / maxPageSize.toFloat())
+						val scale = PDF_PAGE_LONG_SIDE / maxPageSize.toFloat()
 						val matrix = Matrix().apply { setScale(scale, scale) }
 						val width = (page.width * scale).roundToInt().coerceAtLeast(1)
 						val height = (page.height * scale).roundToInt().coerceAtLeast(1)
 						val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 						bitmap.eraseColor(Color.WHITE)
 						page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
-						val entryName = String.format(Locale.US, "%04d.png", index + 1)
+						val entryName = String.format(Locale.US, "%04d.jpg", index + 1)
 						zip.putNextEntry(ZipEntry(entryName))
-						bitmap.compress(Bitmap.CompressFormat.PNG, 100, zip)
+						bitmap.compress(Bitmap.CompressFormat.JPEG, PDF_JPEG_QUALITY, zip)
 						zip.closeEntry()
 						bitmap.recycle()
 					}
@@ -267,8 +270,8 @@ class SingleMangaImporter @Inject constructor(
 	}
 
 	private companion object {
-		private const val PDF_RENDER_SCALE = 4f
-		private const val MAX_RENDER_DIMENSION = 4096
+		private const val PDF_PAGE_LONG_SIDE = 2560
+		private const val PDF_JPEG_QUALITY = 90
 		private val ZIP_MAGIC = "504b0304".decodeHex()
 	}
 }

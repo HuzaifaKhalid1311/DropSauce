@@ -2,11 +2,18 @@
 
 ## Unreleased
 
+### New
+- Option to hide the line between chapters when reading novels in scroll mode
+- Up to 6 sections can be added to the navigation bar
+
 ### Improved
 - In landscape and on wide screens the details page shows the chapters list next to the details
+- PDF imports are much faster and take far less space
+- Reader chapter arrows dim when there is no previous or next chapter
 
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape
+- Large PDFs failing to import
 
 ## 1.1.4 (2026-11-15)
 

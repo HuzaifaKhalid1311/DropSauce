@@ -241,7 +241,7 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	}
 
 	companion object {
-		const val MAX_RENDERED_ITEMS = 5
+		const val MAX_RENDERED_ITEMS = 6
 		private const val LEGACY_ITEM_OFFSET_DP = 8f
 	}
 }

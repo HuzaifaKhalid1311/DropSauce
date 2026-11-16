@@ -143,7 +143,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			} else {
 				raw.mapNotNull { x -> NavItem.entries.find(x) }.ifEmpty { listOf(NavItem.EXPLORE) }
 			}
-			return items.take(4)
+			return items.take(6) // MainNavigationDelegate.MAX_ITEM_COUNT
 		}
 		set(value) {
 			prefs.edit {
@@ -401,6 +401,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var isEpubBionicReadingEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_BIONIC_READING, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_BIONIC_READING, value) }
+
+	var isEpubChapterDividerEnabled: Boolean
+		get() = prefs.getBoolean(KEY_EPUB_CHAPTER_DIVIDER, true)
+		set(value) = prefs.edit { putBoolean(KEY_EPUB_CHAPTER_DIVIDER, value) }
 
 	// "system" | "white" | "gray" | "black" | "custom" - page colors of the EPUB reader only
 	var epubTheme: String
@@ -1417,6 +1421,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EPUB_TTS_PITCH = "epub_tts_pitch"
 		const val KEY_EPUB_PUBLISHER_STYLE = "epub_publisher_style"
 		const val KEY_EPUB_BIONIC_READING = "epub_bionic_reading"
+		const val KEY_EPUB_CHAPTER_DIVIDER = "epub_chapter_divider"
 		const val KEY_EPUB_THEME = "epub_theme"
 		const val KEY_EPUB_CUSTOM_BACKGROUND_COLOR = "epub_custom_background_color"
 		const val KEY_EPUB_CUSTOM_TEXT_COLOR = "epub_custom_text_color"

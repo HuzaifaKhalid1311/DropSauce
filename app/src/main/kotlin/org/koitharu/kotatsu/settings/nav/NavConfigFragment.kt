@@ -37,7 +37,9 @@ import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.FragmentSettingsSourcesBinding
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
+import org.koitharu.kotatsu.core.ui.widgets.TipView
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
+import org.koitharu.kotatsu.list.ui.adapter.tipAD
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.settings.nav.adapter.navAddAD
 import org.koitharu.kotatsu.settings.nav.adapter.navConfigAD
@@ -67,6 +69,7 @@ class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), Recycl
 		val navConfigAdapter = BaseListAdapter<ListModel>()
 			.addDelegate(ListItemType.NAV_ITEM, navConfigAD(this))
 			.addDelegate(ListItemType.FOOTER_LOADING, navAddAD(this))
+			.addDelegate(ListItemType.TIP, tipAD(NoopTipButtonListener))
 		with(binding.recyclerView) {
 			// This list is a bare FastScrollRecyclerView fragment-root; its floating scroller would be
 			// hoisted onto SettingsActivity's shared CoordinatorLayout and blank the right edge of every
@@ -185,5 +188,10 @@ class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), Recycl
 		override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
 
 		override fun isLongPressDragEnabled() = false
+	}
+
+	private object NoopTipButtonListener : TipView.OnButtonClickListener {
+		override fun onPrimaryButtonClick(tipView: TipView) = Unit
+		override fun onSecondaryButtonClick(tipView: TipView) = Unit
 	}
 }

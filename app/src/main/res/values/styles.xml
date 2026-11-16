@@ -345,7 +345,7 @@
 	</style>
 
 	<style name="Widget.Kotatsu.ReaderFloatingToolbar.IconButton" parent="Widget.Material3Expressive.Button.IconButton.Standard">
-		<item name="iconTint">?attr/colorPrimary</item>
+		<item name="iconTint">@color/reader_toolbar_icon</item>
 	</style>
 
 	<style name="Widget.Kotatsu.RecyclerView" parent="">
