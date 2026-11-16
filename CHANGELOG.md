@@ -10,6 +10,7 @@
 - In landscape and on wide screens the details page shows the chapters list next to the details
 - PDF imports are much faster and take far less space
 - Reader chapter arrows dim when there is no previous or next chapter
+- Continue reading button now shows on every tab in landscape and on tablets, with the same rounder shape everywhere
 
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape

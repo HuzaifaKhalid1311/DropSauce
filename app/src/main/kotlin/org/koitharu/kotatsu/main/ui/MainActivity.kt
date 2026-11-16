@@ -495,12 +495,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			navigationDelegate.primaryFragment
 		}
 		// When the modern floating bar is shown, the "continue reading" action lives on it as a
-		// standalone circular button (handled below), so it must never appear as a FAB. In legacy
-		// navigation mode — or on the tablet nav rail, which has no floating bar — it keeps the old
-		// behaviour of a FAB shown only inside the history tab.
+		// standalone circular button (handled below), so it must never appear as a FAB. The nav rail
+		// (landscape, tablets) carries it in its header on every tab, like the floating bar does. Only
+		// the legacy bottom bar keeps a FAB, inside the history tab, where it doesn't cover other lists.
 		val useFloatingContinue = viewBinding.bottomNav != null && !settings.isLegacyNavigationBar
 		if (!useFloatingContinue && isResumeEnabled && !actionModeDelegate.isActionModeStarted &&
-			!isSearchOpened && fragment is HistoryListFragment
+			!isSearchOpened && (viewBinding.navRail != null || fragment is HistoryListFragment)
 		) {
 			showMainFab("continue", ::configureContinueFab)
 		} else {

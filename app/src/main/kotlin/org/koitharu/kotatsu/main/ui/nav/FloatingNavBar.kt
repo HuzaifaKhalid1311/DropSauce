@@ -81,6 +81,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -1198,8 +1199,8 @@ private fun FloatingContinueButton(
 		state = tooltipState,
 	) {
 		Surface(
-			// M3 Expressive square FAB: 16dp corner on a 56dp container
-			shape = RoundedCornerShape(16.dp),
+			// Same corner as the nav rail's continue FAB (the theme's large corner) on a 56dp container
+			shape = RoundedCornerShape(dimensionResource(R.dimen.corner_large)),
 			color = container,
 			contentColor = content,
 			border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
