@@ -107,7 +107,19 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.BLACK"
+			android:name="org.koitharu.kotatsu.icon.DEFAULT_WHITE"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_white"
+			android:roundIcon="@mipmap/ic_launcher_white"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.DEFAULT_BLACK"
 			android:enabled="false"
 			android:exported="true"
 			android:icon="@mipmap/ic_launcher_black"
@@ -131,19 +143,7 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.DEFAULT_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_default_dark"
-			android:roundIcon="@mipmap/ic_launcher_default_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.DEFAULT_LIGHT"
+			android:name="org.koitharu.kotatsu.icon.THEME_DEFAULT_LIGHT"
 			android:enabled="false"
 			android:exported="true"
 			android:icon="@mipmap/ic_launcher_default_light"
@@ -155,11 +155,11 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.MIKU_DARK"
+			android:name="org.koitharu.kotatsu.icon.THEME_DEFAULT_DARK"
 			android:enabled="false"
 			android:exported="true"
-			android:icon="@mipmap/ic_launcher_miku_dark"
-			android:roundIcon="@mipmap/ic_launcher_miku_dark"
+			android:icon="@mipmap/ic_launcher_default_dark"
+			android:roundIcon="@mipmap/ic_launcher_default_dark"
 			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -167,11 +167,11 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.MIKU_LIGHT"
+			android:name="org.koitharu.kotatsu.icon.THEME_DEFAULT_OLED"
 			android:enabled="false"
 			android:exported="true"
-			android:icon="@mipmap/ic_launcher_miku_light"
-			android:roundIcon="@mipmap/ic_launcher_miku_light"
+			android:icon="@mipmap/ic_launcher_default_oled"
+			android:roundIcon="@mipmap/ic_launcher_default_oled"
 			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -179,11 +179,11 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.RENA_DARK"
+			android:name="org.koitharu.kotatsu.icon.THEME_EXPRESSIVE_LIGHT"
 			android:enabled="false"
 			android:exported="true"
-			android:icon="@mipmap/ic_launcher_rena_dark"
-			android:roundIcon="@mipmap/ic_launcher_rena_dark"
+			android:icon="@mipmap/ic_launcher_expressive_light"
+			android:roundIcon="@mipmap/ic_launcher_expressive_light"
 			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -191,259 +191,7 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.RENA_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_rena_light"
-			android:roundIcon="@mipmap/ic_launcher_rena_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.FROG_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_frog_dark"
-			android:roundIcon="@mipmap/ic_launcher_frog_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.FROG_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_frog_light"
-			android:roundIcon="@mipmap/ic_launcher_frog_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.BLUEBERRY_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_blueberry_dark"
-			android:roundIcon="@mipmap/ic_launcher_blueberry_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.BLUEBERRY_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_blueberry_light"
-			android:roundIcon="@mipmap/ic_launcher_blueberry_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.SAKURA_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_sakura_dark"
-			android:roundIcon="@mipmap/ic_launcher_sakura_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.SAKURA_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_sakura_light"
-			android:roundIcon="@mipmap/ic_launcher_sakura_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.MAMIMI_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_mamimi_dark"
-			android:roundIcon="@mipmap/ic_launcher_mamimi_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.MAMIMI_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_mamimi_light"
-			android:roundIcon="@mipmap/ic_launcher_mamimi_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.KANADE_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_kanade_dark"
-			android:roundIcon="@mipmap/ic_launcher_kanade_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.KANADE_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_kanade_light"
-			android:roundIcon="@mipmap/ic_launcher_kanade_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.ITSUKA_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_itsuka_dark"
-			android:roundIcon="@mipmap/ic_launcher_itsuka_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.ITSUKA_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_itsuka_light"
-			android:roundIcon="@mipmap/ic_launcher_itsuka_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.SHANA_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_shana_dark"
-			android:roundIcon="@mipmap/ic_launcher_shana_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.SHANA_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_shana_light"
-			android:roundIcon="@mipmap/ic_launcher_shana_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.LIME_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_lime_dark"
-			android:roundIcon="@mipmap/ic_launcher_lime_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.LIME_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_lime_light"
-			android:roundIcon="@mipmap/ic_launcher_lime_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.AMBER_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_amber_dark"
-			android:roundIcon="@mipmap/ic_launcher_amber_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.AMBER_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_amber_light"
-			android:roundIcon="@mipmap/ic_launcher_amber_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.SKY_DARK"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_sky_dark"
-			android:roundIcon="@mipmap/ic_launcher_sky_dark"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.SKY_LIGHT"
-			android:enabled="false"
-			android:exported="true"
-			android:icon="@mipmap/ic_launcher_sky_light"
-			android:roundIcon="@mipmap/ic_launcher_sky_light"
-			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity-alias>
-		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.EXPRESSIVE_DARK"
+			android:name="org.koitharu.kotatsu.icon.THEME_EXPRESSIVE_DARK"
 			android:enabled="false"
 			android:exported="true"
 			android:icon="@mipmap/ic_launcher_expressive_dark"
@@ -455,11 +203,443 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
-			android:name="org.koitharu.kotatsu.icon.EXPRESSIVE_LIGHT"
+			android:name="org.koitharu.kotatsu.icon.THEME_EXPRESSIVE_OLED"
 			android:enabled="false"
 			android:exported="true"
-			android:icon="@mipmap/ic_launcher_expressive_light"
-			android:roundIcon="@mipmap/ic_launcher_expressive_light"
+			android:icon="@mipmap/ic_launcher_expressive_oled"
+			android:roundIcon="@mipmap/ic_launcher_expressive_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_MIKU_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_miku_light"
+			android:roundIcon="@mipmap/ic_launcher_miku_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_MIKU_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_miku_dark"
+			android:roundIcon="@mipmap/ic_launcher_miku_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_MIKU_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_miku_oled"
+			android:roundIcon="@mipmap/ic_launcher_miku_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_RENA_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_rena_light"
+			android:roundIcon="@mipmap/ic_launcher_rena_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_RENA_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_rena_dark"
+			android:roundIcon="@mipmap/ic_launcher_rena_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_RENA_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_rena_oled"
+			android:roundIcon="@mipmap/ic_launcher_rena_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_FROG_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_frog_light"
+			android:roundIcon="@mipmap/ic_launcher_frog_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_FROG_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_frog_dark"
+			android:roundIcon="@mipmap/ic_launcher_frog_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_FROG_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_frog_oled"
+			android:roundIcon="@mipmap/ic_launcher_frog_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_BLUEBERRY_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_blueberry_light"
+			android:roundIcon="@mipmap/ic_launcher_blueberry_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_BLUEBERRY_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_blueberry_dark"
+			android:roundIcon="@mipmap/ic_launcher_blueberry_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_BLUEBERRY_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_blueberry_oled"
+			android:roundIcon="@mipmap/ic_launcher_blueberry_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SAKURA_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_sakura_light"
+			android:roundIcon="@mipmap/ic_launcher_sakura_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SAKURA_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_sakura_dark"
+			android:roundIcon="@mipmap/ic_launcher_sakura_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SAKURA_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_sakura_oled"
+			android:roundIcon="@mipmap/ic_launcher_sakura_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_MAMIMI_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_mamimi_light"
+			android:roundIcon="@mipmap/ic_launcher_mamimi_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_MAMIMI_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_mamimi_dark"
+			android:roundIcon="@mipmap/ic_launcher_mamimi_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_MAMIMI_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_mamimi_oled"
+			android:roundIcon="@mipmap/ic_launcher_mamimi_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_KANADE_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_kanade_light"
+			android:roundIcon="@mipmap/ic_launcher_kanade_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_KANADE_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_kanade_dark"
+			android:roundIcon="@mipmap/ic_launcher_kanade_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_KANADE_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_kanade_oled"
+			android:roundIcon="@mipmap/ic_launcher_kanade_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_ITSUKA_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_itsuka_light"
+			android:roundIcon="@mipmap/ic_launcher_itsuka_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_ITSUKA_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_itsuka_dark"
+			android:roundIcon="@mipmap/ic_launcher_itsuka_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_ITSUKA_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_itsuka_oled"
+			android:roundIcon="@mipmap/ic_launcher_itsuka_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SHANA_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_shana_light"
+			android:roundIcon="@mipmap/ic_launcher_shana_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SHANA_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_shana_dark"
+			android:roundIcon="@mipmap/ic_launcher_shana_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SHANA_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_shana_oled"
+			android:roundIcon="@mipmap/ic_launcher_shana_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_LIME_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_lime_light"
+			android:roundIcon="@mipmap/ic_launcher_lime_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_LIME_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_lime_dark"
+			android:roundIcon="@mipmap/ic_launcher_lime_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_LIME_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_lime_oled"
+			android:roundIcon="@mipmap/ic_launcher_lime_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_AMBER_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_amber_light"
+			android:roundIcon="@mipmap/ic_launcher_amber_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_AMBER_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_amber_dark"
+			android:roundIcon="@mipmap/ic_launcher_amber_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_AMBER_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_amber_oled"
+			android:roundIcon="@mipmap/ic_launcher_amber_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SKY_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_sky_light"
+			android:roundIcon="@mipmap/ic_launcher_sky_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SKY_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_sky_dark"
+			android:roundIcon="@mipmap/ic_launcher_sky_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_SKY_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_sky_oled"
+			android:roundIcon="@mipmap/ic_launcher_sky_oled"
 			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -761,6 +941,14 @@
 		<receiver
 			android:name="org.koitharu.kotatsu.tracker.work.TrackerNotificationHelper$MarkAsReadReceiver"
 			android:exported="false" />
+
+		<receiver
+			android:name="org.koitharu.kotatsu.core.os.AppIconRepairReceiver"
+			android:exported="false">
+			<intent-filter>
+				<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+			</intent-filter>
+		</receiver>
 
 		<!-- Home screen widgets -->
 		<receiver

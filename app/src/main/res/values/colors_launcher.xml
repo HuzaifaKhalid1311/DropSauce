@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Launcher icon variants (Settings > Appearance > App icon). Fixed values: a launcher has no app theme. -->
 <resources>
+	<color name="launcher_white_bg">#FFFFFF</color>
 	<color name="launcher_black_bg">#000000</color>
 	<color name="launcher_mono_bg">#000000</color>
 	<color name="launcher_mono_fg">#FFFFFF</color>

@@ -226,8 +226,14 @@ class BrokenSourcesMigrationViewModel @Inject constructor(
 		}
 	}
 
+	/** Review searches every ticked source per title, which is slow, so turning it on starts from none ticked. */
 	fun setManualReview(isManual: Boolean) {
-		_state.update { it.copy(isManualReview = isManual) }
+		_state.update {
+			it.copy(
+				isManualReview = isManual,
+				checkedTargets = if (isManual) emptySet() else it.targets.mapTo(hashSetOf()) { t -> t.name },
+			)
+		}
 	}
 
 	/** Step 3 (manual): searches each entry in turn and pre-picks the first working match. */

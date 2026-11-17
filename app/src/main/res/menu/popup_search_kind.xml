@@ -3,6 +3,7 @@
 
 	<item
 		android:id="@+id/action_search_kind_menu"
+		android:icon="@drawable/ic_search_by"
 		android:title="@string/search_by">
 		<menu>
 			<group
@@ -11,18 +12,22 @@
 
 				<item
 					android:id="@+id/action_kind_simple"
+					android:icon="@drawable/ic_search_kind_default"
 					android:title="@string/search_kind_default" />
 
 				<item
 					android:id="@+id/action_kind_title"
+					android:icon="@drawable/ic_search_kind_title"
 					android:title="@string/name" />
 
 				<item
 					android:id="@+id/action_kind_author"
+					android:icon="@drawable/ic_search_kind_author"
 					android:title="@string/author" />
 
 				<item
 					android:id="@+id/action_kind_tag"
+					android:icon="@drawable/ic_search_kind_genre"
 					android:title="@string/genre" />
 
 			</group>
@@ -33,11 +38,13 @@
 
 		<item
 			android:id="@+id/action_filter_pinned_only"
+			android:icon="@drawable/ic_search_pinned_only"
 			android:checkable="true"
 			android:title="@string/pinned_sources_only" />
 
 		<item
 			android:id="@+id/action_filter_local_only"
+			android:icon="@drawable/ic_search_local_only"
 			android:checkable="true"
 			android:title="@string/local_library_only" />
 

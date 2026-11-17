@@ -21,16 +21,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.core.os.AppIcon
 import org.koitharu.kotatsu.core.os.AppIconManager
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
-import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
-import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
+import org.koitharu.kotatsu.main.ui.nav.DrawablePainter
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.LayerDrawable
 import org.koitharu.kotatsu.settings.compose.PreviewTile
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import androidx.compose.foundation.layout.height
@@ -110,11 +108,7 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 					activity?.let { ThemeSwitchCoverActivity.switchNightMode(it, settings.theme) }
 				}, 300)
 			}
-			AppSettings.KEY_APP_ICON -> applyAppIcon()
-			AppSettings.KEY_COLOR_THEME -> {
-				applyAppIcon() // a themed icon follows the scheme
-				activityRecreationHandle.recreateAll()
-			}
+			AppSettings.KEY_COLOR_THEME,
 			AppSettings.KEY_THEME_AMOLED,
 			AppSettings.KEY_UI_SCALE -> {
 				activityRecreationHandle.recreateAll()
@@ -122,13 +116,6 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 			AppSettings.KEY_APP_LOCALE -> {
 				AppCompatDelegate.setApplicationLocales(settings.appLocales)
 			}
-		}
-	}
-
-	private fun applyAppIcon() {
-		val context = requireContext().applicationContext
-		processLifecycleScope.launch(Dispatchers.Default) {
-			AppIconManager.apply(context, settings.appIcon, settings.colorScheme)
 		}
 	}
 
@@ -387,6 +374,8 @@ private fun AppearanceScreen(
 							AppIconPicker(
 								selected = appIcon,
 								scheme = ColorScheme.entries.find { it.name == colorScheme } ?: ColorScheme.default,
+								isDark = isSystemInDarkTheme(),
+								isOled = amoled,
 								onSelect = { appIcon = it },
 							)
 						},
@@ -735,26 +724,29 @@ private fun AppearanceScreen(
 	}
 }
 
-/** The launcher icons as tiles, drawn from the same adaptive icons the launcher gets. */
+/** The launcher icons as tiles, in the app's current look, drawn from the launcher's own icon layers. */
 @Composable
 private fun AppIconPicker(
 	selected: String,
 	scheme: ColorScheme,
+	isDark: Boolean,
+	isOled: Boolean,
 	onSelect: (String) -> Unit,
 ) {
 	val haptic = rememberHapticEffect()
-	val labels = listOf(
-		R.string.app_icon_default,
-		R.string.app_icon_black,
-		R.string.app_icon_mono,
-		R.string.app_icon_theme_dark,
-		R.string.app_icon_theme_light,
-	)
+	val context = LocalContext.current
+	val labels = listOf(R.string.app_icon_default, R.string.app_icon_mono, R.string.app_icon_themed)
 	Row(
 		modifier = Modifier.fillMaxWidth(),
 		horizontalArrangement = Arrangement.spacedBy(8.dp),
 	) {
 		AppIcon.entries.forEach { icon ->
+			val res = AppIconManager.iconRes(icon, scheme, isDark, isOled)
+			// Both layers edge to edge, so the tile's own rounded shape is the icon's shape.
+			val painter = remember(context, res) {
+				val adaptive = ContextCompat.getDrawable(context, res) as AdaptiveIconDrawable
+				DrawablePainter(LayerDrawable(arrayOf(adaptive.background, adaptive.foreground)))
+			}
 			PreviewTile(
 				label = stringResource(labels[icon.ordinal]),
 				selected = icon.name == selected,
@@ -769,11 +761,9 @@ private fun AppIconPicker(
 					.widthIn(max = 96.dp),
 			) {
 				Image(
-					painter = rememberAnyDrawablePainter(AppIconManager.iconRes(icon, scheme)),
+					painter = painter,
 					contentDescription = null,
-					modifier = Modifier
-						.matchParentSize()
-						.padding(6.dp),
+					modifier = Modifier.matchParentSize(),
 				)
 			}
 		}

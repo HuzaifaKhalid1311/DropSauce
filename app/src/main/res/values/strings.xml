@@ -502,12 +502,10 @@
     <string name="no_extensions_installed">No extensions installed</string>
     <string name="theme_name_expressive">Expressive</string>
     <string name="app_icon">App icon</string>
-    <string name="app_icon_summary">Some launchers need the icon added to the home screen again after a change</string>
+    <string name="app_icon_summary">Default and Themed follow light, dark and black mode. The icon changes once you leave the app, and some launchers need it added to the home screen again</string>
     <string name="app_icon_default">Default</string>
-    <string name="app_icon_black">Black</string>
     <string name="app_icon_mono">Mono</string>
-    <string name="app_icon_theme_dark">Dark</string>
-    <string name="app_icon_theme_light">Light</string>
+    <string name="app_icon_themed">Themed</string>
     <string name="color_theme">Color scheme</string>
     <string name="show_in_grid_view">Show in grid view</string>
     <string name="extensions_per_row">Extensions per row</string>
@@ -945,6 +943,11 @@
     <string name="review_before_migrating_summary">Check and change every match before anything moves</string>
     <string name="migration_searching">Searching… %1$d/%2$d</string>
     <string name="skipped">Skipped</string>
+    <string name="migration_pick_match">Pick a match</string>
+    <string name="migration_pick_match_summary">\"%1$s\" on %2$s</string>
+    <string name="migration_use_match">Use this</string>
+    <string name="migration_match_chosen">Chosen</string>
+    <string name="migration_skip_title">Don\'t migrate this one</string>
     <string name="migration_progress_pattern" translatable="false">%1$d / %2$d</string>
     <string name="migration_progress_summary">%1$d replaced, %2$d failed</string>
     <string name="recommended">Recommended</string>

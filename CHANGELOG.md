@@ -5,7 +5,7 @@
 ### New
 - Option to hide the line between chapters when reading novels in scroll mode
 - Up to 6 sections can be added to the navigation bar
-- App icon picker in settings > appearance, including icons that follow the app's color scheme
+- App icon picker in settings > appearance: default, mono, or themed to the app's color scheme, following light, dark and black mode
 - Explore can show only manga or only novels (hold the tab)
 
 ### Improved

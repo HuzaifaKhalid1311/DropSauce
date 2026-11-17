@@ -9,8 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ActionMode
 import androidx.core.graphics.Insets
+import android.graphics.Color
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
+import com.google.android.material.color.MaterialColors
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -74,6 +75,7 @@ class ExploreFragment :
 	/** Page lists, indexed by page position. Both are created up-front by the pager. */
 	private val pages = arrayOfNulls<RecyclerView>(2)
 	private val pageAdapters = arrayOfNulls<ExploreAdapter>(2)
+	private var tabMediator: TabLayoutMediator? = null
 	private val gridResolvers = arrayOfNulls<SpanSizeResolver>(2)
 	private val gridDecorations = arrayOfNulls<TypedListSpacingDecoration>(2)
 	private var barsInsets: Insets = Insets.NONE
@@ -115,17 +117,15 @@ class ExploreFragment :
 		// A zero-height pager lays out no pages at all, so nothing would ever be measured. Start at one
 		// screen and let updatePagerHeight replace it with the real content height.
 		binding.pager.updateLayoutParams { height = resources.displayMetrics.heightPixels }
-		TabLayoutMediator(header.tabsKind, binding.pager) { tab, position ->
+		tabMediator = TabLayoutMediator(header.tabsKind, binding.pager) { tab, position ->
 			tab.setText(tabTitle(position))
-		}.attach()
-		// Hold either tab to pick which kind leads, or to show just one.
-		repeat(header.tabsKind.tabCount) { index ->
-			header.tabsKind.getTabAt(index)?.view?.setOnLongClickListener { v ->
+			// Hold a tab to pick which kind leads, or to show just one.
+			tab.view.setOnLongClickListener { v ->
 				v.hapticFeedback(HapticEffect.LONG_PRESS)
 				showTabOrderDialog()
 				true
 			}
-		}
+		}.also { it.attach() }
 		applySingleKind()
 		actionModeDelegate.addListener(this)
 		addMenuProvider(ExploreMenuProvider(router, ::showLanguageFilterDialog))
@@ -203,9 +203,9 @@ class ExploreFragment :
 				),
 				selectedIndex = (if (viewModel.isNovelTabFirst) 1 else 0) + (if (viewModel.isSingleKind) 2 else 0),
 				onSelect = { index ->
+					applyTabOrder(isNovelFirst = index % 2 == 1)
 					viewModel.isSingleKind = index >= 2
 					applySingleKind()
-					applyTabOrder(isNovelFirst = index % 2 == 1)
 				},
 				onDismiss = dismiss,
 				icon = R.drawable.ic_swap,
@@ -213,15 +213,27 @@ class ExploreFragment :
 		}
 	}
 
-	/** One kind only: the second tab is hidden and the pager is pinned to the first page. */
+	/**
+	 * One kind only: the second tab is removed (hiding its view does not stick — TabLayout shows a tab
+	 * again whenever its label is set) and the pager is pinned to the first page. The lone tab keeps
+	 * its long-press, but loses the indicator.
+	 */
 	private fun applySingleKind() {
 		val binding = viewBinding ?: return
+		val tabs = binding.header.tabsKind
 		val isSingle = viewModel.isSingleKind
-		binding.header.tabsKind.getTabAt(1)?.view?.isVisible = !isSingle
-		binding.pager.isUserInputEnabled = !isSingle
 		if (isSingle) {
-			binding.header.tabsKind.selectTab(binding.header.tabsKind.getTabAt(0))
+			binding.pager.setCurrentItem(0, false)
+			if (tabs.tabCount > 1) tabs.removeTabAt(1)
+		} else if (tabs.tabCount < 2) {
+			// Re-populates both tabs from the pager.
+			tabMediator?.detach()
+			tabMediator?.attach()
 		}
+		binding.pager.isUserInputEnabled = !isSingle
+		tabs.setSelectedTabIndicatorColor(
+			if (isSingle) Color.TRANSPARENT else MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorPrimary),
+		)
 	}
 
 	private fun applyTabOrder(isNovelFirst: Boolean) {
@@ -351,6 +363,7 @@ class ExploreFragment :
 
 	override fun onDestroyView() {
 		actionModeDelegate.removeListener(this)
+		tabMediator = null
 		pages.fill(null)
 		pageAdapters.fill(null)
 		manageBadge = null

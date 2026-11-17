@@ -37,6 +37,10 @@ import org.koitharu.kotatsu.core.ui.DefaultActivityLifecycleCallbacks
 import org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity
 import org.koitharu.kotatsu.core.util.ext.applyNightMode
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
+import org.koitharu.kotatsu.core.os.AppIconManager
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
 import org.koitharu.kotatsu.local.domain.model.LocalManga
@@ -122,6 +126,12 @@ open class BaseApp : Application(), Configuration.Provider {
 			localStorageChanges.collect(localMangaIndexProvider.get())
 		}
 		workScheduleManager.init()
+		// Swapping the launcher icon closes the app's task, so it only happens once the app is left.
+		ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+			override fun onStop(owner: LifecycleOwner) {
+				processLifecycleScope.launch(Dispatchers.Default) { AppIconManager.apply(this@BaseApp, settings) }
+			}
+		})
 	}
 
 	override fun attachBaseContext(base: Context) {

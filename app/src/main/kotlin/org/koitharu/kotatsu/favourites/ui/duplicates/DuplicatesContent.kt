@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.favourites.ui.duplicates
 
 import android.view.View
 import org.koitharu.kotatsu.core.ui.menu.MenuPopup
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +55,7 @@ import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.list.domain.ReadingProgress
+import org.koitharu.kotatsu.parsers.model.Manga
 import kotlin.math.roundToInt
 
 private val ContentPadding = 16.dp
@@ -243,20 +245,57 @@ private fun DuplicateCard(
 	onPreview: (DuplicateCardModel) -> Unit,
 	onReplace: (DuplicateCardModel) -> Unit,
 ) {
-	Surface(
-		onClick = { onPreview(card) },
+	MangaChoiceCard(
+		manga = card.manga,
+		imageLoader = imageLoader,
+		chaptersCount = card.duplicate.chaptersCount,
+		chaptersDiff = card.chaptersDiff,
+		progress = card.duplicate.progress,
+		categories = card.duplicate.categories,
 		enabled = !card.isBlocked,
-		shape = RoundedCornerShape(26.dp),
-		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		onPreview = { onPreview(card) },
+	) {
+		ReplaceButton(card, onReplace)
+	}
+}
+
+/**
+ * One manga as a card: cover, chapters, extension and an [action] button. Shared by the duplicates
+ * sheet and the migration match picker so both read the same.
+ */
+@Composable
+internal fun MangaChoiceCard(
+	manga: Manga,
+	imageLoader: ImageLoader,
+	chaptersCount: Int,
+	chaptersDiff: Int,
+	progress: Float,
+	categories: List<String>,
+	enabled: Boolean,
+	onPreview: () -> Unit,
+	isSelected: Boolean = false,
+	action: @Composable () -> Unit,
+) {
+	val shape = RoundedCornerShape(26.dp)
+	Surface(
+		onClick = onPreview,
+		enabled = enabled,
+		shape = shape,
+		color = if (isSelected) {
+			MaterialTheme.colorScheme.secondaryContainer
+		} else {
+			MaterialTheme.colorScheme.surfaceContainerHigh
+		},
+		border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
 		modifier = Modifier.fillMaxWidth(),
 	) {
 		Box {
 			Row(modifier = Modifier.padding(14.dp)) {
-				Cover(card, imageLoader)
+				Cover(manga, progress, imageLoader)
 				Spacer(Modifier.width(14.dp))
 				Column(modifier = Modifier.weight(1f)) {
 					Text(
-						text = card.manga.title,
+						text = manga.title,
 						style = MaterialTheme.typography.titleMedium,
 						color = MaterialTheme.colorScheme.onSurface,
 						maxLines = 2,
@@ -264,7 +303,7 @@ private fun DuplicateCard(
 						// Keep clear of the preview badge parked in the card's corner.
 						modifier = Modifier.padding(end = 28.dp),
 					)
-					val author = card.manga.authors.firstOrNull()
+					val author = manga.authors.firstOrNull()
 					if (!author.isNullOrBlank()) {
 						Text(
 							text = author,
@@ -276,15 +315,15 @@ private fun DuplicateCard(
 						)
 					}
 					Spacer(Modifier.height(10.dp))
-					ChaptersLine(card)
-					SourceLine(card, imageLoader)
-					CategoryPill(card)
+					ChaptersLine(chaptersCount, chaptersDiff)
+					SourceLine(manga, imageLoader)
+					CategoryPill(categories)
 					Spacer(Modifier.height(12.dp))
 					Row(
 						horizontalArrangement = Arrangement.End,
 						modifier = Modifier.fillMaxWidth(),
 					) {
-						ReplaceButton(card, onReplace)
+						action()
 					}
 				}
 			}
@@ -303,10 +342,10 @@ private fun DuplicateCard(
 }
 
 @Composable
-private fun Cover(card: DuplicateCardModel, imageLoader: ImageLoader) {
+private fun Cover(manga: Manga, progress: Float, imageLoader: ImageLoader) {
 	Box {
 		AsyncImage(
-			model = card.manga.coverUrl,
+			model = manga.coverUrl,
 			imageLoader = imageLoader,
 			contentDescription = null,
 			contentScale = ContentScale.Crop,
@@ -315,7 +354,6 @@ private fun Cover(card: DuplicateCardModel, imageLoader: ImageLoader) {
 				.aspectRatio(CoverRatio)
 				.clip(RoundedCornerShape(18.dp)),
 		)
-		val progress = card.duplicate.progress
 		if (ReadingProgress.isValid(progress) && progress > 0f) {
 			ProgressBadge(
 				progress = progress,
@@ -354,8 +392,7 @@ private fun ProgressBadge(progress: Float, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ChaptersLine(card: DuplicateCardModel) {
-	val count = card.duplicate.chaptersCount
+private fun ChaptersLine(count: Int, diff: Int) {
 	Row(verticalAlignment = Alignment.CenterVertically) {
 		Text(
 			text = if (count > 0) {
@@ -368,7 +405,6 @@ private fun ChaptersLine(card: DuplicateCardModel) {
 			maxLines = 1,
 			overflow = TextOverflow.Ellipsis,
 		)
-		val diff = card.chaptersDiff
 		if (diff != 0) {
 			Spacer(Modifier.width(6.dp))
 			Text(
@@ -383,9 +419,9 @@ private fun ChaptersLine(card: DuplicateCardModel) {
 
 /** The extension, sitting inline with the other metadata: favicon plus plain secondary text. */
 @Composable
-private fun SourceLine(card: DuplicateCardModel, imageLoader: ImageLoader) {
+private fun SourceLine(manga: Manga, imageLoader: ImageLoader) {
 	val context = LocalContext.current
-	val source = card.manga.source
+	val source = manga.source
 	val request = remember(context, source) {
 		ImageRequest.Builder(context)
 			.data(source.faviconUri())
@@ -422,8 +458,7 @@ private fun SourceLine(card: DuplicateCardModel, imageLoader: ImageLoader) {
 
 /** The favourite category, given the tonal-pill treatment so it reads as the entry's home. */
 @Composable
-private fun CategoryPill(card: DuplicateCardModel) {
-	val categories = card.duplicate.categories
+private fun CategoryPill(categories: List<String>) {
 	if (categories.isEmpty()) {
 		return
 	}

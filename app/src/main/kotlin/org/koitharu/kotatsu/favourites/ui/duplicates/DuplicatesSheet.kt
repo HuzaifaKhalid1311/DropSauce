@@ -84,24 +84,7 @@ class DuplicatesSheet : BaseAdaptiveSheet<SheetDuplicatesBinding>() {
 		super.onStart()
 		// The sheet's own view only exists from here on, so re-apply — onViewBindingCreated can't reach it.
 		setContentVisible(viewModel.state.value !is DuplicatesState.Checking)
-		(dialog as? BottomSheetDialog)?.let { sheetDialog ->
-			// Open straight to the expanded state. `isFitToContents` stays on, so "expanded" still means
-			// exactly the content's height for a short list — it just stops a long list opening at the
-			// collapsed peek with the action button stranded below the fold.
-			sheetDialog.behavior.skipCollapsed = true
-			sheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-			// Extra-rounded top, matching the app's other expressive pull-up surfaces. Applied to the
-			// view rather than through a theme overlay: this fragment turns into a SideSheetDialog in
-			// landscape, and a persisted bottom-sheet overlay makes that side sheet fail to inflate.
-			val sheetView = sheetDialog.findViewById<View>(materialR.id.design_bottom_sheet)
-			(sheetView?.background as? MaterialShapeDrawable)?.let { background ->
-				val corner = resources.getDimension(R.dimen.sheet_corner_expressive)
-				background.shapeAppearanceModel = background.shapeAppearanceModel.toBuilder()
-					.setTopLeftCornerSize(corner)
-					.setTopRightCornerSize(corner)
-					.build()
-			}
-		}
+		expandExpressively()
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
@@ -166,5 +149,30 @@ class DuplicatesSheet : BaseAdaptiveSheet<SheetDuplicatesBinding>() {
 	private companion object {
 
 		const val DEFAULT_DIM = 0.32f
+	}
+}
+
+/**
+ * Opens a sheet fully expanded with the extra-rounded expressive top. Call from onStart: the sheet's
+ * own view only exists from there.
+ */
+internal fun BaseAdaptiveSheet<*>.expandExpressively() {
+	(dialog as? BottomSheetDialog)?.let { sheetDialog ->
+		// Open straight to the expanded state. `isFitToContents` stays on, so "expanded" still means
+		// exactly the content's height for a short list — it just stops a long list opening at the
+		// collapsed peek with the action button stranded below the fold.
+		sheetDialog.behavior.skipCollapsed = true
+		sheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+		// Extra-rounded top, matching the app's other expressive pull-up surfaces. Applied to the
+		// view rather than through a theme overlay: this fragment turns into a SideSheetDialog in
+		// landscape, and a persisted bottom-sheet overlay makes that side sheet fail to inflate.
+		val sheetView = sheetDialog.findViewById<View>(materialR.id.design_bottom_sheet)
+		(sheetView?.background as? MaterialShapeDrawable)?.let { background ->
+			val corner = resources.getDimension(R.dimen.sheet_corner_expressive)
+			background.shapeAppearanceModel = background.shapeAppearanceModel.toBuilder()
+				.setTopLeftCornerSize(corner)
+				.setTopRightCornerSize(corner)
+				.build()
+		}
 	}
 }

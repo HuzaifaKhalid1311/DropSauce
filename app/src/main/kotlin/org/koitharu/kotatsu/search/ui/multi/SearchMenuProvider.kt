@@ -10,6 +10,8 @@ import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.core.view.MenuProvider
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
+import org.koitharu.kotatsu.core.util.ext.adjustPopupMenuIcons
+import org.koitharu.kotatsu.core.util.ext.setOptionalIconsVisibleCompat
 import org.koitharu.kotatsu.search.domain.SearchKind
 
 class SearchMenuProvider(
@@ -64,7 +66,10 @@ class SearchMenuProvider(
 	private fun showFilterPopup(anchor: View) {
 		val popup = MenuPopup(anchor)
 		popup.inflate(R.menu.popup_search_kind)
+		popup.setForceShowIcon(true)
 		val menu = popup.menu
+		menu.setOptionalIconsVisibleCompat(true)
+		menu.adjustPopupMenuIcons(anchor.resources)
 		menu.findItem(
 			when (viewModel.kind) {
 				SearchKind.SIMPLE -> R.id.action_kind_simple

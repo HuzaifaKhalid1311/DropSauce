@@ -1,25 +1,64 @@
 package org.koitharu.kotatsu.core.os
 
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
+import androidx.appcompat.app.AppCompatDelegate
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ColorScheme
+import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
+import javax.inject.Inject
 
-/** Launcher icon choices; the themed ones take the app's color scheme. */
-enum class AppIcon { DEFAULT, BLACK, MONO, THEME_DARK, THEME_LIGHT }
+/** Launcher icon choices. Default and Themed follow the app's light / dark / OLED look, Mono never changes. */
+enum class AppIcon { DEFAULT, MONO, THEMED }
 
 /**
  * Each icon is an `org.koitharu.kotatsu.icon.*` activity-alias of MainActivity in the manifest, and
  * exactly one of them is enabled — that is the only way Android lets an app change its launcher icon.
+ * Switching closes the app's task, so it is only ever done while the app is in the background.
  */
 object AppIconManager {
 
 	private const val PREFIX = "org.koitharu.kotatsu.icon."
 
-	/** Enables the alias for [icon] (in [scheme]'s colors when themed) and disables all the others. */
-	fun apply(context: Context, icon: AppIcon, scheme: ColorScheme) {
-		val target = aliasName(icon, scheme)
+	/** Index into a light / dark / OLED triple. */
+	private const val LIGHT = 0
+	private const val DARK = 1
+	private const val OLED = 2
+
+	@Volatile
+	private var appliedAlias: String? = null
+
+	/** Themed icons per scheme, as light / dark / OLED. */
+	private val THEMED = mapOf(
+		ColorScheme.DEFAULT to intArrayOf(R.mipmap.ic_launcher_default_light, R.mipmap.ic_launcher_default_dark, R.mipmap.ic_launcher_default_oled),
+		ColorScheme.EXPRESSIVE to intArrayOf(R.mipmap.ic_launcher_expressive_light, R.mipmap.ic_launcher_expressive_dark, R.mipmap.ic_launcher_expressive_oled),
+		ColorScheme.MIKU to intArrayOf(R.mipmap.ic_launcher_miku_light, R.mipmap.ic_launcher_miku_dark, R.mipmap.ic_launcher_miku_oled),
+		ColorScheme.RENA to intArrayOf(R.mipmap.ic_launcher_rena_light, R.mipmap.ic_launcher_rena_dark, R.mipmap.ic_launcher_rena_oled),
+		ColorScheme.FROG to intArrayOf(R.mipmap.ic_launcher_frog_light, R.mipmap.ic_launcher_frog_dark, R.mipmap.ic_launcher_frog_oled),
+		ColorScheme.BLUEBERRY to intArrayOf(R.mipmap.ic_launcher_blueberry_light, R.mipmap.ic_launcher_blueberry_dark, R.mipmap.ic_launcher_blueberry_oled),
+		ColorScheme.SAKURA to intArrayOf(R.mipmap.ic_launcher_sakura_light, R.mipmap.ic_launcher_sakura_dark, R.mipmap.ic_launcher_sakura_oled),
+		ColorScheme.MAMIMI to intArrayOf(R.mipmap.ic_launcher_mamimi_light, R.mipmap.ic_launcher_mamimi_dark, R.mipmap.ic_launcher_mamimi_oled),
+		ColorScheme.KANADE to intArrayOf(R.mipmap.ic_launcher_kanade_light, R.mipmap.ic_launcher_kanade_dark, R.mipmap.ic_launcher_kanade_oled),
+		ColorScheme.ITSUKA to intArrayOf(R.mipmap.ic_launcher_itsuka_light, R.mipmap.ic_launcher_itsuka_dark, R.mipmap.ic_launcher_itsuka_oled),
+		ColorScheme.SHANA to intArrayOf(R.mipmap.ic_launcher_shana_light, R.mipmap.ic_launcher_shana_dark, R.mipmap.ic_launcher_shana_oled),
+		ColorScheme.LIME to intArrayOf(R.mipmap.ic_launcher_lime_light, R.mipmap.ic_launcher_lime_dark, R.mipmap.ic_launcher_lime_oled),
+		ColorScheme.AMBER to intArrayOf(R.mipmap.ic_launcher_amber_light, R.mipmap.ic_launcher_amber_dark, R.mipmap.ic_launcher_amber_oled),
+		ColorScheme.SKY to intArrayOf(R.mipmap.ic_launcher_sky_light, R.mipmap.ic_launcher_sky_dark, R.mipmap.ic_launcher_sky_oled),
+	)
+
+	/** Enables the alias the current settings call for and disables all the others. Blocking; call off the main thread. */
+	fun apply(context: Context, settings: AppSettings) {
+		val target = aliasName(settings.appIcon, settings.colorScheme, mode(settings))
+		if (target == appliedAlias) return
 		val pm = context.packageManager
 		// The new entry goes on before the old one goes off, so the launcher never sees the app without one.
 		val names = listOf(target) + allAliases().filter { it != target }
@@ -43,54 +82,66 @@ object AppIconManager {
 				)
 			}
 		}
+		appliedAlias = target
 	}
 
-	/** The adaptive icon [icon] shows in [scheme], for previews. */
-	fun iconRes(icon: AppIcon, scheme: ColorScheme): Int = when (icon) {
-		AppIcon.DEFAULT -> R.mipmap.ic_launcher
-		AppIcon.BLACK -> R.mipmap.ic_launcher_black
-		AppIcon.MONO -> R.mipmap.ic_launcher_mono
-		AppIcon.THEME_DARK -> when (scheme) {
-			ColorScheme.DEFAULT -> R.mipmap.ic_launcher_default_dark
-			ColorScheme.EXPRESSIVE -> R.mipmap.ic_launcher_expressive_dark
-			ColorScheme.MIKU -> R.mipmap.ic_launcher_miku_dark
-			ColorScheme.RENA -> R.mipmap.ic_launcher_rena_dark
-			ColorScheme.FROG -> R.mipmap.ic_launcher_frog_dark
-			ColorScheme.BLUEBERRY -> R.mipmap.ic_launcher_blueberry_dark
-			ColorScheme.SAKURA -> R.mipmap.ic_launcher_sakura_dark
-			ColorScheme.MAMIMI -> R.mipmap.ic_launcher_mamimi_dark
-			ColorScheme.KANADE -> R.mipmap.ic_launcher_kanade_dark
-			ColorScheme.ITSUKA -> R.mipmap.ic_launcher_itsuka_dark
-			ColorScheme.SHANA -> R.mipmap.ic_launcher_shana_dark
-			ColorScheme.LIME -> R.mipmap.ic_launcher_lime_dark
-			ColorScheme.AMBER -> R.mipmap.ic_launcher_amber_dark
-			ColorScheme.SKY -> R.mipmap.ic_launcher_sky_dark
-		}
-
-		AppIcon.THEME_LIGHT -> when (scheme) {
-			ColorScheme.DEFAULT -> R.mipmap.ic_launcher_default_light
-			ColorScheme.EXPRESSIVE -> R.mipmap.ic_launcher_expressive_light
-			ColorScheme.MIKU -> R.mipmap.ic_launcher_miku_light
-			ColorScheme.RENA -> R.mipmap.ic_launcher_rena_light
-			ColorScheme.FROG -> R.mipmap.ic_launcher_frog_light
-			ColorScheme.BLUEBERRY -> R.mipmap.ic_launcher_blueberry_light
-			ColorScheme.SAKURA -> R.mipmap.ic_launcher_sakura_light
-			ColorScheme.MAMIMI -> R.mipmap.ic_launcher_mamimi_light
-			ColorScheme.KANADE -> R.mipmap.ic_launcher_kanade_light
-			ColorScheme.ITSUKA -> R.mipmap.ic_launcher_itsuka_light
-			ColorScheme.SHANA -> R.mipmap.ic_launcher_shana_light
-			ColorScheme.LIME -> R.mipmap.ic_launcher_lime_light
-			ColorScheme.AMBER -> R.mipmap.ic_launcher_amber_light
-			ColorScheme.SKY -> R.mipmap.ic_launcher_sky_light
+	/** The adaptive icon [icon] gets in [scheme] and the given look, for previews. */
+	fun iconRes(icon: AppIcon, scheme: ColorScheme, isDark: Boolean, isOled: Boolean): Int {
+		val mode = mode(isDark, isOled)
+		return when (icon) {
+			AppIcon.DEFAULT -> intArrayOf(R.mipmap.ic_launcher_white, R.mipmap.ic_launcher, R.mipmap.ic_launcher_black)[mode]
+			AppIcon.MONO -> R.mipmap.ic_launcher_mono
+			AppIcon.THEMED -> THEMED.getValue(scheme)[mode]
 		}
 	}
 
-	private fun aliasName(icon: AppIcon, scheme: ColorScheme) = when (icon) {
-		AppIcon.THEME_DARK -> "${scheme.name}_DARK"
-		AppIcon.THEME_LIGHT -> "${scheme.name}_LIGHT"
-		else -> icon.name
+	/** The app's own look; when it follows the system, the system's night mode decides. */
+	private fun mode(settings: AppSettings): Int {
+		val isDark = when (settings.theme) {
+			AppCompatDelegate.MODE_NIGHT_YES -> true
+			AppCompatDelegate.MODE_NIGHT_NO -> false
+			else -> Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+				Configuration.UI_MODE_NIGHT_YES
+		}
+		return mode(isDark, settings.isAmoledTheme)
 	}
 
-	private fun allAliases(): List<String> = listOf(AppIcon.DEFAULT.name, AppIcon.BLACK.name, AppIcon.MONO.name) +
-		ColorScheme.entries.flatMap { listOf("${it.name}_DARK", "${it.name}_LIGHT") }
+	private fun mode(isDark: Boolean, isOled: Boolean) = when {
+		!isDark -> LIGHT
+		isOled -> OLED
+		else -> DARK
+	}
+
+	private fun aliasName(icon: AppIcon, scheme: ColorScheme, mode: Int) = when (icon) {
+		AppIcon.DEFAULT -> arrayOf("DEFAULT_WHITE", "DEFAULT", "DEFAULT_BLACK")[mode]
+		AppIcon.MONO -> "MONO"
+		AppIcon.THEMED -> "THEME_${scheme.name}_" + arrayOf("LIGHT", "DARK", "OLED")[mode]
+	}
+
+	private fun allAliases(): List<String> = listOf("DEFAULT", "DEFAULT_WHITE", "DEFAULT_BLACK", "MONO") +
+		ColorScheme.entries.flatMap { scheme -> listOf("LIGHT", "DARK", "OLED").map { "THEME_${scheme.name}_$it" } }
+}
+
+/**
+ * After every app update, re-enables the launcher alias the settings call for. Component states
+ * outlive updates, so an update that drops or renames the enabled alias would otherwise leave the
+ * app with no launcher entry at all (Android then opens App info instead).
+ */
+@AndroidEntryPoint
+class AppIconRepairReceiver : BroadcastReceiver() {
+
+	@Inject
+	lateinit var settings: AppSettings
+
+	override fun onReceive(context: Context, intent: Intent) {
+		if (intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
+		val pending = goAsync()
+		processLifecycleScope.launch(Dispatchers.Default) {
+			try {
+				AppIconManager.apply(context.applicationContext, settings)
+			} finally {
+				pending.finish()
+			}
+		}
+	}
 }

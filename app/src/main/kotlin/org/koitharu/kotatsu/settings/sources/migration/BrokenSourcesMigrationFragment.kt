@@ -95,12 +95,10 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.core.model.chaptersCount
 import org.koitharu.kotatsu.core.model.getTitle
-import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.settings.compose.ChoiceDialogCard
 import org.koitharu.kotatsu.settings.compose.SettingsSwitch
 import org.koitharu.kotatsu.settings.reader.DragHandle
 import org.koitharu.kotatsu.settings.reader.rememberReorderSlide
@@ -176,22 +174,8 @@ class BrokenSourcesMigrationFragment :
 	}
 
 	private fun showReplacementPicker(item: ReviewItem) {
-		val candidates = item.candidates ?: return
-		val context = requireContext()
-		showComposeDialog(context) { dismiss ->
-			ChoiceDialogCard(
-				title = item.seed.title,
-				entries = candidates.map { manga ->
-					val chapters = manga.chaptersCount()
-					"${manga.source.getTitle(context)} · ${manga.title} · " +
-						context.resources.getQuantityString(R.plurals.chapters, chapters, chapters)
-				} + stringResource(R.string.skip),
-				selectedIndex = candidates.indexOf(item.choice).let { if (it < 0) candidates.size else it },
-				onSelect = { index -> viewModel.chooseReplacement(item.seed.id, candidates.getOrNull(index)) },
-				onDismiss = dismiss,
-				icon = R.drawable.ic_migrate,
-			)
-		}
+		if (item.candidates.isNullOrEmpty() || childFragmentManager.findFragmentByTag(MigrationMatchSheet.TAG) != null) return
+		MigrationMatchSheet.newInstance(item.seed.id).show(childFragmentManager, MigrationMatchSheet.TAG)
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
