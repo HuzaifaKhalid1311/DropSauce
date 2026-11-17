@@ -17,13 +17,13 @@ import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import javax.inject.Inject
 
-/** Launcher icon choices. Default and Themed follow the app's light / dark / OLED look, Mono never changes. */
-enum class AppIcon { DEFAULT, MONO, THEMED }
+/** Launcher icon choices, all following the app's light / dark / OLED look (Mono only has light and dark). */
+enum class AppIcon { DEFAULT, THEMED, MONO }
 
 /**
  * Each icon is an `org.koitharu.kotatsu.icon.*` activity-alias of MainActivity in the manifest, and
  * exactly one of them is enabled — that is the only way Android lets an app change its launcher icon.
- * Switching closes the app's task, so it is only ever done while the app is in the background.
+ * Switching closes the app's task, so automatic switches wait until the app is in the background.
  */
 object AppIconManager {
 
@@ -90,7 +90,7 @@ object AppIconManager {
 		val mode = mode(isDark, isOled)
 		return when (icon) {
 			AppIcon.DEFAULT -> intArrayOf(R.mipmap.ic_launcher_white, R.mipmap.ic_launcher, R.mipmap.ic_launcher_black)[mode]
-			AppIcon.MONO -> R.mipmap.ic_launcher_mono
+			AppIcon.MONO -> if (mode == LIGHT) R.mipmap.ic_launcher_mono_light else R.mipmap.ic_launcher_mono
 			AppIcon.THEMED -> THEMED.getValue(scheme)[mode]
 		}
 	}
@@ -114,11 +114,11 @@ object AppIconManager {
 
 	private fun aliasName(icon: AppIcon, scheme: ColorScheme, mode: Int) = when (icon) {
 		AppIcon.DEFAULT -> arrayOf("DEFAULT_WHITE", "DEFAULT", "DEFAULT_BLACK")[mode]
-		AppIcon.MONO -> "MONO"
+		AppIcon.MONO -> if (mode == LIGHT) "MONO_LIGHT" else "MONO"
 		AppIcon.THEMED -> "THEME_${scheme.name}_" + arrayOf("LIGHT", "DARK", "OLED")[mode]
 	}
 
-	private fun allAliases(): List<String> = listOf("DEFAULT", "DEFAULT_WHITE", "DEFAULT_BLACK", "MONO") +
+	private fun allAliases(): List<String> = listOf("DEFAULT", "DEFAULT_WHITE", "DEFAULT_BLACK", "MONO", "MONO_LIGHT") +
 		ColorScheme.entries.flatMap { scheme -> listOf("LIGHT", "DARK", "OLED").map { "THEME_${scheme.name}_$it" } }
 }
 

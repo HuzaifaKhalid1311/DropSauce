@@ -132,13 +132,6 @@ private fun MatchContent(
 				.padding(horizontal = 12.dp),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
-			FilledTonalIconButton(onClick = onClose, modifier = Modifier.size(40.dp)) {
-				Icon(
-					painter = painterResource(R.drawable.ic_close),
-					contentDescription = stringResource(android.R.string.cancel),
-					modifier = Modifier.size(20.dp),
-				)
-			}
 			Column(
 				modifier = Modifier
 					.weight(1f)
@@ -171,6 +164,13 @@ private fun MatchContent(
 					)
 				}
 			}
+			FilledTonalIconButton(onClick = onClose, modifier = Modifier.size(40.dp)) {
+				Icon(
+					painter = painterResource(R.drawable.ic_close),
+					contentDescription = stringResource(android.R.string.cancel),
+					modifier = Modifier.size(20.dp),
+				)
+			}
 		}
 		Spacer(Modifier.height(16.dp))
 		LazyColumn(
@@ -191,23 +191,23 @@ private fun MatchContent(
 					categories = emptyList(),
 					enabled = true,
 					isSelected = isSelected,
-					onPreview = { onPreview(candidate) },
+					showPreviewBadge = false,
+					onClick = { onChoose(candidate) },
 				) {
 					FilledTonalButton(
-						onClick = { onChoose(candidate) },
-						enabled = !isSelected,
+						onClick = { onPreview(candidate) },
 						shape = RoundedCornerShape(18.dp),
-						contentPadding = PaddingValues(horizontal = 14.dp),
-						modifier = Modifier.height(38.dp),
+						contentPadding = PaddingValues(horizontal = 12.dp),
+						modifier = Modifier.height(34.dp),
 					) {
 						Icon(
-							painter = painterResource(R.drawable.ic_check),
+							painter = painterResource(R.drawable.ic_open_external),
 							contentDescription = null,
-							modifier = Modifier.size(18.dp),
+							modifier = Modifier.size(16.dp),
 						)
 						Spacer(Modifier.width(6.dp))
 						Text(
-							text = stringResource(if (isSelected) R.string.migration_match_chosen else R.string.migration_use_match),
+							text = stringResource(R.string.preview),
 							style = MaterialTheme.typography.labelLarge,
 							maxLines = 1,
 						)

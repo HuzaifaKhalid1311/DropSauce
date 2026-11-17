@@ -5,6 +5,7 @@
 	<color name="launcher_black_bg">#000000</color>
 	<color name="launcher_mono_bg">#000000</color>
 	<color name="launcher_mono_fg">#FFFFFF</color>
+	<color name="launcher_mono_light_fg">#000000</color>
 	<color name="launcher_default_dark_bg">#1D2024</color>
 	<color name="launcher_default_dark_fg">#A6C8FF</color>
 	<color name="launcher_default_light_bg">#EDEDF4</color>

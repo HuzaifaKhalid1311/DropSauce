@@ -18,6 +18,11 @@ import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -107,6 +112,16 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 				view?.postDelayed({
 					activity?.let { ThemeSwitchCoverActivity.switchNightMode(it, settings.theme) }
 				}, 300)
+			}
+			AppSettings.KEY_APP_ICON -> activity?.let { activity ->
+				// Android closes a task opened from the icon being switched off anyway, so close it ourselves
+				// first instead of letting it fall apart screen by screen.
+				val context = activity.applicationContext
+				activity.finishAffinity()
+				activity.finishAndRemoveTask()
+				processLifecycleScope.launch(Dispatchers.Default) {
+					AppIconManager.apply(context, settings)
+				}
 			}
 			AppSettings.KEY_COLOR_THEME,
 			AppSettings.KEY_THEME_AMOLED,
@@ -367,7 +382,13 @@ private fun AppearanceScreen(
 				item { pos ->
 					SettingsItem(
 						title = stringResource(R.string.app_icon),
-						subtitle = stringResource(R.string.app_icon_summary),
+						supporting = {
+							Text(
+								text = stringResource(R.string.app_icon_summary),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.error,
+							)
+						},
 						icon = R.drawable.ic_app_icon,
 						shape = pos.shape,
 						below = {
@@ -735,7 +756,7 @@ private fun AppIconPicker(
 ) {
 	val haptic = rememberHapticEffect()
 	val context = LocalContext.current
-	val labels = listOf(R.string.app_icon_default, R.string.app_icon_mono, R.string.app_icon_themed)
+	val labels = listOf(R.string.app_icon_default, R.string.app_icon_themed, R.string.app_icon_mono)
 	Row(
 		modifier = Modifier.fillMaxWidth(),
 		horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -758,7 +779,7 @@ private fun AppIconPicker(
 				aspectRatio = 1f,
 				modifier = Modifier
 					.weight(1f, fill = false)
-					.widthIn(max = 96.dp),
+					.widthIn(max = 64.dp),
 			) {
 				Image(
 					painter = painter,

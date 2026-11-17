@@ -48,31 +48,40 @@
 		<FrameLayout
 			android:layout_width="0dp"
 			android:layout_height="48dp"
-			android:layout_weight="1"
-			android:background="@drawable/bg_explore_kind_rail">
+			android:layout_weight="1">
 
-			<com.google.android.material.tabs.TabLayout
-				android:id="@+id/tabs_kind"
-				android:layout_width="match_parent"
+			<!-- The rail hugs its tabs instead of spanning the header. -->
+			<FrameLayout
+				android:layout_width="wrap_content"
 				android:layout_height="match_parent"
-				android:background="@null"
-				app:tabGravity="fill"
-				app:tabIndicatorAnimationMode="elastic"
-				app:tabIndicatorColor="?attr/colorPrimary"
-				app:tabIndicatorFullWidth="false"
-				app:tabIndicatorHeight="3dp"
-				app:tabMode="fixed"
-				app:tabRippleColor="@null"
-				app:tabSelectedTextColor="?attr/colorPrimary"
-				app:tabTextAppearance="?textAppearanceLabelLarge"
-				app:tabTextColor="?attr/colorOnSurfaceVariant" />
-
-			<View
-				android:layout_width="1dp"
-				android:layout_height="20dp"
 				android:layout_gravity="center"
-				android:background="?attr/colorOutlineVariant"
-				android:importantForAccessibility="no" />
+				android:background="@drawable/bg_explore_kind_rail">
+
+				<com.google.android.material.tabs.TabLayout
+					android:id="@+id/tabs_kind"
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:background="@null"
+					app:tabGravity="center"
+					app:tabIndicatorAnimationMode="elastic"
+					app:tabIndicatorColor="?attr/colorPrimary"
+					app:tabIndicatorFullWidth="false"
+					app:tabIndicatorHeight="3dp"
+					app:tabMode="fixed"
+					app:tabRippleColor="@null"
+					app:tabSelectedTextColor="?attr/colorPrimary"
+					app:tabTextAppearance="?textAppearanceLabelLarge"
+					app:tabTextColor="?attr/colorOnSurfaceVariant" />
+
+				<View
+					android:id="@+id/divider_kind"
+					android:layout_width="1dp"
+					android:layout_height="20dp"
+					android:layout_gravity="center"
+					android:background="?attr/colorOutlineVariant"
+					android:importantForAccessibility="no" />
+
+			</FrameLayout>
 
 		</FrameLayout>
 

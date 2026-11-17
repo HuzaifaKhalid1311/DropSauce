@@ -143,6 +143,18 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.MONO_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_mono_light"
+			android:roundIcon="@mipmap/ic_launcher_mono_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
 			android:name="org.koitharu.kotatsu.icon.THEME_DEFAULT_LIGHT"
 			android:enabled="false"
 			android:exported="true"

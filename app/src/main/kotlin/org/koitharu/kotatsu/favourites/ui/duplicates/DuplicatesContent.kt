@@ -253,7 +253,7 @@ private fun DuplicateCard(
 		progress = card.duplicate.progress,
 		categories = card.duplicate.categories,
 		enabled = !card.isBlocked,
-		onPreview = { onPreview(card) },
+		onClick = { onPreview(card) },
 	) {
 		ReplaceButton(card, onReplace)
 	}
@@ -261,7 +261,8 @@ private fun DuplicateCard(
 
 /**
  * One manga as a card: cover, chapters, extension and an [action] button. Shared by the duplicates
- * sheet and the migration match picker so both read the same.
+ * sheet and the migration match picker so both read the same. [showPreviewBadge] marks a card whose
+ * tap opens the details.
  */
 @Composable
 internal fun MangaChoiceCard(
@@ -272,13 +273,14 @@ internal fun MangaChoiceCard(
 	progress: Float,
 	categories: List<String>,
 	enabled: Boolean,
-	onPreview: () -> Unit,
+	onClick: () -> Unit,
 	isSelected: Boolean = false,
+	showPreviewBadge: Boolean = true,
 	action: @Composable () -> Unit,
 ) {
 	val shape = RoundedCornerShape(26.dp)
 	Surface(
-		onClick = onPreview,
+		onClick = onClick,
 		enabled = enabled,
 		shape = shape,
 		color = if (isSelected) {
@@ -301,7 +303,7 @@ internal fun MangaChoiceCard(
 						maxLines = 2,
 						overflow = TextOverflow.Ellipsis,
 						// Keep clear of the preview badge parked in the card's corner.
-						modifier = Modifier.padding(end = 28.dp),
+						modifier = Modifier.padding(end = if (showPreviewBadge) 28.dp else 0.dp),
 					)
 					val author = manga.authors.firstOrNull()
 					if (!author.isNullOrBlank()) {
@@ -328,15 +330,17 @@ internal fun MangaChoiceCard(
 				}
 			}
 			// Preview affordance, parked in the card's own corner rather than over the artwork.
-			Icon(
-				painter = painterResource(R.drawable.ic_open_external),
-				contentDescription = stringResource(R.string.preview),
-				tint = MaterialTheme.colorScheme.onSurfaceVariant,
-				modifier = Modifier
-					.align(Alignment.TopEnd)
-					.padding(14.dp)
-					.size(18.dp),
-			)
+			if (showPreviewBadge) {
+				Icon(
+					painter = painterResource(R.drawable.ic_open_external),
+					contentDescription = stringResource(R.string.preview),
+					tint = MaterialTheme.colorScheme.onSurfaceVariant,
+					modifier = Modifier
+						.align(Alignment.TopEnd)
+						.padding(14.dp)
+						.size(18.dp),
+				)
+			}
 		}
 	}
 }

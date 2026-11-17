@@ -12,6 +12,7 @@ import androidx.core.graphics.Insets
 import android.graphics.Color
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.color.MaterialColors
+import androidx.core.view.isGone
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -231,6 +232,7 @@ class ExploreFragment :
 			tabMediator?.attach()
 		}
 		binding.pager.isUserInputEnabled = !isSingle
+		binding.header.dividerKind.isGone = isSingle
 		tabs.setSelectedTabIndicatorColor(
 			if (isSingle) Color.TRANSPARENT else MaterialColors.getColor(tabs, androidx.appcompat.R.attr.colorPrimary),
 		)

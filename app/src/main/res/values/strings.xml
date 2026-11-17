@@ -502,7 +502,7 @@
     <string name="no_extensions_installed">No extensions installed</string>
     <string name="theme_name_expressive">Expressive</string>
     <string name="app_icon">App icon</string>
-    <string name="app_icon_summary">Default and Themed follow light, dark and black mode. The icon changes once you leave the app, and some launchers need it added to the home screen again</string>
+    <string name="app_icon_summary">The app will close to change the icon</string>
     <string name="app_icon_default">Default</string>
     <string name="app_icon_mono">Mono</string>
     <string name="app_icon_themed">Themed</string>
@@ -945,8 +945,6 @@
     <string name="skipped">Skipped</string>
     <string name="migration_pick_match">Pick a match</string>
     <string name="migration_pick_match_summary">\"%1$s\" on %2$s</string>
-    <string name="migration_use_match">Use this</string>
-    <string name="migration_match_chosen">Chosen</string>
     <string name="migration_skip_title">Don\'t migrate this one</string>
     <string name="migration_progress_pattern" translatable="false">%1$d / %2$d</string>
     <string name="migration_progress_summary">%1$d replaced, %2$d failed</string>
