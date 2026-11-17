@@ -49,6 +49,11 @@ class KotatsuSourceMap @Inject constructor(
 		return load().byId[sourceId]
 	}
 
+	/** Targets whose url shape differs from their Kotatsu parser's, see [MihonTarget.mangaUrl]. */
+	suspend fun targetsWithUrlRules(): List<MihonTarget> {
+		return load().byId.values.filter { it.mangaUrl != null || it.chapterUrl != null }
+	}
+
 	private suspend fun load(): Tables {
 		tables?.let { return it }
 		return mutex.withLock {
@@ -72,6 +77,8 @@ class KotatsuSourceMap @Inject constructor(
 				sourceId = id,
 				sourceName = entry.name,
 				packageName = entry.pkg,
+				mangaUrl = entry.mangaUrl,
+				chapterUrl = entry.chapterUrl,
 			)
 			byName[enumName.uppercase()] = target
 			// Many Kotatsu enums can map to one Mihon id (language variants); first wins.
@@ -102,6 +109,8 @@ class KotatsuSourceMap @Inject constructor(
 		@SerialName("id") val id: String,
 		@SerialName("name") val name: String = "",
 		@SerialName("pkg") val pkg: String = "",
+		@SerialName("mangaUrl") val mangaUrl: String? = null,
+		@SerialName("chapterUrl") val chapterUrl: String? = null,
 	)
 }
 
@@ -113,4 +122,11 @@ data class MihonTarget(
 	val sourceName: String,
 	/** Extension package name, so we can recommend installing the matching extension. */
 	val packageName: String,
+	/**
+	 * Url templates for sources whose Kotatsu parser stores a different url shape than the extension
+	 * (MangaDex: bare uuid vs `/manga/<uuid>`). `{id}` is the last path segment of the Kotatsu url;
+	 * null keeps the url as is. Re-applying a template to a converted url gives the same url back.
+	 */
+	val mangaUrl: String? = null,
+	val chapterUrl: String? = null,
 )

@@ -36,18 +36,24 @@ class KotatsuMigrationUseCase @Inject constructor(
 	/**
 	 * Restored manga on a built-in (non-Mihon) source that still carry user data, plus entries an
 	 * earlier build already migrated but left on an unusable absolute url (see
-	 * [MangaDao.findMigratedMangaWithAbsoluteUrl][org.koitharu.kotatsu.core.db.dao.MangaDao.findMigratedMangaWithAbsoluteUrl]).
+	 * [MangaDao.findMigratedMangaWithAbsoluteUrl][org.koitharu.kotatsu.core.db.dao.MangaDao.findMigratedMangaWithAbsoluteUrl])
+	 * or on the Kotatsu url shape of a source with [url rules][MihonTarget.mangaUrl].
 	 */
 	suspend fun scan(): List<LegacyManga> {
 		val dao = database.getMangaDao()
-		return (dao.findLegacyMangaWithUserData() + dao.findMigratedMangaWithAbsoluteUrl()).map {
-			LegacyManga(id = it.manga.id, sourceName = it.manga.source)
+		val wrongShape = sourceMap.targetsWithUrlRules().flatMap { target ->
+			dao.findLibraryMangaBySources(listOf("MIHON_${target.sourceId}")).filter {
+				it.manga.url != it.manga.url.toMihonUrl(target.mangaUrl)
+			}
 		}
+		return (dao.findLegacyMangaWithUserData() + dao.findMigratedMangaWithAbsoluteUrl() + wrongShape)
+			.distinctBy { it.manga.id }
+			.map { LegacyManga(id = it.manga.id, sourceName = it.manga.source) }
 	}
 
 	suspend fun migrate(legacy: LegacyManga): Outcome {
 		if (legacy.sourceName.startsWith("MIHON_")) {
-			return repairAbsoluteUrl(legacy)
+			return repairUrl(legacy)
 		}
 		val target = sourceMap.resolve(legacy.sourceName) ?: return Outcome.NoMapping
 		// Convert regardless of whether the extension is installed: if it is, link to the live
@@ -60,7 +66,7 @@ class KotatsuMigrationUseCase @Inject constructor(
 		val oldManga = mangaDataRepository.findMangaById(legacy.id, withChapters = true)
 			?: return Outcome.Failed("Manga ${legacy.id} not found")
 		return try {
-			migrator(oldManga, newSource)
+			migrator(oldManga, newSource, target)
 			if (installed != null) Outcome.Migrated else Outcome.ConvertedPendingExtension(target)
 		} catch (e: Exception) {
 			Outcome.Failed(e.message)
@@ -68,26 +74,37 @@ class KotatsuMigrationUseCase @Inject constructor(
 	}
 
 	/**
-	 * Re-keys an already-migrated entry off its absolute url and onto the relative one its extension
-	 * expects — same source, same user data, corrected id.
+	 * Re-keys an already-migrated entry onto the url its extension expects — same source, same user
+	 * data, corrected id.
 	 *
-	 * Repaired only when the extension is installed and [isUrlBroken] proves the url can't be fetched
-	 * as stored; a source that genuinely owns absolute urls is left untouched.
+	 * A source with [url rules][MihonTarget.mangaUrl] is always repaired (installed or not). Otherwise
+	 * only an absolute url is, when the extension is installed and [isUrlBroken] proves it can't be
+	 * fetched as stored; a source that genuinely owns absolute urls is left untouched.
 	 */
-	private suspend fun repairAbsoluteUrl(legacy: LegacyManga): Outcome {
+	private suspend fun repairUrl(legacy: LegacyManga): Outcome {
 		val sourceId = legacy.sourceName.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
 			?: return Outcome.NoMapping
-		val source = mihonExtensionManager.getMihonMangaSourceById(sourceId)
-			?: return Outcome.Failed("Extension for ${legacy.sourceName} not installed")
-		val httpSource = source.catalogueSource as? HttpSource
-			?: return Outcome.Failed("${legacy.sourceName} is not an HttpSource")
+		val target = sourceMap.resolveById(sourceId)
 		val oldManga = mangaDataRepository.findMangaById(legacy.id, withChapters = true)
 			?: return Outcome.Failed("Manga ${legacy.id} not found")
-		if (!httpSource.isUrlBroken(oldManga)) {
-			return Outcome.Failed("${source.displayName} owns its absolute urls, skipped ${oldManga.title}")
+		val source = mihonExtensionManager.getMihonMangaSourceById(sourceId)
+		val newSource: MangaSource = if (target?.mangaUrl != null) {
+			source ?: MissingMangaSource(legacy.sourceName, target.sourceName)
+		} else {
+			source ?: return Outcome.Failed("Extension for ${legacy.sourceName} not installed")
+			val httpSource = source.catalogueSource as? HttpSource
+				?: return Outcome.Failed("${legacy.sourceName} is not an HttpSource")
+			if (!httpSource.isUrlBroken(oldManga)) {
+				return Outcome.Failed("${source.displayName} owns its absolute urls, skipped ${oldManga.title}")
+			}
+			source
 		}
 		return try {
-			if (migrator(oldManga, source) != null) Outcome.Migrated else Outcome.NoMapping
+			when {
+				migrator(oldManga, newSource, target) == null -> Outcome.NoMapping
+				source != null -> Outcome.Migrated
+				else -> Outcome.ConvertedPendingExtension(target!!)
+			}
 		} catch (e: Exception) {
 			Outcome.Failed(e.message)
 		}

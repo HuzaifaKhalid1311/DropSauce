@@ -19,6 +19,7 @@
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape
 - Large PDFs failing to import
+- MangaDex and Atsumaru manga from Kotatsu backups showing no chapters and an "Index 1 out of bounds" error, and duplicating when found through search
 
 ## 1.1.4 (2026-11-15)
 

@@ -18,4 +18,15 @@ class KotatsuMangaMigratorUrlTest {
 		assertEquals("manga/One-Piece", "manga/One-Piece".toMihonUrl())
 		assertEquals("abcd-1234", "abcd-1234".toMihonUrl())
 	}
+
+	@Test
+	fun `url templates reshape kotatsu urls and leave converted ones alone`() {
+		val uuid = "e7eabe96-aa17-476f-b431-2497d5e9d060"
+		assertEquals("/manga/$uuid", uuid.toMihonUrl("/manga/{id}"))
+		assertEquals("/manga/$uuid", "/manga/$uuid".toMihonUrl("/manga/{id}"))
+		assertEquals("/chapter/$uuid", uuid.toMihonUrl("/chapter/{id}"))
+		assertEquals("abc123", "/manga/abc123".toMihonUrl("{id}"))
+		assertEquals("abc123", "abc123".toMihonUrl("{id}"))
+		assertEquals("abc123", "https://atsu.moe/manga/abc123/".toMihonUrl("{id}"))
+	}
 }

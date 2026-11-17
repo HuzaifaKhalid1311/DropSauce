@@ -5,6 +5,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.history.data.HistoryEntity
+import org.koitharu.kotatsu.kotatsumigration.data.MihonTarget
 import org.koitharu.kotatsu.mihon.model.mihonChapterId
 import org.koitharu.kotatsu.mihon.model.mihonMangaId
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -37,18 +38,19 @@ class KotatsuMangaMigrator @Inject constructor(
 	 * @param newSource the target Mihon source: the running [org.koitharu.kotatsu.mihon.model.MihonMangaSource]
 	 *  when its extension is installed, otherwise a `MissingMangaSource("MIHON_<id>", title)` so the
 	 *  entry still converts and shows its cached title until the extension is installed.
+	 * @param target the map entry, for its url rules (null = keep the url shape).
 	 * @return the new manga id, or null if nothing changed (already migrated).
 	 */
-	suspend operator fun invoke(oldManga: Manga, newSource: MangaSource): Long? {
+	suspend operator fun invoke(oldManga: Manga, newSource: MangaSource, target: MihonTarget?): Long? {
 		val oldId = oldManga.id
-		val newUrl = oldManga.url.toMihonUrl()
+		val newUrl = oldManga.url.toMihonUrl(target?.mangaUrl)
 		val newId = mihonMangaId(newSource.name, newUrl)
 		if (newId == oldId) {
 			return null
 		}
 		// Re-key cached chapters exactly like the live Mihon adapter. Keeping their Kotatsu ids here
 		// makes the first refresh lose the chapter pointer and recover it from the old percentage.
-		val migratedChapters = oldManga.chapters?.map { it.forMihonSource(newSource) }
+		val migratedChapters = oldManga.chapters?.map { it.forMihonSource(newSource, target?.chapterUrl) }
 		val chapterIds = oldManga.chapters.orEmpty()
 			.zip(migratedChapters.orEmpty())
 			.associate { (old, new) -> old.id to new.id }
@@ -143,7 +145,7 @@ class KotatsuMangaMigrator @Inject constructor(
 	}
 }
 
-internal fun MangaChapter.forMihonSource(source: MangaSource): MangaChapter = url.toMihonUrl().let { newUrl ->
+internal fun MangaChapter.forMihonSource(source: MangaSource, template: String?): MangaChapter = url.toMihonUrl(template).let { newUrl ->
 	copy(
 		id = mihonChapterId(source.name, newUrl),
 		url = newUrl,
@@ -159,11 +161,12 @@ internal fun MangaChapter.forMihonSource(source: MangaSource): MangaChapter = ur
  * produces — so the entry looks unfavourited when found through search.
  *
  * Reducing an absolute url to its path (+query) is what Mihon extensions expect and makes the
- * migrated id identical to the live one. Relative urls are returned untouched.
+ * migrated id identical to the live one. Relative urls are returned untouched, unless the source's
+ * map entry has a [template][MihonTarget.mangaUrl] for its own url shape.
  */
-internal fun String.toMihonUrl(): String {
-	val http = toHttpUrlOrNull() ?: return this
-	return http.encodedPath + http.encodedQuery?.let { "?$it" }.orEmpty()
+internal fun String.toMihonUrl(template: String? = null): String {
+	val path = toHttpUrlOrNull()?.let { it.encodedPath + it.encodedQuery?.let { q -> "?$q" }.orEmpty() } ?: this
+	return template?.replace("{id}", path.trimEnd('/').substringAfterLast('/')) ?: path
 }
 
 /**
