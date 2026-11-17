@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.appcompat.view.ActionMode
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -117,7 +118,7 @@ class ExploreFragment :
 		TabLayoutMediator(header.tabsKind, binding.pager) { tab, position ->
 			tab.setText(tabTitle(position))
 		}.attach()
-		// Hold either tab to pick which kind leads.
+		// Hold either tab to pick which kind leads, or to show just one.
 		repeat(header.tabsKind.tabCount) { index ->
 			header.tabsKind.getTabAt(index)?.view?.setOnLongClickListener { v ->
 				v.hapticFeedback(HapticEffect.LONG_PRESS)
@@ -125,6 +126,7 @@ class ExploreFragment :
 				true
 			}
 		}
+		applySingleKind()
 		actionModeDelegate.addListener(this)
 		addMenuProvider(ExploreMenuProvider(router, ::showLanguageFilterDialog))
 		viewModel.headerContent.observe(viewLifecycleOwner, headerAdapter)
@@ -192,16 +194,33 @@ class ExploreFragment :
 	private fun showTabOrderDialog() {
 		showComposeDialog(requireContext()) { dismiss ->
 			ChoiceDialogCard(
-				title = stringResource(R.string.explore_tab_order),
+				title = stringResource(R.string.explore_tabs),
 				entries = listOf(
-					stringResource(R.string.store_kind_manga),
-					stringResource(R.string.store_kind_novel),
+					stringResource(R.string.manga_first),
+					stringResource(R.string.novels_first),
+					stringResource(R.string.manga_only),
+					stringResource(R.string.novels_only),
 				),
-				selectedIndex = if (viewModel.isNovelTabFirst) 1 else 0,
-				onSelect = { index -> applyTabOrder(isNovelFirst = index == 1) },
+				selectedIndex = (if (viewModel.isNovelTabFirst) 1 else 0) + (if (viewModel.isSingleKind) 2 else 0),
+				onSelect = { index ->
+					viewModel.isSingleKind = index >= 2
+					applySingleKind()
+					applyTabOrder(isNovelFirst = index % 2 == 1)
+				},
 				onDismiss = dismiss,
 				icon = R.drawable.ic_swap,
 			)
+		}
+	}
+
+	/** One kind only: the second tab is hidden and the pager is pinned to the first page. */
+	private fun applySingleKind() {
+		val binding = viewBinding ?: return
+		val isSingle = viewModel.isSingleKind
+		binding.header.tabsKind.getTabAt(1)?.view?.isVisible = !isSingle
+		binding.pager.isUserInputEnabled = !isSingle
+		if (isSingle) {
+			binding.header.tabsKind.selectTab(binding.header.tabsKind.getTabAt(0))
 		}
 	}
 
@@ -345,7 +364,7 @@ class ExploreFragment :
 	}
 
 	override fun onActionModeFinished(mode: ActionMode) {
-		viewBinding?.pager?.isUserInputEnabled = true
+		viewBinding?.pager?.isUserInputEnabled = !viewModel.isSingleKind
 		viewBinding?.header?.tabsKind?.setTabsEnabled(true)
 	}
 

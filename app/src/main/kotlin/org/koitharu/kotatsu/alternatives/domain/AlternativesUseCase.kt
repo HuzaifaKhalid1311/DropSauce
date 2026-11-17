@@ -27,11 +27,14 @@ class AlternativesUseCase @Inject constructor(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 ) {
 
-	suspend operator fun invoke(manga: Manga): Flow<Manga> {
+	/** @param targets source names to search, or null for every enabled source. */
+	suspend operator fun invoke(manga: Manga, targets: Collection<String>? = null): Flow<Manga> {
 		// Same kind only. A manga migrated onto a novel source (or the reverse) lands in the wrong
 		// reader with content it cannot load, so those are never offered as alternatives.
 		val isNovel = manga.source.isNovelSource
-		val sources = getSources().filter { it != manga.source && it.isNovelSource == isNovel }
+		val sources = getSources().filter {
+			it != manga.source && it.isNovelSource == isNovel && (targets == null || it.name in targets)
+		}
 		if (sources.isEmpty()) {
 			return emptyFlow()
 		}

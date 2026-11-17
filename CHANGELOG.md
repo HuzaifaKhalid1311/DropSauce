@@ -5,12 +5,16 @@
 ### New
 - Option to hide the line between chapters when reading novels in scroll mode
 - Up to 6 sections can be added to the navigation bar
+- App icon picker in settings > appearance, including icons that follow the app's color scheme
+- Explore can show only manga or only novels (hold the tab)
 
 ### Improved
 - In landscape and on wide screens the details page shows the chapters list next to the details
 - PDF imports are much faster and take far less space
 - Reader chapter arrows dim when there is no previous or next chapter
 - Continue reading button now shows on every tab in landscape and on tablets, with the same rounder shape everywhere
+- "Migrate broken sources" is now "Migrate extensions": works on any extension, lets you pick and order the extensions to search in, and can show every match for review first
+- Global search options are a 3-dot menu, with the search type in a submenu
 
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape

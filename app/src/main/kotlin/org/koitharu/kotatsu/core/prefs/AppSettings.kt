@@ -28,6 +28,7 @@ import org.koitharu.kotatsu.mihon.model.ExternalRepoInfo
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistryState
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.os.AppIcon
 import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.core.model.ZoomMode
 import org.koitharu.kotatsu.core.network.DoHProvider
@@ -112,6 +113,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	fun setColorScheme(value: ColorScheme) = prefs.edit {
 		putEnumValue(KEY_COLOR_THEME, value)
 	}
+
+	var appIcon: AppIcon
+		get() = prefs.getEnumValue(KEY_APP_ICON, AppIcon.DEFAULT)
+		set(value) = prefs.edit { putEnumValue(KEY_APP_ICON, value) }
 
 	val isAmoledTheme: Boolean
 		get() = prefs.getBoolean(KEY_THEME_AMOLED, false)
@@ -397,6 +402,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var isNovelTabFirst: Boolean
 		get() = prefs.getBoolean(KEY_EXPLORE_NOVEL_TAB_FIRST, false)
 		set(value) = prefs.edit { putBoolean(KEY_EXPLORE_NOVEL_TAB_FIRST, value) }
+
+	/** Explore shows only its first tab's kind; the tab itself stays so the long-press menu is reachable. */
+	var isExploreSingleKind: Boolean
+		get() = prefs.getBoolean(KEY_EXPLORE_SINGLE_KIND, false)
+		set(value) = prefs.edit { putBoolean(KEY_EXPLORE_SINGLE_KIND, value) }
 
 	var isEpubBionicReadingEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_BIONIC_READING, false)
@@ -1360,6 +1370,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_LIST_MODE_SUGGESTIONS = "list_mode_suggestions"
 		const val KEY_THEME = "theme"
 		const val KEY_COLOR_THEME = "color_theme"
+		const val KEY_APP_ICON = "app_icon"
 		const val KEY_THEME_AMOLED = "amoled_theme"
 		const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
 		const val KEY_HIDE_STATUS_BAR = "hide_status_bar"
@@ -1405,6 +1416,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		private const val KEY_READER_CONTROLS_LEGACY = "reader_controls"
 		const val KEY_READER_MODE = "reader_mode"
 		const val KEY_EXPLORE_NOVEL_TAB_FIRST = "explore_novel_tab_first"
+		const val KEY_EXPLORE_SINGLE_KIND = "explore_single_kind"
 		const val KEY_EPUB_FONT_SIZE = "epub_font_size"
 		const val KEY_EPUB_FONT_FAMILY = "epub_font_family"
 		const val KEY_EPUB_LINE_HEIGHT = "epub_line_height"

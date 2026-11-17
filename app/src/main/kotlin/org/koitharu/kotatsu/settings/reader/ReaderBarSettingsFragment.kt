@@ -229,7 +229,7 @@ private fun ControlList(
  * start the animation — which is exactly the flicker this avoids.
  */
 @Composable
-private fun rememberReorderSlide(
+internal fun rememberReorderSlide(
 	index: Int,
 	pitch: Float,
 	isDragging: Boolean,
@@ -317,7 +317,7 @@ private fun ControlRow(
 }
 
 @Composable
-private fun DragHandle(
+internal fun DragHandle(
 	onDragStart: () -> Unit,
 	onDrag: (Float) -> Unit,
 	onDragEnd: () -> Unit,

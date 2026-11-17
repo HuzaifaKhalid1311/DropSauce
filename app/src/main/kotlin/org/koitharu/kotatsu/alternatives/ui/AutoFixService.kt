@@ -59,6 +59,7 @@ class AutoFixService : CoroutineIntentService() {
 
 	override suspend fun IntentJobContext.processIntent(intent: Intent) {
 		startForeground(this)
+		val targets = intent.getStringArrayExtra(DATA_TARGETS)?.asList()
 		val ids = intent.getLongArrayExtra(DATA_IDS) ?: intent.getStringArrayExtra(DATA_SOURCES)
 			?.let { database.getMangaDao().findLibraryMangaIdsBySources(it.asList()).toLongArray() }
 			?: error("No manga or sources supplied")
@@ -69,7 +70,7 @@ class AutoFixService : CoroutineIntentService() {
 			for (mangaId in ids) {
 				powerManager.withPartialWakeLock(TAG) {
 					val result = runCatchingCancellable {
-						autoFixUseCase.invoke(mangaId)
+						autoFixUseCase.invoke(mangaId, targets)
 					}
 					progress.update { current ->
 						val previous = current ?: Progress(0, ids.size, 0, 0)
@@ -223,6 +224,7 @@ class AutoFixService : CoroutineIntentService() {
 
 		private const val DATA_IDS = "ids"
 		private const val DATA_SOURCES = "sources"
+		private const val DATA_TARGETS = "targets"
 		private const val TAG = "auto_fix"
 		private const val CHANNEL_ID = "auto_fix"
 		private const val FOREGROUND_NOTIFICATION_ID = 38
@@ -237,11 +239,13 @@ class AutoFixService : CoroutineIntentService() {
 			false
 		}
 
-		fun startForSources(context: Context, sources: Collection<String>): Boolean {
-			if (sources.isEmpty()) return false
+		/** Migrates every library entry from [sources] to the first working match in [targets] order. */
+		fun startForSources(context: Context, sources: Collection<String>, targets: List<String>): Boolean {
+			if (sources.isEmpty() || targets.isEmpty()) return false
 			return try {
 				val intent = Intent(context, AutoFixService::class.java)
 					.putExtra(DATA_SOURCES, sources.toTypedArray())
+					.putExtra(DATA_TARGETS, targets.toTypedArray())
 				ContextCompat.startForegroundService(context, intent)
 				true
 			} catch (e: Exception) {

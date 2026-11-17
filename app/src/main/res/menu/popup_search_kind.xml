@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<group
-		android:id="@+id/group_search_kind"
-		android:checkableBehavior="single">
+	<item
+		android:id="@+id/action_search_kind_menu"
+		android:title="@string/search_by">
+		<menu>
+			<group
+				android:id="@+id/group_search_kind"
+				android:checkableBehavior="single">
 
-		<item
-			android:id="@+id/action_kind_simple"
-			android:title="@string/search_kind_default" />
+				<item
+					android:id="@+id/action_kind_simple"
+					android:title="@string/search_kind_default" />
 
-		<item
-			android:id="@+id/action_kind_title"
-			android:title="@string/name" />
+				<item
+					android:id="@+id/action_kind_title"
+					android:title="@string/name" />
 
-		<item
-			android:id="@+id/action_kind_author"
-			android:title="@string/author" />
+				<item
+					android:id="@+id/action_kind_author"
+					android:title="@string/author" />
 
-		<item
-			android:id="@+id/action_kind_tag"
-			android:title="@string/genre" />
+				<item
+					android:id="@+id/action_kind_tag"
+					android:title="@string/genre" />
 
-	</group>
+			</group>
+		</menu>
+	</item>
 
 	<group android:id="@+id/group_search_filters">
 

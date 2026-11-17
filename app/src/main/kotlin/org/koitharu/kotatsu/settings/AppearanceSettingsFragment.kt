@@ -18,6 +18,21 @@ import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koitharu.kotatsu.core.os.AppIcon
+import org.koitharu.kotatsu.core.os.AppIconManager
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
+import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
+import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
+import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
+import org.koitharu.kotatsu.settings.compose.PreviewTile
+import org.koitharu.kotatsu.settings.compose.SettingsItem
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -95,7 +110,11 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 					activity?.let { ThemeSwitchCoverActivity.switchNightMode(it, settings.theme) }
 				}, 300)
 			}
-			AppSettings.KEY_COLOR_THEME,
+			AppSettings.KEY_APP_ICON -> applyAppIcon()
+			AppSettings.KEY_COLOR_THEME -> {
+				applyAppIcon() // a themed icon follows the scheme
+				activityRecreationHandle.recreateAll()
+			}
 			AppSettings.KEY_THEME_AMOLED,
 			AppSettings.KEY_UI_SCALE -> {
 				activityRecreationHandle.recreateAll()
@@ -103,6 +122,13 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 			AppSettings.KEY_APP_LOCALE -> {
 				AppCompatDelegate.setApplicationLocales(settings.appLocales)
 			}
+		}
+	}
+
+	private fun applyAppIcon() {
+		val context = requireContext().applicationContext
+		processLifecycleScope.launch(Dispatchers.Default) {
+			AppIconManager.apply(context, settings.appIcon, settings.colorScheme)
 		}
 	}
 
@@ -268,6 +294,7 @@ private fun AppearanceScreen(
 	var colorScheme by rememberStringPref(AppSettings.KEY_COLOR_THEME, ColorScheme.default.name)
 	var theme by rememberStringPref(AppSettings.KEY_THEME, "-1")
 	var amoled by rememberBooleanPref(AppSettings.KEY_THEME_AMOLED, false)
+	var appIcon by rememberStringPref(AppSettings.KEY_APP_ICON, AppIcon.DEFAULT.name)
 	var uiScale by rememberIntPref(AppSettings.KEY_UI_SCALE, 100)
 	var hapticFeedback by rememberBooleanPref(AppSettings.KEY_HAPTIC_FEEDBACK, true)
 	var hideStatusBar by rememberBooleanPref(AppSettings.KEY_HIDE_STATUS_BAR, false)
@@ -348,6 +375,21 @@ private fun AppearanceScreen(
 						icon = R.drawable.ic_eye_off,
 						enabled = isDarkActive,
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SettingsItem(
+						title = stringResource(R.string.app_icon),
+						subtitle = stringResource(R.string.app_icon_summary),
+						icon = R.drawable.ic_app_icon,
+						shape = pos.shape,
+						below = {
+							AppIconPicker(
+								selected = appIcon,
+								scheme = ColorScheme.entries.find { it.name == colorScheme } ?: ColorScheme.default,
+								onSelect = { appIcon = it },
+							)
+						},
 					)
 				}
 				item { pos ->
@@ -690,5 +732,50 @@ private fun AppearanceScreen(
 			}
 		}
 		item { Spacer(Modifier.height(24.dp).fillMaxWidth()) }
+	}
+}
+
+/** The launcher icons as tiles, drawn from the same adaptive icons the launcher gets. */
+@Composable
+private fun AppIconPicker(
+	selected: String,
+	scheme: ColorScheme,
+	onSelect: (String) -> Unit,
+) {
+	val haptic = rememberHapticEffect()
+	val labels = listOf(
+		R.string.app_icon_default,
+		R.string.app_icon_black,
+		R.string.app_icon_mono,
+		R.string.app_icon_theme_dark,
+		R.string.app_icon_theme_light,
+	)
+	Row(
+		modifier = Modifier.fillMaxWidth(),
+		horizontalArrangement = Arrangement.spacedBy(8.dp),
+	) {
+		AppIcon.entries.forEach { icon ->
+			PreviewTile(
+				label = stringResource(labels[icon.ordinal]),
+				selected = icon.name == selected,
+				enabled = true,
+				onClick = {
+					haptic(HapticEffect.CONFIRM)
+					onSelect(icon.name)
+				},
+				aspectRatio = 1f,
+				modifier = Modifier
+					.weight(1f, fill = false)
+					.widthIn(max = 96.dp),
+			) {
+				Image(
+					painter = rememberAnyDrawablePainter(AppIconManager.iconRes(icon, scheme)),
+					contentDescription = null,
+					modifier = Modifier
+						.matchParentSize()
+						.padding(6.dp),
+				)
+			}
+		}
 	}
 }

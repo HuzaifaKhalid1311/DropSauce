@@ -237,8 +237,8 @@ private fun ExtensionsScreen(
 				}
 				item { pos ->
 					ActionSettingsItem(
-						title = stringResource(R.string.migrate_broken_sources),
-						subtitle = stringResource(R.string.migrate_broken_sources_summary),
+						title = stringResource(R.string.migrate_extensions),
+						subtitle = stringResource(R.string.migrate_extensions_summary),
 						icon = R.drawable.ic_migrate,
 						shape = pos.shape,
 						onClick = onOpenBrokenSourcesMigration,

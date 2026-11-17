@@ -112,6 +112,12 @@ class ExploreViewModel @Inject constructor(
 			settings.isNovelTabFirst = value
 		}
 
+	var isSingleKind: Boolean
+		get() = settings.isExploreSingleKind
+		set(value) {
+			settings.isExploreSingleKind = value
+		}
+
 	val sources: StateFlow<ExploreSources> = createSourcesFlow()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, loadingSources)
 

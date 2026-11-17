@@ -78,11 +78,38 @@ import org.koitharu.kotatsu.main.ui.nav.DrawablePainter
 import org.koitharu.kotatsu.settings.SettingsActivity
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import androidx.activity.addCallback
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import org.koitharu.kotatsu.core.model.chaptersCount
+import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
+import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.settings.compose.ChoiceDialogCard
+import org.koitharu.kotatsu.settings.compose.SettingsSwitch
+import org.koitharu.kotatsu.settings.reader.DragHandle
+import org.koitharu.kotatsu.settings.reader.rememberReorderSlide
+import kotlin.math.roundToInt
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class BrokenSourcesMigrationFragment :
-	BaseComposeSettingsFragment(R.string.migrate_broken_sources) {
+	BaseComposeSettingsFragment(R.string.migrate_extensions) {
 
 	private val viewModel by viewModels<BrokenSourcesMigrationViewModel>()
 
@@ -114,24 +141,56 @@ class BrokenSourcesMigrationFragment :
 							isFromRoot = false,
 						)
 					},
+					onToggleTarget = viewModel::toggleTarget,
+					onToggleAllTargets = viewModel::toggleAllTargets,
+					onMoveTarget = viewModel::moveTarget,
+					onManualReviewChange = viewModel::setManualReview,
+					onPickReplacement = ::showReplacementPicker,
 					onCancel = AutoFixService::cancel,
-					onFix = {
-						val rawSources = state.sources
-							.filter { it.key in state.selectedSources }
-							.flatMapTo(linkedSetOf()) { it.sourceKeys }
-						if (AutoFixService.startForSources(requireContext(), rawSources)) {
-							Toast.makeText(
-								requireContext(),
-								R.string.broken_sources_migration_started,
-								Toast.LENGTH_LONG,
-							).show()
-							viewModel.clearSelection()
-						} else {
-							Toast.makeText(requireContext(), R.string.error_occurred, Toast.LENGTH_SHORT).show()
-						}
-					},
+					onConfirm = ::onConfirm,
 				)
 			}
+		}
+	}
+
+	private fun onConfirm() {
+		val state = viewModel.state.value
+		when (state.step) {
+			MigrationStep.SOURCES -> viewModel.openTargets()
+			MigrationStep.TARGETS -> if (state.isManualReview) {
+				viewModel.startReview()
+			} else if (AutoFixService.startForSources(
+					requireContext(),
+					viewModel.selectedSourceKeys(),
+					viewModel.checkedTargets(),
+				)
+			) {
+				Toast.makeText(requireContext(), R.string.broken_sources_migration_started, Toast.LENGTH_LONG).show()
+				viewModel.clearSelection()
+			} else {
+				Toast.makeText(requireContext(), R.string.error_occurred, Toast.LENGTH_SHORT).show()
+			}
+
+			MigrationStep.REVIEW -> viewModel.migrateReviewed()
+		}
+	}
+
+	private fun showReplacementPicker(item: ReviewItem) {
+		val candidates = item.candidates ?: return
+		val context = requireContext()
+		showComposeDialog(context) { dismiss ->
+			ChoiceDialogCard(
+				title = item.seed.title,
+				entries = candidates.map { manga ->
+					val chapters = manga.chaptersCount()
+					"${manga.source.getTitle(context)} · ${manga.title} · " +
+						context.resources.getQuantityString(R.plurals.chapters, chapters, chapters)
+				} + stringResource(R.string.skip),
+				selectedIndex = candidates.indexOf(item.choice).let { if (it < 0) candidates.size else it },
+				onSelect = { index -> viewModel.chooseReplacement(item.seed.id, candidates.getOrNull(index)) },
+				onDismiss = dismiss,
+				icon = R.drawable.ic_migrate,
+			)
 		}
 	}
 
@@ -146,6 +205,20 @@ class BrokenSourcesMigrationFragment :
 		}
 		appBar.addOnOffsetChangedListener(offsetListener)
 		view.doOnDetach { appBar.removeOnOffsetChangedListener(offsetListener) }
+		// Back walks the steps before it leaves the screen.
+		val backCallback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+			viewModel.back()
+		}
+		viewLifecycleOwner.lifecycleScope.launch {
+			viewModel.state.collect { backCallback.isEnabled = it.step != MigrationStep.SOURCES }
+		}
+		viewModel.onReviewMigrated.observeEvent(viewLifecycleOwner) { count ->
+			Toast.makeText(
+				requireContext(),
+				resources.getQuantityString(R.plurals.manga_migrated, count, count),
+				Toast.LENGTH_LONG,
+			).show()
+		}
 		addMenuProvider(object : MenuProvider {
 			override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
 				menu.add(Menu.NONE, MENU_INFO, Menu.NONE, R.string.migration_information).apply {
@@ -175,10 +248,16 @@ private fun BrokenSourcesMigrationScreen(
 	onToggle: (String) -> Unit,
 	onToggleRecommended: () -> Unit,
 	onOpenSource: (LibrarySourceOption) -> Unit,
+	onToggleTarget: (String) -> Unit,
+	onToggleAllTargets: () -> Unit,
+	onMoveTarget: (Int, Int) -> Unit,
+	onManualReviewChange: (Boolean) -> Unit,
+	onPickReplacement: (ReviewItem) -> Unit,
 	onCancel: () -> Unit,
-	onFix: () -> Unit,
+	onConfirm: () -> Unit,
 ) {
-	val isBusy = progress != null
+	// A background migration locks the setup steps; a review in progress is this screen's own work.
+	val isBusy = progress != null && state.step != MigrationStep.REVIEW
 	val unavailableSources = state.sources.filter(LibrarySourceOption::isUnavailable)
 	val mihonSources = state.sources.filterNot(LibrarySourceOption::isUnavailable)
 
@@ -191,7 +270,7 @@ private fun BrokenSourcesMigrationScreen(
 					modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
 				) {
 					Text(
-						text = stringResource(R.string.migrate_broken_sources_description),
+						text = stringResource(R.string.migrate_extensions_description),
 						style = MaterialTheme.typography.bodyMedium,
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
 					)
@@ -200,7 +279,7 @@ private fun BrokenSourcesMigrationScreen(
 			}
 		}
 
-		if (progress != null) {
+		if (progress != null && state.step != MigrationStep.REVIEW) {
 			MigrationProgressBanner(progress)
 		}
 
@@ -211,6 +290,21 @@ private fun BrokenSourcesMigrationScreen(
 				.alpha(if (isBusy) 0.38f else 1f),
 		) {
 			when {
+				state.step == MigrationStep.TARGETS -> TargetList(
+					state = state,
+					imageLoader = imageLoader,
+					onToggle = onToggleTarget,
+					onToggleAll = onToggleAllTargets,
+					onMove = onMoveTarget,
+					onManualReviewChange = onManualReviewChange,
+				)
+
+				state.step == MigrationStep.REVIEW -> ReviewList(
+					state = state,
+					imageLoader = imageLoader,
+					onPick = onPickReplacement,
+				)
+
 				state.isLoading -> Box(
 					modifier = Modifier.fillMaxSize(),
 					contentAlignment = Alignment.Center,
@@ -296,6 +390,7 @@ private fun BrokenSourcesMigrationScreen(
 			}
 		}
 
+		val chosenCount = state.review.count { it.choice != null }
 		Surface(
 			tonalElevation = 3.dp,
 			shadowElevation = 6.dp,
@@ -304,8 +399,12 @@ private fun BrokenSourcesMigrationScreen(
 			Column(modifier = Modifier.navigationBarsPadding()) {
 				HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 				Button(
-					onClick = if (isBusy) onCancel else onFix,
-					enabled = isBusy || state.selectedSources.isNotEmpty(),
+					onClick = if (isBusy) onCancel else onConfirm,
+					enabled = isBusy || when (state.step) {
+						MigrationStep.SOURCES -> state.selectedSources.isNotEmpty()
+						MigrationStep.TARGETS -> state.checkedTargets.isNotEmpty()
+						MigrationStep.REVIEW -> !state.isReviewSearching && !state.isMigrating && chosenCount > 0
+					},
 					colors = if (isBusy) {
 						ButtonDefaults.buttonColors(
 							containerColor = MaterialTheme.colorScheme.error,
@@ -320,20 +419,246 @@ private fun BrokenSourcesMigrationScreen(
 						.height(52.dp),
 				) {
 					Text(
-						if (isBusy) {
-							stringResource(android.R.string.cancel)
-						} else if (state.selectedSources.isEmpty()) {
-							stringResource(R.string.fix)
-						} else {
-							pluralStringResource(
-								R.plurals.fix_selected_sources,
-								state.selectedSources.size,
-								state.selectedSources.size,
-							)
+						when {
+							isBusy -> stringResource(android.R.string.cancel)
+							state.step == MigrationStep.SOURCES -> stringResource(R.string.next)
+							state.step == MigrationStep.TARGETS && state.isManualReview -> stringResource(R.string.search)
+							state.step == MigrationStep.TARGETS -> stringResource(R.string.migrate)
+							else -> pluralStringResource(R.plurals.migrate_manga, chosenCount, chosenCount)
 						},
 					)
 				}
 			}
+		}
+	}
+}
+
+/** Step 2: where to search, in priority order. Rows are uniform, so dragging works like the reader bar list. */
+@Composable
+private fun TargetList(
+	state: BrokenSourcesMigrationState,
+	imageLoader: ImageLoader,
+	onToggle: (String) -> Unit,
+	onToggleAll: () -> Unit,
+	onMove: (Int, Int) -> Unit,
+	onManualReviewChange: (Boolean) -> Unit,
+) {
+	val haptic = rememberHapticEffect()
+	var rowPitch by remember { mutableFloatStateOf(0f) }
+	var dragIndex by remember { mutableIntStateOf(-1) }
+	var dragOffset by remember { mutableFloatStateOf(0f) }
+	val targets = state.targets
+	val onDrag: (Float) -> Unit = { dy ->
+		dragOffset += dy
+		if (rowPitch > 0f && dragIndex >= 0) {
+			val target = (dragIndex + (dragOffset / rowPitch).roundToInt()).coerceIn(0, targets.lastIndex)
+			if (target != dragIndex) {
+				onMove(dragIndex, target)
+				dragOffset -= (target - dragIndex) * rowPitch
+				dragIndex = target
+				haptic(HapticEffect.LIGHT_TICK)
+			}
+		}
+	}
+	Column(
+		modifier = Modifier
+			.fillMaxSize()
+			.nestedScroll(rememberNestedScrollInteropConnection())
+			.verticalScroll(rememberScrollState()),
+	) {
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.clickable { onManualReviewChange(!state.isManualReview) }
+				.padding(start = 24.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Column(modifier = Modifier.weight(1f)) {
+				Text(
+					text = stringResource(R.string.review_before_migrating),
+					style = MaterialTheme.typography.bodyLarge,
+					color = MaterialTheme.colorScheme.onSurface,
+				)
+				Text(
+					text = stringResource(R.string.review_before_migrating_summary),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+				)
+			}
+			Spacer(Modifier.width(12.dp))
+			SettingsSwitch(checked = state.isManualReview, onCheckedChange = onManualReviewChange)
+		}
+		HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+		SourceSectionHeader(
+			title = stringResource(R.string.migrate_search_in),
+			isChecked = state.checkedTargets.size == targets.size,
+			onToggle = onToggleAll,
+			topPadding = 16.dp,
+		)
+		targets.forEachIndexed { index, target ->
+			key(target.name) {
+				val isDragging = index == dragIndex
+				val slide = rememberReorderSlide(index, rowPitch, isDragging)
+				Column(
+					modifier = Modifier
+						.zIndex(if (isDragging) 1f else 0f)
+						.graphicsLayer {
+							translationY = if (isDragging) dragOffset else slide.floatValue
+							shadowElevation = if (isDragging) 8.dp.toPx() else 0f
+						}
+						.background(MaterialTheme.colorScheme.surface)
+						.onSizeChanged { rowPitch = it.height.toFloat() },
+				) {
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.heightIn(min = 64.dp)
+							.clickable { onToggle(target.name) }
+							.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						SourceIcon(title = target.title, source = target.source, iconUrl = null, imageLoader = imageLoader)
+						Spacer(Modifier.width(12.dp))
+						Text(
+							text = target.title,
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onSurface,
+							modifier = Modifier.weight(1f),
+						)
+						Checkbox(
+							checked = target.name in state.checkedTargets,
+							onCheckedChange = { onToggle(target.name) },
+						)
+						DragHandle(
+							onDragStart = {
+								dragIndex = index
+								dragOffset = 0f
+								haptic(HapticEffect.GESTURE_START)
+							},
+							onDrag = onDrag,
+							onDragEnd = {
+								dragIndex = -1
+								dragOffset = 0f
+								haptic(HapticEffect.GESTURE_END)
+							},
+						)
+					}
+					SourceDivider()
+				}
+			}
+		}
+		Spacer(Modifier.height(12.dp))
+	}
+}
+
+/** Step 3 (manual): every entry with the match picked for it; tap one to change or skip it. */
+@Composable
+private fun ReviewList(
+	state: BrokenSourcesMigrationState,
+	imageLoader: ImageLoader,
+	onPick: (ReviewItem) -> Unit,
+) {
+	Column(modifier = Modifier.fillMaxSize()) {
+		if (state.isReviewSearching) {
+			val done = state.review.count { it.candidates != null }
+			Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+				Text(
+					text = stringResource(R.string.migration_searching, done, state.reviewTotal),
+					style = MaterialTheme.typography.titleSmall,
+					color = MaterialTheme.colorScheme.onSurface,
+				)
+				Spacer(Modifier.height(10.dp))
+				if (state.reviewTotal > 0) {
+					LinearProgressIndicator(
+						progress = { done.toFloat() / state.reviewTotal },
+						modifier = Modifier.fillMaxWidth(),
+					)
+				} else {
+					LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+				}
+			}
+			HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+		}
+		LazyColumn(
+			modifier = Modifier
+				.fillMaxSize()
+				.nestedScroll(rememberNestedScrollInteropConnection()),
+		) {
+			items(state.review, key = { it.seed.id }) { item ->
+				ReviewRow(item = item, imageLoader = imageLoader, onClick = { onPick(item) })
+				SourceDivider()
+			}
+			item { Spacer(Modifier.height(12.dp)) }
+		}
+	}
+}
+
+@Composable
+private fun ReviewRow(
+	item: ReviewItem,
+	imageLoader: ImageLoader,
+	onClick: () -> Unit,
+) {
+	val context = LocalContext.current
+	val shown = item.choice ?: item.seed
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.heightIn(min = 72.dp)
+			.clickable(enabled = !item.candidates.isNullOrEmpty(), onClick = onClick)
+			.padding(horizontal = 16.dp, vertical = 8.dp),
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		AsyncImage(
+			model = remember(shown.coverUrl, shown.source) {
+				ImageRequest.Builder(context)
+					.data(shown.coverUrl)
+					.mangaSourceExtra(shown.source)
+					.build()
+			},
+			imageLoader = imageLoader,
+			contentDescription = null,
+			contentScale = ContentScale.Crop,
+			modifier = Modifier
+				.width(40.dp)
+				.height(56.dp)
+				.clip(RoundedCornerShape(6.dp)),
+		)
+		Spacer(Modifier.width(12.dp))
+		Column(modifier = Modifier.weight(1f)) {
+			Text(
+				text = item.seed.title,
+				style = MaterialTheme.typography.bodyLarge,
+				color = MaterialTheme.colorScheme.onSurface,
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis,
+			)
+			val choice = item.choice
+			Text(
+				text = when {
+					item.candidates == null -> item.seed.source.getTitle(context)
+					choice != null -> {
+						val chapters = choice.chaptersCount()
+						"${item.seed.source.getTitle(context)} → ${choice.source.getTitle(context)} · " +
+							pluralStringResource(R.plurals.chapters, chapters, chapters)
+					}
+
+					item.candidates.isEmpty() -> stringResource(R.string.nothing_found)
+					else -> stringResource(R.string.skipped)
+				},
+				style = MaterialTheme.typography.bodySmall,
+				color = if (item.candidates != null && choice == null) {
+					MaterialTheme.colorScheme.error
+				} else {
+					MaterialTheme.colorScheme.onSurfaceVariant
+				},
+				maxLines = 2,
+				overflow = TextOverflow.Ellipsis,
+			)
+		}
+		if (item.candidates == null) {
+			Spacer(Modifier.width(12.dp))
+			LoadingIndicator(modifier = Modifier.size(32.dp))
 		}
 	}
 }
@@ -422,18 +747,21 @@ private fun SourceSectionHeader(
 	}
 }
 
+/** [source] null shows only the letter fallback (the extension is gone, so there is no favicon). */
 @Composable
 private fun SourceIcon(
-	source: LibrarySourceOption,
+	title: String,
+	source: MangaSource?,
+	iconUrl: String?,
 	imageLoader: ImageLoader,
 ) {
 	val context = LocalContext.current
-	val fallbackPainter = remember(context, source.title) {
+	val fallbackPainter = remember(context, title) {
 		DrawablePainter(
 			FaviconDrawable(
 				context = context,
 				styleResId = R.style.FaviconDrawable_Small,
-				name = source.title,
+				name = title,
 			),
 		)
 	}
@@ -443,22 +771,19 @@ private fun SourceIcon(
 			.height(40.dp)
 			.clip(RoundedCornerShape(8.dp)),
 	) {
-		if (source.isUnavailable) {
+		if (source == null) {
 			Image(
 				painter = fallbackPainter,
 				contentDescription = null,
 				modifier = Modifier.fillMaxSize(),
 			)
 		} else {
-			val mangaSource = remember(source.iconSourceKey, source.title) {
-				MangaSource(source.iconSourceKey, source.title)
-			}
-			val request = remember(context, source.iconUrl, mangaSource) {
+			val request = remember(context, iconUrl, source) {
 				ImageRequest.Builder(context)
-					.data(source.iconUrl ?: mangaSource.faviconUri())
+					.data(iconUrl ?: source.faviconUri())
 					.apply {
-						if (source.iconUrl == null) {
-							mangaSourceExtra(mangaSource)
+						if (iconUrl == null) {
+							mangaSourceExtra(source)
 							suppressCaptchaErrors()
 						}
 					}
@@ -493,7 +818,16 @@ private fun SourceCheckboxRow(
 			.padding(horizontal = 16.dp, vertical = 8.dp),
 		verticalAlignment = Alignment.CenterVertically,
 	) {
-		SourceIcon(source = source, imageLoader = imageLoader)
+		SourceIcon(
+			title = source.title,
+			source = if (source.isUnavailable) {
+				null
+			} else {
+				remember(source.iconSourceKey, source.title) { MangaSource(source.iconSourceKey, source.title) }
+			},
+			iconUrl = source.iconUrl,
+			imageLoader = imageLoader,
+		)
 		Spacer(Modifier.width(12.dp))
 		Column(modifier = Modifier.weight(1f)) {
 			Text(

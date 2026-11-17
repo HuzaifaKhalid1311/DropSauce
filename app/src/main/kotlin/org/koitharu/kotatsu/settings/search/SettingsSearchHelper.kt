@@ -78,6 +78,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem(AppSettings.KEY_COLOR_THEME, R.string.color_theme, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_THEME, R.string.theme, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.themes))
 				addItem(AppSettings.KEY_THEME_AMOLED, R.string.black_dark_theme, R.string.black_dark_theme_summary, crumbs, AppearanceSettingsFragment::class.java)
+				addItem(AppSettings.KEY_APP_ICON, R.string.app_icon, R.string.app_icon_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_APP_LOCALE, R.string.language, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_HIDE_STATUS_BAR, R.string.hide_status_bar, R.string.hide_status_bar_summary, crumbs, AppearanceSettingsFragment::class.java)
 				addItem(AppSettings.KEY_UI_SCALE, R.string.ui_scale, breadcrumbs = crumbs, fragmentClass = AppearanceSettingsFragment::class.java, keywordRes = intArrayOf(R.string.ui_scale_smallest, R.string.ui_scale_smaller, R.string.ui_scale_default, R.string.ui_scale_larger, R.string.ui_scale_largest))
@@ -146,7 +147,7 @@ class SettingsSearchHelper @Inject constructor(
 			group(sectionCrumbs, "Catalog") { crumbs ->
 				addItem("sources_catalog", R.string.manage_extensions, R.string.manage_extensions_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem("extension_stores", R.string.extension_stores, R.string.manage_stores_summary, crumbs, ExtensionsSettingsFragment::class.java)
-				addItem("migrate_broken_sources", R.string.migrate_broken_sources, R.string.migrate_broken_sources_summary, crumbs, ExtensionsSettingsFragment::class.java)
+				addItem("migrate_broken_sources", R.string.migrate_extensions, R.string.migrate_extensions_summary, crumbs, ExtensionsSettingsFragment::class.java)
 				addItem(AppSettings.KEY_PRIVATE_INSTALLER, R.string.private_extensions, R.string.private_extensions_summary, crumbs, ExtensionsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.appearance)) { crumbs ->

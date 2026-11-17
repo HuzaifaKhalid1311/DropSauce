@@ -7,9 +7,11 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.core.model.chaptersCount
 import org.koitharu.kotatsu.core.model.isExternalSource
@@ -29,25 +31,48 @@ class AutoFixUseCase @Inject constructor(
 	private val mangaDataRepository: MangaDataRepository,
 ) {
 
-	suspend operator fun invoke(mangaId: Long): Pair<Manga, Manga?> {
-		val seed = checkNotNull(
-			mangaDataRepository.findMangaById(mangaId, withChapters = true),
-		) { "Manga $mangaId not found" }.getDetailsSafe()
-		if (seed.isHealthy()) {
-			return seed to null // no fix required
+	/**
+	 * @param targets source names in priority order. Null is the library "Fix" action: only a broken
+	 * entry is replaced, by the healthy match with the most chapters among every enabled source.
+	 * Otherwise the entry is always replaced, by the first working match in [targets] order.
+	 */
+	suspend operator fun invoke(mangaId: Long, targets: List<String>? = null): Pair<Manga, Manga?> {
+		val seed = loadSeed(mangaId)
+		val replacement = if (targets == null) {
+			if (seed.isHealthy()) {
+				return seed to null // no fix required
+			}
+			alternativesUseCase(seed)
+				.filter { it.isHealthy() }
+				.runningFold<Manga, Manga?>(null) { best, candidate ->
+					if (best == null || best < candidate) {
+						candidate
+					} else {
+						best
+					}
+				}.selectLastWithTimeout(4, 40, TimeUnit.SECONDS)
+		} else {
+			pickWorking(findCandidates(seed, targets))
 		}
-		val replacement = alternativesUseCase(seed)
-			.filter { it.isHealthy() }
-			.runningFold<Manga, Manga?>(null) { best, candidate ->
-				if (best == null || best < candidate) {
-					candidate
-				} else {
-					best
-				}
-			}.selectLastWithTimeout(4, 40, TimeUnit.SECONDS)
 		migrateUseCase(seed, replacement ?: throw NoAlternativesException(ParcelableManga(seed)))
 		return seed to replacement
 	}
+
+	suspend fun loadSeed(mangaId: Long): Manga = checkNotNull(
+		mangaDataRepository.findMangaById(mangaId, withChapters = true),
+	) { "Manga $mangaId not found" }.getDetailsSafe()
+
+	/** Every match found in [targets], in [targets] order. Sources still searching after 40s are dropped. */
+	suspend fun findCandidates(seed: Manga, targets: List<String>): List<Manga> {
+		val found = ArrayList<Manga>()
+		withTimeoutOrNull(TimeUnit.SECONDS.toMillis(40)) {
+			alternativesUseCase(seed, targets.toSet()).toList(found)
+		}
+		return found.sortedBy { targets.indexOf(it.source.name) }
+	}
+
+	/** The first candidate whose first chapter actually serves pages. */
+	suspend fun pickWorking(candidates: List<Manga>): Manga? = candidates.firstOrNull { it.isHealthy() }
 
 	private suspend fun Manga.isHealthy(): Boolean = runCatchingCancellable {
 		val repo = mangaRepositoryFactory.create(source)
