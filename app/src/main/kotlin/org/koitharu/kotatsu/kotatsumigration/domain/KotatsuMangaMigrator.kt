@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.history.data.HistoryEntity
 import org.koitharu.kotatsu.kotatsumigration.data.MihonTarget
+import org.koitharu.kotatsu.kotatsumigration.data.UrlRule
 import org.koitharu.kotatsu.mihon.model.mihonChapterId
 import org.koitharu.kotatsu.mihon.model.mihonMangaId
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -43,14 +44,16 @@ class KotatsuMangaMigrator @Inject constructor(
 	 */
 	suspend operator fun invoke(oldManga: Manga, newSource: MangaSource, target: MihonTarget?): Long? {
 		val oldId = oldManga.id
-		val newUrl = oldManga.url.toMihonUrl(target?.mangaUrl)
+		// Only a Kotatsu entry still carries the parser's own id; a migrated one has the Mihon hash.
+		val kotatsuId = oldId.takeIf { it > 0 && !oldManga.source.name.startsWith("MIHON_") }
+		val newUrl = target?.mangaUrl.orEmpty().rewrite(oldManga.url.toMihonUrl(), oldManga.publicUrl, kotatsuId)
 		val newId = mihonMangaId(newSource.name, newUrl)
 		if (newId == oldId) {
 			return null
 		}
 		// Re-key cached chapters exactly like the live Mihon adapter. Keeping their Kotatsu ids here
 		// makes the first refresh lose the chapter pointer and recover it from the old percentage.
-		val migratedChapters = oldManga.chapters?.map { it.forMihonSource(newSource, target?.chapterUrl) }
+		val migratedChapters = oldManga.chapters?.map { it.forMihonSource(newSource, target?.chapterUrl.orEmpty()) }
 		val chapterIds = oldManga.chapters.orEmpty()
 			.zip(migratedChapters.orEmpty())
 			.associate { (old, new) -> old.id to new.id }
@@ -145,7 +148,7 @@ class KotatsuMangaMigrator @Inject constructor(
 	}
 }
 
-internal fun MangaChapter.forMihonSource(source: MangaSource, template: String?): MangaChapter = url.toMihonUrl(template).let { newUrl ->
+internal fun MangaChapter.forMihonSource(source: MangaSource, rules: List<UrlRule>): MangaChapter = rules.rewrite(url.toMihonUrl(), null, null).let { newUrl ->
 	copy(
 		id = mihonChapterId(source.name, newUrl),
 		url = newUrl,
@@ -161,12 +164,27 @@ internal fun MangaChapter.forMihonSource(source: MangaSource, template: String?)
  * produces — so the entry looks unfavourited when found through search.
  *
  * Reducing an absolute url to its path (+query) is what Mihon extensions expect and makes the
- * migrated id identical to the live one. Relative urls are returned untouched, unless the source's
- * map entry has a [template][MihonTarget.mangaUrl] for its own url shape.
+ * migrated id identical to the live one. Relative urls are returned untouched.
  */
-internal fun String.toMihonUrl(template: String? = null): String {
-	val path = toHttpUrlOrNull()?.let { it.encodedPath + it.encodedQuery?.let { q -> "?$q" }.orEmpty() } ?: this
-	return template?.replace("{id}", path.trimEnd('/').substringAfterLast('/')) ?: path
+internal fun String.toMihonUrl(): String {
+	val http = toHttpUrlOrNull() ?: return this
+	return http.encodedPath + http.encodedQuery?.let { "?$it" }.orEmpty()
+}
+
+/** Applies the first matching [UrlRule]; [url] comes back unchanged when none matches. */
+internal fun List<UrlRule>.rewrite(url: String, publicUrl: String?, kotatsuId: Long?): String {
+	for (rule in this) {
+		if (!rule.url.matches(url)) continue
+		if ("{mangaId}" in rule.to && kotatsuId == null) continue
+		val out = if (rule.public == null) {
+			rule.url.replace(url, rule.to)
+		} else {
+			val publicPath = publicUrl?.toMihonUrl()?.takeIf(rule.public::matches) ?: continue
+			rule.public.replace(publicPath, rule.to)
+		}
+		return out.replace("{mangaId}", kotatsuId.toString())
+	}
+	return url
 }
 
 /**

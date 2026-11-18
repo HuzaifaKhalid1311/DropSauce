@@ -43,7 +43,7 @@ class KotatsuMigrationUseCase @Inject constructor(
 		val dao = database.getMangaDao()
 		val wrongShape = sourceMap.targetsWithUrlRules().flatMap { target ->
 			dao.findLibraryMangaBySources(listOf("MIHON_${target.sourceId}")).filter {
-				it.manga.url != it.manga.url.toMihonUrl(target.mangaUrl)
+				it.manga.url != target.mangaUrl.rewrite(it.manga.url, it.manga.publicUrl, null)
 			}
 		}
 		return (dao.findLegacyMangaWithUserData() + dao.findMigratedMangaWithAbsoluteUrl() + wrongShape)
@@ -88,7 +88,7 @@ class KotatsuMigrationUseCase @Inject constructor(
 		val oldManga = mangaDataRepository.findMangaById(legacy.id, withChapters = true)
 			?: return Outcome.Failed("Manga ${legacy.id} not found")
 		val source = mihonExtensionManager.getMihonMangaSourceById(sourceId)
-		val newSource: MangaSource = if (target?.mangaUrl != null) {
+		val newSource: MangaSource = if (target != null && target.mangaUrl.isNotEmpty()) {
 			source ?: MissingMangaSource(legacy.sourceName, target.sourceName)
 		} else {
 			source ?: return Outcome.Failed("Extension for ${legacy.sourceName} not installed")

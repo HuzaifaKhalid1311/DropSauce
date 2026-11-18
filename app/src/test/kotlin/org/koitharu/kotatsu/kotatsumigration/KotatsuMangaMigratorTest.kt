@@ -26,7 +26,7 @@ class KotatsuMangaMigratorTest {
 			source = legacySource,
 		)
 
-		val migrated = chapter.forMihonSource(mihonSource, template = null)
+		val migrated = chapter.forMihonSource(mihonSource, emptyList())
 
 		assertNotEquals(chapter.id, migrated.id)
 		assertEquals(mihonChapterId(mihonSource.name, chapter.url), migrated.id)
