@@ -46,6 +46,9 @@ class KotatsuMangaMigratorUrlTest {
 		assertEquals("solo#42", iken.rewrite("/series/solo", null, 42))
 		assertEquals("solo", iken.rewrite("/series/solo", null, null))
 		assertEquals("solo#42", iken.rewrite("solo#42", null, null))
+		val mangaTaro = listOf(rule("^/manga/([^/?#]+)/?#mid=(\\d+)$", "{\"id\":\"$2\",\"slug\":\"$1\"}"))
+		assertEquals("{\"id\":\"45\",\"slug\":\"gal\"}", mangaTaro.rewrite("/manga/gal/#mid=45", null, null))
+		assertEquals("{\"id\":\"45\",\"slug\":\"gal\"}", mangaTaro.rewrite("{\"id\":\"45\",\"slug\":\"gal\"}", null, null))
 	}
 
 	private fun rule(url: String, to: String, public: String? = null) = UrlRule(Regex(url), public?.let(::Regex), to)
