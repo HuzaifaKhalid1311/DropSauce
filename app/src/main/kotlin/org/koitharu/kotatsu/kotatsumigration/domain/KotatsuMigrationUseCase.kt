@@ -77,9 +77,10 @@ class KotatsuMigrationUseCase @Inject constructor(
 	 * Re-keys an already-migrated entry onto the url its extension expects — same source, same user
 	 * data, corrected id.
 	 *
-	 * A source with [url rules][MihonTarget.mangaUrl] is always repaired (installed or not). Otherwise
-	 * only an absolute url is, when the extension is installed and [isUrlBroken] proves it can't be
-	 * fetched as stored; a source that genuinely owns absolute urls is left untouched.
+	 * A url one of the source's [url rules][MihonTarget.mangaUrl] rewrites is always repaired
+	 * (installed or not). Otherwise only an absolute url is, when the extension is installed and
+	 * [isUrlBroken] proves it can't be fetched as stored; a source that owns absolute urls is left
+	 * untouched.
 	 */
 	private suspend fun repairUrl(legacy: LegacyManga): Outcome {
 		val sourceId = legacy.sourceName.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
@@ -88,8 +89,9 @@ class KotatsuMigrationUseCase @Inject constructor(
 		val oldManga = mangaDataRepository.findMangaById(legacy.id, withChapters = true)
 			?: return Outcome.Failed("Manga ${legacy.id} not found")
 		val source = mihonExtensionManager.getMihonMangaSourceById(sourceId)
-		val newSource: MangaSource = if (target != null && target.mangaUrl.isNotEmpty()) {
-			source ?: MissingMangaSource(legacy.sourceName, target.sourceName)
+		val ruleApplies = target != null && target.mangaUrl.rewrite(oldManga.url, oldManga.publicUrl, null) != oldManga.url
+		val newSource: MangaSource = if (ruleApplies) {
+			source ?: MissingMangaSource(legacy.sourceName, target!!.sourceName)
 		} else {
 			source ?: return Outcome.Failed("Extension for ${legacy.sourceName} not installed")
 			val httpSource = source.catalogueSource as? HttpSource
