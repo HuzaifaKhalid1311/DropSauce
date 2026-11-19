@@ -113,7 +113,7 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("DELETE FROM tracks WHERE manga_id = :mangaId")
 	abstract suspend fun delete(mangaId: Long)
 
-	@Query("DELETE FROM tracks WHERE manga_id NOT IN (SELECT manga_id FROM history WHERE history.deleted_at = 0 UNION SELECT manga_id FROM favourites WHERE favourites.deleted_at = 0 AND category_id IN (SELECT category_id FROM favourite_categories WHERE favourite_categories.deleted_at = 0 AND track = 1) UNION SELECT manga_id FROM track_logs)")
+	@Query("DELETE FROM tracks WHERE manga_id NOT IN (SELECT manga_id FROM history WHERE history.deleted_at = 0 UNION SELECT manga_id FROM favourites WHERE favourites.deleted_at = 0 AND category_id IN (SELECT category_id FROM favourite_categories WHERE favourite_categories.deleted_at = 0 AND (`track` = 1 OR download_new_chapters = 1)) UNION SELECT manga_id FROM track_logs)")
 	abstract suspend fun gc()
 
 	@Upsert
@@ -124,8 +124,8 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	protected abstract fun observeMangaImpl(query: SupportSQLiteQuery): Flow<List<MangaWithTrack>>
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
-		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = tracks.manga_id)"
-		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = tracks.manga_id AND favourites.category_id = ${option.category.id})"
+		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = tracks.manga_id AND favourites.deleted_at = 0)"
+		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = tracks.manga_id AND favourites.category_id = ${option.category.id} AND favourites.deleted_at = 0)"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE manga_tags.manga_id = tracks.manga_id AND tag_id = ${option.tagId})"
 		ListFilterOption.Macro.NSFW -> "(SELECT nsfw FROM manga WHERE manga.manga_id = tracks.manga_id) = 1"
 		is ListFilterOption.State -> option.state?.let {

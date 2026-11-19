@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.backup.local.ui.restore
 
 import android.content.Context
+import android.util.JsonReader
+import android.util.JsonToken
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,6 +18,7 @@ import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import java.io.FileNotFoundException
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.util.Date
 import java.util.EnumMap
 import java.util.EnumSet
@@ -41,10 +44,11 @@ class RestoreViewModel @Inject constructor(
 	}
 
 	private suspend fun loadBackupInfo() {
-		val sections = runInterruptible(Dispatchers.IO) {
+		val (sections, counts) = runInterruptible(Dispatchers.IO) {
 			val source = uri ?: throw FileNotFoundException()
 			ZipInputStream(contentResolver.openInputStream(source)).use { stream ->
 				val result = EnumSet.noneOf(BackupSection::class.java)
+				val itemCounts = EnumMap<BackupSection, Int>(BackupSection::class.java)
 				var entry = stream.nextEntry
 				while (entry != null) {
 					val section = BackupSection.of(entry)
@@ -52,12 +56,14 @@ class RestoreViewModel @Inject constructor(
 						result.add(section)
 						if (section == BackupSection.INDEX) {
 							backupDate.value = stream.readIndexDate()
+						} else {
+							stream.readArraySize()?.let { itemCounts[section] = it }
 						}
 					}
 					stream.closeEntry()
 					entry = stream.nextEntry
 				}
-				result
+				result to itemCounts
 			}
 		}
 		availableEntries.value = BackupSection.entries.mapNotNull { entry ->
@@ -68,6 +74,7 @@ class RestoreViewModel @Inject constructor(
 				section = entry,
 				isChecked = true,
 				isEnabled = true,
+				itemCount = counts[entry],
 			)
 		}
 	}
@@ -111,6 +118,24 @@ class RestoreViewModel @Inject constructor(
 		}
 		val list = json.decodeFromString<List<BackupIndex>>(readBytes().decodeToString())
 		list.firstOrNull()?.createdAt?.let(::Date)
+	}.onFailure { e ->
+		e.printStackTraceDebug()
+	}.getOrNull()
+
+	/** How many entries a list section holds, for the restore dialog; null for settings and other non-lists. */
+	private fun InputStream.readArraySize(): Int? = runCatching {
+		// Not closed: that would close the whole zip stream.
+		val reader = JsonReader(InputStreamReader(this, Charsets.UTF_8))
+		if (reader.peek() != JsonToken.BEGIN_ARRAY) {
+			return@runCatching null
+		}
+		var count = 0
+		reader.beginArray()
+		while (reader.hasNext()) {
+			reader.skipValue()
+			count++
+		}
+		count
 	}.onFailure { e ->
 		e.printStackTraceDebug()
 	}.getOrNull()

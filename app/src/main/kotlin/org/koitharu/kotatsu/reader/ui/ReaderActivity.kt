@@ -500,11 +500,16 @@ class ReaderActivity :
     }
 
     override fun onProcessTouch(rawX: Int, rawY: Int): Boolean {
+        // the gesture insets are window-relative, raw coordinates are screen-relative (split-screen)
+        val location = IntArray(2)
+        viewBinding.root.getLocationOnScreen(location)
+        val x = rawX - location[0]
+        val y = rawY - location[1]
         return if (
-            rawX <= gestureInsets.left ||
-            rawY <= gestureInsets.top ||
-            rawX >= viewBinding.root.width - gestureInsets.right ||
-            rawY >= viewBinding.root.height - gestureInsets.bottom ||
+            x <= gestureInsets.left ||
+            y <= gestureInsets.top ||
+            x >= viewBinding.root.width - gestureInsets.right ||
+            y >= viewBinding.root.height - gestureInsets.bottom ||
             viewBinding.appbarTop.hasGlobalPoint(rawX, rawY) ||
             viewBinding.toolbarDocked?.hasGlobalPoint(rawX, rawY) == true
         ) {

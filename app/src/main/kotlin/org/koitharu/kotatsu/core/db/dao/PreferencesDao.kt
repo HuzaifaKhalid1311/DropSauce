@@ -21,7 +21,7 @@ abstract class PreferencesDao {
 	@Query("SELECT * FROM preferences")
 	abstract suspend fun findAll(): List<MangaPrefsEntity>
 
-	@Query("UPDATE preferences SET cf_brightness = 0, cf_contrast = 0, cf_invert = 0, cf_grayscale = 0")
+	@Query("UPDATE preferences SET cf_brightness = 0, cf_contrast = 0, cf_invert = 0, cf_grayscale = 0, cf_book = 0")
 	abstract suspend fun resetColorFilters()
 
 	@Query("DELETE FROM preferences WHERE manga_id = :mangaId")

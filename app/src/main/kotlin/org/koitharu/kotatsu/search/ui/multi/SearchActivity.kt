@@ -44,6 +44,7 @@ import org.koitharu.kotatsu.list.ui.size.DynamicItemSizeResolver
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.search.domain.SearchKind
+import org.koitharu.kotatsu.search.domain.splitTagQuery
 import org.koitharu.kotatsu.search.ui.multi.adapter.SearchAdapter
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -76,7 +77,11 @@ class SearchActivity :
 				viewModel.query,
 			)
 
-			SearchKind.TAG -> getString(R.string.inline_preference_pattern, getString(R.string.genre), viewModel.query)
+			SearchKind.TAG -> getString(
+				R.string.inline_preference_pattern,
+				getString(if (splitTagQuery(viewModel.query).size > 1) R.string.genres else R.string.genre),
+				viewModel.query,
+			)
 		}
 
 		val itemClickListener = OnListItemClickListener<SearchResultsListModel> { item, view ->

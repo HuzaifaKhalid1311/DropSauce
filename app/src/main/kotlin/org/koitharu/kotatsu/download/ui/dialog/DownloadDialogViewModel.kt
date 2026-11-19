@@ -33,7 +33,6 @@ import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.sizeOrZero
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import org.koitharu.kotatsu.settings.storage.DirectoryModel
 import javax.inject.Inject
@@ -152,21 +151,24 @@ class DownloadDialogViewModel @Inject constructor(
 		var maxUnreadChapters = 0
 		val preferredBranches = ArraySet<String?>(details.size)
 		val currentChaptersIds = MutableLongLongMap(details.size)
+		val defaultBranches = HashMap<Long, String?>(details.size)
 
 		details.forEach { m ->
 			val history = historyRepository.getOne(m)
-			if (history != null) {
+			// the history chapter's own branch when it still exists, otherwise the best-matching one
+			val preferredBranch = m.getPreferredBranch(history)
+			defaultBranches[m.id] = preferredBranch
+			val chapters = m.chapters.orEmpty()
+			val currentIndex = if (history != null) {
 				currentChaptersIds[m.id] = history.chapterId
-				val unreadChaptersCount = m.chapters
-					?.dropWhile { it.id != history.chapterId }
-					?.drop(1)
-					.sizeOrZero()
-				maxUnreadChapters = maxOf(maxUnreadChapters, unreadChaptersCount)
+				chapters.indexOfFirst { it.id == history.chapterId }
 			} else {
-				maxUnreadChapters = maxOf(maxUnreadChapters, m.chapters.sizeOrZero())
+				-1
 			}
-			maxChapters = maxOf(maxChapters, m.chapters.sizeOrZero())
-			preferredBranches.add(m.getPreferredBranch(history))
+			val unreadChaptersCount = (currentIndex + 1 until chapters.size).count { chapters[it].branch == preferredBranch }
+			maxUnreadChapters = maxOf(maxUnreadChapters, unreadChaptersCount)
+			maxChapters = maxOf(maxChapters, chapters.size)
+			preferredBranches.add(preferredBranch)
 			m.chapters?.forEach { c ->
 				totalChapters++
 				branches.increment(c.branch)
@@ -192,11 +194,12 @@ class DownloadDialogViewModel @Inject constructor(
 			} else {
 				null
 			},
-			unreadChapters = if (currentChaptersIds.isNotEmpty()) {
+			unreadChapters = if (maxUnreadChapters > 0) {
 				ChaptersSelectMacro.UnreadChapters(
 					chaptersCount = minOf(5, maxUnreadChapters),
 					maxAvailableCount = maxUnreadChapters,
 					currentChaptersIds = currentChaptersIds,
+					defaultBranches = defaultBranches,
 				)
 			} else {
 				null

@@ -156,7 +156,7 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT * FROM favourites")
 	abstract suspend fun findAllForSync(): List<FavouriteEntity>
 
-	@Query("SELECT favourite_categories.* FROM favourites LEFT JOIN favourite_categories ON favourite_categories.category_id = favourites.category_id WHERE favourites.manga_id = :mangaId AND favourites.deleted_at = 0")
+	@Query("SELECT favourite_categories.* FROM favourites INNER JOIN favourite_categories ON favourite_categories.category_id = favourites.category_id WHERE favourites.manga_id = :mangaId AND favourites.deleted_at = 0 AND favourite_categories.deleted_at = 0")
 	abstract fun observeCategories(mangaId: Long): Flow<List<FavouriteCategoryEntity>>
 
 	@Query("SELECT DISTINCT category_id FROM favourites WHERE manga_id = :mangaId AND deleted_at = 0 ORDER BY favourites.created_at ASC")
@@ -267,12 +267,12 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 
 	private fun getOrderBy(sortOrder: ListSortOrder) = sortOrder.toOrderBy(
 		dateAdded = "favourites.created_at",
-		lastRead = "IFNULL((SELECT updated_at FROM history WHERE history.manga_id = manga.manga_id), 0)",
-		progress = "IFNULL((SELECT percent FROM history WHERE history.manga_id = manga.manga_id), 0)",
+		lastRead = "IFNULL((SELECT updated_at FROM history WHERE history.manga_id = manga.manga_id AND history.deleted_at = 0), 0)",
+		progress = "IFNULL((SELECT percent FROM history WHERE history.manga_id = manga.manga_id AND history.deleted_at = 0), 0)",
 	)
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
-		ListFilterOption.Macro.COMPLETED -> "EXISTS(SELECT * FROM history WHERE history.manga_id = favourites.manga_id AND history.percent >= $PROGRESS_COMPLETED)"
+		ListFilterOption.Macro.COMPLETED -> "EXISTS(SELECT * FROM history WHERE history.manga_id = favourites.manga_id AND history.percent >= $PROGRESS_COMPLETED AND history.deleted_at = 0)"
 		ListFilterOption.Macro.NEW_CHAPTERS -> "(SELECT chapters_new FROM tracks WHERE tracks.manga_id = favourites.manga_id) > 0"
 		ListFilterOption.Macro.NSFW -> "manga.nsfw = 1"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE favourites.manga_id = manga_tags.manga_id AND tag_id = ${option.tagId})"

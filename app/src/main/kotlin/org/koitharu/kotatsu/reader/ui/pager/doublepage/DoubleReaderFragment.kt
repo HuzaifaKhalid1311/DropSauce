@@ -111,7 +111,8 @@ open class DoubleReaderFragment : BaseReaderFragment<FragmentReaderDoubleBinding
 
 	override fun switchPageBy(delta: Int) {
 		if (delta.absoluteValue > 1 || !isAnimationEnabled()) {
-			switchPageTo(getCurrentItem() + delta + delta, false)
+			// not switchPageTo: the reversed subclass would map this adapter position a second time
+			scrollToAdapterPosition(getCurrentItem() + delta + delta)
 			return
 		}
 		val rv = viewBinding?.recyclerView ?: return
@@ -119,7 +120,9 @@ open class DoubleReaderFragment : BaseReaderFragment<FragmentReaderDoubleBinding
 		rv.smoothScrollBy(distance, 0, AccelerateDecelerateInterpolator())
 	}
 
-	override fun switchPageTo(position: Int, smooth: Boolean) {
+	override fun switchPageTo(position: Int, smooth: Boolean) = scrollToAdapterPosition(position)
+
+	private fun scrollToAdapterPosition(position: Int) {
 		val lm = viewBinding?.recyclerView?.layoutManager as? LinearLayoutManager ?: return
 		val targetPosition = position.toPagePosition()
 		lm.scrollToPositionWithOffset(targetPosition, 0)

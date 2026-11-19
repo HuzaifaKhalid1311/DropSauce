@@ -14,7 +14,7 @@ abstract class TagsDao {
 	@Query(
 		"""SELECT tags.* FROM tags
 		LEFT JOIN manga_tags ON tags.tag_id = manga_tags.tag_id
-		WHERE manga_tags.manga_id IN (SELECT manga_id FROM history UNION SELECT manga_id FROM favourites)
+		WHERE manga_tags.manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0 UNION SELECT manga_id FROM favourites WHERE deleted_at = 0)
 		GROUP BY tags.title 
 		ORDER BY COUNT(manga_id) DESC 
 		LIMIT :limit""",
@@ -54,7 +54,7 @@ abstract class TagsDao {
 	@Query(
 		"""SELECT tags.* FROM tags
 		LEFT JOIN manga_tags ON tags.tag_id = manga_tags.tag_id 
-		WHERE title LIKE :query AND manga_tags.manga_id IN (SELECT manga_id FROM history UNION SELECT manga_id FROM favourites)
+		WHERE title LIKE :query AND manga_tags.manga_id IN (SELECT manga_id FROM history WHERE deleted_at = 0 UNION SELECT manga_id FROM favourites WHERE deleted_at = 0)
 		GROUP BY tags.title
 		ORDER BY COUNT(manga_id) DESC 
 		LIMIT :limit""",

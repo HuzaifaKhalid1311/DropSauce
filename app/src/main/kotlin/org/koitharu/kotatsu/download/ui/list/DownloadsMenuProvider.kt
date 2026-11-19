@@ -22,6 +22,7 @@ class DownloadsMenuProvider(
 		when (menuItem.itemId) {
 			R.id.action_pause -> viewModel.pauseAll()
 			R.id.action_resume -> viewModel.resumeAll()
+			R.id.action_retry_failed -> viewModel.retryAllFailed()
 			R.id.action_cancel_all -> confirmCancelAll()
 			R.id.action_remove_completed -> confirmRemoveCompleted()
 			R.id.action_settings -> activity.router.openDownloadsSetting()
@@ -34,6 +35,7 @@ class DownloadsMenuProvider(
 		super.onPrepareMenu(menu)
 		menu.findItem(R.id.action_pause)?.isVisible = viewModel.hasActiveWorks.value == true
 		menu.findItem(R.id.action_resume)?.isVisible = viewModel.hasPausedWorks.value == true
+		menu.findItem(R.id.action_retry_failed)?.isVisible = viewModel.hasFailedWorks.value == true
 		menu.findItem(R.id.action_cancel_all)?.isVisible = viewModel.hasCancellableWorks.value == true
 	}
 

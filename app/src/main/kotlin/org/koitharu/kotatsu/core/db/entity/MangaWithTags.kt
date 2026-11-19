@@ -13,3 +13,7 @@ data class MangaWithTags(
 	)
 	val tags: List<TagEntity>,
 )
+
+/** Matches the way a single-genre search does (`LIKE %genre%`), for every genre of a multi-genre search. */
+fun MangaWithTags.hasAllTags(genres: Collection<String>): Boolean =
+	genres.all { genre -> tags.any { it.title.contains(genre, ignoreCase = true) } }

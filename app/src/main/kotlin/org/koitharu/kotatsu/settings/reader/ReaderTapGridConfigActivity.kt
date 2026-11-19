@@ -40,6 +40,7 @@ import org.koitharu.kotatsu.core.util.ext.findKeyByValue
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.ActivityReaderTapActionsBinding
+import org.koitharu.kotatsu.reader.data.TapGridSettings
 import org.koitharu.kotatsu.reader.domain.TapGridArea
 import org.koitharu.kotatsu.reader.ui.tapgrid.TapAction
 import com.google.android.material.color.MaterialColors
@@ -93,6 +94,11 @@ class ReaderTapGridConfigActivity : BaseActivity<ActivityReaderTapActionsBinding
 
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		return when (item.itemId) {
+			R.id.action_presets -> {
+				showPresetSelector()
+				true
+			}
+
 			R.id.action_reset -> {
 				confirmReset()
 				true
@@ -156,6 +162,28 @@ class ReaderTapGridConfigActivity : BaseActivity<ActivityReaderTapActionsBinding
 			selectedIndex = selectedItem + 1,
 		) { which ->
 			viewModel.setTapAction(area, isLongTap, TapAction.entries.getOrNull(which - 1))
+		}
+	}
+
+	private fun showPresetSelector() {
+		val presets = TapGridSettings.TapGridPreset.entries
+		val names = presets.map {
+			getString(
+				when (it) {
+					TapGridSettings.TapGridPreset.LTR -> R.string.tap_grid_preset_ltr
+					TapGridSettings.TapGridPreset.RTL -> R.string.tap_grid_preset_rtl
+					TapGridSettings.TapGridPreset.WEBTOON -> R.string.tap_grid_preset_webtoon
+				},
+			)
+		}
+		showInstantChoiceDialog(
+			context = this,
+			icon = R.drawable.ic_tap_grid_presets,
+			title = getString(R.string.tap_grid_presets),
+			options = names,
+			selectedIndex = -1,
+		) { index ->
+			presets.getOrNull(index)?.let(viewModel::applyPreset)
 		}
 	}
 

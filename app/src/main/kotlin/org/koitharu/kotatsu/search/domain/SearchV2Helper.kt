@@ -3,12 +3,16 @@ package org.koitharu.kotatsu.search.domain
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.kanade.tachiyomi.source.model.Filter
+import eu.kanade.tachiyomi.source.model.FilterList
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.parser.MangaDataRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.contains
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
+import org.koitharu.kotatsu.mihon.MihonFilterHost
+import org.koitharu.kotatsu.mihon.MihonFilterMapper
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -60,18 +64,70 @@ class SearchV2Helper @AssistedInject constructor(
 		}
 
 		SearchKind.TAG -> {
-			val tags = this@SearchV2Helper.dataRepository.findTags(this.source) + runCatchingCancellable {
-				this@getFilter.getFilterOptions().availableTags
-			}.onFailure { e ->
-				e.printStackTraceDebug()
-			}.getOrDefault(emptySet())
-			val tag = tags.find { x -> x.title.equals(query, ignoreCase = true) }
-			if (tag != null) {
-				MangaListFilter(tags = setOf(tag))
-			} else {
+			val genres = splitTagQuery(query)
+			if (genres.isEmpty()) {
 				null
+			} else if (this is MihonFilterHost && supportsDynamicFilters) {
+				getGenreFilter(this, genres)
+			} else {
+				val tags = this@SearchV2Helper.dataRepository.findTags(this.source) + runCatchingCancellable {
+					this@getFilter.getFilterOptions().availableTags
+				}.onFailure { e ->
+					e.printStackTraceDebug()
+				}.getOrDefault(emptySet())
+				val picked = genres.mapNotNull { genre -> tags.find { x -> x.title.equals(genre, ignoreCase = true) } }
+				if (picked.size == genres.size) {
+					MangaListFilter(tags = picked.toSet())
+				} else {
+					null
+				}
 			}
 		}
+	}
+
+	/**
+	 * Mihon's genre search (BrowseSourceViewModel.searchGenre), for several genres at once: tick each
+	 * genre the extension has as a filter, and search the names of the ones it doesn't as text.
+	 */
+	private suspend fun MangaRepository.getGenreFilter(
+		host: MihonFilterHost,
+		genres: List<String>,
+	): MangaListFilter? {
+		val defaults = host.loadDefaultFilterList()
+		val working = host.loadDefaultFilterList()
+		val usedSelects = ArrayList<Filter.Select<*>>()
+		val missing = genres.filterNot { working.selectGenre(it, usedSelects) }
+		if (missing.isNotEmpty() && !filterCapabilities.isSearchSupported) {
+			return null
+		}
+		return MangaListFilter(
+			query = missing.joinToString(" ").ifEmpty { null },
+			tags = MihonFilterMapper.encode(working, defaults, source),
+		)
+	}
+
+	/** Same matching as Mihon: a checkbox/tri-state named [genre] in a top-level group, or a select option. */
+	private fun FilterList.selectGenre(genre: String, usedSelects: MutableList<Filter.Select<*>>): Boolean {
+		for (filter in this) {
+			if (filter is Filter.Group<*>) {
+				val match = filter.state.firstOrNull { it is Filter<*> && it.name.equals(genre, ignoreCase = true) }
+				when (match) {
+					is Filter.TriState -> match.state = Filter.TriState.STATE_INCLUDE
+					is Filter.CheckBox -> match.state = true
+					else -> continue
+				}
+				return true
+			} else if (filter is Filter.Select<*>) {
+				val index = filter.values.indexOfFirst { it.toString().equals(genre, ignoreCase = true) }
+				// A select holds one value: a second genre in the same select can't be ticked too.
+				if (index != -1 && usedSelects.none { it === filter }) {
+					filter.state = index
+					usedSelects += filter
+					return true
+				}
+			}
+		}
+		return false
 	}
 
 	private fun MutableList<Manga>.postFilter(query: String, kind: SearchKind) {
@@ -106,8 +162,11 @@ class SearchV2Helper @AssistedInject constructor(
 				m.authors.contains(query, ignoreCase = true)
 			}
 
-			SearchKind.TAG -> sortByDescending { m ->
-				m.tags.any { tag -> tag.title.equals(query, ignoreCase = true) }
+			SearchKind.TAG -> {
+				val genres = splitTagQuery(query)
+				sortByDescending { m ->
+					m.tags.count { tag -> genres.any { it.equals(tag.title, ignoreCase = true) } }
+				}
 			}
 		}
 	}

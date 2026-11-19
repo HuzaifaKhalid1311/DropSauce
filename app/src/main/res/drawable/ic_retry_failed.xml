@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "replay" (rounded, filled) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:tint="?attr/colorControlNormal"
+	android:viewportWidth="24"
+	android:viewportHeight="24">
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="M8.488,21.288q-1.638,-0.713 -2.85,-1.925t-1.925,-2.85T3,13q0,-0.425 0.288,-0.712T4,12t0.713,0.288T5,13q0,2.925 2.038,4.963T12,20t4.963,-2.037T19,13t-2.037,-4.962T12,6h-0.15l0.85,0.85q0.3,0.3 0.288,0.7t-0.288,0.7q-0.3,0.3 -0.712,0.313t-0.713,-0.288L8.7,5.7q-0.3,-0.3 -0.3,-0.7t0.3,-0.7l2.575,-2.575q0.3,-0.3 0.713,-0.288t0.712,0.313q0.275,0.3 0.288,0.7t-0.288,0.7l-0.85,0.85H12q1.875,0 3.513,0.713t2.85,1.925t1.925,2.85T21,13t-0.712,3.513t-1.925,2.85t-2.85,1.925T12,22t-3.512,-0.712z" />
+</vector>

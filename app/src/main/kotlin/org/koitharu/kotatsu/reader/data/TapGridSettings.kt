@@ -44,6 +44,18 @@ class TapGridSettings @Inject constructor(@ApplicationContext context: Context) 
 		initPrefs(withDefaultValues = false)
 	}
 
+	fun applyPreset(preset: TapGridPreset) {
+		prefs.edit {
+			clear()
+			when (preset) {
+				TapGridPreset.LTR -> initDefaultActions(this)
+				TapGridPreset.RTL -> initRtlActions(this)
+				TapGridPreset.WEBTOON -> initWebtoonActions(this)
+			}
+			putBoolean(KEY_INIT, true)
+		}
+	}
+
 	fun observeChanges() = prefs.observeChanges().flowOn(Dispatchers.IO)
 
 	fun getAllValues(): Map<String, *> = prefs.all
@@ -90,6 +102,40 @@ class TapGridSettings @Inject constructor(@ApplicationContext context: Context) 
 		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_CENTER, false), TapAction.PAGE_NEXT)
 		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_RIGHT, false), TapAction.PAGE_NEXT)
 	}
+
+	/** The default, mirrored: the left side goes forward. */
+	private fun initRtlActions(editor: SharedPreferences.Editor) {
+		editor.putEnumValue(getPrefKey(TapGridArea.TOP_LEFT, false), TapAction.PAGE_NEXT)
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER_LEFT, false), TapAction.PAGE_NEXT)
+		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_LEFT, false), TapAction.PAGE_NEXT)
+		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_CENTER, false), TapAction.PAGE_NEXT)
+
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER, false), TapAction.TOGGLE_UI)
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER, true), TapAction.SHOW_MENU)
+
+		editor.putEnumValue(getPrefKey(TapGridArea.TOP_CENTER, false), TapAction.PAGE_PREV)
+		editor.putEnumValue(getPrefKey(TapGridArea.TOP_RIGHT, false), TapAction.PAGE_PREV)
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER_RIGHT, false), TapAction.PAGE_PREV)
+		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_RIGHT, false), TapAction.PAGE_PREV)
+	}
+
+	/** Top row back, bottom row forward, middle sides change chapter. */
+	private fun initWebtoonActions(editor: SharedPreferences.Editor) {
+		editor.putEnumValue(getPrefKey(TapGridArea.TOP_LEFT, false), TapAction.PAGE_PREV)
+		editor.putEnumValue(getPrefKey(TapGridArea.TOP_CENTER, false), TapAction.PAGE_PREV)
+		editor.putEnumValue(getPrefKey(TapGridArea.TOP_RIGHT, false), TapAction.PAGE_PREV)
+
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER_LEFT, false), TapAction.CHAPTER_PREV)
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER, false), TapAction.TOGGLE_UI)
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER, true), TapAction.SHOW_MENU)
+		editor.putEnumValue(getPrefKey(TapGridArea.CENTER_RIGHT, false), TapAction.CHAPTER_NEXT)
+
+		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_LEFT, false), TapAction.PAGE_NEXT)
+		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_CENTER, false), TapAction.PAGE_NEXT)
+		editor.putEnumValue(getPrefKey(TapGridArea.BOTTOM_RIGHT, false), TapAction.PAGE_NEXT)
+	}
+
+	enum class TapGridPreset { LTR, RTL, WEBTOON }
 
 	private companion object {
 

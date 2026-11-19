@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SearchSuggestionType
@@ -44,6 +45,9 @@ class SearchSuggestionViewModel @Inject constructor(
 	private val query = MutableStateFlow("")
 	private val invalidationTrigger = MutableStateFlow(0)
 
+	/** Genres ticked in the chip row, searched together with the search button. */
+	val selectedTags = MutableStateFlow<List<MangaTag>>(emptyList())
+
 	val isIncognitoModeEnabled = settings.observeAsStateFlow(
 		scope = viewModelScope + Dispatchers.Default,
 		key = AppSettings.KEY_INCOGNITO_MODE,
@@ -55,9 +59,10 @@ class SearchSuggestionViewModel @Inject constructor(
 		settings.observeAsFlow(AppSettings.KEY_SEARCH_SUGGESTION_TYPES) { searchSuggestionTypes },
 		settings.observeAsFlow(AppSettings.KEY_QUICK_FILTER) { isQuickFilterEnabled },
 		invalidationTrigger,
+		selectedTags,
 	)
-	{ searchQuery, types, isQuickFilterEnabled, _ ->
-		SearchSuggestionRequest(searchQuery, types, isQuickFilterEnabled)
+	{ searchQuery, types, isQuickFilterEnabled, _, selected ->
+		SearchSuggestionRequest(searchQuery, types, isQuickFilterEnabled, selected)
 	}.mapLatest { request ->
 		buildSearchSuggestion(request)
 	}.distinctUntilChanged()
@@ -66,6 +71,21 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	fun onQueryChanged(newQuery: String) {
 		query.value = newQuery
+	}
+
+	fun toggleTag(tag: MangaTag) {
+		// By name: the same genre shows up once even when several extensions have it.
+		selectedTags.update { list ->
+			if (list.any { it.title.equals(tag.title, ignoreCase = true) }) {
+				list.filterNot { it.title.equals(tag.title, ignoreCase = true) }
+			} else {
+				list + tag
+			}
+		}
+	}
+
+	fun clearTags() {
+		selectedTags.value = emptyList()
 	}
 
 	fun saveQuery(query: String) {
@@ -97,7 +117,7 @@ class SearchSuggestionViewModel @Inject constructor(
 			// The genre chip row under the search bar acts as a quick filter, so it follows the
 			// "Show quick filters" appearance setting in addition to the genre suggestion type.
 			if (request.isQuickFilterEnabled && SearchSuggestionType.GENRES in request.types) {
-				async { getTags(request.query) }
+				async { getTags(request.query, request.selectedTags) }
 			} else {
 				null
 			},
@@ -160,12 +180,17 @@ class SearchSuggestionViewModel @Inject constructor(
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
-	private suspend fun getTags(searchQuery: String): List<SearchSuggestionItem> = runCatchingCancellable {
-		val tags = repository.getTagsSuggestion(searchQuery, MAX_TAGS_ITEMS, null)
+	private suspend fun getTags(
+		searchQuery: String,
+		selected: List<MangaTag>,
+	): List<SearchSuggestionItem> = runCatchingCancellable {
+		// Ticked genres stay first and stay visible even when they aren't among the popular ones.
+		val tags = (selected + repository.getTagsSuggestion(searchQuery, MAX_TAGS_ITEMS, null))
+			.distinctBy { it.title.lowercase() }
 		if (tags.isEmpty()) {
 			emptyList()
 		} else {
-			listOf(SearchSuggestionItem.Tags(mapTags(tags)))
+			listOf(SearchSuggestionItem.Tags(mapTags(tags, selected), selectedCount = selected.size))
 		}
 	}.getOrElse { e ->
 		e.printStackTraceDebug()
@@ -206,9 +231,10 @@ class SearchSuggestionViewModel @Inject constructor(
 			emptyList()
 		}
 
-	private fun mapTags(tags: List<MangaTag>): List<ChipsView.ChipModel> = tags.map { tag ->
+	private fun mapTags(tags: List<MangaTag>, selected: List<MangaTag>): List<ChipsView.ChipModel> = tags.map { tag ->
 		ChipsView.ChipModel(
 			title = tag.title,
+			isChecked = selected.any { it.title.equals(tag.title, ignoreCase = true) },
 			data = tag,
 		)
 	}
@@ -217,5 +243,6 @@ class SearchSuggestionViewModel @Inject constructor(
 		val query: String,
 		val types: Set<SearchSuggestionType>,
 		val isQuickFilterEnabled: Boolean,
+		val selectedTags: List<MangaTag>,
 	)
 }

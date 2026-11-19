@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.reader.ui.tts
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
+import org.koitharu.kotatsu.core.nav.ReaderIntent
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
 import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
@@ -117,6 +119,7 @@ class ReaderTtsService : LifecycleService() {
 		}
 		manga = value
 		cover = null
+		launchIntent()?.let { session.setSessionActivity(it) }
 		updateMetadata()
 		lifecycleScope.launch {
 			cover = loadCover(value) ?: return@launch
@@ -215,8 +218,17 @@ class ReaderTtsService : LifecycleService() {
 		return builder.build()
 	}
 
-	private fun launchIntent() = packageManager.getLaunchIntentForPackage(packageName)?.let {
-		PendingIntentCompat.getActivity(this, 0, it, 0, false)
+	private fun launchIntent(): PendingIntent? {
+		val targetIntent = manga?.let {
+			ReaderIntent.Builder(this)
+				.manga(it)
+				.build()
+				.intent
+				.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+		} ?: packageManager.getLaunchIntentForPackage(packageName)
+		return targetIntent?.let {
+			PendingIntentCompat.getActivity(this, 0, it, PendingIntent.FLAG_UPDATE_CURRENT, false)
+		}
 	}
 
 	private fun action(@DrawableRes icon: Int, title: Int, action: String) = Notification.Action.Builder(

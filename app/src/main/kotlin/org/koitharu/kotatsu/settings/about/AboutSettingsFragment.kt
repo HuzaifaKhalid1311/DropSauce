@@ -119,14 +119,17 @@ class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
 				val isUpdateSupported by viewModel.isUpdateSupported.collectAsState()
 				val isLoading by viewModel.isLoading.collectAsState()
 				val isVerboseLogging by viewModel.isVerboseLogging.collectAsState()
+				val canExportLog by viewModel.canExportLog.collectAsState()
 				AboutScreen(
 					appVersion = BuildConfig.VERSION_NAME,
 					checkUpdatesEnabled = isUpdateSupported && !isLoading,
 					isVerboseLogging = isVerboseLogging,
+					canExportLog = canExportLog,
 					onCheckUpdates = viewModel::checkForUpdates,
 					onChangelog = ::openChangelog,
 					onOpenLink = ::openLink,
 					onVerboseLoggingToggle = viewModel::setVerboseLogging,
+					onExportLog = viewModel::exportLog,
 					onOpenDeveloperTools = ::openDeveloperTools,
 				)
 			}
@@ -183,10 +186,12 @@ private fun AboutScreen(
 	appVersion: String,
 	checkUpdatesEnabled: Boolean,
 	isVerboseLogging: Boolean,
+	canExportLog: Boolean,
 	onCheckUpdates: () -> Unit,
 	onChangelog: () -> Unit,
 	onOpenLink: (urlRes: Int, titleRes: Int) -> Unit,
 	onVerboseLoggingToggle: (Boolean) -> Unit,
+	onExportLog: () -> Unit,
 	onOpenDeveloperTools: () -> Unit,
 ) {
 	val ctx = LocalContext.current
@@ -257,14 +262,24 @@ private fun AboutScreen(
 					SwitchSettingsItem(
 						title = "Verbose logging",
 						subtitle = if (isVerboseLogging) {
-							"Recording, even across restarts and crashes. Reproduce the issue now, then turn off to save the log"
+							"Recording, even across restarts and crashes. Reproduce the issue now, then turn off or export the log"
 						} else {
-							"Turn on first, then reproduce the issue, then turn off to save a log for the developer"
+							"Turn on first, then reproduce the issue, then turn off or export a log for the developer"
 						},
 						icon = R.drawable.ic_script,
 						shape = pos.shape,
 						checked = isVerboseLogging,
 						onCheckedChange = onVerboseLoggingToggle,
+					)
+				}
+				item { pos ->
+					ActionSettingsItem(
+						title = stringResource(R.string.export_log),
+						subtitle = stringResource(R.string.export_log_summary),
+						icon = R.drawable.ic_export_log,
+						shape = pos.shape,
+						enabled = canExportLog,
+						onClick = onExportLog,
 					)
 				}
 				item { pos ->

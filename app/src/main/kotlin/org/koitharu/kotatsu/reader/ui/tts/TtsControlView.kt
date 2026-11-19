@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.reader.ui.tts
 
 import android.content.Context
+import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -46,6 +47,7 @@ class TtsControlView @JvmOverloads constructor(
 		binding.buttonNext.setOnClickListener(this)
 		binding.buttonPrevious.setOnClickListener(this)
 		binding.buttonCustomizeVoices.setOnClickListener(this)
+		binding.buttonSleepTimer.setOnClickListener(this)
 		binding.sliderSpeed.addOnChangeListener(this)
 		binding.sliderPitch.addOnChangeListener(this)
 	}
@@ -70,6 +72,19 @@ class TtsControlView @JvmOverloads constructor(
 			)
 			// The voice list only exists once the engine is up, which is right about now.
 			updateVoices()
+		}
+		controller.sleepTimer.observe(lifecycleOwner) { state ->
+			binding.buttonSleepTimer.text = when (state) {
+				is ReaderTts.SleepTimer.Off -> context.getString(R.string.tts_sleep_timer)
+				is ReaderTts.SleepTimer.EndOfChapter -> context.getString(
+					R.string.tts_sleep_timer_remaining,
+					context.getString(R.string.tts_sleep_timer_eoc),
+				)
+				is ReaderTts.SleepTimer.Countdown -> context.getString(
+					R.string.tts_sleep_timer_remaining,
+					DateUtils.formatElapsedTime(state.remainingSeconds),
+				)
+			}
 		}
 	}
 
@@ -132,6 +147,7 @@ class TtsControlView @JvmOverloads constructor(
 			R.id.button_next -> controller.skip(1)
 			R.id.button_previous -> controller.skip(-1)
 			R.id.button_customize_voices -> showTtsVoicesDialog(context, controller, ::updateVoices)
+			R.id.button_sleep_timer -> showTtsSleepTimerDialog(context, controller)
 		}
 	}
 

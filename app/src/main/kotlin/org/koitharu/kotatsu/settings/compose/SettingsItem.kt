@@ -117,13 +117,19 @@ fun SettingsItem(
 	val highlight = remember { Animatable(0f) }
 	LaunchedEffect(isHighlightTarget) {
 		if (isHighlightTarget) {
-			// Wait until this row has a real laid-out position, then scroll to it.
-			val y = snapshotFlow { rowWindowY.floatValue }.first { !it.isNaN() }
-			scrollToHighlight(y)
-			highlight.snapTo(1f)
-			delay(320)
-			highlight.animateTo(0f, animationSpec = tween(durationMillis = 1100))
-			SettingsSearchHighlight.consume(title)
+			try {
+				// Wait until this row has a real laid-out position, then scroll to it.
+				val y = snapshotFlow { rowWindowY.floatValue }.first { !it.isNaN() }
+				scrollToHighlight(y)
+				highlight.snapTo(1f)
+				delay(320)
+				highlight.animateTo(0f, animationSpec = tween(durationMillis = 1100))
+			} finally {
+				// also when leaving the screen mid-flash, or the row lights up again on the next visit
+				SettingsSearchHighlight.consume(title)
+			}
+		} else if (highlight.value > 0f) {
+			highlight.snapTo(0f)
 		}
 	}
 	val surfaceColor = lerp(
@@ -152,6 +158,7 @@ fun SettingsItem(
 		Column(
 			modifier = if (onClick != null && enabled) {
 				Modifier.clickable(interactionSource = interactionSource, indication = LocalIndication.current) {
+					SettingsSearchHighlight.consume(title)
 					if (hapticEffect != null) haptic(hapticEffect)
 					onClick()
 				}
@@ -253,6 +260,7 @@ fun SwitchSettingsItem(
 ) {
 	val haptic = rememberHapticEffect()
 	val onCheckedChangeHaptic: (Boolean) -> Unit = { value ->
+		SettingsSearchHighlight.consume(title)
 		haptic(if (value) HapticEffect.TOGGLE_ON else HapticEffect.TOGGLE_OFF)
 		onCheckedChange(value)
 	}

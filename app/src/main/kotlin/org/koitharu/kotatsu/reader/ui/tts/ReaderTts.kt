@@ -3,16 +3,24 @@ package org.koitharu.kotatsu.reader.ui.tts
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import java.text.BreakIterator
@@ -34,6 +42,15 @@ class ReaderTts @Inject constructor(
 	/** A sentence of the current chapter: [start] until [end] are offsets into the chapter text. */
 	data class Position(val chapter: Int, val index: Int, val start: Int, val end: Int)
 
+	sealed interface SleepTimer {
+		data object Off : SleepTimer
+		data object EndOfChapter : SleepTimer
+		data class Countdown(val remainingSeconds: Long) : SleepTimer
+	}
+
+	private val timerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+	private var sleepTimerJob: Job? = null
+
 	private var tts: TextToSpeech? = null
 	private var isInitialized = false
 	private var chunks: List<Sentence> = emptyList()
@@ -51,9 +68,11 @@ class ReaderTts @Inject constructor(
 	private val _position = MutableStateFlow<Position?>(null)
 	private val _chapterFinished = MutableSharedFlow<Int>(extraBufferCapacity = 1)
 	private val _previewingVoice = MutableStateFlow<String?>(null)
+	private val _sleepTimer = MutableStateFlow<SleepTimer>(SleepTimer.Off)
 
 	val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 	val position: StateFlow<Position?> = _position.asStateFlow()
+	val sleepTimer: StateFlow<SleepTimer> = _sleepTimer.asStateFlow()
 
 	/** Emits the chapter index that just finished, so the reader can move on to the next one. */
 	val chapterFinished: SharedFlow<Int> = _chapterFinished.asSharedFlow()
@@ -206,6 +225,7 @@ class ReaderTts @Inject constructor(
 	}
 
 	fun stop() {
+		cancelSleepTimer()
 		tts?.stop()
 		tts?.shutdown()
 		tts = null
@@ -216,6 +236,40 @@ class ReaderTts @Inject constructor(
 		chunks = emptyList()
 		_position.value = null
 		_isPlaying.value = false
+	}
+
+	fun setSleepTimerMinutes(minutes: Int) {
+		sleepTimerJob?.cancel()
+		sleepTimerJob = null
+		if (minutes <= 0) {
+			_sleepTimer.value = SleepTimer.Off
+			return
+		}
+		val deadlineMs = SystemClock.elapsedRealtime() + minutes * 60_000L
+		sleepTimerJob = timerScope.launch {
+			while (isActive) {
+				val remainingMs = deadlineMs - SystemClock.elapsedRealtime()
+				if (remainingMs <= 0L) {
+					_sleepTimer.value = SleepTimer.Off
+					pause()
+					break
+				}
+				_sleepTimer.value = SleepTimer.Countdown((remainingMs + 999L) / 1000L)
+				delay(remainingMs.coerceAtMost(1000L))
+			}
+		}
+	}
+
+	fun setSleepTimerEndOfChapter() {
+		sleepTimerJob?.cancel()
+		sleepTimerJob = null
+		_sleepTimer.value = SleepTimer.EndOfChapter
+	}
+
+	fun cancelSleepTimer() {
+		sleepTimerJob?.cancel()
+		sleepTimerJob = null
+		_sleepTimer.value = SleepTimer.Off
 	}
 
 	/**
@@ -343,7 +397,11 @@ class ReaderTts @Inject constructor(
 			val index = utteranceId?.toIntOrNull() ?: return
 			if (index >= chunks.lastIndex) {
 				_isPlaying.value = false
-				_chapterFinished.tryEmit(chapter)
+				if (_sleepTimer.value is SleepTimer.EndOfChapter) {
+					_sleepTimer.value = SleepTimer.Off
+				} else {
+					_chapterFinished.tryEmit(chapter)
+				}
 			}
 		}
 

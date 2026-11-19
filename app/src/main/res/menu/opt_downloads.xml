@@ -18,6 +18,13 @@
 		app:showAsAction="ifRoom|withText" />
 
 	<item
+		android:id="@+id/action_retry_failed"
+		android:icon="@drawable/ic_retry_failed"
+		android:title="@string/retry_failed"
+		android:visible="false"
+		app:showAsAction="ifRoom" />
+
+	<item
 		android:id="@+id/action_cancel_all"
 		android:icon="@drawable/ic_cancel_multiple"
 		android:title="@string/cancel_all"

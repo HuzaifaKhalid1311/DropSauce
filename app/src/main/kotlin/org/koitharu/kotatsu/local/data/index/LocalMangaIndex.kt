@@ -66,15 +66,25 @@ class LocalMangaIndex @Inject constructor(
 		if (path == null) {
 			return null
 		}
+		val file = File(path)
+		if (!file.exists()) { // deleted outside the app
+			delete(mangaId)
+			return null
+		}
 		return runCatchingCancellable {
-			LocalMangaParser(File(path)).getManga(withDetails)
+			LocalMangaParser(file).getManga(withDetails)
 		}.onFailure {
 			it.printStackTraceDebug()
 		}.getOrNull()
 	}
 
 	suspend operator fun contains(mangaId: Long): Boolean {
-		return db.getLocalMangaIndexDao().findPath(mangaId) != null
+		val path = db.getLocalMangaIndexDao().findPath(mangaId) ?: return false
+		if (!File(path).exists()) {
+			delete(mangaId)
+			return false
+		}
+		return true
 	}
 
 	suspend fun put(manga: LocalManga) = mutex.withLock {

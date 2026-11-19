@@ -79,6 +79,13 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 				putBoolean(KEY_NAV_PINNED_RESET, true)
 			}
 		}
+		// One-time: the settings screen used to show every suggestion type off, so many ended up off.
+		if (!prefs.getBoolean(KEY_SEARCH_SUGGESTIONS_RESET, false)) {
+			prefs.edit {
+				remove(KEY_SEARCH_SUGGESTION_TYPES)
+				putBoolean(KEY_SEARCH_SUGGESTIONS_RESET, true)
+			}
+		}
 	}
 	private val onboardingInstallId by lazy {
 		runCatching {
@@ -1627,6 +1634,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		private val SYNC_LOCAL_KEYS = setOf(
 			KEY_UI_SCALE_RESET,
 			KEY_NAV_PINNED_RESET,
+			KEY_SEARCH_SUGGESTIONS_RESET,
 			KEY_LOCAL_STORAGE,
 			KEY_LOCAL_MANGA_DIRS,
 			KEY_PAGES_SAVE_DIR,
@@ -1673,6 +1681,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		private const val KEY_IMAGES_PROXY_OLD = "images_proxy"
 		private const val KEY_PRELOAD_POLICIES_RESET = "preload_policies_reset_v1"
 		private const val KEY_NAV_PINNED_RESET = "nav_pinned_reset_v1"
+		private const val KEY_SEARCH_SUGGESTIONS_RESET = "search_suggestions_reset_v1"
 
 		// values
 		private const val READER_CROP_PAGED = 1

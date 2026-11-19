@@ -4,6 +4,12 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_presets"
+		android:icon="@drawable/ic_tap_grid_presets"
+		android:title="@string/tap_grid_presets"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_reset"
 		android:icon="@drawable/ic_revert"
 		android:title="@string/reset"

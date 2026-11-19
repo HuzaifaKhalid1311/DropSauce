@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.search.domain.SearchKind
+import org.koitharu.kotatsu.search.domain.joinTagQuery
 
 class SearchSuggestionListenerImpl(
 	private val router: AppRouter,
@@ -44,7 +45,14 @@ class SearchSuggestionListenerImpl(
 	}
 
 	override fun onTagClick(tag: MangaTag) {
-		router.openSearch(tag.title, SearchKind.TAG)
+		viewModel.toggleTag(tag)
+	}
+
+	override fun onSearchTagsClick() {
+		val genres = viewModel.selectedTags.value.map { it.title }
+		if (genres.isNotEmpty()) {
+			router.openSearch(joinTagQuery(genres), SearchKind.TAG)
+		}
 	}
 
 	override fun onSourceClick(source: MangaSource) {

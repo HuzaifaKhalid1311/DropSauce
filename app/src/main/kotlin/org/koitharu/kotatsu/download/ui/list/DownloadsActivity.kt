@@ -70,6 +70,7 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 		val menuInvalidator = MenuInvalidator(this)
 		viewModel.hasActiveWorks.observe(this, menuInvalidator)
 		viewModel.hasPausedWorks.observe(this, menuInvalidator)
+		viewModel.hasFailedWorks.observe(this, menuInvalidator)
 		viewModel.hasCancellableWorks.observe(this, menuInvalidator)
 	}
 

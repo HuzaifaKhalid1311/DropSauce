@@ -130,20 +130,35 @@ class AppLogger @Inject constructor(
 		setEnabled(true)
 	}
 
+	fun hasRecordedLogs(): Boolean = synchronized(fileLock) {
+		oldSessionFile.length() > 0L || sessionFile.length() > 0L
+	}
+
+	/** Returns the whole log so far without stopping the recording, or "" if empty. */
+	fun export(): String {
+		val log = synchronized(fileLock) {
+			runCatching {
+				flushRepeatsLocked()
+				writer?.flush()
+			}
+			runCatching {
+				buildString {
+					for (file in arrayOf(oldSessionFile, sessionFile)) {
+						if (file.exists() && file.length() > 0) {
+							append(file.readText())
+							if (!endsWith('\n')) append('\n')
+						}
+					}
+				}
+			}.getOrDefault("")
+		}
+		return if (log.isBlank()) "" else summary(log) + "\n== TIMELINE ==\n" + log
+	}
+
 	/** Stops recording and returns the whole log (all sessions since it was turned on), or "" if empty. */
 	suspend fun stopAndExport(): String {
 		stopAndJoin()
-		val log = runCatching {
-			buildString {
-				for (file in arrayOf(oldSessionFile, sessionFile)) {
-					if (file.exists() && file.length() > 0) {
-						append(file.readText())
-						if (!endsWith('\n')) append('\n')
-					}
-				}
-			}
-		}.getOrDefault("")
-		return if (log.isBlank()) "" else summary(log) + "\n== TIMELINE ==\n" + log
+		return export()
 	}
 
 	/** Deletes the recorded log, e.g. once it has been saved. */

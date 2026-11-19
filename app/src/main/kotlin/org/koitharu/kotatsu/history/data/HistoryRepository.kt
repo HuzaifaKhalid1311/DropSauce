@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.db.entity.toEntity
 import org.koitharu.kotatsu.core.db.entity.toManga
+import org.koitharu.kotatsu.core.db.entity.hasAllTags
 import org.koitharu.kotatsu.core.db.entity.toMangaList
 import org.koitharu.kotatsu.core.db.entity.toMangaTags
 import org.koitharu.kotatsu.core.db.entity.toMangaTagsList
@@ -43,6 +44,7 @@ import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.scrobbling.common.domain.Scrobbler
 import org.koitharu.kotatsu.scrobbling.common.domain.tryScrobble
 import org.koitharu.kotatsu.search.domain.SearchKind
+import org.koitharu.kotatsu.search.domain.splitTagQuery
 import org.koitharu.kotatsu.tracker.domain.CheckNewChaptersUseCase
 import kotlin.math.ceil
 import javax.inject.Inject
@@ -75,7 +77,11 @@ class HistoryRepository @Inject constructor(
 			SearchKind.TITLE -> dao.searchByTitle(q, limit).sortedBy { it.manga.title.levenshteinDistance(query) }
 
 			SearchKind.AUTHOR -> dao.searchByAuthor(q, limit)
-			SearchKind.TAG -> dao.searchByTag(q, limit)
+			SearchKind.TAG -> {
+				// shortcut: the limit applies before the other genres are checked; fine for a results row
+				val genres = splitTagQuery(query)
+				dao.searchByTag("%${genres.firstOrNull().orEmpty()}%", limit).filter { it.hasAllTags(genres) }
+			}
 		}
 		return entities.toMangaList()
 	}

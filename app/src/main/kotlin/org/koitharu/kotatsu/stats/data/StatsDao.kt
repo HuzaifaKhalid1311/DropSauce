@@ -79,7 +79,7 @@ abstract class StatsDao {
 		conditions.add("stats.started_at >= $fromDate")
 		if (favouriteCategories.isNotEmpty()) {
 			val ids = favouriteCategories.joinToString(",")
-			conditions.add("stats.manga_id IN (SELECT manga_id FROM favourites WHERE category_id IN ($ids))")
+			conditions.add("stats.manga_id IN (SELECT manga_id FROM favourites WHERE category_id IN ($ids) AND deleted_at = 0)")
 		}
 		return conditions.joinToString(separator = " AND ")
 	}

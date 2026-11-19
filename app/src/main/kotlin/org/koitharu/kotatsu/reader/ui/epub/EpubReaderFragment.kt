@@ -1600,12 +1600,35 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		viewLifecycleOwner.lifecycleScope.launch {
 			val results = withContext(Dispatchers.IO) {
 				if (!isRemote) ensureChaptersLoaded(chapters.indices)
-				chapters.mapIndexedNotNull { index, chapter ->
-					val match = chapter.text.indexOf(query, ignoreCase = true).takeIf { it >= 0 } ?: return@mapIndexedNotNull null
-					val start = (match - 45).coerceAtLeast(0)
-					val end = (match + query.length + 70).coerceAtMost(chapter.text.length)
-					SearchResult(index, chapter.title, chapter.text.substring(start, end).replace(Regex("\\s+"), " ").trim(), match)
-				}.take(MAX_SEARCH_RESULTS)
+				buildList {
+					for ((index, chapter) in chapters.withIndex()) {
+						if (size >= MAX_SEARCH_RESULTS) break
+						val offsets = ArrayList<Int>()
+						var searchFrom = 0
+						while (offsets.size < MAX_HITS_PER_CHAPTER) {
+							val match = chapter.text.indexOf(query, startIndex = searchFrom, ignoreCase = true)
+							if (match < 0) break
+							offsets.add(match)
+							searchFrom = (match + query.length).coerceAtLeast(match + 1)
+						}
+						for ((hitIndex, match) in offsets.withIndex()) {
+							if (size >= MAX_SEARCH_RESULTS) break
+							val start = (match - 45).coerceAtLeast(0)
+							val end = (match + query.length + 70).coerceAtMost(chapter.text.length)
+							val snippet = chapter.text.substring(start, end).replace(Regex("\\s+"), " ").trim()
+							add(
+								SearchResult(
+									chapter = index,
+									title = chapter.title,
+									snippet = snippet,
+									offset = match,
+									matchIndex = hitIndex + 1,
+									chapterMatches = offsets.size,
+								),
+							)
+						}
+					}
+				}
 			}
 			if (results.isEmpty()) {
 				Toast.makeText(requireContext(), R.string.epub_no_search_results, Toast.LENGTH_SHORT).show()
@@ -1621,7 +1644,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			val colors = MaterialTheme.colorScheme
 			ExpressiveDialogCard(
 				icon = painterResource(R.drawable.ic_search),
-				title = stringResource(R.string.search_results),
+				title = stringResource(R.string.search_results_count, results.size),
 				cornerAction = DialogCornerAction(
 					icon = painterResource(R.drawable.ic_close),
 					label = stringResource(android.R.string.cancel),
@@ -1638,8 +1661,14 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 						},
 					) {
 						Column(modifier = Modifier.padding(vertical = 6.dp)) {
+							val baseTitle = result.title.ifEmpty { untitled }
+							val header = if (result.chapterMatches > 1) {
+								"$baseTitle (${result.matchIndex}/${result.chapterMatches})"
+							} else {
+								baseTitle
+							}
 							Text(
-								text = result.title.ifEmpty { untitled },
+								text = header,
 								style = MaterialTheme.typography.bodyLarge,
 								color = colors.onSurface,
 							)
@@ -2158,7 +2187,14 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	private data class PreparedBook(val chapters: List<NativeChapter>, val content: ChapterContent)
 	private data class NativePage(val chapter: Int, val start: Int, val end: Int)
-	private data class SearchResult(val chapter: Int, val title: String, val snippet: String, val offset: Int)
+	private data class SearchResult(
+		val chapter: Int,
+		val title: String,
+		val snippet: String,
+		val offset: Int,
+		val matchIndex: Int = 1,
+		val chapterMatches: Int = 1,
+	)
 	private data class Locator(val chapter: Int, val offset: Int)
 	private data class TextLocation(val chapter: Int, val baseOffset: Int)
 	private data class SelectedText(val chapter: Int, val start: Int, val end: Int, val text: String)
@@ -2180,6 +2216,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private const val EPUB_THEME_CUSTOM = "custom"
 		private const val EPUB_FONT_CUSTOM = "custom"
 		private const val MAX_SEARCH_RESULTS = 100
+		private const val MAX_HITS_PER_CHAPTER = 25
 		private const val PROGRESS_INTERVAL_MS = 50L
 		private const val LOAD_RETRY_DELAY_MS = 3000L
 		private const val MAX_AUTO_RETRIES = 3

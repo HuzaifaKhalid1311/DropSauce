@@ -229,7 +229,7 @@ class DownloadWorker @AssistedInject constructor(
 						publishState(currentState.copy(downloadedChapters = currentState.downloadedChapters + 1))
 						continue
 					}
-					try {
+					val downloaded = try {
 						downloadChapter(output, destination, repo, mangaDetails, chapter, chapterIndex, chapters.size)
 					} catch (e: CancellationException) {
 						throw e
@@ -243,7 +243,9 @@ class DownloadWorker @AssistedInject constructor(
 						chapterError = e
 						continue
 					}
-					publishState(currentState.copy(downloadedChapters = currentState.downloadedChapters + 1))
+					if (downloaded) {
+						publishState(currentState.copy(downloadedChapters = currentState.downloadedChapters + 1))
+					}
 				}
 				publishState(currentState.copy(isIndeterminate = true, eta = -1L, isStuck = false))
 				output.mergeWithExisting()
@@ -308,11 +310,15 @@ class DownloadWorker @AssistedInject constructor(
 		chapter: IndexedValue<MangaChapter>,
 		chapterIndex: Int,
 		chaptersCount: Int,
-	) {
+	): Boolean {
 		val pages = runFailsafe {
 			repo.getPages(manga, chapter.value)
-		} ?: return
+		}
+		if (pages.isNullOrEmpty()) {
+			return false
+		}
 		val pageCounter = AtomicInteger(0)
+		val savedPages = AtomicInteger(0)
 		channelFlow {
 			val semaphore = Semaphore(MAX_PAGES_PARALLELISM)
 			for ((pageIndex, page) in pages.withIndex()) {
@@ -332,6 +338,7 @@ class DownloadWorker @AssistedInject constructor(
 							if (file.extension == "tmp") {
 								file.deleteAwait()
 							}
+							savedPages.incrementAndGet()
 						}
 						send(pageIndex)
 					}
@@ -357,11 +364,17 @@ class DownloadWorker @AssistedInject constructor(
 				),
 			)
 		}
+		if (savedPages.get() == 0) {
+			// every page was skipped: don't leave an empty chapter file behind
+			output.discardChapter(chapter.value)
+			return false
+		}
 		if (output.flushChapter(chapter.value)) {
 			runCatchingCancellable {
 				localStorageChanges.emit(LocalMangaParser(output.rootFile).getManga(withDetails = false))
 			}.onFailure(Throwable::printStackTraceDebug)
 		}
+		return true
 	}
 
 	private suspend fun <R> runFailsafe(
@@ -652,10 +665,15 @@ class DownloadWorker @AssistedInject constructor(
 				if (work.state.isFinished) {
 					continue
 				}
+				// updateWork replaces the whole spec, so the task data and policies must be carried over
+				val inputData = workManager.getWorkInputData(work.id) ?: continue
 				val request = OneTimeWorkRequestBuilder<DownloadWorker>()
 					.setConstraints(constraints)
 					.addTag(TAG)
 					.setId(work.id)
+					.keepResultsForAtLeast(30, TimeUnit.DAYS)
+					.setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.SECONDS)
+					.setInputData(inputData)
 					.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
 					.build()
 				workManager.awaitUpdateWork(request)

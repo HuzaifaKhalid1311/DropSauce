@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "file_save" (rounded, filled) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:tint="?attr/colorControlNormal"
+	android:viewportWidth="24"
+	android:viewportHeight="24">
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="M17.3,20.3l-2.6,-2.6q-0.275,-0.275 -0.275,-0.7t0.275,-0.7t0.7,-0.275t0.7,0.275l0.9,0.9v-3.175q0,-0.425 0.288,-0.712t0.712,-0.288t0.713,0.288t0.287,0.712V17.2l0.9,-0.9q0.275,-0.275 0.7,-0.275t0.7,0.275t0.275,0.7t-0.275,0.7l-2.6,2.6q-0.3,0.3 -0.7,0.3t-0.7,-0.3M15,24q-0.425,0 -0.712,-0.288T14,23t0.288,-0.712T15,22h6q0.425,0 0.713,0.288T22,23t-0.288,0.713T21,24zM6,20q-0.825,0 -1.412,-0.587T4,18V4q0,-0.825 0.588,-1.412T6,2h6.175q0.4,0 0.763,0.15t0.637,0.425l4.85,4.85q0.275,0.275 0.425,0.638t0.15,0.762v1.2q0,0.425 -0.288,0.712t-0.712,0.288h-4q-0.825,0 -1.412,0.588T12,13.025V19q0,0.425 -0.288,0.713T11,20zM13.5,9H17l-5,-5l5,5l-5,-5v3.5q0,0.625 0.438,1.063T13.5,9" />
+</vector>

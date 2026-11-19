@@ -162,6 +162,11 @@ class WebtoonScalingFrame @JvmOverloads constructor(
 		super.onSizeChanged(w, h, oldw, oldh)
 		halfWidth = w / 2f
 		halfHeight = h / 2f
+		// re-apply the zoom so its bounds and the child's height follow the new size (rotation, split-screen)
+		if (w > 0 && h > 0 && scale != 1f) {
+			scaleChild(scale, halfWidth, halfHeight)
+			onPostScale(invalidateLayout = true)
+		}
 	}
 
 	override fun onZoomIn() {
@@ -308,12 +313,14 @@ class WebtoonScalingFrame @JvmOverloads constructor(
 
 		override fun onDoubleTap(e: MotionEvent): Boolean {
 			val newScale = if (scale != 1f) 1f else MAX_SCALE * 0.8f
-			ValueAnimator.ofFloat(scale, newScale).run {
+			animator?.cancel()
+			animator = ValueAnimator.ofFloat(scale, newScale).apply {
 				interpolator = AccelerateDecelerateInterpolator()
 				duration = context.getAnimationDuration(R.integer.config_defaultAnimTime)
 				addUpdateListener {
 					scaleChild(it.animatedValue as Float, e.x, e.y)
 				}
+				doOnEnd { onPostScale(invalidateLayout = false) }
 				start()
 			}
 			return true

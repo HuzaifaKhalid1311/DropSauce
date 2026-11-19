@@ -145,6 +145,7 @@ class ColorFilterConfigActivity :
 		viewBinding.sliderBrightness.isEnabled = !isLoading
 		viewBinding.switchInvert.isEnabled = !isLoading
 		viewBinding.switchGrayscale.isEnabled = !isLoading
+		viewBinding.switchBook.isEnabled = !isLoading
 		viewBinding.buttonDone.isEnabled = !isLoading
 	}
 

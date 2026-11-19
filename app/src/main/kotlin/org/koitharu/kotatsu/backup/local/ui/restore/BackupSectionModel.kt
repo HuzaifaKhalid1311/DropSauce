@@ -9,6 +9,7 @@ data class BackupSectionModel(
 	val section: BackupSection,
 	val isChecked: Boolean,
 	val isEnabled: Boolean,
+	val itemCount: Int? = null,
 ) : ListModel {
 
 	@get:StringRes
@@ -24,7 +25,7 @@ data class BackupSectionModel(
 			return null
 		}
 		return when {
-			previousState.isEnabled != isEnabled -> ListModelDiffCallback.PAYLOAD_ANYTHING_CHANGED
+			previousState.isEnabled != isEnabled || previousState.itemCount != itemCount -> ListModelDiffCallback.PAYLOAD_ANYTHING_CHANGED
 			previousState.isChecked != isChecked -> ListModelDiffCallback.PAYLOAD_CHECKED_CHANGED
 			else -> super.getChangePayload(previousState)
 		}

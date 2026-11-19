@@ -37,6 +37,12 @@ class ReaderTapGridConfigViewModel @Inject constructor(
 		}
 	}
 
+	fun applyPreset(preset: TapGridSettings.TapGridPreset) {
+		launchJob(Dispatchers.Default) {
+			tapGridSettings.applyPreset(preset)
+		}
+	}
+
 	fun setTapAction(area: TapGridArea, isLongTap: Boolean, action: TapAction?) {
 		launchJob(Dispatchers.Default) {
 			tapGridSettings.setTapAction(area, isLongTap, action)

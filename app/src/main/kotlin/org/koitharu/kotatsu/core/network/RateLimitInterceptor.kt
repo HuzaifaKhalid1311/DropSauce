@@ -23,7 +23,11 @@ class RateLimitInterceptor : Interceptor {
 	}
 
 	private fun String.parseRetryAfter(): Long {
-		return toLongOrNull()?.let { TimeUnit.SECONDS.toMillis(it) }
-			?: ZonedDateTime.parse(this, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli()
+		// either a delay in seconds or an HTTP date; the date must become a delay, not a timestamp
+		return toLongOrNull()?.let { TimeUnit.SECONDS.toMillis(it).coerceAtLeast(0L) }
+			?: runCatching {
+				val retryAt = ZonedDateTime.parse(trim(), DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli()
+				(retryAt - System.currentTimeMillis()).coerceAtLeast(0L)
+			}.getOrDefault(0L)
 	}
 }

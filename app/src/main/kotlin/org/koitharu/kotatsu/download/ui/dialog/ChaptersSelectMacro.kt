@@ -63,36 +63,37 @@ interface ChaptersSelectMacro {
 		val chaptersCount: Int,
 		val maxAvailableCount: Int,
 		private val currentChaptersIds: LongLongMap,
+		private val defaultBranches: Map<Long, String?>,
 	) : ChaptersSelectMacro {
 
 		override fun getChaptersIds(mangaId: Long, chapters: List<MangaChapter>): Set<Long>? {
 			if (chapters.isEmpty()) {
 				return null
 			}
-			val currentChapterId = currentChaptersIds.getOrDefault(mangaId, chapters.first().id)
-			var branch: String? = null
-			var isAdding = false
+			val currentIndex = if (currentChaptersIds.containsKey(mangaId)) {
+				chapters.indexOfFirst { it.id == currentChaptersIds[mangaId] }
+			} else {
+				-1
+			}
+			// no history (or its chapter is gone): start from the first chapter of the preferred branch
+			val branch = when {
+				currentIndex >= 0 -> chapters[currentIndex].branch
+				defaultBranches.containsKey(mangaId) -> defaultBranches[mangaId]
+				else -> chapters.first().branch
+			}
 			val result = ArraySet<Long>(minOf(chaptersCount, chapters.size))
-			for (c in chapters) {
-				if (!isAdding) {
-					if (c.id == currentChapterId) {
-						branch = c.branch
-						isAdding = true
-						continue
-					}
-				}
-				if (isAdding) {
-					if (c.branch == branch) {
-						result.add(c.id)
-						if (result.size >= chaptersCount) {
-							break
-						}
+			for (i in currentIndex + 1 until chapters.size) {
+				val c = chapters[i]
+				if (c.branch == branch) {
+					result.add(c.id)
+					if (result.size >= chaptersCount) {
+						break
 					}
 				}
 			}
 			return result
 		}
 
-		fun copy(count: Int) = UnreadChapters(count, maxAvailableCount, currentChaptersIds)
+		fun copy(count: Int) = UnreadChapters(count, maxAvailableCount, currentChaptersIds, defaultBranches)
 	}
 }

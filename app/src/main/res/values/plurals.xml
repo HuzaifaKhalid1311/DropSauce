@@ -4,6 +4,10 @@
 		<item quantity="one">%1$d item</item>
 		<item quantity="other">%1$d items</item>
 	</plurals>
+	<plurals name="search_genres">
+		<item quantity="one">Search %1$d genre</item>
+		<item quantity="other">Search %1$d genres</item>
+	</plurals>
 	<plurals name="new_chapters">
 		<item quantity="one">%1$d new chapter</item>
 		<item quantity="other">%1$d new chapters</item>

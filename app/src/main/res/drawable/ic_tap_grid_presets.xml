@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "dashboard_customize" (rounded, filled) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:tint="?attr/colorControlNormal"
+	android:viewportWidth="24"
+	android:viewportHeight="24">
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="M4,11q-0.425,0 -0.712,-0.288T3,10V4q0,-0.425 0.288,-0.712T4,3h6q0.425,0 0.713,0.288T11,4v6q0,0.425 -0.288,0.713T10,11zM14,11q-0.425,0 -0.712,-0.288T13,10V4q0,-0.425 0.288,-0.712T14,3h6q0.425,0 0.713,0.288T21,4v6q0,0.425 -0.288,0.713T20,11zM4,21q-0.425,0 -0.712,-0.288T3,20v-6q0,-0.425 0.288,-0.712T4,13h6q0.425,0 0.713,0.288T11,14v6q0,0.425 -0.288,0.713T10,21zM17,21q-0.425,0 -0.712,-0.288T16,20v-2h-2.025q-0.425,0 -0.7,-0.288T13,17t0.288,-0.712T14,16h2v-2.025q0,-0.425 0.288,-0.7T17,13t0.713,0.288T18,14v2h2.025q0.425,0 0.7,0.288T21,17t-0.288,0.713T20,18h-2v2.025q0,0.425 -0.288,0.7T17,21z" />
+</vector>

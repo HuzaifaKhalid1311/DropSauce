@@ -34,16 +34,16 @@ abstract class SuggestionDao : MangaQueryBuilder.ConditionCallback {
 	)
 
 	@Transaction
-	@Query("SELECT manga.* FROM suggestions LEFT JOIN manga ON manga.manga_id = suggestions.manga_id ORDER BY relevance DESC LIMIT :limit")
+	@Query("SELECT manga.* FROM suggestions INNER JOIN manga ON manga.manga_id = suggestions.manga_id ORDER BY relevance DESC LIMIT :limit")
 	abstract suspend fun getTopManga(limit: Int): List<MangaWithTags>
 
-	@Query("SELECT manga.title FROM suggestions LEFT JOIN manga ON suggestions.manga_id = manga.manga_id WHERE manga.title LIKE :query")
+	@Query("SELECT manga.title FROM suggestions INNER JOIN manga ON suggestions.manga_id = manga.manga_id WHERE manga.title LIKE :query")
 	abstract suspend fun getTitles(query: String): List<String>
 
-	@Query("SELECT tags.* FROM suggestions LEFT JOIN tags ON (tag_id IN (SELECT tag_id FROM manga_tags WHERE manga_tags.manga_id = suggestions.manga_id)) GROUP BY tag_id ORDER BY COUNT(tags.tag_id) DESC LIMIT :limit")
+	@Query("SELECT tags.* FROM suggestions INNER JOIN manga_tags ON manga_tags.manga_id = suggestions.manga_id INNER JOIN tags ON tags.tag_id = manga_tags.tag_id GROUP BY tags.tag_id ORDER BY COUNT(tags.tag_id) DESC LIMIT :limit")
 	abstract suspend fun getTopTags(limit: Int): List<TagEntity>
 
-	@Query("SELECT manga.source AS count FROM suggestions LEFT JOIN manga ON manga.manga_id = suggestions.manga_id GROUP BY manga.source ORDER BY COUNT(manga.source) DESC LIMIT :limit")
+	@Query("SELECT manga.source AS count FROM suggestions INNER JOIN manga ON manga.manga_id = suggestions.manga_id GROUP BY manga.source ORDER BY COUNT(manga.source) DESC LIMIT :limit")
 	abstract suspend fun getTopSources(limit: Int): List<String>
 
 	@Insert(onConflict = OnConflictStrategy.IGNORE)

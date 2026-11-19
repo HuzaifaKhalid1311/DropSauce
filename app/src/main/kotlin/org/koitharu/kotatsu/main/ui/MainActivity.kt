@@ -86,6 +86,7 @@ import org.koitharu.kotatsu.main.ui.owners.ListCheckpointOwner
 import org.koitharu.kotatsu.main.ui.welcome.OnboardingActivity
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.remotelist.ui.MangaSearchMenuProvider
+import org.koitharu.kotatsu.search.domain.joinTagQuery
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionListenerImpl
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionMenuProvider
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionViewModel
@@ -401,6 +402,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val isOpened = newState >= SearchView.TransitionState.SHOWING
 		if (isOpened != wasOpened) {
 			adjustSearchUI(isOpened)
+			if (!isOpened) {
+				searchSuggestionViewModel.clearTags()
+			}
 		}
 		isSearchFullyShown = (newState == SearchView.TransitionState.SHOWN)
 	}
@@ -603,6 +607,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 					emptyFlow()
 				}
 			}.observe(this, adapter)
+		// Ticked genres are the query: shown in the bar, which can't be typed into until they're unticked.
+		val editText = viewBinding.searchView.editText
+		val defaultHint = editText.hint
+		val defaultHintColors = editText.hintTextColors
+		searchSuggestionViewModel.selectedTags.observe(this) { tags ->
+			val isLocked = tags.isNotEmpty()
+			if (isLocked) {
+				editText.text?.clear()
+				viewBinding.searchView.clearFocusAndHideKeyboard()
+			}
+			editText.hint = if (isLocked) joinTagQuery(tags.map { it.title }) else defaultHint
+			editText.setHintTextColor(if (isLocked) editText.textColors else defaultHintColors)
+			editText.isFocusable = !isLocked
+			editText.isFocusableInTouchMode = !isLocked
+		}
 		searchSuggestionViewModel.onError.observeEvent(
 			this,
 			SnackbarErrorObserver(viewBinding.recyclerViewSearch, null),

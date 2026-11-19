@@ -230,12 +230,23 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginHorizontal="16dp"
-			android:layout_marginBottom="8dp"
+			android:layout_marginBottom="4dp"
 			android:contentDescription="@string/tts_pitch"
 			android:stepSize="0.05"
 			android:valueFrom="0.5"
 			android:valueTo="2.0"
 			app:labelBehavior="floating" />
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/button_sleep_timer"
+			style="?materialButtonTonalStyle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginHorizontal="16dp"
+			android:layout_marginBottom="12dp"
+			android:text="@string/tts_sleep_timer"
+			app:icon="@drawable/ic_sleep_timer"
+			app:iconGravity="textStart" />
 
 	</LinearLayout>
 

@@ -88,7 +88,7 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	)
 	abstract suspend fun findPopularTags(limit: Int): List<TagEntity>
 
-	@Query("SELECT manga.source AS count FROM history LEFT JOIN manga ON manga.manga_id = history.manga_id GROUP BY manga.source ORDER BY COUNT(manga.source) DESC LIMIT :limit")
+	@Query("SELECT manga.source AS count FROM history LEFT JOIN manga ON manga.manga_id = history.manga_id WHERE history.deleted_at = 0 GROUP BY manga.source ORDER BY COUNT(manga.source) DESC LIMIT :limit")
 	abstract suspend fun findPopularSources(limit: Int): List<String>
 
 	@Query("SELECT * FROM history WHERE manga_id = :id AND deleted_at = 0")
@@ -200,7 +200,7 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Query("UPDATE history SET deleted_at = :deletedAt WHERE created_at >= :minDate AND deleted_at = 0")
 	protected abstract suspend fun setDeletedAtAfter(minDate: Long, deletedAt: Long)
 
-	@Query("UPDATE history SET deleted_at = :deletedAt WHERE deleted_at = 0 AND NOT EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id)")
+	@Query("UPDATE history SET deleted_at = :deletedAt WHERE deleted_at = 0 AND NOT EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND favourites.deleted_at = 0)")
 	protected abstract suspend fun setDeletedAtNotFavorite(deletedAt: Long)
 
 	@Transaction
@@ -208,10 +208,10 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	protected abstract fun observeAllImpl(query: SupportSQLiteQuery): Flow<List<HistoryWithManga>>
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
-		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND category_id = ${option.category.id})"
+		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND category_id = ${option.category.id} AND favourites.deleted_at = 0)"
 		ListFilterOption.Macro.COMPLETED -> "percent >= $PROGRESS_COMPLETED"
 		ListFilterOption.Macro.NEW_CHAPTERS -> "(SELECT chapters_new FROM tracks WHERE tracks.manga_id = history.manga_id) > 0"
-		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id)"
+		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND favourites.deleted_at = 0)"
 		ListFilterOption.Macro.NSFW -> "manga.nsfw = 1"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE history.manga_id = manga_tags.manga_id AND tag_id = ${option.tagId})"
 		ListFilterOption.Downloaded -> "EXISTS(SELECT * FROM local_index WHERE local_index.manga_id = history.manga_id)"

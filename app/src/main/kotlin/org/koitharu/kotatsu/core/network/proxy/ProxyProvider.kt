@@ -62,6 +62,7 @@ class ProxyProvider @Inject constructor(
 		} else {
 			val controller = ProxyController.getInstance()
 			if (settings.proxyType == Proxy.Type.DIRECT) {
+				clearSocksAuth()
 				suspendCoroutine { cont ->
 					controller.clearProxyOverride(
 						(cont.context[ContinuationInterceptor] as? CoroutineDispatcher ?: Dispatchers.Main).asExecutor(),
@@ -81,9 +82,13 @@ class ProxyProvider @Inject constructor(
 					append(':')
 					append(settings.proxyPort)
 				}
-				if (settings.proxyType == Proxy.Type.SOCKS) {
-					System.setProperty("java.net.socks.username", settings.proxyLogin)
-					System.setProperty("java.net.socks.password", settings.proxyPassword)
+				val login = settings.proxyLogin
+				val password = settings.proxyPassword
+				if (settings.proxyType == Proxy.Type.SOCKS && !login.isNullOrEmpty() && !password.isNullOrEmpty()) {
+					System.setProperty("java.net.socks.username", login)
+					System.setProperty("java.net.socks.password", password)
+				} else {
+					clearSocksAuth()
 				}
 				val proxyConfig = ProxyConfig.Builder()
 					.addProxyRule(url)
@@ -102,6 +107,11 @@ class ProxyProvider @Inject constructor(
 
 	private fun isProxyEnabled() = settings.proxyType != Proxy.Type.DIRECT
 
+	private fun clearSocksAuth() {
+		System.clearProperty("java.net.socks.username")
+		System.clearProperty("java.net.socks.password")
+	}
+
 	private fun getProxy(): Proxy {
 		val type = settings.proxyType
 		val address = settings.proxyAddress
@@ -109,7 +119,7 @@ class ProxyProvider @Inject constructor(
 		if (type == Proxy.Type.DIRECT) {
 			return Proxy.NO_PROXY
 		}
-		if (address.isNullOrEmpty() || port < 0 || port > 0xFFFF) {
+		if (address.isNullOrEmpty() || port <= 0 || port > 0xFFFF) {
 			throw ProxyConfigException()
 		}
 		cachedProxy?.let {

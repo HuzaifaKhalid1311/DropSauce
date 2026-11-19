@@ -72,6 +72,7 @@ sealed interface SearchSuggestionItem : ListModel {
 
 	data class Tags(
 		val tags: List<ChipsView.ChipModel>,
+		val selectedCount: Int,
 	) : SearchSuggestionItem {
 
 		override fun areItemsTheSame(other: ListModel): Boolean {

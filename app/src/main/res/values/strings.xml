@@ -504,6 +504,17 @@
     <string name="app_icon">App icon</string>
     <string name="app_icon_summary">The app will close to change the icon</string>
     <string name="app_icon_follows_theme">Icons follow light and dark mode. Themed also matches your app color</string>
+    <string name="retry_failed">Retry failed</string>
+    <string name="export_log">Export log</string>
+    <string name="export_log_summary">Save the log recorded so far to a file</string>
+    <string name="tap_grid_presets">Presets</string>
+    <string name="tap_grid_preset_ltr">Left to right</string>
+    <string name="tap_grid_preset_rtl">Right to left</string>
+    <string name="tap_grid_preset_webtoon">Webtoon</string>
+    <string name="search_results_count">Search results (%1$d)</string>
+    <string name="tts_sleep_timer">Sleep timer</string>
+    <string name="tts_sleep_timer_remaining">Sleep timer: %1$s</string>
+    <string name="tts_sleep_timer_eoc">End of chapter</string>
     <string name="app_icon_default">Default</string>
     <string name="app_icon_mono">Mono</string>
     <string name="app_icon_themed">Themed</string>

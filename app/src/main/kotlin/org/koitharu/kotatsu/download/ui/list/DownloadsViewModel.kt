@@ -80,6 +80,10 @@ class DownloadsViewModel @Inject constructor(
 		it?.any { x -> x.canResume } == true
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
 
+	val hasFailedWorks = works.map {
+		it?.any { x -> x.canRetry } == true
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
+
 	val hasActiveWorks = works.map {
 		it?.any { x -> x.canPause } == true
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
@@ -97,6 +101,16 @@ class DownloadsViewModel @Inject constructor(
 	fun retry(id: UUID) {
 		launchJob(Dispatchers.Default) {
 			workScheduler.retry(id)
+		}
+	}
+
+	fun retryAllFailed() {
+		launchJob(Dispatchers.Default) {
+			works.value?.forEach { work ->
+				if (work.canRetry) {
+					workScheduler.retry(work.id)
+				}
+			}
 		}
 	}
 

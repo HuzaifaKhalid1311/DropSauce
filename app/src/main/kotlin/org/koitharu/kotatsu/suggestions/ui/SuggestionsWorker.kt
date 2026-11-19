@@ -422,13 +422,15 @@ class SuggestionsWorker @AssistedInject constructor(
 	@FloatRange(from = 0.0, to = 1.0)
 	private fun computeRelevance(mangaTags: Set<MangaTag>, allTags: List<String>): Float {
 		if (mangaTags.isEmpty() || allTags.isEmpty()) return 0f
-		val maxWeight = (allTags.size + allTags.size + 1 - mangaTags.size) * mangaTags.size / 2.0
+		// a manga can have more tags than the user's tag list: cap the count so maxWeight stays the real top score
+		val count = mangaTags.size.coerceAtMost(allTags.size)
+		val maxWeight = (allTags.size + allTags.size + 1 - count) * count / 2.0
 		if (maxWeight <= 0.0) return 0f
 		val weight = mangaTags.sumOf { tag ->
 			val index = allTags.inexactIndexOf(tag.title, TAG_EQ_THRESHOLD)
 			if (index < 0) 0 else allTags.size - index
 		}
-		return (weight / maxWeight).pow(2.0).toFloat()
+		return (weight / maxWeight).pow(2.0).toFloat().coerceIn(0f, 1f)
 	}
 
 	private fun Iterable<String>.inexactIndexOf(element: String, threshold: Float): Int {

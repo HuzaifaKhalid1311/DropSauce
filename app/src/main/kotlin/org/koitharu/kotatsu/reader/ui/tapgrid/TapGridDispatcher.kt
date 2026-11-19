@@ -53,12 +53,17 @@ class TapGridDispatcher(
 		}
 	}
 
-	private fun getArea(x: Float, y: Float): TapGridArea? {
+	private fun getArea(rawX: Float, rawY: Float): TapGridArea? {
 		val width = rootView.width
 		val height = rootView.height
 		if (height <= 0 || width <= 0) {
 			return null
 		}
+		// raw coordinates are screen-based; in split-screen or a freeform window the reader isn't at 0,0
+		val location = IntArray(2)
+		rootView.getLocationOnScreen(location)
+		val x = rawX - location[0]
+		val y = rawY - location[1]
 		val xIndex = (x * 2f / width).roundToInt()
 		val yIndex = (y * 2f / height).roundToInt()
 		val area = when (xIndex) {

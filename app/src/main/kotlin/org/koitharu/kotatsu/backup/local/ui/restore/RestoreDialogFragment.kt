@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -129,6 +130,14 @@ class RestoreDialogFragment : ComposeAlertDialogFragment() {
 							fontWeight = if (item.isChecked && item.isEnabled) FontWeight.Medium else FontWeight.Normal,
 							modifier = Modifier.weight(1f),
 						)
+						item.itemCount?.let { count ->
+							Spacer(Modifier.width(12.dp))
+							Text(
+								text = pluralStringResource(R.plurals.items, count, count),
+								style = MaterialTheme.typography.labelMedium,
+								color = colors.onSurfaceVariant.copy(alpha = if (item.isEnabled) 1f else 0.5f),
+							)
+						}
 					}
 				}
 			}

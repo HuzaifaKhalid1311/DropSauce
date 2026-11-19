@@ -78,6 +78,7 @@ import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import android.widget.Toast
 import java.io.File
 import org.json.JSONObject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -257,6 +258,7 @@ class DownloadsSettingsFragment :
 		localSource: String,
 		favoriteSource: String
 	): MigrationChoice = withContext(Dispatchers.Main) {
+		if (!isAdded) return@withContext MigrationChoice.KEEP
 		suspendCancellableCoroutine { continuation ->
 			val keep = {
 				if (continuation.isActive) continuation.resume(MigrationChoice.KEEP)
@@ -384,9 +386,11 @@ class DownloadsSettingsFragment :
 	}
 
 	private fun rebuildDownloadsIndex() {
-		lifecycleScope.launch {
+		// app context: the screen may be closed while the files are still being scanned
+		val appContext = requireContext().applicationContext
+		lifecycleScope.launch(Dispatchers.IO) {
 			withContext(Dispatchers.Main) {
-				Toast.makeText(requireContext(), R.string.rebuild_downloads_index_started, Toast.LENGTH_SHORT).show()
+				Toast.makeText(appContext, R.string.rebuild_downloads_index_started, Toast.LENGTH_SHORT).show()
 			}
 			var updatedCount = 0
 			try {
@@ -486,15 +490,17 @@ class DownloadsSettingsFragment :
 				localMangaIndex.update()
 				withContext(Dispatchers.Main) {
 					Toast.makeText(
-						requireContext(),
-						getString(R.string.rebuild_downloads_index_completed, updatedCount),
+						appContext,
+						appContext.getString(R.string.rebuild_downloads_index_completed, updatedCount),
 						Toast.LENGTH_LONG
 					).show()
 				}
+			} catch (e: CancellationException) {
+				throw e
 			} catch (e: Exception) {
 				e.printStackTraceDebug()
 				withContext(Dispatchers.Main) {
-					Toast.makeText(requireContext(), "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+					Toast.makeText(appContext, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
 				}
 			}
 		}
