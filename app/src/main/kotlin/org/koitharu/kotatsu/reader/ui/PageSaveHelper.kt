@@ -30,6 +30,7 @@ import org.koitharu.kotatsu.core.os.OpenDocumentTreeHelper
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.MimeTypes
 import org.koitharu.kotatsu.core.util.ext.isFileUri
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
 import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
 import org.koitharu.kotatsu.core.util.ext.toFileOrNull
@@ -121,6 +122,8 @@ class PageSaveHelper @AssistedInject constructor(
 		val name = requireNotNull(
 			if (url.isZipUri()) {
 				url.fragment?.substringAfterLast(File.separatorChar)
+			} else if (url.isPdfUri()) {
+				"" // a drawn PDF page: the type is read from the image itself below
 			} else {
 				url.lastPathSegment
 			},

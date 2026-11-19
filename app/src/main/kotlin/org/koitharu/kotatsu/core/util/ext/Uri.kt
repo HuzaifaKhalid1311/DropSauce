@@ -6,6 +6,7 @@ import okio.Path
 import java.io.File
 
 const val URI_SCHEME_ZIP = "file+zip"
+private const val URI_SCHEME_PDF = "file+pdf"
 private const val URI_SCHEME_FILE = "file"
 private const val URI_SCHEME_HTTP = "http"
 private const val URI_SCHEME_HTTPS = "https"
@@ -17,6 +18,11 @@ fun Uri.isZipUri() = scheme.let {
 }
 
 fun Uri.isFileUri() = scheme == URI_SCHEME_FILE
+
+/** A page of a PDF kept as-is: `file+pdf:///path/book.pdf#<page index>`. */
+fun Uri.isPdfUri() = scheme == URI_SCHEME_PDF
+
+fun File.toPdfUri(pageIndex: Int): Uri = "$URI_SCHEME_PDF://$absolutePath#$pageIndex".toUri()
 
 fun Uri.isNetworkUri() = scheme.let {
 	it == URI_SCHEME_HTTP || it == URI_SCHEME_HTTPS

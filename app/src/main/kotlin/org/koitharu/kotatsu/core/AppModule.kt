@@ -35,6 +35,7 @@ import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.exceptions.resolve.CaptchaHandler
 import org.koitharu.kotatsu.core.image.AvifImageDecoder
 import org.koitharu.kotatsu.core.image.CbzFetcher
+import org.koitharu.kotatsu.core.image.PdfPageFetcher
 import org.koitharu.kotatsu.core.image.MangaSourceHeaderInterceptor
 import org.koitharu.kotatsu.core.image.MihonImageFetcher
 import org.koitharu.kotatsu.core.network.MangaHttpClient
@@ -150,6 +151,7 @@ interface AppModule {
 					}
 					add(SvgDecoder.Factory())
 					add(CbzFetcher.Factory())
+					add(PdfPageFetcher.Factory())
 					add(AvifImageDecoder.Factory())
 					add(AvifImageDecoder.Factory.Jxl())
 					add(faviconFetcherFactory)

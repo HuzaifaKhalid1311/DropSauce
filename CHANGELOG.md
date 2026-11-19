@@ -17,7 +17,7 @@
 
 ### Improved
 - In landscape and on wide screens the details page shows the chapters list next to the details
-- PDF imports are much faster and take far less space
+- PDFs are read as they are instead of being converted, so importing even big ones is instant and they take no extra space
 - Reader chapter arrows dim when there is no previous or next chapter
 - Continue reading button now shows on every tab in landscape and on tablets, with the same rounder shape everywhere
 - "Migrate broken sources" is now "Migrate extensions": works on any extension, lets you pick and order the extensions to search in, and can show every match for review first

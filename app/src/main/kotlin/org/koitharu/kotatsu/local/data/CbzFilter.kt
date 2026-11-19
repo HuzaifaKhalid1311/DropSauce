@@ -80,6 +80,9 @@ private val File.isMangaContentFile: Boolean
 val File.isZipArchive: Boolean
 	get() = isFile && isZipExtension(extension)
 
+val File.isPdfFile: Boolean
+	get() = isFile && isPdfExtension(extension)
+
 val File.isEpubFile: Boolean
 	get() = isFile && isEpubExtension(extension)
 

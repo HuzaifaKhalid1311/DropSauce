@@ -17,6 +17,8 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.util.ext.isFileUri
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
+import org.koitharu.kotatsu.local.data.input.PdfPages
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -96,6 +98,9 @@ class DetectReaderModeUseCase @Inject constructor(
 			}
 			uri.isFileUri() -> runInterruptible(Dispatchers.IO) {
 				uri.toFile().inputStream().use { getBitmapSize(it) }
+			}
+			uri.isPdfUri() -> runInterruptible(Dispatchers.IO) {
+				PdfPages.parseUri(uri).let { (file, index) -> PdfPages.pageSize(file, index) }
 			}
 			else -> {
 				// Prefer the extension's getImage() (handles relative imageUrls like MangaDex

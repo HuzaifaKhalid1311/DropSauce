@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.reader.domain
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
 import androidx.annotation.AnyThread
@@ -29,6 +30,7 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okio.Buffer
 import okio.use
 import org.jetbrains.annotations.Blocking
 import org.koitharu.kotatsu.core.LocalizedAppContext
@@ -42,6 +44,7 @@ import org.koitharu.kotatsu.core.parser.CachingMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.MimeTypes
+import org.koitharu.kotatsu.core.util.ext.MimeType
 import org.koitharu.kotatsu.core.util.ext.URI_SCHEME_ZIP
 import org.koitharu.kotatsu.core.util.ext.compressToPNG
 import org.koitharu.kotatsu.core.util.ext.ensureRamAtLeast
@@ -49,6 +52,7 @@ import org.koitharu.kotatsu.core.util.ext.ensureSuccess
 import org.koitharu.kotatsu.core.util.ext.getCompletionResultOrNull
 import org.koitharu.kotatsu.core.util.ext.isFileUri
 import org.koitharu.kotatsu.core.util.ext.isNotEmpty
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
 import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.core.util.ext.lifecycleScope
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -59,6 +63,7 @@ import org.koitharu.kotatsu.core.util.progress.ProgressDeferred
 import org.koitharu.kotatsu.download.ui.worker.DownloadSourceThrottler
 import org.koitharu.kotatsu.local.data.LocalStorageCache
 import org.koitharu.kotatsu.local.data.PageCache
+import org.koitharu.kotatsu.local.data.input.PdfPages
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.mapToSet
@@ -359,6 +364,15 @@ class PageLoader @Inject constructor(
 			}
 
 			uri.isFileUri() -> uri
+			uri.isPdfUri() -> runInterruptible(Dispatchers.IO) {
+				val (file, index) = PdfPages.parseUri(uri)
+				val bitmap = PdfPages.render(file, index, PdfPages.READER_PAGE_LONG_SIDE, PdfPages.READER_PAGE_LONG_SIDE)
+				Buffer().also { buffer ->
+					bitmap.compress(Bitmap.CompressFormat.JPEG, PDF_JPEG_QUALITY, buffer.outputStream())
+					bitmap.recycle()
+				}
+			}.let { cache.set(pageUrl, it, MimeType("image/jpeg")) }.toUri()
+
 			else -> {
 				if (pace) {
 					downloadSourceThrottler.pace(page.source)
@@ -414,6 +428,7 @@ class PageLoader @Inject constructor(
 	companion object {
 
 		private const val PROGRESS_UNDEFINED = -1f
+		private const val PDF_JPEG_QUALITY = 90
 		private const val LIMITED_PAGES_AHEAD = 4
 		// Mihon preloads the next chapter once the reader is within a chapter's last 5 pages
 		private const val NEXT_CHAPTER_RANGE = 5

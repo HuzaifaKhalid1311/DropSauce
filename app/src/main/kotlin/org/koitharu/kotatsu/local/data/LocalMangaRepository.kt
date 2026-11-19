@@ -156,9 +156,11 @@ class LocalMangaRepository @Inject constructor(
 		val subject = if (manga.isLocal) manga else checkNotNull(findSavedManga(manga, withDetails = false)) {
 			"Manga is not stored on local storage"
 		}.manga
-		LocalMangaUtil(subject).deleteChapters(ids)
-		val updated = getDetails(subject)
-		if (updated.chapters.isNullOrEmpty()) {
+		// A lone PDF is the title's only chapter, so its chapter goes with the file itself
+		val isPdf = subject.url.toUri().toFile().isPdfFile
+		if (!isPdf) LocalMangaUtil(subject).deleteChapters(ids)
+		val updated = if (isPdf) null else getDetails(subject).takeUnless { it.chapters.isNullOrEmpty() }
+		if (updated == null) {
 			// Like Mihon, a download with no chapters left is removed outright. The empty archive used
 			// to stay on disk and in the index, so the "downloaded" badge never went away.
 			delete(subject)

@@ -27,12 +27,15 @@ import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
 import org.koitharu.kotatsu.core.util.ext.toListSorted
+import org.koitharu.kotatsu.core.util.ext.toPdfUri
 import org.koitharu.kotatsu.core.util.ext.toZipUri
 import org.koitharu.kotatsu.local.data.MangaIndex
 import org.koitharu.kotatsu.local.data.hasEpubExtension
+import org.koitharu.kotatsu.local.data.hasPdfExtension
 import org.koitharu.kotatsu.local.data.hasZipExtension
 import org.koitharu.kotatsu.local.data.hasMangaContent
 import org.koitharu.kotatsu.local.data.isEpubFile
+import org.koitharu.kotatsu.local.data.isPdfFile
 import org.koitharu.kotatsu.local.data.isZipArchive
 import org.koitharu.kotatsu.local.data.output.LocalMangaOutput.Companion.ENTRY_NAME_INDEX
 import org.koitharu.kotatsu.local.domain.model.LocalManga
@@ -71,6 +74,9 @@ class LocalMangaParser(private val uri: Uri) {
 		}
 		if (epubFiles.isNotEmpty()) {
 			return@runInterruptible getEpubManga(epubFiles, withDetails)
+		}
+		if (rootFile.isPdfFile) {
+			return@runInterruptible getPdfManga(withDetails)
 		}
 		(uri.resolveFsAndPath()).use { (fileSystem, rootPath) ->
 			val index = MangaIndex.read(fileSystem, rootPath / ENTRY_NAME_INDEX)
@@ -112,14 +118,14 @@ class LocalMangaParser(private val uri: Uri) {
 					url = rootFile.toUri().toString(),
 					publicUrl = rootFile.toUri().toString(),
 					source = LocalMangaSource,
-					coverUrl = fileSystem.findFirstImageUri(rootPath)?.toString(),
+					coverUrl = (fileSystem.findFirstImageUri(rootPath) ?: findFirstPdfCover())?.toString(),
 					chapters = if (withDetails) {
 						val chapters = fileSystem.listRecursively(rootPath)
 							.mapNotNullTo(HashSet()) { path ->
 								when {
 									!fileSystem.isRegularFile(path) -> null
 									path.isImage() -> path.parent
-									hasZipExtension(path.name) -> path
+									hasZipExtension(path.name) || hasPdfExtension(path.name) -> path
 									else -> null
 								}
 							}.sortedWith(compareBy(AlphanumComparator()) { x -> x.toString() })
@@ -258,6 +264,56 @@ class LocalMangaParser(private val uri: Uri) {
 		)
 	}
 
+	/** A single PDF is a one-chapter manga whose pages are drawn from the file while reading. */
+	@Blocking
+	private fun getPdfManga(withDetails: Boolean): LocalManga {
+		val url = rootFile.toUri().toString()
+		return LocalManga(
+			Manga(
+				id = rootFile.absolutePath.longHashCode(),
+				title = rootFile.name.fileNameToTitle(),
+				url = url,
+				publicUrl = url,
+				source = LocalMangaSource,
+				coverUrl = rootFile.toPdfUri(0).toString(),
+				chapters = if (withDetails) {
+					listOf(
+						MangaChapter(
+							id = "0${rootFile.name}".longHashCode(),
+							title = rootFile.name.fileNameToTitle(),
+							number = 0f,
+							volume = 0,
+							source = LocalMangaSource,
+							uploadDate = 0L,
+							url = url,
+							scanlator = null,
+							branch = null,
+						),
+					)
+				} else {
+					null
+				},
+				altTitles = emptySet(),
+				rating = -1f,
+				contentRating = null,
+				tags = emptySet(),
+				state = null,
+				authors = emptySet(),
+				largeCoverUrl = null,
+				description = null,
+			),
+			rootFile,
+		)
+	}
+
+	/** A folder of PDF chapters has no image to use as a cover: the first page of its first PDF stands in. */
+	@Blocking
+	private fun findFirstPdfCover(): Uri? = rootFile.takeIf { it.isDirectory }
+		?.walkTopDown()?.maxDepth(2)
+		?.filter { it.isPdfFile }
+		?.minWithOrNull(compareBy(AlphanumComparator()) { it.path })
+		?.toPdfUri(0)
+
 	suspend fun getMangaInfo(): Manga? = runInterruptible(Dispatchers.IO) {
 		uri.resolveFsAndPath().use { (fileSystem, rootPath) ->
 			val index = MangaIndex.read(fileSystem, rootPath / ENTRY_NAME_INDEX)
@@ -278,6 +334,13 @@ class LocalMangaParser(private val uri: Uri) {
 			)
 		}
 		val chapterUri = chapter.url.toUri().resolve()
+		if (chapterUri.isFileUri() && chapterUri.toFile().isPdfFile) {
+			val file = chapterUri.toFile()
+			return@runInterruptible List(PdfPages.count(file)) { i ->
+				val pageUri = file.toPdfUri(i).toString()
+				MangaPage(id = pageUri.longHashCode(), url = pageUri, preview = null, source = LocalMangaSource)
+			}
+		}
 		// A chapter that is a whole archive (a cbz in a folder) owns every image in it, as in Mihon:
 		// comic archives, converted CBRs above all, keep their pages in a folder inside
 		val isWholeArchive = chapterUri.isFileUri() && chapterUri.toFile().isZipArchive
@@ -382,7 +445,7 @@ class LocalMangaParser(private val uri: Uri) {
 		@Blocking
 		fun getOrNull(file: File): LocalMangaParser? = if (
 			file.canRead() &&
-			(file.isZipArchive || file.isEpubFile || (file.isDirectory && file.hasMangaContent()))
+			(file.isZipArchive || file.isEpubFile || file.isPdfFile || (file.isDirectory && file.hasMangaContent()))
 		) {
 			LocalMangaParser(file)
 		} else {
