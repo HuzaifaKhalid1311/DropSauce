@@ -18,7 +18,11 @@ import org.koitharu.kotatsu.core.util.ext.openSource
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.resolveName
 import org.koitharu.kotatsu.core.util.ext.writeAllCancellable
+import org.koitharu.kotatsu.local.data.hasImageExtension
+import org.koitharu.kotatsu.local.data.hasPdfExtension
 import org.koitharu.kotatsu.local.data.hasRarExtension
+import org.koitharu.kotatsu.local.data.hasZipExtension
+import org.koitharu.kotatsu.local.data.isEpubFile
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.local.data.isSupportedArchive
@@ -105,13 +109,13 @@ class SingleMangaImporter @Inject constructor(
 			// One unreadable title must not cost the rest of the batch; only an all-failed batch fails.
 			val results = mangaDirs.map { runCatchingCancellable { importMangaDirectory(it, unique = true) } }
 			results.forEach { it.exceptionOrNull()?.printStackTraceDebug() }
-			results.mapNotNull { it.getOrNull() }.ifEmpty { listOf(results.first().getOrThrow()) }
+			results.mapNotNull { it.getOrNull() }.ifEmpty { listOf(results.first().getOrThrow()) }.flatten()
 		} else {
-			listOf(importMangaDirectory(root, unique = false))
+			importMangaDirectory(root, unique = false)
 		}
 	}
 
-	private suspend fun importMangaDirectory(root: DocumentFile, unique: Boolean): LocalManga {
+	private suspend fun importMangaDirectory(root: DocumentFile, unique: Boolean): List<LocalManga> {
 		val allFiles = root.listFiles().filterNot { isImportJunk(it.name.orEmpty()) }
 		val dest = destinationDir(root.requireName(), unique)
 		dest.mkdirs()
@@ -121,7 +125,11 @@ class SingleMangaImporter @Inject constructor(
 			}
 			// No-op unless the folder came from Mihon and carries ComicInfo.xml
 			runInterruptible { writeMihonIndex(dest) }
-			return LocalMangaParser(dest).getManga(withDetails = false)
+			val novel = splitOffNovels(dest)
+			return listOfNotNull(
+				LocalMangaParser(dest).getManga(withDetails = false),
+				novel?.let { LocalMangaParser(it).getManga(withDetails = false) },
+			)
 		} catch (e: Exception) {
 			// A half-copied fresh folder would show up as a broken title. A re-import merges into an
 			// existing folder, which must never be wiped.
@@ -153,6 +161,51 @@ class SingleMangaImporter @Inject constructor(
 				runInterruptible { file.repackRarToCbz() }
 			}
 		}
+	}
+
+	/**
+	 * A folder with EPUBs reads as a novel and would hide its comics, so when it holds both the EPUBs
+	 * move out to an entry of their own: a lone book as its own file, several in a "(novel)" folder.
+	 * Returns where they went, or null when nothing was split.
+	 */
+	private suspend fun splitOffNovels(dest: File): File? {
+		val epubs = dest.listFiles { f -> f.isEpubFile }.orEmpty()
+		val hasManga = epubs.isNotEmpty() && runInterruptible(Dispatchers.IO) {
+			// Loose images next to the books are a cover (Calibre keeps cover.jpg there), not a chapter
+			dest.walkTopDown().any { f ->
+				f.isFile && (hasZipExtension(f.name) || hasPdfExtension(f.name) ||
+					(hasImageExtension(f.name) && f.parentFile != dest))
+			}
+		}
+		if (!hasManga) {
+			return null
+		}
+		val target = if (epubs.size == 1) {
+			uniqueFile(getOutputDir(), epubs.single().name)
+		} else {
+			destinationDir("${dest.name} (novel)", unique = true).also { it.mkdirs() }
+		}
+		runInterruptible(Dispatchers.IO) {
+			for (epub in epubs) {
+				val to = if (target.isDirectory) File(target, epub.name) else target
+				if (!epub.renameTo(to)) {
+					throw IOException("Cannot move ${epub.name} to $to")
+				}
+			}
+		}
+		return target
+	}
+
+	private fun uniqueFile(dir: File, name: String): File {
+		val base = name.substringBeforeLast('.')
+		val ext = name.substringAfterLast('.', "")
+		var file = File(dir, name)
+		var i = 1
+		while (file.exists()) {
+			file = File(dir, "${base}_$i.$ext")
+			i++
+		}
+		return file
 	}
 
 	/**

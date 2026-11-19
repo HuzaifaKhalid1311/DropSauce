@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.core.util.ext.takeIfReadable
 import org.koitharu.kotatsu.core.util.ext.toFileNameSafe
 import org.koitharu.kotatsu.core.zip.ZipOutput
 import org.koitharu.kotatsu.local.data.MangaIndex
+import org.koitharu.kotatsu.local.data.hasImageExtension
 import org.koitharu.kotatsu.local.data.input.LocalMangaParser
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -117,10 +118,21 @@ class LocalMangaDirOutput(
 			if (!victimsIds.remove(chapter.value.id)) {
 				continue
 			}
+			// An imported chapter has no index entry: its url is the title folder with the chapter's path
+			// in the fragment. Dropping the fragment deleted the whole title instead of the one chapter.
 			val chapterFile = index.getChapterFileName(chapter.value.id)?.let {
 				File(rootFile, it)
-			} ?: chapter.value.url.toUri().toFile()
-			chapterFile.deleteAwait()
+			} ?: chapter.value.url.toUri().let { uri ->
+				uri.fragment?.takeIf { it.isNotEmpty() }?.let { File(uri.toFile(), it) } ?: uri.toFile()
+			}
+			if (chapterFile.canonicalFile == rootFile.canonicalFile) {
+				// Pages lying loose in the title folder are a chapter of their own; the rest stays
+				runInterruptible(Dispatchers.IO) {
+					rootFile.listFiles { f -> f.isFile && hasImageExtension(f.name) }?.forEach { it.delete() }
+				}
+			} else {
+				chapterFile.deleteAwait()
+			}
 			index.removeChapter(chapter.value.id)
 		}
 		check(victimsIds.isEmpty()) {

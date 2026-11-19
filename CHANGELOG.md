@@ -32,6 +32,8 @@
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape
 - Large PDFs failing to import
+- Deleting one chapter of an imported folder deleted the whole title
+- Importing a folder with both comics and EPUBs hid the comics: the EPUBs are now added as a separate novel
 - Manga from Kotatsu backups showing no chapters or errors on about 90 sources (MangaDex, Webtoons, MANGA Plus, MangaLib, MangaTaro, Asura, Flame, Vortex and more), and duplicating when found through search
 - Kotatsu backups no longer move manga from a few sites onto an unrelated extension
 - Gap before the back button in the search bar in landscape
