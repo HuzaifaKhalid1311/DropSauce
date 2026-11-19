@@ -15,12 +15,15 @@
 - Continue reading button now shows on every tab in landscape and on tablets, with the same rounder shape everywhere
 - "Migrate broken sources" is now "Migrate extensions": works on any extension, lets you pick and order the extensions to search in, and can show every match for review first
 - Global search options are a 3-dot menu, with the search type in a submenu
+- The favorite button on the details page is one button again. Quick add is now off by default: turn it on in manage categories > default category, then tap adds to that category and hold picks categories
 
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape
 - Large PDFs failing to import
 - Manga from Kotatsu backups showing no chapters or errors on about 90 sources (MangaDex, Webtoons, MANGA Plus, MangaLib, MangaTaro, Asura, Flame, Vortex and more), and duplicating when found through search
 - Kotatsu backups no longer move manga from a few sites onto an unrelated extension
+- Gap before the back button in the search bar in landscape
+- Search suggestions setting showed every type as off
 
 ## 1.1.4 (2026-11-15)
 

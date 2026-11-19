@@ -170,10 +170,6 @@ class DetailsExpressiveActivity :
 			onLocalClick = { manga -> router.showLocalInfoDialog(manga) },
 			onFavoriteClick = { manga -> router.showFavoriteDialog(manga, null) },
 			onQuickFavoriteClick = viewModel::quickFavourite,
-			onDefaultCategoryClick = {
-				isQuickFavouritePending = false
-				router.showDefaultCategoryDialog()
-			},
 			onAuthorClick = { author ->
 				router.showAuthorDialog(author, viewModel.getMangaOrNull()?.source ?: return@DetailsExpressiveActions)
 			},

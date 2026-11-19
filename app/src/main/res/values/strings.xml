@@ -503,6 +503,7 @@
     <string name="theme_name_expressive">Expressive</string>
     <string name="app_icon">App icon</string>
     <string name="app_icon_summary">The app will close to change the icon</string>
+    <string name="app_icon_follows_theme">Icons follow light and dark mode. Themed also matches your app color</string>
     <string name="app_icon_default">Default</string>
     <string name="app_icon_mono">Mono</string>
     <string name="app_icon_themed">Themed</string>

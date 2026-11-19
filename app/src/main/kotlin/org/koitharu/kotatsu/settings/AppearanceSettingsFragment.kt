@@ -16,6 +16,7 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
@@ -315,7 +316,8 @@ private fun AppearanceScreen(
 	var pagesTab by rememberBooleanPref(AppSettings.KEY_PAGES_TAB, true)
 	var detailsTab by rememberStringPref(AppSettings.KEY_DETAILS_TAB, "-1")
 
-	var searchSuggestions by rememberStringSetPref(AppSettings.KEY_SEARCH_SUGGESTION_TYPES, emptySet())
+	// Same default as AppSettings.searchSuggestionTypes: every type on until picked otherwise.
+	var searchSuggestions by rememberStringSetPref(AppSettings.KEY_SEARCH_SUGGESTION_TYPES, searchSuggestionValues.toSet())
 	var mainFab by rememberBooleanPref(AppSettings.KEY_MAIN_FAB, true)
 	var navLabels by rememberBooleanPref(AppSettings.KEY_NAV_LABELS, true)
 	var navPinned by rememberBooleanPref(AppSettings.KEY_NAV_PINNED, true)
@@ -383,11 +385,17 @@ private fun AppearanceScreen(
 					SettingsItem(
 						title = stringResource(R.string.app_icon),
 						supporting = {
-							Text(
-								text = stringResource(R.string.app_icon_summary),
-								style = MaterialTheme.typography.bodySmall,
-								color = MaterialTheme.colorScheme.error,
-							)
+							Column {
+								Text(
+									text = stringResource(R.string.app_icon_follows_theme),
+									style = MaterialTheme.typography.bodySmall,
+								)
+								Text(
+									text = stringResource(R.string.app_icon_summary),
+									style = MaterialTheme.typography.bodySmall,
+									color = MaterialTheme.colorScheme.error,
+								)
+							}
 						},
 						icon = R.drawable.ic_app_icon,
 						shape = pos.shape,

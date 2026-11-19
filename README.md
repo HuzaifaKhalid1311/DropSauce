@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/app-icon-dark.svg" alt="DropSauce dark mode app icon" width="112" />
+  <img src="assets/app-icon-dark.svg" alt="DropSauce app icon" width="96" />
 </p>
 
 <h1 align="center">DropSauce</h1>

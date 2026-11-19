@@ -364,9 +364,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.statusBarScrim.updateLayoutParams { height = statusBarZone }
 		barBlur?.statusBarZone = statusBarZone.toFloat()
 		updateContainerBottomMargin()
-		return insets.consume(v, typeMask, start = viewBinding.navRail != null).also {
-			handleSearchSuggestionsInsets(it)
-		}
+		// The rail sits at the start edge, so nothing next to it needs the start insets. The cutout one
+		// too: SearchView pads its back button by it, a gap in landscape with the camera on that side.
+		val hasRail = viewBinding.navRail != null
+		return insets.consume(v, typeMask, start = hasRail)
+			.consume(v, WindowInsetsCompat.Type.displayCutout(), start = hasRail)
+			.also { handleSearchSuggestionsInsets(it) }
 	}
 
 	override fun onLayoutChange(

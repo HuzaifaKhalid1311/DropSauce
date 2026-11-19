@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.details.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.getValue
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.settings.compose.rememberBooleanPref
@@ -169,7 +168,6 @@ internal fun HeroSection(
 					accent = accent,
 					onClick = onFavouriteClick,
 					onQuickClick = actions.onQuickFavoriteClick,
-					onQuickLongClick = actions.onDefaultCategoryClick,
 					horizontalPadding = 0.dp,
 				)
 			},
@@ -498,7 +496,6 @@ internal fun FavouriteButton(
 	accent: Color,
 	onClick: () -> Unit,
 	onQuickClick: () -> Unit = {},
-	onQuickLongClick: () -> Unit = {},
 	horizontalPadding: Dp = SCREEN_PADDING,
 ) {
 	val color = if (isFavourite) accent else accent.copy(alpha = 0.16f)
@@ -507,87 +504,24 @@ internal fun FavouriteButton(
 	} else {
 		accent
 	}
-	Row(
+	// Tap adds straight to the default category, hold opens the category picker. Once the title is a
+	// favourite, or quick add is off (the default, switched on in manage categories), tap opens the picker.
+	val isQuickAddEnabled by rememberBooleanPref(AppSettings.KEY_FAVOURITES_QUICK_ADD, false)
+	val isQuick = isQuickAddEnabled && !isFavourite
+	val shape = RoundedCornerShape(20.dp)
+	Surface(
+		shape = shape,
+		color = color,
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(horizontal = horizontalPadding)
-			.height(52.dp),
-		horizontalArrangement = Arrangement.spacedBy(FAVOURITE_SPLIT_GAP),
-	) {
-		// The quick half is only there to add: gone once the title is a favourite, or when turned off
-		// ("None" in the default category picker). The big half is then the whole button.
-		val isQuickAddEnabled by rememberBooleanPref(AppSettings.KEY_FAVOURITES_QUICK_ADD, true)
-		val isSplit = isQuickAddEnabled && !isFavourite
-		FavouriteCategoriesButton(
-			label = label,
-			isFavourite = isFavourite,
-			color = color,
-			contentColor = contentColor,
-			endCorner = if (isSplit) FAVOURITE_SPLIT_CORNER else FAVOURITE_CORNER,
-			onClick = onClick,
-			modifier = Modifier.weight(0.7f),
-		)
-		if (isSplit) {
-			// Straight into the default category; hold to change the default.
-			val quickShape = RoundedCornerShape(
-				topStart = FAVOURITE_SPLIT_CORNER,
-				bottomStart = FAVOURITE_SPLIT_CORNER,
-				topEnd = FAVOURITE_CORNER,
-				bottomEnd = FAVOURITE_CORNER,
-			)
-			val quickLabel = stringResource(R.string.quick_add_to_favourites)
-			Surface(
-				shape = quickShape,
-				color = color,
-				modifier = Modifier
-					.weight(0.3f)
-					.fillMaxHeight()
-					.clip(quickShape)
-					.combinedClickable(
-						onClickLabel = quickLabel,
-						role = Role.Button,
-						onLongClick = onQuickLongClick,
-						onClick = onQuickClick,
-					),
-			) {
-				Box(contentAlignment = Alignment.Center) {
-					Icon(
-						painter = painterResource(R.drawable.ic_bolt),
-						contentDescription = quickLabel,
-						tint = contentColor,
-						modifier = Modifier.size(22.dp),
-					)
-				}
-			}
-		}
-	}
-}
-
-private val FAVOURITE_CORNER = 20.dp
-private val FAVOURITE_SPLIT_CORNER = 6.dp
-private val FAVOURITE_SPLIT_GAP = 3.dp
-
-/** The big half: opens the category picker, and names the categories the title is in. */
-@Composable
-private fun FavouriteCategoriesButton(
-	label: String,
-	isFavourite: Boolean,
-	color: Color,
-	contentColor: Color,
-	endCorner: Dp,
-	onClick: () -> Unit,
-	modifier: Modifier,
-) {
-	Surface(
-		onClick = onClick,
-		shape = RoundedCornerShape(
-			topStart = FAVOURITE_CORNER,
-			bottomStart = FAVOURITE_CORNER,
-			topEnd = endCorner,
-			bottomEnd = endCorner,
-		),
-		color = color,
-		modifier = modifier.fillMaxHeight(),
+			.height(52.dp)
+			.clip(shape)
+			.combinedClickable(
+				role = Role.Button,
+				onLongClick = onClick,
+				onClick = if (isQuick) onQuickClick else onClick,
+			),
 	) {
 		Row(
 			modifier = Modifier

@@ -446,9 +446,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getLong(KEY_FAVOURITES_DEFAULT_CATEGORY, 0L)
 		set(value) = prefs.edit { putLong(KEY_FAVOURITES_DEFAULT_CATEGORY, value) }
 
-	/** Off when "None" is picked as the default category: the favourites button is then one piece. */
+	/** Off by default: turned on in the default category dialog (manage categories). Off = tap opens the picker. */
 	var isFavouritesQuickAddEnabled: Boolean
-		get() = prefs.getBoolean(KEY_FAVOURITES_QUICK_ADD, true)
+		get() = prefs.getBoolean(KEY_FAVOURITES_QUICK_ADD, false)
 		set(value) = prefs.edit { putBoolean(KEY_FAVOURITES_QUICK_ADD, value) }
 
 	val isReaderRotateWideEnabled: Boolean
