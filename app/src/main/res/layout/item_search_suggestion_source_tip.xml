@@ -25,7 +25,6 @@
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
 		android:layout_marginStart="16dp"
-		android:layout_marginEnd="?listPreferredItemPaddingEnd"
 		android:layout_weight="1"
 		android:orientation="vertical">
 
@@ -49,5 +48,17 @@
 			tools:text="@tools:sample/lorem[2]" />
 
 	</LinearLayout>
+
+	<!-- Stops suggesting this extension until it's opened again. -->
+	<ImageButton
+		android:id="@+id/button_hide"
+		style="?actionButtonStyle"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginEnd="8dp"
+		android:background="?selectableItemBackgroundBorderless"
+		android:contentDescription="@string/dont_suggest"
+		android:padding="@dimen/margin_normal"
+		android:src="@drawable/ic_suggestion_hide" />
 
 </LinearLayout>

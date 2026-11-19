@@ -5,7 +5,6 @@ import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegateViewBinding
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.databinding.ItemSearchSuggestionTagsBinding
-import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionListener
 import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
 
@@ -15,9 +14,20 @@ fun searchSuggestionTagsAD(
 	{ layoutInflater, parent -> ItemSearchSuggestionTagsBinding.inflate(layoutInflater, parent, false) },
 ) {
 
-	// A tap ticks the genre; the button searches every ticked one.
+	// A tap ticks the genre, the button searches every ticked one; hold removes the chip.
 	binding.chipsGenres.onChipClickListener = ChipsView.OnChipClickListener { _, data ->
-		listener.onTagClick(data as? MangaTag ?: return@OnChipClickListener)
+		when (data) {
+			is String -> listener.onTagClick(data)
+			SearchSuggestionItem.Tags.AddChip -> listener.onAddTagClick()
+		}
+	}
+	binding.chipsGenres.onChipLongClickListener = ChipsView.OnChipLongClickListener { _, data ->
+		if (data is String) {
+			listener.onTagLongClick(data)
+			true
+		} else {
+			false
+		}
 	}
 	binding.buttonSearchGenres.setOnClickListener {
 		listener.onSearchTagsClick()

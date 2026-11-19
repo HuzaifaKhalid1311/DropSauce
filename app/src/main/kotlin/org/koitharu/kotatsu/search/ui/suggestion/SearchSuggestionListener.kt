@@ -4,7 +4,6 @@ import android.text.TextWatcher
 import android.widget.TextView
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.search.domain.SearchKind
 
 interface SearchSuggestionListener : TextWatcher, TextView.OnEditorActionListener {
@@ -19,7 +18,13 @@ interface SearchSuggestionListener : TextWatcher, TextView.OnEditorActionListene
 
 	fun onSourceSettingsClick(source: MangaSource)
 
-	fun onTagClick(tag: MangaTag)
+	fun onSourceHideClick(source: MangaSource)
+
+	fun onTagClick(tag: String)
+
+	fun onTagLongClick(tag: String)
+
+	fun onAddTagClick()
 
 	fun onSearchTagsClick()
 }

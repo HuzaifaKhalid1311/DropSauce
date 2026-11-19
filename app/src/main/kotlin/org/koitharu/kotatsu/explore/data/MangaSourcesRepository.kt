@@ -84,8 +84,20 @@ class MangaSourcesRepository @Inject constructor(
 		}
 	}
 
+	/** The search bar's extension suggestions, minus ones hidden there and not opened since. */
 	fun getTopSources(limit: Int): List<MangaSource> {
-		return getEnabledSources().take(limit)
+		return getEnabledSources().filter { source ->
+			val hiddenAt = suggestHiddenPrefs.getLong(sourceKeyOf(source), 0L)
+			hiddenAt == 0L || getLastUsedTimestamp(source) > hiddenAt
+		}.take(limit)
+	}
+
+	fun hideFromSuggestions(source: MangaSource) {
+		suggestHiddenPrefs.edit().putLong(sourceKeyOf(source), System.currentTimeMillis()).apply()
+	}
+
+	private val suggestHiddenPrefs: SharedPreferences by lazy {
+		context.getSharedPreferences("source_suggest_hidden", Context.MODE_PRIVATE)
 	}
 
 	fun observeEnabledSources(): Flow<List<MangaSourceInfo>> = combine(

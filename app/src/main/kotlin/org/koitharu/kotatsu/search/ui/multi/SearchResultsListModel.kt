@@ -17,6 +17,7 @@ data class SearchResultsListModel(
 	val sortOrder: SortOrder?,
 	val list: List<MangaListModel>,
 	val error: Throwable?,
+	val isGenreFallback: Boolean = false,
 ) : ListModel {
 
 	fun getTitle(context: Context): String = if (titleResId != 0) {

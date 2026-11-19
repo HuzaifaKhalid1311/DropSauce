@@ -132,6 +132,8 @@ class MangaSearchRepository @Inject constructor(
 
 	suspend fun getSourcesSuggestion(limit: Int): List<MangaSource> = sourcesRepository.getTopSources(limit)
 
+	fun hideSourceSuggestion(source: MangaSource) = sourcesRepository.hideFromSuggestions(source)
+
 	fun getSourcesSuggestion(query: String, @Suppress("UNUSED_PARAMETER") limit: Int): List<MangaSource> {
 		if (query.length < 3) {
 			return emptyList()

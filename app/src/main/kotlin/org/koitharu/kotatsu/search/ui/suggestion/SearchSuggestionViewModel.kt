@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SearchSuggestionType
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
@@ -21,7 +22,7 @@ import org.koitharu.kotatsu.core.prefs.observeAsStateFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.search.domain.MangaSearchRepository
 import org.koitharu.kotatsu.search.ui.suggestion.model.SearchSuggestionItem
@@ -32,7 +33,6 @@ private const val MAX_MANGA_ITEMS = 12
 private const val MAX_QUERY_ITEMS = 16
 private const val MAX_HINTS_ITEMS = 3
 private const val MAX_AUTHORS_ITEMS = 2
-private const val MAX_TAGS_ITEMS = 8
 private const val MAX_SOURCES_ITEMS = 6
 private const val MAX_SOURCES_TIPS_ITEMS = 2
 
@@ -46,7 +46,7 @@ class SearchSuggestionViewModel @Inject constructor(
 	private val invalidationTrigger = MutableStateFlow(0)
 
 	/** Genres ticked in the chip row, searched together with the search button. */
-	val selectedTags = MutableStateFlow<List<MangaTag>>(emptyList())
+	val selectedTags = MutableStateFlow<List<String>>(emptyList())
 
 	val isIncognitoModeEnabled = settings.observeAsStateFlow(
 		scope = viewModelScope + Dispatchers.Default,
@@ -55,7 +55,8 @@ class SearchSuggestionViewModel @Inject constructor(
 	)
 
 	val suggestion: Flow<List<SearchSuggestionItem>> = combine(
-		query.debounce(DEBOUNCE_TIMEOUT),
+		// No wait for the empty query: that's what shows the moment the search bar opens.
+		query.debounce { if (it.isEmpty()) 0L else DEBOUNCE_TIMEOUT },
 		settings.observeAsFlow(AppSettings.KEY_SEARCH_SUGGESTION_TYPES) { searchSuggestionTypes },
 		settings.observeAsFlow(AppSettings.KEY_QUICK_FILTER) { isQuickFilterEnabled },
 		invalidationTrigger,
@@ -71,21 +72,39 @@ class SearchSuggestionViewModel @Inject constructor(
 
 	fun onQueryChanged(newQuery: String) {
 		query.value = newQuery
+		if (newQuery.isNotEmpty()) {
+			clearTags() // typing is a text search
+		}
 	}
 
-	fun toggleTag(tag: MangaTag) {
-		// By name: the same genre shows up once even when several extensions have it.
-		selectedTags.update { list ->
-			if (list.any { it.title.equals(tag.title, ignoreCase = true) }) {
-				list.filterNot { it.title.equals(tag.title, ignoreCase = true) }
-			} else {
-				list + tag
-			}
-		}
+	fun toggleTag(tag: String) {
+		selectedTags.update { if (tag in it) it - tag else it + tag }
 	}
 
 	fun clearTags() {
 		selectedTags.value = emptyList()
+	}
+
+	fun addQuickTag(tag: String) {
+		val title = tag.trim()
+		val tags = settings.searchQuickTags
+		if (title.isNotEmpty() && tags.none { it.equals(title, ignoreCase = true) }) {
+			settings.searchQuickTags = tags + title
+			invalidationTrigger.value++
+		}
+	}
+
+	fun removeQuickTag(tag: String) {
+		settings.searchQuickTags -= tag
+		selectedTags.update { it - tag }
+		invalidationTrigger.value++
+	}
+
+	fun hideSourceSuggestion(source: MangaSource) {
+		launchJob(Dispatchers.Default) {
+			repository.hideSourceSuggestion(source)
+			invalidationTrigger.value++
+		}
 	}
 
 	fun saveQuery(query: String) {
@@ -180,21 +199,19 @@ class SearchSuggestionViewModel @Inject constructor(
 		listOf(SearchSuggestionItem.Text(0, e))
 	}
 
-	private suspend fun getTags(
-		searchQuery: String,
-		selected: List<MangaTag>,
-	): List<SearchSuggestionItem> = runCatchingCancellable {
-		// Ticked genres stay first and stay visible even when they aren't among the popular ones.
-		val tags = (selected + repository.getTagsSuggestion(searchQuery, MAX_TAGS_ITEMS, null))
-			.distinctBy { it.title.lowercase() }
-		if (tags.isEmpty()) {
-			emptyList()
-		} else {
-			listOf(SearchSuggestionItem.Tags(mapTags(tags, selected), selectedCount = selected.size))
+	/** The user's quick genre chips and the chip that adds one; only while the bar is empty (typing = a text search). */
+	private fun getTags(searchQuery: String, selected: List<String>): List<SearchSuggestionItem> {
+		if (searchQuery.isNotEmpty()) {
+			return emptyList()
 		}
-	}.getOrElse { e ->
-		e.printStackTraceDebug()
-		listOf(SearchSuggestionItem.Text(0, e))
+		val chips = settings.searchQuickTags.sortedBy { it.lowercase() }.map { tag ->
+			ChipsView.ChipModel(title = tag, isChecked = tag in selected, data = tag)
+		} + ChipsView.ChipModel(
+			titleResId = R.string.add,
+			icon = R.drawable.ic_quick_tag_add,
+			data = SearchSuggestionItem.Tags.AddChip,
+		)
+		return listOf(SearchSuggestionItem.Tags(chips, selectedCount = selected.size))
 	}
 
 	private suspend fun getManga(searchQuery: String): List<SearchSuggestionItem> = runCatchingCancellable {
@@ -231,18 +248,10 @@ class SearchSuggestionViewModel @Inject constructor(
 			emptyList()
 		}
 
-	private fun mapTags(tags: List<MangaTag>, selected: List<MangaTag>): List<ChipsView.ChipModel> = tags.map { tag ->
-		ChipsView.ChipModel(
-			title = tag.title,
-			isChecked = selected.any { it.title.equals(tag.title, ignoreCase = true) },
-			data = tag,
-		)
-	}
-
 	private data class SearchSuggestionRequest(
 		val query: String,
 		val types: Set<SearchSuggestionType>,
 		val isQuickFilterEnabled: Boolean,
-		val selectedTags: List<MangaTag>,
+		val selectedTags: List<String>,
 	)
 }

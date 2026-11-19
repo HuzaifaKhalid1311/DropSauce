@@ -8,6 +8,8 @@
 - App icon picker in settings > appearance: default, mono, or themed to the app's color scheme, following light, dark and black mode
 - Explore can show only manga or only novels (hold the tab)
 - Search several genres at once from the genre chips in the search bar
+- Add your own genre chips to the search bar with the + chip, hold one to remove it
+- Hide a recent extension from search suggestions with the eye button, it comes back once you use it again
 - Sleep timer for text to speech
 - Tap zone presets (left to right, right to left, webtoon) in the tap zone settings
 - Retry all failed downloads from the downloads menu
@@ -20,11 +22,12 @@
 - Continue reading button now shows on every tab in landscape and on tablets, with the same rounder shape everywhere
 - "Migrate broken sources" is now "Migrate extensions": works on any extension, lets you pick and order the extensions to search in, and can show every match for review first
 - Global search options are a 3-dot menu, with the search type in a submenu
-- Genre search now really filters by genre in each extension, the same way Mihon does
+- Genre search now really filters by genre in each extension, the same way Mihon does. Extensions without that genre as a filter search its name as text and are listed after the rest
+- Search bar genre chips are 10 common genres, sorted A to Z
 - Novel search shows every match in a chapter, with a result count
 - The restore dialog shows how many items each backup section has
 - Tapping the text to speech notification opens the reader
-- The favorite button on the details page is one button again. Quick add is now off by default: turn it on in manage categories > default category, then tap adds to that category and hold picks categories
+- The favorite button on the details page is one button again. Quick add is now off by default: turn it on in manage categories > default category, then tap adds to that category and hold picks categories. A one-time note in the "Add to" dialog points there
 
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape
@@ -32,6 +35,7 @@
 - Manga from Kotatsu backups showing no chapters or errors on about 90 sources (MangaDex, Webtoons, MANGA Plus, MangaLib, MangaTaro, Asura, Flame, Vortex and more), and duplicating when found through search
 - Kotatsu backups no longer move manga from a few sites onto an unrelated extension
 - Gap before the back button in the search bar in landscape
+- Picked genres flashing back for a moment when reopening the search bar
 - Search suggestions setting showed every type as off, search suggestions are turned back on for everyone
 - Deleted favorites and history showing up in filters, sorting and genre lists
 - Downloads of chapters with no pages counting as downloaded, and queued downloads breaking when download conditions changed

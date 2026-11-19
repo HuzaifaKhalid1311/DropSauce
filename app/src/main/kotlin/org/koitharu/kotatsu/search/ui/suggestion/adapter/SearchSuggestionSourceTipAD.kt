@@ -17,6 +17,9 @@ fun searchSuggestionSourceTipAD(
 		binding.root.setOnClickListener {
 			listener.onSourceClick(item.source)
 		}
+		binding.buttonHide.setOnClickListener {
+			listener.onSourceHideClick(item.source)
+		}
 
 		bind {
 			binding.textViewTitle.text = item.source.getTitle(context)

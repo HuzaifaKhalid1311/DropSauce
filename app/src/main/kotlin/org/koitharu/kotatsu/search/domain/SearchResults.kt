@@ -8,4 +8,6 @@ data class SearchResults(
 	val listFilter: MangaListFilter,
 	val sortOrder: SortOrder,
 	val manga: List<Manga>,
+	/** A genre search where the extension lacked a genre as a filter, so it searched the name as text. */
+	val isGenreFallback: Boolean = false,
 )

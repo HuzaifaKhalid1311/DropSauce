@@ -505,6 +505,11 @@
     <string name="app_icon_summary">The app will close to change the icon</string>
     <string name="app_icon_follows_theme">Icons follow light and dark mode. Themed also matches your app color</string>
     <string name="retry_failed">Retry failed</string>
+    <string name="add_quick_genre">Add a genre</string>
+    <string name="dont_suggest">Don\'t suggest</string>
+    <string name="remove_quick_genre_message">Remove this genre from the search bar? You can add it back with the add chip</string>
+    <string name="genre_text_search_results">These extensions don\'t have this genre as a filter, so they searched its name as text</string>
+    <string name="quick_add_tip">To add titles to a category with one tap, turn it on from the bolt icon in manage categories</string>
     <string name="export_log">Export log</string>
     <string name="export_log_summary">Save the log recorded so far to a file</string>
     <string name="tap_grid_presets">Presets</string>

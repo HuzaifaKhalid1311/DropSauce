@@ -1,15 +1,18 @@
 package org.koitharu.kotatsu.search.ui.suggestion
 
 import android.text.Editable
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.widget.TextView
 import androidx.core.net.toUri
 import com.google.android.material.search.SearchView
+import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.parser.MangaLinkResolver
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
+import org.koitharu.kotatsu.core.ui.dialog.showTextInputDialog
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.search.domain.SearchKind
 import org.koitharu.kotatsu.search.domain.joinTagQuery
 
@@ -44,12 +47,40 @@ class SearchSuggestionListenerImpl(
 		viewModel.deleteQuery(query)
 	}
 
-	override fun onTagClick(tag: MangaTag) {
+	override fun onTagClick(tag: String) {
+		// Ticking genres means a genre search: drop the keyboard so tapping the bar again (back to text) is noticed.
+		searchView.clearFocusAndHideKeyboard()
 		viewModel.toggleTag(tag)
 	}
 
+	override fun onTagLongClick(tag: String) {
+		searchView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+		val context = searchView.context
+		showConfirmDialog(
+			context = context,
+			icon = R.drawable.ic_delete,
+			title = tag,
+			message = context.getString(R.string.remove_quick_genre_message),
+			confirmLabel = context.getString(R.string.remove),
+			destructive = true,
+		) {
+			viewModel.removeQuickTag(tag)
+		}
+	}
+
+	override fun onAddTagClick() {
+		val context = searchView.context
+		showTextInputDialog(
+			context = context,
+			icon = R.drawable.ic_quick_tag_add,
+			title = context.getString(R.string.add_quick_genre),
+			hint = context.getString(R.string.genre),
+			onConfirm = viewModel::addQuickTag,
+		)
+	}
+
 	override fun onSearchTagsClick() {
-		val genres = viewModel.selectedTags.value.map { it.title }
+		val genres = viewModel.selectedTags.value
 		if (genres.isNotEmpty()) {
 			router.openSearch(joinTagQuery(genres), SearchKind.TAG)
 		}
@@ -61,6 +92,10 @@ class SearchSuggestionListenerImpl(
 
 	override fun onSourceSettingsClick(source: MangaSource) {
 		router.openSourceSettings(source)
+	}
+
+	override fun onSourceHideClick(source: MangaSource) {
+		viewModel.hideSourceSuggestion(source)
 	}
 
 	override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit

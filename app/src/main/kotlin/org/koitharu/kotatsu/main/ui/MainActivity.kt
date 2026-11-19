@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Process
 import android.os.SystemClock
 import androidx.activity.result.contract.ActivityResultContracts
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.LinearLayout
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -86,7 +88,6 @@ import org.koitharu.kotatsu.main.ui.owners.ListCheckpointOwner
 import org.koitharu.kotatsu.main.ui.welcome.OnboardingActivity
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.remotelist.ui.MangaSearchMenuProvider
-import org.koitharu.kotatsu.search.domain.joinTagQuery
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionListenerImpl
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionMenuProvider
 import org.koitharu.kotatsu.search.ui.suggestion.SearchSuggestionViewModel
@@ -598,29 +599,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.searchView.editText.setOnEditorActionListener(listener)
 
 		viewBinding.searchView.observeState()
-			.map { it >= SearchView.TransitionState.SHOWING }
+			.map { if (it >= SearchView.TransitionState.SHOWING) SearchView.TransitionState.SHOWING else it }
 			.distinctUntilChanged()
-			.flatMapLatest { isShowing ->
-				if (isShowing) {
-					searchSuggestionViewModel.suggestion
-				} else {
-					emptyFlow()
+			.flatMapLatest { state ->
+				when {
+					state >= SearchView.TransitionState.SHOWING -> searchSuggestionViewModel.suggestion
+					// Emptied once fully closed, so reopening never flashes the last list (ticked genres and all).
+					state == SearchView.TransitionState.HIDDEN -> flowOf(emptyList())
+					else -> emptyFlow()
 				}
 			}.observe(this, adapter)
-		// Ticked genres are the query: shown in the bar, which can't be typed into until they're unticked.
-		val editText = viewBinding.searchView.editText
-		val defaultHint = editText.hint
-		val defaultHintColors = editText.hintTextColors
-		searchSuggestionViewModel.selectedTags.observe(this) { tags ->
-			val isLocked = tags.isNotEmpty()
-			if (isLocked) {
-				editText.text?.clear()
-				viewBinding.searchView.clearFocusAndHideKeyboard()
+		// Tapping the bar goes back to a text search: the ticked genres are dropped.
+		viewBinding.searchView.editText.setOnTouchListener { _, event ->
+			if (event.actionMasked == MotionEvent.ACTION_UP) {
+				searchSuggestionViewModel.clearTags()
 			}
-			editText.hint = if (isLocked) joinTagQuery(tags.map { it.title }) else defaultHint
-			editText.setHintTextColor(if (isLocked) editText.textColors else defaultHintColors)
-			editText.isFocusable = !isLocked
-			editText.isFocusableInTouchMode = !isLocked
+			false
 		}
 		searchSuggestionViewModel.onError.observeEvent(
 			this,

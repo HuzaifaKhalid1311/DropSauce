@@ -66,6 +66,18 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges_default))
 
 	init {
+		// Checked before the one-time flags below get written: true when the app was used before this start.
+		val isUpdate = prefs.contains(KEY_PRELOAD_POLICIES_RESET) || prefs.contains(KEY_NAV_PINNED_RESET)
+		// One-time: quick add became opt-in, so it goes off for everyone, with a note in favourites for updaters.
+		if (!prefs.getBoolean(KEY_FAVOURITES_QUICK_ADD_RESET, false)) {
+			prefs.edit {
+				putBoolean(KEY_FAVOURITES_QUICK_ADD, false)
+				putBoolean(KEY_FAVOURITES_QUICK_ADD_RESET, true)
+			}
+			if (!isUpdate) {
+				closeTip(TIP_QUICK_ADD)
+			}
+		}
 		if (!prefs.getBoolean(KEY_PRELOAD_POLICIES_RESET, false)) {
 			prefs.edit {
 				putString(KEY_PREFETCH_CONTENT, "1")
@@ -784,6 +796,12 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var lastExtensionUpdateNotificationTime: Long
 		get() = prefs.getLong(KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME, 0L)
 		set(value) = prefs.edit { putLong(KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME, value) }
+
+	/** The search bar's genre chips, in order; removing a default keeps it gone until it's typed in again. */
+	var searchQuickTags: List<String>
+		get() = prefs.getString(KEY_SEARCH_QUICK_TAGS, null)?.split('\n')?.filter { it.isNotBlank() }
+			?: DEFAULT_SEARCH_QUICK_TAGS
+		set(value) = prefs.edit { putString(KEY_SEARCH_QUICK_TAGS, value.joinToString("\n")) }
 
 	val searchSuggestionTypes: Set<SearchSuggestionType>
 		get() = prefs.getStringSet(KEY_SEARCH_SUGGESTION_TYPES, null)?.let { stringSet ->
@@ -1512,6 +1530,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_GRID = "sources_grid"
 		const val KEY_SOURCES_GRID_COLUMNS = "sources_grid_columns"
 		const val KEY_TIPS_CLOSED = "tips_closed"
+
+		/** One-time note in the favourite category picker for people updating: quick add went off and became opt-in. */
+		const val TIP_QUICK_ADD = "quick_add_note"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
 		const val DEFAULT_AUTOSCROLL_SPEED = 0.5f
 		const val DEFAULT_AUTOSCROLL_PAGE_DELAY = 5
@@ -1568,6 +1589,13 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_PAGES_SAVE_ASK = "pages_dir_ask"
 		const val KEY_STATS_ENABLED = "stats_on"
 		const val KEY_SEARCH_SUGGESTION_TYPES = "search_suggest_types"
+		const val KEY_SEARCH_QUICK_TAGS = "search_quick_tags"
+
+		/** Genre names most extensions have as a filter, so a chip usually maps onto a real one. */
+		private val DEFAULT_SEARCH_QUICK_TAGS = listOf(
+			"Action", "Romance", "Comedy", "Fantasy", "Drama",
+			"Adventure", "Isekai", "Slice of Life", "Horror", "Mystery",
+		)
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
@@ -1635,6 +1663,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			KEY_UI_SCALE_RESET,
 			KEY_NAV_PINNED_RESET,
 			KEY_SEARCH_SUGGESTIONS_RESET,
+			KEY_FAVOURITES_QUICK_ADD_RESET,
 			KEY_LOCAL_STORAGE,
 			KEY_LOCAL_MANGA_DIRS,
 			KEY_PAGES_SAVE_DIR,
@@ -1682,6 +1711,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		private const val KEY_PRELOAD_POLICIES_RESET = "preload_policies_reset_v1"
 		private const val KEY_NAV_PINNED_RESET = "nav_pinned_reset_v1"
 		private const val KEY_SEARCH_SUGGESTIONS_RESET = "search_suggestions_reset_v1"
+		private const val KEY_FAVOURITES_QUICK_ADD_RESET = "fav_quick_add_reset_v1"
 
 		// values
 		private const val READER_CROP_PAGED = 1

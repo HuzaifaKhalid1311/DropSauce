@@ -34,6 +34,7 @@ import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.list.domain.MangaListMapper
 import org.koitharu.kotatsu.list.ui.model.EmptyState
+import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
 import org.koitharu.kotatsu.list.ui.model.LoadingState
@@ -87,8 +88,14 @@ class SearchViewModel @Inject constructor(
 		results,
 		isSearching,
 	) { list, loading ->
-		// Sources with no results are always hidden.
-		val filteredList = list.filter { it.list.isNotEmpty() }
+		// Sources with no results are always hidden. In a genre search, extensions that really filtered by
+		// the genre come first; the ones that could only search its name as text go under a header.
+		val (exact, fallback) = list.filter { it.list.isNotEmpty() }.partition { !it.isGenreFallback }
+		val filteredList: List<ListModel> = if (fallback.isEmpty()) {
+			exact
+		} else {
+			exact + ListHeader(R.string.genre_text_search_results) + fallback
+		}
 		when {
 			filteredList.isEmpty() -> listOf(
 				when {
@@ -221,6 +228,7 @@ class SearchViewModel @Inject constructor(
 					error = null,
 					listFilter = result.listFilter,
 					sortOrder = result.sortOrder,
+					isGenreFallback = result.isGenreFallback,
 				)
 			}
 		},

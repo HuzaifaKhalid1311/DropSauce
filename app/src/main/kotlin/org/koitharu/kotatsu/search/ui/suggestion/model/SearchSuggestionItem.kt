@@ -82,6 +82,9 @@ sealed interface SearchSuggestionItem : ListModel {
 		override fun getChangePayload(previousState: ListModel): Any {
 			return ListModelDiffCallback.PAYLOAD_NESTED_LIST_CHANGED
 		}
+
+		/** Chip data of the trailing chip that adds a quick tag. */
+		data object AddChip
 	}
 
 	data class Text(

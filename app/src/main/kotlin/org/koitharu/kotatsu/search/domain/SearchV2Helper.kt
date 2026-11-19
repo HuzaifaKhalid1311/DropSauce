@@ -44,7 +44,13 @@ class SearchV2Helper @AssistedInject constructor(
 		val result = list.toMutableList()
 		result.postFilter(query, kind)
 		result.sortByRelevance(query, kind)
-		return SearchResults(listFilter = listFilter, sortOrder = sortOrder, manga = result)
+		return SearchResults(
+			listFilter = listFilter,
+			sortOrder = sortOrder,
+			manga = result,
+			// getGenreFilter puts the genres it couldn't tick into the text query
+			isGenreFallback = kind == SearchKind.TAG && !listFilter.query.isNullOrEmpty(),
+		)
 	}
 
 	private suspend fun MangaRepository.getFilter(query: String, kind: SearchKind): MangaListFilter? = when (kind) {
