@@ -3,51 +3,27 @@
 ## Unreleased
 
 ### New
-- Option to hide the line between chapters when reading novels in scroll mode
-- Up to 6 sections can be added to the navigation bar
-- App icon picker in settings > appearance: default, mono, or themed to the app's color scheme, following light, dark and black mode
-- Explore can show only manga or only novels (hold the tab)
-- Search several genres at once from the genre chips in the search bar
-- Add your own genre chips to the search bar with the + chip, hold one to remove it
-- Hide a recent extension from search suggestions with the eye button, it comes back once you use it again
+- Pick your app icon: default, mono, or one that matches your theme (settings > appearance)
+- Search several genres at once, and add your own genre chips
+- Up to 6 sections in the bottom bar
+- Show only manga or only novels in Explore (just hold the tab)
 - Sleep timer for text to speech
-- Tap zone presets (left to right, right to left, webtoon) in the tap zone settings
-- Retry all failed downloads from the downloads menu
-- Export the log in settings > about without turning logging off
+- Retry all failed downloads in one go
 
 ### Improved
-- In landscape and on wide screens the details page shows the chapters list next to the details
-- PDFs are read as they are instead of being converted, so importing even big ones is instant and they take no extra space
-- Reader chapter arrows dim when there is no previous or next chapter
-- Continue reading button now shows on every tab in landscape and on tablets, with the same rounder shape everywhere
-- "Migrate broken sources" is now "Migrate extensions": works on any extension, lets you pick and order the extensions to search in, and can show every match for review first
-- Global search options are a 3-dot menu, with the search type in a submenu
-- Genre search now really filters by genre in each extension, the same way Mihon does. Extensions without that genre as a filter search its name as text and are listed after the rest
-- Search bar genre chips are 10 common genres, sorted A to Z
-- Novel search shows every match in a chapter, with a result count
-- The restore dialog shows how many items each backup section has
-- Tapping the text to speech notification opens the reader
-- The favorite button on the details page is one button again. Quick add is now off by default: turn it on in manage categories > default category, then tap adds to that category and hold picks categories. A one-time note in the "Add to" dialog points there
-- Selection bar on tablets and in landscape looks the same as on phones, with icons instead of text buttons
-- Alternatives finds many more matches: punctuation, notes in brackets and alternate names no longer get in the way, and titles with an extra subtitle are offered too
-- Less empty space at the top of the display options and reader menu sheets
+- PDFs open instantly, even huge ones, and don't take up extra space
+- Genre search gives much better results, the same way Mihon does it
+- Migrate any extension, not just broken ones, and choose where to look
+- Alternatives finds a lot more matches
+- Better on tablets and in landscape: chapters sit next to the details, and the continue button shows everywhere
+- The favorite button is back to one simple tap
 
 ### Fixed
-- Sort button and filter chips missing when browsing a source in landscape
-- Large PDFs failing to import
-- Deleting one chapter of an imported folder deleted the whole title
-- Importing a folder with both comics and EPUBs hid the comics: the EPUBs are now added as a separate novel
-- Manga from Kotatsu backups showing no chapters or errors on about 90 sources (MangaDex, Webtoons, MANGA Plus, MangaLib, MangaTaro, Asura, Flame, Vortex and more), and duplicating when found through search
-- Kotatsu backups no longer move manga from a few sites onto an unrelated extension
-- Gap before the back button in the search bar in landscape
-- Picked genres flashing back for a moment when reopening the search bar
-- Search suggestions setting showed every type as off, search suggestions are turned back on for everyone
-- Deleted favorites and history showing up in filters, sorting and genre lists
-- Downloads of chapters with no pages counting as downloaded, and queued downloads breaking when download conditions changed
-- Download "next unread chapters" ignoring the selected branch
-- Tap zones in split screen, reversed double page jumping the wrong way, and webtoon zoom resetting on resize
-- "Not in favorites" filter in history missing titles that were only in a deleted category
-- Other small bug fixes
+- Kotatsu backups restore properly from around 90 sources like MangaDex, Webtoons and Asura
+- Deleting one chapter of an imported folder no longer deletes the whole thing
+- Folders with both comics and EPUBs now import both
+- Search suggestions are back
+- Plenty of download, reader and other small fixes
 
 ## 1.1.4 (2026-11-15)
 
