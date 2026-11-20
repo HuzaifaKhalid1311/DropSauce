@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.5 (2026-11-20)
+
 ### New
 - Pick your app icon: default, mono, or one that matches your theme (settings > appearance)
 - Search several genres at once, and add your own genre chips

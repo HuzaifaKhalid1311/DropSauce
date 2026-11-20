@@ -1,0 +1,8 @@
+- Pick your app icon: default, mono, or one that matches your theme (settings > appearance)
+- Search several genres at once, and add your own genre chips
+- Up to 6 sections in the bottom bar
+- Show only manga or only novels in Explore (just hold the tab)
+- Sleep timer for text to speech
+- Retry all failed downloads in one go
+- PDFs open instantly, even huge ones, and don't take up extra space
+- Genre search gives much better results, the same way Mihon does it
