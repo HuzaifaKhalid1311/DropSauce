@@ -8,14 +8,14 @@
 		android:icon="@drawable/ic_action_pause"
 		android:title="@string/pause"
 		android:visible="false"
-		app:showAsAction="ifRoom|withText" />
+		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/action_resume"
 		android:icon="@drawable/ic_action_resume"
 		android:title="@string/resume"
 		android:visible="false"
-		app:showAsAction="ifRoom|withText" />
+		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/action_retry_failed"

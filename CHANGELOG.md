@@ -28,6 +28,9 @@
 - The restore dialog shows how many items each backup section has
 - Tapping the text to speech notification opens the reader
 - The favorite button on the details page is one button again. Quick add is now off by default: turn it on in manage categories > default category, then tap adds to that category and hold picks categories. A one-time note in the "Add to" dialog points there
+- Selection bar on tablets and in landscape looks the same as on phones, with icons instead of text buttons
+- Alternatives finds many more matches: punctuation, notes in brackets and alternate names no longer get in the way, and titles with an extra subtitle are offered too
+- Less empty space at the top of the display options and reader menu sheets
 
 ### Fixed
 - Sort button and filter chips missing when browsing a source in landscape
@@ -43,6 +46,7 @@
 - Downloads of chapters with no pages counting as downloaded, and queued downloads breaking when download conditions changed
 - Download "next unread chapters" ignoring the selected branch
 - Tap zones in split screen, reversed double page jumping the wrong way, and webtoon zoom resetting on resize
+- "Not in favorites" filter in history missing titles that were only in a deleted category
 - Other small bug fixes
 
 ## 1.1.4 (2026-11-15)

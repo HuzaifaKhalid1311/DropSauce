@@ -80,7 +80,7 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
 		ListFilterOption.Unread -> "track_logs.unread = 1"
-		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = track_logs.manga_id AND favourites.deleted_at = 0)"
+		ListFilterOption.Macro.FAVORITE -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = track_logs.manga_id AND favourites.deleted_at = 0 AND EXISTS(SELECT 1 FROM favourite_categories WHERE favourite_categories.category_id = favourites.category_id AND favourite_categories.deleted_at = 0))"
 		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE favourites.manga_id = track_logs.manga_id AND favourites.category_id = ${option.category.id} AND favourites.deleted_at = 0)"
 		is ListFilterOption.Tag -> "EXISTS(SELECT * FROM manga_tags WHERE manga_tags.manga_id = track_logs.manga_id AND tag_id = ${option.tagId})"
 		ListFilterOption.Macro.NSFW -> "(SELECT nsfw FROM manga WHERE manga.manga_id = track_logs.manga_id) = 1"

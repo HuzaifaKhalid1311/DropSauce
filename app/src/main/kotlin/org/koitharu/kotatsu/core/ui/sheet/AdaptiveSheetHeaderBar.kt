@@ -19,6 +19,7 @@ import androidx.core.view.ancestors
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.databinding.LayoutSheetHeaderAdaptiveBinding
@@ -195,6 +196,12 @@ class AdaptiveSheetHeaderBar @JvmOverloads constructor(
 
 	fun setTitle(@StringRes resId: Int) {
 		binding.shTextViewTitle.setText(resId)
+	}
+
+	/** Drops the handle's 48dp touch-target height for sheets that start with their own titled group. */
+	fun setCompactDragHandle() {
+		binding.shDragHandle.minimumHeight = 0
+		binding.shDragHandle.updatePadding(top = resources.getDimensionPixelOffset(R.dimen.margin_normal))
 	}
 
 	/**

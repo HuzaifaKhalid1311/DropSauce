@@ -7,18 +7,18 @@
 		android:id="@+id/action_share"
 		android:icon="@drawable/ic_share"
 		android:title="@string/share"
-		app:showAsAction="ifRoom|withText" />
+		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/action_favourite"
 		android:icon="@drawable/ic_heart_outline"
 		android:title="@string/add_to_favourites"
-		app:showAsAction="ifRoom|withText" />
+		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/action_save"
 		android:icon="@drawable/ic_save"
 		android:title="@string/save"
-		app:showAsAction="ifRoom|withText" />
+		app:showAsAction="ifRoom" />
 
 </menu>
