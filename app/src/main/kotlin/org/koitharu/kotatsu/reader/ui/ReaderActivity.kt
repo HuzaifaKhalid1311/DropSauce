@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.net.toUri
 import org.koitharu.kotatsu.core.ui.menu.MenuPopup
@@ -963,35 +962,32 @@ class ReaderActivity :
 		}
 		val file = currentPdfFile() ?: return
 		val chapterId = viewModel.getCurrentState()?.chapterId ?: return
-		BookSearch.askQuery(this, viewModel.pdfSearchQuery.value.orEmpty()) { query ->
-			if (query.isNotEmpty()) searchPdf(file, chapterId, query)
-		}
+		var pages: List<Int> = emptyList()
+		BookSearch.show(
+			context = this,
+			initialQuery = viewModel.pdfSearchQuery.value.orEmpty(),
+			search = { query ->
+				val hits = searchPdf(file, query)
+				pages = hits.map { it.pageIndex }
+				hits.map { hit ->
+					val title = getString(R.string.pdf_search_page, hit.pageIndex + 1)
+					BookSearch.Result(
+						title = if (hit.matches > 1) "$title (${hit.match}/${hit.matches})" else title,
+						snippet = BookSearch.snippet(hit.text, hit.start, query.length),
+					)
+				}
+			},
+			onPick = { query, index ->
+				viewModel.pdfSearchQuery.value = query
+				openPdfPage(chapterId, file, pages[index])
+			},
+		)
 	}
 
 	// shortcut: searches the PDF of the open chapter only, so a folder of PDFs is searched file by file
-	private fun searchPdf(file: File, chapterId: Long, query: String) {
-		Toast.makeText(this, R.string.loading_, Toast.LENGTH_SHORT).show()
-		lifecycleScope.launch {
-			val hits = withContext(Dispatchers.IO) {
-				runCatchingCancellable { PdfPages.search(file, query, BookSearch.MAX_RESULTS) }
-					.onFailure { it.printStackTraceDebug() }.getOrNull().orEmpty()
-			}
-			if (hits.isEmpty()) {
-				Toast.makeText(this@ReaderActivity, R.string.epub_no_search_results, Toast.LENGTH_SHORT).show()
-				return@launch
-			}
-			val results = hits.map { hit ->
-				val title = getString(R.string.pdf_search_page, hit.pageIndex + 1)
-				BookSearch.Result(
-					title = if (hit.matches > 1) "$title (${hit.match}/${hit.matches})" else title,
-					snippet = BookSearch.snippet(hit.text, hit.start, query.length),
-				)
-			}
-			BookSearch.showResults(this@ReaderActivity, results) { index ->
-				viewModel.pdfSearchQuery.value = query
-				openPdfPage(chapterId, file, hits[index].pageIndex)
-			}
-		}
+	private suspend fun searchPdf(file: File, query: String) = withContext(Dispatchers.IO) {
+		runCatchingCancellable { PdfPages.search(file, query, BookSearch.MAX_RESULTS) }
+			.onFailure { it.printStackTraceDebug() }.getOrNull().orEmpty()
 	}
 
 	/** The PDF file the open page comes from, null when it isn't a PDF. */

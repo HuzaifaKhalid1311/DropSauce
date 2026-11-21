@@ -1475,67 +1475,50 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	fun showBookSearch() {
-		BookSearch.askQuery(requireContext(), onQuery = ::searchBook)
+		var locators: List<Locator> = emptyList()
+		BookSearch.show(
+			context = requireContext(),
+			search = { query ->
+				val found = searchBook(query)
+				locators = found.map { it.first }
+				found.map { it.second }
+			},
+			onPick = { _, index -> locators.getOrNull(index)?.let(::goTo) },
+		)
 	}
 
 	/**
 	 * Remote sources search only what is already loaded: fetching every chapter of a 2000-chapter web
 	 * novel to grep it would hammer the site and take minutes.
 	 */
-	private fun searchBook(query: String) {
-		if (query.isEmpty() || chapters.isEmpty()) return
+	private suspend fun searchBook(query: String): List<Pair<Locator, BookSearch.Result>> {
+		if (chapters.isEmpty()) return emptyList()
 		val isRemote = (chapterContent as? HybridContentSource)?.hasRemote == true
-		Toast.makeText(requireContext(), R.string.loading_, Toast.LENGTH_SHORT).show()
-		viewLifecycleOwner.lifecycleScope.launch {
-			val results = withContext(Dispatchers.IO) {
-				if (!isRemote) ensureChaptersLoaded(chapters.indices)
-				buildList {
-					for ((index, chapter) in chapters.withIndex()) {
+		val untitled = getString(R.string.epub_untitled_chapter)
+		return withContext(Dispatchers.IO) {
+			if (!isRemote) ensureChaptersLoaded(chapters.indices)
+			buildList {
+				for ((index, chapter) in chapters.withIndex()) {
+					if (size >= BookSearch.MAX_RESULTS) break
+					val offsets = ArrayList<Int>()
+					var searchFrom = 0
+					while (offsets.size < MAX_HITS_PER_CHAPTER) {
+						val match = chapter.text.indexOf(query, startIndex = searchFrom, ignoreCase = true)
+						if (match < 0) break
+						offsets.add(match)
+						searchFrom = (match + query.length).coerceAtLeast(match + 1)
+					}
+					val title = chapter.title.ifEmpty { untitled }
+					for ((hitIndex, match) in offsets.withIndex()) {
 						if (size >= BookSearch.MAX_RESULTS) break
-						val offsets = ArrayList<Int>()
-						var searchFrom = 0
-						while (offsets.size < MAX_HITS_PER_CHAPTER) {
-							val match = chapter.text.indexOf(query, startIndex = searchFrom, ignoreCase = true)
-							if (match < 0) break
-							offsets.add(match)
-							searchFrom = (match + query.length).coerceAtLeast(match + 1)
-						}
-						for ((hitIndex, match) in offsets.withIndex()) {
-							if (size >= BookSearch.MAX_RESULTS) break
-							add(
-								SearchResult(
-									chapter = index,
-									title = chapter.title,
-									snippet = BookSearch.snippet(chapter.text, match, query.length),
-									offset = match,
-									matchIndex = hitIndex + 1,
-									chapterMatches = offsets.size,
-								),
-							)
-						}
+						val result = BookSearch.Result(
+							title = if (offsets.size > 1) "$title (${hitIndex + 1}/${offsets.size})" else title,
+							snippet = BookSearch.snippet(chapter.text, match, query.length),
+						)
+						add(Locator(index, match) to result)
 					}
 				}
 			}
-			if (results.isEmpty()) {
-				Toast.makeText(requireContext(), R.string.epub_no_search_results, Toast.LENGTH_SHORT).show()
-				return@launch
-			}
-			showSearchResults(results)
-		}
-	}
-
-	private fun showSearchResults(results: List<SearchResult>) {
-		val untitled = getString(R.string.epub_untitled_chapter)
-		val items = results.map { result ->
-			val title = result.title.ifEmpty { untitled }
-			BookSearch.Result(
-				title = if (result.chapterMatches > 1) "$title (${result.matchIndex}/${result.chapterMatches})" else title,
-				snippet = result.snippet,
-			)
-		}
-		BookSearch.showResults(requireContext(), items) { index ->
-			val result = results[index]
-			goTo(Locator(result.chapter, result.offset))
 		}
 	}
 
@@ -2040,14 +2023,6 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	private data class PreparedBook(val chapters: List<NativeChapter>, val content: ChapterContent)
 	private data class NativePage(val chapter: Int, val start: Int, val end: Int)
-	private data class SearchResult(
-		val chapter: Int,
-		val title: String,
-		val snippet: String,
-		val offset: Int,
-		val matchIndex: Int = 1,
-		val chapterMatches: Int = 1,
-	)
 	private data class Locator(val chapter: Int, val offset: Int)
 	private data class TextLocation(val chapter: Int, val baseOffset: Int)
 	private data class SelectedText(val chapter: Int, val start: Int, val end: Int, val text: String)

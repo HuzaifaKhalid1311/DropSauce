@@ -169,9 +169,13 @@ object PdfPages {
 				val matches = page.search(query)
 				if (matches.isEmpty()) return@withTextPage
 				val text = page.text().joinToString("") { it.text }
+				var from = 0
 				matches.forEachIndexed { i, match ->
+					// found again in the plain text, so its preview surely holds it; the engine's own index can drift
+					val start = text.indexOf(query, from, ignoreCase = true).takeIf { it >= 0 } ?: match.textStartIndex
+					from = start + 1
 					if (hits.size < limit) {
-						hits += SearchHit(index, i + 1, matches.size, text, match.textStartIndex)
+						hits += SearchHit(index, i + 1, matches.size, text, start)
 					}
 				}
 			} ?: break

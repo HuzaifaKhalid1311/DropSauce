@@ -11,6 +11,7 @@
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
 - PDFs stay sharp however far you zoom in
+- Searching a book's text shows the results right in the search popup, with your words highlighted
 - More sensitive tags like self-harm or nudity get the orange warning colour, and harmless ones like sister or scar don't anymore
 
 ### Fixed
