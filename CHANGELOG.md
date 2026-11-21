@@ -11,6 +11,7 @@
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
 - PDFs stay sharp however far you zoom in
+- More sensitive tags like self-harm or nudity get the orange warning colour, and harmless ones like sister or scar don't anymore
 
 ### Fixed
 - Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error
