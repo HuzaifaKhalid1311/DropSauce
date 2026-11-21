@@ -27,6 +27,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -68,6 +70,8 @@ class DetailsExpressiveActions(
 	val onForgetHistoryClick: () -> Unit,
 	/** Null when the chapters are always on screen (two-pane layout), which hides the chapters pill. */
 	val onChaptersClick: (() -> Unit)?,
+	/** Where the chapters popup's top edge opens, on screen (px): the progress card's top, or just below the cover when centred. */
+	val onChaptersSheetAnchorMoved: (Float) -> Unit,
 )
 
 @Composable
@@ -163,7 +167,16 @@ fun DetailsExpressiveScreen(
 			}
 
 			Spacer(Modifier.height(8.dp))
-			ProgressCard(historyInfo = historyInfo, isLoading = isLoading, accent = accentColor)
+			ProgressCard(
+				historyInfo = historyInfo,
+				isLoading = isLoading,
+				accent = accentColor,
+				modifier = if (centered) {
+					Modifier
+				} else {
+					Modifier.onGloballyPositioned { actions.onChaptersSheetAnchorMoved(it.positionOnScreen().y) }
+				},
+			)
 
 			DescriptionCard(
 				description = details.description,

@@ -32,12 +32,12 @@ import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.RecyclerViewScrollCallback
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.findParentCallback
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.databinding.FragmentChaptersBinding
 import org.koitharu.kotatsu.details.ui.DetailsViewModel
+import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.detailsSheetSurfaceColor
 import org.koitharu.kotatsu.details.ui.adapter.ChaptersAdapter
 import org.koitharu.kotatsu.details.ui.adapter.ChaptersSelectionDecoration
 import org.koitharu.kotatsu.details.ui.model.ChapterListItem
@@ -141,7 +141,7 @@ class ChaptersFragment :
 
 	private fun applyDetailsSheetBackground(binding: FragmentChaptersBinding) {
 		if (viewModel !is DetailsViewModel) return
-		val color = requireActivity().getThemeColor(android.R.attr.colorBackground)
+		val color = detailsSheetSurfaceColor()
 		binding.root.setBackgroundColor(color)
 		binding.scrollViewFilter.setBackgroundColor(color)
 		binding.recyclerViewChapters.setBackgroundColor(color)

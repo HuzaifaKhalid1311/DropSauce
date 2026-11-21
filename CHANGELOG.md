@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Improved
+- The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
+
+### Fixed
+- Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error
+
 ## 1.1.5 (2026-11-20)
 
 ### New

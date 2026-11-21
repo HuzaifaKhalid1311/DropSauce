@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.appcompat.view.ActionMode
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.fragment.app.Fragment
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -41,6 +43,7 @@ import org.koitharu.kotatsu.core.util.ext.recyclerView
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.smoothScrollToTop
 import org.koitharu.kotatsu.databinding.SheetChaptersPagesBinding
+import org.koitharu.kotatsu.details.ui.DetailsExpressiveActivity
 import org.koitharu.kotatsu.details.ui.DetailsViewModel
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.download.ui.worker.DownloadStartedObserver
@@ -69,12 +72,19 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 	}
 
 	override fun onCreateViewBinding(inflater: LayoutInflater, container: ViewGroup?): SheetChaptersPagesBinding {
-		return SheetChaptersPagesBinding.inflate(inflater, container, false)
+		// As a popup the sheet is a lighter surface, so its tab indicator and toolbar pill go a tone up.
+		val themedInflater = if (showsDialog) {
+			inflater.cloneInContext(ContextThemeWrapper(inflater.context, R.style.ThemeOverlay_Kotatsu_RaisedContainers))
+		} else {
+			inflater
+		}
+		return SheetChaptersPagesBinding.inflate(themedInflater, container, false)
 	}
 
 	override fun onViewBindingCreated(binding: SheetChaptersPagesBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
 		disableFitToContents()
+		binding.headerBar.setCompactDragHandle()
 
 		val args = arguments ?: Bundle.EMPTY
 		var defaultTab = args.getInt(AppRouter.KEY_TAB, settings.defaultDetailsTab)
@@ -126,10 +136,11 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		super.onStart()
 		val sheetDialog = dialog as? BottomSheetDialog
 		applyDetailsSheetSurface(sheetDialog)
-		// In the details screen the sheet opens at a centred, half-expanded position. Keep nested list
-		// swipes for the RecyclerViews; only direct drags on the header/toolbar should move the sheet.
+		// In the details screen the sheet opens half-expanded, its top level with the progress card (just
+		// under the cover in the centred layout). Keep nested list swipes for the RecyclerViews; only
+		// direct drags on the header/toolbar move the sheet.
 		if (viewModel is DetailsViewModel) {
-			setHalfExpanded()
+			setHalfExpanded(anchoredHalfRatio())
 		}
 		sheetDialog?.findViewById<View>(materialR.id.design_bottom_sheet)
 			?.viewTreeObserver?.addOnPreDrawListener(fitPagerToScreen)
@@ -162,9 +173,18 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 		true
 	}
 
+	/** Share of the screen below the details screen's anchor; the default when it is off screen or too low. */
+	private fun anchoredHalfRatio(): Float {
+		val anchor = (activity as? DetailsExpressiveActivity)?.chaptersSheetTop ?: Float.NaN
+		val root = requireActivity().window.decorView
+		val rootTop = IntArray(2).also(root::getLocationOnScreen)[1]
+		val ratio = (rootTop + root.height - anchor) / root.height
+		return if (ratio in 0.3f..0.92f) ratio else HALF_EXPANDED_RATIO
+	}
+
 	private fun applyDetailsSheetSurface(sheetDialog: BottomSheetDialog?) {
 		val sheetView = sheetDialog?.findViewById<View>(materialR.id.design_bottom_sheet) ?: return
-		val surfaceColor = requireActivity().getThemeColor(android.R.attr.colorBackground)
+		val surfaceColor = detailsSheetSurfaceColor()
 		val surfaceColorState = ColorStateList.valueOf(surfaceColor)
 		sheetView.elevation = 0f
 		sheetView.clipToOutline = true
@@ -176,12 +196,10 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 			layoutTouchBlock.setBackgroundColor(surfaceColor)
 			pager.setBackgroundColor(surfaceColor)
 		}
-		// Recolour the sheet's MaterialShapeDrawable *fill* to the activity surface colour. Its style
-		// backgroundTint resolves against the dialog theme, where android:colorBackground maps to a lighter
-		// surface tone, so the raw fill is the wrong colour even though the view tint renders it correctly.
-		// The contextual action bar (BaseAdaptiveSheet.resolveSheetSurfaceColor) reads this raw fillColor to
-		// match the sheet, so it must hold the real surface colour. The drawable is assigned by
-		// BottomSheetBehavior on its first layout pass (after onStart), so apply now and again post-layout.
+		// Pin the sheet's MaterialShapeDrawable fill (no elevation overlay) to the same colour. The contextual
+		// action bar (BaseAdaptiveSheet.resolveSheetSurfaceColor) reads this raw fillColor to match the sheet.
+		// The drawable is assigned by BottomSheetBehavior on its first layout pass (after onStart), so apply
+		// now and again post-layout.
 		fun applyShapeSurface() {
 			(sheetView.background as? MaterialShapeDrawable)?.apply {
 				fillColor = surfaceColorState
@@ -282,6 +300,14 @@ class ChaptersPagesSheet : BaseAdaptiveSheet<SheetChaptersPagesBinding>(),
 	}
 
 	companion object {
+
+		/** The sheet's surface: a lighter container tone as a popup, the screen's own background as the tablet pane. */
+		fun Fragment.detailsSheetSurfaceColor(): Int {
+			val sheet = this as? ChaptersPagesSheet ?: parentFragment as? ChaptersPagesSheet
+			return requireActivity().getThemeColor(
+				if (sheet?.dialog != null) materialR.attr.colorSurfaceContainerLow else android.R.attr.colorBackground,
+			)
+		}
 
 		const val TAB_CHAPTERS = 0
 		const val TAB_PAGES = 1

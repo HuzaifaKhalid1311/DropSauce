@@ -40,6 +40,12 @@
 		<item name="bottomSheetStyle">@style/Widget.Kotatsu.BottomSheet.Details</item>
 	</style>
 
+	<!-- The details chapters popup sits on colorSurfaceContainerLow, so its tonal pills/tab indicator
+	     (colorSurfaceContainer elsewhere) go one step up to keep their contrast. -->
+	<style name="ThemeOverlay.Kotatsu.RaisedContainers" parent="">
+		<item name="colorSurfaceContainer">?attr/colorSurfaceContainerHigh</item>
+	</style>
+
 	<style name="ThemeOverlay.Kotatsu.SideSheetDialog" parent="ThemeOverlay.Material3.SideSheetDialog">
 		<item name="sideSheetModalStyle">@style/Widget.Kotatsu.SideSheet.Modal</item>
 	</style>
@@ -79,7 +85,7 @@
 	     overlay tint so the band stays identical to the content. -->
 	<style name="Widget.Kotatsu.BottomSheet.Details" parent="Widget.Material3.BottomSheet.Modal">
 		<item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Kotatsu.DetailsSheet</item>
-		<item name="backgroundTint">?android:attr/colorBackground</item>
+		<item name="backgroundTint">?attr/colorSurfaceContainerLow</item>
 		<item name="android:elevation">0dp</item>
 		<item name="paddingBottomSystemWindowInsets">false</item>
 	</style>

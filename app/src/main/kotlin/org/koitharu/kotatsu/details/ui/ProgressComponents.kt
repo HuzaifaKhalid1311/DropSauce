@@ -27,7 +27,7 @@ import org.koitharu.kotatsu.details.ui.model.HistoryInfo
 import org.koitharu.kotatsu.list.domain.ReadingProgress
 
 @Composable
-internal fun ProgressCard(historyInfo: HistoryInfo, isLoading: Boolean, accent: Color) {
+internal fun ProgressCard(historyInfo: HistoryInfo, isLoading: Boolean, accent: Color, modifier: Modifier = Modifier) {
 	val ctx = LocalContext.current
 	val res = ctx.resources
 	val chaptersText = when {
@@ -48,7 +48,7 @@ internal fun ProgressCard(historyInfo: HistoryInfo, isLoading: Boolean, accent: 
 	val showProgress = hasHistory && percent > 0f
 	val displayPercent = if (ReadingProgress.isCompleted(historyInfo.percent)) 100 else (percent * 100f).toInt()
 
-	SectionCard {
+	SectionCard(modifier = modifier) {
 		Row(verticalAlignment = Alignment.CenterVertically) {
 			Icon(
 				painter = painterResource(R.drawable.ic_read),

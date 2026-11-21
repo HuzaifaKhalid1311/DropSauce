@@ -37,13 +37,13 @@ import org.koitharu.kotatsu.core.util.RecyclerViewScrollCallback
 import org.koitharu.kotatsu.core.util.ext.consumeAll
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.findParentCallback
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.setTextAndVisible
 import org.koitharu.kotatsu.core.util.ext.showOrHide
 import org.koitharu.kotatsu.databinding.FragmentPagesBinding
 import org.koitharu.kotatsu.details.ui.DetailsViewModel
+import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.detailsSheetSurfaceColor
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesViewModel
 import org.koitharu.kotatsu.details.ui.pager.EmptyMangaReason
 import org.koitharu.kotatsu.list.ui.GridSpanResolver
@@ -151,7 +151,7 @@ class PagesFragment :
 
 	private fun applyDetailsSheetBackground(binding: FragmentPagesBinding) {
 		if (parentViewModel !is DetailsViewModel) return
-		val color = requireActivity().getThemeColor(android.R.attr.colorBackground)
+		val color = detailsSheetSurfaceColor()
 		binding.root.setBackgroundColor(color)
 		binding.recyclerView.setBackgroundColor(color)
 	}

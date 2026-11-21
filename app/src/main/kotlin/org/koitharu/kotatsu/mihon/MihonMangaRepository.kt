@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.core.cache.MemoryContentCache
 import org.koitharu.kotatsu.core.logs.breadcrumb
 import org.koitharu.kotatsu.core.parser.CachingMangaRepository
+import org.koitharu.kotatsu.core.util.MultiMutex
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.SourceSettings
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
@@ -64,6 +65,9 @@ class MihonMangaRepository(
 		private const val QUERY_PAGE_URL = "page_url"
 		private const val QUERY_IMAGE_URL = "image_url"
 		private const val QUERY_INDEX = "index"
+
+		// Shared by every repository instance: two instances can wrap the same loaded extension.
+		private val mangaUpdateLocks = MultiMutex<String>()
 	}
 
 	val mihonSource = source.catalogueSource
@@ -192,13 +196,19 @@ class MihonMangaRepository(
 		// Do not add an app-level retry around the extension call. Mihon invokes this once and lets
 		// the source's client/interceptors decide whether retrying is safe; replaying here can repeat
 		// stateful requests and adds a fixed delay to ordinary failures.
+		// Sources may refuse a second update of the same manga while one is running (Keiyoushi's
+		// KeiSource: "must not be called concurrently for same manga"). Mihon never overlaps them, so
+		// every caller here (details, refresh, tracker, ...) waits for the one in flight.
+		val lockKey = "${source.sourceId}\n${sManga.url}"
 		val update = try {
-			mihonSource.getMangaUpdate(
-				manga = sManga,
-				chapters = existingChapters,
-				fetchDetails = true,
-				fetchChapters = true,
-			)
+			mangaUpdateLocks.withLock(lockKey) {
+				mihonSource.getMangaUpdate(
+					manga = sManga,
+					chapters = existingChapters,
+					fetchDetails = true,
+					fetchChapters = true,
+				)
+			}
 		} catch (e: Exception) {
 			throw translateExtensionException(e)
 		}

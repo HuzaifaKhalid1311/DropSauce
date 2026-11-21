@@ -67,6 +67,10 @@ class DetailsExpressiveActivity :
 	private var isQuickFavouritePending = false
 	private lateinit var menuProvider: DetailsMenuProvider
 
+	/** Where the chapters popup's top edge opens, on screen (px); NaN until laid out. */
+	var chaptersSheetTop = Float.NaN
+		private set
+
 	private val topInset = mutableIntStateOf(0)
 	private val bottomInset = mutableIntStateOf(0)
 	private var isDarkTheme = false
@@ -192,6 +196,7 @@ class DetailsExpressiveActivity :
 			} else {
 				null
 			},
+			onChaptersSheetAnchorMoved = { chaptersSheetTop = it },
 		)
 		viewBinding.composeView.setViewCompositionStrategy(
 			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,

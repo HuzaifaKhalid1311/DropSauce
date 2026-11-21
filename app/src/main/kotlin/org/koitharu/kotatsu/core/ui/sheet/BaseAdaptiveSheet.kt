@@ -207,7 +207,7 @@ abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
 		}
 	}
 
-	protected fun setHalfExpanded() {
+	protected fun setHalfExpanded(ratio: Float = HALF_EXPANDED_RATIO) {
 		val sheetDialog = dialog as? BottomSheetDialog ?: return
 		view?.updateLayoutParams {
 			height = LayoutParams.MATCH_PARENT
@@ -223,7 +223,7 @@ abstract class BaseAdaptiveSheet<B : ViewBinding> : AppCompatDialogFragment(),
 			// would force the header-bar manual-drag fallback, which can't be grabbed from the body.
 			setDraggableOnNestedScroll(false)
 			skipCollapsed = true
-			halfExpandedRatio = HALF_EXPANDED_RATIO
+			halfExpandedRatio = ratio
 			state = BottomSheetBehavior.STATE_HALF_EXPANDED
 		}
 	}

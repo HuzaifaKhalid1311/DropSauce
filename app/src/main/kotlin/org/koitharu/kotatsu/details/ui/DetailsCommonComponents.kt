@@ -35,11 +35,13 @@ internal fun Color.luminanceIsLight(): Boolean =
 @Composable
 internal fun SectionCard(
 	onClick: (() -> Unit)? = null,
+	modifier: Modifier = Modifier,
 	content: @Composable ColumnScope.() -> Unit,
 ) {
 	val base = Modifier
 		.fillMaxWidth()
 		.padding(horizontal = SCREEN_PADDING, vertical = 8.dp)
+		.then(modifier)
 	Surface(
 		shape = RoundedCornerShape(CARD_CORNER),
 		color = MaterialTheme.colorScheme.surfaceContainerHigh,

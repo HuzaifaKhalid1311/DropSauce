@@ -32,12 +32,12 @@ import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.findParentCallback
-import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.FragmentMangaBookmarksBinding
 import org.koitharu.kotatsu.details.ui.DetailsViewModel
+import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet.Companion.detailsSheetSurfaceColor
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesViewModel
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.list.ui.GridSpanResolver
@@ -123,7 +123,7 @@ class BookmarksFragment : BaseFragment<FragmentMangaBookmarksBinding>(),
 
 	private fun applyDetailsSheetBackground(binding: FragmentMangaBookmarksBinding) {
 		if (activityViewModel !is DetailsViewModel) return
-		binding.root.setBackgroundColor(requireActivity().getThemeColor(android.R.attr.colorBackground))
+		binding.root.setBackgroundColor(detailsSheetSurfaceColor())
 	}
 
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
