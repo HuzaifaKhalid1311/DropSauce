@@ -67,8 +67,6 @@ private const val EPUB_HIGHLIGHT_PREFIX = "epub-highlight:"
 
 /** Text marked on a page of a PDF; the page index is the bookmark's `page`, [bounds] are in page points. */
 data class PdfHighlight(
-	val start: Int,
-	val end: Int,
 	val bounds: List<RectF>,
 	val text: String,
 )
@@ -83,23 +81,21 @@ val Bookmark.highlightText: String?
 internal fun decodePdfHighlight(url: String): PdfHighlight? {
 	if (!url.startsWith(PDF_HIGHLIGHT_PREFIX)) return null
 	val parts = url.removePrefix(PDF_HIGHLIGHT_PREFIX).split(':')
-	if (parts.size != 4) return null
-	val start = parts[0].toIntOrNull() ?: return null
-	val end = parts[1].toIntOrNull() ?: return null
-	val bounds = parts[2].split(';').mapNotNull { rect ->
+	if (parts.size != 2) return null
+	val bounds = parts[0].split(';').mapNotNull { rect ->
 		val v = rect.split(',').mapNotNull(String::toFloatOrNull)
 		if (v.size == 4) RectF(v[0], v[1], v[2], v[3]) else null
 	}
 	val text = runCatching {
-		String(Base64.getUrlDecoder().decode(parts[3]), Charsets.UTF_8)
+		String(Base64.getUrlDecoder().decode(parts[1]), Charsets.UTF_8)
 	}.getOrNull() ?: return null
-	return PdfHighlight(start, end, bounds, text)
+	return PdfHighlight(bounds, text)
 }
 
 fun pdfHighlightUrl(highlight: PdfHighlight): String {
 	val bounds = highlight.bounds.joinToString(";") { r -> listOf(r.left, r.top, r.right, r.bottom).joinToString(",") { "%.1f".format(Locale.ROOT, it) } }
 	val text = Base64.getUrlEncoder().withoutPadding().encodeToString(highlight.text.toByteArray(Charsets.UTF_8))
-	return "$PDF_HIGHLIGHT_PREFIX${highlight.start}:${highlight.end}:$bounds:$text"
+	return "$PDF_HIGHLIGHT_PREFIX$bounds:$text"
 }
 
 const val PDF_HIGHLIGHT_PREFIX = "pdf-highlight:"

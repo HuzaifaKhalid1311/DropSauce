@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.core.util.ext.computeSize
 import org.koitharu.kotatsu.core.util.ext.require
 import org.koitharu.kotatsu.core.util.ext.toFileOrNull
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
+import org.koitharu.kotatsu.local.data.isPdfFile
 import org.koitharu.kotatsu.local.data.LocalStorageManager
 import org.koitharu.kotatsu.local.domain.DeleteLocalMangaUseCase
 import org.koitharu.kotatsu.local.domain.DeleteReadChaptersUseCase
@@ -32,6 +33,9 @@ class LocalInfoViewModel @Inject constructor(
 	private val manga = savedStateHandle.require<ParcelableManga>(AppRouter.KEY_MANGA).manga
 
 	val title: String get() = manga.title
+
+	// a lone PDF is one file: its chapters can't be deleted one by one
+	val canDeleteRead = manga.url.toUri().toFileOrNull()?.isPdfFile != true
 
 	val isCleaningUp = MutableStateFlow(false)
 	val onCleanedUp = MutableEventFlow<Pair<Int, Long>>()

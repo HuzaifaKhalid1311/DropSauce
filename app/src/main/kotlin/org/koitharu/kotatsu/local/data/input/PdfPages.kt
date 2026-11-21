@@ -115,7 +115,8 @@ object PdfPages {
 		} + page.gotoLinks().map { link ->
 			Link(link.bounds, null, link.destination.pageNumber)
 		}
-		Content(links, page.text().flatMap { it.bounds })
+		// the page's text comes without positions; selecting all of it gives them
+		Content(links, page.selectAll()?.selectedTextContents?.flatMap { it.bounds }.orEmpty())
 	}
 
 	/** The text from [start] to [stop]; both at the same point picks the word there. */
@@ -125,17 +126,25 @@ object PdfPages {
 		withTextPage(file, index) { page ->
 			val selection = page.select(start.toPlatform(), stop.toPlatform()) ?: return@withTextPage null
 			val contents = selection.selectedTextContents
-			val text = contents.joinToString("") { it.text }.trim()
-			if (text.isEmpty()) return@withTextPage null
-			Selection(selection.start.index, selection.stop.index, text, contents.flatMap { it.bounds })
+			selection.toSelection()
 		}
 
 	/** Everything on page [index]. */
 	@Blocking
 	@SuppressLint("NewApi") // the platform text classes are only touched inside withTextPage
-	fun selectAll(file: File, index: Int): Selection? {
-		val length = withTextPage(file, index) { page -> page.text().sumOf { it.text.length } } ?: return null
-		return select(file, index, Boundary.index(0), Boundary.index(length))
+	fun selectAll(file: File, index: Int): Selection? = withTextPage(file, index) { it.selectAll()?.toSelection() }
+
+	@SuppressLint("NewApi")
+	private fun PageSelection.toSelection(): Selection? {
+		val text = selectedTextContents.joinToString("") { it.text }.trim()
+		val bounds = selectedTextContents.flatMap { it.bounds }
+		return if (text.isEmpty() || bounds.isEmpty()) null else Selection(text, bounds)
+	}
+
+	@SuppressLint("NewApi")
+	private fun TextPage.selectAll(): PageSelection? {
+		val length = text().sumOf { it.text.length }
+		return if (length == 0) null else select(Boundary.index(0).toPlatform(), Boundary.index(length).toPlatform())
 	}
 
 	/**
@@ -187,7 +196,7 @@ object PdfPages {
 	/** A web link when [uri] is set, otherwise a jump to [pageIndex] of the same file. */
 	class Link(val bounds: List<RectF>, val uri: Uri?, val pageIndex: Int)
 
-	class Selection(val start: Int, val end: Int, val text: String, val bounds: List<RectF>)
+	class Selection(val text: String, val bounds: List<RectF>)
 
 	/** One end of a selection: a text index, or a point on the page (in page points). */
 	class Boundary private constructor(private val index: Int, private val x: Int, private val y: Int) {

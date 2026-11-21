@@ -99,8 +99,8 @@ class PdfPageLayer(
 	private var actionMode: ActionMode? = null
 	private var isRestartingActions = false
 
-	// dragging a handle: the other end stays at this text index
-	private var dragAnchor = -1
+	// dragging a handle: the other end of the selection stays here
+	private var dragAnchor: PdfPages.Boundary? = null
 	private var longPressOrigin: PointF? = null
 
 	// sharp zoom: the part of the page on screen, drawn at screen resolution
@@ -180,7 +180,7 @@ class PdfPageLayer(
 		if (content?.textBounds?.any { it.containsWithSlop(point, slop) } != true) return false
 		val at = PdfPages.Boundary.at(point.x, point.y)
 		longPressOrigin = PointF(rawX, rawY)
-		dragAnchor = -1
+		dragAnchor = null
 		select(at, at)
 		return true
 	}
@@ -209,19 +209,18 @@ class PdfPageLayer(
 			if (hypot(origin.x - rawX, origin.y - rawY) < touchSlop) return
 			longPressOrigin = null
 		}
-		if (dragAnchor < 0) {
-			dragAnchor = if (handle == HANDLE_START) sel.end else sel.start
+		val anchor = dragAnchor ?: anchorOf(sel, handle).also {
+			dragAnchor = it
 			hideActions()
 		}
 		val point = toPage(rawX, rawY) ?: return
 		val finger = PdfPages.Boundary.at(point.x, point.y)
-		val anchor = PdfPages.Boundary.index(dragAnchor)
 		if (handle == HANDLE_START) select(finger, anchor) else select(anchor, finger)
 	}
 
 	fun onDragEnd() {
 		longPressOrigin = null
-		dragAnchor = -1
+		dragAnchor = null
 		if (selection != null && selectJob?.isActive != true) showActions()
 	}
 
@@ -229,7 +228,7 @@ class PdfPageLayer(
 		selectJob?.cancel()
 		pendingSelect = null
 		longPressOrigin = null
-		dragAnchor = -1
+		dragAnchor = null
 		if (selection == null) return
 		selection = null
 		actionMode?.finish()
@@ -238,7 +237,7 @@ class PdfPageLayer(
 	}
 
 	private fun select(start: PdfPages.Boundary, stop: PdfPages.Boundary) {
-		if (dragAnchor >= 0 && selectJob?.isActive == true) {
+		if (dragAnchor != null && selectJob?.isActive == true) {
 			pendingSelect = start to stop // a drag: only the newest finger position waits its turn
 			return
 		}
@@ -275,7 +274,7 @@ class PdfPageLayer(
 		selection = value
 		invalidateSelf()
 		if (!wasActive) host.onPdfSelectionChanged(this, true)
-		if (dragAnchor < 0 && longPressOrigin == null) showActions() else actionMode?.invalidate()
+		if (dragAnchor == null && longPressOrigin == null) showActions() else actionMode?.invalidate()
 	}
 
 	private fun showActions() {
@@ -304,7 +303,16 @@ class PdfPageLayer(
 
 	private fun selectedHighlight(): Bookmark? {
 		val sel = selection ?: return null
-		return highlights.firstOrNull { (_, h) -> sel.start < h.end && sel.end > h.start }?.first
+		return highlights.firstOrNull { (_, h) ->
+			h.bounds.any { a -> sel.bounds.any { b -> RectF.intersects(a, b) } }
+		}?.first
+	}
+
+	/** The end of [sel] that stays put while [handle] is dragged, just inside its first or last character. */
+	private fun anchorOf(sel: PdfPages.Selection, handle: Int): PdfPages.Boundary {
+		val rect = if (handle == HANDLE_START) sel.bounds.last() else sel.bounds.first()
+		val x = if (handle == HANDLE_START) rect.right - 1f else rect.left + 1f
+		return PdfPages.Boundary.at(x, rect.centerY())
 	}
 
 	override fun draw(canvas: Canvas) {
@@ -523,7 +531,7 @@ class PdfPageLayer(
 				ACTION_HIGHLIGHT -> host.onPdfAddHighlight(
 					t.chapterId,
 					t.pageIndex,
-					PdfHighlight(sel.start, sel.end, sel.bounds, sel.text),
+					PdfHighlight(sel.bounds, sel.text),
 				)
 
 				ACTION_REMOVE_HIGHLIGHT -> selectedHighlight()?.let { host.onPdfRemoveHighlight(it.pageId) }

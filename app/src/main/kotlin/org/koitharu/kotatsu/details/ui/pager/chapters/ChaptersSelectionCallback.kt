@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.toCollection
 import org.koitharu.kotatsu.core.util.ext.toSet
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesViewModel
+import org.koitharu.kotatsu.local.data.input.PdfPages
 import org.koitharu.kotatsu.local.ui.LocalChaptersRemoveService
 
 class ChaptersSelectionCallback(
@@ -45,7 +46,9 @@ class ChaptersSelectionCallback(
 			if (isLocal) canSave = false else canDelete = false
 		}
 		menu.findItem(R.id.action_save).isVisible = canSave
-		menu.findItem(R.id.action_delete).isVisible = canDelete
+		// a PDF split by its contents is one file: only all of its chapters can go
+		val isPartOfPdf = items.size < allItems.size && items.any { PdfPages.chapterPages(it.value.chapter.url) != null }
+		menu.findItem(R.id.action_delete).isVisible = canDelete && !isPartOfPdf
 		menu.findItem(R.id.action_select_all).isVisible = items.size < allItems.size
 		menu.findItem(R.id.action_mark_current).isVisible = items.size == 1
 		menu.findItem(R.id.action_browser).isVisible = items.size == 1 &&

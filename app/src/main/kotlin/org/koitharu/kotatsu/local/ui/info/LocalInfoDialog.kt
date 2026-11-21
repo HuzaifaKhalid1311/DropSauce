@@ -89,13 +89,13 @@ class LocalInfoDialog : ComposeAlertDialogFragment() {
 			),
 			footer = {
 				ExpressiveButtonGrid(
-					buttons = listOf(
+					buttons = listOfNotNull(
 						DialogButtonSpec(
 							label = stringResource(R.string.delete_read_chapters),
 							icon = painterResource(R.drawable.ic_delete),
 							enabled = !isCleaningUp,
 							onClick = viewModel::cleanup,
-						),
+						).takeIf { viewModel.canDeleteRead },
 						DialogButtonSpec(
 							label = stringResource(R.string.delete_all_chapters),
 							icon = painterResource(R.drawable.ic_delete_forever),
