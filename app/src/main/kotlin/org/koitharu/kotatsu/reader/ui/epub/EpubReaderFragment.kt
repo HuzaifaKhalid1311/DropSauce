@@ -53,15 +53,6 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withClip
 import androidx.core.graphics.withTranslation
@@ -103,12 +94,7 @@ import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 import org.koitharu.kotatsu.lnreader.model.absoluteUrl
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
-import org.koitharu.kotatsu.core.ui.dialog.DialogCornerAction
-import org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard
-import org.koitharu.kotatsu.core.ui.dialog.ExpressiveOptionGroupItem
-import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
-import org.koitharu.kotatsu.core.ui.dialog.showTextInputDialog
 import org.koitharu.kotatsu.core.util.ext.getDisplayIcon
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getDrawableOrThrow
@@ -124,6 +110,7 @@ import org.koitharu.kotatsu.databinding.ItemErrorStateBinding
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.util.ifZero
+import org.koitharu.kotatsu.reader.ui.BookSearch
 import org.koitharu.kotatsu.reader.ui.DictionarySheet
 import org.koitharu.kotatsu.reader.ui.ReaderState
 import org.koitharu.kotatsu.reader.ui.tts.ReaderTts
@@ -1488,12 +1475,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	fun showBookSearch() {
-		showTextInputDialog(
-			context = requireContext(),
-			icon = R.drawable.ic_search,
-			title = getString(R.string.epub_search_book),
-			hint = getString(R.string.epub_search_hint),
-		) { searchBook(it.trim()) }
+		BookSearch.askQuery(requireContext(), onQuery = ::searchBook)
 	}
 
 	/**
@@ -1509,7 +1491,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				if (!isRemote) ensureChaptersLoaded(chapters.indices)
 				buildList {
 					for ((index, chapter) in chapters.withIndex()) {
-						if (size >= MAX_SEARCH_RESULTS) break
+						if (size >= BookSearch.MAX_RESULTS) break
 						val offsets = ArrayList<Int>()
 						var searchFrom = 0
 						while (offsets.size < MAX_HITS_PER_CHAPTER) {
@@ -1519,15 +1501,12 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 							searchFrom = (match + query.length).coerceAtLeast(match + 1)
 						}
 						for ((hitIndex, match) in offsets.withIndex()) {
-							if (size >= MAX_SEARCH_RESULTS) break
-							val start = (match - 45).coerceAtLeast(0)
-							val end = (match + query.length + 70).coerceAtMost(chapter.text.length)
-							val snippet = chapter.text.substring(start, end).replace(Regex("\\s+"), " ").trim()
+							if (size >= BookSearch.MAX_RESULTS) break
 							add(
 								SearchResult(
 									chapter = index,
 									title = chapter.title,
-									snippet = snippet,
+									snippet = BookSearch.snippet(chapter.text, match, query.length),
 									offset = match,
 									matchIndex = hitIndex + 1,
 									chapterMatches = offsets.size,
@@ -1547,49 +1526,16 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	private fun showSearchResults(results: List<SearchResult>) {
 		val untitled = getString(R.string.epub_untitled_chapter)
-		showComposeDialog(requireContext()) { dismiss ->
-			val colors = MaterialTheme.colorScheme
-			ExpressiveDialogCard(
-				icon = painterResource(R.drawable.ic_search),
-				title = stringResource(R.string.search_results_count, results.size),
-				cornerAction = DialogCornerAction(
-					icon = painterResource(R.drawable.ic_close),
-					label = stringResource(android.R.string.cancel),
-					onClick = dismiss,
-				),
-			) {
-				results.forEachIndexed { index, result ->
-					ExpressiveOptionGroupItem(
-						index = index,
-						count = results.size,
-						onClick = {
-							dismiss()
-							goTo(Locator(result.chapter, result.offset))
-						},
-					) {
-						Column(modifier = Modifier.padding(vertical = 6.dp)) {
-							val baseTitle = result.title.ifEmpty { untitled }
-							val header = if (result.chapterMatches > 1) {
-								"$baseTitle (${result.matchIndex}/${result.chapterMatches})"
-							} else {
-								baseTitle
-							}
-							Text(
-								text = header,
-								style = MaterialTheme.typography.bodyLarge,
-								color = colors.onSurface,
-							)
-							Text(
-								text = result.snippet,
-								style = MaterialTheme.typography.bodyMedium,
-								color = colors.onSurfaceVariant,
-								maxLines = 2,
-								overflow = TextOverflow.Ellipsis,
-							)
-						}
-					}
-				}
-			}
+		val items = results.map { result ->
+			val title = result.title.ifEmpty { untitled }
+			BookSearch.Result(
+				title = if (result.chapterMatches > 1) "$title (${result.matchIndex}/${result.chapterMatches})" else title,
+				snippet = result.snippet,
+			)
+		}
+		BookSearch.showResults(requireContext(), items) { index ->
+			val result = results[index]
+			goTo(Locator(result.chapter, result.offset))
 		}
 	}
 
@@ -2115,7 +2061,6 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private const val EPUB_MODE_SCROLL = "scroll"
 		private const val EPUB_THEME_CUSTOM = "custom"
 		private const val EPUB_FONT_CUSTOM = "custom"
-		private const val MAX_SEARCH_RESULTS = 100
 		private const val MAX_HITS_PER_CHAPTER = 25
 		private const val PROGRESS_INTERVAL_MS = 50L
 		private const val LOAD_RETRY_DELAY_MS = 3000L

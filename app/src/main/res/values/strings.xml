@@ -596,6 +596,7 @@
 	<string name="epub_color_hex">Hex</string>
 	<string name="epub_search_hint">Enter text to find</string>
 	<string name="epub_no_search_results">No matches found</string>
+	<string name="pdf_search_page">Page %1$d</string>
 	<string name="epub_untitled_chapter">Untitled chapter</string>
 	<string name="epub_text_tab">Text</string>
 	<string name="epub_reading_tab">Reading</string>

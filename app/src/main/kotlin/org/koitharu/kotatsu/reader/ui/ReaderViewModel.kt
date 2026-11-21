@@ -248,6 +248,9 @@ class ReaderViewModel @Inject constructor(
     }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
 
     /** Highlights made on the PDF pages of this title. */
+    /** What the book search last looked for in a PDF, marked on its pages until a tap clears it. */
+    val pdfSearchQuery = MutableStateFlow<String?>(null)
+
     val pdfHighlights = manga.filterNotNull().distinctUntilChangedBy { it.id }.flatMapLatest { manga ->
         bookmarksRepository.observeBookmarks(manga).map { list -> list.filter { it.pdfHighlight != null } }
     }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())

@@ -6,6 +6,7 @@
 - Links in PDFs work: web links open in your browser and contents or footnote links jump to the right page
 - Long-press text in a PDF to copy it, look it up in the dictionary or highlight it, and your highlights show up in your bookmarks (Android 15, or 12 to 14 with recent system updates)
 - PDFs with a table of contents now show their real chapters, and you keep your place
+- Search a PDF's text with the search button at the top of the reader, and the matches get marked on the page
 
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card

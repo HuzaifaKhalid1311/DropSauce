@@ -306,6 +306,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 			PdfPageLayer(ssiv, lifecycleScope, host).also { layer ->
 				pdfLayer = layer
 				host.pdfHighlights.observe(this, layer::setHighlights)
+				host.pdfSearchQuery.observe(this, layer::setSearchQuery)
 			}
 		}
 		layer.bind(uri, source.region, page.chapterId, page.index)

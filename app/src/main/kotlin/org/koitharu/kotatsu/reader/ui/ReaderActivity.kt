@@ -17,7 +17,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.net.toUri
 import org.koitharu.kotatsu.core.ui.menu.MenuPopup
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
@@ -78,6 +80,8 @@ import org.koitharu.kotatsu.core.util.IdlingDetector
 import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
+import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
 import org.koitharu.kotatsu.core.util.ext.hasGlobalPoint
@@ -94,6 +98,7 @@ import org.koitharu.kotatsu.databinding.ActivityReaderBinding
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesViewModel
 import org.koitharu.kotatsu.details.ui.pager.pages.PagesSavedObserver
 import org.koitharu.kotatsu.local.data.input.PdfPages
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.reader.data.TapGridSettings
@@ -284,9 +289,9 @@ class ReaderActivity :
         addMenuProvider(
             ReaderMenuProvider(
                 onOpenMenu = ::openMenu,
-                onSearchBook = ::openEpubSearch,
+                onSearchBook = ::openBookSearch,
                 onShowUpscalePreview = ::showUpscalePreview,
-                isEpub = { readerManager.isEpub },
+                isSearchable = { readerManager.isEpub || PdfPages.isTextSupported && currentPdfFile() != null },
                 isUpscaleActive = { UpscaleEffect.activePages.value.isNotEmpty() },
                 isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
             ),
@@ -584,6 +589,10 @@ class ReaderActivity :
             it.clearSelection()
             return true
         }
+        if (viewModel.pdfSearchQuery.value != null) {
+            viewModel.pdfSearchQuery.value = null // the first tap after a search clears its marks
+            return true
+        }
         return isReaderResumed() && pdfLayerAt(rawX, rawY)?.onTap(rawX, rawY) == true
     }
 
@@ -615,6 +624,9 @@ class ReaderActivity :
     override val pdfHighlights: Flow<List<Bookmark>>
         get() = viewModel.pdfHighlights
 
+    override val pdfSearchQuery: Flow<String?>
+        get() = viewModel.pdfSearchQuery
+
     override fun onPdfSelectionChanged(layer: PdfPageLayer, isActive: Boolean) {
         if (isActive) {
             pdfSelection?.takeIf { it !== layer }?.clearSelection()
@@ -629,22 +641,27 @@ class ReaderActivity :
         if (uri != null) {
             router.openExternalBrowser(uri.toString())
         } else if (link.pageIndex != PdfPages.NO_PAGE) {
-            // pages are matched by their place in the file, which holds wherever the chapters start
-            val target = file.toPdfUri(link.pageIndex).toString()
-            val position = viewModel.content.value.pages.indexOfFirst { it.url == target }
-            if (position >= 0) {
-                readerManager.currentReader?.switchPageTo(position, true)
-                return
-            }
-            // a PDF split by its contents: the target sits in whichever chapter holds that page
-            val chapter = viewModel.mangaDetails.value?.allChapters?.firstNotNullOfOrNull { chapter ->
-                PdfPages.chapterPages(chapter.url)?.takeIf { link.pageIndex in it }?.let { chapter to it }
-            }
-            if (chapter != null) {
-                jumpToChapter(chapter.first.id, link.pageIndex - chapter.second.first, scroll = 0, isPeekPreferred = false)
-            } else {
-                switchToPage(chapterId, link.pageIndex)
-            }
+            openPdfPage(chapterId, file, link.pageIndex)
+        }
+    }
+
+    /** Page [pageIndex] of the PDF [file], counted from the start of the file, opened from [chapterId]. */
+    private fun openPdfPage(chapterId: Long, file: File, pageIndex: Int) {
+        // pages are matched by their place in the file, which holds wherever the chapters start
+        val target = file.toPdfUri(pageIndex).toString()
+        val position = viewModel.content.value.pages.indexOfFirst { it.url == target }
+        if (position >= 0) {
+            readerManager.currentReader?.switchPageTo(position, true)
+            return
+        }
+        // a PDF split by its contents: the target sits in whichever chapter holds that page
+        val chapter = viewModel.mangaDetails.value?.allChapters?.firstNotNullOfOrNull { chapter ->
+            PdfPages.chapterPages(chapter.url)?.takeIf { pageIndex in it }?.let { chapter to it }
+        }
+        if (chapter != null) {
+            jumpToChapter(chapter.first.id, pageIndex - chapter.second.first, scroll = 0, isPeekPreferred = false)
+        } else {
+            switchToPage(chapterId, pageIndex)
         }
     }
 
@@ -939,8 +956,48 @@ class ReaderActivity :
         }
     }
 
-	private fun openEpubSearch() {
-		(readerManager.currentReader as? EpubReaderFragment)?.showBookSearch()
+	private fun openBookSearch() {
+		if (readerManager.isEpub) {
+			(readerManager.currentReader as? EpubReaderFragment)?.showBookSearch()
+			return
+		}
+		val file = currentPdfFile() ?: return
+		val chapterId = viewModel.getCurrentState()?.chapterId ?: return
+		BookSearch.askQuery(this, viewModel.pdfSearchQuery.value.orEmpty()) { query ->
+			if (query.isNotEmpty()) searchPdf(file, chapterId, query)
+		}
+	}
+
+	// shortcut: searches the PDF of the open chapter only, so a folder of PDFs is searched file by file
+	private fun searchPdf(file: File, chapterId: Long, query: String) {
+		Toast.makeText(this, R.string.loading_, Toast.LENGTH_SHORT).show()
+		lifecycleScope.launch {
+			val hits = withContext(Dispatchers.IO) {
+				runCatchingCancellable { PdfPages.search(file, query, BookSearch.MAX_RESULTS) }
+					.onFailure { it.printStackTraceDebug() }.getOrNull().orEmpty()
+			}
+			if (hits.isEmpty()) {
+				Toast.makeText(this@ReaderActivity, R.string.epub_no_search_results, Toast.LENGTH_SHORT).show()
+				return@launch
+			}
+			val results = hits.map { hit ->
+				val title = getString(R.string.pdf_search_page, hit.pageIndex + 1)
+				BookSearch.Result(
+					title = if (hit.matches > 1) "$title (${hit.match}/${hit.matches})" else title,
+					snippet = BookSearch.snippet(hit.text, hit.start, query.length),
+				)
+			}
+			BookSearch.showResults(this@ReaderActivity, results) { index ->
+				viewModel.pdfSearchQuery.value = query
+				openPdfPage(chapterId, file, hits[index].pageIndex)
+			}
+		}
+	}
+
+	/** The PDF file the open page comes from, null when it isn't a PDF. */
+	private fun currentPdfFile(): File? {
+		val uri = viewModel.getCurrentPage()?.url?.toUri()?.takeIf { it.isPdfUri() } ?: return null
+		return PdfPages.parseUri(uri).first
 	}
 
 	private fun showUpscalePreview() {

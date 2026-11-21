@@ -10,7 +10,7 @@ class ReaderMenuProvider(
 	private val onOpenMenu: () -> Unit,
 	private val onSearchBook: () -> Unit,
 	private val onShowUpscalePreview: () -> Unit,
-	private val isEpub: () -> Boolean,
+	private val isSearchable: () -> Boolean,
 	private val isUpscaleActive: () -> Boolean,
 	private val isLandscape: Boolean,
 ) : MenuProvider {
@@ -21,7 +21,7 @@ class ReaderMenuProvider(
 	}
 
 	override fun onPrepareMenu(menu: Menu) {
-		menu.findItem(R.id.action_epub_search)?.isVisible = isEpub()
+		menu.findItem(R.id.action_epub_search)?.isVisible = isSearchable()
 		menu.findItem(R.id.action_upscale_preview)?.isVisible = isUpscaleActive()
 	}
 

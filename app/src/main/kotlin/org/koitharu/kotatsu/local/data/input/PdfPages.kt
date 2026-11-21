@@ -11,6 +11,7 @@ import android.graphics.pdf.PdfRendererPreV
 import android.graphics.pdf.content.PdfPageGotoLinkContent
 import android.graphics.pdf.content.PdfPageLinkContent
 import android.graphics.pdf.content.PdfPageTextContent
+import android.graphics.pdf.models.PageMatchBounds
 import android.graphics.pdf.models.selection.PageSelection
 import android.graphics.pdf.models.selection.SelectionBoundary
 import android.net.Uri
@@ -21,6 +22,8 @@ import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresExtension
 import androidx.core.net.toUri
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import org.jetbrains.annotations.Blocking
 import java.io.File
 import java.io.IOException
@@ -147,6 +150,35 @@ object PdfPages {
 		return if (length == 0) null else select(Boundary.index(0).toPlatform(), Boundary.index(length).toPlatform())
 	}
 
+	/** Where [query] is on page [index], in page points; null when the phone can't read text. */
+	@Blocking
+	@SuppressLint("NewApi") // the platform text classes are only touched inside withTextPage
+	fun find(file: File, index: Int, query: String): List<RectF>? = withTextPage(file, index) { page ->
+		page.search(query).flatMap { it.bounds }
+	}
+
+	/** Every match of [query] in [file], up to [limit], with its page's text; empty when the phone can't read text. */
+	@SuppressLint("NewApi") // the platform text classes are only touched inside withTextPage
+	suspend fun search(file: File, query: String, limit: Int): List<SearchHit> {
+		val hits = ArrayList<SearchHit>()
+		for (index in 0 until count(file)) {
+			if (hits.size >= limit) break
+			currentCoroutineContext().ensureActive()
+			// one page at a time, so pages being drawn meanwhile don't wait for the whole search
+			withTextPage(file, index) { page ->
+				val matches = page.search(query)
+				if (matches.isEmpty()) return@withTextPage
+				val text = page.text().joinToString("") { it.text }
+				matches.forEachIndexed { i, match ->
+					if (hits.size < limit) {
+						hits += SearchHit(index, i + 1, matches.size, text, match.textStartIndex)
+					}
+				}
+			} ?: break
+		}
+		return hits
+	}
+
 	/**
 	 * The chapters a PDF's own contents split it into, as titles and page ranges; empty when it has none
 	 * to split by. Pages before the first entry (cover, credits) open the first chapter.
@@ -197,6 +229,9 @@ object PdfPages {
 	class Link(val bounds: List<RectF>, val uri: Uri?, val pageIndex: Int)
 
 	class Selection(val text: String, val bounds: List<RectF>)
+
+	/** Match [match] of the [matches] on page [pageIndex], found at [start] of the page's [text]. */
+	class SearchHit(val pageIndex: Int, val match: Int, val matches: Int, val text: String, val start: Int)
 
 	/** One end of a selection: a text index, or a point on the page (in page points). */
 	class Boundary private constructor(private val index: Int, private val x: Int, private val y: Int) {
@@ -276,6 +311,7 @@ object PdfPages {
 		fun gotoLinks(): List<PdfPageGotoLinkContent>
 		fun text(): List<PdfPageTextContent>
 		fun select(start: SelectionBoundary, stop: SelectionBoundary): PageSelection?
+		fun search(query: String): List<PageMatchBounds>
 	}
 
 	@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
@@ -284,6 +320,7 @@ object PdfPages {
 		override fun gotoLinks(): List<PdfPageGotoLinkContent> = page.gotoLinks
 		override fun text(): List<PdfPageTextContent> = page.textContents
 		override fun select(start: SelectionBoundary, stop: SelectionBoundary) = page.selectContent(start, stop)
+		override fun search(query: String): List<PageMatchBounds> = page.searchText(query)
 	}
 
 	@RequiresExtension(extension = Build.VERSION_CODES.S, version = 13)
@@ -292,5 +329,6 @@ object PdfPages {
 		override fun gotoLinks(): List<PdfPageGotoLinkContent> = page.gotoLinks
 		override fun text(): List<PdfPageTextContent> = page.textContents
 		override fun select(start: SelectionBoundary, stop: SelectionBoundary) = page.selectContent(start, stop)
+		override fun search(query: String): List<PageMatchBounds> = page.searchText(query)
 	}
 }

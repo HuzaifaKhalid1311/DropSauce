@@ -19,6 +19,7 @@ import android.view.ViewConfiguration
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.appcompat.R as appcompatR
+import com.google.android.material.R as materialR
 import com.davemorrissey.labs.subscaleview.DefaultOnStateChangedListener
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.CoroutineScope
@@ -56,6 +57,8 @@ class PdfPageLayer(
 	interface Host {
 		/** Every PDF highlight of the open title. */
 		val pdfHighlights: Flow<List<Bookmark>>
+		/** What the book search last looked for, marked on every page; null when nothing is marked. */
+		val pdfSearchQuery: Flow<String?>
 		fun onPdfSelectionChanged(layer: PdfPageLayer, isActive: Boolean)
 		fun onPdfLink(chapterId: Long, file: File, link: PdfPages.Link)
 		fun onPdfDictionary(word: String)
@@ -81,6 +84,9 @@ class PdfPageLayer(
 	private val selectionPaint = Paint().apply {
 		color = ssiv.context.getThemeColor(appcompatR.attr.colorPrimary, 0.3f)
 	}
+	private val searchPaint = Paint().apply {
+		color = ssiv.context.getThemeColor(materialR.attr.colorTertiary, 0.4f)
+	}
 	private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
 		color = ssiv.context.getThemeColor(appcompatR.attr.colorPrimary)
 	}
@@ -93,6 +99,9 @@ class PdfPageLayer(
 	private var allHighlights: List<Bookmark> = emptyList()
 	private var highlights: List<Pair<Bookmark, PdfHighlight>> = emptyList()
 	private var selection: PdfPages.Selection? = null
+	private var searchQuery: String? = null
+	private var searchMarks: List<RectF> = emptyList()
+	private var searchJob: Job? = null
 	private var bindJob: Job? = null
 	private var selectJob: Job? = null
 	private var pendingSelect: Pair<PdfPages.Boundary, PdfPages.Boundary>? = null
@@ -141,6 +150,7 @@ class PdfPageLayer(
 			target = Target(file, index, chapterId, pageIndex, scale, region?.left ?: 0, region?.top ?: 0)
 			content = pageContent
 			filterHighlights()
+			findSearchMarks()
 			invalidateSelf()
 		}
 	}
@@ -149,10 +159,40 @@ class PdfPageLayer(
 		clearSelection()
 		dropPatch()
 		bindJob?.cancel()
+		searchJob?.cancel()
 		target = null
 		content = null
 		highlights = emptyList()
+		searchMarks = emptyList()
 		invalidateSelf()
+	}
+
+	/** Marks every match of [query] on the page; null clears them. */
+	fun setSearchQuery(query: String?) {
+		if (query == searchQuery) return
+		searchQuery = query
+		findSearchMarks()
+	}
+
+	private fun findSearchMarks() {
+		searchJob?.cancel()
+		val t = target
+		val query = searchQuery
+		if (t == null || query.isNullOrEmpty()) {
+			if (searchMarks.isNotEmpty()) {
+				searchMarks = emptyList()
+				invalidateSelf()
+			}
+			return
+		}
+		searchJob = scope.launch {
+			val marks = withContext(Dispatchers.IO) {
+				runCatching { PdfPages.find(t.file, t.index, query) }.onFailure { it.printStackTraceDebug() }.getOrNull()
+			}
+			if (target !== t) return@launch
+			searchMarks = marks.orEmpty()
+			invalidateSelf()
+		}
 	}
 
 	fun setHighlights(bookmarks: List<Bookmark>) {
@@ -322,6 +362,9 @@ class PdfPageLayer(
 				patchPaint.colorFilter = ssiv.colorFilter // the reader's colour filter, like the page under it
 				canvas.drawBitmap(bitmap, null, tmpRect, patchPaint)
 			}
+		}
+		for (rect in searchMarks) {
+			if (toView(rect, tmpRect)) canvas.drawRect(tmpRect, searchPaint)
 		}
 		for ((_, highlight) in highlights) {
 			for (rect in highlight.bounds) {
