@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.davemorrissey.labs.subscaleview.DefaultOnImageEventListener
+import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.ImageViewState
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.Dispatchers
@@ -25,8 +26,10 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.os.NetworkState
 import org.koitharu.kotatsu.core.ui.list.lifecycle.LifecycleAwareViewHolder
+import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.isLowRamDevice
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
 import org.koitharu.kotatsu.core.util.ext.isSerializable
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.databinding.LayoutPageInfoBinding
@@ -67,6 +70,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 		private set
 
 	private var isProgressPending = false
+	private var pdfLayer: PdfPageLayer? = null
 
 	/** The page is being reloaded under a still of its last frame (see [holdFrame]). */
 	private var isHoldingFrame = false
@@ -123,6 +127,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 	fun bind(data: ReaderPage) {
 		if (boundData?.id != data.id) {
 			clearUpscale()
+			pdfLayer?.unbind()
 		}
 		boundData = data
 		viewModel.splitSide = splitSide(data)
@@ -151,6 +156,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 	override fun onPause() {
 		super.onPause()
 		ssiv.applyDownSampling(isForeground = false)
+		pdfLayer?.clearSelection() // the page left the screen
 	}
 
 	override fun onDestroy() {
@@ -165,6 +171,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	@CallSuper
 	open fun onRecycled() {
+		pdfLayer?.unbind()
 		releaseFrame()
 		hideProgress()
 		clearUpscale()
@@ -279,8 +286,29 @@ abstract class BasePageHolder<B : ViewBinding>(
 				showProgress(state.progress)
 			}
 
-			is PageState.Shown -> ssiv.post { applyUpscale() }
+			is PageState.Shown -> {
+				ssiv.post { applyUpscale() }
+				bindPdfLayer(state.source)
+			}
 		}
+	}
+
+	/** Links, text selection and highlights over a PDF page. */
+	private fun bindPdfLayer(source: ImageSource) {
+		val uri = (source as? ImageSource.Uri)?.uri
+		val page = boundData
+		if (uri == null || !uri.isPdfUri() || page == null) {
+			pdfLayer?.unbind()
+			return
+		}
+		val layer = pdfLayer ?: run {
+			val host = context.findActivity() as? PdfPageLayer.Host ?: return
+			PdfPageLayer(ssiv, lifecycleScope, host).also { layer ->
+				pdfLayer = layer
+				host.pdfHighlights.observe(this, layer::setHighlights)
+			}
+		}
+		layer.bind(uri, source.region, page.chapterId, page.index)
 	}
 
 	private fun applyUpscale() {

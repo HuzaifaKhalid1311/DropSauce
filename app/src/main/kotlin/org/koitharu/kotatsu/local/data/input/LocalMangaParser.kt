@@ -264,10 +264,15 @@ class LocalMangaParser(private val uri: Uri) {
 		)
 	}
 
-	/** A single PDF is a one-chapter manga whose pages are drawn from the file while reading. */
+	/**
+	 * A single PDF is a manga whose pages are drawn from the file while reading. Its own contents list
+	 * splits it into chapters; without one it is a single chapter.
+	 */
 	@Blocking
 	private fun getPdfManga(withDetails: Boolean): LocalManga {
 		val url = rootFile.toUri().toString()
+		// the first chapter keeps the id the whole file had, so progress from before the split carries over
+		val firstId = "0${rootFile.name}".longHashCode()
 		return LocalManga(
 			Manga(
 				id = rootFile.absolutePath.longHashCode(),
@@ -277,19 +282,21 @@ class LocalMangaParser(private val uri: Uri) {
 				source = LocalMangaSource,
 				coverUrl = rootFile.toPdfUri(0).toString(),
 				chapters = if (withDetails) {
-					listOf(
+					val sections = PdfPages.chapters(rootFile).ifEmpty { listOf(null) }
+					sections.mapIndexed { i, section ->
+						val chapterUrl = section?.let { PdfPages.chapterUrl(rootFile, it.second) } ?: url
 						MangaChapter(
-							id = "0${rootFile.name}".longHashCode(),
-							title = rootFile.name.fileNameToTitle(),
-							number = 0f,
+							id = if (i == 0) firstId else chapterUrl.longHashCode(),
+							title = if (section == null) rootFile.name.fileNameToTitle() else section.first.ifBlank { null },
+							number = if (section == null) 0f else i + 1f,
 							volume = 0,
 							source = LocalMangaSource,
 							uploadDate = 0L,
-							url = url,
+							url = chapterUrl,
 							scanlator = null,
 							branch = null,
-						),
-					)
+						)
+					}
 				} else {
 					null
 				},
@@ -336,7 +343,8 @@ class LocalMangaParser(private val uri: Uri) {
 		val chapterUri = chapter.url.toUri().resolve()
 		if (chapterUri.isFileUri() && chapterUri.toFile().isPdfFile) {
 			val file = chapterUri.toFile()
-			return@runInterruptible List(PdfPages.count(file)) { i ->
+			val pages = PdfPages.chapterPages(chapter.url) ?: (0 until PdfPages.count(file))
+			return@runInterruptible pages.map { i ->
 				val pageUri = file.toPdfUri(i).toString()
 				MangaPage(id = pageUri.longHashCode(), url = pageUri, preview = null, source = LocalMangaSource)
 			}

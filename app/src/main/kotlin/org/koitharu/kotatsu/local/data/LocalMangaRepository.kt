@@ -23,6 +23,7 @@ import org.koitharu.kotatsu.core.util.ext.takeIfWriteable
 import org.koitharu.kotatsu.core.util.ext.withChildren
 import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
 import org.koitharu.kotatsu.local.data.input.LocalMangaParser
+import org.koitharu.kotatsu.local.data.input.PdfPages
 import org.koitharu.kotatsu.local.data.output.LocalMangaOutput
 import org.koitharu.kotatsu.local.data.output.LocalMangaUtil
 import org.koitharu.kotatsu.local.domain.MangaLock
@@ -144,6 +145,7 @@ class LocalMangaRepository @Inject constructor(
 
 	suspend fun delete(manga: Manga): Boolean {
 		val file = manga.url.toUri().toFile()
+		if (file.isPdfFile) PdfPages.release()
 		val result = file.deleteAwait()
 		if (result) {
 			localMangaIndex.delete(manga.id)
@@ -152,12 +154,14 @@ class LocalMangaRepository @Inject constructor(
 		return result
 	}
 
-	suspend fun deleteChapters(manga: Manga, ids: Set<Long>) = lock.withLock(manga) {
+	/** False when nothing could be deleted: some, but not all, chapters of a PDF split by its contents. */
+	suspend fun deleteChapters(manga: Manga, ids: Set<Long>): Boolean = lock.withLock(manga) {
 		val subject = if (manga.isLocal) manga else checkNotNull(findSavedManga(manga, withDetails = false)) {
 			"Manga is not stored on local storage"
 		}.manga
-		// A lone PDF is the title's only chapter, so its chapter goes with the file itself
+		// A lone PDF's chapters are parts of one file: it goes once all of them are deleted, never page by page
 		val isPdf = subject.url.toUri().toFile().isPdfFile
+		if (isPdf && getDetails(subject).chapters.orEmpty().any { it.id !in ids }) return@withLock false
 		if (!isPdf) LocalMangaUtil(subject).deleteChapters(ids)
 		val updated = if (isPdf) null else getDetails(subject).takeUnless { it.chapters.isNullOrEmpty() }
 		if (updated == null) {
@@ -167,6 +171,7 @@ class LocalMangaRepository @Inject constructor(
 		} else {
 			localStorageChanges.emit(LocalManga(updated))
 		}
+		true
 	}
 
 	suspend fun getRemoteManga(localManga: Manga): Manga? {

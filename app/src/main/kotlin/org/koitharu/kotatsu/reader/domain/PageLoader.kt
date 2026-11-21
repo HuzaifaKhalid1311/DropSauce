@@ -221,6 +221,22 @@ class PageLoader @Inject constructor(
 		}
 	}
 
+	/** Like [loadPage], but a PDF page comes back drawn as a picture file, for saving or sharing it. */
+	suspend fun loadPageImage(page: MangaPage): Uri {
+		val uri = loadPage(page, force = false)
+		if (!uri.isPdfUri()) return uri
+		val key = "$uri:image"
+		cache.get(key)?.let { return it.toUri() }
+		return runInterruptible(Dispatchers.IO) {
+			val (file, index) = PdfPages.parseUri(uri)
+			val bitmap = PdfPages.render(file, index, PdfPages.IMAGE_LONG_SIDE, PdfPages.IMAGE_LONG_SIDE)
+			Buffer().also { buffer ->
+				bitmap.compress(Bitmap.CompressFormat.JPEG, PDF_JPEG_QUALITY, buffer.outputStream())
+				bitmap.recycle()
+			}
+		}.let { cache.set(key, it, MimeType("image/jpeg")) }.toUri()
+	}
+
 	@CheckResult
 	suspend fun convertBimap(uri: Uri): Uri = convertLock.withLock {
 		if (uri.isZipUri()) {
@@ -250,6 +266,10 @@ class PageLoader @Inject constructor(
 	/** The whole image as a rect. Null when the size can't be read. */
 	suspend fun getImageBounds(uri: Uri): Rect? = runCatchingCancellable {
 		runInterruptible(Dispatchers.IO) {
+			if (uri.isPdfUri()) {
+				val size = PdfPages.parseUri(uri).let { (file, index) -> PdfPages.virtualSize(file, index) }
+				return@runInterruptible Rect(0, 0, size.x, size.y)
+			}
 			val size = if (uri.isZipUri()) {
 				ZipFile(uri.schemeSpecificPart).use { zip ->
 					uri.fragment?.let(zip::getEntry)?.let { entry ->
@@ -352,10 +372,12 @@ class PageLoader @Inject constructor(
 	): Uri {
 		val pageUrl = getPageUrl(page)
 		check(pageUrl.isNotBlank()) { "Cannot obtain full image url for $page" }
+		val uri = pageUrl.toUri()
+		// a PDF page is drawn straight from the file at the zoom shown, see PdfRegionDecoder
+		if (uri.isPdfUri()) return uri
 		if (!skipCache) {
 			cache.get(pageUrl)?.let { return it.toUri() }
 		}
-		val uri = pageUrl.toUri()
 		return when {
 			uri.isZipUri() -> if (uri.scheme == URI_SCHEME_ZIP) {
 				uri
@@ -364,15 +386,6 @@ class PageLoader @Inject constructor(
 			}
 
 			uri.isFileUri() -> uri
-			uri.isPdfUri() -> runInterruptible(Dispatchers.IO) {
-				val (file, index) = PdfPages.parseUri(uri)
-				val bitmap = PdfPages.render(file, index, PdfPages.READER_PAGE_LONG_SIDE, PdfPages.READER_PAGE_LONG_SIDE)
-				Buffer().also { buffer ->
-					bitmap.compress(Bitmap.CompressFormat.JPEG, PDF_JPEG_QUALITY, buffer.outputStream())
-					bitmap.recycle()
-				}
-			}.let { cache.set(pageUrl, it, MimeType("image/jpeg")) }.toUri()
-
 			else -> {
 				if (pace) {
 					downloadSourceThrottler.pace(page.source)
@@ -454,6 +467,7 @@ class PageLoader @Inject constructor(
 		@Blocking
 		private fun Uri.exists(): Boolean = when {
 			isFileUri() -> toFile().exists()
+			isPdfUri() -> PdfPages.parseUri(this).first.exists()
 			isZipUri() -> {
 				val file = File(requireNotNull(schemeSpecificPart))
 				file.exists() && ZipFile(file).use { it.getEntry(fragment) != null }
@@ -465,6 +479,7 @@ class PageLoader @Inject constructor(
 		@Blocking
 		private fun Uri.isTargetNotEmpty(): Boolean = when {
 			isFileUri() -> toFile().isNotEmpty()
+			isPdfUri() -> PdfPages.parseUri(this).first.isNotEmpty()
 			isZipUri() -> {
 				val file = File(requireNotNull(schemeSpecificPart))
 				file.exists() && ZipFile(file).use { (it.getEntry(fragment)?.size ?: 0L) != 0L }

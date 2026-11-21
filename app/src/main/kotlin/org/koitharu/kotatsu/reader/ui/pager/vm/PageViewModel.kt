@@ -25,6 +25,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
 import org.koitharu.kotatsu.core.os.NetworkState
 import org.koitharu.kotatsu.core.util.ext.copyToClipboard
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.throttle
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -117,7 +118,7 @@ class PageViewModel(
 		state.update { currentState ->
 			if (currentState is PageState.Loaded) {
 				val uri = (currentState.source as? ImageSource.Uri)?.uri
-				if (!currentState.isConverted && uri != null && e is IOException) {
+				if (!currentState.isConverted && uri != null && !uri.isPdfUri() && e is IOException) {
 					tryConvert(uri, e)
 					PageState.Converting()
 				} else {
@@ -205,7 +206,8 @@ class PageViewModel(
 		} else {
 			cachedBounds
 		}
-		return uri.toImageSource(region)
+		// a PDF page always goes through tiles: drawn whole at its full zoom size it would not fit in memory
+		return uri.toImageSource(region ?: if (uri.isPdfUri()) bounds ?: loader.getImageBounds(uri) else null)
 	}
 
 	enum class SplitSide { LEFT, RIGHT }

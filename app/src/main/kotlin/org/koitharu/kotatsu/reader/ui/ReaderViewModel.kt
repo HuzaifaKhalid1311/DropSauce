@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -34,6 +35,9 @@ import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.bookmarks.domain.BookmarksRepository
+import org.koitharu.kotatsu.bookmarks.domain.PdfHighlight
+import org.koitharu.kotatsu.bookmarks.domain.pdfHighlight
+import org.koitharu.kotatsu.bookmarks.domain.pdfHighlightUrl
 import org.koitharu.kotatsu.core.exceptions.EmptyMangaException
 import org.koitharu.kotatsu.core.model.getPreferredBranch
 import org.koitharu.kotatsu.core.logs.breadcrumb
@@ -65,6 +69,7 @@ import org.koitharu.kotatsu.history.domain.HistoryUpdateUseCase
 import org.koitharu.kotatsu.list.domain.ReadingProgress
 import org.koitharu.kotatsu.list.domain.ReadingProgress.Companion.PROGRESS_NONE
 import org.koitharu.kotatsu.local.data.LocalStorageChanges
+import org.koitharu.kotatsu.local.data.input.PdfPages
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.local.domain.DeleteLocalMangaUseCase
 import org.koitharu.kotatsu.local.domain.DeleteReadChaptersUseCase
@@ -86,6 +91,7 @@ import org.koitharu.kotatsu.scrobbling.discord.ui.DiscordRpc
 import org.koitharu.kotatsu.stats.domain.StatsCollector
 import java.io.File
 import java.time.Instant
+import java.util.UUID
 import javax.inject.Inject
 
 private const val BOUNDS_PAGE_OFFSET = 2
@@ -241,6 +247,11 @@ class ReaderViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
 
+    /** Highlights made on the PDF pages of this title. */
+    val pdfHighlights = manga.filterNotNull().distinctUntilChangedBy { it.id }.flatMapLatest { manga ->
+        bookmarksRepository.observeBookmarks(manga).map { list -> list.filter { it.pdfHighlight != null } }
+    }.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, emptyList())
+
     init {
         initIncognitoMode()
         loadImpl()
@@ -363,10 +374,13 @@ class ReaderViewModel @Inject constructor(
         loadingJob = launchLoadingJob(Dispatchers.Default) {
             prevJob?.cancelAndJoin()
             content.value = ReaderContent(emptyList(), null)
-            if (!chaptersLoader.loadSingleChapter(id)) {
+            // a page bookmark made before a PDF was split by its contents points past its chapter's end
+            val newState = ReaderState(id, page, scroll).let { state ->
+                mangaDetails.value?.let { state.inPdfChapter(it) } ?: state
+            }
+            if (!chaptersLoader.loadSingleChapter(newState.chapterId)) {
                 return@launchLoadingJob
             }
-            val newState = ReaderState(id, page, scroll)
             val pages = chaptersLoader.snapshot()
             preloadState(pages, newState)
             content.value = ReaderContent(pages, newState)
@@ -481,6 +495,29 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
+    fun addPdfHighlight(chapterId: Long, pageIndex: Int, highlight: PdfHighlight) {
+        launchJob(Dispatchers.Default) {
+            val bookmark = Bookmark(
+                manga = requireManga(),
+                pageId = UUID.randomUUID().leastSignificantBits and Long.MAX_VALUE,
+                chapterId = chapterId,
+                page = pageIndex,
+                scroll = 0,
+                imageUrl = pdfHighlightUrl(highlight),
+                createdAt = Instant.now(),
+                percent = computePercent(ReaderState(chapterId, pageIndex, 0)),
+            )
+            bookmarksRepository.addBookmark(bookmark)
+            onShowToast.call(R.string.highlight_added)
+        }
+    }
+
+    fun removeHighlight(bookmarkId: Long) {
+        launchJob(Dispatchers.Default) {
+            bookmarksRepository.removeBookmarks(setOf(bookmarkId))
+        }
+    }
+
     override suspend fun getChapterOpenMode(chapterId: Long): ChapterOpenMode {
         return if (isIncognitoMode.value == true) {
             ChapterOpenMode.NORMAL // nothing will be saved anyway
@@ -525,7 +562,7 @@ class ReaderViewModel @Inject constructor(
                         // obtain state
                         if (readingState.value == null) {
                             isChapterEmpty = false // only the latest attempt's outcome counts
-                            val newState = getStateFromIntent(manga, details.isLoaded)
+                            val newState = getStateFromIntent(manga, details.isLoaded)?.inPdfChapter(details)
                             if (newState == null) {
                                 return@collect // manga not loaded yet if cannot get state
                             }
@@ -799,6 +836,18 @@ class ReaderViewModel @Inject constructor(
             val discordCover = m.toManga().coverUrl?.takeIf { it.isHttpUrl() } ?: m.sourceManga.coverUrl
             discordRpc.updateRpc(m.toManga(), newState, discordCover)
         }
+    }
+
+    /** Progress saved before a PDF was split by its contents counted pages from the start of the file. */
+    private fun ReaderState.inPdfChapter(details: MangaDetails): ReaderState {
+        val chapters = details.allChapters
+        val pages = chapters.firstOrNull { it.id == chapterId }?.let { PdfPages.chapterPages(it.url) } ?: return this
+        if (page < pages.count()) return this
+        val absolute = pages.first + page
+        val target = chapters.firstNotNullOfOrNull { chapter ->
+            PdfPages.chapterPages(chapter.url)?.takeIf { absolute in it }?.let { chapter to it }
+        } ?: return this
+        return copy(chapterId = target.first.id, page = absolute - target.second.first)
     }
 
     private fun computePercent(state: ReaderState): Float {

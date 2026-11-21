@@ -75,7 +75,7 @@ class PageSaveHelper @AssistedInject constructor(
 	suspend fun saveToTempFile(task: Task): File {
 		val pageLoader = getPageLoader()
 		val pageUrl = pageLoader.getPageUrl(task.page).toUri()
-		val pageUri = pageLoader.loadPage(task.page, force = false)
+		val pageUri = pageLoader.loadPageImage(task.page)
 		val proposedName = task.getFileBaseName() + "." + getPageExtension(pageUrl, pageUri)
 		val destination = File(checkNotNull(context.getExternalFilesDir(TEMP_DIR)), proposedName)
 		copyImpl(pageUri, destination.toUri())
@@ -85,7 +85,7 @@ class PageSaveHelper @AssistedInject constructor(
 	private suspend fun saveImpl(task: Task): Uri {
 		val pageLoader = getPageLoader()
 		val pageUrl = pageLoader.getPageUrl(task.page).toUri()
-		val pageUri = pageLoader.loadPage(task.page, force = false)
+		val pageUri = pageLoader.loadPageImage(task.page)
 		val proposedName = task.getFileBaseName() + "." + getPageExtension(pageUrl, pageUri)
 		val destination = getDefaultFileUri(proposedName)?.uri ?: run {
 			val defaultUri = settings.getPagesSaveDir(context)?.uri?.buildUpon()?.appendPath(proposedName)?.toString()
@@ -105,7 +105,7 @@ class PageSaveHelper @AssistedInject constructor(
 		val result = ArrayList<Uri>(tasks.size)
 		for (task in tasks) {
 			val pageUrl = pageLoader.getPageUrl(task.page).toUri()
-			val pageUri = pageLoader.loadPage(task.page, force = false)
+			val pageUri = pageLoader.loadPageImage(task.page)
 			val proposedName = task.getFileBaseName()
 			val ext = getPageExtension(pageUrl, pageUri)
 			val mime = requireNotNull(MimeTypes.getMimeTypeFromExtension("_.$ext")) {

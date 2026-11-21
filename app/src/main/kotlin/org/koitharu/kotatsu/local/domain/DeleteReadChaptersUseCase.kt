@@ -44,8 +44,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 			checkNotNull(localMangaRepository.findSavedManga(manga)) { "Cannot find local manga" }
 		}
 		val task = getDeletionTask(localManga, keep) ?: return 0
-		localMangaRepository.deleteChapters(task.manga.manga, task.chaptersIds)
-		return task.chaptersIds.size
+		return if (localMangaRepository.deleteChapters(task.manga.manga, task.chaptersIds)) task.chaptersIds.size else 0
 	}
 
 	suspend operator fun invoke(keep: Int = settings.localChaptersCleanupKeep): Int {
@@ -68,8 +67,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 			}
 		}.buffer().map {
 			runCatchingCancellable {
-				localMangaRepository.deleteChapters(it.manga.manga, it.chaptersIds)
-				it.chaptersIds.size
+				if (localMangaRepository.deleteChapters(it.manga.manga, it.chaptersIds)) it.chaptersIds.size else 0
 			}.onFailure {
 				it.printStackTraceDebug()
 			}.getOrDefault(0)
@@ -92,10 +90,7 @@ class DeleteReadChaptersUseCase @Inject constructor(
 		val downloaded = localManga.manga.chapters?.ids() ?: return emptySet()
 		val ids = chaptersBehind(chapters, currentChapterId, settings.localChaptersCleanupKeep)
 			.mapNotNullTo(HashSet()) { x -> x.id.takeIf { it in downloaded && it !in exclude } }
-		if (ids.isNotEmpty()) {
-			localMangaRepository.deleteChapters(localManga.manga, ids)
-		}
-		return ids
+		return if (ids.isNotEmpty() && localMangaRepository.deleteChapters(localManga.manga, ids)) ids else emptySet()
 	}
 
 	private suspend fun getDeletionTask(manga: LocalManga, keep: Int): DeletionTask? {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import org.koitharu.kotatsu.bookmarks.domain.PDF_HIGHLIGHT_PREFIX
 import org.koitharu.kotatsu.core.db.entity.MangaWithTags
 
 @Dao
@@ -24,7 +25,8 @@ abstract class BookmarksDao {
 	)
 	abstract suspend fun findAll(offset: Int, limit: Int): Map<MangaWithTags, List<BookmarkEntity>>
 
-	@Query("SELECT * FROM bookmarks WHERE manga_id = :mangaId AND chapter_id = :chapterId AND page = :page ORDER BY percent")
+	// PDF highlights keep their page index in `page` too; these two are about page bookmarks only
+	@Query("SELECT * FROM bookmarks WHERE manga_id = :mangaId AND chapter_id = :chapterId AND page = :page AND image NOT LIKE '$PDF_HIGHLIGHT_PREFIX%' ORDER BY percent")
 	abstract fun observe(mangaId: Long, chapterId: Long, page: Int): Flow<BookmarkEntity?>
 
 	@Query("SELECT * FROM bookmarks WHERE manga_id = :mangaId")
@@ -51,7 +53,7 @@ abstract class BookmarksDao {
 	@Query("DELETE FROM bookmarks WHERE manga_id = :mangaId")
 	abstract suspend fun deleteAll(mangaId: Long): Int
 
-	@Query("DELETE FROM bookmarks WHERE manga_id = :mangaId AND chapter_id = :chapterId AND page = :page")
+	@Query("DELETE FROM bookmarks WHERE manga_id = :mangaId AND chapter_id = :chapterId AND page = :page AND image NOT LIKE '$PDF_HIGHLIGHT_PREFIX%'")
 	abstract suspend fun delete(mangaId: Long, chapterId: Long, page: Int): Int
 
 	@Upsert

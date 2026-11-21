@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### New
+- Links in PDFs work: web links open in your browser and contents or footnote links jump to the right page
+- Long-press text in a PDF to copy it, look it up in the dictionary or highlight it, and your highlights show up in your bookmarks (Android 15, or 12 to 14 with recent system updates)
+- PDFs with a table of contents now show their real chapters, and you keep your place
+
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
+- PDFs stay sharp however far you zoom in
 
 ### Fixed
 - Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error

@@ -44,7 +44,9 @@ class LocalChaptersRemoveService : CoroutineIntentService() {
 		powerManager.withPartialWakeLock(TAG) {
 			val mangaWithChapters = localMangaRepository.getDetails(manga)
 			// deleteChapters reports the change itself, and the file may be gone now
-			localMangaRepository.deleteChapters(mangaWithChapters, chaptersIds)
+			check(localMangaRepository.deleteChapters(mangaWithChapters, chaptersIds)) {
+				getString(R.string.pdf_delete_whole_only)
+			}
 		}
 	}
 

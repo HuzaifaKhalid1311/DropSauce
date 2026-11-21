@@ -32,6 +32,9 @@ class TapGridDispatcher(
 		if (!isDispatching) {
 			return true
 		}
+		if (listener.onContentTap(event.rawX, event.rawY)) {
+			return true
+		}
 		val area = getArea(event.rawX, event.rawY) ?: return false
 		val location = IntArray(2)
 		rootView.getLocationOnScreen(location)
@@ -46,6 +49,10 @@ class TapGridDispatcher(
 
 	override fun onLongPress(event: MotionEvent) {
 		if (isDispatching) {
+			if (listener.onContentLongPress(event.rawX, event.rawY)) {
+				rootView.hapticFeedback(HapticEffect.LONG_PRESS)
+				return
+			}
 			val area = getArea(event.rawX, event.rawY) ?: return
 			if (listener.onGridLongTouch(area)) {
 				rootView.hapticFeedback(HapticEffect.LONG_PRESS)
@@ -101,5 +108,11 @@ class TapGridDispatcher(
 		fun onGridLongTouch(area: TapGridArea): Boolean
 
 		fun onProcessTouch(rawX: Int, rawY: Int): Boolean
+
+		/** A tap on something in the page itself, such as a link, which wins over the tap zones. */
+		fun onContentTap(rawX: Float, rawY: Float): Boolean = false
+
+		/** A long-press on something in the page itself, such as text, which wins over the tap zones. */
+		fun onContentLongPress(rawX: Float, rawY: Float): Boolean = false
 	}
 }

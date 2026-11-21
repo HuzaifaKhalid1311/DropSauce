@@ -54,14 +54,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
+import org.koitharu.kotatsu.bookmarks.domain.PdfHighlight
 import org.koitharu.kotatsu.bookmarks.domain.epubHighlight
+import org.koitharu.kotatsu.bookmarks.domain.pdfHighlight
 import org.koitharu.kotatsu.core.exceptions.resolve.DialogErrorObserver
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
+import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ReaderMode
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
@@ -77,6 +81,7 @@ import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.getThemeDimensionPixelOffset
 import org.koitharu.kotatsu.core.util.ext.hasGlobalPoint
+import org.koitharu.kotatsu.core.util.ext.toPdfUri
 import org.koitharu.kotatsu.core.util.ext.isAnimationsEnabled
 import org.koitharu.kotatsu.core.util.ext.measureHeight
 import org.koitharu.kotatsu.core.util.ext.observe
@@ -88,6 +93,7 @@ import org.koitharu.kotatsu.core.util.ext.zipWithPrevious
 import org.koitharu.kotatsu.databinding.ActivityReaderBinding
 import org.koitharu.kotatsu.details.ui.pager.ChaptersPagesViewModel
 import org.koitharu.kotatsu.details.ui.pager.pages.PagesSavedObserver
+import org.koitharu.kotatsu.local.data.input.PdfPages
 import org.koitharu.kotatsu.local.data.isEpub
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.reader.data.TapGridSettings
@@ -98,9 +104,11 @@ import org.koitharu.kotatsu.reader.ui.config.ReaderConfigSheet
 import org.koitharu.kotatsu.reader.ui.epub.EpubReaderFragment
 import org.koitharu.kotatsu.reader.ui.tts.ReaderTts
 import org.koitharu.kotatsu.reader.ui.tts.ReaderTtsService
+import org.koitharu.kotatsu.reader.ui.pager.PdfPageLayer
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
 import org.koitharu.kotatsu.reader.ui.tapgrid.TapGridDispatcher
+import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import androidx.appcompat.R as appcompatR
@@ -115,7 +123,8 @@ class ReaderActivity :
     IdlingDetector.Callback,
     ZoomControl.ZoomControlListener,
     View.OnClickListener,
-    ScrollTimerControlView.OnVisibilityChangeListener {
+    ScrollTimerControlView.OnVisibilityChangeListener,
+    PdfPageLayer.Host {
 
     @Inject
     lateinit var settings: AppSettings
@@ -143,6 +152,10 @@ class ReaderActivity :
 
     @Inject
     lateinit var tts: ReaderTts
+
+    @Inject
+    @BaseHttpClient
+    lateinit var httpClient: OkHttpClient
     private lateinit var pageSaveHelper: PageSaveHelper
     private lateinit var touchHelper: TapGridDispatcher
     private lateinit var controlDelegate: ReaderControlDelegate
@@ -152,6 +165,10 @@ class ReaderActivity :
     // Set when a long-press action consumed the gesture; the remainder of the touch stream is
     // delivered to the content as ACTION_CANCEL so the pager doesn't scroll under the opened sheet.
     private var isTouchCancelled = false
+    // the PDF page with selected text, and the page and handle a finger is dragging
+    private var pdfSelection: PdfPageLayer? = null
+    private var pdfDragLayer: PdfPageLayer? = null
+    private var pdfDragHandle = PdfPageLayer.HANDLE_NONE
     private lateinit var readerManager: ReaderManager
     private val hideUiRunnable = Runnable { setUiIsVisible(false) }
     private var isScrollPausedByEyeReminder = false
@@ -524,6 +541,7 @@ class ReaderActivity :
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (viewModel.isEyeReminderVisible.value) return super.dispatchTouchEvent(ev)
+        if (dispatchPdfHandleDrag(ev)) return true
         touchHelper.dispatchTouchEvent(ev)
         if (!viewBinding.timerControl.hasGlobalPoint(ev.rawX.toInt(), ev.rawY.toInt())) {
             scrollTimer.onTouchEvent(ev)
@@ -541,6 +559,117 @@ class ReaderActivity :
         return super.dispatchTouchEvent(ev)
     }
 
+    /** Dragging a selection handle on a PDF page, or the finger still down after the long-press that selected. */
+    private fun dispatchPdfHandleDrag(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            pdfDragLayer = pdfSelection
+            pdfDragHandle = pdfSelection?.handleAt(ev.rawX, ev.rawY) ?: PdfPageLayer.HANDLE_NONE
+        }
+        val layer = pdfDragLayer
+        if (pdfDragHandle == PdfPageLayer.HANDLE_NONE || layer == null) return false
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_MOVE -> layer.dragHandle(pdfDragHandle, ev.rawX, ev.rawY)
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                layer.onDragEnd()
+                pdfDragLayer = null
+                pdfDragHandle = PdfPageLayer.HANDLE_NONE
+            }
+        }
+        // right after the long-press the usual path runs on: it keeps the page from moving under the finger
+        return !isTouchCancelled
+    }
+
+    override fun onContentTap(rawX: Float, rawY: Float): Boolean {
+        pdfSelection?.let {
+            it.clearSelection()
+            return true
+        }
+        return isReaderResumed() && pdfLayerAt(rawX, rawY)?.onTap(rawX, rawY) == true
+    }
+
+    override fun onContentLongPress(rawX: Float, rawY: Float): Boolean {
+        if (!isReaderResumed()) return false
+        val layer = pdfLayerAt(rawX, rawY) ?: return false
+        if (!layer.onLongPress(rawX, rawY)) return false
+        // the finger is still down: moving it stretches the selection once it arrives, and never scrolls the page
+        pdfDragLayer = layer
+        pdfDragHandle = PdfPageLayer.HANDLE_END
+        isTouchCancelled = true
+        return true
+    }
+
+    private fun pdfLayerAt(rawX: Float, rawY: Float): PdfPageLayer? =
+        viewBinding.container.findPdfLayer(rawX, rawY)
+
+    private fun View.findPdfLayer(x: Float, y: Float): PdfPageLayer? {
+        if (!isShown) return null
+        (getTag(R.id.tag_pdf_layer) as? PdfPageLayer)?.let { return it.takeIf { it.containsScreenPoint(x, y) } }
+        if (this is ViewGroup) {
+            for (i in childCount - 1 downTo 0) {
+                getChildAt(i).findPdfLayer(x, y)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    override val pdfHighlights: Flow<List<Bookmark>>
+        get() = viewModel.pdfHighlights
+
+    override fun onPdfSelectionChanged(layer: PdfPageLayer, isActive: Boolean) {
+        if (isActive) {
+            pdfSelection?.takeIf { it !== layer }?.clearSelection()
+            pdfSelection = layer
+        } else if (pdfSelection === layer) {
+            pdfSelection = null
+        }
+    }
+
+    override fun onPdfLink(chapterId: Long, file: File, link: PdfPages.Link) {
+        val uri = link.uri
+        if (uri != null) {
+            router.openExternalBrowser(uri.toString())
+        } else if (link.pageIndex != PdfPages.NO_PAGE) {
+            // pages are matched by their place in the file, which holds wherever the chapters start
+            val target = file.toPdfUri(link.pageIndex).toString()
+            val position = viewModel.content.value.pages.indexOfFirst { it.url == target }
+            if (position >= 0) {
+                readerManager.currentReader?.switchPageTo(position, true)
+                return
+            }
+            // a PDF split by its contents: the target sits in whichever chapter holds that page
+            val chapter = viewModel.mangaDetails.value?.allChapters?.firstNotNullOfOrNull { chapter ->
+                PdfPages.chapterPages(chapter.url)?.takeIf { link.pageIndex in it }?.let { chapter to it }
+            }
+            if (chapter != null) {
+                jumpToChapter(chapter.first.id, link.pageIndex - chapter.second.first, scroll = 0, isPeekPreferred = false)
+            } else {
+                switchToPage(chapterId, link.pageIndex)
+            }
+        }
+    }
+
+    override fun onPdfDictionary(word: String) {
+        DictionarySheet.show(this, lifecycleScope, httpClient, word)
+    }
+
+    override fun onPdfAddHighlight(chapterId: Long, pageIndex: Int, highlight: PdfHighlight) {
+        viewModel.addPdfHighlight(chapterId, pageIndex, highlight)
+    }
+
+    override fun onPdfRemoveHighlight(bookmarkId: Long) {
+        viewModel.removeHighlight(bookmarkId)
+    }
+
+    /** Page [index] of the chapter, scrolled to when it is loaded, opened otherwise. */
+    private fun switchToPage(chapterId: Long, index: Int) {
+        val position = viewModel.content.value.pages.indexOfFirst { it.chapterId == chapterId && it.index == index }
+        if (position >= 0) {
+            readerManager.currentReader?.switchPageTo(position, true)
+        } else {
+            jumpToChapter(chapterId, index, scroll = 0, isPeekPreferred = true)
+        }
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (viewModel.isEyeReminderVisible.value) return super.onKeyDown(keyCode, event)
         return controlDelegate.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
@@ -556,6 +685,11 @@ class ReaderActivity :
     }
 
     override fun onBookmarkSelected(bookmark: Bookmark): Boolean {
+        if (bookmark.pdfHighlight != null) {
+            // the highlight's own id is not a page id: find the page by its index
+            switchToPage(bookmark.chapterId, bookmark.page)
+            return true
+        }
         return if (bookmark.epubHighlight != null) {
             // epub highlights keep the exact character offset in `page`; scroll is only a coarse permille
             jumpToChapter(

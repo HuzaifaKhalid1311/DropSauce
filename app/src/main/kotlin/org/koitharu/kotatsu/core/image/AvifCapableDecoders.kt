@@ -16,6 +16,7 @@ import com.davemorrissey.labs.subscaleview.decoder.SkiaImageDecoder
 import com.davemorrissey.labs.subscaleview.decoder.SkiaImageRegionDecoder
 import com.davemorrissey.labs.subscaleview.decoder.SkiaPooledImageRegionDecoder
 import org.koitharu.kotatsu.core.util.ext.MimeType
+import org.koitharu.kotatsu.core.util.ext.isPdfUri
 import org.koitharu.kotatsu.core.util.ext.isZipUri
 import java.io.InputStream
 import java.util.zip.ZipFile
@@ -129,6 +130,7 @@ class AvifCapableImageDecoder(private val bitmapConfig: Bitmap.Config) : ImageDe
 	private val delegate = SkiaImageDecoder(bitmapConfig)
 
 	override fun decode(context: Context, uri: Uri, sampleSize: Int): Bitmap {
+		if (uri.isPdfUri()) return PdfRegionDecoder.decodeWhole(uri, sampleSize)
 		val format = uri.sniffBundledFormat(context) ?: return delegate.decode(context, uri, sampleSize)
 		val bmp = BundledBitmapStash.take(uri) ?: uri.decodeBundled(context, format)
 		return if (sampleSize > 1) {
@@ -171,7 +173,9 @@ class AvifCapableRegionDecoder(
 	private var servedFullResTile = false
 	private var full: Bitmap? = null
 
-	private fun newDelegate(): ImageRegionDecoder = if (lowRam) {
+	private fun newDelegate(uri: Uri?): ImageRegionDecoder = if (uri?.isPdfUri() == true) {
+		PdfRegionDecoder()
+	} else if (lowRam) {
 		SkiaImageRegionDecoder(bitmapConfig)
 	} else {
 		SkiaPooledImageRegionDecoder(bitmapConfig)
@@ -198,19 +202,19 @@ class AvifCapableRegionDecoder(
 	}
 
 	override fun init(context: Context, uri: Uri): Point {
-		val format = uri.sniffBundledFormat(context)
-			?: return newDelegate().also { delegate = it }.init(context, uri)
+		val format = uri.takeUnless { it.isPdfUri() }?.sniffBundledFormat(context)
+			?: return newDelegate(uri).also { delegate = it }.init(context, uri)
 		return initBundled(context, uri, format)
 	}
 
 	override fun init(context: Context, source: ImageSource): Point {
 		val uri = (source as? ImageSource.Uri)?.uri
-		val format = uri?.sniffBundledFormat(context)
+		val format = uri?.takeUnless { it.isPdfUri() }?.sniffBundledFormat(context)
 		if (uri != null && format != null) {
 			return initBundled(context, uri, format)
 		}
 		// Delegate with the original ImageSource so any region/crop it carries is preserved.
-		return newDelegate().also { delegate = it }.init(context, source)
+		return newDelegate(uri).also { delegate = it }.init(context, source)
 	}
 
 	override fun decodeRegion(sRect: Rect, sampleSize: Int): Bitmap {

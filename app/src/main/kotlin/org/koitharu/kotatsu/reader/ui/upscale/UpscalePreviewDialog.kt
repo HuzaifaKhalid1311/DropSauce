@@ -168,7 +168,7 @@ class UpscalePreviewDialog : ComposeAlertDialogFragment() {
 		val b = binding ?: return@launch
 		runCatchingCancellable {
 			val page = checkNotNull(viewModel.getCurrentPage()) { "Cannot find current page" }
-			val uri = pageLoader.loadPage(page, force = false)
+			val uri = pageLoader.loadPageImage(page)
 			page.id to runInterruptible(Dispatchers.Default) { decode(uri) }
 		}.onSuccess { (pageId, bmp) ->
 			bitmap = bmp
