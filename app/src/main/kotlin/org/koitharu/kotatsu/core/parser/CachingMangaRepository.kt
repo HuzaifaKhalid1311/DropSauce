@@ -64,8 +64,6 @@ abstract class CachingMangaRepository(
 		if (cachePolicy.readEnabled) {
 			cache.getDetails(source, manga.url)?.let { return it }
 		}
-		// TEMP(debug): shows who starts each details load; remove once the duplicate caller is known
-		if (BuildConfig.DEBUG) Log.w(TAG, "details load ${source.name} ${manga.url} policy=$cachePolicy", Throwable())
 		val details = asyncSafe {
 			getDetailsImpl(manga)
 		}
