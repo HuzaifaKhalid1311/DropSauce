@@ -91,7 +91,7 @@ class KotatsuMigrationUseCase @Inject constructor(
 		val source = mihonExtensionManager.getMihonMangaSourceById(sourceId)
 		val ruleApplies = target != null && target.mangaUrl.rewrite(oldManga.url, oldManga.publicUrl, null) != oldManga.url
 		val newSource: MangaSource = if (ruleApplies) {
-			source ?: MissingMangaSource(legacy.sourceName, target!!.sourceName)
+			source ?: MissingMangaSource(legacy.sourceName, target.sourceName)
 		} else {
 			source ?: return Outcome.Failed("Extension for ${legacy.sourceName} not installed")
 			val httpSource = source.catalogueSource as? HttpSource
