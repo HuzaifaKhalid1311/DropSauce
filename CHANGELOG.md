@@ -19,6 +19,7 @@
 ### Fixed
 - Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error
 - The dictionary popup opens at half the screen instead of jumping to full screen for long meanings
+- Restoring a Mihon backup brings back the right tracker ratings and statuses
 
 ## 1.1.5 (2026-11-20)
 

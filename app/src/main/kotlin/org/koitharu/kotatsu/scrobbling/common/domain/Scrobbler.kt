@@ -125,6 +125,9 @@ abstract class Scrobbler(
 
 	fun isNotStarted(status: String?): Boolean = status == statuses[ScrobblingStatus.PLANNED]
 
+	/** This tracker's own name for [status], or `null` when it has no such status. */
+	fun remoteStatus(status: ScrobblingStatus): String? = statuses[status]
+
 	/**
 	 * @param forceStartDate stamps today as the start date even when the status is not changing. Used
 	 * for an entry the app just created, which has no date of its own to preserve.
