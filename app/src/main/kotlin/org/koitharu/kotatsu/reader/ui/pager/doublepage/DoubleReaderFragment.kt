@@ -80,7 +80,10 @@ open class DoubleReaderFragment : BaseReaderFragment<FragmentReaderDoubleBinding
 			items.join()
 			if (position != -1) {
 				position = position.toPagePosition()
-				requireViewBinding().recyclerView.firstVisibleItemPosition = position
+				with(requireViewBinding().recyclerView) {
+					firstVisibleItemPosition = position
+					awaitLayout()
+				}
 				notifyPageChanged(position, position + 1)
 			} else {
 				Snackbar.make(requireView(), R.string.not_found_404, Snackbar.LENGTH_SHORT)

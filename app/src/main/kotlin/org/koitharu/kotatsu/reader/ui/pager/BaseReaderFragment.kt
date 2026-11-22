@@ -5,6 +5,8 @@ import android.view.View
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.activityViewModels
 import androidx.viewbinding.ViewBinding
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 import org.koitharu.kotatsu.core.prefs.ReaderAnimation
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.widgets.ZoomControl
@@ -77,6 +79,25 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 
 	protected fun requireAdapter() = checkNotNull(readerAdapter) {
 		"Adapter was not created or already destroyed"
+	}
+
+	/**
+	 * Waits until the jump to the restored page has been laid out. Reporting the page before that lets the
+	 * viewmodel prepend a neighbouring chapter (instant when its pages are cached) while the jump is still
+	 * pending: the list then lays out at the old raw position, showing the other chapter under this title.
+	 */
+	protected suspend fun View.awaitLayout() {
+		if (isLaidOut && !isLayoutRequested) return
+		suspendCancellableCoroutine { cont ->
+			val listener = object : View.OnLayoutChangeListener {
+				override fun onLayoutChange(v: View, l: Int, t: Int, r: Int, b: Int, ol: Int, ot: Int, or: Int, ob: Int) {
+					v.removeOnLayoutChangeListener(this)
+					cont.resume(Unit)
+				}
+			}
+			addOnLayoutChangeListener(listener)
+			cont.invokeOnCancellation { removeOnLayoutChangeListener(listener) }
+		}
 	}
 
 	protected fun isAnimationEnabled(): Boolean {
