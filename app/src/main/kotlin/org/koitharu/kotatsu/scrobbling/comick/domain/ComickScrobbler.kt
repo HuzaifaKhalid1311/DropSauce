@@ -21,8 +21,6 @@ class ComickScrobbler @Inject constructor(
 	init {
 		statuses[ScrobblingStatus.PLANNED] = "plan_to_read"
 		statuses[ScrobblingStatus.READING] = "reading"
-		// Comick has no rereading status; READING comes first, so entries still show as Reading
-		statuses[ScrobblingStatus.RE_READING] = "reading"
 		statuses[ScrobblingStatus.COMPLETED] = "completed"
 		statuses[ScrobblingStatus.ON_HOLD] = "on_hold"
 		statuses[ScrobblingStatus.DROPPED] = "dropped"

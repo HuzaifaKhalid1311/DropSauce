@@ -241,7 +241,8 @@ class ComickRepository @Inject constructor(
 			chapter = json.optJSONObject("progress")?.getStringOrNull("number")?.toFloatOrNull()?.toInt() ?: 0,
 			// Comick has no notes field available, comments stay local
 			comment = comment,
-			rating = (json.optInt("rating", 0).toFloat() / RATING_MAX).coerceIn(0f, 1f),
+			// reads can keep decimal scores from imports, like 7.5
+			rating = (json.optDouble("rating", 0.0).toFloat() / RATING_MAX).coerceIn(0f, 1f),
 		)
 		db.getScrobblingDao().upsert(entity)
 		return entity

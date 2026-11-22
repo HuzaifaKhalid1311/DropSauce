@@ -196,6 +196,7 @@ abstract class Scrobbler(
 			mangaId = mangaId,
 			targetId = targetId,
 			status = statuses.findKeyByValue(status),
+			supportedStatuses = statuses.keys,
 			chapter = chapter,
 			totalChapters = mangaInfo.totalChapters,
 			comment = comment,

@@ -8,6 +8,8 @@ data class ScrobblingInfo(
 	val mangaId: Long,
 	val targetId: Long,
 	val status: ScrobblingStatus?,
+	/** The statuses this tracker has; the others can't be picked. */
+	val supportedStatuses: Set<ScrobblingStatus>,
 	val chapter: Int,
 	val totalChapters: Int,
 	val comment: String?,
