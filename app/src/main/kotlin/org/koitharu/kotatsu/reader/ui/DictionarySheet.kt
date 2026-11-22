@@ -7,7 +7,6 @@ import android.text.Spanned
 import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import androidx.core.view.isVisible
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +39,8 @@ object DictionarySheet {
 	fun show(context: Context, scope: CoroutineScope, httpClient: OkHttpClient, word: String) {
 		val binding = SheetEpubDictionaryBinding.inflate(LayoutInflater.from(context))
 		val dialog = BottomSheetDialog(context)
-		dialog.behavior.skipCollapsed = true
-		dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+		// Long meanings open at half the screen at most; the user pulls the sheet up for the rest.
+		dialog.behavior.peekHeight = context.resources.displayMetrics.heightPixels / 2
 		binding.textViewWord.text = word
 		binding.buttonClose.setOnClickListener { dialog.dismiss() }
 		dialog.setContentView(binding.root)

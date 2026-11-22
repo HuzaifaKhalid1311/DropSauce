@@ -428,7 +428,8 @@ class MihonBackupManager @Inject constructor(
                         ?: tracking.mediaIdInt.toLong().takeIf { it > 0 }
                         ?: return@mapNotNull null
                     val remoteEntryId = tracking.libraryId.toInt().takeIf { it > 0 }
-                        ?: targetId.toInt().takeIf { it > 0 }
+                        // Comick's 48-bit title numbers often truncate to a negative Int, still a valid local id
+                        ?: targetId.toInt().takeIf { it != 0 }
                         ?: return@mapNotNull null
                     ScrobblingEntity(
                         scrobbler = scrobblerId,
@@ -587,6 +588,7 @@ class MihonBackupManager @Inject constructor(
     3 -> 4 // Kitsu
     4 -> 1 // Shikimori
     11 -> 5 // MangaBaka
+    12 -> 6 // Comick (same HID-to-number encoding as Mihon)
     else -> null
   }
 

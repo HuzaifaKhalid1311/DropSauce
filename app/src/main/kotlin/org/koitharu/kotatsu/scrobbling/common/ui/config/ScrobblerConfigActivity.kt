@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.scrobbling.common.ui.config
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
@@ -21,6 +22,7 @@ import org.koitharu.kotatsu.core.util.ext.showOrHide
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.databinding.ActivityScrobblerConfigBinding
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
 import org.koitharu.kotatsu.scrobbling.common.ui.config.adapter.ScrobblingMangaAdapter
@@ -34,6 +36,11 @@ class ScrobblerConfigActivity : BaseActivity<ActivityScrobblerConfigBinding>(),
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		// The Comick filter can only match the whole scheme, so stray links of that scheme land here too
+		if (intent.action == Intent.ACTION_VIEW && intent.data?.let(::serviceOf) == null) {
+			finish()
+			return
+		}
 		setContentView(ActivityScrobblerConfigBinding.inflate(layoutInflater))
 		setTitle(viewModel.titleResId)
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
@@ -132,5 +139,17 @@ class ScrobblerConfigActivity : BaseActivity<ActivityScrobblerConfigBinding>(),
 		const val HOST_MAL_AUTH = "mal-auth"
 		const val HOST_KITSU_AUTH = "kitsu-auth"
 		const val HOST_MANGABAKA_AUTH = "mangabaka-auth"
+		const val HOST_COMICK_AUTH = "comick-auth"
+
+		/** The service an auth redirect belongs to; Comick's redirect has no host, its name is the path. */
+		fun serviceOf(uri: Uri): ScrobblerService? = when (uri.host ?: uri.path?.removePrefix("/")) {
+			HOST_SHIKIMORI_AUTH -> ScrobblerService.SHIKIMORI
+			HOST_ANILIST_AUTH -> ScrobblerService.ANILIST
+			HOST_MAL_AUTH -> ScrobblerService.MAL
+			HOST_KITSU_AUTH -> ScrobblerService.KITSU
+			HOST_MANGABAKA_AUTH -> ScrobblerService.MANGABAKA
+			HOST_COMICK_AUTH -> ScrobblerService.COMICK
+			else -> null
+		}
 	}
 }

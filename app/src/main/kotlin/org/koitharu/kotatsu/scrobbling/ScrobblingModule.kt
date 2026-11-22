@@ -24,6 +24,9 @@ import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuInterceptor
 import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuRepository
 import org.koitharu.kotatsu.scrobbling.kitsu.domain.KitsuScrobbler
 import org.koitharu.kotatsu.scrobbling.mal.data.MALAuthenticator
+import org.koitharu.kotatsu.scrobbling.comick.data.ComickAuthenticator
+import org.koitharu.kotatsu.scrobbling.comick.data.ComickInterceptor
+import org.koitharu.kotatsu.scrobbling.comick.domain.ComickScrobbler
 import org.koitharu.kotatsu.scrobbling.mal.data.MALInterceptor
 import org.koitharu.kotatsu.scrobbling.mal.domain.MALScrobbler
 import org.koitharu.kotatsu.scrobbling.mangabaka.data.MangaBakaAuthenticator
@@ -88,6 +91,18 @@ object ScrobblingModule {
 
 	@Provides
 	@Singleton
+	@ScrobblerType(ScrobblerService.COMICK)
+	fun provideComickHttpClient(
+		@BaseHttpClient baseHttpClient: OkHttpClient,
+		authenticator: ComickAuthenticator,
+		@ScrobblerType(ScrobblerService.COMICK) storage: ScrobblerStorage,
+	): OkHttpClient = baseHttpClient.newBuilder().apply {
+		authenticator(authenticator)
+		addInterceptor(ComickInterceptor(storage))
+	}.build()
+
+	@Provides
+	@Singleton
 	fun provideKitsuRepository(
 		@ApplicationContext context: Context,
 		@ScrobblerType(ScrobblerService.KITSU) storage: ScrobblerStorage,
@@ -140,6 +155,13 @@ object ScrobblingModule {
 	): ScrobblerStorage = ScrobblerStorage(context, ScrobblerService.MANGABAKA)
 
 	@Provides
+	@Singleton
+	@ScrobblerType(ScrobblerService.COMICK)
+	fun provideComickStorage(
+		@ApplicationContext context: Context,
+	): ScrobblerStorage = ScrobblerStorage(context, ScrobblerService.COMICK)
+
+	@Provides
 	@ElementsIntoSet
 	fun provideScrobblers(
 		shikimoriScrobbler: ShikimoriScrobbler,
@@ -147,11 +169,13 @@ object ScrobblingModule {
 		malScrobbler: MALScrobbler,
 		kitsuScrobbler: KitsuScrobbler,
 		mangaBakaScrobbler: MangaBakaScrobbler,
+		comickScrobbler: ComickScrobbler,
 	): Set<@JvmSuppressWildcards Scrobbler> = setOf(
 		shikimoriScrobbler,
 		aniListScrobbler,
 		malScrobbler,
 		kitsuScrobbler,
 		mangaBakaScrobbler,
+		comickScrobbler,
 	)
 }

@@ -1,0 +1,30 @@
+package org.koitharu.kotatsu.scrobbling.comick.data
+
+import okhttp3.Interceptor
+import okhttp3.Response
+import org.koitharu.kotatsu.core.network.CommonHeaders
+import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
+import org.koitharu.kotatsu.scrobbling.common.domain.ScrobblerAuthRequiredException
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
+import java.net.HttpURLConnection
+
+class ComickInterceptor(private val storage: ScrobblerStorage) : Interceptor {
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val sourceRequest = chain.request()
+		val request = sourceRequest.newBuilder()
+		request.header(CommonHeaders.ACCEPT, "application/json")
+		val isAuthRequest = sourceRequest.url.pathSegments.contains("oauth2")
+		if (!isAuthRequest) {
+			storage.accessToken?.let {
+				request.header(CommonHeaders.AUTHORIZATION, "Bearer $it")
+			}
+		}
+		val response = chain.proceed(request.build())
+		if (!isAuthRequest && response.code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+			response.close()
+			throw ScrobblerAuthRequiredException(ScrobblerService.COMICK)
+		}
+		return response
+	}
+}

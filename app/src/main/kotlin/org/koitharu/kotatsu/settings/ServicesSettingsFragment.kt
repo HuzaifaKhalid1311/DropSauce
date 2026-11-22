@@ -149,8 +149,8 @@ class ServicesSettingsFragment : BaseComposeSettingsFragment(R.string.services) 
 		val context = context ?: return
 		showConfirmDialog(
 			context = context,
-			// The popup tints its icon, which would flatten MangaBaka's bitmap logo into a blob.
-			icon = if (service == ScrobblerService.MANGABAKA) R.drawable.ic_sync else service.iconResId,
+			// The popup tints its icon, which would flatten a bitmap logo into a blob.
+			icon = if (service.isBitmapIcon) R.drawable.ic_sync else service.iconResId,
 			title = context.getString(service.titleResId),
 			message = context.getString(R.string.scrobbler_auth_intro, context.getString(service.titleResId)),
 			confirmLabel = context.getString(R.string.sign_in),
@@ -306,6 +306,7 @@ private fun ServicesScreen(
 				Spacer(Modifier.height(8.dp).fillMaxWidth())
 				val services = listOf(
 					ScrobblerService.ANILIST to R.drawable.ic_anilist,
+					ScrobblerService.COMICK to R.drawable.ic_comick,
 					ScrobblerService.KITSU to R.drawable.ic_kitsu,
 					ScrobblerService.MAL to R.drawable.ic_mal,
 					ScrobblerService.MANGABAKA to R.drawable.ic_mangabaka,
@@ -318,7 +319,7 @@ private fun ServicesScreen(
 								title = stringResource(svc.titleResId),
 								subtitle = scrobblerSummaries[svc],
 								icon = icon,
-								tintIcon = svc != ScrobblerService.MANGABAKA,
+								tintIcon = !svc.isBitmapIcon,
 								shape = pos.shape,
 								onClick = { onScrobblerClick(svc) },
 							)

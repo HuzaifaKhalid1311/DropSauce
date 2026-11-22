@@ -17,8 +17,11 @@ import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import javax.inject.Inject
 
-/** Launcher icon choices, all following the app's light / dark / OLED look (Mono only has light and dark). */
-enum class AppIcon { DEFAULT, THEMED, MONO }
+/**
+ * Launcher icon choices, all following the app's light / dark / OLED look (Mono only has light and dark),
+ * except Static: the dark default icon that never switches, for launchers that glitch on icon swaps.
+ */
+enum class AppIcon { DEFAULT, THEMED, MONO, STATIC }
 
 /**
  * Each icon is an `org.koitharu.kotatsu.icon.*` activity-alias of MainActivity in the manifest, and
@@ -59,19 +62,13 @@ object AppIconManager {
 	fun apply(context: Context, settings: AppSettings) {
 		val target = aliasName(settings.appIcon, settings.colorScheme, mode(settings))
 		if (target == appliedAlias) return
-		val pm = context.packageManager
 		// The new entry goes on before the old one goes off, so the launcher never sees the app without one.
 		val names = listOf(target) + allAliases().filter { it != target }
 		for (name in names) {
 			val component = ComponentName(context, PREFIX + name)
 			val shouldEnable = name == target
-			val isEnabled = when (pm.getComponentEnabledSetting(component)) {
-				PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
-				PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> name == AppIcon.DEFAULT.name // the manifest default
-				else -> false
-			}
-			if (shouldEnable != isEnabled) {
-				pm.setComponentEnabledSetting(
+			if (shouldEnable != isEnabled(context, name)) {
+				context.packageManager.setComponentEnabledSetting(
 					component,
 					if (shouldEnable) {
 						PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -85,6 +82,17 @@ object AppIconManager {
 		appliedAlias = target
 	}
 
+	/** Whether the launcher entry the settings call for is already the enabled one, so nothing would switch. */
+	fun isApplied(context: Context, settings: AppSettings): Boolean =
+		isEnabled(context, aliasName(settings.appIcon, settings.colorScheme, mode(settings)))
+
+	private fun isEnabled(context: Context, name: String): Boolean =
+		when (context.packageManager.getComponentEnabledSetting(ComponentName(context, PREFIX + name))) {
+			PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
+			PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> name == AppIcon.DEFAULT.name // the manifest default
+			else -> false
+		}
+
 	/** The adaptive icon [icon] gets in [scheme] and the given look, for previews. */
 	fun iconRes(icon: AppIcon, scheme: ColorScheme, isDark: Boolean, isOled: Boolean): Int {
 		val mode = mode(isDark, isOled)
@@ -92,6 +100,7 @@ object AppIconManager {
 			AppIcon.DEFAULT -> intArrayOf(R.mipmap.ic_launcher_white, R.mipmap.ic_launcher, R.mipmap.ic_launcher_black)[mode]
 			AppIcon.MONO -> if (mode == LIGHT) R.mipmap.ic_launcher_mono_light else R.mipmap.ic_launcher_mono
 			AppIcon.THEMED -> THEMED.getValue(scheme)[mode]
+			AppIcon.STATIC -> R.mipmap.ic_launcher
 		}
 	}
 
@@ -116,6 +125,7 @@ object AppIconManager {
 		AppIcon.DEFAULT -> arrayOf("DEFAULT_WHITE", "DEFAULT", "DEFAULT_BLACK")[mode]
 		AppIcon.MONO -> if (mode == LIGHT) "MONO_LIGHT" else "MONO"
 		AppIcon.THEMED -> "THEME_${scheme.name}_" + arrayOf("LIGHT", "DARK", "OLED")[mode]
+		AppIcon.STATIC -> "DEFAULT"
 	}
 
 	private fun allAliases(): List<String> = listOf("DEFAULT", "DEFAULT_WHITE", "DEFAULT_BLACK", "MONO", "MONO_LIGHT") +

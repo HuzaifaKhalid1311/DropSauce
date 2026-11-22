@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +39,7 @@ import android.graphics.drawable.LayerDrawable
 import org.koitharu.kotatsu.settings.compose.PreviewTile
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -114,7 +116,10 @@ class AppearanceSettingsFragment : BaseComposeSettingsFragment(R.string.appearan
 					activity?.let { ThemeSwitchCoverActivity.switchNightMode(it, settings.theme) }
 				}, 300)
 			}
-			AppSettings.KEY_APP_ICON -> activity?.let { activity ->
+			AppSettings.KEY_APP_ICON -> activity?.takeUnless {
+				// e.g. Default in dark mode -> Static: the same launcher entry, so nothing to close for
+				AppIconManager.isApplied(it, settings)
+			}?.let { activity ->
 				// Android closes a task opened from the icon being switched off anyway, so close it ourselves
 				// first instead of letting it fall apart screen by screen.
 				val context = activity.applicationContext
@@ -764,12 +769,16 @@ private fun AppIconPicker(
 ) {
 	val haptic = rememberHapticEffect()
 	val context = LocalContext.current
-	val labels = listOf(R.string.app_icon_default, R.string.app_icon_themed, R.string.app_icon_mono)
+	val labels = listOf(R.string.app_icon_default, R.string.app_icon_themed, R.string.app_icon_mono, R.string.app_icon_static)
 	Row(
 		modifier = Modifier.fillMaxWidth(),
 		horizontalArrangement = Arrangement.spacedBy(8.dp),
 	) {
 		AppIcon.entries.forEach { icon ->
+			if (icon == AppIcon.STATIC) {
+				// Static turns the theming off, so it sits apart from the themed choices.
+				VerticalDivider(modifier = Modifier.padding(top = 8.dp).height(48.dp))
+			}
 			val res = AppIconManager.iconRes(icon, scheme, isDark, isOled)
 			// Both layers edge to edge, so the tile's own rounded shape is the icon's shape.
 			val painter = remember(context, res) {

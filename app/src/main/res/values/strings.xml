@@ -503,7 +503,7 @@
     <string name="theme_name_expressive">Expressive</string>
     <string name="app_icon">App icon</string>
     <string name="app_icon_summary">The app will close to change the icon</string>
-    <string name="app_icon_follows_theme">Icons follow light and dark mode. Themed also matches your app color</string>
+    <string name="app_icon_follows_theme">Icons follow light and dark mode. Themed also matches your app color, Static never changes</string>
     <string name="retry_failed">Retry failed</string>
     <string name="add_quick_genre">Add a genre</string>
     <string name="dont_suggest">Don\'t suggest</string>
@@ -522,6 +522,7 @@
     <string name="tts_sleep_timer_eoc">End of chapter</string>
     <string name="app_icon_default">Default</string>
     <string name="app_icon_mono">Mono</string>
+    <string name="app_icon_static">Static</string>
     <string name="app_icon_themed">Themed</string>
     <string name="color_theme">Color scheme</string>
     <string name="show_in_grid_view">Show in grid view</string>
@@ -638,6 +639,8 @@
     <string name="invalid_value_message">Invalid value</string>
     <string name="kitsu" translatable="false">Kitsu</string>
     <string name="mangabaka" translatable="false">MangaBaka</string>
+    <string name="comick" translatable="false">Comick</string>
+    <string name="comick_permissions_required">Comick needs both library changes and ongoing sync allowed. Sign in again and tick them on the Comick page</string>
     <string name="email_password_enter_hint">Enter your email and password to continue</string>
     <string name="downloaded">Downloaded</string>
     <string name="images_proxy_title">Images optimization proxy</string>

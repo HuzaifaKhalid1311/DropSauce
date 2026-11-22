@@ -280,7 +280,7 @@ class ScrobblingSelectorSheet :
 			tab.setIcon(entry.scrobblerService.iconResId)
 			tab.setText(entry.scrobblerService.titleResId)
 			tabs.addTab(tab)
-			if (entry.scrobblerService == ScrobblerService.MANGABAKA) {
+			if (entry.scrobblerService.isBitmapIcon) {
 				// TabLayout tints every icon, which flattens the bitmap logo into a silhouette
 				tab.icon?.setTintList(null)
 			}
