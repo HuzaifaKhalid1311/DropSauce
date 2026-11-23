@@ -15,12 +15,15 @@
 - Searching a book's text shows the results right in the search popup, with your words highlighted
 - More sensitive tags like self-harm or nudity get the orange warning colour, and harmless ones like sister or scar don't anymore
 - New Static app icon that never changes colour, for launchers that glitch with the themed ones
+- MangaBaka has a proper icon now instead of a blurry blob in the trackers sheet
 
 ### Fixed
 - Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error
 - The dictionary popup opens at half the screen instead of jumping to full screen for long meanings
 - Restoring a Mihon backup brings back the right tracker ratings and statuses
 - Opening a chapter no longer occasionally lands on a neighbouring chapter instead of the one you tapped
+- Changing a cover from the full-screen cover view shows the new one right away
+- Other small bug fixes
 
 ## 1.1.5 (2026-11-20)
 

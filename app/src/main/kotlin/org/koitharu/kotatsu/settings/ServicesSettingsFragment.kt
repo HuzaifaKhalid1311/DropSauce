@@ -149,8 +149,7 @@ class ServicesSettingsFragment : BaseComposeSettingsFragment(R.string.services) 
 		val context = context ?: return
 		showConfirmDialog(
 			context = context,
-			// The popup tints its icon, which would flatten a bitmap logo into a blob.
-			icon = if (service.isBitmapIcon) R.drawable.ic_sync else service.iconResId,
+			icon = service.iconResId,
 			title = context.getString(service.titleResId),
 			message = context.getString(R.string.scrobbler_auth_intro, context.getString(service.titleResId)),
 			confirmLabel = context.getString(R.string.sign_in),
@@ -319,7 +318,6 @@ private fun ServicesScreen(
 								title = stringResource(svc.titleResId),
 								subtitle = scrobblerSummaries[svc],
 								icon = icon,
-								tintIcon = !svc.isBitmapIcon,
 								shape = pos.shape,
 								onClick = { onScrobblerClick(svc) },
 							)

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -82,6 +83,13 @@ class ImageActivity : BaseActivity<ActivityImageBinding>(),
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.root, null))
 		viewModel.onImageSaved.observeEvent(this, ::onImageSaved)
 		viewModel.onImageReadyToShare.observeEvent(this) { ShareHelper(this).shareImage(it) }
+		viewModel.coverUrl.observe(this) { url ->
+			// Edited cover: show the new one, and keep it if the screen is recreated.
+			if (url.toUri() == intent.data) return@observe
+			intent.data = url.toUri()
+			intent.removeExtra(AppRouter.KEY_PREVIEW)
+			loadImage()
+		}
 		loadImage()
 	}
 

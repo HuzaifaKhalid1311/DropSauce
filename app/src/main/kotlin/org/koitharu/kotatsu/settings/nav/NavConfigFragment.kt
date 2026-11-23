@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.settings.nav
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -79,6 +80,15 @@ class NavConfigFragment : BaseFragment<FragmentSettingsSourcesBinding>(), Recycl
 				radius = resources.getDimension(R.dimen.tile_corner),
 				extraInset = resources.getDimensionPixelOffset(R.dimen.tile_margin_horizontal),
 			)
+			// The shared tip card has a narrower margin than the rows, so the clip above cut its sides off.
+			addItemDecoration(object : RecyclerView.ItemDecoration() {
+				override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+					if (view !is TipView) return
+					val inset = resources.getDimensionPixelOffset(R.dimen.tile_margin_horizontal) -
+						(view.layoutParams as ViewGroup.MarginLayoutParams).marginStart
+					outRect.set(inset, 0, inset, 0)
+				}
+			})
 			setHasFixedSize(true)
 			adapter = navConfigAdapter
 			reorderHelper = ItemTouchHelper(ReorderCallback()).also {

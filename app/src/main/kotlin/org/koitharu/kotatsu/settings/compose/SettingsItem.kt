@@ -84,7 +84,6 @@ fun SettingsItem(
 	subtitle: String? = null,
 	@DrawableRes icon: Int? = null,
 	iconColors: CategoryIconColors? = null,
-	tintIcon: Boolean = true,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 	// Overrides the title and plain-icon color, e.g. colorScheme.error for destructive actions.
@@ -178,14 +177,12 @@ fun SettingsItem(
 						iconRes = icon,
 						colors = iconColors,
 						enabled = enabled,
-						tintIcon = tintIcon,
 					)
 				} else {
 					SettingsIconPlain(
 						iconRes = icon,
 						enabled = enabled,
 						tintOverride = accentColor,
-						tintIcon = tintIcon,
 					)
 				}
 				Spacer(Modifier.width(14.dp))
@@ -328,24 +325,21 @@ private fun SettingsIconBubble(
 	@DrawableRes iconRes: Int,
 	colors: CategoryIconColors,
 	enabled: Boolean,
-	tintIcon: Boolean = true,
 ) {
 	val containerAlpha = if (enabled) 1f else 0.4f
 	val contentAlpha = if (enabled) 1f else 0.5f
-	// A multicolor logo (e.g. the Google "G") must not be tinted; show it on a white bubble.
-	val containerColor = if (tintIcon) colors.container.copy(alpha = containerAlpha) else Color.White
 	Box(
 		modifier = Modifier
 			.size(44.dp)
 			.clip(CircleShape)
-			.background(containerColor),
+			.background(colors.container.copy(alpha = containerAlpha)),
 		contentAlignment = Alignment.Center,
 	) {
 		androidx.compose.foundation.Image(
 			painter = rememberAnyDrawablePainter(iconRes),
 			contentDescription = null,
-			modifier = Modifier.size(if (tintIcon) 22.dp else 24.dp),
-			colorFilter = if (tintIcon) ColorFilter.tint(colors.onContainer.copy(alpha = contentAlpha)) else null,
+			modifier = Modifier.size(22.dp),
+			colorFilter = ColorFilter.tint(colors.onContainer.copy(alpha = contentAlpha)),
 		)
 	}
 }
@@ -355,7 +349,6 @@ private fun SettingsIconPlain(
 	@DrawableRes iconRes: Int,
 	enabled: Boolean,
 	tintOverride: Color? = null,
-	tintIcon: Boolean = true,
 ) {
 	val tint = (tintOverride ?: MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = if (enabled) 1f else 0.4f)
 	Box(
@@ -366,8 +359,7 @@ private fun SettingsIconPlain(
 			painter = rememberAnyDrawablePainter(iconRes),
 			contentDescription = null,
 			modifier = Modifier.size(24.dp),
-			// a bitmap logo would collapse to a flat silhouette if tinted
-			colorFilter = if (tintIcon) ColorFilter.tint(tint) else null,
+			colorFilter = ColorFilter.tint(tint),
 			alpha = if (enabled) 1f else 0.4f,
 		)
 	}
