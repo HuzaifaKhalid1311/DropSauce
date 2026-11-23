@@ -15,7 +15,7 @@
 - Searching a book's text shows the results right in the search popup, with your words highlighted
 - More sensitive tags like self-harm or nudity get the orange warning colour, and harmless ones like sister or scar don't anymore
 - New Static app icon that never changes colour, for launchers that glitch with the themed ones
-- MangaBaka has a proper icon now instead of a blurry blob in the trackers sheet
+- MangaBaka's icon shows in colour in the trackers menu instead of a blank silhouette
 
 ### Fixed
 - Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error

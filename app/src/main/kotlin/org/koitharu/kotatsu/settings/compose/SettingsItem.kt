@@ -84,6 +84,7 @@ fun SettingsItem(
 	subtitle: String? = null,
 	@DrawableRes icon: Int? = null,
 	iconColors: CategoryIconColors? = null,
+	tintIcon: Boolean = true,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 	// Overrides the title and plain-icon color, e.g. colorScheme.error for destructive actions.
@@ -183,6 +184,7 @@ fun SettingsItem(
 						iconRes = icon,
 						enabled = enabled,
 						tintOverride = accentColor,
+						tintIcon = tintIcon,
 					)
 				}
 				Spacer(Modifier.width(14.dp))
@@ -349,6 +351,7 @@ private fun SettingsIconPlain(
 	@DrawableRes iconRes: Int,
 	enabled: Boolean,
 	tintOverride: Color? = null,
+	tintIcon: Boolean = true,
 ) {
 	val tint = (tintOverride ?: MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = if (enabled) 1f else 0.4f)
 	Box(
@@ -359,7 +362,8 @@ private fun SettingsIconPlain(
 			painter = rememberAnyDrawablePainter(iconRes),
 			contentDescription = null,
 			modifier = Modifier.size(24.dp),
-			colorFilter = ColorFilter.tint(tint),
+			// a bitmap logo would collapse to a flat silhouette if tinted
+			colorFilter = if (tintIcon) ColorFilter.tint(tint) else null,
 			alpha = if (enabled) 1f else 0.4f,
 		)
 	}

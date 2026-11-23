@@ -1,12 +1,15 @@
 package org.koitharu.kotatsu.scrobbling.common.ui.selector
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.graphics.drawable.DrawableWrapperCompat
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -277,7 +280,19 @@ class ScrobblingSelectorSheet :
 		for (entry in entries) {
 			val tab = tabs.newTab()
 			tab.tag = entry.scrobblerService
-			tab.setIcon(entry.scrobblerService.iconResId)
+			val iconRes = entry.scrobblerService.iconResId
+			if (entry.scrobblerService.isBitmapIcon) {
+				// TabLayout tints an icon as soon as it is set and again on every selection change,
+				// flattening a colour logo; hand it an untouched copy that ignores tinting.
+				val icon = ContextCompat.getDrawable(tabs.context, iconRes)?.mutate()
+				tab.icon = icon?.let {
+					object : DrawableWrapperCompat(it) {
+						override fun setTintList(tint: ColorStateList?) = Unit
+					}
+				}
+			} else {
+				tab.setIcon(iconRes)
+			}
 			tab.setText(entry.scrobblerService.titleResId)
 			tabs.addTab(tab)
 			if (entry.scrobblerService.id == selectedId) {
