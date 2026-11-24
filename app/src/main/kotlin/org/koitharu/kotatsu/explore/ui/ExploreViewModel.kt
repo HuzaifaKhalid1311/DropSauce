@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.Flow
@@ -29,15 +28,12 @@ import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
 import org.koitharu.kotatsu.core.util.ext.call
+import org.koitharu.kotatsu.explore.data.ExtensionLayout
 import org.koitharu.kotatsu.explore.data.MangaSourcesRepository
 import org.koitharu.kotatsu.explore.data.SourceLanguage
-import org.koitharu.kotatsu.explore.domain.ExploreRepository
-import org.koitharu.kotatsu.explore.ui.model.ExploreButtons
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.explore.ui.model.ExploreSources
-import org.koitharu.kotatsu.explore.ui.model.RecommendationsItem
 import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
@@ -54,17 +50,16 @@ import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 class ExploreViewModel @Inject constructor(
 	private val settings: AppSettings,
 	private val suggestionRepository: SuggestionRepository,
-	private val exploreRepository: ExploreRepository,
 	private val sourcesRepository: MangaSourcesRepository,
 	private val shortcutManager: AppShortcutManager,
 	private val extensionStoreManager: ExtensionStoreManager,
 	private val suggestionsScheduler: SuggestionsWorker.Scheduler,
 ) : BaseViewModel() {
 
-	val isGrid = settings.observeAsStateFlow(
-		key = AppSettings.KEY_SOURCES_GRID,
+	val layout = settings.observeAsStateFlow(
+		key = AppSettings.KEY_SOURCES_LAYOUT,
 		scope = viewModelScope + Dispatchers.IO,
-		valueProducer = { isSourcesGridMode },
+		valueProducer = { sourcesLayout },
 	)
 
 	val gridColumns = settings.observeAsStateFlow(
@@ -73,16 +68,25 @@ class ExploreViewModel @Inject constructor(
 		valueProducer = { sourcesGridColumns },
 	)
 
+	val novelTabFirst = settings.observeAsStateFlow(
+		key = AppSettings.KEY_EXPLORE_NOVEL_TAB_FIRST,
+		scope = viewModelScope + Dispatchers.IO,
+		valueProducer = { isNovelTabFirst },
+	)
+
+	val singleKind = settings.observeAsStateFlow(
+		key = AppSettings.KEY_EXPLORE_SINGLE_KIND,
+		scope = viewModelScope + Dispatchers.IO,
+		valueProducer = { isExploreSingleKind },
+	)
+
 	private val isSuggestionsEnabled = settings.observeAsFlow(
 		key = AppSettings.KEY_SUGGESTIONS,
 		valueProducer = { isSuggestionsEnabled },
 	)
 
-	val onOpenManga = MutableEventFlow<Manga>()
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 	val onShowSuggestionsTip = MutableEventFlow<Unit>()
-	private val mutableRandomLoading = MutableStateFlow(false)
-	val isRandomLoading = mutableRandomLoading.asStateFlow()
 
 	val hasExtensionUpdates: StateFlow<Boolean> = extensionStoreManager.hasUpdates
 		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
@@ -90,19 +94,25 @@ class ExploreViewModel @Inject constructor(
 	/** True while a pull-to-refresh is regenerating the suggestions. */
 	private val isRefreshingSuggestions = MutableStateFlow(false)
 
-	/** Everything above the extension list: quick buttons and the suggestions carousel. */
-	val headerContent: StateFlow<List<ListModel>> = combine(
+	/**
+	 * The suggestions carousel: `null` hides it, an empty list shows the skeleton (still loading, so
+	 * the extensions don't jump down once it arrives), anything else is the carousel.
+	 */
+	val suggestions: StateFlow<List<MangaCompactListModel>?> = combine(
 		getSuggestionFlow(),
 		isRefreshingSuggestions,
 	) { recommendation, isRefreshing ->
-		// Drop the stale carousel while refreshing: null renders the skeleton, so the pull visibly
-		// does something instead of leaving the old suggestions sitting there.
-		buildHeader(if (isRefreshing) null else recommendation)
+		// Drop the stale carousel while refreshing: the skeleton shows the pull visibly does something
+		when {
+			isRefreshing || recommendation == null -> emptyList()
+			recommendation.isEmpty() -> null
+			else -> recommendation.toRecommendationList()
+		}
 	}.withErrorHandling()
 		.stateIn(
 			viewModelScope + Dispatchers.Default,
 			SharingStarted.Eagerly,
-			buildHeader(if (settings.isSuggestionsEnabled) null else emptyList()),
+			if (settings.isSuggestionsEnabled) emptyList() else null,
 		)
 
 	/** Which of the two Explore tabs sits on the left (and is therefore the one that opens first). */
@@ -137,6 +147,12 @@ class ExploreViewModel @Inject constructor(
 		}
 	}
 
+	/** Cycles Explore's extension layout between Chips -> Grid -> List right from the header. */
+	fun cycleLayout() {
+		val entries = ExtensionLayout.entries
+		settings.sourcesLayout = entries[(entries.indexOf(settings.sourcesLayout) + 1) % entries.size]
+	}
+
 	/** Pull-to-refresh: reload the installed extensions and regenerate the suggestions carousel. */
 	fun refresh() {
 		launchLoadingJob(Dispatchers.Default) {
@@ -148,21 +164,6 @@ class ExploreViewModel @Inject constructor(
 				}
 			} finally {
 				isRefreshingSuggestions.value = false
-			}
-		}
-	}
-
-	fun openRandom() {
-		if (mutableRandomLoading.value) {
-			return
-		}
-		launchJob(Dispatchers.Default) {
-			mutableRandomLoading.value = true
-			try {
-				val manga = exploreRepository.findRandomManga(tagsLimit = 8)
-				onOpenManga.call(manga)
-			} finally {
-				mutableRandomLoading.value = false
 			}
 		}
 	}
@@ -221,23 +222,21 @@ class ExploreViewModel @Inject constructor(
 	private fun createSourcesFlow() = kotlinx.coroutines.flow.combine(
 		sourcesRepository.observeEnabledSources(),
 		sourcesRepository.observeMihonLoadingState(),
-		isGrid,
 		sourcesRepository.observeHasMultiLanguageSources(),
 		settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_LANGUAGES) },
 		extensionStoreManager.packagesWithUpdates,
 	) { args ->
 		val allSources = args[0] as List<MangaSourceInfo>
 		val isExtensionsLoading = args[1] as Boolean
-		val isGrid = args[2] as Boolean
-		val hasMultiLanguageSources = args[3] as Boolean
-		val isLanguageTipEnabled = args[4] as Boolean
-		val packagesWithUpdates = args[5] as Set<String>
+		val hasMultiLanguageSources = args[2] as Boolean
+		val isLanguageTipEnabled = args[3] as Boolean
+		val packagesWithUpdates = args[4] as Set<String>
 		ExploreSources(
 			manga = buildSourcesPage(
-				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, packagesWithUpdates, false,
+				allSources, isExtensionsLoading, hasMultiLanguageSources, isLanguageTipEnabled, packagesWithUpdates, false,
 			),
 			novel = buildSourcesPage(
-				allSources, isExtensionsLoading, isGrid, hasMultiLanguageSources, isLanguageTipEnabled, packagesWithUpdates, true,
+				allSources, isExtensionsLoading, hasMultiLanguageSources, isLanguageTipEnabled, packagesWithUpdates, true,
 			),
 		)
 	}.withErrorHandling()
@@ -245,7 +244,6 @@ class ExploreViewModel @Inject constructor(
 	private fun buildSourcesPage(
 		sources: List<MangaSourceInfo>,
 		isExtensionsLoading: Boolean,
-		isGrid: Boolean,
 		hasMultiLanguageSources: Boolean,
 		isLanguageTipEnabled: Boolean,
 		packagesWithUpdates: Set<String>,
@@ -256,7 +254,7 @@ class ExploreViewModel @Inject constructor(
 		when {
 			shown.isNotEmpty() -> shown.mapTo(result) {
 				val pkgName = (it.mangaSource as? MihonMangaSource)?.pkgName
-				MangaSourceItem(it, isGrid, hasUpdate = pkgName != null && pkgName in packagesWithUpdates)
+				MangaSourceItem(it, hasUpdate = pkgName != null && pkgName in packagesWithUpdates)
 			}
 			// Novels can also come from extension APKs now, so the spinner belongs on both tabs —
 			// otherwise the novels tab claims nothing is installed while the scan is still running.
@@ -285,19 +283,6 @@ class ExploreViewModel @Inject constructor(
 			)
 		}
 		return result
-	}
-
-	/**
-	 * Header rows above the extension list. A `null` recommendation means "not loaded yet": the
-	 * suggestions block is still rendered, as a skeleton, so the extension list doesn't jump down
-	 * once the carousel arrives a moment later.
-	 */
-	private fun buildHeader(recommendation: List<Manga>?) = buildList(3) {
-		add(ExploreButtons)
-		if (recommendation == null || recommendation.isNotEmpty()) {
-			add(ListHeader(R.string.suggestions, R.string.more, R.id.nav_suggestions))
-			add(RecommendationsItem(recommendation?.toRecommendationList().orEmpty()))
-		}
 	}
 
 	private fun getSuggestionFlow(): Flow<List<Manga>?> = isSuggestionsEnabled.flatMapLatest { isEnabled ->

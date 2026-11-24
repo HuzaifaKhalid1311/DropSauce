@@ -8,6 +8,7 @@
 - PDFs with a table of contents now show their real chapters, and you keep your place
 - Search a PDF's text with the search button at the top of the reader, and the matches get marked on the page
 - Track your reading on Comick, sign in from the services settings
+- Fresh new Explore page: bigger shaped buttons, taller suggestions with the title on the cover, a new Manga/Novels switcher, pinned extensions up top, and a button right next to Manage to switch between chips, grid and list
 
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card

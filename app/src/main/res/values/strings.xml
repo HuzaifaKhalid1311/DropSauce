@@ -12,6 +12,8 @@
     <string name="list">List</string>
     <string name="detailed_list">Detailed list</string>
     <string name="grid">Grid</string>
+    <string name="chips">Chips</string>
+    <string name="extension_layout">Extension layout</string>
     <string name="cover_only">Cover only</string>
     <string name="list_mode">List mode</string>
     <string name="title_over_cover">Show title over cover</string>
@@ -525,7 +527,6 @@
     <string name="app_icon_static">Static</string>
     <string name="app_icon_themed">Themed</string>
     <string name="color_theme">Color scheme</string>
-    <string name="show_in_grid_view">Show in grid view</string>
     <string name="extensions_per_row">Extensions per row</string>
     <string name="theme_name_miku">Miku</string>
     <string name="theme_name_lime">Remon</string>
@@ -1043,6 +1044,7 @@
     <string name="rotation_clockwise">Clockwise</string>
     <string name="rotation_counter_clockwise">Counter-clockwise</string>
     <string name="pin">Pin</string>
+    <string name="pinned">Pinned</string>
     <string name="unpin">Unpin</string>
     <string name="source_pinned">Source pinned</string>
     <string name="source_unpinned">Source unpinned</string>

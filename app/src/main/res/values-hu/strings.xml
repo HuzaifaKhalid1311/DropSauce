@@ -311,7 +311,6 @@
     <string name="history_shortcuts_summary">Tedd elérhetővé a legújabb mangákat az alkalmazás ikonjának hosszú megnyomásával</string>
     <string name="server_error">Szerver hiba (%1$d). Próbálkozz később</string>
     <string name="clear_new_chapters_counters">Valamint új fejezetekről szóló információk törlése</string>
-    <string name="show_in_grid_view">Rács nézetben megjelenít</string>
     <string name="scrobbling_empty_hint">Az olvasási előrehaladás követéséhez válaszd a Menü → Követés lehetőséget a manga részletek képernyőn.</string>
     <string name="services">Szolgáltatások</string>
     <string name="download_started">Letöltés elkezdve</string>

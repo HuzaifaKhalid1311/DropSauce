@@ -294,7 +294,6 @@
     <string name="prefetch_content">Wstępne ładowanie treści</string>
     <string name="mark_as_current">Oznacz jako aktualne</string>
     <string name="color_theme">Schemat kolorów</string>
-    <string name="show_in_grid_view">Pokaż w widoku siatki</string>
     <string name="ignore_ssl_errors">Ignoruj błędy SSL</string>
     <string name="show_on_shelf">Pokaż na półce</string>
     <string name="pause">Pauza</string>

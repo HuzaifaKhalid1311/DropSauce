@@ -228,7 +228,6 @@
     <string name="mark_as_current">वर्तमान के रूप में चिह्नित करें</string>
     <string name="language">भाषा</string>
     <string name="color_theme">रंग योजना</string>
-    <string name="show_in_grid_view">ग्रिड दृश्य में दिखाएं</string>
     <string name="scrobbling_empty_hint">पढ़ने की प्रगति को ट्रैक करने के लिए, मंगा विवरण स्क्रीन पर मेनू → ट्रैक का चयन करें।</string>
     <string name="services">सेवाएं</string>
     <string name="settings_apply_restart_required">कृपया इन परिवर्तनों को लागू करने के लिए एप्लिकेशन को पुनः आरंभ करें</string>

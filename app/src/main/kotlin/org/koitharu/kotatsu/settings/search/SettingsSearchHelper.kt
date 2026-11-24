@@ -152,7 +152,7 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, ctx.getString(R.string.appearance)) { crumbs ->
 				addItem(AppSettings.KEY_SOURCES_ORDER, R.string.sort_order, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
-				addItem(AppSettings.KEY_SOURCES_GRID, R.string.show_in_grid_view, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
+				addItem(AppSettings.KEY_SOURCES_LAYOUT, R.string.extension_layout, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java, keywordRes = intArrayOf(R.string.chips, R.string.grid, R.string.list))
 				addItem(AppSettings.KEY_SOURCES_GRID_COLUMNS, R.string.extensions_per_row, breadcrumbs = crumbs, fragmentClass = ExtensionsSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, ctx.getString(R.string.filter)) { crumbs ->

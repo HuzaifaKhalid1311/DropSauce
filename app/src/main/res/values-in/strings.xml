@@ -286,7 +286,6 @@
     <string name="zoom_mode_keep_start">Tetap di awal</string>
     <string name="reader_info_pattern">Bab %1$d/%2$d Hlm. %3$d/%4$d</string>
     <string name="color_theme">Skema warna</string>
-    <string name="show_in_grid_view">Perlihatkan dalam tampilan kisi</string>
     <string name="local_manga_processing">Pemrosesan manga tersimpan</string>
     <string name="disable_battery_optimization">Nonaktifkan pengoptimalan baterai</string>
     <string name="reader_control_ltr">Kontrol pembaca ergonomis</string>

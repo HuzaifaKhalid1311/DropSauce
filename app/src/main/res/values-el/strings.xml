@@ -373,7 +373,6 @@
     <string name="clear_network_cache">Καθάρισε προσωρινή μνήμη δικτύου</string>
     <string name="reader_info_bar_summary">Εμφάνιση ώρας και προόδου στο πάνω μέρος της οθόνης</string>
     <string name="pick_custom_directory">Διάλεξε directory της επιλογής σου</string>
-    <string name="show_in_grid_view">Εμφάνιση με μορφή πλέγματος</string>
     <string name="folder_with_images_import_description">Μπορείς να επιλέξεις ένα directory με φακέλους αρχειοθέτησης ή εικόνες. Κάθε φάκελος αρχειοθέτησης (ή subdirectory) θα αναγνωρίζεται ως κεφάλαιο.</string>
     <string name="color_dark">Σκοτεινό</string>
     <string name="data_not_restored_text">Βεβαιώσου πως έχεις επιλέξει το σωστό αντίγραφο ασφαλείας</string>

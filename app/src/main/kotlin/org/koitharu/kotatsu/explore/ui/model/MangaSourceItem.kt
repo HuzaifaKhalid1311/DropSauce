@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.util.longHashCode
 
 data class MangaSourceItem(
 	val source: MangaSourceInfo,
-	val isGrid: Boolean,
 	/** A newer build of this source's extension is waiting in its store. */
 	val hasUpdate: Boolean = false,
 ) : ListModel {

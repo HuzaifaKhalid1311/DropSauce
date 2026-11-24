@@ -40,6 +40,7 @@ import org.koitharu.kotatsu.core.util.ext.putAll
 import org.koitharu.kotatsu.core.util.ext.putEnumValue
 import org.koitharu.kotatsu.core.util.ext.takeIfReadable
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
+import org.koitharu.kotatsu.explore.data.ExtensionLayout
 import org.koitharu.kotatsu.explore.data.SourcesSortOrder
 import org.koitharu.kotatsu.favourites.domain.model.CategoriesOrder
 import org.koitharu.kotatsu.list.domain.ListSortOrder
@@ -848,9 +849,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getEnumValue(KEY_SOURCES_ORDER, SourcesSortOrder.ALPHABETIC)
 		set(value) = prefs.edit { putEnumValue(KEY_SOURCES_ORDER, value) }
 
-	var isSourcesGridMode: Boolean
-		get() = prefs.getBoolean(KEY_SOURCES_GRID, true)
-		set(value) = prefs.edit { putBoolean(KEY_SOURCES_GRID, value) }
+	var sourcesLayout: ExtensionLayout
+		get() = prefs.getEnumValue(KEY_SOURCES_LAYOUT, ExtensionLayout.CHIPS)
+		set(value) = prefs.edit { putEnumValue(KEY_SOURCES_LAYOUT, value) }
 
 	/** Extensions in a row of Explore's grid on a phone (3, 4 or 5); wider screens fit proportionally more. */
 	val sourcesGridColumns: Int
@@ -1527,7 +1528,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_WEBTOON_PULL_GESTURE = "webtoon_pull_gesture"
 		const val KEY_PREFETCH_CONTENT = "prefetch_content"
 		const val KEY_APP_LOCALE = "app_locale"
-		const val KEY_SOURCES_GRID = "sources_grid"
+		const val KEY_SOURCES_LAYOUT = "sources_layout"
 		const val KEY_SOURCES_GRID_COLUMNS = "sources_grid_columns"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 

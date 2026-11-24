@@ -236,7 +236,6 @@
     <string name="prefetch_content">Preloading ng nilalaman</string>
     <string name="mark_as_current">Markahan bilang kasalukuyan</string>
     <string name="language">Wika</string>
-    <string name="show_in_grid_view">Ipakita sa grid view</string>
     <string name="nothing_here">Wala naman dito</string>
     <string name="services">Mga serbisyo</string>
     <string name="show_reading_indicators">Ipakita ang pang-hiwatig ng progreso</string>

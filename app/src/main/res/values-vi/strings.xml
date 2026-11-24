@@ -265,7 +265,6 @@
     <string name="reader_control_ltr_summary">Chạm vào bên phải màn hình hoặc nhấn nút mũi tên bên phải để sang trang kế tiếp. Điều này phụ thuộc vào thiết bị / giả lập bạn đang dùng (Không điều chỉnh hướng với chế độ đọc)</string>
     <string name="history_shortcuts">Hiển thị lối tắt truyện đọc gần đây</string>
     <string name="contrast">Tương phản</string>
-    <string name="show_in_grid_view">Hiển thị dưới dạng lưới</string>
     <string name="color_theme">Bảng màu</string>
     <string name="nothing_here">Không có gì ở đây cả</string>
     <string name="language">Ngôn ngữ</string>

@@ -230,7 +230,6 @@
     <string name="mark_as_current">Označit jako aktuální</string>
     <string name="language">Jazyk</string>
     <string name="color_theme">Schéma barev</string>
-    <string name="show_in_grid_view">Zobrazovat v zobrazení mřížek</string>
     <string name="nothing_here">Nic tu není</string>
     <string name="scrobbling_empty_hint">Pro sledování pokroku čtení, vyberte Menu → Sledovat na displeji detailů mangy.</string>
     <string name="services">Služby</string>

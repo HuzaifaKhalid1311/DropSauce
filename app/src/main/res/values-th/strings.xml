@@ -363,7 +363,6 @@
     <string name="cancel_all_downloads_confirm">การดาวน์โหลดที่ทำงานอยู่ทั้งหมดจะถูกยกเลิก ข้อมูลที่ดาวน์โหลดบางส่วนจะสูญหาย</string>
     <string name="start_download">เริ่มดาวน์โหลด</string>
     <string name="save_manga">บันทึกมังงะ</string>
-    <string name="show_in_grid_view">แสดงในแบบมุมมองตาราง</string>
     <string name="settings_apply_restart_required">โปรดรีสตาร์ทแอปพลิเคชันเพื่อใช้การเปลี่ยนแปลงเหล่านี้</string>
     <string name="genre">ประเภท</string>
     <string name="download_added">เพิ่มการดาวน์โหลดแล้ว</string>

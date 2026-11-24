@@ -284,7 +284,6 @@
     <string name="mark_as_current">Marcar como actual</string>
     <string name="language">Idioma</string>
     <string name="color_theme">Esquema de colores</string>
-    <string name="show_in_grid_view">Mostrar en vista de cuadrícula</string>
     <string name="nothing_here">No hay nada aquí</string>
     <string name="theme_name_kanade">Canadé</string>
     <string name="scrobbling_empty_hint">Para realizar un seguimiento del progreso de la lectura, seleccione Menú → Seguimiento en la pantalla de detalles del manga.</string>

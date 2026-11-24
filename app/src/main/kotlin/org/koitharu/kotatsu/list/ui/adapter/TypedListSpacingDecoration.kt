@@ -15,8 +15,6 @@ class TypedListSpacingDecoration(
 	private val spacingSmall = context.resources.getDimensionPixelOffset(R.dimen.list_spacing_small)
 	private val spacingNormal =
 		context.resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
-	/** Space around each of Explore's grid cells; Explore sets it from its column count. */
-	var spacingExploreGrid = 0
 
 	override fun getItemOffsets(
 		outRect: Rect,
@@ -40,7 +38,6 @@ class TypedListSpacingDecoration(
 
 			ListItemType.HEADER,
 			ListItemType.FEED,
-			ListItemType.EXPLORE_SOURCE_LIST,
 			ListItemType.MANGA_SCROBBLING,
 			ListItemType.MANGA_LIST,
 				-> outRect.set(0)
@@ -55,16 +52,12 @@ class TypedListSpacingDecoration(
 			// Carousel items carry their own margins in the item layout.
 			ListItemType.MANGA_CAROUSEL -> outRect.set(0)
 
-			// No top offset: the container's top padding alone matches the gap under the search bar on the other tabs.
-			ListItemType.EXPLORE_BUTTONS -> outRect.set(spacingNormal, 0, spacingNormal, spacingNormal)
-
 			ListItemType.FOOTER_LOADING,
 			ListItemType.FOOTER_ERROR,
 			ListItemType.FOOTER_BUTTON,
 			ListItemType.STATE_LOADING,
 			ListItemType.STATE_ERROR,
 			ListItemType.STATE_EMPTY,
-			ListItemType.EXPLORE_SUGGESTION,
 			ListItemType.MANGA_NESTED_GROUP,
 			ListItemType.CATEGORY_LARGE,
 			ListItemType.CATEGORY_SORT,
@@ -75,7 +68,6 @@ class TypedListSpacingDecoration(
 				-> outRect.set(0)
 
 			ListItemType.CHAPTER_GRID -> outRect.set(spacingSmall)
-			ListItemType.EXPLORE_SOURCE_GRID -> outRect.set(spacingExploreGrid)
 
 			ListItemType.TIP -> outRect.set(0) // TODO
 		}

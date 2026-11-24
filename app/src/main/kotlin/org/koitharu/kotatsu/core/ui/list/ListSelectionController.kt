@@ -59,6 +59,15 @@ class ListSelectionController(
 		notifySelectionChanged()
 	}
 
+	/** Drops any selected ids that disappeared from the backing list, finishing action mode if none remain. */
+	fun retainAll(validIds: Set<Long>) {
+		if (decoration.checkedItemsCount == 0) return
+		val stale = peekCheckedIds().toSet().filterNot { it in validIds }
+		if (stale.isEmpty()) return
+		stale.forEach { decoration.setItemIsChecked(it, false) }
+		notifySelectionChanged()
+	}
+
 	fun addAll(ids: Collection<Long>) {
 		if (ids.isEmpty()) {
 			return
@@ -95,16 +104,17 @@ class ListSelectionController(
 		return false
 	}
 
-	fun onItemLongClick(view: View, id: Long): Boolean {
+	/** [view] null (Compose items) skips the press animation, haptics and the context menu fallback. */
+	fun onItemLongClick(view: View?, id: Long): Boolean {
 		val isFirstSelection = useActionMode && actionMode == null
 		val handled = if (useActionMode) {
 			startSelection(id)
 		} else {
-			onItemContextClick(view, id)
+			view != null && onItemContextClick(view, id)
 		}
 		if (handled) {
-			view.playSelectionPressAnimation(if (isFirstSelection) SelectionPress.ENTER else SelectionPress.SELECT)
-			view.hapticFeedback(HapticEffect.LONG_PRESS)
+			view?.playSelectionPressAnimation(if (isFirstSelection) SelectionPress.ENTER else SelectionPress.SELECT)
+			view?.hapticFeedback(HapticEffect.LONG_PRESS)
 		}
 		return handled
 	}

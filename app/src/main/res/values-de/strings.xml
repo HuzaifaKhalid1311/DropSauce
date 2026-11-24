@@ -283,7 +283,6 @@
     <string name="folder_with_images_import_description">Du kannst einen Ordner mit Archiven oder Bildern auswählen. Jedes Archiv (oder Unterverzeichnis) wird als ein Kapitel erkannt.</string>
     <string name="speed">Geschwindigkeit</string>
     <string name="show_on_shelf">Im Regal anzeigen</string>
-    <string name="show_in_grid_view">In Raster-Ansicht anzeigen</string>
     <string name="download_started">Download gestartet</string>
     <string name="ignore_ssl_errors">Ignoriere SSL Errors</string>
     <string name="status_re_reading">Erneut Lesen</string>

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Explore is one scrolling surface: the header (buttons, suggestions, the "Extensions" row with the
-     tabs) and below it a pager whose pages hold the manga / novel extensions. The pager is given the
-     height of the taller page (see ExploreFragment.updatePagerHeight), so the shorter list simply ends in
-     empty space and switching tabs never moves anything. The pages don't scroll themselves — this
-     NestedScrollView is the only scroller, which is what keeps the two sides in lockstep. -->
+<!-- Explore's content is Compose (ExploreScreen), but the scrolling is this NestedScrollView's. The
+     page sits under the collapsing search bar and moves with it; a Compose scroll doesn't compensate for
+     its own view moving mid-drag, so hiding the bars made it jitter. The NestedScrollView does, and it
+     also gives pull-to-refresh and the saved scroll position for free. -->
 <org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/swipeRefreshLayout"
@@ -16,24 +15,10 @@
 		android:layout_height="match_parent"
 		android:clipToPadding="false">
 
-	<LinearLayout
-		android:id="@+id/layout_content"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:orientation="vertical">
-
-		<include
-			android:id="@+id/header"
-			layout="@layout/layout_explore_header"
+		<androidx.compose.ui.platform.ComposeView
+			android:id="@+id/composeView"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" />
-
-		<androidx.viewpager2.widget.ViewPager2
-			android:id="@+id/pager"
-			android:layout_width="match_parent"
-			android:layout_height="0dp" />
-
-	</LinearLayout>
 
 	</androidx.core.widget.NestedScrollView>
 

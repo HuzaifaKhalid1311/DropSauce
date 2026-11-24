@@ -286,7 +286,6 @@
     <string name="genres_exclude">Exkludera genrer</string>
     <string name="content_rating">Innehållsklassificering</string>
     <string name="reader_control_ltr_summary">Justera inte hållet sidorna vänds åt i läsläget, t.ex. trycker du på höger piltangent bläddrar du alltid framåt. Denna inställning påverkar endast inmatningsenheter</string>
-    <string name="show_in_grid_view">Visa i rutnätsvy</string>
     <string name="nothing_here">Det finns inget här</string>
     <string name="services">Tjänster</string>
     <string name="comics_archive_import_description">Du kan välja en eller flera .cbz- eller .zip-filer. Varje fil kommer läsas in som separata manga.</string>

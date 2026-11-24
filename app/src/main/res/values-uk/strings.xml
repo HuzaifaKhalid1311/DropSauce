@@ -297,7 +297,6 @@
     <string name="theme_name_sakura">Сакура</string>
     <string name="theme_name_mamimi">Мамімі</string>
     <string name="color_theme">Колірний акцент</string>
-    <string name="show_in_grid_view">Показати у вигляді сітки</string>
     <string name="download_started">Завантаження розпочато</string>
     <string name="user_agent">Заголовок UserAgent</string>
     <string name="settings_apply_restart_required">Перезапустіть програму, щоб застосувати зміни</string>

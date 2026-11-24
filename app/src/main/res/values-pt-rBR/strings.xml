@@ -285,7 +285,6 @@
     <string name="download_started">Começando a baixar</string>
     <string name="language">Idioma</string>
     <string name="mark_as_current">Marcar como atual</string>
-    <string name="show_in_grid_view">Mostrar em visualização de grade</string>
     <string name="color_theme">Esquema de cores</string>
     <string name="prefetch_content">Pré-carregamento de conteúdo</string>
     <string name="settings_apply_restart_required">Por favor, reinicie o aplicativo para aplicar essas mudanças</string>

@@ -81,7 +81,6 @@
     <string name="screenshots_policy">Политика снимања екрана</string>
     <string name="clear_network_cache">Избриши мрежну кеш меморију</string>
     <string name="password">Лозинка</string>
-    <string name="show_in_grid_view">Прикажи као мрежу</string>
     <string name="page_saved">Страница је сачувана</string>
     <string name="text_delete_local_manga">Трајно избриши \"%s\" са уређаја?</string>
     <string name="processing_">Обрада…</string>

@@ -288,7 +288,6 @@
     <string name="scrobbling_empty_hint">Okuma ilerlemesini izlemek için manga ayrıntıları ekranında Menü → İzle\'yi seçin.</string>
     <string name="nothing_here">burada hiçbir şey yok</string>
     <string name="color_theme">Renk teması</string>
-    <string name="show_in_grid_view">Izgara görünümünde göster</string>
     <string name="user_agent">UserAgent başlığı</string>
     <string name="download_started">İndirme başladı</string>
     <string name="settings_apply_restart_required">Bu değişiklikleri uygulamak için lütfen uygulamayı yeniden başlatın</string>

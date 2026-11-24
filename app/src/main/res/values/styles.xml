@@ -411,31 +411,6 @@
 		<item name="subtitleTextAppearance">?attr/textAppearanceBodySmall</item>
 	</style>
 
-	<style name="Widget.Kotatsu.ExploreButton.Secondary" parent="Widget.Material3.Button.TonalButton.Icon">
-		<item name="android:minHeight">68dp</item>
-		<item name="android:singleLine">true</item>
-		<item name="android:maxLines">1</item>
-		<item name="android:elegantTextHeight">false</item>
-		<item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
-		<item name="shapeAppearance">?shapeAppearanceCornerLarge</item>
-		<item name="android:ellipsize">end</item>
-		<item name="iconSize">22dp</item>
-		<item name="iconPadding">4dp</item>
-		<item name="iconGravity">top</item>
-		<item name="android:insetTop">0dp</item>
-		<item name="android:insetBottom">0dp</item>
-		<item name="android:paddingStart">6dp</item>
-		<item name="android:paddingEnd">6dp</item>
-		<item name="android:paddingTop">10dp</item>
-		<item name="android:paddingBottom">8dp</item>
-		<item name="android:gravity">center</item>
-		<!-- Same container tone as the search bar right above them, and the icon/hint colour
-		     MainActivity gives it. -->
-		<item name="backgroundTint">?attr/colorSurfaceContainer</item>
-		<item name="iconTint">?attr/colorTopBarIcon</item>
-		<item name="android:textColor">?attr/colorTopBarIcon</item>
-	</style>
-
 	<style name="Widget.Kotatsu.ImageView.Cover" parent="Widget.MaterialComponents.ShapeableImageView">
 		<item name="aspectRationHeight">18</item>
 		<item name="aspectRationWidth">13</item>
@@ -723,14 +698,6 @@
 
 	<style name="ShapeAppearanceOverlay.Kotatsu.CarouselItem" parent="">
 		<item name="cornerFamily">rounded</item>
-		<item name="cornerSizeTopLeft">20dp</item>
-		<item name="cornerSizeTopRight">20dp</item>
-		<item name="cornerSizeBottomLeft">0dp</item>
-		<item name="cornerSizeBottomRight">0dp</item>
-	</style>
-
-	<style name="ShapeAppearanceOverlay.Kotatsu.CarouselImage" parent="">
-		<item name="cornerFamily">rounded</item>
 		<item name="cornerSize">20dp</item>
 	</style>
 
@@ -767,11 +734,6 @@
 	<style name="FaviconDrawable.Small">
 		<item name="strokeWidth">1dp</item>
 		<item name="cornerSize">8dp</item>
-	</style>
-
-	<style name="FaviconDrawable.Large">
-		<item name="strokeWidth">1dp</item>
-		<item name="cornerSize">12dp</item>
 	</style>
 
 </resources>

@@ -357,7 +357,6 @@
     <string name="random">Кездейсоқ</string>
     <string name="restore_summary">Бұған дейін жасалған сақтық көшірмесін қалпына келтіру</string>
     <string name="show_pages_numbers_summary">Бет нөмірін төменгі жақта көрсету</string>
-    <string name="show_in_grid_view">Кесте қып көрсету</string>
     <string name="zoom_out">Кішірейту</string>
     <string name="keep_screen_on_summary">Маңга оқып отырғанда экранды сөндірмеу</string>
     <string name="download_option_next_unread_n_chapters">Келесі оқылмаған %s</string>

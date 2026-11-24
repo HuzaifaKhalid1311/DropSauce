@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Material 3 Expressive carousel item: a MaskableFrameLayout (required so the
-     CarouselLayoutManager can mask/unmask it on scroll) styled as a rounded poster card
-     with a full-bleed cover and the title beneath it. -->
+     CarouselLayoutManager can mask/unmask it on scroll) holding a full-bleed cover with the title
+     laid over its bottom edge. The title fades out as the tile narrows (see fadeTitleWithMask). -->
 <org.koitharu.kotatsu.core.ui.widgets.EdgeMaskableFrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -14,62 +14,35 @@
 	android:foreground="?attr/selectableItemBackground"
 	app:shapeAppearance="@style/ShapeAppearanceOverlay.Kotatsu.CarouselItem">
 
-	<LinearLayout
+	<org.koitharu.kotatsu.image.ui.CoverImageView
+		android:id="@+id/imageView_cover"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:background="?colorSurfaceContainer"
+		android:scaleType="centerCrop"
+		app:allowRgb565="true"
+		app:aspectRationHeight="0"
+		app:aspectRationWidth="0"
+		tools:ignore="ContentDescription"
+		tools:src="@tools:sample/backgrounds/scenic[5]" />
+
+	<TextView
+		android:id="@+id/textView_title"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:orientation="vertical">
-
-		<FrameLayout
-			android:layout_width="match_parent"
-			android:layout_height="200dp">
-
-			<org.koitharu.kotatsu.image.ui.CoverImageView
-				android:id="@+id/imageView_cover"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:background="?colorSurfaceContainer"
-				android:scaleType="centerCrop"
-				app:allowRgb565="true"
-				app:aspectRationHeight="0"
-				app:aspectRationWidth="0"
-				app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Kotatsu.CarouselImage"
-				tools:ignore="ContentDescription"
-				tools:src="@tools:sample/backgrounds/scenic[5]" />
-
-			<org.koitharu.kotatsu.history.ui.util.ReadingProgressView
-				android:id="@+id/progressView"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="bottom|end"
-				android:layout_margin="@dimen/card_indicator_offset" />
-
-			<org.koitharu.kotatsu.core.ui.widgets.BadgeView
-				android:id="@+id/badge"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="top|end"
-				android:layout_margin="@dimen/margin_small"
-				android:visibility="gone"
-				app:maxCharacterCount="@integer/manga_badge_max_character_count"
-				tools:number="8"
-				tools:visibility="visible" />
-
-		</FrameLayout>
-
-		<TextView
-			android:id="@+id/textView_title"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:elegantTextHeight="false"
-			android:ellipsize="end"
-			android:maxLines="2"
-			android:paddingStart="8dp"
-			android:paddingEnd="4dp"
-			android:paddingTop="8dp"
-			android:textAppearance="?attr/textAppearanceLabelMedium"
-			android:textColor="?attr/colorOnSurface"
-			tools:text="@tools:sample/lorem" />
-
-	</LinearLayout>
+		android:layout_gravity="bottom"
+		android:background="@drawable/bg_carousel_title_scrim"
+		android:elegantTextHeight="false"
+		android:ellipsize="end"
+		android:maxLines="2"
+		android:paddingStart="10dp"
+		android:paddingTop="28dp"
+		android:paddingEnd="8dp"
+		android:paddingBottom="10dp"
+		android:shadowColor="#66000000"
+		android:shadowRadius="4"
+		android:textAppearance="?attr/textAppearanceLabelMedium"
+		android:textColor="@android:color/white"
+		tools:text="@tools:sample/lorem" />
 
 </org.koitharu.kotatsu.core.ui.widgets.EdgeMaskableFrameLayout>

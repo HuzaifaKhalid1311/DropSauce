@@ -13,7 +13,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.iterator
 import androidx.core.view.size
 import androidx.core.view.updateLayoutParams
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -313,9 +312,9 @@ class MainNavigationDelegate(
 	}
 
 	private fun Fragment.resetContentToTop() {
-		// Explore scrolls its whole content in one NestedScrollView rather than exposing a list.
+		// Explore is one Compose scroll rather than a list.
 		val recyclerView = (this as? RecyclerViewOwner)?.recyclerView ?: run {
-			(view as? NestedScrollView)?.scrollTo(0, 0)
+			(this as? ExploreFragment)?.scrollToTop(smooth = false)
 			return
 		}
 		when (val lm = recyclerView.layoutManager) {
@@ -354,7 +353,7 @@ class MainNavigationDelegate(
 	private fun onNavigationItemReselected() {
 		val fragment = primaryFragment
 		val recyclerView = (fragment as? RecyclerViewOwner)?.recyclerView ?: run {
-			(fragment?.view as? NestedScrollView)?.smoothScrollTo(0, 0)
+			(fragment as? ExploreFragment)?.scrollToTop(smooth = true)
 			return
 		}
 		recyclerView.smoothScrollToTop()

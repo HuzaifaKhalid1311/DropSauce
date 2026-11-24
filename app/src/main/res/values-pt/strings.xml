@@ -287,7 +287,6 @@
     <string name="services">Serviços</string>
     <string name="download_started">Descarga iniciada</string>
     <string name="color_theme">Esquema de cores</string>
-    <string name="show_in_grid_view">Mostrar na visualização em grade</string>
     <string name="settings_apply_restart_required">Por favor, reinicie o app para aplicar essas mudanças</string>
     <string name="scrobbling_empty_hint">Para acompanhar o progresso da leitura, selecione Menu → Vá até a tela de detalhes do mangá.</string>
     <string name="comics_archive_import_description">Você pode selecionar um ou mais arquivos .cbz ou .zip, cada arquivo será reconhecido como um mangá separado.</string>

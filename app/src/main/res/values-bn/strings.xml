@@ -135,7 +135,6 @@
     <string name="prefetch_content">কন্টেন্ট প্রিলোড হচ্ছে</string>
     <string name="mark_as_current">বর্তমান হিসেবে চিহ্নিত করুন</string>
     <string name="compact">কম্প্যাক্ট</string>
-    <string name="show_in_grid_view">গ্রিড ভিউতে দেখান</string>
     <string name="language">ভাষা</string>
     <string name="delete_old_backups">পুরনো ব্যাকআপ মুছে ফেলুন</string>
     <string name="theme_name_miku">মিকু</string>

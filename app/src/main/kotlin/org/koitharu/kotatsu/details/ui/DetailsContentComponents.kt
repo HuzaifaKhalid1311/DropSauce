@@ -61,6 +61,7 @@ import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.databinding.ItemRecommendationBinding
+import org.koitharu.kotatsu.explore.ui.SUGGESTIONS_CAROUSEL_HEIGHT
 import org.koitharu.kotatsu.explore.ui.adapter.setUpMangaCarousel
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import android.graphics.Typeface
@@ -552,8 +553,8 @@ internal fun RelatedSection(
 ) {
 	SectionHeader(title = stringResource(R.string.related_manga), action = stringResource(R.string.show_all), accent = accent, onAction = onMore)
 	val currentOnItemClick by rememberUpdatedState(onItemClick)
-	// Explore's list clips the carousel 8dp inside the screen, and tiles stop 4dp short of that
-	// clip: the 8dp inset here gives the same 12dp edge gap. The first tile still sits on the page's
+	// Explore places the carousel 8dp inside the screen, and tiles stop 4dp short of that edge:
+	// the 8dp inset here gives the same 12dp edge gap. The first tile still sits on the page's
 	// content edge: inset + side padding + the tile's own 2dp margin.
 	val sidePadding = with(LocalDensity.current) { (SCREEN_PADDING - RELATED_EDGE_INSET - 2.dp).roundToPx() }
 	// Explore's suggestions carousel itself, so both look and scroll exactly the same.
@@ -571,7 +572,7 @@ internal fun RelatedSection(
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(horizontal = RELATED_EDGE_INSET)
-			.height(244.dp),
+			.height(SUGGESTIONS_CAROUSEL_HEIGHT),
 	)
 }
 

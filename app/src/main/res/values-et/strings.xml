@@ -219,7 +219,6 @@
     <string name="random">Suvakas</string>
     <string name="history">Ajalugu</string>
     <string name="nothing_found">Mitte midagi leitud</string>
-    <string name="show_in_grid_view">Näita ruudustiku vaates</string>
     <string name="reader_mode_hint">Valitud konfiguratsioon jäetakse meelde selle manga jaoks</string>
     <string name="confirm">Kinnita</string>
     <string name="suggestions_updating">Soovitused uuendavad</string>

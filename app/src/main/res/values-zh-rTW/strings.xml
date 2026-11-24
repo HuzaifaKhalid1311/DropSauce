@@ -318,7 +318,6 @@
     <string name="state_ongoing">連載中</string>
     <string name="local_manga_processing">儲存的漫畫處裡</string>
     <string name="canceled">已取消</string>
-    <string name="show_in_grid_view">在網格檢視中顯示</string>
     <string name="nothing_here">這裡沒有任何東西</string>
     <string name="no_thanks">不，謝謝</string>
     <string name="cancel_all_downloads_confirm">所有進行中的下載將被取消， 未下載完成的資料將會遺失</string>
