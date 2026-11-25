@@ -2,8 +2,10 @@ package org.koitharu.kotatsu.core.ui.dialog
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ import org.koitharu.kotatsu.core.util.ext.copyToClipboard
 /**
  * Replaces ACRA's stock crash dialog with the app's M3 Expressive card.
  * No report sender is configured, so the only meaningful action is putting the report
- * on the clipboard; closing discards the pending report.
+ * on the clipboard; the pending report is discarded as soon as it is shown.
  */
 class CrashDialogActivity : ComponentActivity() {
 
@@ -34,16 +36,25 @@ class CrashDialogActivity : ComponentActivity() {
 			finish()
 			return
 		}
+		val holder by viewModels<ReportHolder>()
 		lifecycleScope.launch {
-			// Report is a file on disk, and it is the only thing this screen has to show.
-			val report = withContext(Dispatchers.Default) {
-				runCatching { helper.reportData }.getOrNull()
+			if (!holder.isLoaded) {
+				// Report is a file on disk, and it is the only thing this screen has to show.
+				val report = withContext(Dispatchers.Default) {
+					runCatching { helper.reportData }.getOrNull()
+				}
+				holder.json = report?.toJSON()?.takeIf { it.isNotEmpty() }
+				holder.stackTrace = report?.getString(ReportField.STACK_TRACE)
+				holder.isLoaded = true
+				// Held in memory from here on (the holder survives a rotation). Left on disk, ACRA would
+				// show it again on every start until the close button was tapped, even after copying it.
+				helper.cancelReports()
 			}
-			showDialog(helper, report?.toJSON()?.takeIf { it.isNotEmpty() }, report?.getString(ReportField.STACK_TRACE))
+			showDialog(holder.json, holder.stackTrace)
 		}
 	}
 
-	private fun showDialog(helper: CrashReportDialogHelper, reportJson: String?, stackTrace: String?) {
+	private fun showDialog(reportJson: String?, stackTrace: String?) {
 		showComposeDialog(this, cancelable = false) { dismiss ->
 			ExpressiveDialogCard(
 				icon = painterResource(R.drawable.ic_alert_outline),
@@ -57,7 +68,6 @@ class CrashDialogActivity : ComponentActivity() {
 					icon = painterResource(R.drawable.ic_close),
 					label = stringResource(R.string.close),
 					onClick = {
-						helper.cancelReports()
 						dismiss()
 						finish()
 					},
@@ -76,4 +86,10 @@ class CrashDialogActivity : ComponentActivity() {
 			)
 		}
 	}
+}
+
+class ReportHolder : ViewModel() {
+	var isLoaded = false
+	var json: String? = null
+	var stackTrace: String? = null
 }

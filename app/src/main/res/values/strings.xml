@@ -1387,4 +1387,5 @@
     <string name="eye_reminder_title">Time to rest your eyes</string>
     <string name="eye_reminder_text">You\'ve been reading for %s. Take a short break and give your eyes some rest.</string>
     <string name="dismiss">Dismiss</string>
+	<string name="deselect_all">Deselect all</string>
 </resources>

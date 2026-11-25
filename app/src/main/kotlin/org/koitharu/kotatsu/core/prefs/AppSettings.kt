@@ -617,6 +617,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_HISTORY_GROUPING, true)
 		set(value) = prefs.edit { putBoolean(KEY_HISTORY_GROUPING, value) }
 
+	/** Keys of the History date sections the user folded away. */
+	var historyCollapsedSections: Set<String>
+		get() = prefs.getStringSet(KEY_HISTORY_COLLAPSED, null).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_HISTORY_COLLAPSED, value) }
+
 	var isUpdatedGroupingEnabled: Boolean
 		get() = prefs.getBoolean(KEY_UPDATED_GROUPING, true)
 		set(value) = prefs.edit { putBoolean(KEY_UPDATED_GROUPING, value) }
@@ -1482,6 +1487,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		private const val KEY_PROTECT_APP_BIOMETRIC_OLD = "protect_app_bio"
 		const val KEY_ZOOM_MODE = "zoom_mode"
 		const val KEY_HISTORY_GROUPING = "history_grouping"
+		const val KEY_HISTORY_COLLAPSED = "history_collapsed"
 		const val KEY_UPDATED_GROUPING = "updated_grouping"
 		const val KEY_PROGRESS_INDICATORS = "reading_indicator_enabled"
 		const val KEY_DETAILS_UI = "details_ui"

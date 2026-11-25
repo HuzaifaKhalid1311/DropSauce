@@ -70,6 +70,17 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 			.build(),
 	)
 
+	/** Just the columns the History date sections are built from, for every entry the filters match. */
+	fun observeSectionDates(filterOptions: Set<ListFilterOption>): Flow<List<HistorySectionDates>> = observeSectionDatesImpl(
+		MangaQueryBuilder(TABLE_HISTORY, this)
+			.select("history.created_at, history.updated_at, history.percent")
+			.join("LEFT JOIN manga ON history.manga_id = manga.manga_id")
+			.where("history.deleted_at = 0")
+			.filters(filterOptions)
+			.groupBy("history.manga_id")
+			.build(),
+	)
+
 	@Query("SELECT manga_id FROM history WHERE deleted_at = 0")
 	abstract suspend fun findAllIds(): LongArray
 
@@ -206,6 +217,9 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Transaction
 	@RawQuery(observedEntities = [HistoryEntity::class])
 	protected abstract fun observeAllImpl(query: SupportSQLiteQuery): Flow<List<HistoryWithManga>>
+
+	@RawQuery(observedEntities = [HistoryEntity::class])
+	protected abstract fun observeSectionDatesImpl(query: SupportSQLiteQuery): Flow<List<HistorySectionDates>>
 
 	override fun getCondition(option: ListFilterOption): String? = when (option) {
 		is ListFilterOption.Favorite -> "EXISTS(SELECT * FROM favourites WHERE history.manga_id = favourites.manga_id AND category_id = ${option.category.id} AND favourites.deleted_at = 0)"

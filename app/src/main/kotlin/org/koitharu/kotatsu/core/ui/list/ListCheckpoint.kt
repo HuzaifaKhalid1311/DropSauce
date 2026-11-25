@@ -33,6 +33,7 @@ class ListCheckpoint(
 	private var button: View? = null
 	private var onDisableRequested: (() -> Unit)? = null
 	private var onLoadMore: (() -> Unit)? = null
+	private var onRevealHidden: ((Long) -> Boolean)? = null
 
 	/** Set while waiting for list content to arrive, so the decision is made on a filled list. */
 	private var isArmed = false
@@ -57,10 +58,12 @@ class ListCheckpoint(
 		button: View?,
 		onLoadMore: () -> Unit,
 		onDisableRequested: () -> Unit,
+		onRevealHidden: (mangaId: Long) -> Boolean,
 	) {
 		this.recyclerView = recyclerView
 		this.button = button
 		this.onLoadMore = onLoadMore
+		this.onRevealHidden = onRevealHidden
 		this.onDisableRequested = onDisableRequested
 	}
 
@@ -131,7 +134,10 @@ class ListCheckpoint(
 		}
 		val count = items()?.size ?: 0
 		if (indexOf(target.mangaId) < 0 && count <= lastItemCount) {
-			pendingTarget = null // the list stopped growing, so the row is simply gone
+			// The list stopped growing: the row is gone, unless it was only folded away.
+			if (onRevealHidden?.invoke(target.mangaId) != true) {
+				pendingTarget = null
+			}
 			return
 		}
 		scrollOrLoad(target)
@@ -211,6 +217,10 @@ class ListCheckpoint(
 			pendingTarget = null
 			(recyclerView?.layoutManager as? LinearLayoutManager)
 				?.scrollToPositionWithOffset(position, checkpoint.offset)
+			return
+		}
+		if (onRevealHidden?.invoke(checkpoint.mangaId) == true) {
+			pendingTarget = checkpoint // loaded but folded away: scroll once it shows
 			return
 		}
 		if (pageRequests >= MAX_PAGE_REQUESTS) {

@@ -30,3 +30,9 @@ data class HistoryEntity(
 	@ColumnInfo(name = "deleted_at") val deletedAt: Long,
 	@ColumnInfo(name = "chapters") val chaptersCount: Int,
 )
+
+data class HistorySectionDates(
+	@ColumnInfo(name = "created_at") val createdAt: Long,
+	@ColumnInfo(name = "updated_at") val updatedAt: Long,
+	@ColumnInfo(name = "percent") val percent: Float,
+)

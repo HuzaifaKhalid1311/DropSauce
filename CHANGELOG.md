@@ -11,6 +11,7 @@
 - Hold a suggestion on Explore to make sure it never gets suggested again
 - Fresh new Explore page: bigger shaped buttons, taller suggestions that loop around endlessly with the title on the cover, a new Manga/Novels switcher, pinned extensions up top, and a button right next to Manage to switch between chips, grid and list
 - New Erza theme, a deep garnet red, at the end of the colour scheme list
+- History got a refresh: tidier date sections (today, yesterday, this week, then by month) with how many you read in each, tap a section to fold it away and the app remembers, and hold one to select everything in it
 
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
@@ -19,7 +20,7 @@
 - More sensitive tags like self-harm or nudity get the orange warning colour, and harmless ones like sister or scar don't anymore
 - New Static app icon that never changes colour, for launchers that glitch with the themed ones
 - MangaBaka's icon shows in colour in the trackers menu instead of a blank silhouette
-- Option pickers across settings and the reader got the new expressive look, the picked one turns into a pill with a checkmark
+- Option pickers across settings and the reader got the new expressive look, the picked one turns into a pill with a checkmark, and so do the filter chips in history
 - The Expressive theme is now called Dynamic
 
 ### Fixed
@@ -29,6 +30,7 @@
 - Opening a chapter no longer occasionally lands on a neighbouring chapter instead of the one you tapped
 - Changing a cover from the full-screen cover view shows the new one right away
 - Dynamic theme no longer shows black text and icons on some phones like Vivo
+- A crash report no longer pops up again on every start after you copied it
 - Other small bug fixes
 
 ## 1.1.5 (2026-11-20)

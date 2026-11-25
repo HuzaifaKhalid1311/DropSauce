@@ -126,6 +126,9 @@ class HistoryRepository @Inject constructor(
 		}
 	}
 
+	fun observeSectionDates(filterOptions: Set<ListFilterOption>) =
+		db.getHistoryDao().observeSectionDates(filterOptions)
+
 	fun observeOne(id: Long): Flow<MangaHistory?> {
 		return db.getHistoryDao().observe(id).map {
 			it?.toMangaHistory()

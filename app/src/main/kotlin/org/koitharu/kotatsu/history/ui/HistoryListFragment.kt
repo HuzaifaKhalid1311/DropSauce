@@ -13,27 +13,111 @@ import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.RecyclerScrollKeeper
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
+import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.databinding.FragmentListBinding
 import org.koitharu.kotatsu.list.ui.MangaListFragment
+import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.size.DynamicItemSizeResolver
 
 @AndroidEntryPoint
-class HistoryListFragment : MangaListFragment() {
+class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 
 	override val viewModel by viewModels<HistoryListViewModel>()
+	private val selectionState = HistorySelectionState()
+
+	/** A section picked before all of it was loaded; the rest gets picked as it arrives. */
+	private var pendingSection: String? = null
 	override val isSwipeRefreshEnabled = false
 	override val checkpointScope get() = "history"
 
 	override fun onViewBindingCreated(binding: FragmentListBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
+		val animator = HistoryItemAnimator()
+		binding.recyclerView.itemAnimator = animator
+		listAdapter?.addListListener { previousList, currentList ->
+			animator.onListDiffed(previousList, currentList)
+		}
 		RecyclerScrollKeeper(binding.recyclerView).attach()
 		addMenuProvider(HistoryListMenuProvider(binding.root.context, router, viewModel))
 		viewModel.isStatsEnabled.observe(viewLifecycleOwner, MenuInvalidator(requireActivity()))
+		viewModel.content.observe(viewLifecycleOwner, ::onHistoryChanged)
+	}
+
+	private fun onHistoryChanged(list: List<ListModel>) {
+		val key = pendingSection ?: return
+		val section = list.firstNotNullOfOrNull { (it as? HistorySection)?.takeIf { s -> s.key == key } }
+		if (section == null || selectionState.ids.isEmpty()) {
+			pendingSection = null
+			return
+		}
+		selectionController?.addAll(section.itemIds)
+		if (section.itemIds.size >= section.count) {
+			pendingSection = null
+		}
+	}
+
+	private fun selectSection(section: HistorySection) {
+		selectionController?.addAll(section.itemIds)
+		if (section.count > section.itemIds.size) {
+			pendingSection = section.key
+			viewModel.requestRestOf(section)
+		}
+	}
+
+	/** The jump-back target may sit in a folded section: open it up. */
+	override fun revealCheckpointRow(mangaId: Long): Boolean {
+		val section = listAdapter?.items?.firstNotNullOfOrNull { item ->
+			(item as? HistorySection)?.takeIf { it.isCollapsed && mangaId in it.itemIds }
+		} ?: return false
+		viewModel.setSectionCollapsed(section.key, false)
+		return true
 	}
 
 	override fun onScrolledToEnd() = viewModel.requestMoreItems()
+
+	/** Folds the section, or while selecting, picks (or drops) every entry in it. */
+	override fun onSectionClick(section: HistorySection) {
+		if (selectionState.ids.isEmpty()) {
+			viewModel.setSectionCollapsed(section.key, !section.isCollapsed)
+			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.LIGHT_CLICK)
+		} else {
+			toggleSectionSelection(section)
+		}
+	}
+
+	/** Holding a section starts selecting with all of it already picked. */
+	override fun onSectionLongClick(section: HistorySection) {
+		if (selectionState.ids.isEmpty()) {
+			viewModel.setSectionCollapsed(section.key, false)
+			selectSection(section)
+			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.LONG_PRESS)
+		} else {
+			toggleSectionSelection(section)
+		}
+	}
+
+	private fun toggleSectionSelection(section: HistorySection) {
+		val controller = selectionController ?: return
+		// A folded section opens up, so whatever gets picked is also on screen for the actions.
+		viewModel.setSectionCollapsed(section.key, false)
+		val checked = controller.snapshot()
+		if (checked.containsAll(section.itemIds)) {
+			if (pendingSection == section.key) pendingSection = null
+			controller.retainAll(checked - section.itemIds.toSet())
+			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.DESELECT)
+		} else {
+			selectSection(section)
+			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.CLICK)
+		}
+	}
+
+	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
+		super.onSelectionChanged(controller, count)
+		selectionState.ids = if (count == 0) emptySet() else controller.snapshot()
+	}
 
 	override fun onEmptyActionClick() = viewModel.clearFilter()
 
@@ -48,6 +132,14 @@ class HistoryListFragment : MangaListFragment() {
 
 	override fun onActionItemClicked(controller: ListSelectionController, mode: ActionMode?, item: MenuItem): Boolean {
 		return when (item.itemId) {
+			R.id.action_select_all -> {
+				// Folded entries open up too, so the actions (which act on what's on screen) include them.
+				val sections = listAdapter?.items?.filterIsInstance<HistorySection>().orEmpty()
+				viewModel.expandSections(sections.map { it.key })
+				sections.forEach { controller.addAll(it.itemIds) }
+				super.onActionItemClicked(controller, mode, item)
+			}
+
 			R.id.action_remove -> {
 				viewModel.removeFromHistory(selectedItemsIds)
 				mode?.finish()
@@ -75,8 +167,11 @@ class HistoryListFragment : MangaListFragment() {
 	}
 
 	override fun onCreateAdapter() = HistoryListAdapter(
-		this,
-		DynamicItemSizeResolver(resources, viewLifecycleOwner, settings, adjustWidth = false),
+		listener = this,
+		sectionListener = this,
+		selection = selectionState,
+		imageLoader = coil,
+		sizeResolver = DynamicItemSizeResolver(resources, viewLifecycleOwner, settings, adjustWidth = false),
 		titleTapToRead = settings.isTitleTapToReadEnabled,
 		onTipClose = { viewModel.dismissScalingTip() },
 	)

@@ -15,6 +15,7 @@ class MangaQueryBuilder(
 	private var groupBy: String? = null
 	private var extraJoins: String? = null
 	private var limit: Int = 0
+	private var columns: String = "*"
 
 	fun filters(options: Collection<ListFilterOption>) = apply {
 		filterOptions = options
@@ -36,12 +37,18 @@ class MangaQueryBuilder(
 		this@MangaQueryBuilder.limit = limit
 	}
 
+	fun select(columns: String) = apply {
+		this@MangaQueryBuilder.columns = columns
+	}
+
 	fun join(join: String?) = apply {
 		extraJoins = join
 	}
 
 	fun build() = buildString {
-		append("SELECT * FROM ")
+		append("SELECT ")
+		append(columns)
+		append(" FROM ")
 		append(table)
 		extraJoins?.let {
 			append(' ')
