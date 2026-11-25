@@ -46,6 +46,10 @@
 	<color name="launcher_shana_dark_fg">#FA1E4E</color>
 	<color name="launcher_shana_light_bg">#FAEAEC</color>
 	<color name="launcher_shana_light_fg">#D6103F</color>
+	<color name="launcher_erza_dark_bg">#1E1519</color>
+	<color name="launcher_erza_dark_fg">#C61C2E</color>
+	<color name="launcher_erza_light_bg">#F1E6EA</color>
+	<color name="launcher_erza_light_fg">#980F22</color>
 	<color name="launcher_lime_dark_bg">#1F2118</color>
 	<color name="launcher_lime_dark_fg">#AFE607</color>
 	<color name="launcher_lime_light_bg">#EFEFE3</color>

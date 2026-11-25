@@ -102,58 +102,6 @@ DropSauce is a free and open-source comic and novel reader for Android, built to
  </picture>
 </a>
 
-## Install
-
-1. [Download the latest APK](https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.5/DropSauce-v1.1.5.apk) (older versions are on the [releases page](https://github.com/HuzaifaKhalid1311/DropSauce/releases)).
-2. Install it on a compatible Android device.
-3. Add your preferred source or extension repository, then start reading.
-
-Android may ask you to allow installs from your browser or file manager. That is normal for APKs downloaded outside the Play Store.
-
-## FAQ
-
-### Does DropSauce include manga or novels?
-> No. DropSauce does not include built-in content. Sources are provided through external libraries, JS plugins, or repositories added by users.
-
-### Is DropSauce free?
-> Yes. DropSauce is free and open source under the GPLv3 license.
-
-### How do updates work?
-> DropSauce supports in-app updates, and release APKs are also published on GitHub. You can update from inside the app or install the latest APK from the Releases page.
-
-### Can I contribute?
-> Yes. Pull requests for patches, fixes, and new features are welcome.
-
-## Project structure
-
-```plaintext
-app/src/main/
-├── kotlin/org/koitharu/kotatsu/
-│   ├── core/          # Shared database, network, parser, preferences, UI, and utility code
-│   ├── main/          # App entry points, main activity, and app-level screens
-│   ├── reader/        # Manga and novel reader UI and reading behavior
-│   ├── details/       # Manga and novel details, chapters, metadata, and related services
-│   ├── explore/       # Browse and discovery screens
-│   ├── search/        # Search screens and search flows (with Manga/Novel toggle)
-│   ├── favourites/    # Favorites and library-facing flows
-│   ├── history/       # Reading history and progress
-│   ├── download/      # Offline downloads and download queue
-│   ├── extensions/    # Extension browsing, JS plugins, and APK extension management
-│   ├── lnreader/      # LNReader JS plugin integration
-│   ├── mihon/         # Mihon & Tsundoku APK extension integration
-│   ├── backup/        # Local backup and restore
-│   ├── sync/          # Sync data, domain, UI, and workers
-│   ├── tracker/       # Tracking integrations and reverse tracking
-│   ├── widget/        # Android home screen widgets
-│   └── settings/      # Settings screens and preferences
-└── res/
-    ├── drawable*/     # Icons, backgrounds, and app artwork
-    ├── layout*/       # XML screens, widgets, and reusable layouts
-    ├── mipmap*/       # Launcher icons
-    ├── values*/       # Strings, colors, themes, and translations
-    └── xml/           # Android XML configuration
-```
-
 ## Contribute
 
 You can send a Pull Request for your patches, fixes, or new features here.

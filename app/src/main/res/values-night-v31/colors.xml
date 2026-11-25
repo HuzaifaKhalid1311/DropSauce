@@ -4,4 +4,7 @@
 	<color name="splash_background">@android:color/system_neutral1_900</color>
 	<color name="splash_shape">@android:color/system_accent1_200</color>
 	<color name="splash_logo">@android:color/system_accent1_800</color>
+	<!-- Wallpaper tone of onSecondaryContainer. Some ROMs (Vivo FuntouchOS, Android 15) return a broken
+	     system_on_secondary_container_*, which Material maps it to on 34+; the tonal palette is reliable. -->
+	<color name="dynamic_on_secondary_container">@android:color/system_accent2_100</color>
 </resources>

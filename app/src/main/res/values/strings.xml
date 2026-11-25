@@ -505,7 +505,7 @@
     <string name="language">Language</string>
     <string name="filter_by_language">Filter by language</string>
     <string name="no_extensions_installed">No extensions installed</string>
-    <string name="theme_name_expressive">Expressive</string>
+    <string name="theme_name_expressive">Dynamic</string>
     <string name="app_icon">App icon</string>
     <string name="app_icon_summary">The app will close to change the icon</string>
     <string name="app_icon_follows_theme">Icons follow light and dark mode. Themed also matches your app color, Static never changes</string>
@@ -540,6 +540,7 @@
     <string name="theme_name_rikka">Rikka</string>
     <string name="theme_name_sakura">Sakura</string>
     <string name="theme_name_shana">Shana</string>
+    <string name="theme_name_erza">Erza</string>
     <string name="theme_name_mamimi">Mamimi</string>
     <string name="theme_name_kanade">Kanade</string>
     <string name="nothing_here">There is nothing here</string>

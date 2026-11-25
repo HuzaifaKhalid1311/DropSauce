@@ -53,6 +53,7 @@ object AppIconManager {
 		ColorScheme.KANADE to intArrayOf(R.mipmap.ic_launcher_kanade_light, R.mipmap.ic_launcher_kanade_dark, R.mipmap.ic_launcher_kanade_oled),
 		ColorScheme.ITSUKA to intArrayOf(R.mipmap.ic_launcher_itsuka_light, R.mipmap.ic_launcher_itsuka_dark, R.mipmap.ic_launcher_itsuka_oled),
 		ColorScheme.SHANA to intArrayOf(R.mipmap.ic_launcher_shana_light, R.mipmap.ic_launcher_shana_dark, R.mipmap.ic_launcher_shana_oled),
+		ColorScheme.ERZA to intArrayOf(R.mipmap.ic_launcher_erza_light, R.mipmap.ic_launcher_erza_dark, R.mipmap.ic_launcher_erza_oled),
 		ColorScheme.LIME to intArrayOf(R.mipmap.ic_launcher_lime_light, R.mipmap.ic_launcher_lime_dark, R.mipmap.ic_launcher_lime_oled),
 		ColorScheme.AMBER to intArrayOf(R.mipmap.ic_launcher_amber_light, R.mipmap.ic_launcher_amber_dark, R.mipmap.ic_launcher_amber_oled),
 		ColorScheme.SKY to intArrayOf(R.mipmap.ic_launcher_sky_light, R.mipmap.ic_launcher_sky_dark, R.mipmap.ic_launcher_sky_oled),

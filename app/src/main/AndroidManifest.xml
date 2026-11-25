@@ -551,6 +551,42 @@
 			</intent-filter>
 		</activity-alias>
 		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_ERZA_LIGHT"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_erza_light"
+			android:roundIcon="@mipmap/ic_launcher_erza_light"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_ERZA_DARK"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_erza_dark"
+			android:roundIcon="@mipmap/ic_launcher_erza_dark"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
+			android:name="org.koitharu.kotatsu.icon.THEME_ERZA_OLED"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/ic_launcher_erza_oled"
+			android:roundIcon="@mipmap/ic_launcher_erza_oled"
+			android:targetActivity="org.koitharu.kotatsu.main.ui.MainActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		<activity-alias
 			android:name="org.koitharu.kotatsu.icon.THEME_LIME_LIGHT"
 			android:enabled="false"
 			android:exported="true"

@@ -29,4 +29,6 @@
 	<color name="list_badge_saved">#8FD0FF</color>
 
 	<!-- Widget chart label — explicit so the bitmap renderer always gets the right color -->
+	<!-- Dynamic theme only exists on 31+; see values-v31 -->
+	<color name="dynamic_on_secondary_container">@color/totoro_onSecondaryContainer</color>
 </resources>

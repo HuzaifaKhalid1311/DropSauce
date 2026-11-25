@@ -75,6 +75,12 @@
 		<item name="splashLogoColor">@color/shana_onPrimary</item>
 	</style>
 
+	<style name="Theme.Kotatsu.Splash.Erza">
+		<item name="windowSplashScreenBackground">@color/erza_surfaceContainer</item>
+		<item name="splashShapeColor">@color/erza_primary</item>
+		<item name="splashLogoColor">@color/erza_onPrimary</item>
+	</style>
+
 	<style name="Theme.Kotatsu.Splash.Lime">
 		<item name="windowSplashScreenBackground">@color/lime_surfaceContainer</item>
 		<item name="splashShapeColor">@color/lime_primary</item>

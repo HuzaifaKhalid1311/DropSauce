@@ -642,7 +642,7 @@
     <string name="manga_restricted_description">このマンガは、このソースで読み込むことはできません。 他のソースで検索するか、ブラウザで開くと、より多くの情報が得られます</string>
     <string name="chapters_grid_view">グリッドビュー</string>
     <string name="enter_name">名前を入力してください</string>
-    <string name="theme_name_expressive">エクスプレス(テスト)</string>
+    <string name="theme_name_expressive">ダイナミック</string>
     <string name="pull_to_prev_chapter">前の章を開く</string>
     <string name="pull_to_next_chapter">次の章を開く</string>
     <string name="state_abandoned">ドロップ</string>

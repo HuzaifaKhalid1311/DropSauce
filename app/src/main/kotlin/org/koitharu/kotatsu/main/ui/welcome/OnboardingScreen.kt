@@ -59,12 +59,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.settings.compose.SegmentedRow
 import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.settings.compose.ColorSchemePickerRow
 
@@ -345,9 +344,15 @@ private fun WelcomeSlide(
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                ThemeButtonGroup(
-                    selectedTheme = selectedTheme,
-                    onThemeChange = actions.onThemeChange,
+                SegmentedRow(
+                    labels = listOf(
+                        stringResource(R.string.follow_system),
+                        stringResource(R.string.light),
+                        stringResource(R.string.dark),
+                    ),
+                    selectedIndex = THEME_MODES.indexOf(selectedTheme),
+                    onSelected = { actions.onThemeChange(THEME_MODES[it]) },
+                    enabled = true,
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                 // AMOLED row
@@ -390,61 +395,11 @@ private fun WelcomeSlide(
     }
 }
 
-// M3 Expressive connected button group — replaces segmented button per the M3E spec.
-// 2dp spacing, 8dp inner corners, fully rounded outer corners, fixed height to prevent wrapping.
-@Composable
-private fun ThemeButtonGroup(selectedTheme: Int, onThemeChange: (Int) -> Unit) {
-    val items = listOf(
-        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM to R.string.follow_system,
-        AppCompatDelegate.MODE_NIGHT_NO to R.string.light,
-        AppCompatDelegate.MODE_NIGHT_YES to R.string.dark,
-    )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        items.forEachIndexed { index, (mode, labelRes) ->
-            val isSelected = selectedTheme == mode
-            val isFirst = index == 0
-            val isLast = index == items.lastIndex
-            val shape = RoundedCornerShape(
-                topStart = if (isFirst) 50.dp else 8.dp,
-                bottomStart = if (isFirst) 50.dp else 8.dp,
-                topEnd = if (isLast) 50.dp else 8.dp,
-                bottomEnd = if (isLast) 50.dp else 8.dp,
-            )
-            val bgColor by animateColorAsState(
-                targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                              else MaterialTheme.colorScheme.surfaceVariant,
-                label = "theme_btn_bg_$index",
-            )
-            val contentColor by animateColorAsState(
-                targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                              else MaterialTheme.colorScheme.onSurfaceVariant,
-                label = "theme_btn_fg_$index",
-            )
-            Surface(
-                onClick = { onThemeChange(mode) },
-                modifier = Modifier.weight(1f).height(48.dp),
-                shape = shape,
-                color = bgColor,
-                contentColor = contentColor,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(labelRes),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 6.dp),
-                    )
-                }
-            }
-        }
-    }
-}
+private val THEME_MODES = intArrayOf(
+    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,
+    AppCompatDelegate.MODE_NIGHT_NO,
+    AppCompatDelegate.MODE_NIGHT_YES,
+)
 
 // ── Slide 1: Storage & Permissions ───────────────────────────────────────────
 

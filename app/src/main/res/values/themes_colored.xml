@@ -491,6 +491,55 @@
 		<item name="colorSurfaceContainerHigh">@color/shana_surfaceContainerHigh</item>
 		<item name="colorSurfaceContainerHighest">@color/shana_surfaceContainerHighest</item>
 	</style>
+	<!-- Erza -->
+	<style name="ThemeOverlay.Kotatsu.Erza">
+		<item name="colorPrimary">@color/erza_primary</item>
+		<item name="colorOnPrimary">@color/erza_onPrimary</item>
+		<item name="colorPrimaryContainer">@color/erza_primaryContainer</item>
+		<item name="colorOnPrimaryContainer">@color/erza_onPrimaryContainer</item>
+		<item name="colorSecondary">@color/erza_secondary</item>
+		<item name="colorOnSecondary">@color/erza_onSecondary</item>
+		<item name="colorSecondaryContainer">@color/erza_secondaryContainer</item>
+		<item name="colorOnSecondaryContainer">@color/erza_onSecondaryContainer</item>
+		<item name="colorTertiary">@color/erza_tertiary</item>
+		<item name="colorOnTertiary">@color/erza_onTertiary</item>
+		<item name="colorTertiaryContainer">@color/erza_tertiaryContainer</item>
+		<item name="colorOnTertiaryContainer">@color/erza_onTertiaryContainer</item>
+		<item name="colorError">@color/erza_error</item>
+		<item name="colorOnError">@color/erza_onError</item>
+		<item name="colorErrorContainer">@color/erza_errorContainer</item>
+		<item name="colorOnErrorContainer">@color/erza_onErrorContainer</item>
+		<item name="android:colorBackground">@color/erza_background</item>
+		<item name="colorOnBackground">@color/erza_onBackground</item>
+		<item name="colorSurface">@color/erza_surface</item>
+		<item name="colorOnSurface">@color/erza_onSurface</item>
+		<item name="colorSurfaceVariant">@color/erza_surfaceVariant</item>
+		<item name="colorOnSurfaceVariant">@color/erza_onSurfaceVariant</item>
+		<item name="colorOutline">@color/erza_outline</item>
+		<item name="colorOutlineVariant">@color/erza_outlineVariant</item>
+		<item name="colorSurfaceInverse">@color/erza_inverseSurface</item>
+		<item name="colorOnSurfaceInverse">@color/erza_inverseOnSurface</item>
+		<item name="colorPrimaryInverse">@color/erza_inversePrimary</item>
+		<item name="colorPrimaryFixed">@color/erza_primaryFixed</item>
+		<item name="colorOnPrimaryFixed">@color/erza_onPrimaryFixed</item>
+		<item name="colorPrimaryFixedDim">@color/erza_primaryFixedDim</item>
+		<item name="colorOnPrimaryFixedVariant">@color/erza_onPrimaryFixedVariant</item>
+		<item name="colorSecondaryFixed">@color/erza_secondaryFixed</item>
+		<item name="colorOnSecondaryFixed">@color/erza_onSecondaryFixed</item>
+		<item name="colorSecondaryFixedDim">@color/erza_secondaryFixedDim</item>
+		<item name="colorOnSecondaryFixedVariant">@color/erza_onSecondaryFixedVariant</item>
+		<item name="colorTertiaryFixed">@color/erza_tertiaryFixed</item>
+		<item name="colorOnTertiaryFixed">@color/erza_onTertiaryFixed</item>
+		<item name="colorTertiaryFixedDim">@color/erza_tertiaryFixedDim</item>
+		<item name="colorOnTertiaryFixedVariant">@color/erza_onTertiaryFixedVariant</item>
+		<item name="colorSurfaceDim">@color/erza_surfaceDim</item>
+		<item name="colorSurfaceBright">@color/erza_surfaceBright</item>
+		<item name="colorSurfaceContainerLowest">@color/erza_surfaceContainerLowest</item>
+		<item name="colorSurfaceContainerLow">@color/erza_surfaceContainerLow</item>
+		<item name="colorSurfaceContainer">@color/erza_surfaceContainer</item>
+		<item name="colorSurfaceContainerHigh">@color/erza_surfaceContainerHigh</item>
+		<item name="colorSurfaceContainerHighest">@color/erza_surfaceContainerHighest</item>
+	</style>
 	<!-- Lime -->
 	<style name="ThemeOverlay.Kotatsu.Lime">
 		<item name="colorPrimary">@color/lime_primary</item>

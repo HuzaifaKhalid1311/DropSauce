@@ -198,6 +198,7 @@
 
 	<!-- Expressive Monet theme -->
 	<style name="ThemeOverlay.Kotatsu.Expressive" parent="ThemeOverlay.Material3Expressive.DynamicColors.DayNight">
+		<item name="colorOnSecondaryContainer">@color/dynamic_on_secondary_container</item>
 		<item name="appBarLayoutStyle">@style/Widget.Kotatsu.AppBarLayout</item>
 		<item name="collapsingToolbarLayoutStyle">@style/Widget.Kotatsu.CollapsingToolbar</item>
 		<item name="collapsingToolbarLayoutMediumStyle">@style/Widget.Kotatsu.CollapsingToolbar.Medium</item>

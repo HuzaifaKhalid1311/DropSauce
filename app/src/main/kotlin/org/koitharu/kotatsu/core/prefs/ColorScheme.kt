@@ -27,6 +27,7 @@ enum class ColorScheme(
 	LIME(R.style.ThemeOverlay_Kotatsu_Lime, R.string.theme_name_lime, R.style.Theme_Kotatsu_Splash_Lime),
 	AMBER(R.style.ThemeOverlay_Kotatsu_Amber, R.string.theme_name_amber, R.style.Theme_Kotatsu_Splash_Amber),
 	SKY(R.style.ThemeOverlay_Kotatsu_Sky, R.string.theme_name_sky, R.style.Theme_Kotatsu_Splash_Sky),
+	ERZA(R.style.ThemeOverlay_Kotatsu_Erza, R.string.theme_name_erza, R.style.Theme_Kotatsu_Splash_Erza),
 	;
 
 	companion object {
