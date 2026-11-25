@@ -270,7 +270,8 @@ private fun ExtensionsScreen(
 						title = stringResource(R.string.sort_order),
 						entries = sortEntries,
 						entryValues = sortValues,
-						selectedValue = sortOrder,
+						// The removed "Manual" order may still be saved; it now reads as by name.
+						selectedValue = sortOrder.takeIf { it in sortValues } ?: SourcesSortOrder.ALPHABETIC.name,
 						onValueChange = { sortOrder = it },
 						icon = R.drawable.ic_sort_asc,
 						

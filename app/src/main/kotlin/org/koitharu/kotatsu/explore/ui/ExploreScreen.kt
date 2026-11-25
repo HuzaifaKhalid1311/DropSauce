@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.explore.ui
 
 import android.view.LayoutInflater
+import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -107,6 +109,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp as lerpValue
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.recyclerview.widget.RecyclerView
@@ -121,8 +124,8 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.parser.favicon.faviconUri
-import org.koitharu.kotatsu.core.ui.BaseListAdapter
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
+import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
@@ -130,8 +133,8 @@ import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
 import org.koitharu.kotatsu.databinding.ItemRecommendationBinding
 import org.koitharu.kotatsu.databinding.ItemTip2Binding
 import org.koitharu.kotatsu.explore.data.ExtensionLayout
-import org.koitharu.kotatsu.explore.ui.adapter.carouselItems
-import org.koitharu.kotatsu.explore.ui.adapter.setUpMangaCarousel
+import org.koitharu.kotatsu.explore.ui.adapter.LoopingCarouselAdapter
+import org.koitharu.kotatsu.explore.ui.adapter.setUpLoopingMangaCarousel
 import org.koitharu.kotatsu.explore.ui.model.ExploreSources
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.list.ui.model.EmptyState
@@ -158,6 +161,7 @@ interface ExploreActions {
 	fun onDownloadsClick()
 	fun onSuggestionsMoreClick()
 	fun onMangaClick(manga: Manga)
+	fun onMangaLongClick(manga: Manga, view: View)
 	fun onManageClick()
 	fun onCycleLayoutClick()
 	fun onKindLongClick()
@@ -210,7 +214,7 @@ fun ExploreScreen(
 				onAction = actions::onSuggestionsMoreClick,
 			)
 			Spacer(Modifier.height(6.dp))
-			SuggestionsCarousel(suggestions, actions::onMangaClick)
+			SuggestionsCarousel(suggestions, actions)
 		}
 		Spacer(Modifier.height(16.dp))
 		ExtensionsSection(
@@ -255,8 +259,8 @@ private val JoinedGap = 2.dp
 
 /**
  * Local storage, bookmarks and downloads: three joined expressive cards, each with its own
- * theme-harmonized tonal badge that morphs into a circle when pressed. Wide screens place the label
- * beside the icon so the row stays sleek in landscape and on tablets.
+ * theme-harmonized tonal badge that morphs into a circle when pressed. Like an M3 Expressive button
+ * group, the pressed card widens and pushes its neighbours aside. Wide screens place the label beside the icon.
  */
 @Composable
 private fun QuickButtons(isWide: Boolean, actions: ExploreActions) {
@@ -275,7 +279,6 @@ private fun QuickButtons(isWide: Boolean, actions: ExploreActions) {
 			endCorner = QuickInnerCorner,
 			onClick = actions::onLocalClick,
 			isWide = isWide,
-			modifier = Modifier.weight(1f),
 		)
 		QuickButton(
 			title = R.string.bookmarks,
@@ -287,7 +290,6 @@ private fun QuickButtons(isWide: Boolean, actions: ExploreActions) {
 			endCorner = QuickInnerCorner,
 			onClick = actions::onBookmarksClick,
 			isWide = isWide,
-			modifier = Modifier.weight(1f),
 		)
 		QuickButton(
 			title = R.string.downloads,
@@ -300,13 +302,12 @@ private fun QuickButtons(isWide: Boolean, actions: ExploreActions) {
 			endCorner = OuterCorner,
 			onClick = actions::onDownloadsClick,
 			isWide = isWide,
-			modifier = Modifier.weight(1f),
 		)
 	}
 }
 
 @Composable
-private fun QuickButton(
+private fun RowScope.QuickButton(
 	@StringRes title: Int,
 	@DrawableRes icon: Int,
 	shape: RoundedPolygon,
@@ -316,7 +317,6 @@ private fun QuickButton(
 	endCorner: Dp,
 	onClick: () -> Unit,
 	isWide: Boolean,
-	modifier: Modifier = Modifier,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	val isPressed by interactionSource.collectIsPressedAsState()
@@ -326,10 +326,11 @@ private fun QuickButton(
 		animationSpec = motion.fastSpatialSpec(),
 		label = "quickCorner",
 	)
-	val pressScale by animateFloatAsState(
-		targetValue = if (isPressed) 0.96f else 1f,
+	// The M3 button group's 15% expansion; the others give up the space.
+	val weight by animateFloatAsState(
+		targetValue = if (isPressed) 1.15f else 1f,
 		animationSpec = motion.fastSpatialSpec(),
-		label = "quickScale",
+		label = "quickWeight",
 	)
 	val start = if (startCorner == QuickInnerCorner) inner else startCorner
 	val end = if (endCorner == QuickInnerCorner) inner else endCorner
@@ -340,10 +341,7 @@ private fun QuickButton(
 	}
 	Surface(
 		onClick = onClick,
-		modifier = modifier.graphicsLayer {
-			scaleX = pressScale
-			scaleY = pressScale
-		},
+		modifier = Modifier.weight(weight),
 		shape = RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end),
 		color = MaterialTheme.colorScheme.surfaceContainer,
 		interactionSource = interactionSource,
@@ -456,20 +454,35 @@ private fun SuggestionsHeader(title: String, action: String, onAction: () -> Uni
 	}
 }
 
-/** The shared View carousel, the same one the details page embeds. */
+/** The shared View carousel the details page embeds too; here it loops around endlessly. */
 @Composable
-private fun SuggestionsCarousel(items: List<MangaCompactListModel>, onClick: (Manga) -> Unit) {
-	val currentOnClick by rememberUpdatedState(onClick)
+private fun SuggestionsCarousel(items: List<MangaCompactListModel>, actions: ExploreActions) {
+	val currentActions by rememberUpdatedState(actions)
 	AndroidView(
 		factory = { context ->
 			val binding = ItemRecommendationBinding.inflate(LayoutInflater.from(context))
-			binding.recyclerView.setUpMangaCarousel { manga, _ -> currentOnClick(manga) }
+			binding.recyclerView.setUpLoopingMangaCarousel(
+				object : OnListItemClickListener<Manga> {
+					override fun onItemClick(item: Manga, view: View) = currentActions.onMangaClick(item)
+
+					override fun onItemLongClick(item: Manga, view: View): Boolean {
+						currentActions.onMangaLongClick(item, view)
+						return true
+					}
+				},
+			)
 			binding.root
 		},
 		update = { root ->
-			@Suppress("UNCHECKED_CAST")
-			(root.findViewById<RecyclerView>(R.id.recyclerView).adapter as BaseListAdapter<ListModel>).items =
-				carouselItems(items)
+			val recyclerView = root.findViewById<RecyclerView>(R.id.recyclerView)
+			// The first tile still on screen, kept in place when a title is hidden.
+			val anchor = recyclerView.children
+				.filter { it.right > recyclerView.paddingLeft }
+				.minOfOrNull { recyclerView.getChildAdapterPosition(it) } ?: -1
+			val position = (recyclerView.adapter as LoopingCarouselAdapter).submit(items, anchor)
+			if (position >= 0) {
+				recyclerView.scrollToPosition(position)
+			}
 		},
 		modifier = Modifier
 			.fillMaxWidth()
@@ -941,52 +954,39 @@ private fun SourcesPage(
 ) {
 	val sourceItems = remember(items) { items.filterIsInstance<MangaSourceItem>() }
 	val (pinned, unpinned) = remember(sourceItems) { sourceItems.partition { it.source.isPinned } }
-	val splitPinned = pinned.isNotEmpty() && unpinned.isNotEmpty()
 	val isSelecting = selectedIds.isNotEmpty()
 
 	Column(modifier.fillMaxWidth()) {
-		if (sourceItems.isNotEmpty()) {
-			if (splitPinned) {
-				PinnedGroupLabel()
-				SourcesGroupBlock(
-					sourceItems = pinned,
-					layout = layout,
-					gridColumns = gridColumns,
-					maxWidth = maxWidth,
-					selectedIds = selectedIds,
-					isSelecting = isSelecting,
-					elevated = true,
-					showItemPin = false,
-					imageLoader = imageLoader,
-					actions = actions,
-				)
-				Spacer(Modifier.height(12.dp))
-				SourcesGroupBlock(
-					sourceItems = unpinned,
-					layout = layout,
-					gridColumns = gridColumns,
-					maxWidth = maxWidth,
-					selectedIds = selectedIds,
-					isSelecting = isSelecting,
-					elevated = false,
-					showItemPin = false,
-					imageLoader = imageLoader,
-					actions = actions,
-				)
-			} else {
-				SourcesGroupBlock(
-					sourceItems = sourceItems,
-					layout = layout,
-					gridColumns = gridColumns,
-					maxWidth = maxWidth,
-					selectedIds = selectedIds,
-					isSelecting = isSelecting,
-					elevated = pinned.isNotEmpty(),
-					showItemPin = pinned.isNotEmpty(),
-					imageLoader = imageLoader,
-					actions = actions,
-				)
+		// Pinned extensions are their own section at the top of the tab, under their own heading.
+		if (pinned.isNotEmpty()) {
+			PinnedGroupLabel()
+			SourcesGroupBlock(
+				sourceItems = pinned,
+				layout = layout,
+				gridColumns = gridColumns,
+				maxWidth = maxWidth,
+				selectedIds = selectedIds,
+				isSelecting = isSelecting,
+				elevated = true,
+				imageLoader = imageLoader,
+				actions = actions,
+			)
+			if (unpinned.isNotEmpty()) {
+				Spacer(Modifier.height(16.dp))
 			}
+		}
+		if (unpinned.isNotEmpty()) {
+			SourcesGroupBlock(
+				sourceItems = unpinned,
+				layout = layout,
+				gridColumns = gridColumns,
+				maxWidth = maxWidth,
+				selectedIds = selectedIds,
+				isSelecting = isSelecting,
+				elevated = false,
+				imageLoader = imageLoader,
+				actions = actions,
+			)
 		}
 		for (item in items) {
 			when (item) {
@@ -1038,7 +1038,6 @@ private fun SourcesGroupBlock(
 	selectedIds: Set<Long>,
 	isSelecting: Boolean,
 	elevated: Boolean,
-	showItemPin: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1053,7 +1052,6 @@ private fun SourcesGroupBlock(
 					columns = columns,
 					isSelected = item.id in selectedIds,
 					elevated = elevated,
-					showPin = showItemPin && item.source.isPinned,
 					imageLoader = imageLoader,
 					actions = actions,
 				)
@@ -1076,7 +1074,6 @@ private fun SourcesGroupBlock(
 					isSelected = item.id in selectedIds,
 					isDense = gridColumns >= 5,
 					elevated = elevated,
-					showPin = showItemPin && item.source.isPinned,
 					imageLoader = imageLoader,
 					actions = actions,
 				)
@@ -1093,7 +1090,6 @@ private fun SourcesGroupBlock(
 						isSelected = item.id in selectedIds,
 						isSelecting = isSelecting,
 						elevated = elevated,
-						showPin = showItemPin && item.source.isPinned,
 						imageLoader = imageLoader,
 						actions = actions,
 					)
@@ -1173,7 +1169,6 @@ private fun SourceChip(
 	columns: Int,
 	isSelected: Boolean,
 	elevated: Boolean,
-	showPin: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1192,7 +1187,6 @@ private fun SourceChip(
 		Spacer(Modifier.width(10.dp))
 		SourceTitle(
 			title = item.source.getTitle(context),
-			isPinned = showPin,
 			style = MaterialTheme.typography.titleSmall,
 			modifier = Modifier.weight(1f),
 		)
@@ -1243,7 +1237,6 @@ private fun SourceTile(
 	isSelected: Boolean,
 	isDense: Boolean,
 	elevated: Boolean,
-	showPin: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1259,29 +1252,12 @@ private fun SourceTile(
 			.padding(horizontal = if (isDense) 4.dp else 8.dp, vertical = if (isDense) 8.dp else 12.dp),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
-		Box {
-			SourceIcon(
-				item = item,
-				imageLoader = imageLoader,
-				shape = RoundedCornerShape(if (isDense) 12.dp else 14.dp),
-				modifier = Modifier.size(iconSize),
-			)
-			if (showPin) {
-				Icon(
-					painter = painterResource(R.drawable.ic_pin_small),
-					contentDescription = stringResource(R.string.source_pinned),
-					tint = MaterialTheme.colorScheme.primary,
-					modifier = Modifier
-						.align(Alignment.TopStart)
-						.background(
-							if (elevated) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer,
-							CircleShape,
-						)
-						.padding(2.dp)
-						.size(13.dp),
-				)
-			}
-		}
+		SourceIcon(
+			item = item,
+			imageLoader = imageLoader,
+			shape = RoundedCornerShape(if (isDense) 12.dp else 14.dp),
+			modifier = Modifier.size(iconSize),
+		)
 		Spacer(Modifier.height(6.dp))
 		Text(
 			text = title,
@@ -1304,7 +1280,6 @@ private fun SourceRow(
 	isSelected: Boolean,
 	isSelecting: Boolean,
 	elevated: Boolean,
-	showPin: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1344,7 +1319,7 @@ private fun SourceRow(
 				.weight(1f)
 				.padding(horizontal = 14.dp),
 		) {
-			SourceTitle(item.source.getTitle(context), showPin, MaterialTheme.typography.titleSmall)
+			SourceTitle(item.source.getTitle(context), MaterialTheme.typography.titleSmall)
 			if (subtitle.isNotEmpty()) {
 				Spacer(Modifier.height(1.dp))
 				Text(
@@ -1403,29 +1378,17 @@ private fun ActionButton(
 @Composable
 private fun SourceTitle(
 	title: String,
-	isPinned: Boolean,
 	style: TextStyle,
 	modifier: Modifier = Modifier,
 ) {
-	Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-		if (isPinned) {
-			Icon(
-				painter = painterResource(R.drawable.ic_pin_small),
-				contentDescription = stringResource(R.string.source_pinned),
-				tint = MaterialTheme.colorScheme.primary,
-				modifier = Modifier
-					.padding(end = 3.dp)
-					.size(15.dp),
-			)
-		}
-		Text(
-			text = title,
-			style = style,
-			color = MaterialTheme.colorScheme.onSurface,
-			maxLines = 1,
-			overflow = TextOverflow.Ellipsis,
-		)
-	}
+	Text(
+		text = title,
+		style = style,
+		color = MaterialTheme.colorScheme.onSurface,
+		maxLines = 1,
+		overflow = TextOverflow.Ellipsis,
+		modifier = modifier,
+	)
 }
 
 /** The extension's icon, with the update dot when its store has a newer build. */

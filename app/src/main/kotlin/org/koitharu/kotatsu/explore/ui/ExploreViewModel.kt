@@ -4,8 +4,6 @@ import androidx.collection.LongSet
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -42,7 +40,6 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreManager
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
-import org.koitharu.kotatsu.suggestions.ui.SuggestionsWorker
 import javax.inject.Inject
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
 
@@ -53,7 +50,6 @@ class ExploreViewModel @Inject constructor(
 	private val sourcesRepository: MangaSourcesRepository,
 	private val shortcutManager: AppShortcutManager,
 	private val extensionStoreManager: ExtensionStoreManager,
-	private val suggestionsScheduler: SuggestionsWorker.Scheduler,
 ) : BaseViewModel() {
 
 	val layout = settings.observeAsStateFlow(
@@ -91,20 +87,13 @@ class ExploreViewModel @Inject constructor(
 	val hasExtensionUpdates: StateFlow<Boolean> = extensionStoreManager.hasUpdates
 		.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, false)
 
-	/** True while a pull-to-refresh is regenerating the suggestions. */
-	private val isRefreshingSuggestions = MutableStateFlow(false)
-
 	/**
 	 * The suggestions carousel: `null` hides it, an empty list shows the skeleton (still loading, so
 	 * the extensions don't jump down once it arrives), anything else is the carousel.
 	 */
-	val suggestions: StateFlow<List<MangaCompactListModel>?> = combine(
-		getSuggestionFlow(),
-		isRefreshingSuggestions,
-	) { recommendation, isRefreshing ->
-		// Drop the stale carousel while refreshing: the skeleton shows the pull visibly does something
+	val suggestions: StateFlow<List<MangaCompactListModel>?> = getSuggestionFlow().map { recommendation ->
 		when {
-			isRefreshing || recommendation == null -> emptyList()
+			recommendation == null -> emptyList()
 			recommendation.isEmpty() -> null
 			else -> recommendation.toRecommendationList()
 		}
@@ -153,21 +142,6 @@ class ExploreViewModel @Inject constructor(
 		settings.sourcesLayout = entries[(entries.indexOf(settings.sourcesLayout) + 1) % entries.size]
 	}
 
-	/** Pull-to-refresh: reload the installed extensions and regenerate the suggestions carousel. */
-	fun refresh() {
-		launchLoadingJob(Dispatchers.Default) {
-			isRefreshingSuggestions.value = settings.isSuggestionsEnabled
-			try {
-				sourcesRepository.reloadMihonSources()
-				if (settings.isSuggestionsEnabled) {
-					suggestionsScheduler.runNow()
-				}
-			} finally {
-				isRefreshingSuggestions.value = false
-			}
-		}
-	}
-
 	/** Languages offered by the installed sources, for the Explore language filter. */
 	fun sourceLanguages(): List<SourceLanguage> = sourcesRepository.getSourceLanguages()
 
@@ -198,6 +172,13 @@ class ExploreViewModel @Inject constructor(
 			val handle = sourcesRepository.setSourcesHidden(sources, hidden = true)
 			val message = if (sources.size == 1) R.string.extension_hidden else R.string.extensions_hidden
 			onActionDone.call(ReversibleAction(message, handle))
+		}
+	}
+
+	fun hideSuggestion(manga: Manga) {
+		launchJob(Dispatchers.Default) {
+			val handle = suggestionRepository.hide(manga)
+			onActionDone.call(ReversibleAction(R.string.suggestion_hidden, handle))
 		}
 	}
 

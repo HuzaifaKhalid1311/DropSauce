@@ -58,8 +58,6 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.asArrayList
 import org.koitharu.kotatsu.core.util.ext.awaitUniqueWorkInfoByName
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import org.koitharu.kotatsu.core.util.ext.awaitWorkInfosByTag
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
 import org.koitharu.kotatsu.core.util.ext.connectivityManager
@@ -219,7 +217,6 @@ class SuggestionsWorker @AssistedInject constructor(
 			.sortedByDescending { it.relevance }
 			.take(MAX_RESULTS)
 		suggestionRepository.replace(suggestions)
-		setProgress(workDataOf(PROGRESS_SAVED to true))
 		if (appSettings.isSuggestionsNotificationAvailable
 			&& applicationContext.checkNotificationPermission(MANGA_CHANNEL_ID)
 			&& suggestions.size >= 3
@@ -486,19 +483,6 @@ class SuggestionsWorker @AssistedInject constructor(
 			workManager.enqueue(request).await()
 		}
 
-		/**
-		 * [startNow] plus a wait until the fresh suggestions are saved, so a pull-to-refresh can keep its
-		 * placeholder up until they exist; their covers keep downloading after that. Gives up after a
-		 * minute — the work may be held back indefinitely by its network constraint.
-		 */
-		suspend fun runNow() {
-			startNow()
-			withTimeoutOrNull(RUN_NOW_TIMEOUT) {
-				workManager.getWorkInfosByTagFlow(TAG_ONESHOT)
-					.first { infos -> infos.none { !it.state.isFinished && !it.progress.getBoolean(PROGRESS_SAVED, false) } }
-			}
-		}
-
 		private fun createConstraints() = Constraints.Builder()
 			.setRequiredNetworkType(if (settings.isSuggestionsWiFiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
 			.setRequiresBatteryNotLow(true)
@@ -510,7 +494,6 @@ class SuggestionsWorker @AssistedInject constructor(
 		const val TAG = "suggestions"
 		const val TAG_ONESHOT = "suggestions_oneshot"
 		const val DATA_COUNT = "count"
-		const val PROGRESS_SAVED = "saved"
 		const val WORKER_CHANNEL_ID = "suggestion_worker"
 		const val MANGA_CHANNEL_ID = "suggestions"
 		const val GROUP_SUGGESTION = "org.koitharu.kotatsu.SUGGESTIONS"
@@ -520,7 +503,6 @@ class SuggestionsWorker @AssistedInject constructor(
 		const val MAX_SOURCE_RESULTS = 30
 		const val MAX_RAW_RESULTS = 440
 		const val TAG_EQ_THRESHOLD = 0.4f
-		private const val RUN_NOW_TIMEOUT = 60_000L
 		const val RATING_MIN = 0.5f
 		const val SETTINGS_ACTION_CODE = 4
 

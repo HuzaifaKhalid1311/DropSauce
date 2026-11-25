@@ -267,6 +267,9 @@
     <string name="screenshots_block_nsfw">Block on NSFW</string>
     <string name="screenshots_block_all">Always block</string>
     <string name="suggestions">Suggestions</string>
+    <string name="suggestions_loop">Back to the first suggestion</string>
+    <string name="dont_suggest_again">Don\'t suggest again</string>
+    <string name="suggestion_hidden">Won\'t suggest this again</string>
     <string name="suggestions_enable">Enable suggestions</string>
     <string name="suggestions_summary">Suggest manga based on your preferences</string>
     <string name="suggestions_info">All data is only analyzed locally on this device and never sent anywhere.</string>

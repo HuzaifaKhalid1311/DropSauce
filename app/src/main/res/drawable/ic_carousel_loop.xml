@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "repeat" (rounded): marks where the suggestions carousel wraps to the start. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:tint="?colorControlNormal"
+	android:viewportWidth="24"
+	android:viewportHeight="24">
+	<path
+		android:fillColor="@android:color/white"
+		android:pathData="m6.85,19l0.85,0.85q0.3,0.3 0.288,0.7t-0.288,0.7q-0.3,0.3 -0.712,0.313t-0.713,-0.288L3.7,18.7q-0.15,-0.15 -0.213,-0.325T3.426,18t0.063,-0.375t0.212,-0.325l2.575,-2.575q0.3,-0.3 0.713,-0.287t0.712,0.312q0.275,0.3 0.288,0.7t-0.288,0.7l-0.85,0.85H17v-3q0,-0.425 0.288,-0.712T18,13t0.713,0.288T19,14v3q0,0.825 -0.587,1.413T17,19zM17.15,7H7v3q0,0.425 -0.288,0.713T6,11t-0.712,-0.288T5,10V7q0,-0.825 0.588,-1.412T7,5h10.15l-0.85,-0.85q-0.3,-0.3 -0.288,-0.7t0.288,-0.7q0.3,-0.3 0.712,-0.312t0.713,0.287L20.3,5.3q0.15,0.15 0.213,0.325t0.062,0.375t-0.062,0.375t-0.213,0.325l-2.575,2.575q-0.3,0.3 -0.712,0.288T16.3,9.25q-0.275,-0.3 -0.288,-0.7t0.288,-0.7z" />
+</vector>

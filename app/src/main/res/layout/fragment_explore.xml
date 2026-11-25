@@ -2,24 +2,17 @@
 <!-- Explore's content is Compose (ExploreScreen), but the scrolling is this NestedScrollView's. The
      page sits under the collapsing search bar and moves with it; a Compose scroll doesn't compensate for
      its own view moving mid-drag, so hiding the bars made it jitter. The NestedScrollView does, and it
-     also gives pull-to-refresh and the saved scroll position for free. -->
-<org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout
+     also keeps the scroll position for free. No pull-to-refresh here on purpose. -->
+<androidx.core.widget.NestedScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/swipeRefreshLayout"
+	android:id="@+id/scrollView"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+	android:layout_height="match_parent"
+	android:clipToPadding="false">
 
-	<androidx.core.widget.NestedScrollView
-		android:id="@+id/scrollView"
+	<androidx.compose.ui.platform.ComposeView
+		android:id="@+id/composeView"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:clipToPadding="false">
+		android:layout_height="wrap_content" />
 
-		<androidx.compose.ui.platform.ComposeView
-			android:id="@+id/composeView"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" />
-
-	</androidx.core.widget.NestedScrollView>
-
-</org.koitharu.kotatsu.core.ui.widgets.LoadingIndicatorSwipeRefreshLayout>
+</androidx.core.widget.NestedScrollView>

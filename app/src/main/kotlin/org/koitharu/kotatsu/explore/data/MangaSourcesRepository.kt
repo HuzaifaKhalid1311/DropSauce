@@ -217,7 +217,6 @@ class MangaSourcesRepository @Inject constructor(
 		when (settings.sourcesSortOrder) {
 			SourcesSortOrder.ALPHABETIC -> unpinned.sortWith(compareBy { it.getTitle(context) })
 			SourcesSortOrder.LAST_USED -> unpinned.sortWith(compareByDescending { getLastUsedTimestamp(it.mangaSource) })
-			SourcesSortOrder.MANUAL -> Unit
 		}
 		return pinned + unpinned
 	}

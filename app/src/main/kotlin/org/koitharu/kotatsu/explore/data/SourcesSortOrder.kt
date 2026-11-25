@@ -7,6 +7,5 @@ enum class SourcesSortOrder(
 	@StringRes val titleResId: Int,
 ) {
 	ALPHABETIC(R.string.by_name),
-	MANUAL(R.string.manual),
 	LAST_USED(R.string.last_used),
 }
