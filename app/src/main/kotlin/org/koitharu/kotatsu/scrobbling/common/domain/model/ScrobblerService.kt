@@ -18,4 +18,5 @@ enum class ScrobblerService(
 	KITSU(4, R.string.kitsu, R.drawable.ic_kitsu),
 	MANGABAKA(5, R.string.mangabaka, R.drawable.ic_mangabaka, isBitmapIcon = true),
 	COMICK(6, R.string.comick, R.drawable.ic_comick),
+	MANGAUPDATES(7, R.string.mangaupdates, R.drawable.ic_mangaupdates),
 }

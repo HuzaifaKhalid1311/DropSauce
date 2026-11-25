@@ -326,6 +326,7 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("anilist", R.string.anilist, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem("kitsu", R.string.kitsu, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem("mal", R.string.mal, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
+				addItem("mangaupdates", R.string.mangaupdates, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 				addItem("shikimori", R.string.shikimori, breadcrumbs = crumbs, fragmentClass = ServicesSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "External") { crumbs ->

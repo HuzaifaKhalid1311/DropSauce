@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.kitsu.data.KitsuRepository
 import org.koitharu.kotatsu.scrobbling.mal.data.MALRepository
 import org.koitharu.kotatsu.scrobbling.mangabaka.data.MangaBakaRepository
+import org.koitharu.kotatsu.scrobbling.mangaupdates.data.MangaUpdatesRepository
 import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriRepository
 import javax.inject.Inject
 import javax.inject.Provider
@@ -18,6 +19,7 @@ class ScrobblerRepositoryMap @Inject constructor(
 	private val kitsuRepository: Provider<KitsuRepository>,
 	private val mangaBakaRepository: Provider<MangaBakaRepository>,
 	private val comickRepository: Provider<ComickRepository>,
+	private val mangaUpdatesRepository: Provider<MangaUpdatesRepository>,
 ) {
 
 	operator fun get(scrobblerService: ScrobblerService): ScrobblerRepository = when (scrobblerService) {
@@ -27,5 +29,6 @@ class ScrobblerRepositoryMap @Inject constructor(
 		ScrobblerService.KITSU -> kitsuRepository
 		ScrobblerService.MANGABAKA -> mangaBakaRepository
 		ScrobblerService.COMICK -> comickRepository
+		ScrobblerService.MANGAUPDATES -> mangaUpdatesRepository
 	}.get()
 }

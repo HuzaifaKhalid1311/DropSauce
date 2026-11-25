@@ -310,6 +310,7 @@ private fun ServicesScreen(
 					ScrobblerService.KITSU to R.drawable.ic_kitsu,
 					ScrobblerService.MAL to R.drawable.ic_mal,
 					ScrobblerService.MANGABAKA to R.drawable.ic_mangabaka,
+					ScrobblerService.MANGAUPDATES to R.drawable.ic_mangaupdates,
 					ScrobblerService.SHIKIMORI to R.drawable.ic_shikimori,
 				)
 				SettingsGroup {

@@ -846,6 +846,10 @@
 			</intent-filter>
 		</activity>
 		<activity
+			android:name="org.koitharu.kotatsu.scrobbling.mangaupdates.ui.MangaUpdatesAuthActivity"
+			android:exported="false"
+			android:label="@string/mangaupdates" />
+		<activity
 			android:name="org.koitharu.kotatsu.stats.ui.StatsActivity"
 			android:label="@string/reading_stats" />
 		<activity

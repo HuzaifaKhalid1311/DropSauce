@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.scrobbling.common.domain.ScrobblerRepositoryMap
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
 import org.koitharu.kotatsu.scrobbling.kitsu.ui.KitsuAuthActivity
+import org.koitharu.kotatsu.scrobbling.mangaupdates.ui.MangaUpdatesAuthActivity
 import javax.inject.Inject
 
 class ScrobblerAuthHelper @Inject constructor(
@@ -26,17 +27,16 @@ class ScrobblerAuthHelper @Inject constructor(
 
 	@SuppressLint("UnsafeImplicitIntentLaunch")
 	fun startAuth(context: Context, scrobbler: ScrobblerService) = runCatching {
-		if (scrobbler == ScrobblerService.KITSU) {
-			launchKitsuAuth(context)
-		} else {
-			val repository = repositoriesMap[scrobbler]
-			val intent = Intent(Intent.ACTION_VIEW)
-			intent.data = repository.oauthUrl.toUri()
-			context.startActivity(intent)
+		when (scrobbler) {
+			// These two sign in with a username and password, on screens of their own
+			ScrobblerService.KITSU -> context.startActivity(Intent(context, KitsuAuthActivity::class.java))
+			ScrobblerService.MANGAUPDATES -> context.startActivity(Intent(context, MangaUpdatesAuthActivity::class.java))
+			else -> {
+				val repository = repositoriesMap[scrobbler]
+				val intent = Intent(Intent.ACTION_VIEW)
+				intent.data = repository.oauthUrl.toUri()
+				context.startActivity(intent)
+			}
 		}
-	}
-
-	private fun launchKitsuAuth(context: Context) {
-		context.startActivity(Intent(context, KitsuAuthActivity::class.java))
 	}
 }
