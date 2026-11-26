@@ -22,6 +22,7 @@
 - MangaBaka's icon shows in colour in the trackers menu instead of a blank silhouette
 - Option pickers across settings and the reader got the new expressive look, the picked one turns into a pill with a checkmark, and so do the filter chips in history
 - The Expressive theme is now called Dynamic
+- New scrollbar: a thin line that swells into a chunky handle when you grab it, with a rounder label riding on it and a light tick as you pass each section
 
 ### Fixed
 - Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error

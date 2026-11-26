@@ -5,8 +5,11 @@ import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.os.Build
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -19,7 +22,6 @@ import android.widget.RelativeLayout
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.DimenRes
-import androidx.annotation.DrawableRes
 import androidx.annotation.Px
 import androidx.annotation.StyleableRes
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -35,6 +37,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.util.SpringPopAnimator
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isLayoutReversed
 import org.koitharu.kotatsu.databinding.FastScrollerBinding
@@ -45,6 +48,9 @@ import com.google.android.material.R as materialR
 
 private const val SCROLLBAR_HIDE_DELAY = 1000L
 private const val TRACK_SNAP_RANGE = 5
+
+/** Section ticks closer together than this merge into one, so flicking through hundreds of chapters doesn't buzz. */
+private const val SECTION_TICK_INTERVAL_MS = 80L
 
 internal fun fastScrollerConstraintTargetId(
 	isRecyclerViewSibling: Boolean,
@@ -58,9 +64,13 @@ class FastScroller @JvmOverloads constructor(
 	@AttrRes defStyleAttr: Int = R.attr.fastScrollerStyle,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-	enum class BubbleSize(@DrawableRes val drawableId: Int, @DimenRes val textSizeId: Int) {
-		NORMAL(R.drawable.fastscroll_bubble, R.dimen.fastscroll_bubble_text_size),
-		SMALL(R.drawable.fastscroll_bubble_small, R.dimen.fastscroll_bubble_text_size_small)
+	enum class BubbleSize(@DimenRes val heightId: Int, @DimenRes val textSizeId: Int, @DimenRes val paddingId: Int) {
+		NORMAL(R.dimen.fastscroll_bubble_height, R.dimen.fastscroll_bubble_text_size, R.dimen.fastscroll_bubble_padding),
+		SMALL(
+			R.dimen.fastscroll_bubble_height_small,
+			R.dimen.fastscroll_bubble_text_size_small,
+			R.dimen.fastscroll_bubble_padding_small,
+		)
 	}
 
 	private val binding = FastScrollerBinding.inflate(LayoutInflater.from(context), this)
@@ -88,7 +98,11 @@ class FastScroller @JvmOverloads constructor(
 	private var isTrackTouchEnabled = true
 	private var bubbleSize = BubbleSize.SMALL
 	private var bubbleImage: Drawable? = null
-	private var handleImage: Drawable? = null
+	private val handleImage = FastScrollThumbDrawable(
+		thinWidth = resources.getDimension(R.dimen.fastscroll_handle_width),
+		thickWidth = resources.getDimension(R.dimen.fastscroll_handle_width_grabbed),
+		height = resources.getDimensionPixelSize(R.dimen.fastscroll_handle_height),
+	)
 	private var trackImage: Drawable? = null
 	private var recyclerView: RecyclerView? = null
 	// True when we added this scroller to a parent ourselves (RecyclerView is a layout root with no
@@ -97,8 +111,12 @@ class FastScroller @JvmOverloads constructor(
 	// scroller lingers over later content. When declared in XML the parent owns us — don't touch it.
 	private var wasAddedToParent = false
 	private val scrollbarAnimator = ScrollbarAnimator(binding.scrollbar, scrollbarPaddingEnd)
-	private val bubbleAnimator = BubbleAnimator(binding.bubble)
+	private val bubbleAnimator = SpringPopAnimator(binding.bubble, hiddenScale = 0.5f)
 	private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+
+	/** Section under the thumb during the current drag; null until the first one is known. */
+	private var dragSectionText: String? = null
+	private var lastSectionTickAt = 0L
 
 	private var fastScrollListener: FastScrollListener? = null
 	private var sectionIndexer: SectionIndexer? = null
@@ -190,6 +208,21 @@ class FastScroller @JvmOverloads constructor(
 		setHideScrollbar(hideScrollbar)
 		setBubbleVisible(showBubble, showBubbleAlways)
 		setTrackVisible(showTrack)
+		binding.thumb.setImageDrawable(handleImage)
+
+		// A circle for one letter, a pill for words
+		with(binding.bubble) {
+			val bubbleSizePx = resources.getDimensionPixelSize(bubbleSize.heightId)
+			minHeight = bubbleSizePx
+			minWidth = bubbleSizePx
+			val padding = resources.getDimensionPixelSize(bubbleSize.paddingId)
+			setPadding(padding, 0, padding, 0)
+			// Grows out of the thumb it is attached to
+			addOnLayoutChangeListener { v, left, top, right, bottom, _, _, _, _ ->
+				v.pivotX = (right - left).toFloat()
+				v.pivotY = (bottom - top) / 2f
+			}
+		}
 	}
 
 	private fun fitToRecyclerView(): Boolean {
@@ -233,10 +266,17 @@ class FastScroller @JvmOverloads constructor(
 
 				requestDisallowInterceptTouchEvent(true)
 				setHandleSelected(true)
+				dragSectionText = null
+				performHapticFeedback(
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+						HapticFeedbackConstants.GESTURE_START
+					} else {
+						HapticFeedbackConstants.VIRTUAL_KEY
+					},
+				)
 
 				handler.removeCallbacks(scrollbarHider)
 				showScrollbar()
-				if (showBubble && sectionIndexer != null) showBubble()
 
 				fastScrollListener?.onFastScrollStart(this)
 
@@ -481,14 +521,8 @@ class FastScroller @JvmOverloads constructor(
 	 */
 	fun setHandleColor(@ColorInt color: Int) {
 		handleColor = color
-
-		if (handleImage == null) {
-			handleImage = ContextCompat.getDrawable(context, R.drawable.fastscroll_handle)
-		}
-
-		handleImage?.let {
-			it.setTint(handleColor)
-			binding.thumb.setImageDrawable(it)
+		if (!binding.thumb.isSelected) {
+			handleImage.setTint(color)
 		}
 	}
 
@@ -513,7 +547,7 @@ class FastScroller @JvmOverloads constructor(
 		bubbleColor = color
 
 		if (bubbleImage == null) {
-			bubbleImage = ContextCompat.getDrawable(context, bubbleSize.drawableId)
+			bubbleImage = ContextCompat.getDrawable(context, R.drawable.fastscroll_bubble)
 		}
 
 		bubbleImage?.let {
@@ -577,14 +611,15 @@ class FastScroller @JvmOverloads constructor(
 		bubbleHeight = binding.bubble.measuredHeight
 		handleHeight = binding.thumb.measuredHeight
 
-		val bubbleHandleHeight = bubbleHeight + handleHeight / 2f
-
-		if (showBubble && viewHeight >= bubbleHandleHeight) {
-			binding.bubble.y = insetTop + (y - bubbleHeight).coerceIn(0f, viewHeight - bubbleHandleHeight)
-		}
-
 		if (viewHeight >= handleHeight) {
 			binding.thumb.y = insetTop + (y - handleHeight / 2).coerceIn(0f, viewHeight - handleHeight.toFloat())
+		}
+
+		if (showBubble && viewHeight >= bubbleHeight) {
+			// Centred on the thumb, so the label reads as part of the handle being held
+			val thumbCenter = binding.scrollbar.top + binding.thumb.y + handleHeight / 2f
+			binding.bubble.y = (thumbCenter - bubbleHeight / 2f)
+				.coerceIn(insetTop.toFloat(), (insetTop + viewHeight - bubbleHeight).toFloat())
 		}
 	}
 
@@ -616,7 +651,8 @@ class FastScroller @JvmOverloads constructor(
 
 	private fun setHandleSelected(selected: Boolean) {
 		binding.thumb.isSelected = selected
-		handleImage?.setTint(if (selected) bubbleColor else handleColor)
+		handleImage.setTint(if (selected) bubbleColor else handleColor)
+		handleImage.setGrabbed(selected)
 	}
 
 	private fun TypedArray.getBubbleSize(@StyleableRes index: Int, defaultValue: BubbleSize): BubbleSize {
@@ -636,8 +672,22 @@ class FastScroller @JvmOverloads constructor(
 	}
 
 	private fun bindBubble(text: CharSequence?) {
+		if (text.isNullOrEmpty()) {
+			hideBubble()
+			return
+		}
+		if (binding.thumb.isSelected) {
+			// A light tick each time a new section passes under the thumb
+			val section = text.toString()
+			val now = SystemClock.uptimeMillis()
+			if (dragSectionText != null && section != dragSectionText && now - lastSectionTickAt >= SECTION_TICK_INTERVAL_MS) {
+				lastSectionTickAt = now
+				performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+			}
+			dragSectionText = section
+		}
 		binding.bubble.text = text
-		binding.bubble.alpha = if (text.isNullOrEmpty()) 0f else 1f
+		showBubble()
 	}
 
 	private val BubbleSize.textSize
