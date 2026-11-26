@@ -41,12 +41,18 @@ class ListCheckpoint(
 	/** Non-null while paging towards a tapped checkpoint. */
 	private var pendingTarget: Checkpoint? = null
 	private var pageRequests = 0
-	private var lastItemCount = 0
+	private var lastSnapshot: List<*>? = null
 
 	private val scrollListener = object : RecyclerView.OnScrollListener() {
 		override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
 			if (dy != 0) {
 				hide()
+			}
+		}
+
+		override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
+			if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+				pendingTarget = null
 			}
 		}
 	}
@@ -79,6 +85,7 @@ class ListCheckpoint(
 		recyclerView?.removeOnScrollListener(scrollListener)
 		isArmed = false
 		pendingTarget = null
+		lastSnapshot = null
 		button = null
 		recyclerView = null
 	}
@@ -112,6 +119,7 @@ class ListCheckpoint(
 		}
 		isArmed = true
 		pendingTarget = null
+		lastSnapshot = null
 		tryShow()
 	}
 
@@ -132,10 +140,12 @@ class ListCheckpoint(
 			tryShow()
 			return
 		}
-		val count = items()?.size ?: 0
-		if (indexOf(target.mangaId) < 0 && count <= lastItemCount) {
+		val snapshot = items()
+		if (indexOf(target.mangaId) < 0 && snapshot == lastSnapshot) {
 			// The list stopped growing: the row is gone, unless it was only folded away.
-			if (onRevealHidden?.invoke(target.mangaId) != true) {
+			if (onRevealHidden?.invoke(target.mangaId) == true) {
+				lastSnapshot = snapshot
+			} else {
 				pendingTarget = null
 			}
 			return
@@ -221,6 +231,7 @@ class ListCheckpoint(
 		}
 		if (onRevealHidden?.invoke(checkpoint.mangaId) == true) {
 			pendingTarget = checkpoint // loaded but folded away: scroll once it shows
+			lastSnapshot = items()
 			return
 		}
 		if (pageRequests >= MAX_PAGE_REQUESTS) {
@@ -228,8 +239,9 @@ class ListCheckpoint(
 			return
 		}
 		pendingTarget = checkpoint
-		val count = items()?.size ?: 0
-		lastItemCount = count
+		val snapshot = items()
+		val count = snapshot?.size ?: 0
+		lastSnapshot = snapshot
 		pageRequests++
 		// Follow the list down as pages arrive instead of standing still until the row shows up,
 		// so a far-away checkpoint reads as travelling there rather than as a frozen screen.

@@ -39,11 +39,11 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 		binding.recyclerView.itemAnimator = animator
 		listAdapter?.addListListener { previousList, currentList ->
 			animator.onListDiffed(previousList, currentList)
+			onHistoryChanged(currentList)
 		}
 		RecyclerScrollKeeper(binding.recyclerView).attach()
 		addMenuProvider(HistoryListMenuProvider(binding.root.context, router, viewModel))
 		viewModel.isStatsEnabled.observe(viewLifecycleOwner, MenuInvalidator(requireActivity()))
-		viewModel.content.observe(viewLifecycleOwner, ::onHistoryChanged)
 	}
 
 	private fun onHistoryChanged(list: List<ListModel>) {
@@ -54,14 +54,14 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 			return
 		}
 		selectionController?.addAll(section.itemIds)
-		if (section.itemIds.size >= section.count) {
+		if (section.isFullyLoaded) {
 			pendingSection = null
 		}
 	}
 
 	private fun selectSection(section: HistorySection) {
 		selectionController?.addAll(section.itemIds)
-		if (section.count > section.itemIds.size) {
+		if (!section.isFullyLoaded) {
 			pendingSection = section.key
 			viewModel.requestRestOf(section)
 		}
@@ -104,7 +104,7 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 		// A folded section opens up, so whatever gets picked is also on screen for the actions.
 		viewModel.setSectionCollapsed(section.key, false)
 		val checked = controller.snapshot()
-		if (checked.containsAll(section.itemIds)) {
+		if (section.isFullyLoaded && section.itemIds.isNotEmpty() && checked.containsAll(section.itemIds)) {
 			if (pendingSection == section.key) pendingSection = null
 			controller.retainAll(checked - section.itemIds.toSet())
 			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.DESELECT)
@@ -113,6 +113,11 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.CLICK)
 		}
 	}
+
+	override fun collectSelectedItems() = selectionController?.peekCheckedIds()
+		?.let(viewModel::getLoadedManga)
+		.orEmpty()
+		.ifEmpty { super.collectSelectedItems() }
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
 		super.onSelectionChanged(controller, count)
@@ -132,14 +137,6 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 
 	override fun onActionItemClicked(controller: ListSelectionController, mode: ActionMode?, item: MenuItem): Boolean {
 		return when (item.itemId) {
-			R.id.action_select_all -> {
-				// Folded entries open up too, so the actions (which act on what's on screen) include them.
-				val sections = listAdapter?.items?.filterIsInstance<HistorySection>().orEmpty()
-				viewModel.expandSections(sections.map { it.key })
-				sections.forEach { controller.addAll(it.itemIds) }
-				super.onActionItemClicked(controller, mode, item)
-			}
-
 			R.id.action_remove -> {
 				viewModel.removeFromHistory(selectedItemsIds)
 				mode?.finish()

@@ -23,6 +23,9 @@ data class HistorySection(
 	val previews: List<Manga>,
 ) : ListModel {
 
+	val isFullyLoaded: Boolean
+		get() = isCountExact && itemIds.size >= count
+
 	fun getTitle(context: Context): String = when {
 		key.startsWith(MONTH_PREFIX) -> {
 			val month = YearMonth.parse(key.removePrefix(MONTH_PREFIX))
@@ -55,10 +58,11 @@ data class HistorySection(
  * Today, Yesterday, Last 7 days, This month, then one section per month; or progress buckets.
  * The key is stable across days and languages, so a folded section stays folded.
  */
-class HistorySectionResolver(private val type: ListSortOrder.Type) {
-
-	private val today = LocalDate.now()
-	private val zone = ZoneId.systemDefault()
+class HistorySectionResolver(
+	val type: ListSortOrder.Type,
+	val today: LocalDate = LocalDate.now(),
+	val zone: ZoneId = ZoneId.systemDefault(),
+) {
 
 	fun resolve(createdAt: Long, updatedAt: Long, percent: Float): String? = when (type) {
 		ListSortOrder.Type.LAST_READ -> byDate(updatedAt)

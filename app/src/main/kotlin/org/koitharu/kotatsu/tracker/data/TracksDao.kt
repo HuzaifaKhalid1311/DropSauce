@@ -71,6 +71,9 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT IFNULL(chapters_new, 0) FROM tracks WHERE manga_id = :mangaId")
 	abstract fun observeNewChapters(mangaId: Long): Flow<Int>
 
+	@Query("SELECT IFNULL(SUM(chapters_new), 0) FROM tracks")
+	abstract fun observeNewChaptersSum(): Flow<Int>
+
 	@Transaction
 	@Query("SELECT * FROM tracks WHERE chapters_new > 0 ORDER BY last_chapter_date DESC")
 	abstract fun observeUpdatedManga(): Flow<List<MangaWithTrack>>

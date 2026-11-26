@@ -133,6 +133,7 @@ private fun SectionHeader(
 	val motion = MaterialTheme.motionScheme
 	val isSelecting = selection.ids.isNotEmpty()
 	val selected = if (isSelecting) section.itemIds.count { it in selection.ids } else 0
+	val isAllSelected = section.isFullyLoaded && section.count > 0 && selected >= section.count
 	val isCollapsed = section.isCollapsed
 	val interactionSource = remember { MutableInteractionSource() }
 	val isPressed by interactionSource.collectIsPressedAsState()
@@ -159,7 +160,7 @@ private fun SectionHeader(
 				indication = ripple(),
 				onClickLabel = stringResource(
 					when {
-						isSelecting && selected >= section.count -> R.string.deselect_all
+						isSelecting && isAllSelected -> R.string.deselect_all
 						isSelecting -> android.R.string.selectAll
 						isCollapsed -> R.string.expand
 						else -> R.string.collapse
@@ -173,17 +174,22 @@ private fun SectionHeader(
 			.padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
 		verticalAlignment = Alignment.CenterVertically,
 	) {
-		Text(
-			text = remember(section.key) { section.getTitle(context) },
-			style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp, lineHeight = 22.sp),
-			fontWeight = FontWeight.SemiBold,
-			color = colors.primary,
-			maxLines = 1,
-			overflow = TextOverflow.Ellipsis,
-		)
-		Spacer(Modifier.width(8.dp))
-		CountBadge(section, selected)
-		Spacer(Modifier.weight(1f))
+		Row(
+			modifier = Modifier.weight(1f),
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Text(
+				text = remember(section.key) { section.getTitle(context) },
+				style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp, lineHeight = 22.sp),
+				fontWeight = FontWeight.SemiBold,
+				color = colors.primary,
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis,
+				modifier = Modifier.weight(1f, fill = false),
+			)
+			Spacer(Modifier.width(8.dp))
+			CountBadge(section, selected)
+		}
 		AnimatedVisibility(
 			visible = isCollapsed && section.previews.isNotEmpty(),
 			enter = fadeIn() + expandHorizontally(spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow)) +
@@ -201,7 +207,7 @@ private fun SectionHeader(
 				label = "trailing",
 			) { selecting ->
 				if (selecting) {
-					SelectMark(selected = selected, total = section.count)
+					SelectMark(selected = selected, total = section.count, isAll = isAllSelected)
 				} else {
 					Chevron(isCollapsed)
 				}
@@ -232,7 +238,8 @@ private fun CountBadge(section: HistorySection, selected: Int) {
 	) { (sel, count, exact) ->
 		Text(
 			text = when {
-				sel > 0 -> "$sel/$count"
+				sel > 0 && exact -> "$sel/$count"
+				sel > 0 -> "$sel/$count+"
 				exact -> count.toString()
 				else -> "$count+"
 			},
@@ -310,9 +317,8 @@ private fun Chevron(isCollapsed: Boolean) {
  * whole section is in, it blooms into a filled cookie with a check, echoing Explore's shape morph.
  */
 @Composable
-private fun SelectMark(selected: Int, total: Int) {
+private fun SelectMark(selected: Int, total: Int, isAll: Boolean) {
 	val colors = MaterialTheme.colorScheme
-	val isAll = total > 0 && selected >= total
 	val sweep by animateFloatAsState(
 		targetValue = if (total > 0) selected.coerceAtMost(total) / total.toFloat() else 0f,
 		animationSpec = spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMediumLow),

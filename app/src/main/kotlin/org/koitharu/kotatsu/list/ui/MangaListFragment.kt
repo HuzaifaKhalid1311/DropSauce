@@ -444,7 +444,7 @@ abstract class MangaListFragment :
 		requireViewBinding().swipeRefreshLayout.isEnabled = isSwipeRefreshEnabled
 	}
 
-	private fun collectSelectedItems(): Set<Manga> {
+	protected open fun collectSelectedItems(): Set<Manga> {
 		val checkedIds = selectionController?.peekCheckedIds() ?: return emptySet()
 		val items = listAdapter?.items ?: return emptySet()
 		val result = LinkedHashSet<Manga>(checkedIds.size) // keeps on-screen order

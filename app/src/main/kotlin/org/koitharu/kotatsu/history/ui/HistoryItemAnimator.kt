@@ -45,10 +45,21 @@ class HistoryItemAnimator : DefaultItemAnimator() {
 			return super.animateRemove(holder)
 		}
 		val view = holder.itemView
+		val interrupted = holder in running
+		val startAlpha = view.alpha
+		val startScaleX = view.scaleX
+		val startScaleY = view.scaleY
+		val startTranslationY = view.translationY
 		endAnimation(holder)
+		if (interrupted) {
+			view.alpha = startAlpha
+			view.scaleX = startScaleX
+			view.scaleY = startScaleY
+			view.translationY = startTranslationY
+		}
 		dispatchRemoveStarting(holder)
 		run(holder, view.animate().alpha(0f).scaleX(SCALE).scaleY(SCALE).translationY(-view.height * SHIFT)
-			.setDuration(REMOVE_DURATION).setInterpolator(FastOutLinearInInterpolator())) {
+			.setStartDelay(0).setDuration(REMOVE_DURATION).setInterpolator(FastOutLinearInInterpolator())) {
 			dispatchRemoveFinished(holder)
 		}
 		return false
@@ -59,14 +70,27 @@ class HistoryItemAnimator : DefaultItemAnimator() {
 			return super.animateAdd(holder)
 		}
 		val view = holder.itemView
+		val interrupted = holder in running
+		val startAlpha = view.alpha
+		val startScaleX = view.scaleX
+		val startScaleY = view.scaleY
+		val startTranslationY = view.translationY
 		endAnimation(holder)
-		view.alpha = 0f
-		view.scaleX = SCALE
-		view.scaleY = SCALE
-		view.translationY = -view.height * SHIFT
+		if (interrupted) {
+			view.alpha = startAlpha
+			view.scaleX = startScaleX
+			view.scaleY = startScaleY
+			view.translationY = startTranslationY
+		} else {
+			view.alpha = 0f
+			view.scaleX = SCALE
+			view.scaleY = SCALE
+			view.translationY = -view.height * SHIFT
+		}
 		dispatchAddStarting(holder)
 		run(holder, view.animate().alpha(1f).scaleX(1f).scaleY(1f).translationY(0f)
-			.setStartDelay(ADD_DELAY).setDuration(ADD_DURATION).setInterpolator(LinearOutSlowInInterpolator())) {
+			.setStartDelay(if (interrupted) 0 else ADD_DELAY).setDuration(ADD_DURATION)
+			.setInterpolator(LinearOutSlowInInterpolator())) {
 			dispatchAddFinished(holder)
 		}
 		return false

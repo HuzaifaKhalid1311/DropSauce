@@ -213,7 +213,7 @@ fun historyQuickFilterAD(
 				layout(width, height) {
 					var x = originX
 					placeables.forEach { placeable ->
-						placeable.place(x, metrics.topPadPx)
+						placeable.placeRelative(x, metrics.topPadPx)
 						x += placeable.width + spacingPx
 					}
 				}
@@ -394,6 +394,8 @@ private fun QuickFilterChip(
 	val textColor = tint ?: if (isChecked) colors.onSecondaryContainer else colors.onSurface
 	val iconTint = if (isChecked) colors.onSecondaryContainer else tint ?: colors.onSurface
 	val hasTrailing = model.isDropdown || model.isCloseable
+	val title = model.title?.toString() ?: if (model.titleResId != 0) stringResource(model.titleResId) else ""
+	val hasText = title.isNotEmpty() || model.counter > 0
 	val clipShapePath = remember { Path() }
 	Box(
 		modifier = Modifier
@@ -402,7 +404,7 @@ private fun QuickFilterChip(
 				if (model.isIconOnly) {
 					Modifier.width((IconOnlyRestWidth + ClickExpandWidth * pulseValue).coerceAtLeast(24.dp))
 				} else {
-					Modifier.widthIn(min = MinChipWidth)
+					Modifier.widthIn(min = if (hasText || hasTrailing) MinChipWidth else IconOnlyRestWidth)
 				},
 			)
 			// Drawn directly on the canvas so every spring frame invalidates the View's display list.
@@ -446,7 +448,7 @@ private fun QuickFilterChip(
 	) {
 		if (model.isIconOnly) {
 			val iconProgress = (1f - check).coerceIn(0f, 1f)
-			if (iconProgress > 0.001f) {
+			if (iconProgress > 0.001f && hasIcon) {
 				ChipIcon(model, imageLoader, iconTint, scale = iconProgress, alpha = iconProgress)
 			}
 			val checkAlpha = check.coerceIn(0f, 1f)
@@ -465,15 +467,20 @@ private fun QuickFilterChip(
 			Row(verticalAlignment = Alignment.CenterVertically) {
 				val leadingProgress = if (hasIcon) 1f else check.coerceIn(0f, 1f)
 				val extraEachSide = (ClickExpandWidth / 2) * pulseValue
-				val startPad = (lerp(16.dp, 8.dp, leadingProgress) + extraEachSide).coerceAtLeast(2.dp)
-				val slotWidth = if (hasIcon) LeadingSlot else (LeadingSlot * check).coerceAtLeast(0.dp)
-				val endPad = ((if (hasTrailing) 10.dp else 16.dp) + extraEachSide).coerceAtLeast(2.dp)
+				val startPad = ((if (hasText) lerp(16.dp, 8.dp, leadingProgress) else 7.dp) + extraEachSide).coerceAtLeast(2.dp)
+				val baseSlot = if (hasText) LeadingSlot else 18.dp
+				val slotWidth = if (hasIcon) baseSlot else (baseSlot * check).coerceAtLeast(0.dp)
+				val endPad = ((when {
+					hasTrailing -> 10.dp
+					hasText -> 16.dp
+					else -> 7.dp
+				}) + extraEachSide).coerceAtLeast(2.dp)
 				Spacer(Modifier.width(startPad))
 				Box(
 					modifier = Modifier.layout { measurable, constraints ->
 						val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity))
 						val width = slotWidth.roundToPx().coerceAtLeast(0)
-						layout(width, placeable.height) { placeable.place(0, 0) }
+						layout(width, placeable.height) { placeable.placeRelative(0, 0) }
 					},
 					contentAlignment = Alignment.CenterStart,
 				) {
@@ -504,7 +511,6 @@ private fun QuickFilterChip(
 						)
 					}
 				}
-				val title = model.title?.toString() ?: if (model.titleResId != 0) stringResource(model.titleResId) else ""
 				Text(
 					text = if (model.counter > 0) {
 						buildAnnotatedString {
@@ -630,7 +636,7 @@ private class SpringWidthNode : Modifier.Node(), LayoutModifierNode, DrawModifie
 			anim.value.roundToInt().coerceAtLeast(0)
 		}
 		return layout(constraints.constrainWidth(width), placeable.height) {
-			placeable.place(0, 0)
+			placeable.placeRelative(0, 0)
 		}
 	}
 

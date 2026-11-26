@@ -55,6 +55,11 @@ class TrackingRepository @Inject constructor(
 		return db.getTrackLogsDao().observeUnreadCount()
 	}
 
+	/** Emits whenever the `tracks` table changes, so list badges derived from `chapters_new` refresh. */
+	fun observeTracksChanged(): Flow<Int> {
+		return db.getTracksDao().observeNewChaptersSum()
+	}
+
 	fun observeUpdatedManga(limit: Int, filterOptions: Set<ListFilterOption>): Flow<List<MangaTracking>> {
 		return db.getTracksDao().observeUpdatedManga(limit, filterOptions)
 			.mapItems {
