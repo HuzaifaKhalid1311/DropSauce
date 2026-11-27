@@ -645,6 +645,8 @@
     <string name="kitsu" translatable="false">Kitsu</string>
     <string name="mangabaka" translatable="false">MangaBaka</string>
     <string name="comick" translatable="false">Comick</string>
+    <string name="mangaupdates" translatable="false">MangaUpdates</string>
+    <string name="mangaupdates_login_hint">Enter your MangaUpdates username and password to continue</string>
     <string name="comick_permissions_required">Comick needs both library changes and ongoing sync allowed. Sign in again and tick them on the Comick page</string>
     <string name="email_password_enter_hint">Enter your email and password to continue</string>
     <string name="downloaded">Downloaded</string>

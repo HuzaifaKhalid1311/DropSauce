@@ -32,6 +32,8 @@ import org.koitharu.kotatsu.scrobbling.mal.domain.MALScrobbler
 import org.koitharu.kotatsu.scrobbling.mangabaka.data.MangaBakaAuthenticator
 import org.koitharu.kotatsu.scrobbling.mangabaka.data.MangaBakaInterceptor
 import org.koitharu.kotatsu.scrobbling.mangabaka.domain.MangaBakaScrobbler
+import org.koitharu.kotatsu.scrobbling.mangaupdates.data.MangaUpdatesInterceptor
+import org.koitharu.kotatsu.scrobbling.mangaupdates.domain.MangaUpdatesScrobbler
 import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriAuthenticator
 import org.koitharu.kotatsu.scrobbling.shikimori.data.ShikimoriInterceptor
 import org.koitharu.kotatsu.scrobbling.shikimori.domain.ShikimoriScrobbler
@@ -101,6 +103,17 @@ object ScrobblingModule {
 		addInterceptor(ComickInterceptor(storage))
 	}.build()
 
+	// No authenticator: a session token cannot be refreshed, the interceptor signs the user out instead
+	@Provides
+	@Singleton
+	@ScrobblerType(ScrobblerService.MANGAUPDATES)
+	fun provideMangaUpdatesHttpClient(
+		@BaseHttpClient baseHttpClient: OkHttpClient,
+		@ScrobblerType(ScrobblerService.MANGAUPDATES) storage: ScrobblerStorage,
+	): OkHttpClient = baseHttpClient.newBuilder().apply {
+		addInterceptor(MangaUpdatesInterceptor(storage))
+	}.build()
+
 	@Provides
 	@Singleton
 	fun provideKitsuRepository(
@@ -162,6 +175,13 @@ object ScrobblingModule {
 	): ScrobblerStorage = ScrobblerStorage(context, ScrobblerService.COMICK)
 
 	@Provides
+	@Singleton
+	@ScrobblerType(ScrobblerService.MANGAUPDATES)
+	fun provideMangaUpdatesStorage(
+		@ApplicationContext context: Context,
+	): ScrobblerStorage = ScrobblerStorage(context, ScrobblerService.MANGAUPDATES)
+
+	@Provides
 	@ElementsIntoSet
 	fun provideScrobblers(
 		shikimoriScrobbler: ShikimoriScrobbler,
@@ -170,6 +190,7 @@ object ScrobblingModule {
 		kitsuScrobbler: KitsuScrobbler,
 		mangaBakaScrobbler: MangaBakaScrobbler,
 		comickScrobbler: ComickScrobbler,
+		mangaUpdatesScrobbler: MangaUpdatesScrobbler,
 	): Set<@JvmSuppressWildcards Scrobbler> = setOf(
 		shikimoriScrobbler,
 		aniListScrobbler,
@@ -177,5 +198,6 @@ object ScrobblingModule {
 		kitsuScrobbler,
 		mangaBakaScrobbler,
 		comickScrobbler,
+		mangaUpdatesScrobbler,
 	)
 }

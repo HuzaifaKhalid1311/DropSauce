@@ -140,6 +140,7 @@ class ScrobblerConfigActivity : BaseActivity<ActivityScrobblerConfigBinding>(),
 		const val HOST_KITSU_AUTH = "kitsu-auth"
 		const val HOST_MANGABAKA_AUTH = "mangabaka-auth"
 		const val HOST_COMICK_AUTH = "comick-auth"
+		const val HOST_MANGAUPDATES_AUTH = "mangaupdates-auth"
 
 		/** The service an auth redirect belongs to; Comick's redirect has no host, its name is the path. */
 		fun serviceOf(uri: Uri): ScrobblerService? = when (uri.host ?: uri.path?.removePrefix("/")) {
@@ -149,6 +150,7 @@ class ScrobblerConfigActivity : BaseActivity<ActivityScrobblerConfigBinding>(),
 			HOST_KITSU_AUTH -> ScrobblerService.KITSU
 			HOST_MANGABAKA_AUTH -> ScrobblerService.MANGABAKA
 			HOST_COMICK_AUTH -> ScrobblerService.COMICK
+			HOST_MANGAUPDATES_AUTH -> ScrobblerService.MANGAUPDATES
 			else -> null
 		}
 	}

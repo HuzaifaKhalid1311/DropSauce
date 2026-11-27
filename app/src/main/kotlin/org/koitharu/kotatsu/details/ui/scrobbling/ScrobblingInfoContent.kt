@@ -310,7 +310,7 @@ private fun StatusGrid(
 			Column(
 				modifier = Modifier
 					.weight(1f)
-					// The tracker has no such status (no rereading on MAL, Kitsu or Comick)
+					// The tracker has no such status (no rereading on MAL, Kitsu, Comick or MangaUpdates)
 					.alpha(if (isEnabled) 1f else 0.38f)
 					.clip(RoundedCornerShape(20.dp))
 					.background(background)

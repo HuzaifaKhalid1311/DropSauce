@@ -586,7 +586,7 @@ class MihonBackupManager @Inject constructor(
    * Translates a Mihon tracker `syncId` (see Mihon's `TrackerManager`) into the matching Kotatsu
    * [org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService] id. The two apps number
    * their services differently, so copying the id verbatim points entries at the wrong service.
-   * Returns `null` for trackers Kotatsu doesn't support (Bangumi, Komga, MangaUpdates, Kavita…).
+   * Returns `null` for trackers Kotatsu doesn't support (Bangumi, Komga, Kavita…).
    */
   private fun mihonTrackerToScrobblerId(syncId: Int): Int? = when (syncId) {
     1 -> 3 // MyAnimeList -> MAL
@@ -595,6 +595,7 @@ class MihonBackupManager @Inject constructor(
     4 -> 1 // Shikimori
     11 -> 5 // MangaBaka
     12 -> 6 // Comick (same HID-to-number encoding as Mihon)
+    7 -> 7 // MangaUpdates
     else -> null
   }
 
@@ -606,7 +607,22 @@ class MihonBackupManager @Inject constructor(
   }
 
   /** Mihon's status numbers are per tracker: MyAnimeList skips 5, MangaBaka adds 7 "considering". */
-  private fun decodeTrackingStatus(syncId: Int, status: Int): ScrobblingStatus? = when (status) {
+  private fun decodeTrackingStatus(syncId: Int, status: Int): ScrobblingStatus? {
+    // MangaUpdates numbers its own lists from 0, with "unfinished" in the place of "dropped"
+    if (syncId == 7) {
+      return when (status) {
+        0 -> ScrobblingStatus.READING
+        1 -> ScrobblingStatus.PLANNED
+        2 -> ScrobblingStatus.COMPLETED
+        3 -> ScrobblingStatus.DROPPED
+        4 -> ScrobblingStatus.ON_HOLD
+        else -> null
+      }
+    }
+    return decodeGenericTrackingStatus(syncId, status)
+  }
+
+  private fun decodeGenericTrackingStatus(syncId: Int, status: Int): ScrobblingStatus? = when (status) {
     1 -> ScrobblingStatus.READING
     2 -> ScrobblingStatus.COMPLETED
     3 -> ScrobblingStatus.ON_HOLD
