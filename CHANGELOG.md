@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2.0 (2026-11-27)
+
 ### New
 - Links in PDFs work: web links open in your browser and contents or footnote links jump to the right page
 - Long-press text in a PDF to copy it, look it up in the dictionary or highlight it, and your highlights show up in your bookmarks (Android 15, or 12 to 14 with recent system updates)

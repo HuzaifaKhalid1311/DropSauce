@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.1.5/DropSauce-v1.1.5.apk"><strong>Download APK</strong></a>
+  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/download/v1.2.0/DropSauce-v1.2.0.apk"><strong>Download APK</strong></a>
 </p>
 
 <p align="center">
