@@ -43,7 +43,12 @@ abstract class BoundsScrollListener(
 		onScrolled(recyclerView, 0, 0)
 	}
 
-	fun postInvalidate(recyclerView: RecyclerView) = recyclerView.post {
-		invalidate(recyclerView)
+	/**
+	 * Checks again once the latest adapter update is laid out. A change that keeps the visible range
+	 * (e.g. only a folded header's count) gets no onScrolled of its own, and checking before that layout
+	 * bails out on the pending update, so the list would stop loading more.
+	 */
+	fun postInvalidate(recyclerView: RecyclerView) = recyclerView.postOnAnimation {
+		recyclerView.post { invalidate(recyclerView) }
 	}
 }

@@ -432,6 +432,9 @@ abstract class MangaListFragment :
 	}
 
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
+		if (count > 0) {
+			checkpoint?.hide()
+		}
 		viewBinding?.recyclerView?.invalidateItemDecorations()
 	}
 

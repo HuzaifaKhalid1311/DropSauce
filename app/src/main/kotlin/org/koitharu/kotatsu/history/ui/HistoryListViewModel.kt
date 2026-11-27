@@ -110,10 +110,11 @@ class HistoryListViewModel @Inject constructor(
 	/** Dates across the whole matching history (no page limit), paired with the filters that produced them. */
 	private val sectionDates: Flow<Pair<Set<ListFilterOption>, List<HistorySectionDates>>?> = combine(
 		isGroupingSettingEnabled,
+		sortOrder,
 		quickFilter.appliedOptions.combineWithSettings(),
-	) { grouped, filters ->
-		grouped to filters
-	}.flatMapLatest { (grouped, filters) ->
+	) { grouped, order, filters ->
+		(grouped && order.isGroupingSupported()) to filters
+	}.distinctUntilChanged().flatMapLatest { (grouped, filters) ->
 		// Downloaded entries are matched against local storage, which the database can't count.
 		if (!grouped || ListFilterOption.Downloaded in filters) {
 			flowOf(null)
@@ -133,7 +134,7 @@ class HistoryListViewModel @Inject constructor(
 		isGroupingSettingEnabled,
 		// Wrapped so a re-emit from a trigger (e.g. an edited cover, or the tracker finding new chapters)
 		// is told apart and remaps the rows.
-		combine(observeListModeWithTriggers(), trackingRepository.observeTracksChanged()) { mode, _ ->
+		combine(observeListModeWithTriggers(), trackingRepository.observeTracksChanged().distinctUntilChanged()) { mode, _ ->
 			ModeEmission(mode)
 		},
 		settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_UI_SCALING) },
@@ -224,6 +225,10 @@ class HistoryListViewModel @Inject constructor(
 		if ((key in current) != isCollapsed) {
 			settings.historyCollapsedSections = if (isCollapsed) current + key else current - key
 		}
+	}
+
+	fun expandAllSections() {
+		settings.historyCollapsedSections = emptySet()
 	}
 
 	override fun requestAllItems() {

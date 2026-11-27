@@ -62,6 +62,7 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.list.ListCheckpointView
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
 import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
@@ -126,8 +127,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override val bottomNav: SlidingBottomNavigationView?
 		get() = viewBinding.bottomNav
 
-	override val listCheckpointButton: View
-		get() = viewBinding.buttonCheckpoint.root
+	override val listCheckpointButton: ListCheckpointView
+		get() = viewBinding.buttonCheckpoint
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val splash = installSplashScreen()
@@ -534,7 +535,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		mainFabModeKey = modeKey
 		if (!fab.isVisible || isModeChanged) {
 			fab.show()
-			if (viewBinding.buttonCheckpoint.root.isVisible) {
+			if (viewBinding.buttonCheckpoint.isShowing) {
 				// The "where you left off" pill sits in the same band - stay icon-sized so they fit.
 				fab.shrink()
 			} else {
@@ -574,6 +575,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 		viewBinding.insetsHolder.updateLayoutParams<AppBarLayout.LayoutParams> {
 			scrollFlags = appBarScrollFlags
+		}
+		if (isOpened) {
+			viewBinding.buttonCheckpoint.hide()
 		}
 		adjustFabVisibility(isSearchOpened = isOpened)
 		bottomNav?.showOrHide(!isOpened)
@@ -674,9 +678,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	 */
 	private fun updateCheckpointMargin(bottomInset: Int = lastBottomInset) {
 		lastBottomInset = bottomInset
-		val gap = resources.getDimensionPixelOffset(R.dimen.margin_small)
 		val navHeight = viewBinding.bottomNav?.let { it.height - it.paddingBottom } ?: 0
-		viewBinding.buttonCheckpoint.root.updateLayoutParams<MarginLayoutParams> {
+		val gap = if (viewBinding.bottomNav != null) 0 else resources.getDimensionPixelOffset(R.dimen.margin_small)
+		viewBinding.buttonCheckpoint.updateLayoutParams<MarginLayoutParams> {
 			bottomMargin = bottomInset + navHeight + gap
 		}
 	}

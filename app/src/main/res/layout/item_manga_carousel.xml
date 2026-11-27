@@ -7,7 +7,7 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:id="@+id/carousel_item"
-	android:layout_width="150dp"
+	android:layout_width="@dimen/carousel_tile_width"
 	android:layout_height="match_parent"
 	android:layout_marginStart="@dimen/grid_spacing_outer"
 	android:layout_marginEnd="@dimen/grid_spacing_outer"

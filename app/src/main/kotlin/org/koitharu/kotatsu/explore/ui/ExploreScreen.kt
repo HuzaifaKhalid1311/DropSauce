@@ -64,6 +64,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,7 +110,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp as lerpValue
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.view.children
+import com.google.android.material.carousel.CarouselSnapHelper
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.recyclerview.widget.RecyclerView
@@ -458,9 +459,22 @@ private fun SuggestionsHeader(title: String, action: String, onAction: () -> Uni
 @Composable
 private fun SuggestionsCarousel(items: List<MangaCompactListModel>, actions: ExploreActions) {
 	val currentActions by rememberUpdatedState(actions)
+	// The snapped title's place in the cycle, so rotating doesn't send the carousel back to the start.
+	// A plain array, not Compose state: it's written on scroll and must not trigger recompositions.
+	val savedIndex = rememberSaveable { intArrayOf(-1) }
 	AndroidView(
 		factory = { context ->
 			val binding = ItemRecommendationBinding.inflate(LayoutInflater.from(context))
+			binding.recyclerView.addOnScrollListener(
+				object : RecyclerView.OnScrollListener() {
+					override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+						if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+							savedIndex[0] = (recyclerView.adapter as LoopingCarouselAdapter)
+								.cycleIndexOf(recyclerView.snappedPosition())
+						}
+					}
+				},
+			)
 			binding.recyclerView.setUpLoopingMangaCarousel(
 				object : OnListItemClickListener<Manga> {
 					override fun onItemClick(item: Manga, view: View) = currentActions.onMangaClick(item)
@@ -475,13 +489,17 @@ private fun SuggestionsCarousel(items: List<MangaCompactListModel>, actions: Exp
 		},
 		update = { root ->
 			val recyclerView = root.findViewById<RecyclerView>(R.id.recyclerView)
-			// The first tile still on screen, kept in place when a title is hidden.
-			val anchor = recyclerView.children
-				.filter { it.right > recyclerView.paddingLeft }
-				.minOfOrNull { recyclerView.getChildAdapterPosition(it) } ?: -1
-			val position = (recyclerView.adapter as LoopingCarouselAdapter).submit(items, anchor)
+			// The tile in the first big slot, kept in place when a title is hidden. Tiles scrolled off still
+			// have their full unmasked size, so only the carousel itself knows which one is in that slot.
+			val anchor = recyclerView.snappedPosition()
+			val tileWidth = root.resources.getDimension(R.dimen.carousel_tile_width)
+			// Big tiles that fit, plus the narrower peeking ones: fewer titles than that can't loop without repeats
+			val maxVisibleTiles = (root.resources.displayMetrics.widthPixels / tileWidth).toInt() + 2
+			val adapter = recyclerView.adapter as LoopingCarouselAdapter
+			val position = adapter.submit(items, anchor, maxVisibleTiles, savedIndex[0])
 			if (position >= 0) {
 				recyclerView.scrollToPosition(position)
+				savedIndex[0] = adapter.cycleIndexOf(position)
 			}
 		},
 		modifier = Modifier
@@ -489,6 +507,10 @@ private fun SuggestionsCarousel(items: List<MangaCompactListModel>, actions: Exp
 			.height(SUGGESTIONS_CAROUSEL_HEIGHT),
 	)
 }
+
+private fun RecyclerView.snappedPosition(): Int = layoutManager
+	?.let { CarouselSnapHelper().findSnapView(it) }
+	?.let(::getChildAdapterPosition) ?: -1
 
 // endregion
 
@@ -515,8 +537,14 @@ private fun ExtensionsSection(
 		kinds.map { isNovel -> sources[isNovel].count { it is MangaSourceItem } }
 	}
 	val pagerState = rememberPagerState { kinds.size }
-	LaunchedEffect(isNovelFirst, isSingleKind) {
-		pagerState.scrollToPage(0)
+	// Back to the first tab only when the tab setup changes, not when the screen is recreated (rotation)
+	val kindsSetup = (if (isNovelFirst) 1 else 0) + (if (isSingleKind) 2 else 0)
+	var shownSetup by rememberSaveable { mutableIntStateOf(kindsSetup) }
+	LaunchedEffect(kindsSetup) {
+		if (kindsSetup != shownSetup) {
+			shownSetup = kindsSetup
+			pagerState.scrollToPage(0)
+		}
 	}
 	val isSelecting = selectedIds.isNotEmpty()
 	ExtensionsToolbar(
@@ -967,7 +995,6 @@ private fun SourcesPage(
 				maxWidth = maxWidth,
 				selectedIds = selectedIds,
 				isSelecting = isSelecting,
-				elevated = true,
 				imageLoader = imageLoader,
 				actions = actions,
 			)
@@ -983,7 +1010,6 @@ private fun SourcesPage(
 				maxWidth = maxWidth,
 				selectedIds = selectedIds,
 				isSelecting = isSelecting,
-				elevated = false,
 				imageLoader = imageLoader,
 				actions = actions,
 			)
@@ -1037,7 +1063,6 @@ private fun SourcesGroupBlock(
 	maxWidth: Dp,
 	selectedIds: Set<Long>,
 	isSelecting: Boolean,
-	elevated: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1051,7 +1076,6 @@ private fun SourcesGroupBlock(
 					count = sourceItems.size,
 					columns = columns,
 					isSelected = item.id in selectedIds,
-					elevated = elevated,
 					imageLoader = imageLoader,
 					actions = actions,
 				)
@@ -1073,7 +1097,6 @@ private fun SourcesGroupBlock(
 					columns = columns,
 					isSelected = item.id in selectedIds,
 					isDense = gridColumns >= 5,
-					elevated = elevated,
 					imageLoader = imageLoader,
 					actions = actions,
 				)
@@ -1089,7 +1112,6 @@ private fun SourcesGroupBlock(
 						count = sourceItems.size,
 						isSelected = item.id in selectedIds,
 						isSelecting = isSelecting,
-						elevated = elevated,
 						imageLoader = imageLoader,
 						actions = actions,
 					)
@@ -1127,7 +1149,6 @@ private fun <T> SimpleGrid(
 private fun Modifier.sourceItem(
 	item: MangaSourceItem,
 	isSelected: Boolean,
-	elevated: Boolean,
 	shape: Shape,
 	actions: ExploreActions,
 	interactionSource: MutableInteractionSource? = null,
@@ -1143,7 +1164,7 @@ private fun Modifier.sourceItem(
 		scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
 	}
 	val colors = MaterialTheme.colorScheme
-	val baseContainer = if (elevated) colors.surfaceContainerHigh else colors.surfaceContainer
+	val baseContainer = colors.surfaceContainer
 	return this
 		.graphicsLayer {
 			scaleX = scale.value
@@ -1168,7 +1189,6 @@ private fun SourceChip(
 	count: Int,
 	columns: Int,
 	isSelected: Boolean,
-	elevated: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1179,7 +1199,7 @@ private fun SourceChip(
 		modifier = Modifier
 			.fillMaxWidth()
 			.height(56.dp)
-			.sourceItem(item, isSelected, elevated, shape, actions, interactionSource)
+			.sourceItem(item, isSelected, shape, actions, interactionSource)
 			.padding(start = 8.dp, end = 12.dp),
 		verticalAlignment = Alignment.CenterVertically,
 	) {
@@ -1236,7 +1256,6 @@ private fun SourceTile(
 	columns: Int,
 	isSelected: Boolean,
 	isDense: Boolean,
-	elevated: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1248,7 +1267,7 @@ private fun SourceTile(
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
-			.sourceItem(item, isSelected, elevated, shape, actions, interactionSource)
+			.sourceItem(item, isSelected, shape, actions, interactionSource)
 			.padding(horizontal = if (isDense) 4.dp else 8.dp, vertical = if (isDense) 8.dp else 12.dp),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
@@ -1279,7 +1298,6 @@ private fun SourceRow(
 	count: Int,
 	isSelected: Boolean,
 	isSelecting: Boolean,
-	elevated: Boolean,
 	imageLoader: ImageLoader,
 	actions: ExploreActions,
 ) {
@@ -1309,7 +1327,7 @@ private fun SourceRow(
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
-			.sourceItem(item, isSelected, elevated, shape, actions, interactionSource)
+			.sourceItem(item, isSelected, shape, actions, interactionSource)
 			.padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
 		verticalAlignment = Alignment.CenterVertically,
 	) {

@@ -30,6 +30,9 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 
 	/** A section picked before all of it was loaded; the rest gets picked as it arrives. */
 	private var pendingSection: String? = null
+
+	/** Its entries picked so far, so one the user unticks meanwhile isn't picked again. */
+	private var pendingSectionIds: Set<Long> = emptySet()
 	override val isSwipeRefreshEnabled = false
 	override val checkpointScope get() = "history"
 
@@ -53,9 +56,12 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 			pendingSection = null
 			return
 		}
-		selectionController?.addAll(section.itemIds)
+		selectionController?.addAll(section.itemIds - pendingSectionIds)
+		pendingSectionIds = pendingSectionIds + section.itemIds
 		if (section.isFullyLoaded) {
 			pendingSection = null
+		} else {
+			viewModel.requestRestOf(section) // its size may be unknown (e.g. On device), so page by page
 		}
 	}
 
@@ -63,6 +69,7 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 		selectionController?.addAll(section.itemIds)
 		if (!section.isFullyLoaded) {
 			pendingSection = section.key
+			pendingSectionIds = section.itemIds.toSet()
 			viewModel.requestRestOf(section)
 		}
 	}
@@ -104,7 +111,8 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 		// A folded section opens up, so whatever gets picked is also on screen for the actions.
 		viewModel.setSectionCollapsed(section.key, false)
 		val checked = controller.snapshot()
-		if (section.isFullyLoaded && section.itemIds.isNotEmpty() && checked.containsAll(section.itemIds)) {
+		val isAllPicked = section.isFullyLoaded || pendingSection == section.key
+		if (isAllPicked && section.itemIds.isNotEmpty() && checked.containsAll(section.itemIds)) {
 			if (pendingSection == section.key) pendingSection = null
 			controller.retainAll(checked - section.itemIds.toSet())
 			viewBinding?.recyclerView?.hapticFeedback(HapticEffect.DESELECT)
@@ -122,6 +130,7 @@ class HistoryListFragment : MangaListFragment(), HistorySectionListener {
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
 		super.onSelectionChanged(controller, count)
 		selectionState.ids = if (count == 0) emptySet() else controller.snapshot()
+		if (count == 0) pendingSection = null
 	}
 
 	override fun onEmptyActionClick() = viewModel.clearFilter()

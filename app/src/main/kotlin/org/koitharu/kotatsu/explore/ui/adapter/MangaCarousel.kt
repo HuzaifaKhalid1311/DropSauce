@@ -48,6 +48,7 @@ class LoopingCarouselAdapter(
 ) : ListDelegationAdapter<List<ListModel>>() {
 
 	private var models: List<ListModel>? = null
+	private var cycle: List<ListModel> = emptyList()
 
 	init {
 		delegatesManager
@@ -60,18 +61,25 @@ class LoopingCarouselAdapter(
 	 * Shows [newModels] (the skeleton while empty) and returns the position to scroll to, or -1 when
 	 * nothing changed, so recompositions don't reset the scroll. When the old and new titles overlap
 	 * (one was hidden), the title at [anchorPosition] stays where it was; otherwise it opens at the start.
+	 * Titles that all fit in [maxVisibleTiles] at once don't loop, or they'd show up twice side by side.
+	 * A fresh adapter (after rotation) opens on [restoreIndex], a [cycleIndexOf] saved from the old one.
 	 */
-	fun submit(newModels: List<ListModel>, anchorPosition: Int): Int {
+	fun submit(newModels: List<ListModel>, anchorPosition: Int, maxVisibleTiles: Int, restoreIndex: Int = -1): Int {
 		val oldModels = models
+		val oldCycle = cycle
 		if (newModels == oldModels) return -1
 		models = newModels
-		val looped = if (newModels.isEmpty()) null else LoopedList(newModels + CarouselLoopItem)
+		val isLooping = newModels.size >= maxVisibleTiles
+		cycle = if (isLooping) newModels + CarouselLoopItem else newModels
+		val looped = if (newModels.isEmpty()) null else LoopedList(cycle, if (isLooping) LOOP_CYCLES else 1)
 		items = looped ?: carouselSkeleton
 		@Suppress("NotifyDataSetChanged") // the whole cycle is replaced and repositioned
 		notifyDataSetChanged()
 		looped ?: return 0
+		if (oldModels.isNullOrEmpty() && restoreIndex >= 0) {
+			return looped.startPosition + restoreIndex.coerceAtMost(cycle.size - 1)
+		}
 		if (oldModels.isNullOrEmpty() || anchorPosition < 0) return looped.startPosition
-		val oldCycle = oldModels + CarouselLoopItem
 		val anchorIndex = anchorPosition % oldCycle.size
 		val anchor = oldCycle[anchorIndex]
 		val newIndex = newModels.indexOfFirst { it.areItemsTheSame(anchor) }
@@ -81,16 +89,19 @@ class LoopingCarouselAdapter(
 			// The anchor itself was removed: the next title slides into its place.
 			newModels.none { new -> oldModels.any { it.areItemsTheSame(new) } } -> looped.startPosition
 			else -> looped.startPosition + anchorIndex.coerceAtMost(newModels.size)
-		}
+		}.coerceIn(0, looped.size - 1)
 	}
+
+	/** Where [position] sits within one cycle of titles, or -1 while the skeleton shows. */
+	fun cycleIndexOf(position: Int): Int = if (models.isNullOrEmpty() || position < 0) -1 else position % cycle.size
 }
 
-private class LoopedList(private val cycle: List<ListModel>) : AbstractList<ListModel>() {
+private class LoopedList(private val cycle: List<ListModel>, cycles: Int) : AbstractList<ListModel>() {
 
-	override val size = cycle.size * LOOP_CYCLES
+	override val size = cycle.size * cycles
 
 	/** The first title of a cycle in the middle of the list. */
-	val startPosition = cycle.size * (LOOP_CYCLES / 2)
+	val startPosition = cycle.size * (cycles / 2)
 
 	override fun get(index: Int) = cycle[index % cycle.size]
 }

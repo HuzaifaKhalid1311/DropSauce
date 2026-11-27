@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.Layout
@@ -598,7 +599,11 @@ private fun ChipIcon(
 	}
 }
 
-/** Smoothly springs label width when a cycling chip swaps its text, without creating a clip layer. */
+/**
+ * Springs the label width when a cycling chip swaps its text. It uses the same spring as the click settle,
+ * which starts on the same frame, so the two add up to one smooth motion instead of fighting each other.
+ * The new text is clipped to the animated width (a canvas clip, no layer) so it never spills past the chip.
+ */
 private data object SpringWidthElement : ModifierNodeElement<SpringWidthNode>() {
 	override fun create() = SpringWidthNode()
 	override fun update(node: SpringWidthNode) = Unit
@@ -630,7 +635,7 @@ private class SpringWidthNode : Modifier.Node(), LayoutModifierNode, DrawModifie
 			if (target != targetWidth) {
 				targetWidth = target
 				coroutineScope.launch {
-					anim.animateTo(target.toFloat(), morphSpring())
+					anim.animateTo(target.toFloat(), SettleSpring)
 				}
 			}
 			anim.value.roundToInt().coerceAtLeast(0)
@@ -642,6 +647,6 @@ private class SpringWidthNode : Modifier.Node(), LayoutModifierNode, DrawModifie
 
 	override fun ContentDrawScope.draw() {
 		animatable?.value
-		drawContent()
+		clipRect(0f, 0f, size.width, size.height) { this@draw.drawContent() }
 	}
 }

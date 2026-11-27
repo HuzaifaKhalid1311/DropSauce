@@ -26,10 +26,16 @@ class HistoryListMenuProvider(
 	override fun onPrepareMenu(menu: Menu) {
 		super.onPrepareMenu(menu)
 		menu.findItem(R.id.action_stats)?.isVisible = viewModel.isStatsEnabled.value
+		menu.findItem(R.id.action_expand_all)?.isVisible = viewModel.content.value.any { it is HistorySection && it.isCollapsed }
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
 		return when (menuItem.itemId) {
+			R.id.action_expand_all -> {
+				viewModel.expandAllSections()
+				true
+			}
+
 			R.id.action_clear_history -> {
 				showClearHistoryDialog()
 				true

@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.main.ui.owners
 
-import android.view.View
+import org.koitharu.kotatsu.core.ui.list.ListCheckpointView
 
 /**
  * Host of the shared "jump back" pill that floats above the bottom navigation bar.
@@ -8,5 +8,5 @@ import android.view.View
  */
 interface ListCheckpointOwner {
 
-	val listCheckpointButton: View?
+	val listCheckpointButton: ListCheckpointView?
 }

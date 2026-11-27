@@ -216,31 +216,32 @@ class SuggestionsWorker @AssistedInject constructor(
 			}.toList()
 			.sortedByDescending { it.relevance }
 			.take(MAX_RESULTS)
-		suggestionRepository.replace(suggestions)
+			// Without the hidden titles, so they're never notified about either
+			.let { suggestionRepository.replace(it) }
 		if (appSettings.isSuggestionsNotificationAvailable
 			&& applicationContext.checkNotificationPermission(MANGA_CHANNEL_ID)
 			&& suggestions.size >= 3
 		) {
 			// Try a few times to pick a good suggestion.
-			repeat(4) {
+			for (attempt in 0..3) {
 				try {
 					val manga = suggestions[Random.nextInt(0, suggestions.size / 3)]
 					val details = mangaRepositoryFactory.create(manga.manga.source)
 						.getDetails(manga.manga)
 					if (details.chapters.isNullOrEmpty()) {
-						return@repeat
+						continue
 					}
 					if (details.rating > 0 && details.rating < RATING_MIN) {
-						return@repeat
+						continue
 					}
 					if (details.isNsfw() && (appSettings.isSuggestionsExcludeNsfw || appSettings.isNsfwContentDisabled)) {
-						return@repeat
+						continue
 					}
 					if (details in tagsBlacklist) {
-						return@repeat
+						continue
 					}
 					showNotification(details)
-					return@repeat
+					break
 				} catch (e: CancellationException) {
 					throw e
 				} catch (e: Exception) {

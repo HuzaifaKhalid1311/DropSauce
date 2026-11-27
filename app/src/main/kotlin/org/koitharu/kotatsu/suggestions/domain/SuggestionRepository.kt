@@ -46,17 +46,25 @@ class SuggestionRepository @Inject constructor(
 	/**
 	 * Emits a fresh random subset whenever the stored suggestions change. Re-shuffles only when
 	 * membership changes, not on unrelated row updates. When titles are only removed ("Not interested"),
-	 * the rest keep their place and a new one fills the gap, so the carousel doesn't reshuffle.
+	 * the rest keep their place and a new one fills the gap, so the carousel doesn't reshuffle; undoing
+	 * that brings the previous titles back in their old order.
 	 */
 	fun observeRandomList(limit: Int): Flow<List<Manga>> = flow {
 		var allIds: Set<Long>? = null
 		var shown = emptyList<Manga>()
+		// What was stored and shown right before the last removal, to restore it on undo.
+		var beforeRemoval: Pair<Set<Long>, List<Manga>>? = null
 		observeAll().collect { all ->
 			val ids = all.mapTo(HashSet(all.size)) { it.id }
 			if (ids == allIds) return@collect
 			val previousIds = allIds
-			shown = if (previousIds != null && shown.isNotEmpty() && previousIds.containsAll(ids)) {
-				val byId = all.associateBy { it.id }
+			val byId = all.associateBy { it.id }
+			val undone = beforeRemoval?.takeIf { it.first == ids }?.second
+			beforeRemoval = null
+			shown = if (undone != null) {
+				undone.mapNotNull { byId[it.id] }
+			} else if (previousIds != null && shown.isNotEmpty() && previousIds.containsAll(ids)) {
+				beforeRemoval = previousIds to shown
 				val kept = shown.mapNotNull { byId[it.id] }
 				val keptIds = kept.mapTo(HashSet()) { it.id }
 				kept + all.filterNot { it.id in keptIds }.shuffled().take(limit - kept.size)
@@ -101,12 +109,13 @@ class SuggestionRepository @Inject constructor(
 			.toMangaSources()
 	}
 
-	suspend fun replace(suggestions: Iterable<MangaSuggestion>) {
+	/** Stores [suggestions] minus the hidden titles, and returns what was stored. */
+	suspend fun replace(suggestions: List<MangaSuggestion>): List<MangaSuggestion> {
 		val hiddenIds = hiddenPrefs.getStringSet(KEY_HIDDEN_IDS, null).orEmpty()
+		val kept = suggestions.filterNot { it.manga.id.toString() in hiddenIds }
 		db.withTransaction {
 			db.getSuggestionDao().deleteAll()
-			suggestions.forEach { (manga, relevance) ->
-				if (manga.id.toString() in hiddenIds) return@forEach
+			kept.forEach { (manga, relevance) ->
 				val tags = manga.tags.toEntities()
 				db.getTagsDao().upsert(tags)
 				db.getMangaDao().upsert(manga.toEntity(), tags)
@@ -119,6 +128,7 @@ class SuggestionRepository @Inject constructor(
 				)
 			}
 		}
+		return kept
 	}
 
 	private fun SuggestionWithManga.toManga() = manga.toManga(tags.toMangaTags(), null)

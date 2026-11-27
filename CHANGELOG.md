@@ -11,7 +11,7 @@
 - Hold a suggestion on Explore to make sure it never gets suggested again
 - Fresh new Explore page: bigger shaped buttons, taller suggestions that loop around endlessly with the title on the cover, a new Manga/Novels switcher, pinned extensions up top, and a button right next to Manage to switch between chips, grid and list
 - New Erza theme, a deep garnet red, at the end of the colour scheme list
-- History got a refresh: tidier date sections (today, yesterday, this week, then by month) with how many you read in each, tap a section to fold it away and the app remembers, and hold one to select everything in it
+- History got a refresh: tidier date sections (today, yesterday, this week, then by month) with how many you read in each, tap a section to fold it away and the app remembers (or open them all again from the ⋮ menu), and hold one to select everything in it
 
 ### Improved
 - The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
@@ -32,6 +32,7 @@
 - Changing a cover from the full-screen cover view shows the new one right away
 - Dynamic theme no longer shows black text and icons on some phones like Vivo
 - A crash report no longer pops up again on every start after you copied it
+- Suggestion notifications come one at a time again instead of up to four at once
 - Other small bug fixes
 
 ## 1.1.5 (2026-11-20)

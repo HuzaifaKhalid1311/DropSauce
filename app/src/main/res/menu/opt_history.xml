@@ -4,6 +4,13 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<item
+		android:id="@+id/action_expand_all"
+		android:icon="@drawable/ic_expand_all"
+		android:orderInCategory="5"
+		android:title="@string/expand_all"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_clear_history"
 		android:icon="@drawable/ic_delete_all"
 		android:orderInCategory="10"

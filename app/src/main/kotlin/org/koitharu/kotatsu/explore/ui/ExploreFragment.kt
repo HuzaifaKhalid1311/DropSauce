@@ -107,12 +107,17 @@ class ExploreFragment :
 			}
 		}
 		addMenuProvider(ExploreMenuProvider(router, ::showLanguageFilterDialog))
+		var seenIds = emptySet<Long>()
 		viewModel.sources.observe(viewLifecycleOwner) { content ->
 			val validIds = buildSet {
 				for (item in content.manga) if (item is MangaSourceItem) add(item.id)
 				for (item in content.novel) if (item is MangaSourceItem) add(item.id)
 			}
-			selectionController?.retainAll(validIds)
+			// Only drops extensions that were listed and went away: a selection restored after the app was
+			// closed in the background can arrive before the extensions finish loading.
+			val controller = selectionController ?: return@observe
+			controller.retainAll(validIds + controller.snapshot().filterNot { it in seenIds })
+			seenIds = seenIds + validIds
 		}
 		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.composeView, this))
 		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(binding.composeView))
