@@ -41,7 +41,6 @@ import org.koitharu.kotatsu.list.ui.model.QuickFilter
 import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.list.ui.model.toErrorState
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
-import org.koitharu.kotatsu.tracker.domain.TrackerSummary
 import org.koitharu.kotatsu.tracker.domain.TrackingRepository
 import org.koitharu.kotatsu.tracker.domain.UpdatesListQuickFilter
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
@@ -55,6 +54,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 private const val PAGE_SIZE = 20
+
+data object FeedUpdatedBar : ListModel {
+	override fun areItemsTheSame(other: ListModel): Boolean = other === FeedUpdatedBar
+}
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
@@ -80,6 +83,7 @@ class FeedViewModel @Inject constructor(
 	private val limit = MutableStateFlow(PAGE_SIZE)
 	private val isReady = AtomicBoolean(false)
 	private val expandedIds = MutableStateFlow<Set<Long>>(emptySet())
+	private val pendingRemovedIds = MutableStateFlow<Set<Long>>(emptySet())
 	private val _undoEpoch = MutableStateFlow(0)
 	val undoEpoch: StateFlow<Int> = _undoEpoch.asStateFlow()
 
@@ -99,8 +103,11 @@ class FeedViewModel @Inject constructor(
 	val unreadCount = repository.observeUnreadUpdatesCount()
 		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, 0)
 
-	val trackerSummary = repository.observeTrackerSummary()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, TrackerSummary())
+	val totalCount = repository.observeLogsCount()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, 0)
+
+	val lastCheckTimeMillis = repository.observeLastCheckTime()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, 0L)
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 
@@ -151,8 +158,9 @@ class FeedViewModel @Inject constructor(
 		baseSlice,
 		expandedIds,
 		unreadCount,
-	) { slice, expanded, unread ->
-		buildFeedList(slice, expanded, unread)
+		pendingRemovedIds,
+	) { slice, expanded, unread, removedIds ->
+		buildFeedList(slice, expanded, unread, removedIds)
 	}.distinctUntilChanged().catch { e ->
 		emit(listOf(e.toErrorState(canRetry = false)))
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
@@ -166,10 +174,28 @@ class FeedViewModel @Inject constructor(
 	fun clearFeed(clearCounters: Boolean) {
 		launchLoadingJob(Dispatchers.Default) {
 			repository.clearLogs()
+			pendingRemovedIds.value = emptySet()
 			if (clearCounters) {
 				repository.clearCounters()
 			}
 			onActionDone.call(ReversibleAction(R.string.updates_feed_cleared, null))
+		}
+	}
+
+	fun clearReadEntries() {
+		val optimisticIds = latestMappedItems.filterNot { it.isNew }.mapTo(HashSet()) { it.id }
+		if (optimisticIds.isNotEmpty()) {
+			pendingRemovedIds.update { it + optimisticIds }
+		}
+		launchJob(Dispatchers.Default) {
+			val rawHandle = repository.clearReadLogs()
+			if (rawHandle == null) {
+				if (optimisticIds.isNotEmpty()) {
+					pendingRemovedIds.update { it - optimisticIds }
+				}
+				return@launchJob
+			}
+			onActionDone.call(ReversibleAction(R.string.updates_feed_cleared, wrapUndo(rawHandle, optimisticIds)))
 		}
 	}
 
@@ -196,7 +222,10 @@ class FeedViewModel @Inject constructor(
 	val canLoadMore: Boolean
 		get() = hasMoreItems
 
-	fun allLoadedFeedIds(): List<Long> = latestMappedItems.map { it.id }
+	fun allLoadedFeedIds(): List<Long> {
+		val removed = pendingRemovedIds.value
+		return latestMappedItems.mapNotNull { item -> item.id.takeUnless { it in removed } }
+	}
 
 	fun update() {
 		scheduler.startNow()
@@ -230,27 +259,41 @@ class FeedViewModel @Inject constructor(
 	}
 
 	fun remove(ids: Set<Long>) {
+		if (ids.isEmpty()) return
+		pendingRemovedIds.update { it + ids }
 		launchJob(Dispatchers.Default) {
 			val handles = ids.mapNotNull { repository.removeLog(it) }
-			if (handles.isEmpty()) return@launchJob
+			if (handles.isEmpty()) {
+				pendingRemovedIds.update { it - ids }
+				return@launchJob
+			}
 			val combined = ReversibleHandle { handles.forEach { it.reverse() } }
-			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, wrapUndo(combined)))
+			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, wrapUndo(combined, ids)))
 		}
 	}
 
 	fun remove(item: FeedItem) {
+		val idSet = setOf(item.id)
+		pendingRemovedIds.update { it + item.id }
 		launchJob(Dispatchers.Default) {
 			val rawHandle = repository.removeLog(item.id)
 			if (rawHandle == null) {
+				pendingRemovedIds.update { it - item.id }
 				_undoEpoch.update { it + 1 }
 				return@launchJob
 			}
-			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, wrapUndo(rawHandle)))
+			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, wrapUndo(rawHandle, idSet)))
 		}
 	}
 
-	private fun wrapUndo(delegate: ReversibleHandle) = ReversibleHandle {
+	private fun wrapUndo(
+		delegate: ReversibleHandle,
+		restoredIds: Set<Long> = emptySet(),
+	) = ReversibleHandle {
 		delegate.reverse()
+		if (restoredIds.isNotEmpty()) {
+			pendingRemovedIds.update { it - restoredIds }
+		}
 		_undoEpoch.update { it + 1 }
 	}
 
@@ -272,17 +315,24 @@ class FeedViewModel @Inject constructor(
 		slice: FeedBaseSlice,
 		expanded: Set<Long>,
 		unread: Int,
+		removedIds: Set<Long>,
 	): List<ListModel> {
-		val result = ArrayList<ListModel>((slice.items.size * 1.35).toInt().coerceAtLeast(4))
-		if (slice.items.isNotEmpty() && slice.isTipVisible) {
+		val visibleItems = if (removedIds.isEmpty()) {
+			slice.items
+		} else {
+			slice.items.filterNot { it.second.id in removedIds }
+		}
+		val result = ArrayList<ListModel>((visibleItems.size * 1.35).toInt().coerceAtLeast(4))
+		if (visibleItems.isNotEmpty() && slice.isTipVisible) {
 			result += gesturesTip
 		}
 		val unreadChip = ListFilterOption.Unread
 			.toChipModel(isChecked = ListFilterOption.Unread in slice.filters)
 			.copy(counter = unread)
 		result += QuickFilter(listOf(unreadChip) + slice.quickFilterChips)
+		result += FeedUpdatedBar
 
-		if (slice.items.isEmpty()) {
+		if (visibleItems.isEmpty()) {
 			val hasFilters = slice.filters.isNotEmpty()
 			result += EmptyState(
 				icon = R.drawable.ic_empty_feed,
@@ -294,7 +344,7 @@ class FeedViewModel @Inject constructor(
 		}
 
 		val zone = ZoneId.systemDefault()
-		val bucketed = slice.items.groupByDateBucket(instantOf = { it.first })
+		val bucketed = visibleItems.groupByDateBucket(instantOf = { it.first })
 		val usedKeys = HashSet<String>(bucketed.size)
 		bucketed.forEachIndexed { bucketIndex, (date, pairs) ->
 			val baseKey = resolveSectionKey(date, pairs.first().first, zone)

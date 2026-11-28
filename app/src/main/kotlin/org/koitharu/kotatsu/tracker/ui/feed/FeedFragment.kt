@@ -95,8 +95,7 @@ class FeedFragment :
 		binding.host.composeView.setContent {
 			val items by viewModel.content.collectAsState()
 			val workState by viewModel.workState.collectAsState()
-			val summary by viewModel.trackerSummary.collectAsState()
-			val unreadCount by viewModel.unreadCount.collectAsState()
+			val lastCheckTimeMillis by viewModel.lastCheckTimeMillis.collectAsState()
 			val undoEpoch by viewModel.undoEpoch.collectAsState()
 			val isSwipeEnabled by viewModel.isSwipeGesturesEnabled.collectAsState()
 			val state = rememberLazyListState().also { lazyListState = it }
@@ -121,8 +120,7 @@ class FeedFragment :
 					items = items,
 					selectedIds = selectedIds.value,
 					workState = workState,
-					trackerSummary = summary,
-					unreadCount = unreadCount,
+					lastCheckTimeMillis = lastCheckTimeMillis,
 					undoEpoch = undoEpoch,
 					isSwipeEnabled = isSwipeEnabled,
 					canLoadMore = viewModel.canLoadMore,
@@ -156,6 +154,7 @@ class FeedFragment :
 		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(binding.host.composeView))
 		viewModel.isRunning.observe(viewLifecycleOwner) { activity?.invalidateMenu() }
 		viewModel.unreadCount.observe(viewLifecycleOwner) { activity?.invalidateMenu() }
+		viewModel.totalCount.observe(viewLifecycleOwner) { activity?.invalidateMenu() }
 	}
 
 	/** Back to the top of Feed (and re-expands a hidden top bar), for tab switches and reselecting its nav item. */
@@ -199,18 +198,6 @@ class FeedFragment :
 
 	override fun onRefresh() {
 		viewModel.update()
-	}
-
-	override fun onStopUpdate() {
-		viewModel.stopUpdate()
-	}
-
-	override fun onMarkAllRead() {
-		viewModel.markAllAsRead()
-	}
-
-	override fun onOpenTrackerDebug() {
-		router.openTrackerDebug()
 	}
 
 	override fun onFilterOptionClick(option: ListFilterOption) {

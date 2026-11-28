@@ -65,17 +65,8 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT IFNULL(chapters_new,0) FROM tracks WHERE manga_id = :mangaId")
 	abstract suspend fun findNewChapters(mangaId: Long): Int
 
-	@Query("SELECT COUNT(*) FROM tracks")
-	abstract suspend fun getTracksCount(): Int
-
-	@Query("SELECT COUNT(*) FROM tracks")
-	abstract fun observeTracksCount(): Flow<Int>
-
 	@Query("SELECT IFNULL(MAX(last_check_time), 0) FROM tracks")
 	abstract fun observeLastCheckTime(): Flow<Long>
-
-	@Query("SELECT COUNT(*) FROM tracks WHERE last_result = 3")
-	abstract fun observeFailedTracksCount(): Flow<Int>
 
 	@Query("SELECT IFNULL(chapters_new, 0) FROM tracks WHERE manga_id = :mangaId")
 	abstract fun observeNewChapters(mangaId: Long): Flow<Int>

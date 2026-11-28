@@ -7,25 +7,18 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
@@ -53,21 +46,17 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ripple
-import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -81,7 +70,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
@@ -92,7 +80,6 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -115,25 +102,21 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp as lerpFloat
-import androidx.graphics.shapes.Morph
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.ui.compose.MovingContainerComposeHost
+import org.koitharu.kotatsu.core.ui.compose.RollingNumber
 import org.koitharu.kotatsu.core.ui.compose.rememberCoordinatorBarScrollConnection
 import org.koitharu.kotatsu.core.ui.list.fastscroll.ComposeFastScroller
 import org.koitharu.kotatsu.core.ui.util.RoundedTopShape
@@ -155,11 +138,9 @@ import org.koitharu.kotatsu.list.ui.model.LoadingFooter
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.QuickFilter
 import org.koitharu.kotatsu.list.ui.model.TipModel
-import org.koitharu.kotatsu.tracker.domain.TrackerSummary
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedSection
 import org.koitharu.kotatsu.tracker.work.TrackerWorkState
-import java.time.Instant
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.tanh
@@ -167,9 +148,6 @@ import androidx.appcompat.R as appcompatR
 
 interface FeedActions {
 	fun onRefresh()
-	fun onStopUpdate()
-	fun onMarkAllRead()
-	fun onOpenTrackerDebug()
 	fun onFilterOptionClick(option: ListFilterOption)
 	fun onClearFiltersClick()
 	fun onTipDismiss()
@@ -186,6 +164,8 @@ private val OuterCorner = 24.dp
 private val InnerCorner = 4.dp
 private val JoinedGap = 2.dp
 private val GroupBottomGap = 12.dp
+private val PullActivationThreshold = 48.dp
+private val PullIndicatorRestingBottom = 134.dp
 
 private val SwipeDeleteBg = Color(0xFFD32F2F)
 private val SwipeReadBg = Color(0xFF1976D2)
@@ -203,8 +183,7 @@ fun FeedScreen(
 	items: List<ListModel>,
 	selectedIds: Set<Long>,
 	workState: TrackerWorkState,
-	trackerSummary: TrackerSummary,
-	unreadCount: Int,
+	lastCheckTimeMillis: Long,
 	undoEpoch: Int,
 	isSwipeEnabled: Boolean,
 	canLoadMore: Boolean,
@@ -219,6 +198,16 @@ fun FeedScreen(
 	val haptic = rememberHapticEffect()
 	val barScrollConnection = rememberCoordinatorBarScrollConnection(host)
 	val pullRefreshState = rememberPullToRefreshState()
+	// Tightly cap visual stretch past 1.0f so pulling further doesn't drag the spinner halfway down the screen.
+	val indicatorState = remember(pullRefreshState) {
+		object : PullToRefreshState by pullRefreshState {
+			override val distanceFraction: Float
+				get() {
+					val f = pullRefreshState.distanceFraction
+					return if (f <= 1f) f else 1f + 0.24f * tanh((f - 1f) * 1.2f)
+				}
+		}
+	}
 
 	val listSpacingNormal = dimensionResource(R.dimen.list_spacing_normal)
 	val gridSpacingOuter = dimensionResource(R.dimen.grid_spacing_outer)
@@ -229,8 +218,7 @@ fun FeedScreen(
 	var isFastScrolling by remember { mutableStateOf(false) }
 	var viewportHeightPx by remember { mutableIntStateOf(0) }
 
-	// Block downward unconsumed scroll from pulling PullToRefreshBox whenever selecting, fast-scrolling,
-	// or while MainActivity's top search bar is still collapsed/partially hidden.
+	// Prevent PullToRefreshBox from pulling while selecting, fast-scrolling, or while the top bar is still collapsed.
 	val blockRefreshConnection = remember(host, isSelecting, isFastScrolling) {
 		object : NestedScrollConnection {
 			override fun onPostScroll(
@@ -274,7 +262,6 @@ fun FeedScreen(
 	}
 
 	val hasFeedEntries = remember(items) { items.any { it is FeedItem } }
-	val isInitialLoading = remember(items) { items.size == 1 && items[0] is LoadingState }
 
 	PullToRefreshBox(
 		isRefreshing = isTrackerRunning,
@@ -283,10 +270,12 @@ fun FeedScreen(
 			actions.onRefresh()
 		},
 		state = pullRefreshState,
+		threshold = PullActivationThreshold,
 		indicator = {
 			PullToRefreshDefaults.LoadingIndicator(
-				state = pullRefreshState,
+				state = indicatorState,
 				isRefreshing = isTrackerRunning,
+				maxDistance = PullIndicatorRestingBottom,
 				modifier = Modifier.align(Alignment.TopCenter),
 			)
 		},
@@ -306,24 +295,6 @@ fun FeedScreen(
 					.fillMaxSize()
 					.clip(RoundedTopShape(radius = cornerLarge, startInset = startPad, endInset = endPad)),
 			) {
-				if (!isInitialLoading) {
-					item(key = "status_header", contentType = "status_header") {
-						FeedStatusCard(
-							workState = workState,
-							summary = trackerSummary,
-							unreadCount = unreadCount,
-							enabled = !isSelecting,
-							onUpdateClick = actions::onRefresh,
-							onStopClick = actions::onStopUpdate,
-							onMarkAllReadClick = actions::onMarkAllRead,
-							onDebugClick = actions::onOpenTrackerDebug,
-							modifier = Modifier
-								.padding(start = startPad, end = endPad, bottom = 8.dp)
-								.animateItem(),
-						)
-					}
-				}
-
 				items.forEachIndexed { index, model ->
 					when (model) {
 						is TipModel -> item(key = "tip:${model.key}", contentType = "tip") {
@@ -347,6 +318,21 @@ fun FeedScreen(
 								bottomPadding = 6.dp,
 								modifier = Modifier.animateItem(),
 							)
+						}
+
+						is FeedUpdatedBar -> item(key = "updated_pill", contentType = "updated_pill") {
+							Box(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(start = startPad, end = endPad, top = 2.dp, bottom = 2.dp)
+									.animateItem(),
+								contentAlignment = Alignment.Center,
+							) {
+								FeedUpdatedPill(
+									workState = workState,
+									lastCheckTimeMillis = lastCheckTimeMillis,
+								)
+							}
 						}
 
 						is FeedSection -> item(key = "sec:${model.key}", contentType = "section") {
@@ -383,12 +369,12 @@ fun FeedScreen(
 									modifier = Modifier
 										.padding(start = startPad, end = endPad, bottom = bottomGap)
 										.animateItem(
-											fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+											fadeInSpec = spring(stiffness = Spring.StiffnessMedium),
 											placementSpec = spring(
-												dampingRatio = 0.82f,
-												stiffness = Spring.StiffnessMediumLow,
+												dampingRatio = Spring.DampingRatioNoBouncy,
+												stiffness = 950f,
 											),
-											fadeOutSpec = tween(durationMillis = 150),
+											fadeOutSpec = tween(durationMillis = 80),
 										),
 								)
 							}
@@ -459,13 +445,11 @@ fun FeedScreen(
 				}
 			}
 
-			// The status header sits at LazyColumn index 0 when !isInitialLoading, so offset item lookups by 1.
-			val headerOffset = if (isInitialLoading) 0 else 1
 			ComposeFastScroller(
 				listState = listState,
-				totalItemsCount = items.size + headerOffset,
+				totalItemsCount = items.size,
 				sectionTitleAt = { targetIndex ->
-					findSectionTitleAt(items, (targetIndex - headerOffset).coerceAtLeast(0), context)
+					findSectionTitleAt(items, targetIndex, context)
 				},
 				topContentPadding = topPad,
 				bottomContentPadding = bottomPad,
@@ -495,387 +479,121 @@ private fun findSectionTitleAt(items: List<ListModel>, position: Int, context: C
 	return null
 }
 
-// region Top Tracker Status Card & Plain Date Header
+// region Subtle Non-Interactive "Updated N ago" Pill & Plain Date Header
 
 /**
- * Top status & quick-action bar for the updates feed: shows when the tracker last checked, live
- * progress with an M3 Expressive wavy bar while running, unread/tracked/failed counts (tapping opens
- * the tracker debug log), and a connected `[Mark all read | Update]` / `[Stop]` action group.
+ * Quiet, non-interactive centered pill below the filter chips showing when the feed was last updated.
  */
 @Composable
-private fun FeedStatusCard(
+private fun FeedUpdatedPill(
 	workState: TrackerWorkState,
-	summary: TrackerSummary,
-	unreadCount: Int,
-	enabled: Boolean,
-	onUpdateClick: () -> Unit,
-	onStopClick: () -> Unit,
-	onMarkAllReadClick: () -> Unit,
-	onDebugClick: () -> Unit,
+	lastCheckTimeMillis: Long,
 	modifier: Modifier = Modifier,
 ) {
 	val colors = MaterialTheme.colorScheme
-	val motion = MaterialTheme.motionScheme
-	val haptic = rememberHapticEffect()
+	val isRunning = workState.isRunning
 
-	// Refresh relative "Checked Xm ago" text every 30s while the page stays open.
 	var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
-	LaunchedEffect(summary.lastCheckTimeMillis, workState.isRunning) {
+	LaunchedEffect(lastCheckTimeMillis, isRunning) {
 		nowMillis = System.currentTimeMillis()
-		while (!workState.isRunning && summary.lastCheckTimeMillis > 0L) {
+		while (!isRunning && lastCheckTimeMillis > 0L) {
 			delay(30_000L)
 			nowMillis = System.currentTimeMillis()
 		}
 	}
 
-	val cardInteraction = remember { MutableInteractionSource() }
-	val isCardPressed by cardInteraction.collectIsPressedAsState()
+	val showProgress = isRunning && workState.max > 0
+	// null = the live N/M label, which rolls its number in place instead of swapping the whole text
+	val labelText = when {
+		showProgress -> null
+		isRunning -> stringResource(R.string.feed_updating)
+		lastCheckTimeMillis > 0L -> {
+			val diff = (nowMillis - lastCheckTimeMillis).coerceAtLeast(0L)
+			when {
+				diff < DateUtils.MINUTE_IN_MILLIS -> stringResource(R.string.feed_updated_just_now)
+				diff < DateUtils.HOUR_IN_MILLIS -> stringResource(
+					R.string.feed_updated_minutes_ago,
+					(diff / DateUtils.MINUTE_IN_MILLIS).toInt(),
+				)
 
-	// Badge morph: Cookie9Sided at rest -> SoftBurst while checking, and circle when pressed.
-	val activeMorph = remember { Morph(MaterialShapes.Cookie9Sided, MaterialShapes.SoftBurst) }
-	val pressMorph = remember { Morph(MaterialShapes.Cookie9Sided, MaterialShapes.Circle) }
-	val runningFraction by animateFloatAsState(
-		targetValue = if (workState.isRunning) 1f else 0f,
-		animationSpec = motion.defaultSpatialSpec(),
-		label = "statusBadgeRun",
-	)
-	val pressFraction by animateFloatAsState(
-		targetValue = if (isCardPressed) 1f else 0f,
-		animationSpec = motion.fastSpatialSpec(),
-		label = "statusBadgePress",
-	)
-	val spinAngle = if (workState.isRunning) {
-		val infinite = rememberInfiniteTransition(label = "radarSpin")
-		infinite.animateFloat(
-			initialValue = 0f,
-			targetValue = 360f,
-			animationSpec = infiniteRepeatable(tween(8000, easing = LinearEasing), RepeatMode.Restart),
-			label = "radarAngle",
-		).value
-	} else {
-		0f
-	}
+				diff < DateUtils.DAY_IN_MILLIS -> stringResource(
+					R.string.feed_updated_hours_ago,
+					(diff / DateUtils.HOUR_IN_MILLIS).toInt(),
+				)
 
-	val headline = when {
-		workState.isRunning && workState.max > 0 -> stringResource(
-			R.string.feed_checking_progress,
-			workState.progress.coerceAtLeast(1),
-			workState.max,
-		)
-
-		workState.isRunning -> stringResource(R.string.feed_checking)
-		summary.lastCheckTimeMillis > 0L -> {
-			val rel = remember(summary.lastCheckTimeMillis, nowMillis) {
-				formatRelativeShort(summary.lastCheckTimeMillis, nowMillis)
-			}
-			stringResource(R.string.feed_checked_ago, rel)
-		}
-
-		else -> stringResource(R.string.feed_never_checked)
-	}
-
-	val unreadPart = if (unreadCount > 0) {
-		stringResource(R.string.feed_unread_count, unreadCount)
-	} else {
-		stringResource(R.string.feed_all_caught_up)
-	}
-	val trackedPart = if (summary.trackedCount > 0) {
-		stringResource(R.string.feed_tracked_count, summary.trackedCount)
-	} else {
-		null
-	}
-	val failedPart = if (summary.failedCount > 0) {
-		stringResource(R.string.feed_failed_count, summary.failedCount)
-	} else {
-		null
-	}
-	val subtitle = remember(unreadPart, trackedPart, failedPart, colors.onSurfaceVariant, colors.error) {
-		buildAnnotatedString {
-			append(unreadPart)
-			if (trackedPart != null) {
-				append(" · ")
-				append(trackedPart)
-			}
-			if (failedPart != null) {
-				append(" · ")
-				withStyle(SpanStyle(color = colors.error, fontWeight = FontWeight.SemiBold)) {
-					append(failedPart)
-				}
-			}
-		}
-	}
-
-	val badgePath = remember { Path() }
-	val badgeMatrix = remember { Matrix() }
-
-	Surface(
-		onClick = {
-			haptic(HapticEffect.LIGHT_CLICK)
-			onDebugClick()
-		},
-		enabled = enabled,
-		shape = RoundedCornerShape(OuterCorner),
-		color = colors.surfaceContainer,
-		interactionSource = cardInteraction,
-		modifier = modifier
-			.fillMaxWidth()
-			.alpha(if (enabled) 1f else 0.5f),
-	) {
-		Column(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(horizontal = 12.dp, vertical = 10.dp),
-		) {
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically,
-			) {
-				Box(
-					modifier = Modifier
-						.size(42.dp)
-						.drawBehind {
-							badgePath.rewind()
-							if (pressFraction > 0.01f && !workState.isRunning) {
-								pressMorph.toPath(pressFraction.coerceIn(0f, 1f), badgePath)
-							} else {
-								activeMorph.toPath(runningFraction.coerceIn(0f, 1f), badgePath)
-							}
-							badgeMatrix.reset()
-							badgeMatrix.scale(size.width, size.height)
-							badgePath.transform(badgeMatrix)
-							rotate(spinAngle + pressFraction * 35f) {
-								drawPath(badgePath, colors.primaryContainer)
-							}
-						},
-					contentAlignment = Alignment.Center,
-				) {
-					Icon(
-						painter = painterResource(R.drawable.ic_tracker_radar),
-						contentDescription = null,
-						tint = colors.onPrimaryContainer,
-						modifier = Modifier.size(21.dp),
-					)
-				}
-
-				Column(
-					modifier = Modifier
-						.weight(1f)
-						.padding(horizontal = 12.dp),
-				) {
-					AnimatedContent(
-						targetState = headline,
-						transitionSpec = {
-							(slideInVertically { it / 2 } + fadeIn(tween(180))) togetherWith
-								(slideOutVertically { -it / 2 } + fadeOut(tween(120))) using
-								SizeTransform(clip = false)
-						},
-						label = "statusHeadline",
-					) { text ->
-						Text(
-							text = text,
-							style = MaterialTheme.typography.titleSmall,
-							fontWeight = FontWeight.SemiBold,
-							color = colors.onSurface,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis,
-						)
+				diff < 2 * DateUtils.DAY_IN_MILLIS -> stringResource(R.string.feed_updated_yesterday)
+				else -> {
+					val rel = remember(lastCheckTimeMillis, nowMillis) {
+						DateUtils.getRelativeTimeSpanString(
+							lastCheckTimeMillis,
+							nowMillis,
+							DateUtils.DAY_IN_MILLIS,
+							DateUtils.FORMAT_ABBREV_RELATIVE,
+						).toString()
 					}
-					Spacer(Modifier.height(1.dp))
+					stringResource(R.string.feed_updated_ago, rel)
+				}
+			}
+		}
+
+		else -> stringResource(R.string.feed_never_updated)
+	}
+
+	Box(
+		modifier = modifier
+			.background(colors.surfaceContainer, CircleShape)
+			.animateContentSize(
+				animationSpec = spring(
+					dampingRatio = Spring.DampingRatioNoBouncy,
+					stiffness = Spring.StiffnessMedium,
+				),
+			)
+			.padding(horizontal = 12.dp, vertical = 5.dp),
+		contentAlignment = Alignment.Center,
+	) {
+		AnimatedContent(
+			targetState = labelText,
+			transitionSpec = {
+				fadeIn(tween(150)) togetherWith fadeOut(tween(100)) using SizeTransform(clip = false)
+			},
+			label = "pillUpdatedText",
+		) { text ->
+			val style = MaterialTheme.typography.labelMedium
+			if (text == null) {
+				val template = stringResource(R.string.feed_updating_progress)
+				Row(verticalAlignment = Alignment.CenterVertically) {
 					Text(
-						text = subtitle,
-						style = MaterialTheme.typography.bodySmall,
+						text = template.substringBefore("%1\$d"),
+						style = style,
+						fontWeight = FontWeight.Medium,
 						color = colors.onSurfaceVariant,
 						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
+						softWrap = false,
 					)
-				}
-
-				FeedStatusActions(
-					isRunning = workState.isRunning,
-					hasUnread = unreadCount > 0,
-					enabled = enabled,
-					onMarkAllRead = {
-						haptic(HapticEffect.CONFIRM)
-						onMarkAllReadClick()
-					},
-					onUpdate = {
-						haptic(HapticEffect.CLICK)
-						onUpdateClick()
-					},
-					onStop = {
-						haptic(HapticEffect.CLICK)
-						onStopClick()
-					},
-				)
-			}
-
-			AnimatedVisibility(
-				visible = workState.isRunning,
-				enter = expandVertically(animationSpec = motion.defaultSpatialSpec(), expandFrom = Alignment.Top) +
-					fadeIn(animationSpec = motion.defaultEffectsSpec()),
-				exit = shrinkVertically(animationSpec = motion.defaultSpatialSpec(), shrinkTowards = Alignment.Top) +
-					fadeOut(animationSpec = motion.fastEffectsSpec()),
-			) {
-				Column(modifier = Modifier.fillMaxWidth()) {
-					Spacer(Modifier.height(10.dp))
-					if (workState.max > 0) {
-						val targetProgress = (workState.progress.toFloat() / workState.max.toFloat()).coerceIn(0f, 1f)
-						val animatedProgress by animateFloatAsState(
-							targetValue = targetProgress,
-							animationSpec = motion.slowSpatialSpec(),
-							label = "trackerWaveProgress",
-						)
-						LinearWavyProgressIndicator(
-							progress = { animatedProgress.coerceIn(0f, 1f) },
-							color = colors.primary,
-							trackColor = colors.primary.copy(alpha = 0.20f),
-							modifier = Modifier.fillMaxWidth(),
-						)
-					} else {
-						LinearWavyProgressIndicator(
-							color = colors.primary,
-							trackColor = colors.primary.copy(alpha = 0.20f),
-							modifier = Modifier.fillMaxWidth(),
-						)
-					}
-				}
-			}
-		}
-	}
-}
-
-@Composable
-private fun FeedStatusActions(
-	isRunning: Boolean,
-	hasUnread: Boolean,
-	enabled: Boolean,
-	onMarkAllRead: () -> Unit,
-	onUpdate: () -> Unit,
-	onStop: () -> Unit,
-) {
-	val colors = MaterialTheme.colorScheme
-	val motion = MaterialTheme.motionScheme
-
-	AnimatedContent(
-		targetState = isRunning,
-		transitionSpec = {
-			(scaleIn(initialScale = 0.85f, animationSpec = motion.fastSpatialSpec()) + fadeIn()) togetherWith
-				(scaleOut(targetScale = 0.85f) + fadeOut())
-		},
-		label = "statusActionMode",
-	) { running ->
-		if (running) {
-			Surface(
-				onClick = onStop,
-				enabled = enabled,
-				shape = CircleShape,
-				color = colors.errorContainer,
-				modifier = Modifier.height(36.dp),
-			) {
-				Row(
-					modifier = Modifier.padding(start = 10.dp, end = 14.dp),
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(4.dp),
-				) {
-					Icon(
-						painter = painterResource(R.drawable.ic_stop),
-						contentDescription = null,
-						tint = colors.onErrorContainer,
-						modifier = Modifier.size(18.dp),
+					RollingNumber(
+						value = workState.progress.coerceAtLeast(1),
+						style = style,
+						fontWeight = FontWeight.Medium,
+						color = colors.onSurfaceVariant,
 					)
 					Text(
-						text = stringResource(R.string.stop_update),
-						style = MaterialTheme.typography.labelMedium,
-						fontWeight = FontWeight.SemiBold,
-						color = colors.onErrorContainer,
+						text = template.substringAfter("%1\$d").replace("%2\$d", workState.max.toString()),
+						style = style,
+						fontWeight = FontWeight.Medium,
+						color = colors.onSurfaceVariant,
 						maxLines = 1,
 						softWrap = false,
 					)
 				}
-			}
-		} else {
-			Row(horizontalArrangement = Arrangement.spacedBy(JoinedGap)) {
-				AnimatedVisibility(
-					visible = hasUnread,
-					enter = scaleIn(initialScale = 0.7f, animationSpec = motion.fastSpatialSpec()) + fadeIn(),
-					exit = scaleOut(targetScale = 0.7f) + fadeOut(),
-				) {
-					val markInteraction = remember { MutableInteractionSource() }
-					val markPressed by markInteraction.collectIsPressedAsState()
-					val innerCorner by animateDpAsState(
-						targetValue = if (markPressed) 14.dp else 6.dp,
-						animationSpec = motion.fastSpatialSpec(),
-						label = "markSeam",
-					)
-					Surface(
-						onClick = onMarkAllRead,
-						enabled = enabled,
-						shape = RoundedCornerShape(
-							topStart = 18.dp,
-							bottomStart = 18.dp,
-							topEnd = innerCorner,
-							bottomEnd = innerCorner,
-						),
-						color = colors.surfaceContainerHigh,
-						interactionSource = markInteraction,
-						modifier = Modifier.size(width = 38.dp, height = 36.dp),
-					) {
-						Box(contentAlignment = Alignment.Center) {
-							Icon(
-								painter = painterResource(R.drawable.ic_mark_all_read),
-								contentDescription = stringResource(R.string.mark_all_as_read),
-								tint = colors.onSurfaceVariant,
-								modifier = Modifier.size(19.dp),
-							)
-						}
-					}
-				}
-
-				val updateInteraction = remember { MutableInteractionSource() }
-				val updatePressed by updateInteraction.collectIsPressedAsState()
-				val startCorner by animateDpAsState(
-					targetValue = when {
-						!hasUnread -> 18.dp
-						updatePressed -> 14.dp
-						else -> 6.dp
-					},
-					animationSpec = motion.fastSpatialSpec(),
-					label = "updateSeam",
+			} else {
+				Text(
+					text = text,
+					style = style,
+					fontWeight = FontWeight.Medium,
+					color = colors.onSurfaceVariant,
+					maxLines = 1,
+					softWrap = false,
 				)
-				Surface(
-					onClick = onUpdate,
-					enabled = enabled,
-					shape = RoundedCornerShape(
-						topStart = startCorner,
-						bottomStart = startCorner,
-						topEnd = 18.dp,
-						bottomEnd = 18.dp,
-					),
-					color = colors.secondaryContainer,
-					interactionSource = updateInteraction,
-					modifier = Modifier.height(36.dp),
-				) {
-					Row(
-						modifier = Modifier.padding(start = 11.dp, end = 13.dp),
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(5.dp),
-					) {
-						Icon(
-							painter = painterResource(R.drawable.ic_retry),
-							contentDescription = null,
-							tint = colors.onSecondaryContainer,
-							modifier = Modifier.size(16.dp),
-						)
-						Text(
-							text = stringResource(R.string.update),
-							style = MaterialTheme.typography.labelMedium,
-							fontWeight = FontWeight.SemiBold,
-							color = colors.onSecondaryContainer,
-							maxLines = 1,
-							softWrap = false,
-						)
-					}
-				}
 			}
 		}
 	}
@@ -898,24 +616,6 @@ private fun FeedDateHeader(
 			.fillMaxWidth()
 			.padding(horizontal = 8.dp, vertical = 8.dp),
 	)
-}
-
-private fun formatRelativeShort(timeMillis: Long, nowMillis: Long): String {
-	val diff = nowMillis - timeMillis
-	if (diff < 60_000L) {
-		return DateUtils.getRelativeTimeSpanString(
-			nowMillis,
-			nowMillis,
-			DateUtils.MINUTE_IN_MILLIS,
-			DateUtils.FORMAT_ABBREV_RELATIVE,
-		).toString().lowercase()
-	}
-	return DateUtils.getRelativeTimeSpanString(
-		timeMillis,
-		nowMillis,
-		DateUtils.MINUTE_IN_MILLIS,
-		DateUtils.FORMAT_ABBREV_RELATIVE,
-	).toString()
 }
 
 // endregion
@@ -961,7 +661,7 @@ private fun FeedEntryRow(
 		selectDip.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
 	}
 
-	// Horizontal swipe state with velocity-aware spring settle, cancel safety, and instant-Undo slide-back
+	// Horizontal swipe state with crisp exit tween (zero spring-tail lag), cancel safety, and Undo slide-back
 	var rowWidthPx by remember { mutableIntStateOf(0) }
 	val rawDragX = remember { Animatable(0f) }
 	var isDraggingSwipe by remember { mutableStateOf(false) }
@@ -974,8 +674,6 @@ private fun FeedEntryRow(
 		spring<Float>(dampingRatio = 0.76f, stiffness = 560f)
 	}
 
-	// If the user taps Undo right after swiping to delete (while this item is still mounted in
-	// LazyColumn's exit animation), slide the card smoothly back into place instead of leaving a gap.
 	var seenUndoEpoch by remember { mutableIntStateOf(undoEpoch) }
 	LaunchedEffect(undoEpoch) {
 		if (undoEpoch != seenUndoEpoch) {
@@ -1005,7 +703,6 @@ private fun FeedEntryRow(
 			}
 
 			dx < 0f -> {
-				// Mark-as-read stays in the list: crisp 1:1 up to threshold, then elastic resistance past it
 				val thresholdPx = rowWidthPx * SWIPE_COMMIT_THRESHOLD
 				val absDx = abs(dx)
 				if (absDx <= thresholdPx) {
@@ -1078,8 +775,8 @@ private fun FeedEntryRow(
 		0f
 	}
 	val detachedSeam = with(density) {
-		lerpFloat(pressedSeamCorner.toPx(), OuterCorner.toPx(), detachFraction).toDp()
-	}
+		lerpFloat(pressedSeamCorner.coerceAtLeast(0.dp).toPx(), OuterCorner.toPx(), detachFraction).toDp()
+	}.coerceAtLeast(0.dp)
 
 	val targetTopCorner = when {
 		hasSelectedAbove -> 0.dp
@@ -1093,11 +790,13 @@ private fun FeedEntryRow(
 	}
 	val topCorner by animateDpAsState(targetTopCorner, motion.fastSpatialSpec(), label = "topRowCorner")
 	val bottomCorner by animateDpAsState(targetBottomCorner, motion.fastSpatialSpec(), label = "bottomRowCorner")
+	val safeTopCorner = topCorner.coerceAtLeast(0.dp)
+	val safeBottomCorner = bottomCorner.coerceAtLeast(0.dp)
 	val rowShape = RoundedCornerShape(
-		topStart = topCorner,
-		topEnd = topCorner,
-		bottomStart = bottomCorner,
-		bottomEnd = bottomCorner,
+		topStart = safeTopCorner,
+		topEnd = safeTopCorner,
+		bottomStart = safeBottomCorner,
+		bottomEnd = safeBottomCorner,
 	)
 
 	val selectorCorner = dimensionResource(R.dimen.list_selector_corner)
@@ -1152,7 +851,6 @@ private fun FeedEntryRow(
 					val cx = (left + right) / 2f
 					val cy = size.height / 2f
 
-					// Crisp translucent white halo blooms behind the icon right as the commit threshold ticks
 					if (pop > 0.01f && !isAlreadyRead) {
 						val badgeRadius = (20.dp.toPx() * pop).coerceAtMost(minOf(revealedWidth, size.height) * 0.44f)
 						drawCircle(
@@ -1201,7 +899,6 @@ private fun FeedEntryRow(
 								}
 							},
 							onDragCancel = {
-								// Cancelled drags (multi-touch / system gesture / scroll takeover) never commit.
 								isDraggingSwipe = false
 								scope.launch {
 									launch { badgePop.animateTo(0f, spring(stiffness = 900f)) }
@@ -1212,7 +909,7 @@ private fun FeedEntryRow(
 								isDraggingSwipe = false
 								val width = rowWidthPx
 								val dx = rawDragX.value
-								val vx = velocityTracker.calculateVelocity().x.coerceIn(-4000f, 4000f)
+								val vx = velocityTracker.calculateVelocity().x.coerceIn(-5000f, 5000f)
 								if (width > 0 && dx <= -SWIPE_COMMIT_THRESHOLD * width && wasUnreadAtDragStart) {
 									currentActions.onSwipeMarkRead(currentItem)
 									scope.launch {
@@ -1220,12 +917,16 @@ private fun FeedEntryRow(
 										rawDragX.animateTo(0f, swipeSettleSpec, initialVelocity = vx * 0.35f)
 									}
 								} else if (width > 0 && dx >= SWIPE_COMMIT_THRESHOLD * width) {
+									val remaining = (width - dx).coerceAtLeast(0f)
+									val speedPxPerSec = maxOf(vx, width * 4.2f)
+									val exitDurationMs = ((remaining / speedPxPerSec) * 1000f).roundToInt().coerceIn(70, 145)
 									scope.launch {
-										rawDragX.animateTo(
-											targetValue = width * 1.06f,
-											animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 950f),
-											initialVelocity = vx.coerceAtLeast(0f),
-										)
+										if (remaining > 1f) {
+											rawDragX.animateTo(
+												targetValue = width.toFloat(),
+												animationSpec = tween(durationMillis = exitDurationMs, easing = FastOutLinearInEasing),
+											)
+										}
 										isDismissed = true
 										currentActions.onSwipeRemove(currentItem)
 									}
@@ -1247,12 +948,6 @@ private fun FeedEntryRow(
 		val selectionStrokePath = remember { Path() }
 		val combinedScale = selectDip.value * rowPressScale
 
-		val sourceSubtitle = remember(context, item.manga.source, item.createdAt) {
-			val sourceTitle = item.manga.source.getTitle(context)
-			val timePart = item.createdAt?.let { formatEntryTime(context, it) }
-			if (timePart.isNullOrEmpty()) sourceTitle else "$sourceTitle · $timePart"
-		}
-
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
@@ -1271,12 +966,12 @@ private fun FeedEntryRow(
 						val halfStroke = strokePx / 2f
 						val topR = when {
 							hasSelectedAbove -> 0f
-							topCorner >= OuterCorner -> (topCorner.toPx() - halfStroke).coerceAtLeast(0f)
+							safeTopCorner >= OuterCorner -> (safeTopCorner.toPx() - halfStroke).coerceAtLeast(0f)
 							else -> (selectorCorner.toPx() - halfStroke).coerceAtLeast(0f)
 						}
 						val bottomR = when {
 							hasSelectedBelow -> 0f
-							bottomCorner >= OuterCorner -> (bottomCorner.toPx() - halfStroke).coerceAtLeast(0f)
+							safeBottomCorner >= OuterCorner -> (safeBottomCorner.toPx() - halfStroke).coerceAtLeast(0f)
 							else -> (selectorCorner.toPx() - halfStroke).coerceAtLeast(0f)
 						}
 						val boxTop = if (hasSelectedAbove) 0f else halfStroke
@@ -1304,17 +999,25 @@ private fun FeedEntryRow(
 					interactionSource = rowInteraction,
 					indication = LocalIndication.current,
 					hapticFeedbackEnabled = false,
-					onClick = { actions.onItemClick(item) },
+					onClickLabel = stringResource(R.string.read),
+					onClick = { if (isSelecting) actions.onItemClick(item) else actions.onReadClick(item) },
 					onLongClick = { actions.onItemLongClick(item) },
 				)
-				.padding(start = 12.dp, end = 12.dp, top = 11.dp, bottom = 11.dp),
+				.padding(start = 12.dp, end = 20.dp, top = 12.dp, bottom = 12.dp),
 			verticalAlignment = Alignment.Top,
 		) {
+			// Cover and title open the details page (or toggle selection); the rest of the row reads.
+			val openDetails = Modifier.combinedClickable(
+				hapticFeedbackEnabled = false,
+				onClick = { actions.onItemClick(item) },
+				onLongClick = { actions.onItemLongClick(item) },
+			)
 			FeedCover(
 				item = item,
-				isSelected = isSelected,
 				imageLoader = imageLoader,
-				modifier = Modifier.padding(top = 1.dp),
+				modifier = Modifier
+					.clip(RoundedCornerShape(12.dp))
+					.then(openDetails),
 			)
 
 			Column(
@@ -1329,17 +1032,11 @@ private fun FeedEntryRow(
 					color = colors.onSurface,
 					maxLines = 1,
 					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier
+						.clip(RoundedCornerShape(4.dp))
+						.then(openDetails),
 				)
-				if (sourceSubtitle.isNotEmpty()) {
-					Text(
-						text = sourceSubtitle,
-						style = MaterialTheme.typography.bodySmall,
-						color = colors.onSurfaceVariant,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
-					)
-				}
-				Spacer(Modifier.height(2.dp))
+				Spacer(Modifier.height(3.dp))
 				FeedChaptersBlock(
 					item = item,
 					isSelecting = isSelecting,
@@ -1355,42 +1052,7 @@ private fun FeedEntryRow(
 				)
 			}
 
-			val readButtonAlpha by animateFloatAsState(
-				targetValue = if (isSelecting) 0.38f else 1f,
-				animationSpec = motion.defaultEffectsSpec(),
-				label = "readBtnAlpha",
-			)
-			FeedReadButton(
-				onClick = {
-					if (isSelecting) {
-						actions.onItemClick(item)
-					} else {
-						actions.onReadClick(item)
-					}
-				},
-				modifier = Modifier
-					.align(Alignment.CenterVertically)
-					.alpha(readButtonAlpha),
-			)
 		}
-	}
-}
-
-private fun formatEntryTime(context: Context, instant: Instant): String {
-	val ms = instant.toEpochMilli()
-	val now = System.currentTimeMillis()
-	val diff = now - ms
-	return when {
-		diff < 0L -> ""
-		diff < DateUtils.MINUTE_IN_MILLIS -> context.getString(R.string.just_now)
-		diff < DateUtils.DAY_IN_MILLIS -> DateUtils.getRelativeTimeSpanString(
-			ms,
-			now,
-			DateUtils.MINUTE_IN_MILLIS,
-			DateUtils.FORMAT_ABBREV_RELATIVE,
-		).toString()
-
-		else -> DateUtils.formatDateTime(context, ms, DateUtils.FORMAT_SHOW_TIME)
 	}
 }
 
@@ -1455,78 +1117,27 @@ private fun buildMergedSelectionStroke(
 @Composable
 private fun FeedCover(
 	item: FeedItem,
-	isSelected: Boolean,
 	imageLoader: ImageLoader,
 	modifier: Modifier = Modifier,
 ) {
 	val context = LocalContext.current
-	val colors = MaterialTheme.colorScheme
 	val sizePx = with(LocalDensity.current) { 52.dp.roundToPx() }
-	val coverShape = RoundedCornerShape(12.dp)
-	val checkBloom by animateFloatAsState(
-		targetValue = if (isSelected) 1f else 0f,
-		animationSpec = spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMedium),
-		label = "coverCheckBloom",
+	AsyncImage(
+		model = remember(item.manga.id, item.imageUrl) {
+			ImageRequest.Builder(context)
+				.data(item.imageUrl)
+				.size(sizePx)
+				.mangaSourceExtra(item.manga.source)
+				.stableMangaCoverKey(item.manga, item.imageUrl)
+				.build()
+		},
+		imageLoader = imageLoader,
+		contentDescription = null,
+		contentScale = ContentScale.Crop,
+		modifier = modifier
+			.size(52.dp)
+			.background(MaterialTheme.colorScheme.surfaceContainerHighest),
 	)
-	val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
-	val badgePath = remember { Path() }
-	val badgeMatrix = remember { Matrix() }
-
-	Box(modifier = modifier.size(52.dp)) {
-		AsyncImage(
-			model = remember(item.manga.id, item.imageUrl) {
-				ImageRequest.Builder(context)
-					.data(item.imageUrl)
-					.size(sizePx)
-					.mangaSourceExtra(item.manga.source)
-					.stableMangaCoverKey(item.manga, item.imageUrl)
-					.build()
-			},
-			imageLoader = imageLoader,
-			contentDescription = null,
-			contentScale = ContentScale.Crop,
-			modifier = Modifier
-				.fillMaxSize()
-				.clip(coverShape)
-				.background(colors.surfaceContainerHighest),
-		)
-
-		if (checkBloom > 0.01f) {
-			Box(
-				modifier = Modifier
-					.align(Alignment.BottomEnd)
-					.size(22.dp)
-					.drawBehind {
-						badgePath.rewind()
-						morph.toPath(checkBloom.coerceIn(0f, 1f), badgePath)
-						badgeMatrix.reset()
-						val s = size.minDimension * checkBloom.coerceAtLeast(0f)
-						badgeMatrix.scale(s, s)
-						badgePath.transform(badgeMatrix)
-						val offset = (size.minDimension - s) / 2f
-						badgePath.translate(Offset(offset, offset))
-						rotate(checkBloom * 35f) {
-							drawPath(badgePath, colors.primary)
-						}
-					},
-				contentAlignment = Alignment.Center,
-			) {
-				Icon(
-					painter = painterResource(R.drawable.ic_check),
-					contentDescription = null,
-					tint = colors.onPrimary,
-					modifier = Modifier
-						.size(13.dp)
-						.graphicsLayer {
-							val clamped = checkBloom.coerceAtLeast(0f)
-							scaleX = clamped
-							scaleY = clamped
-							alpha = checkBloom.coerceIn(0f, 1f)
-						},
-				)
-			}
-		}
-	}
 }
 
 @Composable
@@ -1542,24 +1153,19 @@ private fun FeedChaptersBlock(
 	val motion = MaterialTheme.motionScheme
 	val haptic = rememberHapticEffect()
 	val chapters = item.chapters
-	val accentColor by animateColorAsState(
-		targetValue = if (item.isNew) colors.primary else colors.onSurfaceVariant,
-		animationSpec = motion.defaultEffectsSpec(),
-		label = "chapterAccent",
-	)
 
 	when {
 		chapters.size == 1 -> {
 			val single = chapters[0]
 			Row(
-				modifier = Modifier.padding(vertical = 1.dp),
+				modifier = Modifier.padding(vertical = 2.dp),
 				verticalAlignment = Alignment.CenterVertically,
 			) {
 				AnimatedUnreadDotSlot(visible = item.isNew && single.isNew, color = errorDotColor)
 				Text(
 					text = single.name,
 					style = MaterialTheme.typography.bodyMedium,
-					color = accentColor,
+					color = colors.onSurfaceVariant,
 					maxLines = 1,
 					overflow = TextOverflow.Ellipsis,
 				)
@@ -1573,10 +1179,10 @@ private fun FeedChaptersBlock(
 			Text(
 				text = summaryText,
 				style = MaterialTheme.typography.bodyMedium,
-				color = accentColor,
+				color = colors.primary,
 				maxLines = 1,
 				overflow = TextOverflow.Ellipsis,
-				modifier = Modifier.padding(vertical = 1.dp),
+				modifier = Modifier.padding(vertical = 2.dp),
 			)
 		}
 
@@ -1596,7 +1202,7 @@ private fun FeedChaptersBlock(
 			)
 			val pillPadH by animateDpAsState(
 				targetValue = if (item.isExpanded) 8.dp else 0.dp,
-				animationSpec = motion.fastSpatialSpec(),
+				animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
 				label = "summaryPillPad",
 			)
 
@@ -1618,7 +1224,7 @@ private fun FeedChaptersBlock(
 							},
 							onLongClick = onLongPress,
 						)
-						.padding(horizontal = pillPadH, vertical = 2.dp),
+						.padding(horizontal = pillPadH.coerceAtLeast(0.dp), vertical = 2.dp),
 					verticalAlignment = Alignment.CenterVertically,
 				) {
 					AnimatedUnreadDotSlot(visible = item.isNew, color = errorDotColor)
@@ -1626,7 +1232,7 @@ private fun FeedChaptersBlock(
 						text = summaryText,
 						style = MaterialTheme.typography.bodyMedium,
 						fontWeight = if (item.isExpanded) FontWeight.Medium else FontWeight.Normal,
-						color = accentColor,
+						color = colors.primary,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 						modifier = Modifier.weight(1f, fill = false),
@@ -1635,7 +1241,7 @@ private fun FeedChaptersBlock(
 					Icon(
 						painter = painterResource(R.drawable.ic_expand_more),
 						contentDescription = null,
-						tint = accentColor,
+						tint = colors.primary,
 						modifier = Modifier
 							.size(18.dp)
 							.drawWithContent {
@@ -1744,17 +1350,13 @@ private fun ChapterCascadeRow(
 		Text(
 			text = name,
 			style = MaterialTheme.typography.bodyMedium,
-			color = if (isUnread) colors.onSurface else colors.onSurfaceVariant,
+			color = colors.onSurfaceVariant,
 			maxLines = 1,
 			overflow = TextOverflow.Ellipsis,
 		)
 	}
 }
 
-/**
- * Smoothly expands/collapses the `8.dp` unread dot + `7.dp` gap so marking an entry read absorbs
- * the dot and glides the chapter text into place instead of snapping horizontally.
- */
 @Composable
 private fun AnimatedUnreadDotSlot(visible: Boolean, color: Color) {
 	val progress by animateFloatAsState(
@@ -1784,32 +1386,6 @@ private fun AnimatedUnreadDotSlot(visible: Boolean, color: Color) {
 					alpha = progress.coerceIn(0f, 1f)
 				}
 				.background(color, CircleShape),
-		)
-	}
-}
-
-/**
- * Standard Material 3 Expressive tonal icon button (`secondaryContainer` / `onSecondaryContainer`),
- * matching tonal buttons across settings, sheets, and dialogs — identical on read and unread rows.
- */
-@Composable
-private fun FeedReadButton(
-	onClick: () -> Unit,
-	modifier: Modifier = Modifier,
-) {
-	FilledTonalIconButton(
-		onClick = onClick,
-		shapes = IconButtonDefaults.shapes(),
-		colors = IconButtonDefaults.filledTonalIconButtonColors(),
-		modifier = modifier.size(40.dp),
-	) {
-		Icon(
-			painter = painterResource(R.drawable.ic_play),
-			contentDescription = stringResource(R.string.read),
-			modifier = Modifier
-				.size(20.dp)
-				// ic_play is non-mirrored (always points +X), so +1dp optically centers the triangle in both LTR and RTL.
-				.graphicsLayer { translationX = 1.dp.toPx() },
 		)
 	}
 }
@@ -1998,5 +1574,3 @@ private fun FeedErrorState(
 		)
 	}
 }
-
-// endregion

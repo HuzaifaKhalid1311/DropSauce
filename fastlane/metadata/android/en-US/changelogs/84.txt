@@ -1,4 +1,6 @@
-- Links in PDFs work: web links open in your browser and contents or footnote links jump to the right page
-- Long-press text in a PDF to copy it, look it up in the dictionary or highlight it, and your highlights show up in your bookmarks (Android 15, or 12 to 14 with recent system updates)
-- PDFs with a table of contents now show their real chapters, and you keep your place
-- Search a PDF's text with the search button at the top of the reader, and the matches get marked on the page
+- PDFs got a big upgrade: links work, you can search, select and highlight text, chapters come from the table of contents, and zoom stays sharp
+- Track your reading on Comick
+- Redesigned Explore and history, and a new scrollbar
+- New Erza theme and a static app icon option
+- Fixed newer Keiyoushi extensions like MangaFire failing on a manga's page
+- Other bug fixes

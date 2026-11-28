@@ -4,7 +4,6 @@ import androidx.annotation.VisibleForTesting
 import androidx.room.withTransaction
 import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import org.koitharu.kotatsu.core.db.MangaDatabase
@@ -58,24 +57,17 @@ class TrackingRepository @Inject constructor(
 		return db.getTrackLogsDao().observeUnreadCount()
 	}
 
+	fun observeLogsCount(): Flow<Int> {
+		return db.getTrackLogsDao().observeCount()
+	}
+
 	/** Emits whenever the `tracks` table changes, so list badges derived from `chapters_new` refresh. */
 	fun observeTracksChanged(): Flow<Int> {
 		return db.getTracksDao().observeNewChaptersSum()
 	}
 
-	fun observeTrackerSummary(): Flow<TrackerSummary> {
-		val dao = db.getTracksDao()
-		return combine(
-			dao.observeLastCheckTime(),
-			dao.observeTracksCount(),
-			dao.observeFailedTracksCount(),
-		) { lastCheckMs, totalCount, failedCount ->
-			TrackerSummary(
-				lastCheckTimeMillis = lastCheckMs,
-				trackedCount = totalCount,
-				failedCount = failedCount,
-			)
-		}.distinctUntilChanged()
+	fun observeLastCheckTime(): Flow<Long> {
+		return db.getTracksDao().observeLastCheckTime().distinctUntilChanged()
 	}
 
 	suspend fun getPopularFeedSources(limit: Int): List<MangaSource> {
@@ -151,6 +143,17 @@ class TrackingRepository @Inject constructor(
 	suspend fun getLogsCount() = db.getTrackLogsDao().count()
 
 	suspend fun clearLogs() = db.getTrackLogsDao().clear()
+
+	/** Deletes all already-read feed entries while keeping unread ones, returning an undo handle. */
+	suspend fun clearReadLogs(): ReversibleHandle? {
+		val dao = db.getTrackLogsDao()
+		val removed = dao.findReadLogs()
+		if (removed.isEmpty()) return null
+		dao.clearRead()
+		return ReversibleHandle {
+			dao.insertAll(removed)
+		}
+	}
 
 	// Deletes a single feed entry, returning a handle that re-inserts it (for undo).
 	suspend fun removeLog(id: Long): ReversibleHandle? {

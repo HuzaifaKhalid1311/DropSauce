@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.history.ui
 import android.view.ViewGroup
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -14,8 +14,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,6 +75,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.hannesdorfmann.adapterdelegates4.dsl.adapterDelegate
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.ui.compose.RollingNumber
 import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.stableMangaCoverKey
 import org.koitharu.kotatsu.list.ui.model.ListModel
@@ -222,33 +221,33 @@ private fun CountBadge(section: HistorySection, selected: Int) {
 	val isActive = selected > 0
 	val container by animateColorAsState(if (isActive) colors.primary else colors.secondaryContainer, label = "badge")
 	val content by animateColorAsState(if (isActive) colors.onPrimary else colors.onSecondaryContainer, label = "badgeText")
-	// Ordered by what changes most, so the number rolls the right way when it does.
-	val value = Triple(selected, section.count, section.isCountExact)
-	AnimatedContent(
-		targetState = value,
+	val total = if (section.isCountExact) section.count.toString() else "${section.count}+"
+	val style = MaterialTheme.typography.labelMedium
+	// Only the selected number rolls; the total after the slash stays put.
+	Row(
 		modifier = Modifier
 			.clip(CircleShape)
-			.background(container),
-		transitionSpec = {
-			val up = compareValuesBy(targetState, initialState, { it.first }, { it.second }) > 0
-			(slideInVertically(spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMedium)) { if (up) it else -it } + fadeIn()) togetherWith
-				(slideOutVertically { if (up) -it else it } + fadeOut()) using SizeTransform(clip = true)
-		},
-		label = "count",
-	) { (sel, count, exact) ->
-		Text(
-			text = when {
-				sel > 0 && exact -> "$sel/$count"
-				sel > 0 -> "$sel/$count+"
-				exact -> count.toString()
-				else -> "$count+"
-			},
-			style = MaterialTheme.typography.labelMedium,
+			.background(container)
+			.animateContentSize(spring(Spring.DampingRatioNoBouncy, Spring.StiffnessMedium))
+			.padding(horizontal = 8.dp, vertical = 2.dp),
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		RollingNumber(
+			value = selected,
+			text = if (selected > 0) selected.toString() else total,
+			style = style,
 			fontWeight = FontWeight.SemiBold,
 			color = content,
-			maxLines = 1,
-			modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
 		)
+		if (selected > 0) {
+			Text(
+				text = "/$total",
+				style = style,
+				fontWeight = FontWeight.SemiBold,
+				color = content,
+				maxLines = 1,
+			)
+		}
 	}
 }
 

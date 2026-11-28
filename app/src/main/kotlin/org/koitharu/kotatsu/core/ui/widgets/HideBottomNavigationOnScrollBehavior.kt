@@ -83,6 +83,18 @@ class HideBottomNavigationOnScrollBehavior @JvmOverloads constructor(
 		}
 	}
 
+	override fun onNestedScroll(
+		coordinatorLayout: CoordinatorLayout,
+		child: NavigationBarView,
+		target: View,
+		dxConsumed: Int,
+		dyConsumed: Int,
+		dxUnconsumed: Int,
+		dyUnconsumed: Int,
+		type: Int,
+		consumed: IntArray,
+	) = Unit
+
 	override fun onStopNestedScroll(
 		coordinatorLayout: CoordinatorLayout,
 		child: NavigationBarView,

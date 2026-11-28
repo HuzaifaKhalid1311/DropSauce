@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Improved
-- Redesigned the updates feed
+- Redesigned the updates feed, with last updated time, source filters and clearing read entries
 - Pop-up messages always show above the nav bar now, and you can swipe them down to dismiss
 - History's date sections are more compact, and you can fold them all at once too
 
@@ -15,36 +15,27 @@
 ## 1.2.0 (2026-11-27)
 
 ### New
-- Links in PDFs work: web links open in your browser and contents or footnote links jump to the right page
-- Long-press text in a PDF to copy it, look it up in the dictionary or highlight it, and your highlights show up in your bookmarks (Android 15, or 12 to 14 with recent system updates)
-- PDFs with a table of contents now show their real chapters, and you keep your place
-- Search a PDF's text with the search button at the top of the reader, and the matches get marked on the page
-- Track your reading on Comick, sign in from the services settings
-- Hold a suggestion on Explore to make sure it never gets suggested again
-- Fresh new Explore page: bigger shaped buttons, taller suggestions that loop around endlessly with the title on the cover, a new Manga/Novels switcher, pinned extensions up top, and a button right next to Manage to switch between chips, grid and list
-- New Erza theme, a deep garnet red, at the end of the colour scheme list
-- History got a refresh: tidier date sections (today, yesterday, this week, then by month) with how many you read in each, tap a section to fold it away and the app remembers (or open them all again from the ⋮ menu), and hold one to select everything in it
+- PDFs got a big upgrade: links work, you can search, select and highlight text, chapters come from the table of contents, and zoom stays sharp
+- Track your reading on Comick
+- Hold a suggestion in Explore to never see it again
+- New Erza theme, a deep red
+- Static app icon option, for launchers that glitch with the themed ones
 
 ### Improved
-- The chapters popup on a manga's page is a lighter colour and opens right under the cover or progress card
-- PDFs stay sharp however far you zoom in
-- Searching a book's text shows the results right in the search popup, with your words highlighted
-- More sensitive tags like self-harm or nudity get the orange warning colour, and harmless ones like sister or scar don't anymore
-- New Static app icon that never changes colour, for launchers that glitch with the themed ones
-- MangaBaka's icon shows in colour in the trackers menu instead of a blank silhouette
-- Option pickers across settings and the reader got the new expressive look, the picked one turns into a pill with a checkmark, and so do the filter chips in history
+- Redesigned Explore, with a manga/novel switcher and a chips, grid or list layout
+- Redesigned history, with sections you can fold away
+- New scrollbar that's easier to grab
+- Nicer option pickers in settings and the reader
+- Searching a book's text shows the results right in the search popup
 - The Expressive theme is now called Dynamic
-- New scrollbar: a thin line that swells into a chunky handle when you grab it, with a rounder label riding on it and a light tick as you pass each section
 
 ### Fixed
-- Newer Keiyoushi extensions like MangaFire no longer fail on a manga's page with a "must not be called concurrently" error
-- The dictionary popup opens at half the screen instead of jumping to full screen for long meanings
-- Restoring a Mihon backup brings back the right tracker ratings and statuses
-- Opening a chapter no longer occasionally lands on a neighbouring chapter instead of the one you tapped
-- Changing a cover from the full-screen cover view shows the new one right away
-- Dynamic theme no longer shows black text and icons on some phones like Vivo
-- A crash report no longer pops up again on every start after you copied it
-- Suggestion notifications come one at a time again instead of up to four at once
+- Newer Keiyoushi extensions like MangaFire failing on a manga's page
+- Wrong tracker ratings and statuses after restoring a Mihon backup
+- Opening a chapter sometimes opening the one next to it
+- Black text and icons in the Dynamic theme on some phones
+- The crash report popping up on every start
+- Up to four suggestion notifications at once
 - Other small bug fixes
 
 ## 1.1.5 (2026-11-20)

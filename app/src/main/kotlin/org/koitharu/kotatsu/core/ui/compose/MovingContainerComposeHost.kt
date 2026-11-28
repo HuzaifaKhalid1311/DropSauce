@@ -13,9 +13,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.Velocity
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.NestedScrollingChild3
 import androidx.core.view.NestedScrollingChildHelper
 import androidx.core.view.ViewCompat
+import com.google.android.material.appbar.AppBarLayout
 import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
 
@@ -64,7 +66,12 @@ class MovingContainerComposeHost @JvmOverloads constructor(
 
 	fun isAppBarFullyExpanded(): Boolean {
 		val appBar = (context.findActivity() as? AppBarOwner)?.appBar ?: return true
-		return appBar.top >= 0 && appBar.bottom >= appBar.height
+		val behavior = (appBar.layoutParams as? CoordinatorLayout.LayoutParams)?.behavior as? AppBarLayout.Behavior
+		return if (behavior != null) {
+			behavior.topAndBottomOffset >= -2
+		} else {
+			appBar.top >= -2
+		}
 	}
 
 	override fun dispatchTouchEvent(ev: MotionEvent): Boolean {

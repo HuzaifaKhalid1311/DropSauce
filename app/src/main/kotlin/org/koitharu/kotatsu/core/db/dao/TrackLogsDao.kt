@@ -50,8 +50,17 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	abstract suspend fun insert(entity: TrackLogEntity): Long
 
+	@Insert(onConflict = OnConflictStrategy.REPLACE)
+	abstract suspend fun insertAll(entities: List<TrackLogEntity>)
+
 	@Query("DELETE FROM track_logs WHERE id = :id")
 	abstract suspend fun delete(id: Long)
+
+	@Query("SELECT * FROM track_logs WHERE unread = 0")
+	abstract suspend fun findReadLogs(): List<TrackLogEntity>
+
+	@Query("DELETE FROM track_logs WHERE unread = 0")
+	abstract suspend fun clearRead()
 
 	@Query("SELECT * FROM track_logs WHERE id = :id")
 	abstract suspend fun findById(id: Long): TrackLogEntity?
@@ -79,6 +88,9 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 
 	@Query("SELECT COUNT(*) FROM track_logs")
 	abstract suspend fun count(): Int
+
+	@Query("SELECT COUNT(*) FROM track_logs")
+	abstract fun observeCount(): Flow<Int>
 
 	@Query("SELECT COUNT(*) FROM track_logs WHERE unread = 1")
 	abstract fun observeUnreadCount(): Flow<Int>

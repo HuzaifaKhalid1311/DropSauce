@@ -125,6 +125,8 @@ import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isExternalSource
 import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.parser.favicon.faviconUri
+import org.koitharu.kotatsu.core.ui.compose.RowActionButton
+import org.koitharu.kotatsu.core.ui.compose.topBarIconColor
 import org.koitharu.kotatsu.core.ui.image.FaviconDrawable
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
@@ -233,9 +235,6 @@ fun ExploreScreen(
 		)
 	}
 }
-
-@Composable
-private fun topBarIconColor(): Color = themeColor(R.attr.colorTopBarIcon)
 
 /** A theme colour the shared Compose colour scheme doesn't carry over from the app theme. */
 @Composable
@@ -1353,41 +1352,17 @@ private fun SourceRow(
 			modifier = Modifier.alpha(actionsAlpha),
 			horizontalArrangement = Arrangement.spacedBy(JoinedGap),
 		) {
-			ActionButton(
+			RowActionButton(
 				icon = R.drawable.ic_website,
 				description = R.string.open_website,
 				shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 6.dp, bottomEnd = 6.dp),
 				onClick = { actions.onSourceWebsiteClick(item) },
 			)
-			ActionButton(
+			RowActionButton(
 				icon = R.drawable.ic_extension_settings,
 				description = R.string.extension_settings,
 				shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp, topEnd = 20.dp, bottomEnd = 20.dp),
 				onClick = { actions.onSourceSettingsClick(item) },
-			)
-		}
-	}
-}
-
-@Composable
-private fun ActionButton(
-	@DrawableRes icon: Int,
-	@StringRes description: Int,
-	shape: Shape,
-	onClick: () -> Unit,
-) {
-	Surface(
-		onClick = onClick,
-		shape = shape,
-		color = MaterialTheme.colorScheme.surfaceContainerHighest,
-		modifier = Modifier.size(40.dp),
-	) {
-		Box(contentAlignment = Alignment.Center) {
-			Icon(
-				painter = painterResource(icon),
-				contentDescription = stringResource(description),
-				tint = topBarIconColor(),
-				modifier = Modifier.size(20.dp),
 			)
 		}
 	}
