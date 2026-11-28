@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import org.koitharu.kotatsu.tracker.domain.model.TrackingLogItem
+import java.time.Instant
 
 data class FeedItem(
 	val id: Long,
@@ -14,13 +15,13 @@ data class FeedItem(
 	val manga: Manga,
 	val chapters: List<TrackingLogItem.Chapter>,
 	val isNew: Boolean,
+	val createdAt: Instant? = null,
 	val groupPosition: GroupPosition = GroupPosition.SINGLE,
 	val isExpanded: Boolean = false,
 ) : ListModel {
 
 	// Position within a date group, used to shape the segmented list background.
 	enum class GroupPosition { SINGLE, FIRST, MIDDLE, LAST }
-
 
 	val count: Int
 		get() = chapters.size

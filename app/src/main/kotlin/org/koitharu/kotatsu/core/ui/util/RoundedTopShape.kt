@@ -13,25 +13,31 @@ import androidx.compose.ui.unit.dp
 /**
  * Clip shape for a scrolling container: rounds only the top corners, so content disappearing under
  * the toolbar is cut with the same radius as the content's own cards instead of a flat line.
- * [inset] pulls the rounded edges in to where the cards start — as clipping rather than padding, so
- * the content itself is not moved — and the shape runs past the bottom edge to keep it square.
+ * [startInset] and [endInset] pull the rounded edges in independently on each side (for asymmetric
+ * landscape system-bar insets), and the shape runs past the bottom edge to keep it square.
  *
  * The View equivalent is `View.roundTopCorners`.
  */
 class RoundedTopShape(
 	private val radius: Dp,
-	private val inset: Dp = 0.dp,
+	private val startInset: Dp,
+	private val endInset: Dp,
 ) : Shape {
+
+	constructor(radius: Dp, inset: Dp = 0.dp) : this(radius, inset, inset)
 
 	override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
 		val radiusPx = with(density) { radius.toPx() }
-		val insetPx = with(density) { inset.toPx() }
+		val startPx = with(density) { startInset.toPx() }
+		val endPx = with(density) { endInset.toPx() }
+		val leftPx = if (layoutDirection == LayoutDirection.Ltr) startPx else endPx
+		val rightPx = if (layoutDirection == LayoutDirection.Ltr) endPx else startPx
 		val corner = CornerRadius(radiusPx)
 		return Outline.Rounded(
 			RoundRect(
-				left = insetPx,
+				left = leftPx,
 				top = 0f,
-				right = size.width - insetPx,
+				right = (size.width - rightPx).coerceAtLeast(leftPx),
 				bottom = size.height + radiusPx,
 				topLeftCornerRadius = corner,
 				topRightCornerRadius = corner,

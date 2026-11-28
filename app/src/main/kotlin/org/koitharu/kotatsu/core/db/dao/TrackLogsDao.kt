@@ -38,6 +38,15 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT DISTINCT manga_id FROM track_logs")
 	abstract suspend fun findMangaIds(): LongArray
 
+	@Query("SELECT DISTINCT manga_id FROM track_logs WHERE unread = 1")
+	abstract suspend fun findUnreadMangaIds(): LongArray
+
+	@Query("SELECT DISTINCT manga_id FROM track_logs WHERE id IN (:ids)")
+	abstract suspend fun findMangaIdsByLogIds(ids: Collection<Long>): LongArray
+
+	@Query("SELECT manga.source FROM track_logs INNER JOIN manga ON manga.manga_id = track_logs.manga_id GROUP BY manga.source ORDER BY COUNT(*) DESC LIMIT :limit")
+	abstract suspend fun findPopularSources(limit: Int): List<String>
+
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	abstract suspend fun insert(entity: TrackLogEntity): Long
 
@@ -86,6 +95,10 @@ abstract class TrackLogsDao : MangaQueryBuilder.ConditionCallback {
 		ListFilterOption.Macro.NSFW -> "(SELECT nsfw FROM manga WHERE manga.manga_id = track_logs.manga_id) = 1"
 		is ListFilterOption.State -> option.state?.let {
 			"(SELECT state FROM manga WHERE manga.manga_id = track_logs.manga_id) = ${DatabaseUtils.sqlEscapeString(it.name)}"
+		}
+
+		is ListFilterOption.Source -> {
+			"(SELECT source FROM manga WHERE manga.manga_id = track_logs.manga_id) = ${DatabaseUtils.sqlEscapeString(option.mangaSource.name)}"
 		}
 
 		else -> null

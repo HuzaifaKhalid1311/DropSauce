@@ -68,6 +68,15 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT COUNT(*) FROM tracks")
 	abstract suspend fun getTracksCount(): Int
 
+	@Query("SELECT COUNT(*) FROM tracks")
+	abstract fun observeTracksCount(): Flow<Int>
+
+	@Query("SELECT IFNULL(MAX(last_check_time), 0) FROM tracks")
+	abstract fun observeLastCheckTime(): Flow<Long>
+
+	@Query("SELECT COUNT(*) FROM tracks WHERE last_result = 3")
+	abstract fun observeFailedTracksCount(): Flow<Int>
+
 	@Query("SELECT IFNULL(chapters_new, 0) FROM tracks WHERE manga_id = :mangaId")
 	abstract fun observeNewChapters(mangaId: Long): Flow<Int>
 
@@ -133,6 +142,10 @@ abstract class TracksDao : MangaQueryBuilder.ConditionCallback {
 		ListFilterOption.Macro.NSFW -> "(SELECT nsfw FROM manga WHERE manga.manga_id = tracks.manga_id) = 1"
 		is ListFilterOption.State -> option.state?.let {
 			"(SELECT state FROM manga WHERE manga.manga_id = tracks.manga_id) = ${DatabaseUtils.sqlEscapeString(it.name)}"
+		}
+
+		is ListFilterOption.Source -> {
+			"(SELECT source FROM manga WHERE manga.manga_id = tracks.manga_id) = ${DatabaseUtils.sqlEscapeString(option.mangaSource.name)}"
 		}
 
 		else -> null

@@ -8,51 +8,58 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ActionMode
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.viewbinding.ViewBinding
 import coil3.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
+import org.koitharu.kotatsu.core.ui.compose.MovingContainerComposeHost
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
-import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
-import org.koitharu.kotatsu.core.ui.list.PaginationScrollListener
-import org.koitharu.kotatsu.core.ui.list.RecyclerScrollKeeper
-import org.koitharu.kotatsu.core.ui.util.RecyclerViewOwner
+import org.koitharu.kotatsu.core.ui.list.decor.AbstractSelectionItemDecoration
 import org.koitharu.kotatsu.core.ui.util.ReversibleActionObserver
-import org.koitharu.kotatsu.core.ui.widgets.TipView
+import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.addMenuProvider
-import org.koitharu.kotatsu.core.util.ext.consumeAll
+import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
+import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.core.util.ext.roundTopCorners
-import org.koitharu.kotatsu.databinding.FragmentListBinding
+import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
+import org.koitharu.kotatsu.core.util.ext.toSet
 import org.koitharu.kotatsu.list.domain.ListFilterOption
-import org.koitharu.kotatsu.list.ui.adapter.MangaListListener
-import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
-import org.koitharu.kotatsu.list.ui.model.ListHeader
-import org.koitharu.kotatsu.list.ui.model.MangaListModel
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.tracker.ui.feed.adapter.FeedAdapter
-import org.koitharu.kotatsu.tracker.ui.feed.adapter.FeedSwipeCallback
+import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
+import org.koitharu.kotatsu.settings.compose.DropSauceTheme
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
 import javax.inject.Inject
 
+class FeedHostBinding(
+	val host: MovingContainerComposeHost,
+) : ViewBinding {
+	override fun getRoot(): View = host
+}
+
 @AndroidEntryPoint
 class FeedFragment :
-	BaseFragment<FragmentListBinding>(),
-	PaginationScrollListener.Callback,
-	RecyclerViewOwner,
-	MangaListListener,
-	SwipeRefreshLayout.OnRefreshListener,
+	BaseFragment<FeedHostBinding>(),
+	FeedActions,
 	ListSelectionController.Callback {
 
 	@Inject
@@ -60,89 +67,112 @@ class FeedFragment :
 
 	private val viewModel by viewModels<FeedViewModel>()
 	private var selectionController: ListSelectionController? = null
-	private var itemTouchHelper: ItemTouchHelper? = null
-	private var isSwipeEnabled = true
+	private var lazyListState: LazyListState? = null
+	private var composeScope: CoroutineScope? = null
 
-	override val recyclerView: RecyclerView?
-		get() = viewBinding?.recyclerView
+	private val selectedIds = mutableStateOf(emptySet<Long>())
+	private val leftInsetPx = mutableIntStateOf(0)
+	private val rightInsetPx = mutableIntStateOf(0)
+	private val bottomInsetPx = mutableIntStateOf(0)
+	private var pendingSelectAll: Boolean = false
 
 	override fun onCreateViewBinding(
 		inflater: LayoutInflater,
 		container: ViewGroup?,
-	) = FragmentListBinding.inflate(inflater, container, false)
+	): FeedHostBinding = FeedHostBinding(MovingContainerComposeHost(inflater.context))
 
-	override fun onViewBindingCreated(binding: FragmentListBinding, savedInstanceState: Bundle?) {
+	override fun onViewBindingCreated(binding: FeedHostBinding, savedInstanceState: Bundle?) {
 		super.onViewBindingCreated(binding, savedInstanceState)
 		selectionController = ListSelectionController(
 			appCompatDelegate = checkNotNull(findAppCompatDelegate()),
-			decoration = FeedSelectionDecoration(binding.root.context),
+			decoration = object : AbstractSelectionItemDecoration() {
+				override fun getItemId(parent: RecyclerView, child: View) = RecyclerView.NO_ID
+			},
 			registryOwner = this,
 			callback = this,
 		)
-		val feedAdapter = FeedAdapter(
-			listener = this,
-			feedClickListener = object : OnListItemClickListener<FeedItem> {
-				override fun onItemClick(item: FeedItem, view: View) {
-					if (selectionController?.onItemClick(view, item.id) != true) {
-						router.openDetails(item.toMangaWithOverride())
+
+		binding.host.composeView.setContent {
+			val items by viewModel.content.collectAsState()
+			val workState by viewModel.workState.collectAsState()
+			val summary by viewModel.trackerSummary.collectAsState()
+			val unreadCount by viewModel.unreadCount.collectAsState()
+			val undoEpoch by viewModel.undoEpoch.collectAsState()
+			val isSwipeEnabled by viewModel.isSwipeGesturesEnabled.collectAsState()
+			val state = rememberLazyListState().also { lazyListState = it }
+			// Must use Compose's rememberCoroutineScope (carries MonotonicFrameClock) for animateScrollToItem.
+			val scope = rememberCoroutineScope().also { composeScope = it }
+			DisposableEffect(scope) {
+				onDispose {
+					if (composeScope === scope) composeScope = null
+				}
+			}
+
+			val density = LocalDensity.current
+			val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+			val leftDp = with(density) { leftInsetPx.intValue.toDp() }
+			val rightDp = with(density) { rightInsetPx.intValue.toDp() }
+			val bottomDp = with(density) { bottomInsetPx.intValue.toDp() }
+
+			DropSauceTheme {
+				FeedScreen(
+					host = binding.host,
+					listState = state,
+					items = items,
+					selectedIds = selectedIds.value,
+					workState = workState,
+					trackerSummary = summary,
+					unreadCount = unreadCount,
+					undoEpoch = undoEpoch,
+					isSwipeEnabled = isSwipeEnabled,
+					canLoadMore = viewModel.canLoadMore,
+					startInset = if (isRtl) rightDp else leftDp,
+					endInset = if (isRtl) leftDp else rightDp,
+					bottomInset = bottomDp,
+					imageLoader = coil,
+					actions = this,
+				)
+			}
+		}
+
+		addMenuProvider(FeedMenuProvider(binding.host.composeView, viewModel, router))
+
+		var seenIds = emptySet<Long>()
+		viewModel.content.observe(viewLifecycleOwner) {
+			val validIds = viewModel.allLoadedFeedIds().toSet()
+			val controller = selectionController
+			if (controller != null) {
+				controller.retainAll(validIds + controller.snapshot().filterNot { it in seenIds })
+				if (pendingSelectAll && selectedIds.value.isNotEmpty()) {
+					controller.addAll(validIds)
+					if (!viewModel.canLoadMore) {
+						pendingSelectAll = false
 					}
 				}
-
-				override fun onItemLongClick(item: FeedItem, view: View): Boolean {
-					return selectionController?.onItemLongClick(view, item.id) == true
-				}
-			},
-			onTipClose = { viewModel.dismissGesturesTip() },
-			onExpandClick = { item, view ->
-				val controller = selectionController
-				// in selection mode a tap anywhere on the row toggles selection instead of expanding
-				if (controller != null && controller.count > 0) {
-					controller.onItemClick(view, item.id)
-				} else {
-					viewModel.toggleExpanded(item)
-				}
-			},
-		)
-		val touchHelper = ItemTouchHelper(
-			FeedSwipeCallback(binding.recyclerView.context) { item, isRead ->
-				if (isRead) {
-					// the row stays in place (the swipe never commits); the dot clears via the content flow
-					viewModel.markAsRead(item)
-				} else {
-					feedAdapter.setItems(feedAdapter.items.filterNot { it is FeedItem && it.id == item.id })
-					viewModel.remove(item)
-				}
-			},
-		)
-		with(binding.recyclerView) {
-			// the same spacing the item decoration insets feed rows by
-			val spacing = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
-			setPadding(0, spacing, 0, spacing)
-			// cut rows under the toolbar with a feed tile's own radius, at a tile's own edges
-			roundTopCorners(
-				radius = resources.getDimension(R.dimen.corner_large),
-				extraInset = spacing,
-			)
-			layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-			adapter = feedAdapter
-			setHasFixedSize(true)
-			addOnScrollListener(PaginationScrollListener(4, this@FeedFragment))
-			addItemDecoration(TypedListSpacingDecoration(context, true))
-			RecyclerScrollKeeper(this).attach()
-			selectionController?.attachToRecyclerView(this)
+			}
+			seenIds = seenIds + validIds
 		}
-		itemTouchHelper = touchHelper
-		viewModel.isSwipeGesturesEnabled.observe(viewLifecycleOwner) { isEnabled ->
-			isSwipeEnabled = isEnabled
-			updateSwipeAttachment()
-		}
-		binding.swipeRefreshLayout.setOnRefreshListener(this)
-		addMenuProvider(FeedMenuProvider(binding.recyclerView, viewModel, router))
+		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.host.composeView, this))
+		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(binding.host.composeView))
+		viewModel.isRunning.observe(viewLifecycleOwner) { activity?.invalidateMenu() }
+		viewModel.unreadCount.observe(viewLifecycleOwner) { activity?.invalidateMenu() }
+	}
 
-		viewModel.content.observe(viewLifecycleOwner, feedAdapter)
-		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.recyclerView, this))
-		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(binding.recyclerView))
-		viewModel.isRunning.observe(viewLifecycleOwner, this::onIsTrackerRunningChanged)
+	/** Back to the top of Feed (and re-expands a hidden top bar), for tab switches and reselecting its nav item. */
+	fun scrollToTop(smooth: Boolean) {
+		(activity as? AppBarOwner)?.appBar?.setExpanded(true, smooth)
+		val state = lazyListState ?: return
+		val scope = composeScope ?: return
+		scope.launch {
+			if (smooth) {
+				if (state.firstVisibleItemIndex > 20) {
+					state.scrollToItem(20)
+				}
+				state.animateScrollToItem(0)
+			} else {
+				state.scrollToItem(0)
+			}
+		}
 	}
 
 	override fun onPause() {
@@ -151,15 +181,95 @@ class FeedFragment :
 	}
 
 	override fun onDestroyView() {
-		super.onDestroyView()
 		selectionController = null
-		itemTouchHelper = null
+		lazyListState = null
+		composeScope = null
+		super.onDestroyView()
 	}
 
+	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
+		val bars = insets.systemBarsInsets
+		leftInsetPx.intValue = bars.left
+		rightInsetPx.intValue = bars.right
+		bottomInsetPx.intValue = bars.bottom
+		return insets.consumeAllSystemBarsInsets()
+	}
+
+	// region FeedActions
+
+	override fun onRefresh() {
+		viewModel.update()
+	}
+
+	override fun onStopUpdate() {
+		viewModel.stopUpdate()
+	}
+
+	override fun onMarkAllRead() {
+		viewModel.markAllAsRead()
+	}
+
+	override fun onOpenTrackerDebug() {
+		router.openTrackerDebug()
+	}
+
+	override fun onFilterOptionClick(option: ListFilterOption) {
+		viewModel.toggleFilterOption(option)
+	}
+
+	override fun onClearFiltersClick() {
+		viewModel.clearFilters()
+	}
+
+	override fun onTipDismiss() {
+		viewModel.dismissGesturesTip()
+	}
+
+	override fun onItemClick(item: FeedItem) {
+		val controller = selectionController ?: return
+		if (controller.onItemClick(null, item.id)) {
+			val isChecked = item.id in controller.peekCheckedIds()
+			view?.hapticFeedback(if (isChecked) HapticEffect.LIGHT_CLICK else HapticEffect.DESELECT)
+		} else {
+			router.openDetails(item.toMangaWithOverride())
+		}
+	}
+
+	override fun onItemLongClick(item: FeedItem) {
+		if (selectionController?.onItemLongClick(null, item.id) == true) {
+			view?.hapticFeedback(HapticEffect.LONG_PRESS)
+		}
+	}
+
+	override fun onToggleExpand(item: FeedItem) {
+		viewModel.toggleExpanded(item)
+	}
+
+	override fun onReadClick(item: FeedItem) {
+		router.openReader(item.toMangaWithOverride())
+	}
+
+	override fun onSwipeMarkRead(item: FeedItem) {
+		viewModel.markAsRead(item)
+	}
+
+	override fun onSwipeRemove(item: FeedItem) {
+		viewModel.remove(item)
+	}
+
+	override fun onRequestMoreItems() {
+		viewModel.requestMoreItems()
+	}
+
+	// endregion
+
+	// region Selection
+
 	override fun onSelectionChanged(controller: ListSelectionController, count: Int) {
-		viewBinding?.recyclerView?.invalidateItemDecorations()
-		// swipe rows and multi-select fight over the same touch gesture; suspend swiping while selecting
-		updateSwipeAttachment()
+		selectedIds.value = if (count == 0) emptySet() else controller.peekCheckedIds().toSet()
+		if (count == 0) {
+			pendingSelectAll = false
+		}
 	}
 
 	override fun onCreateActionMode(
@@ -189,68 +299,16 @@ class FeedFragment :
 		}
 
 		R.id.action_select_all -> {
-			val ids = viewModel.content.value.mapNotNull { (it as? FeedItem)?.id }
-			controller.addAll(ids)
+			controller.addAll(viewModel.allLoadedFeedIds())
+			if (viewModel.canLoadMore) {
+				pendingSelectAll = true
+				viewModel.requestAllItems()
+			}
 			true
 		}
 
 		else -> false
 	}
 
-	private fun updateSwipeAttachment() {
-		val attach = isSwipeEnabled && (selectionController?.count ?: 0) == 0
-		itemTouchHelper?.attachToRecyclerView(if (attach) viewBinding?.recyclerView else null)
-	}
-
-	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
-		val typeMask = WindowInsetsCompat.Type.systemBars()
-		val barsInsets = insets.getInsets(typeMask)
-		val paddingVertical = resources.getDimensionPixelSize(R.dimen.list_spacing_normal)
-		viewBinding?.recyclerView?.setPadding(
-			barsInsets.left,
-			paddingVertical,
-			barsInsets.right,
-			barsInsets.bottom + paddingVertical,
-		)
-		return insets.consumeAll(typeMask)
-	}
-
-	override fun onRefresh() {
-		viewModel.update()
-	}
-
-	override fun onFilterOptionClick(option: ListFilterOption) = viewModel.toggleFilterOption(option)
-
-	override fun onRetryClick(error: Throwable) = Unit
-
-	override fun onFilterClick(view: View?) = Unit
-
-	override fun onEmptyActionClick() = Unit
-
-	override fun onPrimaryButtonClick(tipView: TipView) = Unit
-
-	override fun onSecondaryButtonClick(tipView: TipView) = Unit
-
-	override fun onListHeaderClick(item: ListHeader, view: View) {
-		router.openMangaUpdates()
-	}
-
-	private fun onIsTrackerRunningChanged(isRunning: Boolean) {
-		requireViewBinding().swipeRefreshLayout.isRefreshing = isRunning
-		requireActivity().invalidateMenu()
-	}
-
-	override fun onScrolledToEnd() {
-		viewModel.requestMoreItems()
-	}
-
-	override fun onItemClick(item: MangaListModel, view: View) {
-		router.openDetails(item.toMangaWithOverride())
-	}
-
-	override fun onReadClick(manga: Manga, view: View) {
-		router.openReader(manga, view)
-	}
-
-	override fun onTagClick(manga: Manga, tag: MangaTag, view: View) = Unit
+	// endregion
 }

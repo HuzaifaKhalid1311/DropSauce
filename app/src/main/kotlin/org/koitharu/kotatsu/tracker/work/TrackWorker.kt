@@ -26,6 +26,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkerParameters
 import androidx.work.await
+import androidx.work.workDataOf
 import dagger.Lazy
 import dagger.Reusable
 import dagger.assisted.Assisted
@@ -148,6 +149,7 @@ class TrackWorker @AssistedInject constructor(
 					}
 				}
 			}.onEachIndexed { index, it ->
+				setProgress(workDataOf(DATA_PROGRESS to index + 1, DATA_MAX to tracks.size))
 				if (applicationContext.checkNotificationPermission(WORKER_CHANNEL_ID)) {
 					notificationManager.notify(
 						WORKER_NOTIFICATION_ID,
@@ -355,10 +357,24 @@ class TrackWorker @AssistedInject constructor(
 		}
 
 		fun observeIsRunning(): Flow<Boolean> {
+			return observeWorkState().map { it.isRunning }
+		}
+
+		fun observeWorkState(): Flow<TrackerWorkState> {
 			val query = WorkQuery.Builder.fromTags(listOf(TAG, TAG_ONESHOT)).build()
 			return workManager.getWorkInfosFlow(query)
 				.map { works ->
-					works.any { x -> isTrackerWorkActive(x.state, x.tags) }
+					val active = works.firstOrNull { x -> x.state == WorkInfo.State.RUNNING }
+						?: works.firstOrNull { x -> isTrackerWorkActive(x.state, x.tags) }
+					if (active == null) {
+						TrackerWorkState.IDLE
+					} else {
+						TrackerWorkState(
+							isRunning = true,
+							progress = active.progress.getInt(DATA_PROGRESS, 0),
+							max = active.progress.getInt(DATA_MAX, 0),
+						)
+					}
 				}
 		}
 
@@ -376,6 +392,18 @@ class TrackWorker @AssistedInject constructor(
 		const val MAX_PARALLELISM = 6
 		val BATCH_SIZE = if (BuildConfig.DEBUG) 20 else 46
 		const val SETTINGS_ACTION_CODE = 5
+		const val DATA_PROGRESS = "progress"
+		const val DATA_MAX = "max"
+	}
+}
+
+data class TrackerWorkState(
+	val isRunning: Boolean,
+	val progress: Int,
+	val max: Int,
+) {
+	companion object {
+		val IDLE = TrackerWorkState(isRunning = false, progress = 0, max = 0)
 	}
 }
 

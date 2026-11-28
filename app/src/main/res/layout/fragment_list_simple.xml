@@ -16,6 +16,6 @@
 		android:orientation="vertical"
 		android:padding="@dimen/list_spacing_normal"
 		app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-		tools:listitem="@layout/item_feed" />
+		tools:listitem="@layout/item_manga_list" />
 
 </FrameLayout>

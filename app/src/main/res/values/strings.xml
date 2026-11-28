@@ -147,6 +147,15 @@
     <string name="merge_scanlators_summary">Ticked scanlators show as one combined chapter list.</string>
     <string name="marked_as_read">Marked as read</string>
     <string name="mark_as_read">Mark as read</string>
+    <string name="mark_all_as_read">Mark all as read</string>
+    <string name="feed_checked_ago">Checked %s</string>
+    <string name="feed_never_checked">Not checked yet</string>
+    <string name="feed_checking_progress">Checking %1$d of %2$d…</string>
+    <string name="feed_checking">Checking for updates…</string>
+    <string name="feed_all_caught_up">All caught up</string>
+    <string name="feed_unread_count">%d unread</string>
+    <string name="feed_tracked_count">%d tracked</string>
+    <string name="feed_failed_count">%d failed</string>
     <string name="feed_entry_removed">Removed</string>
     <string name="feed_gestures_tip_title">Swipe gestures</string>
     <string name="feed_gestures_tip">Swipe an entry right to remove it from the feed, or left to mark it as read. You can turn these gestures off in Settings › Check for new chapters.</string>

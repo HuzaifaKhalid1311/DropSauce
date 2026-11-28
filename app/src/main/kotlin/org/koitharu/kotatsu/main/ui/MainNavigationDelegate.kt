@@ -312,9 +312,10 @@ class MainNavigationDelegate(
 	}
 
 	private fun Fragment.resetContentToTop() {
-		// Explore is one Compose scroll rather than a list.
+		// Explore and Feed are Compose screens rather than RecyclerView lists.
 		val recyclerView = (this as? RecyclerViewOwner)?.recyclerView ?: run {
 			(this as? ExploreFragment)?.scrollToTop(smooth = false)
+			(this as? FeedFragment)?.scrollToTop(smooth = false)
 			return
 		}
 		when (val lm = recyclerView.layoutManager) {
@@ -354,6 +355,7 @@ class MainNavigationDelegate(
 		val fragment = primaryFragment
 		val recyclerView = (fragment as? RecyclerViewOwner)?.recyclerView ?: run {
 			(fragment as? ExploreFragment)?.scrollToTop(smooth = true)
+			(fragment as? FeedFragment)?.scrollToTop(smooth = true)
 			return
 		}
 		recyclerView.smoothScrollToTop()

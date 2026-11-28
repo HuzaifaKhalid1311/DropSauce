@@ -275,7 +275,7 @@ private fun CoverStack(previews: List<Manga>, ring: Color, imageLoader: ImageLoa
 				contentDescription = null,
 				contentScale = ContentScale.Crop,
 				modifier = Modifier
-					.graphicsLayer { translationY = if (index % 2 == 0) 0f else 2.dp.toPx() } // a loose, hand-stacked look
+					.graphicsLayer { translationY = if (index % 2 == 0) 0f else 2.dp.toPx() }
 					.size(28.dp)
 					.clip(CircleShape)
 					.border(2.dp, ring, CircleShape)
@@ -305,17 +305,11 @@ private fun Chevron(isCollapsed: Boolean) {
 			tint = MaterialTheme.colorScheme.onSurfaceVariant,
 			modifier = Modifier
 				.size(22.dp)
-				// Rotated while drawing rather than as a layer property: the logs showed the spring running
-				// at full frame rate on lower sections while the arrow on screen stayed put.
 				.drawWithContent { rotate(rotation) { this@drawWithContent.drawContent() } },
 		)
 	}
 }
 
-/**
- * A ring that fills up as entries of the section get picked (tapping picks the rest); once the
- * whole section is in, it blooms into a filled cookie with a check, echoing Explore's shape morph.
- */
 @Composable
 private fun SelectMark(selected: Int, total: Int, isAll: Boolean) {
 	val colors = MaterialTheme.colorScheme

@@ -6,10 +6,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -19,27 +23,34 @@ import org.koitharu.kotatsu.core.model.toChipModel
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.BaseViewModel
+import org.koitharu.kotatsu.core.ui.model.DateTimeAgo
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
+import org.koitharu.kotatsu.core.ui.widgets.ChipsView
 import org.koitharu.kotatsu.core.util.ext.MutableEventFlow
-import org.koitharu.kotatsu.core.util.ext.groupByDateBucket
 import org.koitharu.kotatsu.core.util.ext.call
+import org.koitharu.kotatsu.core.util.ext.groupByDateBucket
 import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.list.domain.MangaListMapper
 import org.koitharu.kotatsu.list.domain.QuickFilterListener
 import org.koitharu.kotatsu.list.ui.model.EmptyState
-import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.QuickFilter
 import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.list.ui.model.toErrorState
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
+import org.koitharu.kotatsu.tracker.domain.TrackerSummary
 import org.koitharu.kotatsu.tracker.domain.TrackingRepository
 import org.koitharu.kotatsu.tracker.domain.UpdatesListQuickFilter
-import org.koitharu.kotatsu.tracker.domain.model.TrackingLogItem
 import org.koitharu.kotatsu.tracker.ui.feed.model.FeedItem
+import org.koitharu.kotatsu.tracker.ui.feed.model.FeedSection
 import org.koitharu.kotatsu.tracker.work.TrackWorker
+import org.koitharu.kotatsu.tracker.work.TrackerWorkState
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -53,6 +64,7 @@ class FeedViewModel @Inject constructor(
 	private val mangaListMapper: MangaListMapper,
 	private val quickFilter: UpdatesListQuickFilter,
 	private val historyRepository: HistoryRepository,
+	mihonExtensionManager: MihonExtensionManager,
 ) : BaseViewModel(), QuickFilterListener by quickFilter {
 
 	init {
@@ -68,9 +80,27 @@ class FeedViewModel @Inject constructor(
 	private val limit = MutableStateFlow(PAGE_SIZE)
 	private val isReady = AtomicBoolean(false)
 	private val expandedIds = MutableStateFlow<Set<Long>>(emptySet())
+	private val _undoEpoch = MutableStateFlow(0)
+	val undoEpoch: StateFlow<Int> = _undoEpoch.asStateFlow()
 
-	val isRunning = scheduler.observeIsRunning()
-		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Lazily, false)
+	@Volatile
+	private var hasMoreItems = false
+
+	@Volatile
+	private var latestMappedItems: List<FeedItem> = emptyList()
+
+	val workState = scheduler.observeWorkState()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, TrackerWorkState.IDLE)
+
+	val isRunning = workState
+		.map { it.isRunning }
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, false)
+
+	val unreadCount = repository.observeUnreadUpdatesCount()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, 0)
+
+	val trackerSummary = repository.observeTrackerSummary()
+		.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, TrackerSummary())
 
 	val onActionDone = MutableEventFlow<ReversibleAction>()
 
@@ -78,52 +108,53 @@ class FeedViewModel @Inject constructor(
 		isFeedSwipeGesturesEnabled
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, settings.isFeedSwipeGesturesEnabled)
 
-	@Suppress("USELESS_CAST")
-	private val baseContent = combine(
+	private val baseSlice: Flow<FeedBaseSlice> = combine(
 		combine(limit, quickFilter.appliedOptions.combineWithSettings(), ::Pair)
-			.flatMapLatest { repository.observeTrackingLog(it.first, it.second) },
+			.flatMapLatest { (currentLimit, queryFilters) ->
+				repository.observeTrackingLog(currentLimit, queryFilters).map { rows ->
+					currentLimit to rows
+				}
+			},
 		combine(
 			settings.observeAsFlow(AppSettings.KEY_TIPS_CLOSED) { isTipEnabled(TIP_GESTURES) },
 			isSwipeGesturesEnabled,
 		) { tip, swipe -> tip && swipe },
 		historyRepository.observeAll(),
-	) { list, isTipVisible, _ ->
-		// Read here rather than combined in: the query above already re-runs on every filter change, and
-		// a second input would render the chips one frame ahead of their results.
+		mihonExtensionManager.isReady,
+	) { (currentLimit, rawList), isTipVisible, _, _ ->
 		val filters = quickFilter.appliedOptions.value
-		val result = ArrayList<ListModel>((list.size * 1.4).toInt().coerceAtLeast(3))
-		if (list.isNotEmpty() && isTipVisible) {
-			result += gesturesTip
+		val isUnreadOnly = ListFilterOption.Unread in filters
+		val mapped = rawList
+			.map { it.createdAt to mangaListMapper.toFeedItem(it) }
+			.filter { !isUnreadOnly || it.second.isNew }
+		val hasMore = rawList.size >= currentLimit
+		hasMoreItems = hasMore
+		latestMappedItems = mapped.map { it.second }
+		// If an entire SQL page was filtered out in memory while more rows exist, pull the next page automatically.
+		if (mapped.isEmpty() && hasMore && currentLimit < Int.MAX_VALUE) {
+			isReady.set(false)
+			limit.value = (currentLimit.toLong() + PAGE_SIZE).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+		} else {
+			isReady.set(hasMore)
 		}
-		// Unread leads the row and stays even with quick filters off, so a remembered filter can always be undone
-		val unreadChip = ListFilterOption.Unread.toChipModel(isChecked = ListFilterOption.Unread in filters)
-		result += QuickFilter(listOf(unreadChip) + quickFilter.filterItem(filters)?.items.orEmpty())
-		if (list.isNotEmpty()) {
-			isReady.set(true)
-			list.mapListTo(result, isUnreadOnly = ListFilterOption.Unread in filters)
-		}
-		if (result.none { it is FeedItem }) {
-			result += EmptyState(
-				icon = R.drawable.ic_empty_feed,
-				textPrimary = R.string.text_feed_holder_primary,
-				textSecondary = R.string.text_feed_holder,
-				actionStringRes = 0,
-			)
-		}
-		result as List<ListModel>
-	}.catch { e ->
-		emit(listOf(e.toErrorState(canRetry = false)))
+		FeedBaseSlice(
+			rawCount = rawList.size,
+			hasMore = hasMore,
+			isTipVisible = isTipVisible,
+			filters = filters,
+			quickFilterChips = quickFilter.filterItem(filters)?.items.orEmpty(),
+			items = mapped,
+		)
 	}
 
-	// Expansion is applied downstream, not inside the mapping above: mapListTo hits the database a few
-	// times per entry, so folding it into that combine made every expand/collapse tap re-query the
-	// whole feed before it could redraw.
-	val content = combine(baseContent, expandedIds) { list, expanded ->
-		if (expanded.isEmpty()) {
-			list
-		} else {
-			list.map { if (it is FeedItem && it.id in expanded) it.copy(isExpanded = true) else it }
-		}
+	val content = combine(
+		baseSlice,
+		expandedIds,
+		unreadCount,
+	) { slice, expanded, unread ->
+		buildFeedList(slice, expanded, unread)
+	}.distinctUntilChanged().catch { e ->
+		emit(listOf(e.toErrorState(canRetry = false)))
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, listOf(LoadingState))
 
 	init {
@@ -142,11 +173,30 @@ class FeedViewModel @Inject constructor(
 		}
 	}
 
-	fun requestMoreItems() {
-		if (isReady.compareAndSet(true, false)) {
-			limit.value += PAGE_SIZE
+	fun clearFilters() {
+		val active = quickFilter.appliedOptions.value
+		for (option in active) {
+			quickFilter.setFilterOption(option, false)
 		}
 	}
+
+	fun requestMoreItems() {
+		if (hasMoreItems && isReady.compareAndSet(true, false)) {
+			limit.value = (limit.value.toLong() + PAGE_SIZE).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+		}
+	}
+
+	fun requestAllItems() {
+		if (hasMoreItems && limit.value != Int.MAX_VALUE) {
+			isReady.set(false)
+			limit.value = Int.MAX_VALUE
+		}
+	}
+
+	val canLoadMore: Boolean
+		get() = hasMoreItems
+
+	fun allLoadedFeedIds(): List<Long> = latestMappedItems.map { it.id }
 
 	fun update() {
 		scheduler.startNow()
@@ -160,19 +210,22 @@ class FeedViewModel @Inject constructor(
 
 	fun markAsRead(item: FeedItem) {
 		launchJob(Dispatchers.Default) {
-			val handle = markAsReadImpl(item)
+			val handle = wrapUndo(repository.markLogsRead(item.manga.id))
 			onActionDone.call(ReversibleAction(R.string.marked_as_read, handle))
 		}
 	}
 
 	fun markAsRead(ids: Set<Long>) {
 		launchJob(Dispatchers.Default) {
-			val items = content.value.filterIsInstance<FeedItem>().filter { it.id in ids }
-			if (items.isEmpty()) return@launchJob
-			val handles = items.map { markAsReadImpl(it) }
-			onActionDone.call(
-				ReversibleAction(R.string.marked_as_read, ReversibleHandle { handles.forEach { it.reverse() } }),
-			)
+			val rawHandle = repository.markLogsReadByIds(ids) ?: return@launchJob
+			onActionDone.call(ReversibleAction(R.string.marked_as_read, wrapUndo(rawHandle)))
+		}
+	}
+
+	fun markAllAsRead() {
+		launchJob(Dispatchers.Default) {
+			val rawHandle = repository.markAllLogsRead() ?: return@launchJob
+			onActionDone.call(ReversibleAction(R.string.marked_as_read, wrapUndo(rawHandle)))
 		}
 	}
 
@@ -180,21 +233,25 @@ class FeedViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			val handles = ids.mapNotNull { repository.removeLog(it) }
 			if (handles.isEmpty()) return@launchJob
-			onActionDone.call(
-				ReversibleAction(R.string.feed_entry_removed, ReversibleHandle { handles.forEach { it.reverse() } }),
-			)
+			val combined = ReversibleHandle { handles.forEach { it.reverse() } }
+			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, wrapUndo(combined)))
 		}
 	}
 
-	// Only dismisses the update (dot + counter). Never moves the reading position: jumping history to the
-	// newest feed chapter pinned progress at 100% and skipped every chapter the reader hadn't reached yet.
-	private suspend fun markAsReadImpl(item: FeedItem): ReversibleHandle = repository.markLogsRead(item.manga.id)
-
 	fun remove(item: FeedItem) {
 		launchJob(Dispatchers.Default) {
-			val handle = repository.removeLog(item.id) ?: return@launchJob
-			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, handle))
+			val rawHandle = repository.removeLog(item.id)
+			if (rawHandle == null) {
+				_undoEpoch.update { it + 1 }
+				return@launchJob
+			}
+			onActionDone.call(ReversibleAction(R.string.feed_entry_removed, wrapUndo(rawHandle)))
 		}
+	}
+
+	private fun wrapUndo(delegate: ReversibleHandle) = ReversibleHandle {
+		delegate.reverse()
+		_undoEpoch.update { it + 1 }
 	}
 
 	fun dismissGesturesTip() {
@@ -207,32 +264,66 @@ class FeedViewModel @Inject constructor(
 		}
 	}
 
-	// Collapses any expanded "N new chapters" entries back to their summary form, called when the
-	// feed screen is left so the expansion never survives a return visit.
 	fun collapseAll() {
 		expandedIds.update { if (it.isEmpty()) it else emptySet() }
 	}
 
-	private suspend fun List<TrackingLogItem>.mapListTo(destination: MutableList<ListModel>, isUnreadOnly: Boolean) {
-		// The query keeps unread rows; an entry whose chapters were all read since still shows as read
-		val feedItems = map { it to mangaListMapper.toFeedItem(it) }.filter { !isUnreadOnly || it.second.isNew }
-		val bucketedItems = feedItems.groupByDateBucket(instantOf = { it.first.createdAt })
-		for ((date, items) in bucketedItems) {
-			destination += if (date != null) {
-				ListHeader(date)
-			} else {
-				ListHeader(R.string.unknown)
-			}
-			val lastIndex = items.lastIndex
-			items.forEachIndexed { index, (_, feedItem) ->
+	private fun buildFeedList(
+		slice: FeedBaseSlice,
+		expanded: Set<Long>,
+		unread: Int,
+	): List<ListModel> {
+		val result = ArrayList<ListModel>((slice.items.size * 1.35).toInt().coerceAtLeast(4))
+		if (slice.items.isNotEmpty() && slice.isTipVisible) {
+			result += gesturesTip
+		}
+		val unreadChip = ListFilterOption.Unread
+			.toChipModel(isChecked = ListFilterOption.Unread in slice.filters)
+			.copy(counter = unread)
+		result += QuickFilter(listOf(unreadChip) + slice.quickFilterChips)
+
+		if (slice.items.isEmpty()) {
+			val hasFilters = slice.filters.isNotEmpty()
+			result += EmptyState(
+				icon = R.drawable.ic_empty_feed,
+				textPrimary = R.string.text_feed_holder_primary,
+				textSecondary = if (hasFilters) R.string.text_empty_holder_secondary_filtered else R.string.text_feed_holder,
+				actionStringRes = if (hasFilters) R.string.show_all else R.string.update,
+			)
+			return result
+		}
+
+		val zone = ZoneId.systemDefault()
+		val bucketed = slice.items.groupByDateBucket(instantOf = { it.first })
+		val usedKeys = HashSet<String>(bucketed.size)
+		bucketed.forEachIndexed { bucketIndex, (date, pairs) ->
+			val baseKey = resolveSectionKey(date, pairs.first().first, zone)
+			val key = if (usedKeys.add(baseKey)) baseKey else "$baseKey#$bucketIndex"
+			result += FeedSection(key = key, date = date)
+			val lastIndex = pairs.lastIndex
+			pairs.forEachIndexed { index, (_, feedItem) ->
 				val position = when {
-					items.size == 1 -> FeedItem.GroupPosition.SINGLE
+					pairs.size == 1 -> FeedItem.GroupPosition.SINGLE
 					index == 0 -> FeedItem.GroupPosition.FIRST
 					index == lastIndex -> FeedItem.GroupPosition.LAST
 					else -> FeedItem.GroupPosition.MIDDLE
 				}
-				destination += feedItem.copy(groupPosition = position)
+				result += feedItem.copy(
+					groupPosition = position,
+					isExpanded = feedItem.id in expanded,
+				)
 			}
+		}
+		return result
+	}
+
+	private fun resolveSectionKey(date: DateTimeAgo?, sampleInstant: Instant?, zone: ZoneId): String = when (date) {
+		null -> KEY_UNKNOWN
+		DateTimeAgo.JustNow -> KEY_JUST_NOW
+		else -> if (sampleInstant != null) {
+			"d:" + LocalDateTime.ofInstant(sampleInstant, zone).toLocalDate()
+		} else {
+			date.toString()
 		}
 	}
 
@@ -246,9 +337,20 @@ class FeedViewModel @Inject constructor(
 		}
 	}
 
+	private data class FeedBaseSlice(
+		val rawCount: Int,
+		val hasMore: Boolean,
+		val isTipVisible: Boolean,
+		val filters: Set<ListFilterOption>,
+		val quickFilterChips: List<ChipsView.ChipModel>,
+		val items: List<Pair<Instant?, FeedItem>>,
+	)
+
 	private companion object {
 
 		const val TIP_GESTURES = "feed_gestures"
+		const val KEY_UNKNOWN = "unknown"
+		const val KEY_JUST_NOW = "just_now"
 
 		val gesturesTip = TipModel(
 			key = TIP_GESTURES,

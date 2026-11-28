@@ -46,6 +46,7 @@ class FeedMenuProvider(
 		menu.findItem(R.id.action_update)?.setTitle(
 			if (viewModel.isRunning.value) R.string.stop_update else R.string.update,
 		)
+		menu.findItem(R.id.action_mark_all_read)?.isVisible = viewModel.unreadCount.value > 0
 	}
 
 	override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
@@ -55,6 +56,11 @@ class FeedMenuProvider(
 			} else {
 				viewModel.update()
 			}
+			true
+		}
+
+		R.id.action_mark_all_read -> {
+			viewModel.markAllAsRead()
 			true
 		}
 

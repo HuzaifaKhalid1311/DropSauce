@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Improved
+- Redesigned the updates feed
+
 ## 1.2.0 (2026-11-27)
 
 ### New

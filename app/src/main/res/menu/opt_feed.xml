@@ -11,6 +11,13 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_mark_all_read"
+		android:icon="@drawable/ic_mark_all_read"
+		android:orderInCategory="55"
+		android:title="@string/mark_all_as_read"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_tracker_debug"
 		android:icon="@drawable/ic_script"
 		android:orderInCategory="60"

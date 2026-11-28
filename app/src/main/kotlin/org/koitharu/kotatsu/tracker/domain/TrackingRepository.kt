@@ -4,11 +4,13 @@ import androidx.annotation.VisibleForTesting
 import androidx.room.withTransaction
 import dagger.Reusable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.db.entity.toManga
 import org.koitharu.kotatsu.core.db.entity.toMangaTags
+import org.koitharu.kotatsu.core.model.toMangaSources
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
 import org.koitharu.kotatsu.core.util.ext.mapItems
@@ -16,6 +18,7 @@ import org.koitharu.kotatsu.core.util.ext.toInstantOrNull
 import org.koitharu.kotatsu.details.domain.ProgressUpdateUseCase
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.ifZero
 import org.koitharu.kotatsu.tracker.data.TrackEntity
 import org.koitharu.kotatsu.tracker.data.TrackLogEntity
@@ -58,6 +61,25 @@ class TrackingRepository @Inject constructor(
 	/** Emits whenever the `tracks` table changes, so list badges derived from `chapters_new` refresh. */
 	fun observeTracksChanged(): Flow<Int> {
 		return db.getTracksDao().observeNewChaptersSum()
+	}
+
+	fun observeTrackerSummary(): Flow<TrackerSummary> {
+		val dao = db.getTracksDao()
+		return combine(
+			dao.observeLastCheckTime(),
+			dao.observeTracksCount(),
+			dao.observeFailedTracksCount(),
+		) { lastCheckMs, totalCount, failedCount ->
+			TrackerSummary(
+				lastCheckTimeMillis = lastCheckMs,
+				trackedCount = totalCount,
+				failedCount = failedCount,
+			)
+		}.distinctUntilChanged()
+	}
+
+	suspend fun getPopularFeedSources(limit: Int): List<MangaSource> {
+		return db.getTrackLogsDao().findPopularSources(limit).toMangaSources()
 	}
 
 	fun observeUpdatedManga(limit: Int, filterOptions: Set<ListFilterOption>): Flow<List<MangaTracking>> {
@@ -158,6 +180,25 @@ class TrackingRepository @Inject constructor(
 					logsDao.markUnread(priorUnread)
 				}
 			}
+		}
+	}
+
+	suspend fun markAllLogsRead(): ReversibleHandle? {
+		val mangaIds = db.getTrackLogsDao().findUnreadMangaIds()
+		if (mangaIds.isEmpty()) return null
+		val handles = mangaIds.map { markLogsRead(it) }
+		return ReversibleHandle {
+			handles.forEach { it.reverse() }
+		}
+	}
+
+	suspend fun markLogsReadByIds(logIds: Set<Long>): ReversibleHandle? {
+		if (logIds.isEmpty()) return null
+		val mangaIds = db.getTrackLogsDao().findMangaIdsByLogIds(logIds)
+		if (mangaIds.isEmpty()) return null
+		val handles = mangaIds.map { markLogsRead(it) }
+		return ReversibleHandle {
+			handles.forEach { it.reverse() }
 		}
 	}
 
