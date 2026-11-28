@@ -11,6 +11,13 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_collapse_all"
+		android:icon="@drawable/ic_collapse_all"
+		android:orderInCategory="5"
+		android:title="@string/collapse_all"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_clear_history"
 		android:icon="@drawable/ic_delete_all"
 		android:orderInCategory="10"

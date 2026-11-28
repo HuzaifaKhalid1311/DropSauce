@@ -148,7 +148,7 @@ private fun SectionHeader(
 	Row(
 		modifier = Modifier
 			.fillMaxWidth()
-			.padding(horizontal = 2.dp, vertical = 4.dp)
+			.padding(horizontal = 2.dp, vertical = 2.dp)
 			.graphicsLayer {
 				scaleX = scale
 				scaleY = scale
@@ -170,8 +170,8 @@ private fun SectionHeader(
 				onLongClickLabel = if (isSelecting) null else stringResource(android.R.string.selectAll),
 				onLongClick = { listener.onSectionLongClick(section) },
 			)
-			.heightIn(min = 48.dp)
-			.padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+			.heightIn(min = 40.dp)
+			.padding(start = 8.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
 		verticalAlignment = Alignment.CenterVertically,
 	) {
 		Row(
@@ -180,7 +180,7 @@ private fun SectionHeader(
 		) {
 			Text(
 				text = remember(section.key) { section.getTitle(context) },
-				style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp, lineHeight = 22.sp),
+				style = MaterialTheme.typography.titleSmall.copy(fontSize = 15.sp, lineHeight = 20.sp),
 				fontWeight = FontWeight.SemiBold,
 				color = colors.primary,
 				maxLines = 1,
@@ -198,7 +198,7 @@ private fun SectionHeader(
 		) {
 			CoverStack(section.previews, container, imageLoader)
 		}
-		Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+		Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
 			AnimatedContent(
 				targetState = isSelecting,
 				transitionSpec = {
@@ -294,7 +294,7 @@ private fun Chevron(isCollapsed: Boolean) {
 	)
 	Box(
 		modifier = Modifier
-			.size(32.dp)
+			.size(28.dp)
 			.clip(CircleShape)
 			.background(MaterialTheme.colorScheme.surfaceContainerHigh),
 		contentAlignment = Alignment.Center,
@@ -304,7 +304,7 @@ private fun Chevron(isCollapsed: Boolean) {
 			contentDescription = null,
 			tint = MaterialTheme.colorScheme.onSurfaceVariant,
 			modifier = Modifier
-				.size(22.dp)
+				.size(20.dp)
 				.drawWithContent { rotate(rotation) { this@drawWithContent.drawContent() } },
 		)
 	}

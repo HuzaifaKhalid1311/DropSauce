@@ -63,12 +63,11 @@ import org.koitharu.kotatsu.core.ui.dialog.ExpressivePillButton
 import org.koitharu.kotatsu.core.ui.dialog.showComposeDialog
 import org.koitharu.kotatsu.core.ui.dialog.expressiveGroupItemShape
 import org.koitharu.kotatsu.core.ui.sheet.SheetSelectorField
-import org.koitharu.kotatsu.core.util.ext.findActivity
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.getQuantityStringSafe
 import org.koitharu.kotatsu.core.util.ext.joinToStringWithLimit
 import org.koitharu.kotatsu.core.util.ext.observeEvent
-import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
+import org.koitharu.kotatsu.core.ui.util.anchorAboveNav
 import org.koitharu.kotatsu.parsers.util.format
 
 @AndroidEntryPoint
@@ -499,9 +498,7 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 				if (isStarted) R.string.download_started else R.string.download_added,
 				Snackbar.LENGTH_LONG,
 			)
-			(host.context.findActivity() as? BottomNavOwner)?.let {
-				snackbar.anchorView = it.bottomNav
-			}
+			snackbar.anchorAboveNav()
 			val router = AppRouter.from(host)
 			if (router != null) {
 				snackbar.setAction(R.string.details) { router.openDownloads() }

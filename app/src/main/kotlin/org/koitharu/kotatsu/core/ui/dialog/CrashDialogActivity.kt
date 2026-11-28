@@ -41,7 +41,13 @@ class CrashDialogActivity : ComponentActivity() {
 			if (!holder.isLoaded) {
 				// Report is a file on disk, and it is the only thing this screen has to show.
 				val report = withContext(Dispatchers.Default) {
-					runCatching { helper.reportData }.getOrNull()
+					runCatching { helper.reportData }.getOrNull()?.also { data ->
+						// A StackOverflowError's trace runs to thousands of lines, and the whole report then
+						// overflows the clipboard's size limit: Copy details copied nothing or crashed.
+						if (data.containsKey(ReportField.STACK_TRACE)) {
+							data.put(ReportField.STACK_TRACE, data.getString(ReportField.STACK_TRACE).trimLines(150, 50))
+						}
+					}
 				}
 				holder.json = report?.toJSON()?.takeIf { it.isNotEmpty() }
 				holder.stackTrace = report?.getString(ReportField.STACK_TRACE)
@@ -86,6 +92,13 @@ class CrashDialogActivity : ComponentActivity() {
 			)
 		}
 	}
+}
+
+/** Keeps the first [head] and last [tail] lines (the cause and where it started), noting how many were cut. */
+private fun String.trimLines(head: Int, tail: Int): String {
+	val lines = lines()
+	if (lines.size <= head + tail) return this
+	return (lines.take(head) + "… ${lines.size - head - tail} lines skipped …" + lines.takeLast(tail)).joinToString("\n")
 }
 
 class ReportHolder : ViewModel() {

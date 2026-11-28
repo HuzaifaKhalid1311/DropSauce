@@ -41,9 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.exceptions.CloudFlareException
 import org.koitharu.kotatsu.core.exceptions.resolve.CaptchaHandler
 import org.koitharu.kotatsu.core.model.ids
@@ -59,7 +57,6 @@ import org.koitharu.kotatsu.download.ui.worker.DownloadTask
 import org.koitharu.kotatsu.download.ui.worker.DownloadWorker
 import org.koitharu.kotatsu.favourites.domain.FavouritesRepository
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
-import org.koitharu.kotatsu.parsers.util.toIntUp
 import org.koitharu.kotatsu.settings.work.PeriodicWorkScheduler
 import org.koitharu.kotatsu.tracker.domain.CheckNewChaptersUseCase
 import org.koitharu.kotatsu.tracker.domain.GetTracksUseCase
@@ -67,7 +64,6 @@ import org.koitharu.kotatsu.tracker.domain.model.MangaTracking
 import org.koitharu.kotatsu.tracker.domain.model.MangaUpdates
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import javax.inject.Provider
 import kotlin.math.roundToInt
 import androidx.appcompat.R as appcompatR
 
@@ -89,9 +85,9 @@ class TrackWorker @AssistedInject constructor(
 
 	override suspend fun doWork(): Result {
 		notificationHelper.updateChannels()
-		val isForeground = trySetForeground()
+		trySetForeground()
 		return try {
-			doWorkImpl(isFullRun = isForeground && TAG_ONESHOT in tags)
+			doWorkImpl()
 		} catch (e: CancellationException) {
 			throw e
 		} catch (e: Throwable) {
@@ -104,12 +100,14 @@ class TrackWorker @AssistedInject constructor(
 		}
 	}
 
-	private suspend fun doWorkImpl(isFullRun: Boolean): Result {
+	private suspend fun doWorkImpl(): Result {
 		if (!settings.isTrackerEnabled) {
 			return Result.success()
 		}
 		migrateLegacyDownloadStrategy()
-		val tracks = getTracksUseCase(if (isFullRun) Int.MAX_VALUE else BATCH_SIZE)
+		// Like Mihon, every run checks every title, so the chosen interval is how often notifications can come.
+		// If a run is cut short, the next one starts with the titles checked longest ago.
+		val tracks = getTracksUseCase(Int.MAX_VALUE)
 		if (tracks.isEmpty()) {
 			return Result.success()
 		}
@@ -298,7 +296,6 @@ class TrackWorker @AssistedInject constructor(
 	class Scheduler @Inject constructor(
 		private val workManager: WorkManager,
 		private val settings: AppSettings,
-		private val dbProvider: Provider<MangaDatabase>,
 	) : PeriodicWorkScheduler {
 
 		override suspend fun schedule() {
@@ -307,9 +304,7 @@ class TrackWorker @AssistedInject constructor(
 				return unschedule()
 			}
 			val constraints = createConstraints()
-			val runCount = dbProvider.get().getTracksDao().getTracksCount()
-			val runsPerFullCheck = (runCount / BATCH_SIZE.toFloat()).toIntUp().coerceAtLeast(1)
-			val interval = (18 / runsPerFullCheck / frequency).roundToInt().coerceAtLeast(2)
+			val interval = (18f / frequency).roundToInt().coerceAtLeast(2)
 			val request = PeriodicWorkRequestBuilder<TrackWorker>(interval.toLong(), TimeUnit.HOURS)
 				.setConstraints(constraints)
 				.addTag(TAG)
@@ -390,7 +385,6 @@ class TrackWorker @AssistedInject constructor(
 		const val TAG = "tracking"
 		const val TAG_ONESHOT = TAG_ONESHOT_VALUE
 		const val MAX_PARALLELISM = 6
-		val BATCH_SIZE = if (BuildConfig.DEBUG) 20 else 46
 		const val SETTINGS_ACTION_CODE = 5
 		const val DATA_PROGRESS = "progress"
 		const val DATA_MAX = "max"

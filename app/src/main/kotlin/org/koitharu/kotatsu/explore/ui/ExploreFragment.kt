@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.viewModels
 import coil3.ImageLoader
 import com.google.android.material.snackbar.Snackbar
+import org.koitharu.kotatsu.core.ui.util.anchorAboveNav
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
@@ -40,6 +41,7 @@ import org.koitharu.kotatsu.core.util.ext.findAppCompatDelegate
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
+import org.koitharu.kotatsu.core.util.ext.roundTopCorners
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.core.util.ext.toSet
 import org.koitharu.kotatsu.databinding.FragmentExploreBinding
@@ -127,7 +129,12 @@ class ExploreFragment :
 	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
 		val bars = insets.systemBarsInsets
 		val base = v.resources.getDimensionPixelOffset(R.dimen.list_spacing_normal)
-		viewBinding?.composeView?.setPadding(bars.left + base, base, bars.right + base, bars.bottom + base)
+		val binding = viewBinding ?: return insets.consumeAllSystemBarsInsets()
+		// Side insets go on the scroll view so the rounded top cut lines up with the content's edges.
+		binding.scrollView.setPadding(bars.left, 0, bars.right, 0)
+		binding.composeView.setPadding(base, base, base, bars.bottom + base)
+		// Same radius as the quick buttons' and extension grid's outer corners (ExploreScreen's OuterCorner).
+		binding.scrollView.roundTopCorners(radius = 24f * v.resources.displayMetrics.density, extraInset = base)
 		return insets.consumeAllSystemBarsInsets()
 	}
 
@@ -216,7 +223,7 @@ class ExploreFragment :
 		}
 		val url = item.source.homeUrl
 		if (url == null) {
-			Snackbar.make(requireViewBinding().composeView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
+			Snackbar.make(requireViewBinding().composeView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).anchorAboveNav().show()
 			return
 		}
 		router.openBrowser(url = url, source = item.source, title = item.source.getTitle(requireContext()))
@@ -261,7 +268,7 @@ class ExploreFragment :
 	private fun showLanguageFilterDialog() {
 		val languages = viewModel.sourceLanguages()
 		if (languages.isEmpty()) {
-			Snackbar.make(requireViewBinding().composeView, R.string.no_extensions_installed, Snackbar.LENGTH_SHORT).show()
+			Snackbar.make(requireViewBinding().composeView, R.string.no_extensions_installed, Snackbar.LENGTH_SHORT).anchorAboveNav().show()
 			return
 		}
 		// The same tick-box picker as "merge scanlators"; the count is the number of sources in that language

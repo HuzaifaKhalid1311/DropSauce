@@ -241,7 +241,9 @@ class MihonBackupManager @Inject constructor(
     private fun decode(uri: Uri): MihonBackup {
         val payload = context.contentResolver.openInputStream(uri)?.use { input ->
             val source = input.source().buffer()
-            val peeked = source.peek().apply { require(2) }
+            // An empty or 1-byte file isn't a backup; require(2) threw a bare EOFException for it.
+            val peeked = source.peek()
+            if (!peeked.request(2)) throw BadBackupFormatException(null)
             val signature = peeked.readShort().toInt()
             when (signature) {
                 0x1f8b -> source.gzip().buffer().readByteArray()

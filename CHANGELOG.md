@@ -4,6 +4,13 @@
 
 ### Improved
 - Redesigned the updates feed
+- Pop-up messages always show above the nav bar now, and you can swipe them down to dismiss
+- History's date sections are more compact, and you can fold them all at once too
+
+### Fixed
+- Getting new chapter notifications way more often than the check frequency you picked
+- Copy details on the crash popup copying nothing or crashing the app
+- Other small bug fixes
 
 ## 1.2.0 (2026-11-27)
 

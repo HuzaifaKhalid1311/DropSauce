@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.isSerializable
-import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
+import org.koitharu.kotatsu.core.ui.util.anchorAboveNav
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
 class SnackbarErrorObserver(
@@ -26,7 +26,7 @@ class SnackbarErrorObserver(
 
 	override suspend fun emit(value: Throwable) {
 		val snackbar = Snackbar.make(host, value.getDisplayMessage(host.context.resources), Snackbar.LENGTH_SHORT)
-		snackbar.anchorView = (activity as? BottomNavOwner)?.bottomNav
+		snackbar.anchorAboveNav()
 		if (canResolve(value)) {
 			snackbar.setAction(ExceptionResolver.getResolveStringId(value)) {
 				resolve(value)

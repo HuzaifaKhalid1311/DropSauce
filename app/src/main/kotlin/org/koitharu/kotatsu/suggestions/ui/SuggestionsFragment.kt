@@ -7,6 +7,7 @@ import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.viewModels
 import com.google.android.material.snackbar.Snackbar
+import org.koitharu.kotatsu.core.ui.util.anchorAboveNav
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
@@ -37,7 +38,7 @@ class SuggestionsFragment : MangaListFragment() {
 			requireViewBinding().recyclerView,
 			R.string.suggestions_updating,
 			Snackbar.LENGTH_LONG,
-		).show()
+		).anchorAboveNav().show()
 	}
 
 	override fun onCreateActionMode(

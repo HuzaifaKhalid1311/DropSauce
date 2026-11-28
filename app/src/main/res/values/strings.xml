@@ -1398,4 +1398,5 @@
     <string name="dismiss">Dismiss</string>
 	<string name="deselect_all">Deselect all</string>
 	<string name="expand_all">Expand all</string>
+	<string name="collapse_all">Collapse all</string>
 </resources>

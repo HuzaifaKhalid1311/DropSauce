@@ -231,6 +231,13 @@ class HistoryListViewModel @Inject constructor(
 		settings.historyCollapsedSections = emptySet()
 	}
 
+	fun collapseAllSections() {
+		// Loaded sections plus every section the whole history has, so ones paged in later arrive folded too.
+		val keys = content.value.mapNotNullTo(HashSet()) { (it as? HistorySection)?.key }
+		countsCache?.counts?.keys?.let(keys::addAll)
+		settings.historyCollapsedSections += keys
+	}
+
 	override fun requestAllItems() {
 		limit.value = Int.MAX_VALUE
 	}

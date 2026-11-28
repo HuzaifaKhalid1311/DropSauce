@@ -315,6 +315,14 @@
 		android:visibility="gone"
 		tools:visibility="visible" />
 
+	<!-- Snackbar anchor: kept at the nav bar's resting top edge (MainActivity sets the margin) -->
+	<View
+		android:id="@+id/snackbarAnchor"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_gravity="bottom"
+		tools:ignore="InconsistentLayout" />
+
 	<org.koitharu.kotatsu.core.ui.widgets.FloatingBottomNavigationView
 		android:id="@+id/bottomNav"
 		android:layout_width="match_parent"

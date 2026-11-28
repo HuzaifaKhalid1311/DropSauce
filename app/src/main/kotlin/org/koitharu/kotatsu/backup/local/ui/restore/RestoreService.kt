@@ -70,7 +70,7 @@ class RestoreService : BaseBackupRestoreService() {
 			} else {
 				null
 			}
-			val result = ZipInputStream(contentResolver.openInputStream(source)).use { input ->
+			val result = ZipInputStream(contentResolver.openInputStream(source) ?: throw FileNotFoundException()).use { input ->
 				repository.restoreBackup(input, sections, progress)
 			}
 			progressUpdateJob?.cancelAndJoin()

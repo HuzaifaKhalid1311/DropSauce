@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.viewModels
 import com.google.android.material.snackbar.Snackbar
+import org.koitharu.kotatsu.core.ui.util.anchorAboveNav
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.router
@@ -73,7 +74,7 @@ class LocalListFragment : MangaListFragment(), FilterCoordinator.Owner {
 
 	override fun onPrimaryButtonClick(tipView: TipView) {
 		if (!permissionRequestLauncher.tryLaunch(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-			Snackbar.make(tipView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).show()
+			Snackbar.make(tipView, R.string.operation_not_supported, Snackbar.LENGTH_SHORT).anchorAboveNav().show()
 		}
 	}
 
@@ -126,6 +127,6 @@ class LocalListFragment : MangaListFragment(), FilterCoordinator.Owner {
 			requireViewBinding().recyclerView,
 			R.string.removal_completed,
 			Snackbar.LENGTH_SHORT,
-		).show()
+		).anchorAboveNav().show()
 	}
 }

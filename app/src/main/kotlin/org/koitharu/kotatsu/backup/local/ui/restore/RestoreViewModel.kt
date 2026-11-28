@@ -46,7 +46,7 @@ class RestoreViewModel @Inject constructor(
 	private suspend fun loadBackupInfo() {
 		val (sections, counts) = runInterruptible(Dispatchers.IO) {
 			val source = uri ?: throw FileNotFoundException()
-			ZipInputStream(contentResolver.openInputStream(source)).use { stream ->
+			ZipInputStream(contentResolver.openInputStream(source) ?: throw FileNotFoundException()).use { stream ->
 				val result = EnumSet.noneOf(BackupSection::class.java)
 				val itemCounts = EnumMap<BackupSection, Int>(BackupSection::class.java)
 				var entry = stream.nextEntry

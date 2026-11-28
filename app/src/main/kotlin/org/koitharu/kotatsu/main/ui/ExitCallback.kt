@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.PredictiveBackCallback
 import org.koitharu.kotatsu.core.ui.util.predictiveBackTarget
-import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
+import org.koitharu.kotatsu.core.ui.util.anchorAboveNav
 
 class ExitCallback(
 	private val activity: MainActivity,
@@ -63,7 +63,7 @@ class ExitCallback(
 	private suspend fun resetExitConfirmation() {
 		isDisabledByTimeout.value = true
 		val snackbar = Snackbar.make(snackbarHost, R.string.confirm_exit, Snackbar.LENGTH_INDEFINITE)
-		snackbar.anchorView = (activity as? BottomNavOwner)?.bottomNav
+		snackbar.anchorAboveNav()
 		snackbar.show()
 		delay(2000)
 		snackbar.dismiss()

@@ -127,6 +127,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	override val bottomNav: SlidingBottomNavigationView?
 		get() = viewBinding.bottomNav
 
+	override val snackbarAnchor: View?
+		get() = viewBinding.snackbarAnchor
+
 	override val listCheckpointButton: ListCheckpointView
 		get() = viewBinding.buttonCheckpoint
 
@@ -682,6 +685,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		val gap = if (viewBinding.bottomNav != null) 0 else resources.getDimensionPixelOffset(R.dimen.margin_small)
 		viewBinding.buttonCheckpoint.updateLayoutParams<MarginLayoutParams> {
 			bottomMargin = bottomInset + navHeight + gap
+		}
+		viewBinding.snackbarAnchor?.updateLayoutParams<MarginLayoutParams> {
+			bottomMargin = viewBinding.bottomNav?.height ?: 0
 		}
 	}
 
